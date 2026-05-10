@@ -142,6 +142,7 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS = [
     "current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
     "current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
     "x86_64-linux",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 ]
 
 
@@ -647,12 +648,44 @@ def run_self_test() -> int:
                     "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
                     "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
                     "- current pinned bootstrap archive target: `x86_64-linux`",
+                    "- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keeps the committed `genksyms_crc` plus `mk_elfconfig` fixture packet explicit beside `zigux/tests/fixtures/phase2_tool_manifest.json`, so the artifact-backed half of the bounded Phase 2 tool-manifest surface stays reviewable from this bootstrap note instead of being folded into the aggregate packet name alone",
                 ]
             )
             + "\n",
             encoding="utf-8",
         )
         assert require_markers(notes.read_text(encoding="utf-8"), PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS, "toolchain_notes") == []
+    cases_run += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase2_toolchain_notes_missing_artifact_") as tmp_dir:
+        notes = Path(tmp_dir) / "notes.md"
+        notes.write_text(
+            "\n".join(
+                [
+                    "- policy file: `scripts/zigux/zig-toolchain-policy.json`",
+                    "- guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+                    "- guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+                    "- shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`",
+                    "- shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`",
+                    "- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`",
+                    "- workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`",
+                    "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
+                    "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+                    "- current pinned bootstrap archive target: `x86_64-linux`",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = require_markers(
+            notes.read_text(encoding="utf-8"),
+            PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS,
+            "toolchain_notes",
+        )
+        assert (
+            "toolchain_notes:zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+            in issues
+        )
     cases_run += 1
 
     print("PHASE2_CLOSURE_SELF_TEST=pass")
