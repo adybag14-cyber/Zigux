@@ -30,6 +30,8 @@ Broad summaries should also keep the adjacent notifier evidence packet visible t
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `drivers/tty/hvc/hvc_console.h`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
 ## Release-Surface Posture
 
@@ -39,6 +41,7 @@ Keep Phase 13 release wording inside these boundaries:
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
+- adjacent notifier wording should keep both shipped notifier packet checkers explicit when that packet changes
 
 ## Where To Re-Read Before Updating Release Wording
 
