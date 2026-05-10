@@ -40,6 +40,7 @@ EXPECTED_VERSION_STDERR_CASES = [
     "abbreviated_version",
     "version_then_short_help",
     "version_then_long_help",
+    "version_then_invalid_option",
 ]
 
 REQUIRED_BRIDGE_MARKERS = (
