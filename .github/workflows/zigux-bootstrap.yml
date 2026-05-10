@@ -55,7 +55,7 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   bootstrap:
@@ -288,7 +288,7 @@ jobs:
         run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test
 
       - name: Check bounded mk_elfconfig artifact parity
-        run: python3 scripts/zigux/check-mk-elfconfig-diff.py
+        run: python3 scripts/zigux/check-mk_elfconfig-diff.py
 
       - name: Check discovered Phase 3 parity
         run: python3 scripts/zigux/run-phase3-checks.py
