@@ -47,6 +47,7 @@ EXPECTED_HELPER_LOCAL_ANCHORS = [
     'dependency file reads beyond the legacy one mebibyte ceiling',
     'output write failure uses C-style wording',
     'escaped hash dependency survives concatenated target comment path',
+    'escaped space dependency survives concatenated target comment path',
 ]
 
 
