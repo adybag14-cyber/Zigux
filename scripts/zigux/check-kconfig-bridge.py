@@ -40,6 +40,7 @@ REQUIRED_CONFDATA_CASES = [
     "uppercase_tristate",
     "non_config_lines",
     "empty_config_symbol_names",
+    "malformed_quoted_duplicate",
 ]
 
 REQUIRED_CONFDATA_HELPER_ANCHORS = [
@@ -306,7 +307,8 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
 
     confdata_cases = cases["confdata_cases"]
-    manifest_confdata_case_order = [str(case["name"]) for case in confdata_cases]
+    manifest_confdata_case_order = [str(case["name"])
+        for case in confdata_cases]
     if manifest_confdata_case_order != REQUIRED_CONFDATA_CASES:
         issues.append(("CONFDATA_CASE_ORDER_ACTUAL", ",".join(manifest_confdata_case_order)))
         issues.append(("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)))
@@ -466,6 +468,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "uppercase_tristate", "input": "uppercase_tristate.config", "expected": "uppercase_tristate_expected.json"},
                     {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
+                    {"name": "malformed_quoted_duplicate", "input": "malformed_quoted_duplicate.config", "expected": "malformed_quoted_duplicate_expected.json"},
                 ],
             },
             indent=2,
@@ -549,6 +552,7 @@ def build_self_test_root(root: Path) -> None:
                     "uppercase_tristate.config",
                     "non_config_lines.config",
                     "empty_config_symbol_names.config",
+                    "malformed_quoted_duplicate.config",
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -562,6 +566,7 @@ def build_self_test_root(root: Path) -> None:
                     "uppercase_tristate_expected.json",
                     "non_config_lines_expected.json",
                     "empty_config_symbol_names_expected.json",
+                    "malformed_quoted_duplicate_expected.json",
                 ],
                 "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
             },
@@ -597,6 +602,7 @@ def build_self_test_root(root: Path) -> None:
         "uppercase_tristate_expected.json",
         "non_config_lines_expected.json",
         "empty_config_symbol_names_expected.json",
+        "malformed_quoted_duplicate_expected.json",
         "sample.config",
         "escaped_strings.config",
         "escaped_control_sequences.config",
@@ -608,6 +614,7 @@ def build_self_test_root(root: Path) -> None:
         "uppercase_tristate.config",
         "non_config_lines.config",
         "empty_config_symbol_names.config",
+        "malformed_quoted_duplicate.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
 
@@ -728,7 +735,7 @@ def run_self_test() -> int:
         payload["confdata_cases"][1], payload["confdata_cases"][2] = payload["confdata_cases"][2], payload["confdata_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names") in issues
+        assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_quoted_duplicate") in issues
         assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
 
