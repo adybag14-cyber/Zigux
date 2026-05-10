@@ -66,8 +66,6 @@ Legacy validator continuity marker: older Phase 8 checker readbacks may still me
 The live heading for this lane is the parked wording above, and the helper-family packet itself remains parked after the landed file-path bridge and perf-buffer poll review updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
 Current parked review packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
-- `Documentation/zigux/phase8-libbpf-logging-slice.md`
-- `Documentation/zigux/phase8-pin-path-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
