@@ -71,8 +71,11 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/notifier_chain_view.zig`
+- `drivers/tty/hvc/hvc_console.h`
 
 The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.
+
+The adjacent notifier release evidence also keeps `drivers/tty/hvc/hvc_console.h` explicit as the concrete mixed interop anchor for the shipped `struct hvc_struct` list linkage and exported `notifier_*_irq` callback shape without recasting that header into a ninth shared replay step.
 
 The docs-root summary, broader tests-root reminder, contributor workflow guide, shared contributor-surface sync note, compact tests-root review companion, and shared review checklist stay in that same adjacent release packet too. They keep the broader Phase 13 contributor prompts honest beside the validator-first route without promoting those reminder surfaces into extra shared replay steps or shifting ownership away from the helper-family lanes.
 
