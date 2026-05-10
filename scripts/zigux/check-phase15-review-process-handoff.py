@@ -376,7 +376,6 @@ def write_fixture_tree(root: Path) -> None:
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
 
     (root / DOCS_README_PATH).write_text("\n".join(("# docs", *REQUIRED_DOCS_README_MARKERS, "")), encoding="utf-8")
-    (root / REVIEW_CHECKLIST_PATH).writeText if False else None
     (root / REVIEW_CHECKLIST_PATH).write_text("\n".join(("# checklist", *REQUIRED_REVIEW_CHECKLIST_MARKERS, "")), encoding="utf-8")
     (root / SCRIPT_README_PATH).write_text("\n".join(("# scripts", *REQUIRED_SCRIPT_README_MARKERS, "")), encoding="utf-8")
     (root / TESTS_README_PATH).write_text("\n".join(("# tests", *REQUIRED_TESTS_README_MARKERS, "")), encoding="utf-8")
