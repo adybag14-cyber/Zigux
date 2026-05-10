@@ -118,11 +118,11 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     const head_nbits = find_bit.bits_per_long * 2;
     const tail_nbits = find_bit.bits_per_long + 5;
     const past_nbits = 7;
-    const boundary_set = [_]find_bit.Word{(@as(find_bit.Word, 1) << @intCast(boundary)), 0};
-    const boundary_zero = [_]find_bit.Word{~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0)};
+    const boundary_set = [_]find_bit.Word{ (@as(find_bit.Word, 1) << @intCast(boundary)), 0 };
+    const boundary_zero = [_]find_bit.Word{ ~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0) };
     const empty_mask = [_]find_bit.Word{ 0, 0 };
-    const tail_set = [_]find_bit.Word{0, @as(find_bit.Word, 1) << 3};
-    const tail_full = [_]find_bit.Word{~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits)};
+    const tail_set = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 3 };
+    const tail_full = [_]find_bit.Word{ ~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits) };
     const empty = [_]find_bit.Word{};
 
     var checksum: u64 = 0;
@@ -274,6 +274,7 @@ fn listSortBench() struct { checksum: u64 } {
 fn rbtreeBench() struct {
     checksum: u64,
     duplicate_mutation_checksum: u64,
+    match_iterator_checksum: u64,
     cached_checksum: u64,
 } {
     const RbEntry = struct {
@@ -323,6 +324,7 @@ fn rbtreeBench() struct {
 
     var checksum: u64 = 0;
     var duplicate_mutation_checksum: u64 = 0;
+    var match_iterator_checksum: u64 = 0;
     var cached_checksum: u64 = 0;
     var iter: usize = 0;
     while (iter < iterations_rbtree) : (iter += 1) {
@@ -400,6 +402,14 @@ fn rbtreeBench() struct {
             const entry: *const RbEntry = @fieldParentPtr("node", cursor);
             checksum +%= @intCast(entry.key + @as(i32, @intCast(entry.serial)));
             cursor = rbtree.nextMatch(&wanted, cursor, cmpKey) orelse break;
+        }
+
+        var iterator = rbtree.matchIterator(&wanted, &duplicate_root, cmpKey);
+        while (iterator.nextMatchNode()) |node| {
+            const entry: *const RbEntry = @fieldParentPtr("node", node);
+            const contribution = entry.serial + 211;
+            checksum +%= contribution;
+            match_iterator_checksum +%= contribution;
         }
 
         var duplicate_mutation_entries = [_]RbEntry{
@@ -498,6 +508,7 @@ fn rbtreeBench() struct {
     return .{
         .checksum = checksum,
         .duplicate_mutation_checksum = duplicate_mutation_checksum,
+        .match_iterator_checksum = match_iterator_checksum,
         .cached_checksum = cached_checksum,
     };
 }
@@ -525,6 +536,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(list_sort_result.checksum != 0);
     std.debug.assert(rbtree_result.checksum != 0);
     std.debug.assert(rbtree_result.duplicate_mutation_checksum != 0);
+    std.debug.assert(rbtree_result.match_iterator_checksum != 0);
     std.debug.assert(rbtree_result.cached_checksum != 0);
 
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
@@ -545,6 +557,7 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\n", .{iterations_rbtree});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\n", .{rbtree_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM={d}\n", .{rbtree_result.duplicate_mutation_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_MATCH_ITERATOR_CHECKSUM={d}\n", .{rbtree_result.match_iterator_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\n", .{rbtree_result.cached_checksum});
     try stdout_writer.interface.flush();
 }
