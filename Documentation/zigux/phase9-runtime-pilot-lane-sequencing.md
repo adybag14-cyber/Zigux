@@ -1,19 +1,25 @@
 # Phase 9 Runtime Pilot Lane Sequencing
 
-This note turns the current `master` evidence for the Phase 9 runtime pilot packet into one bounded anti-overlap map for scheduled pilot lanes.
+This note turns the roadmap-backed Phase 9 reminder packet on current `master` into one bounded anti-overlap map for scheduled pilot lanes.
+
+Current repo-reality warning:
+
+- this survey could still read the shared Phase 9 reminder surfaces under `Documentation/zigux/`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `Documentation/zigux/review-checklist.md`
+- live contents reads for `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds returned not found during this pass
+- treat those missing shared loader and replay paths as planned Phase 9 anchors, not shipped current-`master` evidence, until a future shared-lane run confirms they are back or narrows the reminder packet away from them
 
 ## Why this note exists
 
-Phase 9 is now carrying both:
+Phase 9 still carries both:
 
-- a shared runtime-loader handoff packet under `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, and `zigux/tests/phase9_build.zig`
+- a planned shared runtime-loader handoff packet around `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, and `zigux/tests/phase9_build.zig`
 - four pilot-family packets rooted in `lib/atomic64_test.c`, `lib/test_bitmap.c`, `samples/trace_events/trace-events-sample.c`, and `samples/kprobes/kretprobe_example.c`
 
-That split is real product progress, but without a dedicated sequencing note nearby runs can still reopen the same Phase 9 surfaces from different directions.
+That split remains the roadmap-backed product shape, but without a dedicated sequencing note nearby runs can still reopen the same Phase 9 surfaces from different directions or overstate reminder-only anchors as already shipped replay evidence.
 
 ## Shared loader lane
 
-Treat the shared loader lane as the only owner of:
+Treat the shared loader lane as the planned owner of these shared Phase 9 anchors whenever they are present on `master`:
 
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
@@ -22,6 +28,8 @@ Treat the shared loader lane as the only owner of:
 - the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - the `phase9-runtime-loader-shared-tests` step in `zigux/tests/phase9_build.zig`
 - the shared `make -C zigux phase9` route when the work is about loader-facade, allocator-handoff, request-contract, or bundled runtime-pilot reviewability
+
+If one or more of those shared files are absent on live `master`, treat that as a shared repo-reality blocker first. Do not quietly borrow pilot-family survey notes or contributor reminders as substitute proof that the shared loader packet is shipped.
 
 This lane may tighten loader-facing reviewability, checker-local selftest-hook wording, contract wording, or shared build-only validation, but it should not reopen pilot-local sample, module, diff, or survey logic unless a shared loader contract change forces a synchronized follow-up.
 
@@ -139,29 +147,20 @@ This shared note owns those exact convenience-target names for closure work; lat
 
 ## Current live follow-through state
 
-- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`; treat those three shared reminder surfaces as parked unless the shared loader packet itself changes
-- `scripts/zigux/README.md` now keeps the focused shared-loader replay explicit beside the bundled `make -C zigux phase9` route, so the shared loader lane no longer has a parked scripts-root reminder follow-through on current `master`
-- the broad docs-root Phase 9 summary in `Documentation/zigux/README.md` should now be treated as parked shared-packet context, not as a request to reopen checker-local or pilot-family follow-through, because this sequencing note plus `scripts/zigux/check-phase9-build-only-surface.py` already record the shared loader packet as aligned on current `master`
-- that parked docs-root summary intentionally stays broad: the direct starter samples `samples/zigux/runtime_atomic64.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_trace_events.zig`, and `samples/zigux/runtime_kretprobe.zig` remain pilot-family evidence owned by their dedicated module-slice and survey notes, so future docs-root reminder refreshes should point back here instead of flattening those starters into shared loader ownership
-- `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
-- `Documentation/zigux/freeze-map.md` already keeps the shared Phase 9 runtime-loader packet explicit as a review-only boundary beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`, so the shared loader lane should treat freeze-map wording there as a review-surface cue rather than runtime-substrate closure or a status-change request
-- the current shared runtime-loader governance surface still has no linked `Documentation/zigux/phase15-parity-scorecard.md` entry or Architecture Council status-change request for the Phase 9 loader packet anywhere on `master`; if either artifact appears, reopen the shared loader lane as a governance change first instead of treating it as routine pilot-family evidence drift
-- if a future `Documentation/zigux/review-checklist.md` refresh is triggered by one of those shared-loader freeze-map governance artifacts, keep that checklist work coupled to the same shared governance reopen instead of landing it as a standalone Phase 9 reminder cleanup
-- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
-- treat that review-checklist prompt and `scripts/zigux/check-phase9-build-only-surface.py` as one coupled release-discipline packet: a checklist-side Phase 9 reminder refresh is incomplete unless the shared checker keeps this sequencing note, the shipped self-test-hook ownership bullet, and the older freeze-map follow-through coupled instead of only trusting the surrounding reminder surfaces
-- `scripts/zigux/check-phase9-build-only-surface.py` now exact-counts the older freeze-map prompt follow-through and also fails closed on both the sequencing note's shared-loader self-test-hook ownership bullet and the coupled checklist-side validation-packet marker, so the shared loader lane no longer has a parked checker-local selftest-hook follow-through on current `master`
-- `zigux/tests/README.md` now keeps the shared Phase 9 runtime-loader packet broad while also naming the focused `phase9-runtime-loader-shared-tests` step, so the shared loader lane no longer has a parked tests-root reminder follow-through on current `master`
-- `zigux/tests/runtime_loader_allocator_init_flow.zig` now keeps prepared requests pinned across loader-not-required, module-name drift, anchor drift, entry-symbol drift, exit-symbol drift, selftest-hook drift, and init-flow drift, so that allocator/init-flow request-shape proof is parked on current `master`
-- with the broad docs-root, scripts-root, and tests-root reminders all parked on current `master`, the next same-lane follow-through should stay inside `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, or `zigux/tests/runtime_loader_allocator_init_flow.zig` for the next smallest lifecycle-state or invalid-transition proof that is still only indirect there, instead of reopening a broader summary surface
-- reopen this shared lane only if one of the shared reminder surfaces drifts again or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
+- this survey could still read `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, so the broad reminder packet is still visible on current `master`
+- this survey could not read `zigux/tests/phase9_build.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, or the `samples/zigux/runtime_*_loader.zig` scaffolds from the live contents tree, so the shared runtime-loader packet is currently a repo-reality blocker rather than a parked shipped replay surface
+- because that shared file family is missing, do not treat the broad docs-root, scripts-root, tests-root, or checklist reminders as proof that the shared loader lane is already aligned; the next shared follow-through should either re-establish those concrete files on `master` or narrow the reminder packet so it stops overstating them
+- the four pilot-family docs packets remain the safest place to record family-local blocked-state evidence while the shared file family is missing; do not widen those pilot-local blocked notes into substitute shared-loader closure claims
+- keep `Documentation/zigux/freeze-map.md` follow-through as a governance cue only; with the shared loader file family missing, any future freeze-map or scorecard mention should reopen the shared lane as a repo-reality and governance blocker first
+- leave `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` available as reminder surfaces, but treat them as the next repair targets only after the shared lane decides whether the missing shared file family is being restored or whether those reminders should be narrowed
 
 ## Recommended next-step order
 
-1. shared reminder refresh: only if another docs-root, scripts-root, tests-root, samples-root, or checklist surface drifts after this alignment; the broad docs-root, scripts-root, and tests-root Phase 9 summaries are currently parked on live `master`, so if a reminder-only follow-through is still justified without changing the shared loader packet, prefer the smallest stale checklist or samples-root cue before reopening those broader summaries
-2. shared loader lane: with the allocator/init-flow request-drift proof now landed, prefer the next smallest lifecycle-state or invalid-transition proof inside `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, or `zigux/tests/runtime_loader_allocator_init_flow.zig`; if a new bounded validation surface lands, wire it through `scripts/zigux/check-phase9-build-only-surface.py` before reopening broader request-contract, allocator/init-flow, or build-only reviewability work
-3. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
-4. trace-events lane: only if the goal is to refine the trace-events-local registration-drain or failed-exit recovery proof inside `samples/zigux/runtime_trace_events_loader.zig`
-5. atomic64 or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, survey, or blocked-state evidence packet
+1. shared repo-reality repair: first confirm whether the missing shared file family under `zigux/tests/phase9_build.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/kernel/runtime_loader*.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `samples/zigux/runtime_*_loader.zig` is meant to be restored on `master` or removed from the shared reminder packet
+2. shared reminder refresh: if the missing shared file family is intentionally gone, narrow `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` one surface at a time so they stop describing those paths as shipped replay evidence
+3. shared loader lane: if the missing shared file family is being restored instead, re-establish the smallest honest build or checker surface first and only then reopen broader request-contract, allocator/init-flow, or build-only reviewability work
+4. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
+5. trace-events, atomic64, or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, survey, or blocked-state evidence packet
 
 ## Anti-overlap rule
 
