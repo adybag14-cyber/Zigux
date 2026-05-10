@@ -91,6 +91,7 @@ REVIEW_CHECKLIST_MARKERS = [
 ]
 
 TOOLCHAIN_NOTES_MARKERS = [
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py",
@@ -192,7 +193,8 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
-        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "- shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`": 1,
+        "- shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`": 1,
         "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
         "python3 scripts/zigux/check-phase2-fixdep-gate.py": 2,
         "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
