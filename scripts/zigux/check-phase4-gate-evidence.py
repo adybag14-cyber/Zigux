@@ -478,6 +478,8 @@ def validate_root(root: Path) -> list[str]:
         "make -C zigux phase4-bitmap-diff-survey",
         "shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter",
         "shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`",
+        "13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints",
+        "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes",
     ]
     for marker in required_markers:
         if marker not in note_text:
@@ -630,7 +632,7 @@ def build_fixture_tree(root: Path) -> None:
     note = (
         "# Phase 4 Gate Evidence\n\n## Status\n"
         + status_lines
-        + "\n\n## Exact Readback Evidence\napproved local-only command-and-limit evidence\nexact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope\nphase4-runtime-atomic64-diff-survey-tests\nphase4-bitmap-live-helper-replay-tests\nmake -C zigux phase4-bitmap-diff-survey\nshared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter\nshared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`\n\n## Current Conclusion\nshared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved\n"
+        + "\n\n## Exact Readback Evidence\napproved local-only command-and-limit evidence\nexact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope\nphase4-runtime-atomic64-diff-survey-tests\nphase4-bitmap-live-helper-replay-tests\nmake -C zigux phase4-bitmap-diff-survey\nshared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter\nshared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`\n13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints\naligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes\n\n## Current Conclusion\nshared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved\n"
     )
     _write(root / NOTE_PATH, note)
 
@@ -725,6 +727,21 @@ def run_self_test() -> int:
         )
         assert validate_root(bad7) == [
             "test_fsmount_gap_note:`samples/zigux/test_fsmount.zig` is still absent"
+        ]
+
+        bad8 = Path(tmp_dir) / "bad8"
+        build_fixture_tree(bad8)
+        note_path = bad8 / NOTE_PATH
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                "13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad8) == [
+            "note_marker:13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints"
         ]
 
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
