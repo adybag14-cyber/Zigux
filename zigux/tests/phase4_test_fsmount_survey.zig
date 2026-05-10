@@ -69,7 +69,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
         manifest.validation_entrypoint,
     );
-    try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqualStrings(
         "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
         manifest.review_prompts[0],
@@ -79,12 +79,16 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[1],
     );
     try std.testing.expectEqualStrings(
-        "the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route",
+        "the direct validation entrypoint intentionally stays aligned to the dedicated build-step survey wrapper, so the parked packet cannot silently retarget one replay surface without the other",
         manifest.review_prompts[2],
     );
     try std.testing.expectEqualStrings(
-        "the packet stays outside the shared gate-evidence target set while the shared validator still rereads it through the dedicated exact-readback checker",
+        "the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route",
         manifest.review_prompts[3],
+    );
+    try std.testing.expectEqualStrings(
+        "the packet stays outside the shared gate-evidence target set while the shared validator still rereads it through the dedicated exact-readback checker",
+        manifest.review_prompts[4],
     );
     try std.testing.expectEqual(@as(usize, 3), manifest.non_goals.len);
     try std.testing.expectEqualStrings("shipped test_fsmount Zig starter", manifest.non_goals[0]);
