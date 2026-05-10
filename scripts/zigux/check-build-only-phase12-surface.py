@@ -36,34 +36,13 @@ REQUIRED_PHASE12_PATHS = [
     TESTS_README_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
-    "Documentation/zigux/phase12-release-closure-checklist.md",
-    "zigux/tests/phase12_build.zig",
-    "zigux/tests/phase12_nvme_pci.zig",
-    "zigux/tests/phase12_nvme_pci_survey.zig",
-    "zigux/tests/phase12_virtio_net.zig",
-    "zigux/tests/phase12_virtio_net_manifest.json",
-    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
-    "zigux/tests/phase12_virtio_net_survey.zig",
-    "zigux/tests/phase12_virtio_scsi.zig",
-    "zigux/tests/phase12_virtio_scsi_survey.zig",
-    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
-    "zigux/tests/phase12_libbpf_segments.zig",
-    "zigux/tests/phase12_libbpf_reviewability.zig",
-    "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
-    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
-    "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
-]
-
-FORBIDDEN_PHASE12_PATHS = [
-    "scripts/zigux/validate-phase12.py",
-    "scripts/zigux/check-phase12-build-inventory.py",
-    "scripts/zigux/check-phase12-libbpf-snapshot.py",
-    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-release-sequencing.md",
+    "Documentation/zigux/phase12-release-closure-checklist.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-release-coordination-matrix.md",
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
@@ -72,10 +51,32 @@ FORBIDDEN_PHASE12_PATHS = [
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "drivers/nvme/host/pci_verify.zig",
+    "zigux/tests/phase12_build.zig",
+    "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_nvme_pci_manifest.json",
+    "zigux/tests/phase12_nvme_pci_survey.zig",
+    "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_manifest.json",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_survey.zig",
+    "zigux/tests/phase12_virtio_scsi.zig",
     "zigux/tests/phase12_virtio_scsi_manifest.json",
+    "zigux/tests/phase12_virtio_scsi_survey.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+    "zigux/tests/phase12_libbpf_segments.zig",
+    "zigux/tests/phase12_libbpf_reviewability.zig",
     "zigux/tests/phase12_libbpf_manifest.json",
+    "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
+    "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
     "tools/lib/bpf/zigux_segments/manifest.json",
+]
+
+FORBIDDEN_PHASE12_PATHS = [
+    "scripts/zigux/validate-phase12.py",
+    "scripts/zigux/check-phase12-build-inventory.py",
+    "scripts/zigux/check-phase12-libbpf-snapshot.py",
     "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/tests/phase12_cross_build.zig",
 ]
@@ -261,16 +262,21 @@ def run_self_test() -> int:
         expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[0]}")
 
         write_fixture_tree(base)
-        write_text(base / FORBIDDEN_PHASE12_PATHS[3], "# stale phase12 coverage note\n")
-        expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[3]}")
+        write_text(base / FORBIDDEN_PHASE12_PATHS[-1], "// stale phase12 cross-build replay\n")
+        expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[-1]}")
 
         write_fixture_tree(base)
-        missing_path = base / REQUIRED_PHASE12_PATHS[-1]
+        missing_path = base / Path("Documentation/zigux/phase12-raw-github-coverage-survey.md")
         missing_path.unlink()
-        expect_failure(base, f"missing_file:{REQUIRED_PHASE12_PATHS[-1]}")
+        expect_failure(base, "missing_file:Documentation/zigux/phase12-raw-github-coverage-survey.md")
+
+        write_fixture_tree(base)
+        missing_path = base / Path("zigux/tests/phase12_libbpf_manifest.json")
+        missing_path.unlink()
+        expect_failure(base, "missing_file:zigux/tests/phase12_libbpf_manifest.json")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
