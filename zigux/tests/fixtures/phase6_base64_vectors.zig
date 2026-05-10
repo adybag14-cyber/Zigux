@@ -474,3 +474,75 @@ test "phase 6 base64 perf fixture packet keeps IMAP outside the slowdown corpus 
     try std.testing.expect(saw_urlsafe);
     try std.testing.expect(!perfReferenceSupportedVariant("imap"));
 }
+
+test "phase 6 base64 fixture packet stays aligned with the helper public api" {
+    const base64 = @import("../../../lib/base64.zig");
+    var encoded: [perf_encoded_buf_size]u8 = undefined;
+    var decoded: [perf_payload_buf_size]u8 = undefined;
+
+    for (standard_cases) |case| {
+        const written = try base64.encode(encoded[0..], case.input, case.padding, .std);
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualStrings(case.expected, encoded[0..written]);
+        try std.testing.expectEqual(base64.chars(case.input.len, case.padding), written);
+        if (case.padding) {
+            try std.testing.expectEqual(base64.paddedChars(case.input.len), written);
+        }
+    }
+
+    for (variant_cases) |case| {
+        const variant: base64.Variant = if (std.mem.eql(u8, case.variant_name, "std"))
+            .std
+        else if (std.mem.eql(u8, case.variant_name, "urlsafe"))
+            .urlsafe
+        else
+            .imap;
+        const written = try base64.encode(encoded[0..], &variant_sample, case.padding, variant);
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualStrings(case.expected, encoded[0..written]);
+        try std.testing.expectEqual(base64.chars(variant_sample.len, case.padding), written);
+        if (case.padding) {
+            try std.testing.expectEqual(base64.paddedChars(variant_sample.len), written);
+        }
+    }
+
+    for (standard_decode_cases) |case| {
+        const variant: base64.Variant = .std;
+        const exact_len = try base64.bytes(case.input, case.padding, variant);
+        try std.testing.expectEqual(case.expected.len, exact_len);
+        try std.testing.expect(base64.maxDecodedBytes(case.input.len) >= case.expected.len);
+        const written = try base64.decode(decoded[0..], case.input, case.padding, variant);
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualSlices(u8, case.expected, decoded[0..written]);
+    }
+
+    for (variant_decode_cases) |case| {
+        const variant: base64.Variant = if (std.mem.eql(u8, case.variant_name, "std"))
+            .std
+        else if (std.mem.eql(u8, case.variant_name, "urlsafe"))
+            .urlsafe
+        else
+            .imap;
+        const exact_len = try base64.bytes(case.input, case.padding, variant);
+        try std.testing.expectEqual(case.expected.len, exact_len);
+        try std.testing.expect(base64.maxDecodedBytes(case.input.len) >= case.expected.len);
+        const written = try base64.decode(decoded[0..], case.input, case.padding, variant);
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualSlices(u8, case.expected, decoded[0..written]);
+    }
+
+    for (invalid_decode_cases) |case| {
+        const variant: base64.Variant = if (std.mem.eql(u8, case.variant_name, "std"))
+            .std
+        else if (std.mem.eql(u8, case.variant_name, "urlsafe"))
+            .urlsafe
+        else
+            .imap;
+        @memset(decoded[0..], 0xee);
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, variant));
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(decoded[0..], case.input, case.padding, variant));
+        for (decoded) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xee), byte);
+        }
+    }
+}
