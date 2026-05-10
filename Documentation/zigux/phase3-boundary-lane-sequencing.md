@@ -21,10 +21,11 @@ This note turns the current Phase 3 substrate on `master` into one bounded owner
 
 The roadmap and ledger both treat Phase 3 as the permanent C and Zigux boundary, not as one giant undifferentiated helper packet.
 
-Live `master` now ships a shared ABI slice note plus four narrower packet-local notes:
+Live `master` now ships a shared ABI slice note plus five narrower packet-local notes:
 
 - the shared ABI slice
 - the dedicated `include/zigux/abi.h` next-step note
+- the dedicated `include/zigux/abi.h` header-family survey note
 - the dedicated export/UAPI boundary survey
 - the dedicated policy-and-unsafe boundary survey
 - the dedicated low-level-wrapper boundary survey
