@@ -50,6 +50,7 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "`drivers/watchdog/bcm2835_wdt_verify.zig`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
     "`Documentation/zigux/phase11-closure-note.md`",
+    "`drivers/tty/hvc/hvc_console_sysrq.zig` helper path and the exported hvc helper signature proof",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
@@ -174,6 +175,7 @@ def run_self_test() -> int:
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[12]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[7]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
