@@ -28,7 +28,11 @@ surfaces without promoting it into a separate shared replay count.
 
 `zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers.
 
+`zigux/helpers/notifier_chain_view.zig` now also exposes the landed nonincreasing-priority signal through a direct helper-local convenience.
+
 `scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet.
+
+`scripts/zigux/check-phase13-notifier-priority-signal.py` now keeps that nonincreasing-priority signal aligned across the binding, helper, exported header, reviewability replay, and survey note.
 
 ## Adjacent Evidence On Current Master
 
@@ -40,6 +44,7 @@ surfaces without promoting it into a separate shared replay count.
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `drivers/tty/hvc/hvc_console.h`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
@@ -54,7 +59,8 @@ Keep this packet framed as adjacent Phase 13 evidence:
 
 - it shows the shipped notifier ABI and list-helper boundary surfaces
 - it keeps the dedicated notifier manifest and reviewability replay explicit
-- it keeps the adjacent helper, header, and focused checker surfaces explicit
+- it keeps the adjacent helper, header, focused checker, and helper-local priority-signal guard explicit
+- it keeps the landed nonincreasing-priority signal reviewable without widening into callback or registration behavior
 - it supports the broader contributor-facing Phase 13 release packet
 - it does not add extra shared replay steps beyond the current eight-test shared helper replay
 
@@ -72,8 +78,9 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 
 Those summaries should keep this notifier survey, the notifier manifest, the
 reviewability replay, the ABI footholds, the list-helper footholds, the adjacent
-notifier helper and exported notifier header, the focused checker, and
-`drivers/tty/hvc/hvc_console.h` explicit as one adjacent evidence packet.
+notifier helper and exported notifier header, the focused checker,
+`check-phase13-notifier-priority-signal.py`, and `drivers/tty/hvc/hvc_console.h`
+explicit as one adjacent evidence packet.
 
 ## Non-goals
 
