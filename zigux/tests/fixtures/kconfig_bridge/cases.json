@@ -192,6 +192,11 @@
       "name": "empty_config_symbol_names",
       "input": "empty_config_symbol_names.config",
       "expected": "empty_config_symbol_names_expected.json"
+    },
+    {
+      "name": "malformed_quoted_duplicate",
+      "input": "malformed_quoted_duplicate.config",
+      "expected": "malformed_quoted_duplicate_expected.json"
     }
   ]
 }
