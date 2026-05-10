@@ -11,6 +11,8 @@ from pathlib import Path
 REQUIRED_FILES = {
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
+    "validation_matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
 }
 
 SURVEY_GATE_MARKERS = [
@@ -44,7 +46,34 @@ SURVEY_NOTE_MARKERS = [
     "It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.",
 ]
 
-SELF_TEST_CASE_COUNT = 5
+TEARDOWN_NOTE_MARKERS = [
+    "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
+    "teardown evidence remains bounded to the landed HVC starter packet",
+    "remaining follow-through is still live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, and host-backed transport or teardown validation",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "final-close teardown boundaries",
+    "`hvc_hangup()` disconnect cleanup",
+    "`hvc_remove()` slot-release and handoff ordering",
+    "`summarizeNotifierAddOutcome()`",
+    "bounded sysrq-handling support through `drivers/tty/hvc/hvc_console_sysrq.zig` without claiming live sysrq execution",
+    "It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, or hardware-validated teardown parity.",
+]
+
+VALIDATION_MATRIX_MARKERS = [
+    "`PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`make -C zigux phase11-hvc-survey` archival route fail-closed",
+    "targetless notifier no-unregister edge",
+    "stale hangup short-circuit that preserves buffered-write state when the port count is already zero",
+    "cleanup tty-port release handoff",
+    "notifier callback boundary",
+    "khvcd polling contract boundary",
+    "`hvc_hangup()` disconnect boundary",
+    "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, cleanup, remove, khvcd polling-contract, or hangup-disconnect ownership story changes",
+]
+
+SELF_TEST_CASE_COUNT = 7
 
 
 class CheckError(RuntimeError):
@@ -75,6 +104,16 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["survey_note"]),
         SURVEY_NOTE_MARKERS,
     )
+    expect_markers(
+        REQUIRED_FILES["teardown_note"],
+        read_text(root, REQUIRED_FILES["teardown_note"]),
+        TEARDOWN_NOTE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["validation_matrix"],
+        read_text(root, REQUIRED_FILES["validation_matrix"]),
+        VALIDATION_MATRIX_MARKERS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -85,6 +124,8 @@ def write(path: Path, text: str) -> None:
 def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -132,6 +173,26 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "khvcd sleep-and-reschedule handoff summary")
+
+        build_self_test_fixture(tmpdir)
+        teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
+        teardown_missing.write_text(
+            teardown_missing.read_text(encoding="utf-8").replace(
+                "`summarizeNotifierAddOutcome()`\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "`summarizeNotifierAddOutcome()`")
+
+        build_self_test_fixture(tmpdir)
+        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
+        matrix_missing.write_text(
+            matrix_missing.read_text(encoding="utf-8").replace(
+                "khvcd polling contract boundary\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "khvcd polling contract boundary")
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "Documentation")
