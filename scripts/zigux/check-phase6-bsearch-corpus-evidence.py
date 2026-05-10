@@ -28,6 +28,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
         'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
         'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
+        'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
     ],
     LOWER_UPPER_PATH.as_posix(): [
         "var ascending_storage: [32]u32 = undefined;",
@@ -203,6 +204,12 @@ def run_self_test() -> None:
             BSEARCH_PATH.as_posix(),
             'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
             'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42 };',
+        )
+        assert_failure(
+            root,
+            BSEARCH_PATH.as_posix(),
+            'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
+            'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointer drift"',
         )
         assert_failure(
             root,
