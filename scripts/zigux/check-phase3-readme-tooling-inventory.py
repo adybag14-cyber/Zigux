@@ -59,6 +59,8 @@ REQUIRED_MARKERS = (
     "make -C zigux phase4",
 )
 REQUIRED_REPO_FILES = (
+    Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"),
+    Path("scripts/zigux/check-phase2-cross.py"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
@@ -243,6 +245,26 @@ def run_self_test() -> int:
             print("expected missing Phase 4 repo file was not reported")
             return 1
         _write(root / missing_phase4_path, "# stub\n")
+
+        missing_phase2_toolchain_path = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py")
+        (root / missing_phase2_toolchain_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase2_toolchain_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 2 toolchain-pin-scope repo file was not reported")
+            return 1
+        _write(root / missing_phase2_toolchain_path, "# stub\n")
+
+        missing_phase2_cross_path = Path("scripts/zigux/check-phase2-cross.py")
+        (root / missing_phase2_cross_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase2_cross_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 2 cross repo file was not reported")
+            return 1
+        _write(root / missing_phase2_cross_path, "# stub\n")
 
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
