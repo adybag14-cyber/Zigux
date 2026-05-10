@@ -324,6 +324,20 @@ def run_self_test() -> int:
         in issues
     )
 
+    missing_tail_anchor_text = "\n".join(
+        f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS[:-1]
+    ) + "\n"
+    issues = validate_texts(
+        workflow_text,
+        json.dumps(good_cases),
+        manifest_text,
+        missing_tail_anchor_text,
+    )
+    assert (
+        "fixdep_source_anchor:escaped space dependency survives concatenated target comment path:count=0:expected=1"
+        in issues
+    )
+
     bad_cases = [dict(case) for case in good_cases]
     for case in bad_cases:
         if case["name"] == "sample_escaped_colon":
@@ -350,7 +364,7 @@ def run_self_test() -> int:
     assert "fixdep_manifest:case_count:6:expected=7" in issues
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
-    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
