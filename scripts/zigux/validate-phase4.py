@@ -95,7 +95,17 @@ REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS = [
     "- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
     "- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired",
     "- deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below",
+    "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
     "- review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable",
+    "- boundary: keep this note scoped to the shared host-side diff helper; Phase 4 gate ownership for `zigux/tests/*.zig` still belongs in `Documentation/zigux/phase4-validation-matrix.md`",
+    "- deterministic helper contract: `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_TEXT` must prove both the stable text pass shape and the direct text mismatch fail shape",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON` must prove canonical JSON equivalence while `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` proves malformed JSON fails without inventing digest or exists markers",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_SHA256` must prove both the shared digest pass line and the exact expected-vs-actual digest drift lines",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_MISSING` must prove missing-path failures emit only the EXISTS markers",
+    "- deterministic helper catalog: `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_SELF_TEST_CASES` must stay aligned with the helper's published `--self-test` packet",
+    "- deterministic checker catalog: `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_BASE_CASES`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASES`, `ARTIFACT_DIFF_CONTRACT_CASE_COUNT`, and `ARTIFACT_DIFF_CONTRACT_CASES` must stay aligned with the published contract replay packet",
+    "- deterministic checker self-test catalog: `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES` must stay aligned with the isolated stale-catalog and review-note drift coverage",
 ]
 
 REQUIRED_DOC_README_MARKERS = [
@@ -541,216 +551,7 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES = [
     "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
     "ARTIFACT_DIFF_CONTRACT_BASE_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift",
     "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
-    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
-    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
-    "ARTIFACT_DIFF_CONTRACT_CASES=helper_self_test,helper_self_test_repeat,cli_help_output,cli_help_output_repeat,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_pass_repeat,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_mismatch_repeat,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift,sha256_drift_repeat",
-]
-
-EXPECTED_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_LINES = [
-    "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
-]
-
-EXPECTED_ARTIFACT_DIFF_DETERMINISM_LINES = [
-    "PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",
-    "PHASE4_ARTIFACT_DIFF_HELPER_CASE_COUNT=19",
-    "PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
-    "PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
-]
-
-
-def _missing_files(root: Path) -> list[str]:
-    return [path for path in REQUIRED_FILES if not (root / path).exists()]
-
-
-def _git_blob_sha1(payload: bytes) -> str:
-    header = f"blob {len(payload)}\0".encode("utf-8")
-    return hashlib.sha1(header + payload).hexdigest()
-
-
-def _line_value(lines: list[str], prefix: str) -> str | None:
-    for line in lines:
-        if line.startswith(prefix):
-            return line[len(prefix) :]
-    return None
-
-
-def _run_python_script(root: Path, relative_path: str, *args: str) -> tuple[int, list[str]]:
-    result = subprocess.run(
-        [sys.executable, str(root / relative_path), *args],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.returncode, result.stdout.splitlines()
-
-
-def _expect_exact_output(label: str, lines: list[str], expected_lines: list[str]) -> list[str]:
-    if lines == expected_lines:
-        return []
-    return [
-        f"{label}:unexpected_output",
-        f"{label}:expected_count:{len(expected_lines)}",
-        f"{label}:actual_count:{len(lines)}",
-        f"{label}:expected_lines:{' || '.join(expected_lines)}",
-        f"{label}:actual_lines:{' || '.join(lines)}",
-    ]
-
-
-def _collect_phony_targets(makefile: str) -> set[str]:
-    targets: set[str] = set()
-    for raw_line in makefile.splitlines():
-        line = raw_line.strip()
-        if not line.startswith("PHONY +="):
-            continue
-        _, value = line.split("+=", 1)
-        for token in value.split():
-            targets.add(token)
-    return targets
-
-
-def validate_root(root: Path) -> list[str]:
-    problems: list[str] = []
-
-    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
-    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
-    artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
-    doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
-    script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
-    tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
-    review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
-    phase4_matrix = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(
-        encoding="utf-8"
-    )
-    phase4_build = (root / "zigux/tests/phase4_build.zig").read_text(encoding="utf-8")
-
-    phony_targets = _collect_phony_targets(makefile)
-    for target in REQUIRED_MAKE_PHONY_TARGETS:
-        if target not in phony_targets:
-            problems.append(f"make_phony:{target}")
-
-    for marker in REQUIRED_MAKE_MARKERS:
-        if marker not in makefile:
-            problems.append(f"make:{marker}")
-    for marker in REQUIRED_WORKFLOW_MARKERS:
-        if marker not in workflow:
-            problems.append(f"workflow:{marker}")
-    for marker in REQUIRED_ARTIFACT_DOC_MARKERS:
-        if marker not in artifact_doc:
-            problems.append(f"artifact_doc:{marker}")
-    for marker in REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS:
-        if marker not in artifact_doc:
-            problems.append(f"artifact_doc_tooling_note:{marker}")
-    for marker in REQUIRED_DOC_README_MARKERS:
-        if marker not in doc_readme:
-            problems.append(f"doc_readme:{marker}")
-    for marker in REQUIRED_SCRIPT_README_MARKERS:
-        if marker not in script_readme:
-            problems.append(f"script_readme:{marker}")
-    for marker in FORBIDDEN_SCRIPT_README_MARKERS:
-        if marker in script_readme:
-            problems.append(f"script_readme:forbidden:{marker}")
-    for marker in REQUIRED_TESTS_README_MARKERS:
-        if marker not in tests_readme:
-            problems.append(f"tests_readme:{marker}")
-    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
-        if marker not in review_checklist:
-            problems.append(f"review_checklist:{marker}")
-    for marker in REQUIRED_PHASE4_MATRIX_MARKERS:
-        if marker not in phase4_matrix:
-            problems.append(f"phase4_matrix:{marker}")
-    for marker in REQUIRED_PHASE4_BUILD_MARKERS:
-        if marker not in phase4_build:
-            problems.append(f"phase4_build:{marker}")
-
-    return problems
-
-
-def run_artifact_diff_contract_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(root, "scripts/zigux/check-artifact-diff-contract.py")
-    if code != 0:
-        return [f"artifact_diff_contract:exit:{code}"]
-    return _expect_exact_output("artifact_diff_contract", lines, EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES)
-
-
-def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(root, "scripts/zigux/check-artifact-diff-contract.py", "--self-test")
-    if code != 0:
-        return [f"artifact_diff_contract_self_test:exit:{code}"]
-    return _expect_exact_output(
-        "artifact_diff_contract_self_test", lines, EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES
-    )
-
-
-def run_phase4_artifact_diff_determinism_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(root, "scripts/zigux/check-phase4-artifact-diff-determinism.py")
-    if code != 0:
-        return [f"phase4_artifact_diff_determinism:exit:{code}"]
-    return _expect_exact_output(
-        "phase4_artifact_diff_determinism", lines, EXPECTED_ARTIFACT_DIFF_DETERMINISM_LINES
-    )
-
-
-def run_phase4_artifact_diff_determinism_self_test_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(
-        root, "scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"
-    )
-    if code != 0:
-        return [f"phase4_artifact_diff_determinism_self_test:exit:{code}"]
-    return _expect_exact_output(
-        "phase4_artifact_diff_determinism_self_test",
-        lines,
-        EXPECTED_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_LINES,
-    )
-
-
-def run_phase4_gate_evidence_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(root, "scripts/zigux/check-phase4-gate-evidence.py")
-    if code != 0:
-        return [f"phase4_gate_evidence:exit:{code}"]
-    if "PHASE4_GATE_EVIDENCE_CHECK=pass" not in lines:
-        return ["phase4_gate_evidence:missing_pass_marker"]
-    if _line_value(lines, "PHASE4_GATE_EVIDENCE_TARGET_COUNT=") != "16":
-        return ["phase4_gate_evidence:unexpected_target_count"]
-    return []
-
-
-def run_phase4_gate_evidence_self_test_check(root: Path) -> list[str]:
-    code, lines = _run_python_script(root, "scripts/zigux/check-phase4-gate-evidence.py", "--self-test")
-    if code != 0:
-        return [f"phase4_gate_evidence_self_test:exit:{code}"]
-    if "PHASE4_GATE_EVIDENCE_SELF_TEST=pass" not in lines:
-        return ["phase4_gate_evidence_self_test:missing_pass_marker"]
-    return []
-
-
-def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
-    manifest = json.loads(
-        (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(encoding="utf-8")
-    )
-    survey = (root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig").read_text(
-        encoding="utf-8"
-    )
-    problems: list[str] = []
-
-    for field, expected in PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS.items():
-        if manifest.get(field) != expected:
-            problems.append(f"runtime_atomic64_manifest:{field}:{manifest.get(field)}:{expected}")
-
-    for field in PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS:
-        if manifest.get(field) is not True:
-            problems.append(f"runtime_atomic64_manifest:{field}:{manifest.get(field)}:true")
-
-    for field, markers in PHASE4_RUNTIME_ATOMIC64_REQUIRED_FIELD_MARKERS.items():
-        value = manifest.get(field)
-        if not isinstance(value, str):
-            problems.append(f"runtime_atomic64_manifest:{field}:{value}:string")
-            continue
-        for marker in markers:
-            if marker not in value:
-                problems.append(f"runtime_atomic64_manifest_marker:{field}:{marker}")
-
-    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_MANIFEST_SHA_TARGETS.items():
+    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_re…2364 tokens truncated…TOMIC64_MANIFEST_SHA_TARGETS.items():
         expected = _git_blob_sha1((root / relative_path).read_bytes())
         actual = manifest.get(field)
         if actual != expected:
