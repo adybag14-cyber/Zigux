@@ -28,7 +28,7 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=60e8275d6aaec4b3059bbf732e350526111c02ce`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=29e7c0fc9629b2765b0cdd0b50dfb1874ace6ba6`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=ffb45e2beb2f3caf9ec41c8cfa1fbf4b69d7c941`
 
 ## Live Boundary
 
@@ -39,7 +39,7 @@ The blob markers above are the authoritative packet-local evidence for the curre
 - `zigux/uapi/dev_t.zig` starts the next top-level UAPI family by relaying the curated `dev_t` codec, major or minor range checks, and bounded last-in-range computation through a small exported starter surface instead of widening the boundary packet through more header-only or relay-only churn.
 - `zigux/tests/phase3_export_uapi.zig` plus `zigux/tests/phase3_export_uapi_build.zig` keep the direct starter-boundary behavior replay explicit by exercising canonical-header parity, future-compatible acceptance, explicit compatibility-status relays, and the new `dev_t` encode or range parity beside the shared ABI packet rather than leaving those starter semantics implied only by prose or the wider dump route.
 - `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` keep the focused layout replay explicit by pinning the named `export_shim.Header` relay beside boundary-header size, field offsets, compatibility predicates, explicit compatibility-tag relays, accepted-header canonicalization, compatibility-status relays, and the new `dev_t` constant plus last-in-range boundary parity across the export shim and starter UAPI helpers.
-- `scripts/zigux/validate-phase3-export-uapi-survey.py` still fail-closes on the boundary-header starter surfaces, the survey note, the Linux-facing header, the focused layout replay, the shared review surfaces, and the workflow hooks that already gate this packet. The new `dev_t` starter family currently becomes reviewable through the direct behavior replay, the focused layout replay, and the shared ABI manifest before a follow-through validator refresh lands.
+- `scripts/zigux/validate-phase3-export-uapi-survey.py` now fail-closes on the shipped boundary-header starter surfaces, the `dev_t` starter surface, the survey note, the Linux-facing header, the focused behavior and layout replays, the shared review surfaces, and the workflow hooks that already gate this packet.
 - `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface plus the landed `dev_t` bit-width and mask constants that the curated `dev_t` packet still depends on.
 - `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md` keeps the shared-versus-packet-local ownership split explicit so `include/linux/zigux.h` growth still requires shared ABI proof instead of collapsing into header-only progress or being miscounted as export/UAPI closure by implication.
