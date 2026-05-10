@@ -78,7 +78,7 @@ Key entrypoints
   * `zigux/tests/phase7_rbtree_survey.zig`
   * `zigux/tests/phase7_rbtree_manifest.json`
   * `zigux/tests/fixtures/phase7_rbtree.json`
-  * `zigux/tests/phase7_rbtree_c_harness.c`
+  * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
   * `zigux/tests/phase8_build.zig`
   * `zigux/tests/phase8_exec_cmd.zig`
   * `zigux/tests/phase8_exec_cmd_only_build.zig`
