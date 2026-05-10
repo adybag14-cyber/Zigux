@@ -31,7 +31,7 @@ That adjacent evidence packet should stay explicit through:
 ## Traceability Map
 
 - `libfs` maps to the bounded shared-helper tranche and should stay represented as its own contributor-facing bucket.
-- `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and packet truthfulness work.
+- `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and checker-backed packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
 - adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, packet checker, priority-signal checker, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
@@ -69,6 +69,13 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+## Checker-Backed Evidence
+
+Keep the roadmap-to-repo map explicit about the shipped Phase 13 packet-truthfulness checks that sit beside the shared replay:
+- `scripts/zigux/check-phase13-devres-packet.py` keeps the bounded `devres` helper packet tied to `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` instead of letting `devres` release wording read as self-proving prose.
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py` keeps `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_ruleset.zig` aligned as one roadmap-backed `landlock/ruleset` packet.
+- `scripts/zigux/check-phase13-notifier-packet.py` and `scripts/zigux/check-phase13-notifier-priority-signal.py` keep the adjacent notifier release-surface evidence explicit without turning it into a fifth helper anchor or an extra shared replay step.
 
 ## Shared Replay Route
 
