@@ -154,3 +154,91 @@ test "virtio core verify replay keeps failed-status teardown visible until reset
     try std.testing.expect(!cleared_replay.will_clear_negotiated_features);
     try std.testing.expect(!cleared_replay.will_clear_queue_callbacks);
 }
+
+test "virtio core verify replay keeps config-change delivery and interrupt acknowledgements reviewable" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7 });
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_cfg_irq_verify");
+    try device.offerDriverFeature(1);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+
+    var config = device.configChangeSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", config.anchor);
+    try std.testing.expect(config.core_enabled);
+    try std.testing.expect(!config.driver_disabled);
+    try std.testing.expect(!config.change_pending);
+    try std.testing.expectEqual(@as(u32, 0), config.generation);
+    try std.testing.expectEqual(@as(u32, 0), config.acknowledged_generation);
+    try std.testing.expect(!config.has_unacknowledged_generation);
+    try std.testing.expectEqual(@as(usize, 0), config.delivery_count);
+
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+    config = device.configChangeSummary();
+    try std.testing.expect(config.driver_disabled);
+    try std.testing.expect(config.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), config.generation);
+    try std.testing.expectEqual(@as(u32, 0), config.acknowledged_generation);
+    try std.testing.expect(config.has_unacknowledged_generation);
+    try std.testing.expectEqual(@as(usize, 0), config.delivery_count);
+    try std.testing.expectError(error.ConfigGenerationPendingDelivery, device.acknowledgeConfigGeneration(1));
+
+    try device.enableConfigDriver();
+    config = device.configChangeSummary();
+    try std.testing.expect(!config.driver_disabled);
+    try std.testing.expect(!config.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), config.generation);
+    try std.testing.expectEqual(@as(usize, 1), config.delivery_count);
+    try std.testing.expect(config.has_unacknowledged_generation);
+
+    try device.acknowledgeConfigGeneration(1);
+    config = device.configChangeSummary();
+    try std.testing.expectEqual(@as(u32, 1), config.acknowledged_generation);
+    try std.testing.expect(!config.has_unacknowledged_generation);
+
+    var interrupt = device.interruptAckSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", interrupt.anchor);
+    try std.testing.expect(!interrupt.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), interrupt.pending_reason_bits);
+    try std.testing.expectEqual(@as(u8, 0), interrupt.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 0), interrupt.ack_count);
+    try std.testing.expectEqual(@as(usize, 0), interrupt.unacknowledged_interrupt_count);
+
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.config_change);
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    interrupt = device.interruptAckSummary();
+    try std.testing.expect(interrupt.interrupt_pending);
+    try std.testing.expectEqual(
+        virtio_core.VirtioInterruptReason.queue_used | virtio_core.VirtioInterruptReason.config_change,
+        interrupt.pending_reason_bits,
+    );
+    try std.testing.expectEqual(@as(u8, 0), interrupt.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 0), interrupt.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), interrupt.unacknowledged_interrupt_count);
+
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.queue_used);
+    interrupt = device.interruptAckSummary();
+    try std.testing.expect(interrupt.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.config_change, interrupt.pending_reason_bits);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, interrupt.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 1), interrupt.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), interrupt.unacknowledged_interrupt_count);
+
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.config_change);
+    interrupt = device.interruptAckSummary();
+    try std.testing.expect(!interrupt.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), interrupt.pending_reason_bits);
+    try std.testing.expectEqual(
+        virtio_core.VirtioInterruptReason.queue_used | virtio_core.VirtioInterruptReason.config_change,
+        interrupt.acknowledged_reason_bits,
+    );
+    try std.testing.expectEqual(@as(usize, 2), interrupt.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), interrupt.unacknowledged_interrupt_count);
+
+    const replay = device.resetReplaySummary();
+    try std.testing.expect(replay.will_clear_config_bookkeeping);
+    try std.testing.expect(replay.will_clear_interrupts);
+}
