@@ -86,6 +86,10 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces a
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/helpers/list_view.zig`
@@ -102,6 +106,7 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces a
 Contributor reminder:
 - keep the validator-first eight-test release route explicit
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
+- keep the bounded `devres` dma/scatterlist evidence explicit through its manifest-backed reviewability, coherent-DMA, and boundary-evidence shards
 - keep `drivers/tty/hvc/hvc_console.h` explicit beside the notifier ABI and helper footholds
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
 - refresh this note only with surfaces verified on current `master`, not with hoped-for follow-up notes
