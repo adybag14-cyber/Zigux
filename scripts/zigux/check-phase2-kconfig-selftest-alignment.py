@@ -104,7 +104,7 @@ REQUIRED_CONF_MANIFEST_HELPER_ANCHORS = (
 )
 
 REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS = (
-    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
     "confdata bridge keeps only the last state across unset and set transitions",
 )
 
