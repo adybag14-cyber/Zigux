@@ -392,8 +392,7 @@ def run_self_test() -> int:
         errors = check(root)
         if not any(
             "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: PHASE14_ROADMAP_ANCHOR_COUNT=4 (expected 1, found 2)"
-            in error
-            for error in errors
+            in error for error in errors
         ):
             print("self-test expected duplicate release-count failure", file=sys.stderr)
             return 1
@@ -410,8 +409,7 @@ def run_self_test() -> int:
         errors = check(root)
         if not any(
             "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: PHASE14_SHARED_SMOKE_GATE_COUNT=1 (expected 1, found 2)"
-            in error
-            for error in errors
+            in error for error in errors
         ):
             print("self-test expected duplicate shared-smoke gate count failure", file=sys.stderr)
             return 1
@@ -429,8 +427,7 @@ def run_self_test() -> int:
         errors = check(root)
         if not any(
             "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_ANCHOR_PACKET_COUNT=4 (expected 1, found 2)"
-            in error
-            for error in errors
+            in error for error in errors
         ):
             print("self-test expected duplicate smoke-count failure", file=sys.stderr)
             return 1
@@ -447,8 +444,7 @@ def run_self_test() -> int:
         errors = check(root)
         if not any(
             "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=29 (expected 1, found 2)"
-            in error
-            for error in errors
+            in error for error in errors
         ):
             print("self-test expected duplicate shared-surface-count failure", file=sys.stderr)
             return 1
@@ -555,10 +551,10 @@ def run_self_test() -> int:
                 [
                     "## Phase 3: ABI and Interop Substrate",
                     "Primary Linux anchors:",
-                    "- kernel/workqueue.c",
-                    "- kernel/trace/ring_buffer.c",
-                    "- net/core/skbuff.c",
-                    "- kernel/rcu/tree.c",
+                    "- rust/exports.c",
+                    "- lib/bitmap.c",
+                    "- lib/rbtree.c",
+                    "- lib/cpumask.c",
                     "",
                     PHASE14_SECTION_HEADING,
                     "Primary Linux anchors:",
@@ -696,7 +692,7 @@ def run_self_test() -> int:
         write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
         errors = check(root)
         if "phase14 shared smoke manifest surface entry is not an object" not in errors:
-            print("self-test expected non-object shared smoke manifest surface failure", file=sys.stderr)
+            print("self-test expected non-object shared smoke manifest surfaces failure", file=sys.stderr)
             return 1
         write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
@@ -718,6 +714,20 @@ def run_self_test() -> int:
             return 1
         if not any("phase14 manifest PHASE14_BRIDGE_ROOT_SURFACE_COUNT drifted from the expected 3 surface count (found 2)" in error for error in errors):
             print("self-test expected bridge-root surface count drift failure", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"].append(
+            {
+                "path": "zigux/helpers/phase14_extra_note.zig",
+                "required_marker": "phase14 extra drift",
+            }
+        )
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest surface escaped the expected categories: zigux/helpers/phase14_extra_note.zig" not in errors:
+            print("self-test expected uncategorized shared smoke manifest surface failure", file=sys.stderr)
             return 1
         write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
