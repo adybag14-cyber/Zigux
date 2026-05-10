@@ -859,3 +859,39 @@ test "runtime atomic64 loader rejects prepared shared allocator drift before any
         prepared_shared_plan,
     ));
 }
+
+test "runtime atomic64 loader rejects prepared shared init-flow drift before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_shared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.init_flow = .{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        shared_request.prepared_plan,
+        prepared_shared_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        shared_request.plan,
+        prepared_shared_plan,
+    ));
+}
