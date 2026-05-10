@@ -780,6 +780,26 @@ test "bitmap copy and extend handles zero and aligned counts" {
     try std.testing.expectEqualSlices(Word, &aligned_extended, &alias_aligned_extended);
 }
 
+test "bitmap copy helpers keep zero-sized destination views untouched" {
+    const copy_src = [_]Word{0x0123_4567_89ab_cdef};
+
+    var cleared_backing = [_]Word{0x55aa_55aa_55aa_55aa};
+    copyClearTail(cleared_backing[0..0], copy_src[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0x55aa_55aa_55aa_55aa), cleared_backing[0]);
+
+    var alias_cleared_backing = [_]Word{0x1122_3344_5566_7788};
+    bitmap_copy_clear_tail(alias_cleared_backing[0..0], copy_src[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0x1122_3344_5566_7788), alias_cleared_backing[0]);
+
+    var extended_backing = [_]Word{0xf0f0_f0f0_f0f0_f0f0};
+    copyAndExtend(extended_backing[0..0], &[_]Word{}, 0, 0);
+    try std.testing.expectEqual(@as(Word, 0xf0f0_f0f0_f0f0_f0f0), extended_backing[0]);
+
+    var alias_extended_backing = [_]Word{0x0f0f_0f0f_0f0f_0f0f};
+    bitmap_copy_and_extend(alias_extended_backing[0..0], &[_]Word{}, 0, 0);
+    try std.testing.expectEqual(@as(Word, 0x0f0f_0f0f_0f0f_0f0f), alias_extended_backing[0]);
+}
+
 test "bitmap zero-bit helpers stay explicit no-ops" {
     var dst = [_]Word{0x55aa55aa55aa55aa};
     const src1 = [_]Word{0xffff0000ffff0000};
@@ -807,6 +827,37 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     const rendered = scnprintf(&[_]Word{}, 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), rendered);
     try std.testing.expectEqual(@as(u8, 0xaa), buffer[0]);
+}
+
+test "bitmap zero-bit binary helpers stay explicit identity operations" {
+    const lhs = [_]Word{0xffff_0000_ffff_0000};
+    const rhs = [_]Word{0x0000_ffff_0000_ffff};
+
+    var primary_dst = [_]Word{0x55aa_55aa_55aa_55aa};
+    var alias_dst = [_]Word{0x55aa_55aa_55aa_55aa};
+    const before = primary_dst[0];
+
+    try std.testing.expectEqual(andBits(primary_dst[0..0], lhs[0..0], rhs[0..0], 0), bitmap_and(alias_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(bool, false), andBits(primary_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, primary_dst[0]);
+    try std.testing.expectEqual(before, alias_dst[0]);
+
+    try std.testing.expectEqual(andNotBits(primary_dst[0..0], lhs[0..0], rhs[0..0], 0), bitmap_andnot(alias_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(bool, false), andNotBits(primary_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, primary_dst[0]);
+    try std.testing.expectEqual(before, alias_dst[0]);
+
+    complement(primary_dst[0..0], lhs[0..0], 0);
+    bitmap_complement(alias_dst[0..0], lhs[0..0], 0);
+    try std.testing.expectEqual(before, primary_dst[0]);
+    try std.testing.expectEqual(before, alias_dst[0]);
+
+    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(bitmap_equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(!bitmap_intersects(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(bitmap_subset(lhs[0..0], rhs[0..0], 0));
 }
 
 test "bitmap Linux-style aliases mirror the primary helper surface" {
