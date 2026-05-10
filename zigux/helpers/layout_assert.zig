@@ -72,6 +72,7 @@ fn assertInteropPolicyModeValues() void {
 pub fn assertInteropPolicyLayout() void {
     assertInteropPolicyEnumLayouts();
     assertSize(abi.InteropPolicy, 4);
+    assertAlign(abi.InteropPolicy, 1);
     assertFieldType(abi.InteropPolicy, "panic_mode", u8);
     assertFieldType(abi.InteropPolicy, "allocator_mode", u8);
     assertFieldType(abi.InteropPolicy, "unsafe_scope", u8);
