@@ -93,6 +93,25 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-hexdump-perf`",
     ],
+    "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
+        ".label = \"16B-plain-g1\",",
+        ".reps = 40_000,",
+        ".max_slowdown_pct = 175,",
+        ".label = \"32B-ascii-g2\",",
+        ".reps = 10_000,",
+        ".max_slowdown_pct = 550,",
+        ".label = \"16B-ascii-g4\",",
+        ".reps = 20_000,",
+        ".label = \"16B-ascii-g8\",",
+        ".max_slowdown_pct = 600,",
+    ],
+    "zigux/tests/phase6_hexdump_perf.zig": [
+        "try stdout_writer.interface.print(\"PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n\", .{fixtures.perf_cases.len});",
+        "try stdout_writer.interface.print(\"PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n\", .{ case.label, case.max_slowdown_pct });",
+        "try stdout_writer.interface.print(\"PHASE6_HEXDUMP_PERF_{s}=fail\\n\", .{case.label});",
+        "try stdout_writer.interface.print(\"PHASE6_HEXDUMP_PERF_{s}=pass\\n\", .{case.label});",
+        "try stdout_writer.interface.print(\"PHASE6_HEXDUMP_PERF={s}\\n\", .{if (failed) \"fail\" else \"pass\"});",
+    ],
     "Documentation/zigux/phase6-perf-gate-survey.md": [
         "- `PHASE6_PERF_SURVEY_STATUS=active`",
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
@@ -428,6 +447,8 @@ def run_self_test() -> None:
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/README.md", "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.", "- `make -C zigux phase6-validate` keeps a missing shared Phase 6 surface checker wired through the Zigux convenience target.")
         assert_failure(root, "zigux/tests/README.md", "  * `zigux/tests/phase6_checksum_perf.zig`", "  * `zigux/tests/phase6_checksum_perf_missing.zig`")
+        assert_failure(root, "zigux/tests/phase6_hexdump_perf.zig", 'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}=pass\\n", .{case.label});', 'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}=ok\\n", .{case.label});')
+        assert_failure(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig", '.max_slowdown_pct = 600,', '.max_slowdown_pct = 601,')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_build.zig", '.name = \"phase6-bsearch-c-abi-budget-tests\"', '.name = \"phase6-bsearch-c-abi-tests\"')
     print("self-test passed")
