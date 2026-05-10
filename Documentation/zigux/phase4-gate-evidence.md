@@ -21,7 +21,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=fb32ec6a52c1f7c76912015404950a6561501719`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=248cefe978e07ba088d7ba038673c0f67f53e0e1`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=95fcce5f5e2b807eb9e8c1ba00bd552f74c2bc6c`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=4985f6291219aba86a131184c102d8b2e888b952`
 - `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=a4b25037fa818b4fb874a7debc436027033eb4b3`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`
@@ -59,4 +59,3 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
 - The current exact-readback note now matches the live validator, workflow, Makefile, dedicated `Documentation/zigux/artifact-diff.md` note, docs-root reminder, tests-root reminder, and adjacent runtime atomic64 manifest-backed survey pair on `master`, so the broader checker-backed packet is aligned again on current `master`.
-
