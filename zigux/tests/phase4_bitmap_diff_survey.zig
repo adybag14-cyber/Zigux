@@ -71,7 +71,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     try std.testing.expectEqualStrings("fa9f1dc5eb667a49080bde62183f446c7371ba98", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("d3d2f0e3a54307bee46c73c7057d43414b45da99", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("6122a721e45cb19013b8e4b65e1913ec270bcb1c", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
 
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
@@ -167,7 +167,7 @@ test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks
     try expectContains(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
     try expectContains(
         bitmap_diff_source,
-        "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
+        "test_copy aligned 97-bit replay keeps the full second copied word before the cleared tail resumes",
     );
     try expectContains(bitmap_diff_source, "test \\\"bitmap diff gate rejects out-of-bounds bitmap operations\\\" {");
     try expectContains(
