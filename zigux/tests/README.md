@@ -97,6 +97,10 @@ Key entrypoints
   * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   * `zigux/tests/phase8_libbpf_segments.zig`
   * `zigux/tests/phase8_libbpf_segments_only_build.zig`
+  * `make -C zigux phase8-cpu-mask-test`
+  * `make -C zigux phase8-file-path-handle-bridge-test`
+  * `make -C zigux phase8-libbpf-segments-test`
+  * `make -C zigux phase8-perf-buffer-poll-test`
   * `zigux/tests/phase9_build.zig`
   * `zigux/tests/runtime_atomic64_survey.zig`
   * `zigux/tests/runtime_bitmap_survey.zig`
