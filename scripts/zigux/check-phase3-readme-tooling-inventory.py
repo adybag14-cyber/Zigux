@@ -29,6 +29,8 @@ REQUIRED_MARKERS = (
     "phase3_check_lib.py",
     "generate-phase3-check-wrappers.py",
     "run-phase3-checks.py",
+    "current `master` does not ship standalone `phase3_catalog.py`",
+    "historical references rather than part of the active scripts-root packet",
     "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
@@ -59,6 +61,14 @@ def run_self_test() -> int:
     if "Documentation/zigux/phase3-abi-h-boundary-next-step.md" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected missing marker was not reported")
+        return 1
+
+    broken = validate_text(
+        sample.replace("historical references rather than part of the active scripts-root packet", "", 1)
+    )
+    if "historical references rather than part of the active scripts-root packet" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected historical-reference disclaimer marker was not reported")
         return 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
