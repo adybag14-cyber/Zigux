@@ -124,8 +124,8 @@
       "measurement_mode": "comparison_budget",
       "typed_lookup_budget": 4,
       "raw_lookup_budget": 4,
-      "representative_typed_cases": 5,
-      "representative_raw_cases": 5,
+      "representative_typed_cases": 10,
+      "representative_raw_cases": 10,
       "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
       "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
       "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
@@ -225,8 +225,8 @@
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
-      "comparison_budget_typed_cases": 5,
-      "comparison_budget_raw_cases": 5,
+      "comparison_budget_typed_cases": 10,
+      "comparison_budget_raw_cases": 10,
       "comparison_budget_max_compare_calls": 4,
       "c_abi_equality_budget_replay": true
     },
