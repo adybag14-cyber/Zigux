@@ -76,21 +76,9 @@ Contributor reminder:
 
 ## Phase 13 contributor packet
 
-Keep the shared-subsystems packet explicit through:
-- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+Keep the shared-subsystems packet explicit through the verified broad surfaces and adjacent evidence anchors:
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-- `Documentation/zigux/phase13-release-notes-survey.md`
-- `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-libfs-slice.md`
-- `Documentation/zigux/phase13-libfs-survey.md`
-- `Documentation/zigux/phase13-devres-slice.md`
-- `Documentation/zigux/phase13-devres-survey.md`
-- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
-- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
@@ -113,6 +101,7 @@ Contributor reminder:
 - keep the validator-first eight-test release route explicit
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
+- refresh this note only with surfaces verified on current `master`, not with hoped-for follow-up notes
 
 ## Sync Rules
 
