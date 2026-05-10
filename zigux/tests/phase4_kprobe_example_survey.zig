@@ -69,7 +69,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.validation_entrypoint,
     );
     try std.testing.expectEqualStrings(
-        "the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey` plus the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
+        "the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey`, the direct validation entrypoint `zig test zigux/tests/phase4_kprobe_example_survey.zig`, and the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
         manifest.reversible_delivery_evidence,
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
@@ -78,7 +78,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[0],
     );
     try std.testing.expectEqualStrings(
-        "the packet keeps the live make replay command and the dedicated local survey wrapper explicit without implying a shipped Zig sample",
+        "the packet keeps the live make replay command, the dedicated local survey wrapper, and the direct validation entrypoint explicit without implying a shipped Zig sample",
         manifest.review_prompts[1],
     );
     try std.testing.expectEqualStrings(
@@ -133,11 +133,11 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true",
-        "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey` plus the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
+        "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey`, the direct validation entrypoint `zig test zigux/tests/phase4_kprobe_example_survey.zig`, and the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
         "zigux/tests/phase4_kprobe_example_manifest.json",
         "zigux/tests/phase4_kprobe_example_survey.zig",
-        "shared gate-evidence note now names that same survey note, manifest, replay command, local survey wrapper, and reversible-delivery evidence",
-        "the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey`, and together with the adjacent shared gate-evidence packet it serves as the reversible-delivery evidence for the parked gap",
+        "shared gate-evidence note now names that same survey note, manifest, replay command, local survey wrapper, direct validation entrypoint, and reversible-delivery evidence",
+        "the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey`, and together with the direct validation entrypoint `zig test zigux/tests/phase4_kprobe_example_survey.zig` plus the adjacent shared gate-evidence packet it serves as the reversible-delivery evidence for the parked gap",
         "`samples/zigux/kprobe_example.zig` is still absent",
         "dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion",
         "treating adjacent gate-evidence visibility as a shipped Zig starter",
