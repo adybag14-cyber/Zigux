@@ -68,7 +68,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
     try std.testing.expectEqualStrings("89da8bf3722b8f0265279181929e9982ad0c59ef", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("a4b25037fa818b4fb874a7debc436027033eb4b3", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("a4157c27344a433772085402a695e80e6100e2da", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
