@@ -609,6 +609,20 @@ def run_self_test() -> int:
             return 1
 
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
+                "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "missing compile-artifact dependency in zigux/tests/phase14_build.zig: phase14_workqueue_reviewability" not in errors:
+            print("self-test expected missing compile-artifact dependency failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
         rcu_survey_path = root / RCU_SURVEY_PATH
         rcu_survey_path.write_text(rcu_survey_path.read_text(encoding="utf-8").replace("- rollback owner: `Repo Tooling Pod`\n", "", 1), encoding="utf-8")
         errors = check(root)
