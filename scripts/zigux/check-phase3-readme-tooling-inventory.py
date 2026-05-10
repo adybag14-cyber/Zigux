@@ -46,7 +46,24 @@ REQUIRED_MARKERS = (
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
 )
-PHASE4_REQUIRED_FILES = (
+REQUIRED_REPO_FILES = (
+    Path("scripts/zigux/validate-phase3.py"),
+    Path("scripts/zigux/validate_phase3_selftest.py"),
+    Path("scripts/zigux/check-phase3-selftest-surface.py"),
+    Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
+    Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
+    Path("scripts/zigux/check-phase3-catalog-selftest.py"),
+    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+    Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
+    Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+    Path("scripts/zigux/phase3_catalog.py"),
+    Path("scripts/zigux/phase3_check_lib.py"),
+    Path("scripts/zigux/generate-phase3-check-wrappers.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/validate-phase4.py"),
     Path("scripts/zigux/check-artifact-diff-contract.py"),
     Path("scripts/zigux/check-phase4-gate-evidence.py"),
@@ -68,7 +85,7 @@ def validate_text(text: str) -> list[str]:
 
 def validate_repo_files(repo_root: Path) -> list[str]:
     missing = []
-    for rel_path in PHASE4_REQUIRED_FILES:
+    for rel_path in REQUIRED_REPO_FILES:
         if not (repo_root / rel_path).is_file():
             missing.append(f"missing repo file: {rel_path.as_posix()}")
     return missing
@@ -79,8 +96,8 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def _populate_phase4_files(root: Path) -> None:
-    for rel_path in PHASE4_REQUIRED_FILES:
+def _populate_repo_files(root: Path) -> None:
+    for rel_path in REQUIRED_REPO_FILES:
         _write(root / rel_path, "# stub\n")
 
 
@@ -146,20 +163,30 @@ def run_self_test() -> int:
     with TemporaryDirectory() as temp_dir:
         root = Path(temp_dir)
         _write(root / README_PATH, sample)
-        _populate_phase4_files(root)
+        _populate_repo_files(root)
         broken = validate_repo_files(root)
         if broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("\n".join(broken))
             return 1
 
-        missing_path = PHASE4_REQUIRED_FILES[2]
-        (root / missing_path).unlink()
+        missing_phase3_path = Path("scripts/zigux/phase3_catalog.py")
+        (root / missing_phase3_path).unlink()
         broken = validate_repo_files(root)
-        expected = f"missing repo file: {missing_path.as_posix()}"
+        expected = f"missing repo file: {missing_phase3_path.as_posix()}"
         if expected not in broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-            print("expected missing repo file was not reported")
+            print("expected missing Phase 3 repo file was not reported")
+            return 1
+        _write(root / missing_phase3_path, "# stub\n")
+
+        missing_phase4_path = Path("scripts/zigux/check-phase4-gate-evidence.py")
+        (root / missing_phase4_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 repo file was not reported")
             return 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
