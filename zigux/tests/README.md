@@ -155,6 +155,7 @@ Key entrypoints
   * `zigux/tests/phase12_libbpf_segments.zig`
   * `zigux/tests/phase12_libbpf_reviewability.zig`
   * `zigux/tests/phase12_libbpf_manifest.json`
+  * `tools/lib/bpf/zigux_segments/manifest.json`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
   * `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
