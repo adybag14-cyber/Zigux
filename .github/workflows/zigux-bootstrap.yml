@@ -387,6 +387,27 @@ jobs:
       - name: Run Phase 10 checker-backed virtio helper tests
         run: make -C zigux phase10-test
 
+      - name: Self-test Phase 11 bcm2835 watchdog packet checker
+        run: python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test
+
+      - name: Check Phase 11 bcm2835 watchdog packet
+        run: python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py
+
+      - name: Self-test Phase 11 DesignWare watchdog packet checker
+        run: python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test
+
+      - name: Check Phase 11 DesignWare watchdog packet
+        run: python3 scripts/zigux/check-phase11-dw-wdt-packet.py
+
+      - name: Self-test Phase 11 header-boundary packet checker
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test
+
+      - name: Check Phase 11 header-boundary packet
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py
+
+      - name: Self-test Phase 11 hvc survey packet checker
+        run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test
+
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
 
