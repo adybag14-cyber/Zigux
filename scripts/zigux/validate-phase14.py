@@ -132,7 +132,7 @@ REQUIRED_SKBUFF_DECISION_CHECKLIST = {
 }
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?",
+    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?`",
 ]
 
 BUILD_MARKERS = [
@@ -142,12 +142,21 @@ BUILD_MARKERS = [
     "phase14-ring-buffer-survey-tests",
     "phase14-rcu-tree-survey-tests",
     "phase14-end-to-end-smoke-tests",
+    "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
     "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
     "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
     "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
     "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+]
+
+FORBIDDEN_SMOKE_DEPENDENCIES = [
+    "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+    "smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
+    "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
+    "smoke_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
+    "smoke_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
 ]
 
 COMPILE_MATRIX_ROWS = [
@@ -256,6 +265,7 @@ def run_self_test() -> int:
 
     missing_reviewability_build = "\n".join(
         [f'.name = "{name}"' for name in EXPECTED_BUILD_TEST_NAMES]
+        + ["smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"]
         + [
             f"test_step.dependOn(&{step}.step);"
             for step in [
@@ -295,9 +305,30 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_reviewability_dependency_parse_result")
         return 1
 
+    forbidden_smoke_dependency_build = "\n".join(
+        [
+            "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+            "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+        ]
+    )
+    forbidden_smoke_markers = [
+        marker for marker in FORBIDDEN_SMOKE_DEPENDENCIES if marker in forbidden_smoke_dependency_build
+    ]
+    if forbidden_smoke_markers != [
+        "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_forbidden_smoke_dependency_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in forbidden_smoke_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
+    print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
     return 0
 
 
@@ -529,6 +560,12 @@ def run_validation() -> int:
     build_names = BUILD_TEST_NAME_RE.findall(build_text)
     if build_names != EXPECTED_BUILD_TEST_NAMES:
         missing.append("build:test_names")
+
+    forbidden_smoke_dependencies = [
+        marker for marker in FORBIDDEN_SMOKE_DEPENDENCIES if marker in build_text
+    ]
+    for marker in forbidden_smoke_dependencies:
+        missing.append(f"build:forbidden_smoke_dependency:{marker}")
 
     depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
     if len(depend_steps) != 6:
