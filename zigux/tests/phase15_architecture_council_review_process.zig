@@ -63,7 +63,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqual(@as(usize, 20), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("required approver set", manifest.ownership_evidence_fields[1]);
@@ -76,8 +76,8 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("rollback threshold", manifest.ownership_evidence_fields[8]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.ownership_evidence_fields[9]);
     try std.testing.expectEqualStrings("reopen triggers", manifest.ownership_evidence_fields[10]);
-    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.ownership_evidence_fields[11]);
-    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.ownership_evidence_fields[12]);
+    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.ownership_evidence_fields[11]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.ownership_evidence_fields[12]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
     try std.testing.expectEqualStrings("current status bucket", manifest.required_review_packet_fields[2]);
     try std.testing.expectEqualStrings("requested decision bucket", manifest.required_review_packet_fields[3]);
@@ -111,6 +111,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     var saw_archive_followup = false;
     var saw_retirement_rule = false;
     var saw_reopen_followup = false;
+    var saw_review_packet_field_sync = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -167,13 +168,18 @@ test "phase 15 architecture council review-process manifest records the bounded 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-packet-field-sync")) {
+            saw_review_packet_field_sync = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-threshold") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), landed_count);
+    try std.testing.expectEqual(@as(usize, 10), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_doc);
     try std.testing.expect(saw_manifest);
@@ -184,6 +190,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(saw_archive_followup);
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_followup);
+    try std.testing.expect(saw_review_packet_field_sync);
 }
 
 test "phase 15 architecture council review-process doc records the required process language" {
