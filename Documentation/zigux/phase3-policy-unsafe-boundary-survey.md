@@ -13,7 +13,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_PANIC_POLICY_BLOB_SHA=7b0dc9cce65d6dbb90d9edfb6078357ccae7928a`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
-- `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=5f212bc871d5c6c194be3249ef8d91ca3b5d09cf`
+- `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=264b9dbcb591fe6fd6bc1112bce7889b1e5f1b7c`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=1fbf2e247fb62987644e52ac8888ac278ca4c225`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
