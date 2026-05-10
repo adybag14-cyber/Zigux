@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+import argparse
 import json
 import re
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -138,8 +140,25 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def load_json(path: str) -> dict[str, object]:
-    return json.loads(text(path))
+def load_json(
+    path: str,
+    json_decode_errors: list[str],
+    *,
+    base_root: Path | None = None,
+) -> dict[str, object] | None:
+    root = ROOT if base_root is None else base_root
+    source = (root / path).read_text(encoding="utf-8")
+    try:
+        loaded = json.loads(source)
+    except json.JSONDecodeError as exc:
+        json_decode_errors.append(
+            f"{path}:{exc.lineno}:{exc.colno}:{exc.msg}"
+        )
+        return None
+    if not isinstance(loaded, dict):
+        json_decode_errors.append(f"{path}:top_level_type={type(loaded).__name__}")
+        return None
+    return loaded
 
 
 def summarize_gap_ids(manifest: dict[str, object]) -> tuple[str, str]:
@@ -179,199 +198,259 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
     )
 
 
-missing_files = [path for path in FILES if not (ROOT / path).exists()]
-if missing_files:
-    print("PHASE14_VALIDATION=fail")
-    print("MISSING_PHASE14_FILES_START")
-    for path in missing_files:
-        print(path)
-    print("MISSING_PHASE14_FILES_END")
-    sys.exit(1)
+def run_self_test() -> int:
+    errors: list[str] = []
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        bad_manifest = tmp_root / "bad.json"
+        bad_manifest.write_text('{"lane_key": "P14-L11",\n', encoding="utf-8")
+        result = load_json("bad.json", errors, base_root=tmp_root)
+    if result is not None:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=load_json_returned_value_for_invalid_json")
+        return 1
+    if errors != ["bad.json:2:1:Expecting property name enclosed in double quotes"]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_json_error_marker")
+        print("SELF_TEST_MARKERS_START")
+        for item in errors:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+    print("PHASE14_SELF_TEST=pass")
+    print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
+    return 0
 
-survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
-missing: list[str] = []
-for name, source, markers in [
-    ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
-    ("make", text("zigux/Makefile"), MAKE_MARKERS),
-    ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-    ("survey", survey_text, RELEASE_MARKERS),
-    ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
-    ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
-]:
-    for marker in markers:
-        if marker not in source:
-            missing.append(f"{name}:{marker}")
 
-freeze_map_text = text("Documentation/zigux/freeze-map.md")
-for marker in [
-    "kernel/workqueue.c",
-    "kernel/trace/ring_buffer.c",
-    "net/core/skbuff.c",
-    "kernel/rcu/tree.c",
-    "Architecture Council",
-]:
-    if marker not in freeze_map_text:
-        missing.append(f"freeze_map:{marker}")
+def run_validation() -> int:
+    missing_files = [path for path in FILES if not (ROOT / path).exists()]
+    if missing_files:
+        print("PHASE14_VALIDATION=fail")
+        print("MISSING_PHASE14_FILES_START")
+        for path in missing_files:
+            print(path)
+        print("MISSING_PHASE14_FILES_END")
+        return 1
 
-manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json")
-lane_key = manifest.get("lane_key")
-if not isinstance(lane_key, str) or not lane_key.startswith("P14-"):
-    missing.append(f'manifest:lane_key={lane_key}')
-if manifest.get("phase") != "Phase 14":
-    missing.append(f'manifest:phase={manifest.get("phase")}')
-surveyed_commit = manifest.get("surveyed_commit")
-if not isinstance(surveyed_commit, str) or not HEX40_RE.fullmatch(surveyed_commit):
-    missing.append(f'manifest:surveyed_commit={surveyed_commit}')
+    survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+    missing: list[str] = []
+    json_decode_errors: list[str] = []
+    for name, source, markers in [
+        ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
+        ("make", text("zigux/Makefile"), MAKE_MARKERS),
+        ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
+        ("survey", survey_text, RELEASE_MARKERS),
+        ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
+        ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
+    ]:
+        for marker in markers:
+            if marker not in source:
+                missing.append(f"{name}:{marker}")
 
-shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list):
-    missing.append("manifest:shared_smoke_surfaces")
-else:
-    for required_surface in [
-        "scripts/zigux/validate-phase14.py",
-        "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-        "scripts/zigux/README.md",
+    freeze_map_text = text("Documentation/zigux/freeze-map.md")
+    for marker in [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+        "net/core/skbuff.c",
+        "kernel/rcu/tree.c",
+        "Architecture Council",
+    ]:
+        if marker not in freeze_map_text:
+            missing.append(f"freeze_map:{marker}")
+
+    manifest = load_json(
         "zigux/tests/phase14_end_to_end_smoke_manifest.json",
-        "zigux/tests/phase14_end_to_end_smoke_survey.zig",
-        "zigux/tests/phase14_build.zig",
-        "zigux/tests/phase14_workqueue_reviewability.zig",
-        "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
-        "Documentation/zigux/review-checklist.md",
-        "Documentation/zigux/freeze-map.md",
-    ]:
-        if required_surface not in shared_smoke_surfaces:
-            missing.append(f"manifest:shared_smoke_surface:{required_surface}")
+        json_decode_errors,
+    )
+    if manifest is not None:
+        lane_key = manifest.get("lane_key")
+        if not isinstance(lane_key, str) or not lane_key.startswith("P14-"):
+            missing.append(f"manifest:lane_key={lane_key}")
+        if manifest.get("phase") != "Phase 14":
+            missing.append(f'manifest:phase={manifest.get("phase")}')
+        surveyed_commit = manifest.get("surveyed_commit")
+        if not isinstance(surveyed_commit, str) or not HEX40_RE.fullmatch(surveyed_commit):
+            missing.append(f"manifest:surveyed_commit={surveyed_commit}")
 
-anchor_packets = manifest.get("anchor_packets")
-expected_survey_anchor_lines: list[tuple[str, str]] = []
-if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
-    missing.append("manifest:anchor_packets")
-else:
-    for packet in anchor_packets:
-        if not isinstance(packet, dict):
-            missing.append("manifest:anchor_packet")
-            continue
-        packet_lane_key = packet.get("lane_key")
-        anchor = packet.get("anchor")
-        packet_commit = packet.get("surveyed_commit")
-        manifest_path = packet.get("manifest_path")
-        survey_note_path = packet.get("survey_note_path")
-        ready_next_gap = packet.get("ready_next_gap")
-        blocked_gap = packet.get("blocked_gap")
-        if not isinstance(packet_lane_key, str) or not packet_lane_key.startswith("P14-"):
-            missing.append(f"manifest:anchor_packet:lane_key={packet_lane_key}")
-            continue
-        if not isinstance(anchor, str) or not anchor:
-            missing.append(f"manifest:{packet_lane_key}:anchor={anchor}")
-        if not isinstance(packet_commit, str) or not HEX40_RE.fullmatch(packet_commit):
-            missing.append(f"manifest:{packet_lane_key}:surveyed_commit={packet_commit}")
-            continue
-        if not isinstance(manifest_path, str) or not manifest_path:
-            missing.append(f"manifest:{packet_lane_key}:manifest_path={manifest_path}")
-            continue
-        if not isinstance(survey_note_path, str) or not survey_note_path:
-            missing.append(f"manifest:{packet_lane_key}:survey_note_path={survey_note_path}")
-        if not isinstance(ready_next_gap, str):
-            missing.append(f"manifest:{packet_lane_key}:ready_next_gap={ready_next_gap}")
-        if not isinstance(blocked_gap, str) or not blocked_gap:
-            missing.append(f"manifest:{packet_lane_key}:blocked_gap={blocked_gap}")
-            continue
+        shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
+        if not isinstance(shared_smoke_surfaces, list):
+            missing.append("manifest:shared_smoke_surfaces")
+        else:
+            for required_surface in [
+                "scripts/zigux/validate-phase14.py",
+                "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+                "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+                "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+                "scripts/zigux/README.md",
+                "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+                "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+                "zigux/tests/phase14_build.zig",
+                "zigux/tests/phase14_workqueue_reviewability.zig",
+                "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+                "Documentation/zigux/review-checklist.md",
+                "Documentation/zigux/freeze-map.md",
+            ]:
+                if required_surface not in shared_smoke_surfaces:
+                    missing.append(f"manifest:shared_smoke_surface:{required_surface}")
 
-        anchor_manifest = load_json(manifest_path)
-        if anchor_manifest.get("phase") != "Phase 14":
-            missing.append(f"{manifest_path}:phase")
-        if anchor_manifest.get("lane_key") != packet_lane_key:
-            missing.append(f"{manifest_path}:lane_key")
-        if anchor_manifest.get("anchor") != anchor:
-            missing.append(f"{manifest_path}:anchor")
-        if anchor_manifest.get("surveyed_commit") != packet_commit:
-            missing.append(f"{manifest_path}:surveyed_commit")
+        anchor_packets = manifest.get("anchor_packets")
+        expected_survey_anchor_lines: list[tuple[str, str]] = []
+        if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
+            missing.append("manifest:anchor_packets")
+        else:
+            for packet in anchor_packets:
+                if not isinstance(packet, dict):
+                    missing.append("manifest:anchor_packet")
+                    continue
+                packet_lane_key = packet.get("lane_key")
+                anchor = packet.get("anchor")
+                packet_commit = packet.get("surveyed_commit")
+                manifest_path = packet.get("manifest_path")
+                survey_note_path = packet.get("survey_note_path")
+                ready_next_gap = packet.get("ready_next_gap")
+                blocked_gap = packet.get("blocked_gap")
+                if not isinstance(packet_lane_key, str) or not packet_lane_key.startswith("P14-"):
+                    missing.append(f"manifest:anchor_packet:lane_key={packet_lane_key}")
+                    continue
+                if not isinstance(anchor, str) or not anchor:
+                    missing.append(f"manifest:{packet_lane_key}:anchor={anchor}")
+                if not isinstance(packet_commit, str) or not HEX40_RE.fullmatch(packet_commit):
+                    missing.append(f"manifest:{packet_lane_key}:surveyed_commit={packet_commit}")
+                    continue
+                if not isinstance(manifest_path, str) or not manifest_path:
+                    missing.append(f"manifest:{packet_lane_key}:manifest_path={manifest_path}")
+                    continue
+                if not isinstance(survey_note_path, str) or not survey_note_path:
+                    missing.append(f"manifest:{packet_lane_key}:survey_note_path={survey_note_path}")
+                if not isinstance(ready_next_gap, str):
+                    missing.append(f"manifest:{packet_lane_key}:ready_next_gap={ready_next_gap}")
+                if not isinstance(blocked_gap, str) or not blocked_gap:
+                    missing.append(f"manifest:{packet_lane_key}:blocked_gap={blocked_gap}")
+                    continue
 
-        expected_ready_next_gap, expected_blocked_gap = summarize_gap_ids(anchor_manifest)
-        if ready_next_gap != expected_ready_next_gap:
-            missing.append(f"{manifest_path}:ready_next_gap")
-        if blocked_gap != expected_blocked_gap:
-            missing.append(f"{manifest_path}:blocked_gap")
+                anchor_manifest = load_json(manifest_path, json_decode_errors)
+                if anchor_manifest is None:
+                    continue
+                if anchor_manifest.get("phase") != "Phase 14":
+                    missing.append(f"{manifest_path}:phase")
+                if anchor_manifest.get("lane_key") != packet_lane_key:
+                    missing.append(f"{manifest_path}:lane_key")
+                if anchor_manifest.get("anchor") != anchor:
+                    missing.append(f"{manifest_path}:anchor")
+                if anchor_manifest.get("surveyed_commit") != packet_commit:
+                    missing.append(f"{manifest_path}:surveyed_commit")
 
-        expected_survey_anchor_lines.append(
-            (packet_lane_key, format_anchor_packet_survey_line(packet))
-        )
+                expected_ready_next_gap, expected_blocked_gap = summarize_gap_ids(anchor_manifest)
+                if ready_next_gap != expected_ready_next_gap:
+                    missing.append(f"{manifest_path}:ready_next_gap")
+                if blocked_gap != expected_blocked_gap:
+                    missing.append(f"{manifest_path}:blocked_gap")
 
-for packet_lane_key, survey_line in expected_survey_anchor_lines:
-    if survey_line not in survey_text:
-        missing.append(f"survey:anchor_packet:{packet_lane_key}")
+                expected_survey_anchor_lines.append(
+                    (packet_lane_key, format_anchor_packet_survey_line(packet))
+                )
 
-smoke_commands = manifest.get("smoke_commands")
-expected_smoke_commands = [
-    "make -C zigux phase14-validate",
-    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14"
-]
-if smoke_commands != expected_smoke_commands:
-    missing.append("manifest:smoke_commands")
+        for packet_lane_key, survey_line in expected_survey_anchor_lines:
+            if survey_line not in survey_text:
+                missing.append(f"survey:anchor_packet:{packet_lane_key}")
 
-smoke_shard_commands = manifest.get("smoke_shard_commands")
-expected_smoke_shard_commands = [
-    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14-smoke"
-]
-if smoke_shard_commands != expected_smoke_shard_commands:
-    missing.append("manifest:smoke_shard_commands")
+        smoke_commands = manifest.get("smoke_commands")
+        expected_smoke_commands = [
+            "make -C zigux phase14-validate",
+            "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+            "make -C zigux phase14",
+        ]
+        if smoke_commands != expected_smoke_commands:
+            missing.append("manifest:smoke_commands")
 
-compile_shards = manifest.get("compile_shards")
-if compile_shards != EXPECTED_COMPILE_SHARDS:
-    missing.append("manifest:compile_shards")
+        smoke_shard_commands = manifest.get("smoke_shard_commands")
+        expected_smoke_shard_commands = [
+            "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+            "make -C zigux phase14-smoke",
+        ]
+        if smoke_shard_commands != expected_smoke_shard_commands:
+            missing.append("manifest:smoke_shard_commands")
 
-summary = manifest.get("survey_summary")
-if not isinstance(summary, dict):
-    missing.append("manifest:survey_summary")
-else:
-    for key in [
-        "phase14_validate_script_present",
-        "phase14_validate_entrypoint_present",
-        "phase14_build_has_shared_smoke_step",
-        "phase14_build_has_smoke_shard_step",
-        "phase14_make_target_present",
-        "phase14_make_smoke_target_present",
-        "workflow_runs_phase14_validate",
-        "workflow_runs_phase14_build",
-        "workflow_runs_phase14_smoke_shard",
-        "review_checklist_has_phase14_smoke_prompt",
-        "review_checklist_has_productization_prompt",
-        "smoke_note_records_owner_and_rollback",
-        "smoke_note_records_transfer_rationale",
-        "freeze_map_lists_workqueue_c",
-        "freeze_map_lists_skbuff_c",
-        "freeze_map_lists_ring_buffer_c",
-        "freeze_map_lists_tree_c"
-    ]:
-        if summary.get(key) is not True:
-            missing.append(f"manifest:survey_summary:{key}={summary.get(key)}")
+        compile_shards = manifest.get("compile_shards")
+        if compile_shards != EXPECTED_COMPILE_SHARDS:
+            missing.append("manifest:compile_shards")
 
-build_text = text("zigux/tests/phase14_build.zig")
-build_names = BUILD_TEST_NAME_RE.findall(build_text)
-if build_names != EXPECTED_BUILD_TEST_NAMES:
-    missing.append("build:test_names")
+        summary = manifest.get("survey_summary")
+        if not isinstance(summary, dict):
+            missing.append("manifest:survey_summary")
+        else:
+            for key in [
+                "phase14_validate_script_present",
+                "phase14_validate_entrypoint_present",
+                "phase14_build_has_shared_smoke_step",
+                "phase14_build_has_smoke_shard_step",
+                "phase14_make_target_present",
+                "phase14_make_smoke_target_present",
+                "workflow_runs_phase14_validate",
+                "workflow_runs_phase14_build",
+                "workflow_runs_phase14_smoke_shard",
+                "review_checklist_has_phase14_smoke_prompt",
+                "review_checklist_has_productization_prompt",
+                "smoke_note_records_owner_and_rollback",
+                "smoke_note_records_transfer_rationale",
+                "freeze_map_lists_workqueue_c",
+                "freeze_map_lists_skbuff_c",
+                "freeze_map_lists_ring_buffer_c",
+                "freeze_map_lists_tree_c",
+            ]:
+                if summary.get(key) is not True:
+                    missing.append(f"manifest:survey_summary:{key}={summary.get(key)}")
 
-depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-if len(depend_steps) != 6:
-    missing.append(f"build:depend_step_count={len(depend_steps)}")
+    build_text = text("zigux/tests/phase14_build.zig")
+    build_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if build_names != EXPECTED_BUILD_TEST_NAMES:
+        missing.append("build:test_names")
 
-if missing:
-    print("PHASE14_VALIDATION=fail")
-    print("PHASE14_VALIDATION_MISSING_START")
-    for item in missing:
-        print(item)
-    print("PHASE14_VALIDATION_MISSING_END")
-    sys.exit(1)
+    depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if len(depend_steps) != 6:
+        missing.append(f"build:depend_step_count={len(depend_steps)}")
 
-print("PHASE14_VALIDATION=pass")
-print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
-print(
-    "PHASE14_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
-)
-print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
-print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
+    if json_decode_errors or missing:
+        print("PHASE14_VALIDATION=fail")
+        if json_decode_errors:
+            print("PHASE14_JSON_DECODE_ERRORS_START")
+            for item in json_decode_errors:
+                print(item)
+            print("PHASE14_JSON_DECODE_ERRORS_END")
+        if missing:
+            print("PHASE14_VALIDATION_MISSING_START")
+            for item in missing:
+                print(item)
+            print("PHASE14_VALIDATION_MISSING_END")
+        return 1
+
+    print("PHASE14_VALIDATION=pass")
+    print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
+    print(
+        "PHASE14_REQUIRED_MARKER_COUNT="
+        f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+    )
+    print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
+    print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
+    return 0
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the validator's internal JSON-decode coverage check",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str]) -> int:
+    args = parse_args(argv)
+    if args.self_test:
+        return run_self_test()
+    return run_validation()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))
