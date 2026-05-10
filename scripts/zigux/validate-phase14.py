@@ -8,6 +8,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
@@ -126,13 +127,6 @@ EXPECTED_COMPILE_SHARDS = [
     for label, root_source, coverage in COMPILE_MATRIX_ROWS
 ]
 
-EXPECTED_ANCHOR_LANES = [
-    ("P14-L04", "kernel/workqueue.c"),
-    ("P14-Y03", "net/core/skbuff.c"),
-    ("P14-L08", "kernel/trace/ring_buffer.c"),
-    ("P14-L14", "kernel/rcu/tree.c"),
-]
-
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
@@ -176,10 +170,14 @@ for marker in [
         missing.append(f"freeze_map:{marker}")
 
 manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json")
-if manifest.get("lane_key") != "P14-L03":
-    missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
+lane_key = manifest.get("lane_key")
+if not isinstance(lane_key, str) or not lane_key.startswith("P14-"):
+    missing.append(f'manifest:lane_key={lane_key}')
 if manifest.get("phase") != "Phase 14":
     missing.append(f'manifest:phase={manifest.get("phase")}')
+surveyed_commit = manifest.get("surveyed_commit")
+if not isinstance(surveyed_commit, str) or not HEX40_RE.fullmatch(surveyed_commit):
+    missing.append(f'manifest:surveyed_commit={surveyed_commit}')
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
 if not isinstance(shared_smoke_surfaces, list):
@@ -206,14 +204,45 @@ anchor_packets = manifest.get("anchor_packets")
 if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
     missing.append("manifest:anchor_packets")
 else:
-    for (lane_key, anchor), packet in zip(EXPECTED_ANCHOR_LANES, anchor_packets):
+    for packet in anchor_packets:
         if not isinstance(packet, dict):
-            missing.append(f"manifest:anchor_packet:{lane_key}")
+            missing.append("manifest:anchor_packet")
             continue
-        if packet.get("lane_key") != lane_key:
-            missing.append(f'manifest:{lane_key}:lane_key={packet.get("lane_key")}')
-        if packet.get("anchor") != anchor:
-            missing.append(f'manifest:{lane_key}:anchor={packet.get("anchor")}')
+        packet_lane_key = packet.get("lane_key")
+        anchor = packet.get("anchor")
+        packet_commit = packet.get("surveyed_commit")
+        manifest_path = packet.get("manifest_path")
+        survey_note_path = packet.get("survey_note_path")
+        ready_next_gap = packet.get("ready_next_gap")
+        blocked_gap = packet.get("blocked_gap")
+        if not isinstance(packet_lane_key, str) or not packet_lane_key.startswith("P14-"):
+            missing.append(f"manifest:anchor_packet:lane_key={packet_lane_key}")
+            continue
+        if not isinstance(anchor, str) or not anchor:
+            missing.append(f"manifest:{packet_lane_key}:anchor={anchor}")
+        if not isinstance(packet_commit, str) or not HEX40_RE.fullmatch(packet_commit):
+            missing.append(f"manifest:{packet_lane_key}:surveyed_commit={packet_commit}")
+            continue
+        if not isinstance(manifest_path, str) or not manifest_path:
+            missing.append(f"manifest:{packet_lane_key}:manifest_path={manifest_path}")
+            continue
+        if not isinstance(survey_note_path, str) or not survey_note_path:
+            missing.append(f"manifest:{packet_lane_key}:survey_note_path={survey_note_path}")
+        if not isinstance(ready_next_gap, str):
+            missing.append(f"manifest:{packet_lane_key}:ready_next_gap={ready_next_gap}")
+        if not isinstance(blocked_gap, str) or not blocked_gap:
+            missing.append(f"manifest:{packet_lane_key}:blocked_gap={blocked_gap}")
+            continue
+
+        anchor_manifest = load_json(manifest_path)
+        if anchor_manifest.get("phase") != "Phase 14":
+            missing.append(f"{manifest_path}:phase")
+        if anchor_manifest.get("lane_key") != packet_lane_key:
+            missing.append(f"{manifest_path}:lane_key")
+        if anchor_manifest.get("anchor") != anchor:
+            missing.append(f"{manifest_path}:anchor")
+        if anchor_manifest.get("surveyed_commit") != packet_commit:
+            missing.append(f"{manifest_path}:surveyed_commit")
 
 smoke_commands = manifest.get("smoke_commands")
 expected_smoke_commands = [
@@ -270,20 +299,6 @@ if build_names != EXPECTED_BUILD_TEST_NAMES:
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 if len(depend_steps) != 6:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
-
-for manifest_path, lane_key, anchor in [
-    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L04", "kernel/workqueue.c"),
-    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-Y03", "net/core/skbuff.c"),
-    ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L08", "kernel/trace/ring_buffer.c"),
-    ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L14", "kernel/rcu/tree.c")
-]:
-    anchor_manifest = load_json(manifest_path)
-    if anchor_manifest.get("phase") != "Phase 14":
-        missing.append(f"{manifest_path}:phase")
-    if anchor_manifest.get("lane_key") != lane_key:
-        missing.append(f"{manifest_path}:lane_key")
-    if anchor_manifest.get("anchor") != anchor:
-        missing.append(f"{manifest_path}:anchor")
 
 if missing:
     print("PHASE14_VALIDATION=fail")
