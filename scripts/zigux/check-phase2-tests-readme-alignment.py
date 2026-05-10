@@ -273,6 +273,7 @@ EXACT_COUNT_CHECKS = {
     "zigux/Makefile": {
         "check-phase2-tests-readme-alignment.py": 2,
         "check-phase2-tool-manifest-packets.py": 2,
+        "$(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
         "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross": 1,
     },
 }
