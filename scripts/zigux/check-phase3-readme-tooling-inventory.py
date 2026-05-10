@@ -21,6 +21,8 @@ REQUIRED_MARKERS = (
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "validate-phase3-abi-bindings-syntax.py",
     "survey-phase3-abi-constant-parity.py",
     "phase3_catalog.py",
@@ -53,8 +55,8 @@ def run_self_test() -> int:
         print("\n".join(missing))
         return 1
 
-    broken = validate_text(sample.replace("validate-phase3-abi-header-family-survey.py", "", 1))
-    if "validate-phase3-abi-header-family-survey.py" not in broken:
+    broken = validate_text(sample.replace("Documentation/zigux/phase3-abi-h-boundary-next-step.md", "", 1))
+    if "Documentation/zigux/phase3-abi-h-boundary-next-step.md" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected missing marker was not reported")
         return 1
