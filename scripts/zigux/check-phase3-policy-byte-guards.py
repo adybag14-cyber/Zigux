@@ -46,10 +46,13 @@ REQUIRED_PANIC_SNIPPETS = (
     "try std.testing.expect(!recognizesByte(9));",
     "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));",
     "try std.testing.expect(recognizesInteropPolicy(abort_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(unknown_policy));",
     "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(unknown_policy));",
     "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));",
     "try std.testing.expectEqual(@as(?Action, .abort_now), actionForInteropPolicy(abort_policy));",
     "try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForInteropPolicy(warn_policy));",
+    "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(unknown_policy));",
     "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));",
     "try std.testing.expect(!canReturnByte(0));",
     "try std.testing.expect(canReturnByte(2));",
@@ -57,6 +60,7 @@ REQUIRED_PANIC_SNIPPETS = (
     "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));",
     "try std.testing.expect(!canReturnInteropPolicy(abort_policy));",
     "try std.testing.expect(canReturnInteropPolicy(warn_policy));",
+    "try std.testing.expect(!canReturnInteropPolicy(unknown_policy));",
     "try std.testing.expect(!canReturnInteropPolicy(reserved_policy));",
 )
 
@@ -319,6 +323,16 @@ def run_self_test() -> int:
         write(root / PANIC_POLICY_REL, broken_panic_typed_wrapper)
         issues = validate(root)
         assert "missing_panic_snippet:try std.testing.expect(canReturnInteropPolicy(warn_policy));" in issues
+
+        build_valid_workspace(root)
+        broken_panic_unknown_policy = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
+            "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(unknown_policy));\n",
+            "",
+            1,
+        )
+        write(root / PANIC_POLICY_REL, broken_panic_unknown_policy)
+        issues = validate(root)
+        assert "missing_panic_snippet:try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(unknown_policy));" in issues
 
         build_valid_workspace(root)
         broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
