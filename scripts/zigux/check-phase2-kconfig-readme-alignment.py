@@ -33,8 +33,6 @@ FORBIDDEN_MARKERS = (
     "`check-genksyms-crc-diff.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 8
-
 
 def read_text(path: Path) -> str:
     try:
@@ -89,7 +87,7 @@ def run_self_test() -> int:
     assert ("REQUIRED_SNIPPET_COUNT_MISMATCH", f"{REQUIRED_SNIPPETS[1]}:actual=2:expected=1") in issues
     checks_run += 1
 
-    for forbidden_marker in FORBIDDEN_MARKERS[:4]:
+    for forbidden_marker in FORBIDDEN_MARKERS:
         issues = collect_issues(base_text + "\n" + forbidden_marker)
         assert ("FORBIDDEN_MARKER_PRESENT", f"{forbidden_marker}:actual=1:expected=0") in issues
         checks_run += 1
@@ -101,10 +99,11 @@ def run_self_test() -> int:
         assert issues == []
         checks_run += 1
 
-    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
+    expected_self_test_case_count = 4 + len(FORBIDDEN_MARKERS)
+    if checks_run != expected_self_test_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
-        print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
+        print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_EXPECTED={expected_self_test_case_count}")
         return 1
 
     print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=pass")
