@@ -1,0 +1,13 @@
+{
+  "lane_key": "P4-L19",
+  "phase": "Phase 4",
+  "c_anchor": "samples/vfs/test-fsmount.c",
+  "current_linux_replay": "make M=samples/vfs",
+  "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-test-fsmount-survey",
+  "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+  "owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
+  "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
+  "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter"
+}
