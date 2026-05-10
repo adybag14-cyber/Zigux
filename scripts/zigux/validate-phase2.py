@@ -429,7 +429,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"), "--self-test"],
-            ["PHASE2_FIXDEP_GATE_SELF_TEST=pass", "PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=8"],
+            ["PHASE2_FIXDEP_GATE_SELF_TEST=pass", "PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=10"],
         )
     )
     guard_issues.extend(
