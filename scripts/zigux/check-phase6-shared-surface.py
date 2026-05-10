@@ -83,6 +83,9 @@ REQUIRED_SNIPPETS = {
         "- fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases",
         "- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition",
         "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
+        "- a direct 41-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 `tcpUdpNofold`, IPv6 `tcpUdpV6Nofold`, folded `tcpUdpMagic`, folded `tcpUdpV6Magic`, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior",
+        "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
+        "- the live perf fixture matrix keeps `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases",
         "- `make -C zigux phase6-checksum-perf`",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
@@ -392,11 +395,11 @@ def scaffold_repo(root: Path) -> None:
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
             continue
         if rel_path == BASE64_C_PARITY_SCRIPT_PATH.as_posix():
-            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 25)], "    ]", ")", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', ""]
+            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        "case-{index:02d}",' for index in range(1, 25)], "    ]", ")", 'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")', ""]
             write(root / rel_path, "\n".join(lines))
             continue
         if rel_path == CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix():
-            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 42)], "    ]", ")", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', ""]
+            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        "case-{index:02d}",' for index in range(1, 42)], "    ]", ")", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', ""]
             write(root / rel_path, "\n".join(lines))
             continue
         lines = list(dict.fromkeys(snippets))
@@ -405,7 +408,7 @@ def scaffold_repo(root: Path) -> None:
         write(root / rel_path, "\n".join(lines) + "\n")
     checksum_script = root / CHECKSUM_C_PARITY_SCRIPT_PATH
     if not checksum_script.exists():
-        lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 42)], "    ]", ")", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', ""]
+        lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        "case-{index:02d}",' for index in range(1, 42)], "    ]", ")", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', ""]
         write(checksum_script, "\n".join(lines))
 
 
@@ -442,15 +445,16 @@ def run_self_test() -> None:
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`", "- direct local rerun route: `zig build phase6-bsearch-missing --build-file zigux/tests/phase6_build.zig`")
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`", "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_missing.zig`")
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`", "- direct local rerun route: `zig build phase6-hexdump-missing --build-file zigux/tests/phase6_build.zig`")
-        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '\"surveyed_commit\": \"3ea8f93\",', '\"surveyed_commit\": \"\",')
-        assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
-        assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
+        assert_failure(root, "Documentation/zigux/phase6-checksum-slice.md", "- a direct 41-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 `tcpUdpNofold`, IPv6 `tcpUdpV6Nofold`, folded `tcpUdpMagic`, folded `tcpUdpV6Magic`, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior", "- a direct 40-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 `tcpUdpNofold`, IPv6 `tcpUdpV6Nofold`, folded `tcpUdpMagic`, folded `tcpUdpV6Magic`, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior")
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "3ea8f93",', '"surveyed_commit": "",')
+        assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")', 'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")')
+        assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', 'print(f"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}")')
         assert_failure(root, "scripts/zigux/README.md", "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.", "- `make -C zigux phase6-validate` keeps a missing shared Phase 6 surface checker wired through the Zigux convenience target.")
         assert_failure(root, "zigux/tests/README.md", "  * `zigux/tests/phase6_checksum_perf.zig`", "  * `zigux/tests/phase6_checksum_perf_missing.zig`")
         assert_failure(root, "zigux/tests/phase6_hexdump_perf.zig", 'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}=pass\\n", .{case.label});', 'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}=ok\\n", .{case.label});')
         assert_failure(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig", '.max_slowdown_pct = 600,', '.max_slowdown_pct = 601,')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
-        assert_failure(root, "zigux/tests/phase6_build.zig", '.name = \"phase6-bsearch-c-abi-budget-tests\"', '.name = \"phase6-bsearch-c-abi-tests\"')
+        assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
     print("self-test passed")
 
 
@@ -465,6 +469,7 @@ def main() -> int:
     run_checks(Path(args.repo_root).resolve())
     print("Phase 6 shared surface looks aligned.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
