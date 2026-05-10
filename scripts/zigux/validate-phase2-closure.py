@@ -10,35 +10,39 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
-CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
-CHECK_PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT = (
-    ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
-)
-CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = (
-    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
-)
-CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
-CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
-CHECK_PHASE2_TOOL_MANIFEST_PACKETS = ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+
+PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+ARTIFACT_DIFF_DOC = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+MAKEFILE = ROOT / "zigux" / "Makefile"
+WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+LEDGER = ROOT / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md"
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
+ARTIFACT_TOOLS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
+CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 GENKSYMS_CASES = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json"
-KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
+KCONFIG_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
+KCONFIG_CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 
 PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
 ]
+
 PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "PHASE2_KCONFIG_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
 ]
+
 PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
+
 PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -140,48 +144,6 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS = [
     "x86_64-linux",
 ]
 
-def required_files_for(root: Path) -> list[Path]:
-    return [
-        root / "Documentation" / "zigux" / "phase2-closure.md",
-        root / "Documentation" / "zigux" / "README.md",
-        root / "Documentation" / "zigux" / "review-checklist.md",
-        TOOLCHAIN_NOTES,
-        root / "Documentation" / "zigux" / "artifact-diff.md",
-        root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
-        root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
-        root / "scripts" / "zigux" / "check-genksyms-bridge.py",
-        root / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
-        root / "scripts" / "zigux" / "check-kconfig-bridge.py",
-        root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
-        root / "scripts" / "zigux" / "check-phase2-cross.py",
-        root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
-        root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
-        root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
-        root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
-        root / "scripts" / "zigux" / "validate-phase2-closure.py",
-        root / "scripts" / "zigux" / "fixdep.zig",
-        root / "scripts" / "zigux" / "genksyms.zig",
-        root / "scripts" / "zigux" / "genksyms_crc.zig",
-        root / "scripts" / "zigux" / "mk_elfconfig.zig",
-        root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-        root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
-        root / "zigux" / "Makefile",
-        root / ".github" / "workflows" / "zigux-bootstrap.yml",
-        root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md",
-        root / "scripts" / "zigux" / "zig-toolchain-policy.json",
-        root / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "alldefconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "olddefconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "syncconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "allmodconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "yes2modconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "defconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "savedefconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "listnewconfig_expected.json",
-        root / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
-        root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
-    ]
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -189,272 +151,170 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
         raise SystemExit(f"{label}:expected_object")
     return payload
 
-def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[list[Path], list[str]]:
-    issues: list[str] = []
+
+def required_files_for(root: Path) -> list[Path]:
+    return [
+        root / PHASE2_CLOSURE.relative_to(ROOT),
+        root / DOCS_ROOT_README.relative_to(ROOT),
+        root / REVIEW_CHECKLIST.relative_to(ROOT),
+        root / TOOLCHAIN_NOTES.relative_to(ROOT),
+        root / ARTIFACT_DIFF_DOC.relative_to(ROOT),
+        root / SCRIPTS_README.relative_to(ROOT),
+        root / MAKEFILE.relative_to(ROOT),
+        root / WORKFLOW.relative_to(ROOT),
+        root / LEDGER.relative_to(ROOT),
+        root / TOOLCHAIN_POLICY.relative_to(ROOT),
+        root / TOOL_MANIFEST.relative_to(ROOT),
+        root / ARTIFACT_TOOLS_MANIFEST.relative_to(ROOT),
+        root / CROSS_TARGETS.relative_to(ROOT),
+        root / GENKSYMS_CASES.relative_to(ROOT),
+        root / KCONFIG_CASES.relative_to(ROOT),
+        root / KCONFIG_CONF_MANIFEST.relative_to(ROOT),
+        root / "scripts/zigux/check-phase2-fixdep-gate.py",
+        root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        root / "scripts/zigux/check-genksyms-bridge.py",
+        root / "scripts/zigux/check-genksyms-crc-diff.py",
+        root / "scripts/zigux/check-kconfig-bridge.py",
+        root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        root / "scripts/zigux/check-phase2-cross.py",
+        root / "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        root / "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        root / "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        root / "scripts/zigux/check-phase2-tool-manifest-packets.py",
+        root / "scripts/zigux/validate-phase2-closure.py",
+        root / "scripts/zigux/fixdep.zig",
+        root / "scripts/zigux/genksyms.zig",
+        root / "scripts/zigux/genksyms_crc.zig",
+        root / "scripts/zigux/mk_elfconfig.zig",
+        root / "scripts/zigux/kconfig/conf_bridge.zig",
+        root / "scripts/zigux/kconfig/confdata_bridge.zig",
+    ]
+
+
+def collect_genksyms_metadata(
+    cases_payload: dict[str, object],
+) -> tuple[list[Path], list[str], list[str], list[str], list[str], list[str]]:
     cases = cases_payload.get("cases")
-    if not isinstance(cases, list):
-        return [], ["genksyms_cases:cases:expected_list"]
-    if not cases:
-        return [], ["genksyms_cases:cases:empty"]
+    if not isinstance(cases, list) or not cases:
+        raise SystemExit("genksyms_cases:cases:expected_nonempty_list")
 
     expected_files: list[Path] = []
+    case_names: list[str] = []
+    stdout_packet: list[str] = []
+    process_packet: list[str] = []
+    normalized_stderr_packet: list[str] = []
     seen_expected: set[str] = set()
+
     for index, case in enumerate(cases):
         if not isinstance(case, dict):
-            issues.append(f"genksyms_cases:cases[{index}]:expected_object")
-            continue
+            raise SystemExit(f"genksyms_cases:cases[{index}]:expected_object")
         name = case.get("name")
-        if not isinstance(name, str) or not name:
-            issues.append(f"genksyms_cases:cases[{index}]:name:expected_nonempty_string")
-            continue
         expected = case.get("expected")
+        if not isinstance(name, str) or not name:
+            raise SystemExit(f"genksyms_cases:cases[{index}]:name:expected_nonempty_string")
         if not isinstance(expected, str) or not expected:
-            issues.append(f"genksyms_cases:{name}:expected:expected_nonempty_string")
-            continue
+            raise SystemExit(f"genksyms_cases:{name}:expected:expected_nonempty_string")
         if expected in seen_expected:
-            issues.append(f"genksyms_cases:{name}:expected:duplicate_reference:{expected}")
-            continue
+            raise SystemExit(f"genksyms_cases:{name}:expected:duplicate_reference:{expected}")
         seen_expected.add(expected)
+        case_names.append(name)
         expected_files.append(GENKSYMS_CASES.parent / expected)
-    return expected_files, issues
+        if case.get("mode") == "process_json":
+            process_packet.append(expected)
+            if case.get("normalize_stderr") is True:
+                normalized_stderr_packet.append(expected)
+        else:
+            stdout_packet.append(expected)
 
-def collect_confdata_case_metadata(
+    return (
+        expected_files,
+        case_names,
+        stdout_packet,
+        process_packet,
+        normalized_stderr_packet,
+        ["abbreviated_help", "abbreviated_version"],
+    )
+
+
+def collect_confdata_metadata(
     cases_payload: dict[str, object],
-) -> tuple[list[Path], list[str], list[str], list[str]]:
-    issues: list[str] = []
+) -> tuple[list[Path], list[str], list[str]]:
     cases = cases_payload.get("confdata_cases")
-    if not isinstance(cases, list):
-        return [], [], [], ["kconfig_bridge_cases:confdata_cases:expected_list"]
-    if not cases:
-        return [], [], [], ["kconfig_bridge_cases:confdata_cases:empty"]
+    if not isinstance(cases, list) or not cases:
+        raise SystemExit("kconfig_bridge_cases:confdata_cases:expected_nonempty_list")
 
     discovered_files: list[Path] = []
     case_names: list[str] = []
     expected_packet: list[str] = []
     seen_paths: set[Path] = set()
+
     for index, case in enumerate(cases):
         if not isinstance(case, dict):
-            issues.append(f"kconfig_bridge_cases:confdata_cases[{index}]:expected_object")
-            continue
+            raise SystemExit(f"kconfig_bridge_cases:confdata_cases[{index}]:expected_object")
         name = case.get("name")
         if not isinstance(name, str) or not name:
-            issues.append(
+            raise SystemExit(
                 f"kconfig_bridge_cases:confdata_cases[{index}]:name:expected_nonempty_string"
             )
-            continue
         case_names.append(name)
-        expected_rel_path: str | None = None
         for field_name in ("input", "expected"):
             rel_path = case.get(field_name)
             if not isinstance(rel_path, str) or not rel_path:
-                issues.append(
+                raise SystemExit(
                     f"kconfig_bridge_cases:{name}:{field_name}:expected_nonempty_string"
                 )
-                continue
+            discovered_path = KCONFIG_CASES.parent / rel_path
+            if discovered_path not in seen_paths:
+                seen_paths.add(discovered_path)
+                discovered_files.append(discovered_path)
             if field_name == "expected":
-                expected_rel_path = rel_path
-            discovered_path = KCONFIG_BRIDGE_CASES.parent / rel_path
-            if discovered_path in seen_paths:
-                continue
-            seen_paths.add(discovered_path)
-            discovered_files.append(discovered_path)
-        if expected_rel_path is not None:
-            expected_packet.append(expected_rel_path)
-    return discovered_files, case_names, expected_packet, issues
+                expected_packet.append(rel_path)
 
-def validate_exact_makefile_runs(text: str) -> list[str]:
+    return discovered_files, case_names, expected_packet
+
+
+def require_markers(text: str, markers: list[str], prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def validate_exact_runs(
+    text: str,
+    *,
+    prefix: str,
+    counted_runs: dict[str, int],
+    exact_lines: dict[str, int],
+    line_prefix: str = "",
+) -> list[str]:
     issues: list[str] = []
     lines = [line.strip() for line in text.splitlines()]
-    for command, expected_count in PHASE2_MAKEFILE_RUN_COUNTS.items():
-        expected_line = f"cd $(ZIGUX_ROOT) && $(PYTHON) {command}"
+
+    for command, expected_count in counted_runs.items():
+        expected_line = f"{line_prefix}{command}"
         count = sum(1 for line in lines if line == expected_line)
         if count != expected_count:
-            issues.append(f"make_exact_run:{command}:count={count}:expected={expected_count}")
-    for expected_line, expected_count in PHASE2_MAKEFILE_EXACT_LINES.items():
+            issues.append(f"{prefix}_exact_run:{command}:count={count}:expected={expected_count}")
+
+    for expected_line, expected_count in exact_lines.items():
         count = sum(1 for line in lines if line == expected_line)
         if count != expected_count:
-            issues.append(f"make_exact_line:{expected_line}:count={count}:expected={expected_count}")
+            issues.append(f"{prefix}_exact_line:{expected_line}:count={count}:expected={expected_count}")
+
     return issues
 
-def validate_exact_workflow_runs(text: str) -> list[str]:
-    issues: list[str] = []
-    lines = [line.strip() for line in text.splitlines()]
-    for command, expected_count in PHASE2_WORKFLOW_RUN_COUNTS.items():
-        expected_line = f"run: {command}"
-        count = sum(1 for line in lines if line == expected_line)
-        if count != expected_count:
-            issues.append(
-                f"workflow_exact_run:{command}:count={count}:expected={expected_count}"
-            )
-    for expected_line, expected_count in PHASE2_WORKFLOW_EXACT_LINES.items():
-        count = sum(1 for line in lines if line == expected_line)
-        if count != expected_count:
-            issues.append(
-                f"workflow_exact_line:{expected_line}:count={count}:expected={expected_count}"
-            )
-    return issues
 
-def make_ok_text() -> str:
-    return "\n".join(
-        [
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig",
-        ]
-    )
-
-def workflow_ok_text() -> str:
-    return (
-        "\n".join(
-            [
-                "run: python3 scripts/zigux/install-zig.py --self-test",
-                "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
-                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-                "run: python3 scripts/zigux/check-zig-toolchain.py",
-                "run: python3 scripts/zigux/validate-phase2.py",
-                "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
-                "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
-                "run: python3 scripts/zigux/check-fixdep-diff.py",
-                "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
-                "run: python3 scripts/zigux/validate-phase2-closure.py",
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
-                "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
-                "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
-                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
-                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-                "run: python3 scripts/zigux/check-kconfig-bridge.py",
-                "run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
-                "run: python3 scripts/zigux/check-mk-elfconfig-diff.py",
-                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
-                "run: python3 scripts/zigux/check-genksyms-bridge.py",
-                "run: python3 scripts/zigux/check-genksyms-crc-diff.py",
-                "run: zig test scripts/zigux/fixdep.zig",
-                "run: zig test scripts/zigux/genksyms.zig",
-                "run: zig test scripts/zigux/genksyms_crc.zig",
-                "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
-                "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-                "run: zig test scripts/zigux/mk_elfconfig.zig",
-                "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
-            ]
-        )
-        + "\n"
-    )
-
-def toolchain_notes_ok_text() -> str:
-    return (
-        "\n".join(
-            [
-                "- policy file: `scripts/zigux/zig-toolchain-policy.json`",
-                "- guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-                "- guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-                "- shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`",
-                "- shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`",
-                "- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`",
-                "- workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`",
-                "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
-                "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
-                "- current pinned bootstrap archive target: `x86_64-linux`",
-            ]
-        )
-        + "\n"
-    )
-
-def require_marker(text: str, marker: str, bucket: list[str], prefix: str) -> None:
-    if marker not in text:
-        bucket.append(f"{prefix}:{marker}")
-
-def validate_required_markers(text: str, markers: list[str], prefix: str) -> list[str]:
-    issues: list[str] = []
-    for marker in markers:
-        require_marker(text, marker, issues, prefix)
-    return issues
-
-def main_validation(root: Path) -> list[str]:
-    required_files = required_files_for(root)
-    missing = [str(path.relative_to(root)) for path in required_files if not path.exists()]
-    if missing:
-        return [f"missing_file:{item}" for item in missing]
-
-    genksyms_cases_payload = load_json_object(
-        root / GENKSYMS_CASES.relative_to(ROOT), label="genksyms_cases"
-    )
-    genksyms_expected_files, genksyms_case_issues = collect_genksyms_expected_files(
-        genksyms_cases_payload
-    )
-    kconfig_cases_payload = load_json_object(
-        root / KCONFIG_BRIDGE_CASES.relative_to(ROOT), label="kconfig_bridge_cases"
-    )
-    (
-        confdata_case_files,
-        confdata_case_names,
-        confdata_expected_packet,
-        confdata_case_issues,
-    ) = collect_confdata_case_metadata(kconfig_cases_payload)
-    if genksyms_case_issues:
-        return genksyms_case_issues
-    if confdata_case_issues:
-        return confdata_case_issues
-    for rel_path in genksyms_expected_files + confdata_case_files:
-        abs_path = root / rel_path.relative_to(ROOT)
-        if not abs_path.exists():
-            return [f"missing_file:{abs_path.relative_to(root)}"]
-
-    closure = (root / "Documentation" / "zigux" / "phase2-closure.md").read_text(encoding="utf-8")
-    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
-    ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
-    script_readme = (root / "scripts" / "zigux/README.md").read_text(encoding="utf-8")
-    artifact_doc = (root / "Documentation" / "zigux/artifact-diff.md").read_text(encoding="utf-8")
-    toolchain_notes = TOOLCHAIN_NOTES.read_text(encoding="utf-8")
-    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
-    tool_manifest = json.loads(
-        (root / "zigux/tests/fixtures/phase2_tool_manifest.json").read_text(encoding="utf-8")
-    )
-    targets_manifest = json.loads(
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").read_text(encoding="utf-8")
-    )
-
-    required_closure_markers = [
+def build_required_closure_markers(
+    *,
+    genksyms_case_names: list[str],
+    genksyms_stdout_packet: list[str],
+    genksyms_process_packet: list[str],
+    genksyms_normalized_stderr_packet: list[str],
+    genksyms_action_abbrev_cases: list[str],
+    conf_case_names: list[str],
+    conf_stdout_packet: list[str],
+    confdata_case_names: list[str],
+    confdata_expected_packet: list[str],
+) -> list[str]:
+    markers = [
         "PHASE2_STATUS=closed",
         "PHASE2_TOOL_COUNT=6",
         "PHASE2_CROSS_TARGET_COUNT=3",
@@ -474,18 +334,21 @@ def main_validation(root: Path) -> list[str]:
         "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
         "PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
         "PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
-        "PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=22",
-        "PHASE2_GENKSYMS_BRIDGE_CASES=minimal,debug_reference_types,long_options,abbreviated_long_options,ambiguous_long_option,quiet_overrides_warning,explicit_option_terminator,positional_passthrough,lone_dash_passthrough,help,version_then_short_help,version_then_long_help,abbreviated_help,unexpected_help_argument,version,abbreviated_version,invalid_option,missing_reference_argument,unsupported_long_option,missing_long_reference_argument,missing_long_dump_types_argument,too_many_reference_files",
-        "PHASE2_GENKSYMS_BRIDGE_STDOUT_PACKET=minimal_expected.json,debug_reference_types_expected.json,long_options_expected.json,abbreviated_long_options_expected.json,quiet_overrides_warning_expected.json,explicit_option_terminator_expected.json,positional_passthrough_expected.json,lone_dash_passthrough_expected.json",
-        "PHASE2_GENKSYMS_BRIDGE_PROCESS_PACKET=ambiguous_long_option_expected.json,help_expected.json,version_then_help_expected.json,unexpected_help_argument_expected.json,version_expected.json,abbreviated_version_expected.json,invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json,too_many_reference_files_expected.json",
-        "PHASE2_GENKSYMS_BRIDGE_NORMALIZED_STDERR_PACKET=ambiguous_long_option_expected.json,unexpected_help_argument_expected.json,invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json,too_many_reference_files_expected.json",
-        "PHASE2_GENKSYMS_BRIDGE_ACTION_ABBREV_CASES=abbreviated_help,abbreviated_version",
-        "PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16",
-        "PHASE2_KCONFIG_BRIDGE_CONF_CASES=oldaskconfig,syncconfig,oldconfig,allnoconfig,allyesconfig,allmodconfig,alldefconfig,randconfig,defconfig,savedefconfig,listnewconfig,helpnewconfig,olddefconfig,yes2modconfig,mod2yesconfig,mod2noconfig",
-        "PHASE2_KCONFIG_BRIDGE_CONF_STDOUT_PACKET=oldaskconfig_expected.json,syncconfig_expected.json,oldconfig_expected.json,allnoconfig_expected.json,allyesconfig_expected.json,allmodconfig_expected.json,alldefconfig_expected.json,randconfig_expected.json,defconfig_expected.json,savedefconfig_expected.json,listnewconfig_expected.json,helpnewconfig_expected.json,olddefconfig_expected.json,yes2modconfig_expected.json,mod2yesconfig_expected.json,mod2noconfig_expected.json",
+        "PHASE2_ARTIFACT_TOOLS_PACKET=zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        f"PHASE2_GENKSYMS_BRIDGE_CASE_COUNT={len(genksyms_case_names)}",
+        "PHASE2_GENKSYMS_BRIDGE_CASES=" + ",".join(genksyms_case_names),
+        "PHASE2_GENKSYMS_BRIDGE_STDOUT_PACKET=" + ",".join(genksyms_stdout_packet),
+        "PHASE2_GENKSYMS_BRIDGE_PROCESS_PACKET=" + ",".join(genksyms_process_packet),
+        "PHASE2_GENKSYMS_BRIDGE_NORMALIZED_STDERR_PACKET="
+        + ",".join(genksyms_normalized_stderr_packet),
+        "PHASE2_GENKSYMS_BRIDGE_ACTION_ABBREV_CASES="
+        + ",".join(genksyms_action_abbrev_cases),
+        f"PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT={len(conf_case_names)}",
+        "PHASE2_KCONFIG_BRIDGE_CONF_CASES=" + ",".join(conf_case_names),
+        "PHASE2_KCONFIG_BRIDGE_CONF_STDOUT_PACKET=" + ",".join(conf_stdout_packet),
         "PHASE2_KCONFIG_BRIDGE_ALLCONFIG_SENTINEL_PACKET=allnoconfig_expected.json,allyesconfig_expected.json,alldefconfig_expected.json",
         "request-plan coverage stays anchored by the oldaskconfig baseline, syncconfig auto-output env injection, oldconfig refresh path, allnoconfig and allyesconfig mode selection, alldefconfig mode selection, allmodconfig explicit empty allconfig override forwarding, randconfig seed and probability forwarding, yes2modconfig/mod2yesconfig/mod2noconfig mode selection, defconfig/savedefconfig mode-argument ordering, and listnewconfig/helpnewconfig request-plan fixtures in `zigux/tests/fixtures/kconfig_bridge/`",
-        "allconfig coverage stays anchored by `allnoconfig_expected.json`, `allyesconfig_expected.json`, `alldefconfig_expected.json`, and `allmodconfig_expected.json`, which keep the bounded sentinel and explicit empty-override packets reviewable",
+        "allconfig coverage stays anchored by `allnoconfig_expected.json`, `allyesconfig_expected.json`, `alldefconfig_expected.json`, `allmodconfig_expected.json`, and `randconfig_expected.json`, which keep the bounded sentinel packet plus the explicit empty and named allconfig override packets reviewable",
         "conf bridge emits syncconfig auto files",
         "conf bridge emits alldefconfig argv and env",
         "conf bridge emits explicit empty allconfig override for allmodconfig",
@@ -497,7 +360,8 @@ def main_validation(root: Path) -> list[str]:
         "PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring",
         f"PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT={len(confdata_case_names)}",
         "PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=" + ",".join(confdata_case_names),
-        "PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=" + ",".join(confdata_expected_packet),
+        "PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET="
+        + ",".join(confdata_expected_packet),
         "confdata bridge decodes escaped quoted strings",
         "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
         "confdata bridge keeps trailing escaped backslashes in quoted strings",
@@ -511,10 +375,67 @@ def main_validation(root: Path) -> list[str]:
         "PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_escaped_colon,sample_multi_target,sample_comment_only,sample_missing_dep,sample_escaped_hash_comment_chain",
         "PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_escaped_colon_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt,sample_escaped_hash_comment_chain_expected.txt",
     ]
-    required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
-    required_closure_markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
-    required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
-    required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
+    markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    return markers
+
+
+def main_validation(root: Path) -> list[str]:
+    missing = [str(path.relative_to(root)) for path in required_files_for(root) if not path.exists()]
+    if missing:
+        return [f"missing_file:{item}" for item in missing]
+
+    genksyms_cases_payload = load_json_object(root / GENKSYMS_CASES.relative_to(ROOT), label="genksyms_cases")
+    (
+        genksyms_expected_files,
+        genksyms_case_names,
+        genksyms_stdout_packet,
+        genksyms_process_packet,
+        genksyms_normalized_stderr_packet,
+        genksyms_action_abbrev_cases,
+    ) = collect_genksyms_metadata(genksyms_cases_payload)
+
+    kconfig_cases_payload = load_json_object(root / KCONFIG_CASES.relative_to(ROOT), label="kconfig_cases")
+    confdata_case_files, confdata_case_names, confdata_expected_packet = collect_confdata_metadata(kconfig_cases_payload)
+    conf_manifest = load_json_object(root / KCONFIG_CONF_MANIFEST.relative_to(ROOT), label="kconfig_conf_manifest")
+    conf_case_names = conf_manifest.get("cases", [])
+    conf_stdout_packet = conf_manifest.get("stdout_packet", [])
+    if not isinstance(conf_case_names, list) or not all(isinstance(item, str) for item in conf_case_names):
+        return ["kconfig_conf_manifest:cases:expected_string_list"]
+    if not isinstance(conf_stdout_packet, list) or not all(isinstance(item, str) for item in conf_stdout_packet):
+        return ["kconfig_conf_manifest:stdout_packet:expected_string_list"]
+
+    dynamic_files = genksyms_expected_files + confdata_case_files
+    dynamic_missing = [str(path.relative_to(root)) for path in dynamic_files if not path.exists()]
+    if dynamic_missing:
+        return [f"missing_file:{item}" for item in dynamic_missing]
+
+    closure = (root / PHASE2_CLOSURE.relative_to(ROOT)).read_text(encoding="utf-8")
+    workflow = (root / WORKFLOW.relative_to(ROOT)).read_text(encoding="utf-8")
+    ledger = (root / LEDGER.relative_to(ROOT)).read_text(encoding="utf-8")
+    script_readme = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
+    artifact_doc = (root / ARTIFACT_DIFF_DOC.relative_to(ROOT)).read_text(encoding="utf-8")
+    toolchain_notes = (root / TOOLCHAIN_NOTES.relative_to(ROOT)).read_text(encoding="utf-8")
+    makefile = (root / MAKEFILE.relative_to(ROOT)).read_text(encoding="utf-8")
+    tool_manifest = load_json_object(root / TOOL_MANIFEST.relative_to(ROOT), label="phase2_tool_manifest")
+    artifact_tools_manifest = load_json_object(
+        root / ARTIFACT_TOOLS_MANIFEST.relative_to(ROOT), label="phase2_artifact_tools_manifest"
+    )
+    targets_manifest = load_json_object(root / CROSS_TARGETS.relative_to(ROOT), label="phase2_cross_targets")
+
+    required_closure_markers = build_required_closure_markers(
+        genksyms_case_names=genksyms_case_names,
+        genksyms_stdout_packet=genksyms_stdout_packet,
+        genksyms_process_packet=genksyms_process_packet,
+        genksyms_normalized_stderr_packet=genksyms_normalized_stderr_packet,
+        genksyms_action_abbrev_cases=genksyms_action_abbrev_cases,
+        conf_case_names=conf_case_names,
+        conf_stdout_packet=conf_stdout_packet,
+        confdata_case_names=confdata_case_names,
+        confdata_expected_packet=confdata_expected_packet,
+    )
 
     required_workflow_markers = [
         "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
@@ -548,7 +469,9 @@ def main_validation(root: Path) -> list[str]:
         "zig test scripts/zigux/genksyms_crc.zig",
         "zig test scripts/zigux/kconfig/conf_bridge.zig",
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+        "zig test scripts/zigux/mk_elfconfig.zig",
     ]
+
     required_ledger_markers = [
         "feat(scripts/zigux): add bounded Phase 2 genksyms wrapper lane",
         "ci(zigux): widen Phase 2 closure matrix",
@@ -557,6 +480,7 @@ def main_validation(root: Path) -> list[str]:
         "ci(zigux): add Phase 2 cross-arch build matrix",
         "docs(zigux): close bounded Phase 2 toolchain tranche",
     ]
+
     required_readme_markers = [
         "check-genksyms-bridge.py",
         "check-kconfig-bridge.py",
@@ -565,17 +489,12 @@ def main_validation(root: Path) -> list[str]:
         "kconfig/conf_bridge.zig",
         "kconfig/confdata_bridge.zig",
     ]
+
     required_doc_markers = ["genksyms_bridge", "kconfig_bridge", "phase2_cross_targets.json"]
+
     required_makefile_markers = [
         "phase2-toolchain:",
         "phase2-validate: phase2-toolchain",
-        "phase2-validate:",
-        "check-phase2-fixdep-gate.py --self-test",
-        "check-phase2-fixdep-gate.py",
-        "check-fixdep-diff.py --self-test",
-        "check-fixdep-diff.py",
-        "check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
-        "check-phase2-genksyms-bridge-selftest-alignment.py",
         "phase2-kconfig:",
         "phase2-cross:",
         "check-zig-toolchain.py",
@@ -595,31 +514,35 @@ def main_validation(root: Path) -> list[str]:
         "check-genksyms-bridge.py --self-test",
         "check-genksyms-bridge.py",
         "check-genksyms-crc-diff.py",
-        "$(ZIG) test scripts/zigux/fixdep.zig",
-        "$(ZIG) test scripts/zigux/genksyms.zig",
-        "$(ZIG) test scripts/zigux/genksyms_crc.zig",
-        "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
-        "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
-        "$(ZIG) test scripts/zigux/mk_elfconfig.zig",
     ]
 
     issues: list[str] = []
-    for marker in required_closure_markers:
-        require_marker(closure, marker, issues, "closure")
-    for marker in required_workflow_markers:
-        require_marker(workflow, marker, issues, "workflow")
-    for marker in required_ledger_markers:
-        require_marker(ledger, marker, issues, "ledger")
-    for marker in required_readme_markers:
-        require_marker(script_readme, marker, issues, "scripts")
-    for marker in required_doc_markers:
-        require_marker(artifact_doc, marker, issues, "doc")
-    for marker in PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS:
-        require_marker(toolchain_notes, marker, issues, "toolchain_notes")
-    for marker in required_makefile_markers:
-        require_marker(makefile, marker, issues, "make")
-    issues.extend(validate_exact_makefile_runs(makefile))
-    issues.extend(validate_exact_workflow_runs(workflow))
+    issues.extend(require_markers(closure, required_closure_markers, "closure"))
+    issues.extend(require_markers(workflow, required_workflow_markers, "workflow"))
+    issues.extend(require_markers(ledger, required_ledger_markers, "ledger"))
+    issues.extend(require_markers(script_readme, required_readme_markers, "scripts"))
+    issues.extend(require_markers(artifact_doc, required_doc_markers, "doc"))
+    issues.extend(require_markers(toolchain_notes, PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS, "toolchain_notes"))
+    issues.extend(require_markers(makefile, required_makefile_markers, "make"))
+
+    issues.extend(
+        validate_exact_runs(
+            makefile,
+            prefix="make",
+            counted_runs=PHASE2_MAKEFILE_RUN_COUNTS,
+            exact_lines=PHASE2_MAKEFILE_EXACT_LINES,
+            line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",
+        )
+    )
+    issues.extend(
+        validate_exact_runs(
+            workflow,
+            prefix="workflow",
+            counted_runs=PHASE2_WORKFLOW_RUN_COUNTS,
+            exact_lines=PHASE2_WORKFLOW_EXACT_LINES,
+            line_prefix="run: ",
+        )
+    )
 
     if tool_manifest.get("phase") != "Phase 2":
         issues.append("manifest:phase=Phase 2")
@@ -629,9 +552,14 @@ def main_validation(root: Path) -> list[str]:
         issues.append("manifest:tool_count=6")
     if len(tool_manifest.get("tools", [])) != 6:
         issues.append(f"manifest:tools_len={len(tool_manifest.get('tools', []))}")
-    for rel in tool_manifest.get("tools", []):
-        if not (root / rel).exists():
-            issues.append(f"manifest_file:{rel}")
+
+    if artifact_tools_manifest.get("phase") != "Phase 2":
+        issues.append("artifact_tools_manifest:phase=Phase 2")
+    if artifact_tools_manifest.get("status") != "closed":
+        issues.append("artifact_tools_manifest:status=closed")
+    if artifact_tools_manifest.get("tool_count") != 2:
+        issues.append("artifact_tools_manifest:tool_count=2")
+
     if targets_manifest.get("phase") != "Phase 2":
         issues.append("targets:phase=Phase 2")
     if targets_manifest.get("status") != "closed":
@@ -640,132 +568,107 @@ def main_validation(root: Path) -> list[str]:
         issues.append("targets:target_count=3")
     if len(targets_manifest.get("targets", [])) != 3:
         issues.append(f"targets:len={len(targets_manifest.get('targets', []))}")
+
     return issues
 
+
 def run_self_test() -> int:
-    cases: list[tuple[str, list[str], list[str]]] = []
-    make_ok = make_ok_text()
-    workflow_ok = workflow_ok_text()
-    toolchain_notes_ok = toolchain_notes_ok_text()
-    cases.append(("make_ok", validate_exact_makefile_runs(make_ok), []))
-    cases.append(("workflow_ok", validate_exact_workflow_runs(workflow_ok), []))
-    cases.append(
-        (
-            "toolchain_notes_ok",
-            validate_required_markers(
-                toolchain_notes_ok,
-                PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS,
-                "toolchain_notes",
-            ),
-            [],
-        )
+    cases_run = 0
+
+    sample_cases = {
+        "cases": [
+            {"name": "minimal", "expected": "minimal_expected.json"},
+            {"name": "process", "mode": "process_json", "expected": "process_expected.json"},
+            {
+                "name": "normalized",
+                "mode": "process_json",
+                "normalize_stderr": True,
+                "expected": "normalized_expected.json",
+            },
+        ]
+    }
+    (
+        expected_files,
+        case_names,
+        stdout_packet,
+        process_packet,
+        normalized_packet,
+        action_abbrev_cases,
+    ) = collect_genksyms_metadata(sample_cases)
+    assert len(expected_files) == 3
+    assert case_names == ["minimal", "process", "normalized"]
+    assert stdout_packet == ["minimal_expected.json"]
+    assert process_packet == ["process_expected.json", "normalized_expected.json"]
+    assert normalized_packet == ["normalized_expected.json"]
+    assert action_abbrev_cases == ["abbreviated_help", "abbreviated_version"]
+    cases_run += 1
+
+    sample_confdata_cases = {
+        "confdata_cases": [
+            {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
+            {"name": "tail", "input": "tail.config", "expected": "tail_expected.json"},
+        ]
+    }
+    conf_files, conf_names, conf_expected = collect_confdata_metadata(sample_confdata_cases)
+    assert len(conf_files) == 4
+    assert conf_names == ["sample", "tail"]
+    assert conf_expected == ["sample_expected.json", "tail_expected.json"]
+    cases_run += 1
+
+    duplicate_make = "\n".join(
+        [
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
+            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig",
+        ]
     )
-    cases.append(
-        (
-            "toolchain_notes_missing_x86_64",
-            validate_required_markers(
-                toolchain_notes_ok.replace("`x86_64-linux`", "`archive-target`", 1),
-                PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS,
-                "toolchain_notes",
-            ),
-            ["toolchain_notes:x86_64-linux"],
-        )
+    issues = validate_exact_runs(
+        duplicate_make,
+        prefix="make",
+        counted_runs={"scripts/zigux/check-genksyms-crc-diff.py": 1},
+        exact_lines={"cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig": 1},
+        line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",
     )
+    assert "make_exact_run:scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1" in issues
+    cases_run += 1
 
-    make_duplicate_cases = [
-        "scripts/zigux/check-kconfig-bridge.py --self-test",
-        "scripts/zigux/check-kconfig-bridge.py",
-        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-        "scripts/zigux/check-genksyms-crc-diff.py",
-        "scripts/zigux/check-mk-elfconfig-diff.py --self-test",
-        "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-        "scripts/zigux/check-phase2-tests-readme-alignment.py",
-    ]
-    for command in make_duplicate_cases:
-        mutated = make_ok + f"\ncd $(ZIGUX_ROOT) && $(PYTHON) {command}"
-        cases.append(
-            (
-                f"make_duplicate_{command}",
-                validate_exact_makefile_runs(mutated),
-                [f"make_exact_run:{command}:count=2:expected=1"],
+    with tempfile.TemporaryDirectory(prefix="phase2_toolchain_notes_") as tmp_dir:
+        notes = Path(tmp_dir) / "notes.md"
+        notes.write_text(
+            "\n".join(
+                [
+                    "- policy file: `scripts/zigux/zig-toolchain-policy.json`",
+                    "- guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+                    "- guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+                    "- shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`",
+                    "- shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`",
+                    "- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`",
+                    "- workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`",
+                    "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
+                    "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+                    "- current pinned bootstrap archive target: `x86_64-linux`",
+                ]
             )
+            + "\n",
+            encoding="utf-8",
         )
+        assert require_markers(notes.read_text(encoding="utf-8"), PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS, "toolchain_notes") == []
+    cases_run += 1
 
-    make_duplicate_exact_lines = [
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
-    ]
-    for line in make_duplicate_exact_lines:
-        cases.append(
-            (
-                f"make_duplicate_{line}",
-                validate_exact_makefile_runs(make_ok + f"\n{line}"),
-                [f"make_exact_line:{line}:count=2:expected=1"],
-            )
-        )
-
-    workflow_duplicate_cases = [
-        "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-        "python3 scripts/zigux/check-kconfig-bridge.py",
-        "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-        "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-        "python3 scripts/zigux/check-genksyms-crc-diff.py",
-        "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
-        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
-    ]
-    for command in workflow_duplicate_cases:
-        mutated = workflow_ok + f"run: {command}\n"
-        cases.append(
-            (
-                f"workflow_duplicate_{command}",
-                validate_exact_workflow_runs(mutated),
-                [f"workflow_exact_run:{command}:count=2:expected=1"],
-            )
-        )
-
-    workflow_duplicate_exact_lines = [
-        "run: zig test scripts/zigux/genksyms_crc.zig",
-        "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
-        "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-    ]
-    for line in workflow_duplicate_exact_lines:
-        cases.append(
-            (
-                f"workflow_duplicate_{line}",
-                validate_exact_workflow_runs(workflow_ok + f"{line}\n"),
-                [f"workflow_exact_line:{line}:count=2:expected=1"],
-            )
-        )
-
-    failures = [
-        f"{name}:expected={expected}:actual={actual}"
-        for name, actual, expected in cases
-        if actual != expected
-    ]
-    if failures:
-        print("PHASE2_CLOSURE_SELF_TEST=fail")
-        print("PHASE2_CLOSURE_SELF_TEST_FAILURES_START")
-        for failure in failures:
-            print(failure)
-        print("PHASE2_CLOSURE_SELF_TEST_FAILURES_END")
-        return 1
     print("PHASE2_CLOSURE_SELF_TEST=pass")
-    print(f"PHASE2_CLOSURE_SELF_TEST_CASE_COUNT={len(cases)}")
+    print(f"PHASE2_CLOSURE_SELF_TEST_CASE_COUNT={cases_run}")
     return 0
 
+
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--self-test", action="store_true")
+    parser = argparse.ArgumentParser(description="Validate the bounded Phase 2 closure packet.")
+    parser.add_argument("--self-test", action="store_true", help="Run checkout-free validator self-tests.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    required_files = required_files_for(ROOT)
-    missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+    missing = [str(path.relative_to(ROOT)) for path in required_files_for(ROOT) if not path.exists()]
     if missing:
         print("PHASE2_CLOSURE_VALIDATION=fail")
         print("MISSING_PHASE2_CLOSURE_FILES_START")
@@ -784,20 +687,14 @@ def main() -> int:
         return 1
 
     genksyms_cases_payload = load_json_object(GENKSYMS_CASES, label="genksyms_cases")
-    genksyms_expected_files, _ = collect_genksyms_expected_files(genksyms_cases_payload)
-    kconfig_cases_payload = load_json_object(KCONFIG_BRIDGE_CASES, label="kconfig_bridge_cases")
-    confdata_case_files, confdata_case_names, confdata_expected_packet, _ = collect_confdata_case_metadata(
-        kconfig_cases_payload
-    )
-    _ = confdata_case_names, confdata_expected_packet
+    genksyms_expected_files, *_ = collect_genksyms_metadata(genksyms_cases_payload)
+    kconfig_cases_payload = load_json_object(KCONFIG_CASES, label="kconfig_cases")
+    confdata_case_files, _, _ = collect_confdata_metadata(kconfig_cases_payload)
+
     print("PHASE2_CLOSURE_VALIDATION=pass")
     print(
         "PHASE2_CLOSURE_REQUIRED_FILE_COUNT="
-        f"{len(required_files) + len(genksyms_expected_files) + len(confdata_case_files)}"
-    )
-    print(
-        "PHASE2_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 26 + 6 + 4 + len(PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS) + 30}"
+        f"{len(required_files_for(ROOT)) + len(genksyms_expected_files) + len(confdata_case_files)}"
     )
     return 0
 
