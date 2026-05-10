@@ -367,7 +367,7 @@ jobs:
           make -C zigux phase8-perf-buffer-poll-test
 
       - name: Run Phase 8 tooling tests
-        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
+        run: make -C zigux phase8-test
 
       - name: Self-test Phase 9 build-only surface checker
         run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
