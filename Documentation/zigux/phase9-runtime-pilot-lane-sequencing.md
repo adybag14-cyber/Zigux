@@ -53,6 +53,15 @@ This survey can also read the broad Phase 9 pilot-family review packet on curren
 
 That means the shared Phase 9 reviewability packet must treat the missing loader-facing family as a current release-discipline blocker on `master`, while still keeping the loadable-runtime-substrate blocker explicit and keeping pilot-family notes separate from missing shared-loader proof.
 
+## Current backlog evidence
+
+Current `master` now exposes one concrete shared-reminder drift that is small enough for the next same-lane correction.
+
+- `scripts/zigux/README.md` still relists the unconfirmed shared loader-facing family as though those paths are live shipped Phase 9 evidence on current `master`.
+- `zigux/tests/README.md` still does the same, including the exact shared-loader inventory and replay-route names that this sequencing note could not confirm through current-master readback.
+
+Because both surfaces are broad reminder files rather than pilot-family packets, the next safe shared Phase 9 follow-through is to narrow one of those reminder surfaces at a time until both defer the exact shared-loader inventory and blocker posture back to this sequencing note.
+
 ## Governance rule for this lane
 
 Shared Phase 9 reminder truthfulness is split across the active shared reminder lanes instead of being parked on one broad pilot-family lane.
@@ -116,8 +125,8 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 ## Recommended next-step order
 
 1. Re-read shared reminder surfaces against the live shared loader-facing family plus the four pilot-family survey packets whenever the Phase 9 owner map is in doubt.
-2. If one shared reminder note still carries stale missing-file wording or still treats the missing shared loader-facing family as shipped current-`master` evidence, repair that note one file at a time instead of widening into pilot behavior or checker growth.
-3. If a shared reminder surface still relists unconfirmed loader-facing paths or replay-route names instead of deferring to this sequencing note, narrow that one surface next before touching pilot-local notes.
+2. The current safest backlog correction is to narrow `scripts/zigux/README.md` or `zigux/tests/README.md` one file at a time so those surfaces defer exact shared-loader inventory and blocker posture to this note instead of relisting unconfirmed paths as live current-`master` evidence.
+3. If both shared reminder surfaces still relist unconfirmed loader-facing paths or replay-route names, fix `scripts/zigux/README.md` first and `zigux/tests/README.md` second before touching pilot-local notes.
 4. If the shared loader-facing family returns or its missing-path blocker changes, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
 5. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
 
