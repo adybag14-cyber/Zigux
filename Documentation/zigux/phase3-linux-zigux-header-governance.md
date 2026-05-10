@@ -31,9 +31,9 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 - live `master` already uses `include/linux/zigux.h` as a broad aggregation header for many landed helper views and summaries, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
 - live `include/linux/zigux.h` still hard-codes `ZIGUX_DEV_MINOR_BITS` and `ZIGUX_DEV_MINOR_MASK` locally even though `include/zigux/dev_t.h` already owns that canonical `dev_t` boundary, so the next honest same-lane fix is a header-only aggregation sync that folds those aliases back under the canonical header instead of leaving two sources of truth in the C-facing packet
-- the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into additional top-level curated boundary families with their own proof surfaces
-- `zigux/uapi/` still stops at `version.zig`, so wider exported boundary ownership is still absent from the shipped substrate
-- until a new boundary family lands with its own header, bindings, manifest-backed replay, and note refresh, more `include/linux/zigux.h` aggregation alone should be treated as reviewability risk, not interop closure
+- the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into many additional top-level curated boundary families with their own proof surfaces
+- `zigux/uapi/` now carries `version.zig` and `dev_t.zig`, so the broader exported boundary is no longer absent from the shipped substrate, but it is still only a small starter family set rather than the wider long-term review surface the roadmap expects
+- until another boundary family lands with its own header, bindings, manifest-backed replay, and note refresh, more `include/linux/zigux.h` aggregation alone should be treated as reviewability risk, not interop closure
 
 ## Boundary
 
