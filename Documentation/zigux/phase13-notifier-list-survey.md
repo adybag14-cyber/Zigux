@@ -34,7 +34,7 @@ surfaces without promoting it into a separate shared replay count.
 
 `scripts/zigux/check-phase13-notifier-priority-signal.py` now keeps that nonincreasing-priority signal aligned across the binding, helper, exported header, reviewability replay, and survey note.
 
-`make -C zigux phase13-validate` now reruns both notifier packet checkers beside the broader Phase 13 release validator.
+`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the focused notifier packet checker, and the priority-signal checker should be rerun alongside that route whenever this adjacent notifier packet changes.
 
 ## Adjacent Evidence On Current Master
 
