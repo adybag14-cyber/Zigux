@@ -373,6 +373,33 @@ def run_self_test() -> int:
             return 1
         write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
 
+        broken_ring_buffer_manifest_path = root / RING_BUFFER_MANIFEST_PATH
+        write_text(broken_ring_buffer_manifest_path, "{\n")
+        errors = check(root)
+        if not any(
+            "invalid json in zigux/tests/phase14_ring_buffer_manifest.json:" in error
+            for error in errors
+        ):
+            print("self-test expected invalid ring-buffer manifest json failure", file=sys.stderr)
+            return 1
+        write_text(broken_ring_buffer_manifest_path, required_text(root, RING_BUFFER_MANIFEST_PATH))
+
+        broken_skbuff_manifest_path = root / SKBUFF_MANIFEST_PATH
+        broken_skbuff_manifest = json.loads(read_text(broken_skbuff_manifest_path))
+        broken_skbuff_manifest.pop("surveyed_commit", None)
+        write_text(
+            broken_skbuff_manifest_path,
+            json.dumps(broken_skbuff_manifest, indent=2) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "missing surveyed_commit in zigux/tests/phase14_skbuff_bridge_manifest.json" in error
+            for error in errors
+        ):
+            print("self-test expected missing skbuff surveyed-commit failure", file=sys.stderr)
+            return 1
+        write_text(broken_skbuff_manifest_path, required_text(root, SKBUFF_MANIFEST_PATH))
+
         broken_traceability_path.write_text(
             broken_traceability_path.read_text(encoding="utf-8").replace(
                 "- ready-next gap: none currently recorded\n",
