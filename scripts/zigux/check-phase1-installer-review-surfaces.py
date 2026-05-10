@@ -35,6 +35,11 @@ SCRIPTS_README_MARKERS = [
         "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
         1,
     ),
+    (
+        "scripts_readme_phase1_lane_split_packet",
+        "- `Documentation/zigux/phase1-closure.md` and `zigux/tests/fixtures/phase1_helper_manifest.json` also keep the shared Phase 1 helper sequencing split explicit: `tools/lib/argv_split.zig`, `tools/lib/cmdline.zig`, `tools/lib/ctype.zig`, `tools/lib/hweight.zig`, `tools/lib/list_sort.zig`, `tools/lib/slab.zig`, `tools/lib/str_error_r.zig`, `tools/lib/vsprintf.zig`, and `tools/lib/zalloc.zig` stay parked on shared-replay packet drift only, while `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` keep the only direct helper-local follow-up anchors on current `master`, so shared reminder work should not batch those two sets back together.",
+        1,
+    ),
 ]
 
 TESTS_README_MARKERS = [
@@ -152,7 +157,7 @@ def validate_root(root: Path) -> list[str]:
     issues = []
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
-    issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
+    issues.extend(collect_exact_countMarkers(tests_readme, TESTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(phase1_closure, CLOSURE_EXACT_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
     issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
@@ -256,6 +261,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         expect_case(issues, "scripts_readme_phase1_installer_packet:expected=1:actual=2")
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(marker for _, marker, _ in SCRIPTS_README_MARKERS)
+            + "\n"
+            + SCRIPTS_README_MARKERS[1][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        expect_case(issues, "scripts_readme_phase1_lane_split_packet:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "")
