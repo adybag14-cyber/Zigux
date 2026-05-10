@@ -27,6 +27,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 
 REQUIRED_PHASE12_PATHS = [
     DOCS_README_PATH,
@@ -52,7 +53,7 @@ REQUIRED_PHASE12_PATHS = [
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "drivers/nvme/host/pci_verify.zig",
-    "zigux/tests/phase12_build.zig",
+    PHASE12_BUILD_PATH,
     "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_nvme_pci_manifest.json",
     "zigux/tests/phase12_nvme_pci_survey.zig",
@@ -134,6 +135,37 @@ FORBIDDEN_WORKFLOW_MARKERS = [
     "Run Phase 12 cross-build replay",
 ]
 
+REQUIRED_PHASE12_BUILD_MARKERS = [
+    'b.path("phase12_virtio_net_syntax_lab.zig")',
+    'b.path("phase12_virtio_scsi_syntax_lab.zig")',
+    '.name = "phase12-virtio-net-syntax-lab-tests"',
+    '.name = "phase12-virtio-scsi-syntax-lab-tests"',
+    '.name = "phase12-libbpf-reviewability-tests"',
+    '.name = "phase12-libbpf-snapshot-determinism-tests"',
+    'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
+    'smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);',
+    'smoke_step.dependOn(&run_phase12_nvme_pci_verify_tests.step);',
+    'smoke_step.dependOn(&run_phase12_virtio_net_tests.step);',
+    'smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);',
+    'smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);',
+    'smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);',
+    'const test_step = b.step("test", "Run Phase 12 driver and survey tests");',
+    'test_step.dependOn(smoke_step);',
+    'test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);',
+    'test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);',
+    'test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);',
+    'test_step.dependOn(&run_phase12_libbpf_segments_tests.step);',
+    'test_step.dependOn(&run_phase12_libbpf_segments_verify_tests.step);',
+    'test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);',
+    'test_step.dependOn(&run_phase12_libbpf_snapshot_determinism_tests.step);',
+]
+
+REQUIRED_PHASE12_BUILD_EXACT_COUNTS = {
+    "b.addTest(.{": 13,
+    "smoke_step.dependOn(": 6,
+    "test_step.dependOn(": 8,
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -180,6 +212,7 @@ def validate(root: Path) -> list[str]:
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
+    phase12_build = read_text(root, PHASE12_BUILD_PATH)
 
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_MARKERS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
@@ -187,11 +220,15 @@ def validate(root: Path) -> list[str]:
     ensure_absent(failures, "workflow", workflow, FORBIDDEN_WORKFLOW_MARKERS)
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
     ensure_absent(failures, "makefile", makefile, FORBIDDEN_MAKEFILE_MARKERS)
+    ensure_contains(failures, "phase12_build", phase12_build, REQUIRED_PHASE12_BUILD_MARKERS)
+    ensure_exact_counts(failures, "phase12_build", phase12_build, REQUIRED_PHASE12_BUILD_EXACT_COUNTS)
 
     return failures
 
 
 def placeholder_for(rel_path: str) -> str:
+    if rel_path == PHASE12_BUILD_PATH:
+        return minimal_phase12_build()
     if rel_path.endswith(".zig"):
         return "// phase12 placeholder\n"
     if rel_path.endswith(".json"):
@@ -201,6 +238,43 @@ def placeholder_for(rel_path: str) -> str:
 
 def minimal_marker_doc(title: str, markers: list[str]) -> str:
     return "\n".join([f"# {title}", *markers, ""])
+
+
+def minimal_phase12_build() -> str:
+    lines = [
+        'const phase12_virtio_net_syntax_lab_module = b.createModule(.{ .root_source_file = b.path("phase12_virtio_net_syntax_lab.zig"), });',
+        'const phase12_virtio_scsi_syntax_lab_module = b.createModule(.{ .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"), });',
+        'const phase12_nvme_pci_tests = b.addTest(.{ .name = "phase12-nvme-pci-tests", });',
+        'const phase12_nvme_pci_verify_tests = b.addTest(.{ .name = "phase12-nvme-pci-verify-tests", });',
+        'const phase12_nvme_pci_survey_tests = b.addTest(.{ .name = "phase12-nvme-pci-survey-tests", });',
+        'const phase12_virtio_net_tests = b.addTest(.{ .name = "phase12-virtio-net-tests", });',
+        'const phase12_virtio_net_syntax_lab_tests = b.addTest(.{ .name = "phase12-virtio-net-syntax-lab-tests", .root_module = phase12_virtio_net_syntax_lab_module, });',
+        'const phase12_virtio_net_survey_tests = b.addTest(.{ .name = "phase12-virtio-net-survey-tests", });',
+        'const phase12_virtio_scsi_tests = b.addTest(.{ .name = "phase12-virtio-scsi-tests", });',
+        'const phase12_virtio_scsi_syntax_lab_tests = b.addTest(.{ .name = "phase12-virtio-scsi-syntax-lab-tests", .root_module = phase12_virtio_scsi_syntax_lab_module, });',
+        'const phase12_virtio_scsi_survey_tests = b.addTest(.{ .name = "phase12-virtio-scsi-survey-tests", });',
+        'const phase12_libbpf_segments_tests = b.addTest(.{ .name = "phase12-libbpf-segment-survey-tests", });',
+        'const phase12_libbpf_segments_verify_tests = b.addTest(.{ .name = "phase12-libbpf-segments-verify-tests", });',
+        'const phase12_libbpf_reviewability_tests = b.addTest(.{ .name = "phase12-libbpf-reviewability-tests", });',
+        'const phase12_libbpf_snapshot_determinism_tests = b.addTest(.{ .name = "phase12-libbpf-snapshot-determinism-tests", });',
+        'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
+        'smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);',
+        'smoke_step.dependOn(&run_phase12_nvme_pci_verify_tests.step);',
+        'smoke_step.dependOn(&run_phase12_virtio_net_tests.step);',
+        'smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);',
+        'smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);',
+        'smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);',
+        'const test_step = b.step("test", "Run Phase 12 driver and survey tests");',
+        'test_step.dependOn(smoke_step);',
+        'test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);',
+        'test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);',
+        'test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);',
+        'test_step.dependOn(&run_phase12_libbpf_segments_tests.step);',
+        'test_step.dependOn(&run_phase12_libbpf_segments_verify_tests.step);',
+        'test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);',
+        'test_step.dependOn(&run_phase12_libbpf_snapshot_determinism_tests.step);',
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def write_fixture_tree(root: Path) -> None:
@@ -234,6 +308,7 @@ def run_self_test() -> int:
         scripts_readme_path = base / SCRIPTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
+        phase12_build_path = base / PHASE12_BUILD_PATH
 
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(scripts_readme.replace(PHASE12_REMOVED_SURFACE_MARKER, "", 1), encoding="utf-8")
@@ -275,8 +350,24 @@ def run_self_test() -> int:
         missing_path.unlink()
         expect_failure(base, "missing_file:zigux/tests/phase12_libbpf_manifest.json")
 
+        write_fixture_tree(base)
+        phase12_build = phase12_build_path.read_text(encoding="utf-8")
+        phase12_build_path.write_text(
+            phase12_build.replace('smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase12_build:smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);")
+
+        write_fixture_tree(base)
+        phase12_build = phase12_build_path.read_text(encoding="utf-8")
+        phase12_build_path.write_text(
+            phase12_build.replace('.name = "phase12-libbpf-reviewability-tests"', '.name = "phase12-libbpf-reviewability-checks"', 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
+
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -314,7 +405,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
     )
     return 0
 
