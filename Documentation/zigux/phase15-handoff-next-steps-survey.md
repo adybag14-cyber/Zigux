@@ -13,6 +13,8 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - landed `phase15-roadmap-minimum-field-sync` remains the bounded review-field repair that made the Architecture Council packet honest about its minimum governance fields.
 - landed `phase15-workflow-replay-anchor-visible` remains the bounded replay-surface repair that kept the shared workflow-backed governance path explicit.
 - landed `phase15-dedicated-make-test-replay-visible` remains the bounded replay-surface repair that kept the dedicated handoff and governance test route explicit.
+- landed `phase15-docs-root-handoff-pointer-visible` keeps the shared docs root pointed back at this dedicated handoff packet instead of understating the parked maintenance surface.
+- landed `phase15-build-handoff-replay-visible` keeps the dedicated handoff replay wired into the shared Phase 15 build packet instead of leaving it out of the parked governance route.
 
 ## Roadmap Versus Ledger
 
@@ -54,12 +56,12 @@ This packet is still a parked governance packet only. It does not record a deep-
 
 ## Open Handoff Gaps
 
-- `phase15-docs-root-handoff-pointer-gap`: `Documentation/zigux/README.md` still needs to point back to this dedicated handoff packet so the docs root does not understate the current Phase 15 maintenance surface.
-- `phase15-build-handoff-replay-gap`: `zigux/tests/phase15_build.zig` still needs the dedicated handoff replay wired into the shared Phase 15 build so the parked handoff packet is exercised beside the rest of the governance lane.
+- landed `phase15-docs-root-handoff-pointer-visible`: `Documentation/zigux/README.md` now points back to this dedicated handoff packet so the docs root does not understate the current Phase 15 maintenance surface.
+- landed `phase15-build-handoff-replay-visible`: `zigux/tests/phase15_build.zig` now keeps the dedicated handoff replay wired into the shared Phase 15 build so the parked handoff packet is exercised beside the rest of the governance lane.
 - `phase15-deep-core-status-change-blocker`: `Documentation/zigux/phase15-parity-scorecard.md` still records that the freeze-in-C anchors lack enough evidence for a status change, so any follow-through here must stay blocked on the stay-in-C packet instead of implying readiness.
 
 ## Next Steps
 
-- If the docs-root continuity lane reopens, add the missing `Documentation/zigux/phase15-handoff-next-steps-survey.md` pointer to `Documentation/zigux/README.md`.
-- If the shared Phase 15 replay lane reopens, wire `zigux/tests/phase15_handoff_next_steps.zig` into `zigux/tests/phase15_build.zig` and keep `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` explicit beside that handoff replay.
+- If the docs-root continuity lane reopens, start by rereading `Documentation/zigux/README.md` and this handoff note together so the already-landed pointer does not regress back into a missing-gap claim.
+- If the shared Phase 15 replay lane reopens, start by rereading `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` together before claiming a new handoff gap.
 - Otherwise keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes.
