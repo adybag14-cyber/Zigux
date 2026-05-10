@@ -25,6 +25,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   * `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
   * `scripts/zigux/check-phase7-build-wiring.py`
   * `zigux/tests/phase7_build.zig`
+  * `.github/workflows/zigux-bootstrap.yml`
   * `zigux/Makefile`
 
 ## Why this slice exists
@@ -37,7 +38,7 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 * can be validated with deterministic Zig-only tests
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
-Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `Documentation/zigux/README.md`, `lib/cmdline.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, and `zigux/Makefile` instead of counting it as a fifth Phase 5 sample.
+Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `Documentation/zigux/README.md`, `lib/cmdline.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
@@ -94,7 +95,7 @@ The current tests check:
 * caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage
 * empty-input handling keeps `param` and `rest` borrowed from the caller slice instead of inventing owned storage
 * leading-whitespace handling keeps the Linux-style empty sentinel token while trimming the following `rest`
-* the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the committed `zigux/tests/phase7_cmdline_manifest.json` survey record, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, machine-readable manifest, and Linux-style validator-first packet aligned around the same parked cmdline slice
+* the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the committed `zigux/tests/phase7_cmdline_manifest.json` survey record, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, the workflow-backed bootstrap replay in `.github/workflows/zigux-bootstrap.yml`, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, machine-readable manifest, and Linux-style validator-first packet aligned around the same parked cmdline slice
 The dedicated survey now imports the committed manifest under `zigux/tests/phase7_cmdline_manifest.json`, so the parked cmdline packet keeps its roadmap anchor, review surfaces, and ownership-focused `nextArg()` proofs explicit in one machine-readable record beside the sibling Phase 7 helper packets.
 
 ## Non-goals
