@@ -157,7 +157,7 @@ def validate_root(root: Path) -> list[str]:
     issues = []
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
-    issues.extend(collect_exact_countMarkers(tests_readme, TESTS_README_MARKERS))
+    issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(phase1_closure, CLOSURE_EXACT_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
     issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
