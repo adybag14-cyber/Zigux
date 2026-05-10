@@ -6,23 +6,23 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=89da8bf3722b8f0265279181929e9982ad0c59ef`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=ee28bc6be404bd09343d21a6517f9e1bafc197e2`
 - `PHASE4_VALIDATOR_BLOB_SHA=13ab170f05e887c5c3906e10dc84672a17ac8aed`
-- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=95a10787fd78e2f7058c63096e449cf1c9ebe252`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=9fdc63919fc979ef12f15bae54ee94bdc80d14de`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=5272b8c9573fdabb733b66ce655842d9fdfa0cc5`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
 - `PHASE4_MAKEFILE_BLOB_SHA=3b3f73b5b2dac6bccd8d7544c4b1a315e01ed65d`
-- `PHASE4_WORKFLOW_BLOB_SHA=140cb966eeaa6318103bfdbe330c0eeb89d56a7c`
-- `PHASE4_DOC_README_BLOB_SHA=8b83b435b44a2295188a6bd9bf54e5a5c0140565`
-- `PHASE4_SCRIPT_README_BLOB_SHA=0deea3fb108adedfed598b0f0a507eb1579874d2`
-- `PHASE4_TESTS_README_BLOB_SHA=5a2123fd213c01e8d43cf6e450dea39ea3c20476`
+- `PHASE4_WORKFLOW_BLOB_SHA=cadf1be6b08090891855f9a3b9341f38e161474c`
+- `PHASE4_DOC_README_BLOB_SHA=0b310351d5608d5c48cea9ce2d27fb0c9d354c87`
+- `PHASE4_SCRIPT_README_BLOB_SHA=2bcb1995eb2563a3497336b73b5bfd94dd2ed4e2`
+- `PHASE4_TESTS_README_BLOB_SHA=c91179081926d9adddfd5bf2a7aead78f58fd150`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=013e38fce0f95e73f1d36eb527138b77f8067df8`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=fb32ec6a52c1f7c76912015404950a6561501719`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=cbc9033d5222913bbd07ad929a73e8358d448cba`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=6aa32738734468d1f5a4f931422bdf209b382c2a`
-- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=a4157c27344a433772085402a695e80e6100e2da`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=d0a931eef57f34829cc4501a64ffffe1e56c1f0f`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,missing_note_file`
@@ -58,4 +58,4 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
-- The current exact-readback note now matches the live validator, workflow, Makefile, dedicated `Documentation/zigux/artifact-diff.md` note, docs-root reminder, tests-root reminder, and adjacent runtime atomic64 manifest-backed survey pair on `master`, so the broader checker-backed packet is aligned again on current `master`.
+- The current exact-readback note now matches the live docs-root reminder, scripts-root summary, tests-root summary, workflow route inventory, dedicated `Documentation/zigux/artifact-diff.md` note, validation matrix, and review-checklist packet on `master`, so the broader checker-backed packet is aligned again on current `master`.
