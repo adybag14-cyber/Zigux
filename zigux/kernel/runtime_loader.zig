@@ -1062,7 +1062,7 @@ test "runtime loader facade keeps releaseWithoutSubstrate waiting state pinned a
     request.plan = stable_plan;
     request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
     try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
-    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expectEqual(RequestState.waiting_on-runtime-substrate, request.state);
     try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
     try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
 
