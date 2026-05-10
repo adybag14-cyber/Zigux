@@ -9,17 +9,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 README = ROOT / "README.md"
 
-REQUIRED_HELPER_LINES = (
-    "* `check-kconfig-bridge.py`",
-    "* `check-phase2-kconfig-selftest-alignment.py`",
+REQUIRED_MARKERS = (
+    "`check-phase2-kconfig-readme-alignment.py`",
+    "`check-phase2-tests-readme-alignment.py`",
+    "Phase 2 flow - `check-phase2-tests-readme-alignment.py` keeps `zigux/tests/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` replay surface aligned around the same bounded toolchain packet.",
+    "- `check-phase2-kconfig-readme-alignment.py --self-test` and `check-phase2-kconfig-readme-alignment.py` keep this scripts index honest by requiring the live Phase 2 summary to name `check-phase2-tests-readme-alignment.py`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/Makefile`, and the Linux-style `phase2-kconfig` route without implying that the older dedicated kconfig bridge checker stack is still present under `scripts/zigux/` on current `master`.",
+    "- `check-zig-toolchain.py`, `install-zig.py`, `check-phase2-tests-readme-alignment.py`, and `check-phase2-kconfig-readme-alignment.py` are the live scripts-root Phase 2 helpers on current `master`; the broader `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` until the missing dedicated validator, manifest, cross-target, pin-scope, and bridge scripts return to the tree.",
 )
 
-REQUIRED_PHASE2_LINES = (
-    "* `check-phase2-kconfig-selftest-alignment.py --self-test` and `check-phase2-kconfig-selftest-alignment.py` keep `check-kconfig-bridge.py`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the shipped kconfig self-test hooks before the bridge and Zig replays run, so the shared Phase 2 validator, the Linux-style `phase2-kconfig` route, and the workflow-backed replay surface stay on the same bounded packet.",
-    "* `check-kconfig-bridge.py` covers the bounded `kconfig/conf_bridge.zig` and `kconfig/confdata_bridge.zig` bridge lanes.",
+FORBIDDEN_MARKERS = (
+    "`validate-phase2.py`",
+    "`validate-phase2-closure.py`",
+    "`check-phase2-tool-manifest-packets.py`",
+    "`check-phase2-genksyms-bridge-selftest-alignment.py`",
+    "`check-genksyms-bridge.py`",
+    "`check-phase2-cross-selftest-alignment.py`",
+    "`check-phase2-toolchain-pin-scope.py`",
+    "`check-phase2-kconfig-selftest-alignment.py`",
+    "`check-kconfig-bridge.py`",
+    "`check-phase2-cross.py`",
+    "`check-mk-elfconfig-diff.py`",
+    "`check-phase2-fixdep-gate.py`",
+    "`check-fixdep-diff.py`",
+    "`check-genksyms-crc-diff.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 6
+EXPECTED_SELF_TEST_CASE_COUNT = 8
 
 
 def read_text(path: Path) -> str:
@@ -29,22 +44,18 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
-def count_exact_lines(text: str, marker: str) -> int:
-    return sum(1 for line in text.splitlines() if line.strip() == marker)
-
-
 def collect_issues(readme_text: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for marker in REQUIRED_HELPER_LINES:
-        count = count_exact_lines(readme_text, marker)
+    for marker in REQUIRED_MARKERS:
+        count = readme_text.count(marker)
         if count != 1:
-            issues.append(("HELPER_LINE_COUNT_MISMATCH", f"{marker}:actual={count}:expected=1"))
+            issues.append(("REQUIRED_MARKER_COUNT_MISMATCH", f"{marker}:actual={count}:expected=1"))
 
-    for marker in REQUIRED_PHASE2_LINES:
-        count = count_exact_lines(readme_text, marker)
-        if count != 1:
-            issues.append(("PHASE2_LINE_COUNT_MISMATCH", f"{marker}:actual={count}:expected=1"))
+    for marker in FORBIDDEN_MARKERS:
+        count = readme_text.count(marker)
+        if count != 0:
+            issues.append(("FORBIDDEN_MARKER_PRESENT", f"{marker}:actual={count}:expected=0"))
 
     return issues
 
@@ -57,40 +68,30 @@ def emit_issues(issues: list[tuple[str, str]]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    base_lines = [
-        "# scripts/zigux",
+    base_text = "\n".join((
+        "# scripts/zigux This directory holds Zigux-specific bootstrap and validation helpers.",
+        "Initial responsibilities - Zig toolchain policy checks - bootstrap validation",
+        *REQUIRED_MARKERS,
         "",
-        "Current bootstrap helpers",
-        *REQUIRED_HELPER_LINES,
-        "",
-        "Phase 2 flow",
-        *REQUIRED_PHASE2_LINES,
-        "",
-    ]
-    base_text = "\n".join(base_lines)
+    ))
 
     assert collect_issues(base_text) == []
     checks_run += 1
 
-    missing_helper = base_text.replace(REQUIRED_HELPER_LINES[1] + "\n", "", 1)
-    issues = collect_issues(missing_helper)
-    assert ("HELPER_LINE_COUNT_MISMATCH", f"{REQUIRED_HELPER_LINES[1]}:actual=0:expected=1") in issues
+    missing_required = base_text.replace(REQUIRED_MARKERS[0], "", 1)
+    issues = collect_issues(missing_required)
+    assert ("REQUIRED_MARKER_COUNT_MISMATCH", f"{REQUIRED_MARKERS[0]}:actual=0:expected=1") in issues
     checks_run += 1
 
-    duplicate_helper = base_text + REQUIRED_HELPER_LINES[0] + "\n"
-    issues = collect_issues(duplicate_helper)
-    assert ("HELPER_LINE_COUNT_MISMATCH", f"{REQUIRED_HELPER_LINES[0]}:actual=2:expected=1") in issues
+    duplicate_required = base_text + "\n" + REQUIRED_MARKERS[1]
+    issues = collect_issues(duplicate_required)
+    assert ("REQUIRED_MARKER_COUNT_MISMATCH", f"{REQUIRED_MARKERS[1]}:actual=2:expected=1") in issues
     checks_run += 1
 
-    missing_phase2 = base_text.replace(REQUIRED_PHASE2_LINES[1] + "\n", "", 1)
-    issues = collect_issues(missing_phase2)
-    assert ("PHASE2_LINE_COUNT_MISMATCH", f"{REQUIRED_PHASE2_LINES[1]}:actual=0:expected=1") in issues
-    checks_run += 1
-
-    duplicate_phase2 = base_text + REQUIRED_PHASE2_LINES[0] + "\n"
-    issues = collect_issues(duplicate_phase2)
-    assert ("PHASE2_LINE_COUNT_MISMATCH", f"{REQUIRED_PHASE2_LINES[0]}:actual=2:expected=1") in issues
-    checks_run += 1
+    for forbidden_marker in FORBIDDEN_MARKERS[:4]:
+        issues = collect_issues(base_text + "\n" + forbidden_marker)
+        assert ("FORBIDDEN_MARKER_PRESENT", f"{forbidden_marker}:actual=1:expected=0") in issues
+        checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kconfig_readme_alignment_") as tmp_dir_str:
         readme_path = Path(tmp_dir_str) / "README.md"
@@ -111,7 +112,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check the Phase 2 kconfig scripts README packet stays aligned.")
+    parser = argparse.ArgumentParser(description="Check the Phase 2 scripts README summary stays aligned with the live toolchain packet.")
     parser.add_argument("--readme", type=Path, default=README, help="Override README path")
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage without repo files")
     args = parser.parse_args()
