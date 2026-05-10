@@ -29,7 +29,7 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=60e8275d6aaec4b3059bbf732e350526111c02ce`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=078809a64ad3e9bb59e6c2219d3cb43246f7efbf`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=2ee44635cfc03ac202323d049e29935f6c8e6261`
 
 ## Live Boundary
 
