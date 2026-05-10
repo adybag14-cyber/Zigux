@@ -21,17 +21,19 @@ This note keeps one already-landed Phase 3 ABI header family reviewable without 
 - `PHASE3_ABI_BINDING_SUMMARY_SYMBOL=pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary = extern struct {`
 - `PHASE3_ABI_HEADER_FAMILY_GATE=python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `PHASE3_ABI_HEADER_FAMILY_SURVEY_BLOB_SHA=cee93aa28721df7cad2f744cb4dd7709de41f8a8`
-- `PHASE3_ABI_HEADER_FAMILY_NEXT_STEP=extend-the-same-family-survey-one-foothold-at-a-time-before-widening-the-phase3-abi-surface`
+- `PHASE3_ABI_HEADER_FAMILY_NEXT_STEP=refresh-the-shared-phase3-reminder-surfaces-so-the-landed-header-family-survey-stops-being-implicit-before-another-header-family-foothold-lands`
 
 ## Current Repo Evidence
 
 - the shared ABI packet already carried one exact chrdev view-plus-summary foothold in the baseline constant-parity survey, but it did not yet carry a dedicated family note for the landed `chrdev_notify_ack_window_policy_budget_window_delivery_window` boundary.
 - this dedicated survey keeps the bounded family explicit by fail-closing on one exact status constant pair, one exact budget-flag constant pair, and the current view-plus-summary type pair across `include/zigux/abi.h` and `zigux/bindings/abi.zig`.
 - the survey stays deliberately narrower than broader chrdev-family growth: it does not claim generator coverage, wider header-family closure, export/UAPI growth, helper behavior changes, or a new top-level ABI packet.
+- live `master` already wires this dedicated survey through `scripts/zigux/validate_phase3_selftest.py` and the shipped `make -C zigux phase3-validate` route in `zigux/Makefile`, so the next honest same-lane gap is no longer the dedicated survey itself; it is the remaining shared-surface undercount wherever broad Phase 3 reminders still leave this landed survey implicit.
 
 ## Shared Surface Reminder
 
 - broad Phase 3 shared summaries should keep `Documentation/zigux/phase3-abi-header-family-survey.md` and `scripts/zigux/validate-phase3-abi-header-family-survey.py` explicit whenever they name the validator-support packet or the baseline constant-parity survey.
+- `scripts/zigux/validate_phase3_selftest.py` and `zigux/Makefile` already treat the header-family survey as part of the shipped validator-support roster, so future same-lane shared-surface wording passes should refresh `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` before treating this landed survey as implicit again.
 - do not let `scripts/zigux/survey-phase3-abi-constant-parity.py` stand in for this narrower landed family proof; the baseline constant survey and this dedicated family survey carry different bounded reviewability claims.
 
 ## Boundary
