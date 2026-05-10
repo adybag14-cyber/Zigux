@@ -16,6 +16,7 @@ LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
+    "PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR_PATH=scripts/zigux/validate-phase3-policy-unsafe-survey.py",
 )
 
 REQUIRED_SURVEY_EXACT_LINES = (
@@ -245,6 +246,19 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        broken_validator_path_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "`PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR_PATH=scripts/zigux/validate-phase3-policy-unsafe-survey.py`\n",
+            "",
+            1,
+        )
+        write(root / SURVEY_REL, broken_validator_path_marker)
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR_PATH=scripts/zigux/validate-phase3-policy-unsafe-survey.py"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
             "modeFromByte`, `actionForByte`, and `canReturnByte`",
@@ -409,7 +423,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
