@@ -91,13 +91,12 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PERF_SURVEY_STATUS=active`",
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
-        "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI",
-        "- owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey",
+        "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, while the shared `make -C zigux phase6` route still excludes every helper-local slowdown gate",
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
         "- bsearch exact evidence: the current 15-element equality replay in `zigux/tests/phase6_bsearch.zig` still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` keeps the same expected `std.math.log2_int_ceil(len) + 1` insertion-point budget explicit for typed and raw lower-bound replays across ascending, descending, and packed-record ranges, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` keeps that same equality budget explicit for typed and raw runtime-selected C ABI comparator replays across ascending, descending, and packed-record ranges without widening into standalone nanosecond thresholds",
         "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
-        "- the bundled `phase6` and aggregate `phase6-perf` make routes still replay only the shared helper tests plus the checksum and hexdump dedicated perf gates, while `.github/workflows/zigux-bootstrap.yml` separately reruns the base64 perf gate as its own direct CI step",
-        "- helper-local threshold, replay-count, or fixture-label edits inside this survey still belong to the owning helper lane even though they appear in a shared note; reopen the shared sequencing lane only when the packet-wide route or owner split changes",
+        "- the current bundled make routes now replay the three dedicated helper-local perf gates through `make -C zigux phase6-perf`, while the shared `make -C zigux phase6` route still stops at the shared checker plus bundled helper tests",
+        "- the convenience `make -C zigux phase6-perf` route now truthfully summarizes that shared perf posture on `master` by aggregating the base64, checksum, and hexdump slowdown gates while leaving `bsearch` on its bounded comparison-budget evidence path",
     ],
     "Documentation/zigux/README.md": [
         "- `Documentation/zigux/phase6-base64-slice.md`",
@@ -200,12 +199,12 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
     ],
     "zigux/Makefile": [
-        "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
+        "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
         "phase6-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig",
         "phase6-bsearch-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
         "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-        "phase6-perf: phase6-checksum-perf phase6-hexdump-perf",
+        "phase6-perf: phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf",
         "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6: phase6-validate phase6-test",
@@ -432,6 +431,7 @@ def main() -> int:
     run_checks(Path(args.repo_root).resolve())
     print("Phase 6 shared surface looks aligned.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
