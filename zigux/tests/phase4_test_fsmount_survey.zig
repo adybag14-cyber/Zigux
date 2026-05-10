@@ -1,0 +1,36 @@
+const std = @import("std");
+
+const manifest_text = @embedFile("phase4_test_fsmount_manifest.json");
+
+fn requireMarker(marker: []const u8) !void {
+    if (std.mem.indexOf(u8, manifest_text, marker) == null) {
+        return error.MissingManifestMarker;
+    }
+}
+
+test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
+    try requireMarker("\"lane_key\": \"P4-L19\"");
+    try requireMarker("\"phase\": \"Phase 4\"");
+    try requireMarker("\"c_anchor\": \"samples/vfs/test-fsmount.c\"");
+    try requireMarker("\"current_linux_replay\": \"make M=samples/vfs\"");
+    try requireMarker(
+        "\"dedicated_local_survey_wrapper\": \"zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig\"",
+    );
+    try requireMarker(
+        "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-survey\"",
+    );
+    try requireMarker(
+        "\"validation_entrypoint\": \"zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig\"",
+    );
+    try requireMarker("\"owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
+    try requireMarker(
+        "\"current_measurable_status\": \"absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter\"",
+    );
+}
+
+test "phase4 test_fsmount survey keeps the bounded next step explicit" {
+    try requireMarker(
+        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
+    );
+}
