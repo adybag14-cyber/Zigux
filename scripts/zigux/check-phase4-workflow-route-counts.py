@@ -169,6 +169,14 @@ def declared_targets(makefile_text: str) -> set[str]:
     return targets
 
 
+def required_file_count() -> int:
+    return 2
+
+
+def required_check_count() -> int:
+    return len(EXPECTED_MAKE_TARGETS) + len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS)
+
+
 def ensure_expected_targets(makefile_text: str) -> None:
     targets = declared_targets(makefile_text)
     missing = [target for target in EXPECTED_MAKE_TARGETS if target not in targets]
@@ -185,6 +193,18 @@ def check(makefile_path: Path, workflow_path: Path) -> None:
     ensure_markers(".github/workflows/zigux-bootstrap.yml", workflow_text, REQUIRED_WORKFLOW_MARKERS)
 
 
+def emit_status(*, self_test: bool) -> None:
+    if self_test:
+        print("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass")
+    else:
+        print("PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass")
+        print("PHASE4_WORKFLOW_ROUTE_COUNTS=pass")
+    print(f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}")
+    print(f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}")
+    print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={required_file_count()}")
+    print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT={required_check_count()}")
+
+
 def run_selftest() -> None:
     with TemporaryDirectory() as tempdir:
         root = Path(tempdir)
@@ -195,9 +215,7 @@ def run_selftest() -> None:
         makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
         workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         check(makefile, workflow)
-    print("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass")
-    print(f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}")
-    print(f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}")
+    emit_status(self_test=True)
 
 
 def main(argv: list[str]) -> int:
@@ -211,9 +229,7 @@ def main(argv: list[str]) -> int:
 
     root = repo_root_from_script(Path(__file__))
     check(root / "zigux/Makefile", root / ".github/workflows/zigux-bootstrap.yml")
-    print("PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass")
-    print(f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}")
-    print(f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}")
+    emit_status(self_test=False)
     return 0
 
 
