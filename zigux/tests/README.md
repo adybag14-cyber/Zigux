@@ -175,7 +175,7 @@ Key entrypoints
   * `zigux/tests/phase15_indefinite_c_policy.zig`
   * `zigux/tests/phase15_handoff_next_steps.zig`
   * `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
-  * `zigux/tests/phase15_indefinite_c_lane_owner_ALIGNMENT.zig`
+  * `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
   * `zigux/tests/phase15_governance_lane_sequencing.zig`
   * `zigux/tests/phase15_readiness_gate.zig`
   * `scripts/zigux/validate-phase3.py`
