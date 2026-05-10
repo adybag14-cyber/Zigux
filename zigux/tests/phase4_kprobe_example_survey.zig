@@ -154,3 +154,33 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
+
+test "phase4 kprobe validation matrix row keeps the parked replay and ownership explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-validation-matrix.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(matrix);
+
+    const required_markers = [_][]const u8{
+        "### `samples/zigux/kprobe_example.zig`",
+        "- current C anchor: `samples/kprobes/kprobe_example.c`",
+        "- current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
+        "- dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+        "- validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+        "- survey owner: `Validation and Perf Team`",
+        "- rollback owner: `Validation and Perf Team`",
+        "the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable",
+        "Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper without claiming a shipped Zig starter",
+        "- next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either a broader validation-surface promotion or the Zig starter itself",
+    };
+
+    for (required_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, matrix, marker) != null);
+    }
+}
