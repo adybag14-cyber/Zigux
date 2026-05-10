@@ -177,6 +177,7 @@ SOURCE_MARKERS = {
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
             'test "bitmap copy alias preserves raw source words without tail clearing"',
             'test "bitmap copy and extend handles zero and aligned counts"',
+            'test "bitmap copy helpers keep zero-sized destination views untouched"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
             'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
@@ -223,6 +224,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
             'test "bitmap zero-bit binary helpers stay explicit identity operations"',
             'test "bitmap copy and extend handles zero and aligned counts"',
+            'test "bitmap copy helpers keep zero-sized destination views untouched"',
             'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
@@ -242,6 +244,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
         "copy_extend_zero_aligned_anchor": 'test "bitmap copy and extend handles zero and aligned counts"',
+        "zero_sized_destination_view_anchor": 'test "bitmap copy helpers keep zero-sized destination views untouched"',
         "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
         "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
         "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
@@ -374,10 +377,8 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
 }
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
 
 def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str]:
     mismatches: list[str] = []
@@ -387,7 +388,6 @@ def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str
             mismatches.append(f"{label}:{marker}:expected=1:actual={count}")
     return mismatches
 
-
 def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
     missing: list[str] = []
     for marker in markers:
@@ -396,7 +396,6 @@ def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[
             missing.append(f"{label}:{marker}:expected>=1:actual={count}")
     return missing
 
-
 def extract_test_body(text: str, title: str) -> str | None:
     anchor = f'test "{title}"'
     start = text.find(anchor)
@@ -404,7 +403,6 @@ def extract_test_body(text: str, title: str) -> str | None:
         return None
     next_start = text.find('\ntest "', start + len(anchor))
     return text[start:] if next_start == -1 else text[start:next_start]
-
 
 def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     fixture = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").read_text(encoding="utf-8"))
@@ -415,37 +413,31 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     if not isinstance(find_bit, dict):
         mismatches.append("phase1_fixture_find_bit:find_bit:expected=object:actual=missing")
     else:
-        expected_find_bit = {
-            "bits_per_long": 64,
-            "inclusive_boundary_next": 63,
-            "inclusive_boundary_zero": 63,
-            "inclusive_boundary_and": 63,
-            "past_nbits_next": 7,
-            "past_nbits_zero": 7,
-            "past_nbits_and": 7,
-            "tail_clamped_first": 69,
-            "tail_clamped_next": 69,
-            "tail_zero_clamped_next": 69,
-            "tail_and_clamped_next": 69,
-            "tail_clamped_last": 67,
-        }
-        for field, expected in expected_find_bit.items():
-            if find_bit.get(field) != expected:
+        if find_bit.get("bits_per_long") != 64:
+            mismatches.append(f"phase1_fixture_find_bit:bits_per_long:expected=64:actual={find_bit.get('bits_per_long')!r}")
+        for field in ["inclusive_boundary_next", "inclusive_boundary_zero", "inclusive_boundary_and"]:
+            if find_bit.get(field) != 63:
+                mismatches.append(f"phase1_fixture_find_bit:{field}:expected=63:actual={find_bit.get(field)!r}")
+        for field in ["past_nbits_next", "past_nbits_zero", "past_nbits_and"]:
+            if find_bit.get(field) != 7:
+                mismatches.append(f"phase1_fixture_find_bit:{field}:expected=7:actual={find_bit.get(field)!r}")
+        for field in [
+            "tail_clamped_first",
+            "tail_clamped_next",
+            "tail_zero_clamped_first",
+            "tail_zero_clamped_next",
+            "tail_and_clamped_first",
+            "tail_and_clamped_next",
+            "tail_clamped_empty_last",
+        ]:
+            tail_expected = 69
+            if find_bit.get(field) != tail_expected:
                 mismatches.append(
-                    f"phase1_fixture_find_bit:{field}:expected={expected!r}:actual={find_bit.get(field)!r}"
+                    f"phase1_fixture_find_bit:{field}:expected={tail_expected}:actual={find_bit.get(field)!r}"
                 )
-        tail_expected = expected_find_bit["tail_clamped_first"]
-        if find_bit.get("tail_zero_clamped_first") != tail_expected:
+        if find_bit.get("tail_clamped_last") != 67:
             mismatches.append(
-                f"phase1_fixture_find_bit:tail_zero_clamped_first:expected={tail_expected}:actual={find_bit.get('tail_zero_clamped_first')!r}"
-            )
-        if find_bit.get("tail_and_clamped_first") != tail_expected:
-            mismatches.append(
-                f"phase1_fixture_find_bit:tail_and_clamped_first:expected={tail_expected}:actual={find_bit.get('tail_and_clamped_first')!r}"
-            )
-        if find_bit.get("tail_clamped_empty_last") != tail_expected:
-            mismatches.append(
-                f"phase1_fixture_find_bit:tail_clamped_empty_last:expected={tail_expected}:actual={find_bit.get('tail_clamped_empty_last')!r}"
+                f"phase1_fixture_find_bit:tail_clamped_last:expected=67:actual={find_bit.get('tail_clamped_last')!r}"
             )
     bitmap = fixture.get("bitmap")
     if not isinstance(bitmap, dict):
@@ -520,7 +512,6 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
                 )
     return mismatches
 
-
 def collect_phase1_manifest_lane_mismatches(manifest: dict[str, object]) -> list[str]:
     mismatches: list[str] = []
     lane_sequencing = manifest.get("lane_sequencing")
@@ -531,7 +522,6 @@ def collect_phase1_manifest_lane_mismatches(manifest: dict[str, object]) -> list
         if actual != expected:
             mismatches.append(f"phase1_manifest:lane_sequencing:{field}")
     return mismatches
-
 
 def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
@@ -566,7 +556,6 @@ def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
                 mismatches.append(f"phase1_manifest_review_anchor:value={helper}:{field}")
     return mismatches
 
-
 def collect_missing_markers(root: Path) -> list[str]:
     docs_readme = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
@@ -590,7 +579,6 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_phase1_manifest_review_mismatches(root))
     return missing
 
-
 def make_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = root / rel
@@ -599,7 +587,6 @@ def make_fixture_root(root: Path) -> None:
             path.write_text("{}\n", encoding="utf-8")
         else:
             path.write_text("\n", encoding="utf-8")
-
 
 def run_self_test() -> None:
     replay_text = "\n".join(PHASE1_REPLAY_MARKERS)
@@ -654,6 +641,14 @@ def run_self_test() -> None:
         assert 'bitmap_test_anchor:test "bitmap Linux-style aliases mirror the primary helper surface":expected=1:actual=0' in missing
         bitmap_path.write_text(bitmap_text, encoding="utf-8")
 
+        bitmap_path.write_text(
+            bitmap_text.replace('test "bitmap copy helpers keep zero-sized destination views untouched"\n', "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert 'bitmap_test_anchor:test "bitmap copy helpers keep zero-sized destination views untouched":expected=1:actual=0' in missing
+        bitmap_path.write_text(bitmap_text, encoding="utf-8")
+
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
         pristine_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
@@ -688,6 +683,12 @@ def run_self_test() -> None:
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:zero_bit_binary_identity_anchor" in missing
 
         manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("zero_sized_destination_view_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:zero_sized_destination_view_anchor" in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = [
             anchor
             for anchor in manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"]
@@ -706,6 +707,16 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert 'phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:helper_test_anchors:test "bitmap zero-bit binary helpers stay explicit identity operations"' in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = [
+            anchor
+            for anchor in manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"]
+            if anchor != 'test "bitmap copy helpers keep zero-sized destination views untouched"'
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert 'phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:helper_test_anchors:test "bitmap copy helpers keep zero-sized destination views untouched"' in missing
 
         manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["helper_test_anchors"] = [
@@ -755,8 +766,7 @@ def run_self_test() -> None:
         missing = collect_missing_markers(tmp_root)
         assert "phase1_fixture_string:strtobool_y:expected=True:actual=False" in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=20")
-
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=23")
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 helper packet.")
@@ -785,7 +795,6 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print("PHASE1_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(PHASE1_REPLAY_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + sum(len(markers) for _, markers in SOURCE_MARKERS.values())}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
