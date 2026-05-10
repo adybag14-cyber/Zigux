@@ -36,13 +36,34 @@ REQUIRED_PHASE12_PATHS = [
     TESTS_README_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
-    "Documentation/zigux/phase12-release-sequencing.md",
     "Documentation/zigux/phase12-release-closure-checklist.md",
+    "zigux/tests/phase12_build.zig",
+    "zigux/tests/phase12_nvme_pci.zig",
+    "zigux/tests/phase12_nvme_pci_survey.zig",
+    "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_manifest.json",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_survey.zig",
+    "zigux/tests/phase12_virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi_survey.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+    "zigux/tests/phase12_libbpf_segments.zig",
+    "zigux/tests/phase12_libbpf_reviewability.zig",
+    "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
+    "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
+]
+
+FORBIDDEN_PHASE12_PATHS = [
+    "scripts/zigux/validate-phase12.py",
+    "scripts/zigux/check-phase12-build-inventory.py",
+    "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "Documentation/zigux/phase12-release-sequencing.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-release-coordination-matrix.md",
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
@@ -51,32 +72,10 @@ REQUIRED_PHASE12_PATHS = [
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
-    "zigux/tests/phase12_build.zig",
-    "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_nvme_pci_manifest.json",
-    "zigux/tests/phase12_nvme_pci_survey.zig",
-    "zigux/tests/phase12_virtio_net.zig",
-    "zigux/tests/phase12_virtio_net_manifest.json",
-    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
-    "zigux/tests/phase12_virtio_net_survey.zig",
-    "zigux/tests/phase12_virtio_scsi.zig",
     "zigux/tests/phase12_virtio_scsi_manifest.json",
-    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
-    "zigux/tests/phase12_virtio_scsi_survey.zig",
-    "zigux/tests/phase12_libbpf_segments.zig",
-    "zigux/tests/phase12_libbpf_reviewability.zig",
     "zigux/tests/phase12_libbpf_manifest.json",
-    "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
-    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
-    "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
     "tools/lib/bpf/zigux_segments/manifest.json",
-]
-
-FORBIDDEN_PHASE12_PATHS = [
-    "scripts/zigux/validate-phase12.py",
-    "scripts/zigux/check-phase12-build-inventory.py",
-    "scripts/zigux/check-phase12-libbpf-snapshot.py",
-    "Documentation/zigux/phase12-cross-compile-smoke.md",
     "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/tests/phase12_cross_build.zig",
 ]
@@ -89,7 +88,8 @@ PHASE12_REMOVED_SURFACE_MARKER = (
 REQUIRED_SCRIPTS_README_MARKERS = [
     "Phase 12 flow",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
-    "workflow-backed build-only contract",
+    "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    "`zigux/tests/phase12_build.zig`",
     "`make -C zigux phase12-smoke`",
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
     PHASE12_REMOVED_SURFACE_MARKER,
@@ -114,8 +114,10 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase12-smoke:",
     "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
+    "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "python3 scripts/zigux/check-build-only-phase12-surface.py",
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
-    "phase12: phase12-test",
+    "phase12: phase12-smoke phase12-test",
 ]
 
 FORBIDDEN_MAKEFILE_MARKERS = [
@@ -180,14 +182,20 @@ def validate(root: Path) -> list[str]:
 
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_MARKERS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
-
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
     ensure_absent(failures, "workflow", workflow, FORBIDDEN_WORKFLOW_MARKERS)
-
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
     ensure_absent(failures, "makefile", makefile, FORBIDDEN_MAKEFILE_MARKERS)
 
     return failures
+
+
+def placeholder_for(rel_path: str) -> str:
+    if rel_path.endswith(".zig"):
+        return "// phase12 placeholder\n"
+    if rel_path.endswith(".json"):
+        return "{}\n"
+    return "# phase12 placeholder\n"
 
 
 def minimal_marker_doc(title: str, markers: list[str]) -> str:
@@ -198,17 +206,14 @@ def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
 
-    write_text(
-        root / SCRIPTS_README_PATH,
-        minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPTS_README_MARKERS),
-    )
+    write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPTS_README_MARKERS))
     write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
     for rel_path in REQUIRED_PHASE12_PATHS:
         if rel_path in {SCRIPTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
             continue
-        write_text(root / rel_path, "// phase12 placeholder\n" if rel_path.endswith(".zig") else "# phase12 placeholder\n")
+        write_text(root / rel_path, placeholder_for(rel_path))
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -230,18 +235,12 @@ def run_self_test() -> int:
         makefile_path = base / MAKEFILE_PATH
 
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            scripts_readme.replace(PHASE12_REMOVED_SURFACE_MARKER, "", 1),
-            encoding="utf-8",
-        )
+        scripts_readme_path.write_text(scripts_readme.replace(PHASE12_REMOVED_SURFACE_MARKER, "", 1), encoding="utf-8")
         expect_failure(base, f"scripts_readme:{PHASE12_REMOVED_SURFACE_MARKER}")
 
         write_fixture_tree(base)
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            scripts_readme + PHASE12_REMOVED_SURFACE_MARKER + "\n",
-            encoding="utf-8",
-        )
+        scripts_readme_path.write_text(scripts_readme + PHASE12_REMOVED_SURFACE_MARKER + "\n", encoding="utf-8")
         expect_failure(
             base,
             f"scripts_readme_exact_count:{PHASE12_REMOVED_SURFACE_MARKER}:expected=1:actual=2",
@@ -249,29 +248,26 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            workflow.replace("make -C zigux phase12-smoke", "", 1),
-            encoding="utf-8",
-        )
+        workflow_path.write_text(workflow.replace("make -C zigux phase12-smoke", "", 1), encoding="utf-8")
         expect_failure(base, "workflow:make -C zigux phase12-smoke")
 
         write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            makefile + "phase12-validate:\n",
-            encoding="utf-8",
-        )
+        makefile_path.write_text(makefile + "phase12-validate:\n", encoding="utf-8")
         expect_failure(base, "makefile_forbidden:phase12-validate:")
 
         write_fixture_tree(base)
-        forbidden_path = base / FORBIDDEN_PHASE12_PATHS[0]
-        write_text(forbidden_path, "# stale phase12 validator placeholder\n")
+        write_text(base / FORBIDDEN_PHASE12_PATHS[0], "# stale phase12 validator placeholder\n")
         expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[0]}")
 
         write_fixture_tree(base)
-        missing_path = base / "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
+        write_text(base / FORBIDDEN_PHASE12_PATHS[3], "# stale phase12 coverage note\n")
+        expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[3]}")
+
+        write_fixture_tree(base)
+        missing_path = base / REQUIRED_PHASE12_PATHS[-1]
         missing_path.unlink()
-        expect_failure(base, f"missing_file:{missing_path.relative_to(base).as_posix()}")
+        expect_failure(base, f"missing_file:{REQUIRED_PHASE12_PATHS[-1]}")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
@@ -282,7 +278,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the bounded Phase 12 build-only fallback surface without reopening removed validator routes."
+        description="Validate the bounded Phase 12 build-only fallback surface against the surviving current-master packet."
     )
     parser.add_argument(
         "--root",
