@@ -485,7 +485,11 @@ def fixture_content(rel_path: str, markers: list[str]) -> str:
 
 def write_fixture_tree(root: Path) -> None:
     for rel_path, markers in REQUIRED_FILE_MARKERS.items():
-        write(root, rel_path, fixture_content(rel_path, markers))
+        combined_markers = list(markers)
+        for marker in EXACT_COUNT_FILE_MARKERS.get(rel_path, {}):
+            if marker not in combined_markers:
+                combined_markers.append(marker)
+        write(root, rel_path, fixture_content(rel_path, combined_markers))
 
 
 def mutation_label(rel_path: str, marker: str) -> str:
