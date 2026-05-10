@@ -179,7 +179,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     defer allocator.free(makefile);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-validate:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14: phase14-validate phase14-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14: phase14-validate phase14-smoke phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-smoke:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all") != null);
 
@@ -193,7 +193,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 internal bridge tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 smoke shard") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workflow, "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase14-smoke") != null);
 
     const checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
