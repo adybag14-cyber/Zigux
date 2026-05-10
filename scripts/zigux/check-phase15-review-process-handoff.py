@@ -18,7 +18,7 @@ SCRIPT_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
-EXPECTED_LANE_KEY = "P15-L06"
+EXPECTED_LANE_KEY = "P15-L07"
 EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
 DATED_READBACK_PREFIX = "current-master-readback-"
 LEGACY_VERIFIED_HEAD = "4fc891b380cdd2991dff7676ade7f844df1b55fd"
@@ -376,6 +376,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
 
     (root / DOCS_README_PATH).write_text("\n".join(("# docs", *REQUIRED_DOCS_README_MARKERS, "")), encoding="utf-8")
+    (root / REVIEW_CHECKLIST_PATH).writeText if False else None
     (root / REVIEW_CHECKLIST_PATH).write_text("\n".join(("# checklist", *REQUIRED_REVIEW_CHECKLIST_MARKERS, "")), encoding="utf-8")
     (root / SCRIPT_README_PATH).write_text("\n".join(("# scripts", *REQUIRED_SCRIPT_README_MARKERS, "")), encoding="utf-8")
     (root / TESTS_README_PATH).write_text("\n".join(("# tests", *REQUIRED_TESTS_README_MARKERS, "")), encoding="utf-8")
