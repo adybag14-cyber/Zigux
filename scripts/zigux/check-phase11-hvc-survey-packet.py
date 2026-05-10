@@ -203,10 +203,15 @@ REQUIRED_SURVEY_REPLAY_MARKERS = [
 
 REQUIRED_CLEANUP_REPLAY_MARKERS = [
     'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+    'test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
     "final_cleanup.tty_port_put_requested",
     "hangup_cleanup.close_skipped",
+    "try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, active_hangup.flush_intent);",
+    "try std.testing.expectEqual(@as(usize, 2), stale_hangup.buffered_write_len_after_hangup);",
+    "try std.testing.expectEqual(hvc_console.FlushProgress.dropped_on_error, fatal_write.flush_progress);",
     "error.CleanupRequiresFinalCloseOrHangup",
     "error.CleanupRequiresTtyPortReference",
+    "try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
     "error.ConsoleUnavailable",
 ]
 
@@ -281,7 +286,7 @@ REQUIRED_EXISTING_PATHS = [
     SCRIPT_PATH,
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -461,6 +466,36 @@ def run_self_test() -> int:
                 VERIFY_REPLAY_PATH,
                 "try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{",
                 "verify_replay:try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{",
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                'test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
+                'cleanup_replay:test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                "try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, active_hangup.flush_intent);",
+                "cleanup_replay:try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, active_hangup.flush_intent);",
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                "try std.testing.expectEqual(@as(usize, 2), stale_hangup.buffered_write_len_after_hangup);",
+                "cleanup_replay:try std.testing.expectEqual(@as(usize, 2), stale_hangup.buffered_write_len_after_hangup);",
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                "try std.testing.expectEqual(hvc_console.FlushProgress.dropped_on_error, fatal_write.flush_progress);",
+                "cleanup_replay:try std.testing.expectEqual(hvc_console.FlushProgress.dropped_on_error, fatal_write.flush_progress);",
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                "try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
+                "cleanup_replay:try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
             )
             expect_missing_file(fixture_root, SCRIPT_PATH)
         except AssertionError as exc:
