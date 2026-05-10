@@ -370,6 +370,7 @@ def validate_kprobe_gap_packet(root: Path) -> list[str]:
     for marker in [
         "PHASE4_KPROBE_STATUS=parked_gap_survey",
         "PHASE4_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
+        "PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig",
         "`samples/zigux/kprobe_example.zig` is still absent",
     ]:
         if marker not in note_text:
@@ -529,6 +530,7 @@ def build_fixture_tree(root: Path) -> None:
         str(KPROBE_NOTE_PATH): (
             "PHASE4_KPROBE_STATUS=parked_gap_survey\n"
             "PHASE4_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey\n"
+            "PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig\n"
             "`samples/zigux/kprobe_example.zig` is still absent\n"
         ),
         str(KPROBE_SURVEY_PATH): "kprobe survey fixture\n",
@@ -706,12 +708,17 @@ def run_self_test() -> int:
 
         bad6 = Path(tmp_dir) / "bad6"
         build_fixture_tree(bad6)
-        kprobe_manifest_path = bad6 / KPROBE_MANIFEST_PATH
-        kprobe_manifest = json.loads(kprobe_manifest_path.read_text(encoding="utf-8"))
-        kprobe_manifest["rollback_owner"] = "Tooling and Validation Team"
-        kprobe_manifest_path.write_text(json.dumps(kprobe_manifest) + "\n", encoding="utf-8")
+        kprobe_note_path = bad6 / KPROBE_NOTE_PATH
+        kprobe_note_path.write_text(
+            kprobe_note_path.read_text(encoding="utf-8").replace(
+                "PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
         assert validate_root(bad6) == [
-            "kprobe_gap_manifest:rollback_owner:Tooling and Validation Team:Validation and Perf Team"
+            "kprobe_gap_note:PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig"
         ]
 
         bad7 = Path(tmp_dir) / "bad7"
