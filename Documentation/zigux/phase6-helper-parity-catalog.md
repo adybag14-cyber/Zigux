@@ -12,7 +12,7 @@ This catalog records the current shared review surface for the bounded Phase 6 l
   - `lib/bsearch.c`
   - `lib/checksum.c`
   - `lib/hexdump.c`
-- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-09`
+- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-10`
 
 ## Why this catalog exists
 
