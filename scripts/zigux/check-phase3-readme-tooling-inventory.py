@@ -10,6 +10,18 @@ from tempfile import TemporaryDirectory
 
 
 README_PATH = Path("scripts/zigux/README.md")
+MAKEFILE_REL = Path("zigux/Makefile")
+PHASE4_VALIDATE_TARGET = "phase4-validate"
+PHASE4_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
+)
 REQUIRED_MARKERS = (
     "validate-phase3.py",
     "validate_phase3_selftest.py",
@@ -91,6 +103,42 @@ def validate_repo_files(repo_root: Path) -> list[str]:
     return missing
 
 
+def _extract_make_target_commands(text: str, target: str) -> list[str] | None:
+    target_header = f"{target}:"
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line != target_header:
+            continue
+        commands: list[str] = []
+        for body_line in lines[index + 1 :]:
+            if not body_line.startswith("\t"):
+                break
+            commands.append(body_line.strip())
+        return commands
+    return None
+
+
+def validate_makefile(repo_root: Path) -> list[str]:
+    makefile_path = repo_root / MAKEFILE_REL
+    try:
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing repo file: {MAKEFILE_REL.as_posix()}"]
+
+    commands = _extract_make_target_commands(makefile_text, PHASE4_VALIDATE_TARGET)
+    if commands is None:
+        return [f"missing_makefile_target:{PHASE4_VALIDATE_TARGET}"]
+
+    issues = [
+        f"missing_makefile_command:{PHASE4_VALIDATE_TARGET}:{command}"
+        for command in PHASE4_VALIDATE_COMMANDS
+        if command not in commands
+    ]
+    if tuple(commands) != PHASE4_VALIDATE_COMMANDS:
+        issues.append(f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}")
+    return issues
+
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -99,6 +147,12 @@ def _write(path: Path, text: str) -> None:
 def _populate_repo_files(root: Path) -> None:
     for rel_path in REQUIRED_REPO_FILES:
         _write(root / rel_path, "# stub\n")
+    _write(root / MAKEFILE_REL, _baseline_makefile())
+
+
+def _baseline_makefile() -> str:
+    body = "\n".join(f"\t{command}" for command in PHASE4_VALIDATE_COMMANDS)
+    return f"{PHASE4_VALIDATE_TARGET}:\n{body}\n"
 
 
 def run_self_test() -> int:
@@ -188,6 +242,27 @@ def run_self_test() -> int:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected missing Phase 4 repo file was not reported")
             return 1
+        _write(root / missing_phase4_path, "# stub\n")
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase4-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 gate-evidence makefile command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 4 makefile command order drift was not reported")
+            return 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     return 0
@@ -215,6 +290,7 @@ def main() -> int:
     text = load_text(readme_path)
     missing = validate_text(text)
     missing.extend(validate_repo_files(args.repo_root))
+    missing.extend(validate_makefile(args.repo_root))
     if missing:
         for entry in missing:
             if entry.startswith("missing repo file: "):
