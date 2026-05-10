@@ -80,11 +80,13 @@ That means this lane remains note-and-marker maintenance inside the shared ABI p
 Current same-family progress already includes three helper-local reserved-byte tightenings plus one typed unsafe-entry alignment and one shared packet guard:
 
 - the panic helper now decodes ABI panic-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
+- the latest typed panic-policy proof now also pins a typed `InteropPolicy` sample with `panic_mode = 9` to the same fail-closed outcomes already enforced for reserved-byte drift, so this packet no longer relies on raw-byte-only unknown-mode coverage when shared callers stay on the typed path
 - the allocator helper now decodes ABI allocator-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly and now mirrors both typed and byte-scoped raw-pointer-bridge entry-point styles, instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand before checking or using the bounded bridge
 - the narrow unsafe helper now also exposes exact fail-closed requirement helpers for each currently shipped unsafe-scope mode instead of forcing shared callers to translate `permitsNoUnsafe*` and `permitsVolatileMmio*` predicates into their own deny paths before enforcing the bounded contract
 - the MMIO helper now exposes explicit `InteropPolicy`-gated `range`, `read*`, and `write*` entry points instead of forcing volatile MMIO callers to re-check unsafe-scope bytes outside the helper before using the bounded pointer bridge
 - the shared ABI packet now also carries a dedicated `scripts/zigux/check-phase3-policy-byte-guards.py` guard, so shared docs-root and scripts-root summaries should keep that policy-byte gate explicit whenever this packet moves instead of flattening the current substrate back into helpers-plus-survey wording alone
+- the shared `abi` runner now reaches that packet-local guard through `scripts/zigux/validate-phase3-policy-unsafe-survey.py` once instead of invoking `scripts/zigux/check-phase3-policy-byte-guards.py` a second time as duplicate preflight noise in `scripts/zigux/phase3_check_lib.py`
 - the remaining same-lane gap is still the absence of a dedicated focused replay pair beyond the shared ABI packet, not a need for a broader runtime policy subsystem
 
 ## Next Bounded Step
