@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import tempfile
 from pathlib import Path
@@ -137,8 +136,36 @@ def run_self_test() -> None:
         gap_survey_path.write_text(original_gap_survey, encoding="utf-8")
         case_count += 1
 
+        gap_survey_path.write_text(
+            original_gap_survey.replace(PINNED_SENTENCE_PREFIX, "pinned to `master` revision `", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "gap_survey_missing_pinned_sentence",
+            tmp_root,
+            f"{GAP_SURVEY_PATH}:missing_pinned_commit_sentence",
+        )
+        gap_survey_path.write_text(original_gap_survey, encoding="utf-8")
+        case_count += 1
+
         substrate_plan_path = tmp_root / SUBSTRATE_PLAN_PATH
         original_substrate_plan = substrate_plan_path.read_text(encoding="utf-8")
+        substrate_plan_path.write_text(
+            original_substrate_plan.replace(
+                "1383062a0df7f7a360df54db685454b3e69798af",
+                "6be8e2a2a4094a8fab9fc1dc62fd9b93f0b65e97",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "substrate_plan_surveyed_commit_mismatch",
+            tmp_root,
+            f"{SUBSTRATE_PLAN_PATH}:surveyed_commit_mismatch",
+        )
+        substrate_plan_path.write_text(original_substrate_plan, encoding="utf-8")
+        case_count += 1
+
         substrate_plan_path.write_text(
             original_substrate_plan.replace(PINNED_SENTENCE_PREFIX, "pinned to `master` revision `", 1),
             encoding="utf-8",
