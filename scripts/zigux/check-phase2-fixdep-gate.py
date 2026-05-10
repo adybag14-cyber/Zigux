@@ -309,7 +309,7 @@ def run_self_test() -> int:
         fixdep_text,
     )
     assert (
-        "fixdep_manifest:helper_local_anchors:escaped hash dependency survives concatenated target comment path:count=0:expected=1"
+        "fixdep_manifest:helper_local_anchors:escaped space dependency survives concatenated target comment path:count=0:expected=1"
         in issues
     )
 
