@@ -236,6 +236,10 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
         for anchor in helper_local_anchors:
             if anchor not in genksyms_test_name_set:
                 issues.append(("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing_genksyms_zig_test:{anchor}"))
+        helper_local_anchor_set = set(helper_local_anchors)
+        for test_name in genksyms_test_names:
+            if test_name not in helper_local_anchor_set:
+                issues.append(("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing_bridge_helper_anchor:{test_name}"))
 
     if issues or helper_local_anchors is None:
         return None, issues
@@ -667,7 +671,24 @@ def run_self_test() -> int:
         ) in issues
         cases += 1
 
-    assert cases == 20
+        build_self_test_root(root)
+        path = root / BRIDGE_CHECKER
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "    'genksyms bridge reports invalid short option in getopt style',\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES",
+            "missing_bridge_helper_anchor:genksyms bridge reports invalid short option in getopt style",
+        ) in issues
+        cases += 1
+
+    assert cases == 21
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
     return 0
