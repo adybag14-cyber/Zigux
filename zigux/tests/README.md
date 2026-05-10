@@ -143,6 +143,7 @@ Key entrypoints
   * `zigux/tests/phase12_build.zig`
   * `zigux/tests/phase12_nvme_pci.zig`
   * `zigux/tests/phase12_nvme_pci_survey.zig`
+  * `zigux/tests/phase12_nvme_pci_manifest.json`
   * `zigux/tests/phase12_virtio_net.zig`
   * `zigux/tests/phase12_virtio_net_syntax_lab.zig`
   * `zigux/tests/phase12_virtio_net_survey.zig`
@@ -150,8 +151,10 @@ Key entrypoints
   * `zigux/tests/phase12_virtio_scsi_survey.zig`
   * `zigux/tests/phase12_virtio_scsi.zig`
   * `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
+  * `zigux/tests/phase12_virtio_scsi_manifest.json`
   * `zigux/tests/phase12_libbpf_segments.zig`
   * `zigux/tests/phase12_libbpf_reviewability.zig`
+  * `zigux/tests/phase12_libbpf_manifest.json`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
   * `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
