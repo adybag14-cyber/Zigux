@@ -58,6 +58,11 @@ SELF_TEST_TARGETS = (
         ("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+        "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+        ("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=",),
+    ),
+    SelfTestTarget(
         "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
         ("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",),
@@ -249,6 +254,12 @@ def run_self_test() -> int:
             "scripts/zigux/survey-phase3-abi-constant-parity.py",
             "PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
             extra_markers=("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+            extra_markers=("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=",),
         )
         case_count += 1
         _require_target(
@@ -681,6 +692,60 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_constant_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:2:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        wrong_header_family_marker_root = tmp_root / "wrong-header-family-marker"
+        _populate_root(wrong_header_family_marker_root)
+        write_script(
+            wrong_header_family_marker_root / "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+            "WRONG_MARKER=pass",
+        )
+        assert run_targets(wrong_header_family_marker_root) == [
+            "missing_pass_marker:scripts/zigux/validate-phase3-abi-header-family-survey.py:PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/validate-phase3-abi-header-family-survey.py:PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=",
+        ]
+        case_count += 1
+
+        missing_header_family_aux_root = tmp_root / "missing-header-family-aux"
+        _populate_root(missing_header_family_aux_root)
+        write_script(
+            missing_header_family_aux_root / "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+        )
+        assert run_targets(missing_header_family_aux_root) == [
+            "missing_aux_marker:scripts/zigux/validate-phase3-abi-header-family-survey.py:PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_header_family_aux_root = tmp_root / "duplicate-header-family-aux"
+        _populate_root(duplicate_header_family_aux_root)
+        duplicate_header_family_aux_path = (
+            duplicate_header_family_aux_root / "scripts/zigux/validate-phase3-abi-header-family-survey.py"
+        )
+        duplicate_header_family_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")',
+                    '    print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_header_family_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/validate-phase3-abi-header-family-survey.py:2:PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT="
         ]
         case_count += 1
 
