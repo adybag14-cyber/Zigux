@@ -36,4 +36,8 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 
 ## Next bounded step
 
-Fresh repo inspection now shows the older validator-local follow-through is complete on `master`: the dedicated alignment checker and shared validator now both fail closed if `samples/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` drops this dedicated alignment note while the shared make-wrapper control surface remains part of the parked Phase 7 packet. Keep this lane parked unless a new tiny same-lane checker, note, validator, workflow, Makefile, or sample-root drift appears inside the existing shared control packet.
+Fresh repo inspection now shows the older make-wrapper-alignment follow-through is complete on `master`: the dedicated alignment checker and shared validator both fail closed if `samples/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` drops this dedicated alignment note while the shared make-wrapper control surface remains part of the parked Phase 7 packet.
+
+Keep this specific shared-control lane parked unless a new tiny same-lane checker, note, workflow, Makefile, or sample-root drift appears here.
+
+The broader Phase 7 packet still carries one separate validator-only follow-through outside this note: live `scripts/zigux/validate-phase7.py` does not yet exact-count the newly explicit `Documentation/zigux/review-checklist.md` markers in `Documentation/zigux/phase7-string-helpers-slice.md` and `Documentation/zigux/phase7-rbtree-slice.md`, so that remaining hardening should land as its own one-file validator update rather than being folded back into this parked make-wrapper alignment lane.
