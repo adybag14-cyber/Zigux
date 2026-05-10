@@ -42,6 +42,11 @@ SCRIPTS_README_MARKERS = [
         "- `Documentation/zigux/phase1-closure.md` and `zigux/tests/fixtures/phase1_helper_manifest.json` also keep the shared Phase 1 helper sequencing split explicit: `tools/lib/argv_split.zig`, `tools/lib/cmdline.zig`, `tools/lib/ctype.zig`, `tools/lib/hweight.zig`, `tools/lib/list_sort.zig`, `tools/lib/slab.zig`, `tools/lib/str_error_r.zig`, `tools/lib/vsprintf.zig`, and `tools/lib/zalloc.zig` stay parked on shared-replay packet drift only, while `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` keep the only direct helper-local follow-up anchors on current `master`, so shared reminder work should not batch those two sets back together.",
         1,
     ),
+    (
+        "scripts_readme_phase1_string_review_packet",
+        "- `tools/lib/string.zig`, `Documentation/zigux/phase1-closure.md`, and `zigux/tests/fixtures/phase1_helper_manifest.json` also keep the direct Phase 1 string review packet explicit, including the `memchr_inv()` alias replay, the zero-value prefix-alignment `memchrInv()` follow-up, and the explicit positive-overflow `memparse()` anchor, so those helper-local proofs stay reviewable without widening the shared parity fixture.",
+        1,
+    ),
 ]
 
 TESTS_README_MARKERS = [
@@ -274,6 +279,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         expect_case(issues, "scripts_readme_phase1_lane_split_packet:expected=1:actual=2")
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(marker for _, marker, _ in SCRIPTS_README_MARKERS)
+            + "\n"
+            + SCRIPTS_README_MARKERS[2][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        expect_case(issues, "scripts_readme_phase1_string_review_packet:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "")
