@@ -18,6 +18,8 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -26,6 +28,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/fixdep.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
@@ -55,6 +58,10 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS = [
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -90,6 +97,10 @@ PHASE2_CLOSURE_REQUIRED_MARKERS = [
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -106,6 +117,9 @@ PHASE2_CHECKLIST_REQUIRED_MARKERS = [
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/fixdep.zig",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -121,6 +135,9 @@ PHASE2_CHECKLIST_REQUIRED_MARKERS = [
 
 PHASE2_SCRIPTS_README_REQUIRED_MARKERS = [
     "validate-phase2-closure.py",
+    "check-phase2-fixdep-gate.py",
+    "check-fixdep-diff.py",
+    "fixdep.zig",
     "check-phase2-tool-manifest-packets.py --self-test",
     "check-phase2-tool-manifest-packets.py",
     "check-phase2-tests-readme-alignment.py",
@@ -144,6 +161,8 @@ PHASE2_TESTS_README_REQUIRED_MARKERS = [
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -155,6 +174,7 @@ PHASE2_TESTS_README_REQUIRED_MARKERS = [
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zig test scripts/zigux/fixdep.zig",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
@@ -375,6 +395,8 @@ def build_self_test_fixture(root: Path) -> None:
     )
     for relative in (
         "scripts/zigux/validate-phase2.py",
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/check-phase2-tool-manifest-packets.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -382,6 +404,7 @@ def build_self_test_fixture(root: Path) -> None:
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        "scripts/zigux/fixdep.zig",
         "zigux/tests/fixtures/phase2_tool_manifest.json",
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -418,6 +441,26 @@ def run_self_test() -> int:
         if expected_note_error not in missing_note_errors:
             print("phase2_closure_selftest:missing_note_anchor_not_detected")
             for error in missing_note_errors:
+                print(error)
+            return 1
+
+        missing_closure_fixdep_root = root / "missing_closure_fixdep"
+        build_self_test_fixture(missing_closure_fixdep_root)
+        closure_path = missing_closure_fixdep_root / "Documentation/zigux/phase2-closure.md"
+        closure_path.write_text(
+            closure_path.read_text(encoding="utf-8").replace(
+                "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test", "", 1
+            ),
+            encoding="utf-8",
+        )
+        cases += 1
+        missing_closure_fixdep_errors = validate(missing_closure_fixdep_root)
+        expected_closure_fixdep_error = (
+            "closure:missing_marker:python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test"
+        )
+        if expected_closure_fixdep_error not in missing_closure_fixdep_errors:
+            print("phase2_closure_selftest:missing_closure_fixdep_marker_not_detected")
+            for error in missing_closure_fixdep_errors:
                 print(error)
             return 1
 
