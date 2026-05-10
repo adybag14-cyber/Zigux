@@ -364,7 +364,7 @@ def run_self_test() -> int:
     assert "fixdep_manifest:case_count:6:expected=7" in issues
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
-    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
