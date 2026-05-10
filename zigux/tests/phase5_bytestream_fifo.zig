@@ -60,6 +60,8 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay.storage_backing);
+    try std.testing.expectEqual(sample.DrainMode.single_byte_get, replay.final_drain_mode);
+    try std.testing.expectEqual(@as(?u8, null), replay.post_drain_peek);
     try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
     for (contract.focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
