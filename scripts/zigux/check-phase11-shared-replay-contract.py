@@ -114,6 +114,7 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase11-gpio-wdt-survey.md`",
     "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-dw-wdt-survey.md`",
     "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "`Documentation/zigux/phase11-hvc-console-survey.md`",
@@ -208,7 +209,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 86
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 87
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -241,7 +242,7 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[-1], REQUIRED_CONTRACT_MARKERS[-1]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
-    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[13]),
+    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[14]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[2], REQUIRED_DOCS_README_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[3], REQUIRED_DOCS_README_MARKERS[3]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[4], REQUIRED_DOCS_README_MARKERS[4]),
@@ -255,6 +256,7 @@ SELF_TEST_CASES = [
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[12], REQUIRED_DOCS_README_MARKERS[12]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[13], REQUIRED_DOCS_README_MARKERS[13]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[14], REQUIRED_DOCS_README_MARKERS[14]),
+    (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[15], REQUIRED_DOCS_README_MARKERS[15]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[1], REQUIRED_SCRIPT_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[4]),
 ]
