@@ -375,6 +375,7 @@ def build_required_closure_markers(
         "PHASE2_FIXDEP_CASE_COUNT=7",
         "PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_escaped_colon,sample_multi_target,sample_comment_only,sample_missing_dep,sample_escaped_hash_comment_chain",
         "PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_escaped_colon_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt,sample_escaped_hash_comment_chain_expected.txt",
+        "PHASE2_FIXDEP_STDERR_PACKET=sample_comment_only_expected.stderr.txt,sample_missing_dep_expected.stderr.txt",
     ]
     markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
@@ -614,6 +615,30 @@ def run_self_test() -> int:
     assert len(conf_files) == 4
     assert conf_names == ["sample", "tail"]
     assert conf_expected == ["sample_expected.json", "tail_expected.json"]
+    cases_run += 1
+
+    sample_required_markers = build_required_closure_markers(
+        genksyms_case_names=case_names,
+        genksyms_stdout_packet=stdout_packet,
+        genksyms_process_packet=process_packet,
+        genksyms_normalized_stderr_packet=normalized_packet,
+        genksyms_action_abbrev_cases=action_abbrev_cases,
+        conf_case_names=["oldaskconfig"],
+        conf_stdout_packet=["oldaskconfig_expected.json"],
+        confdata_case_names=conf_names,
+        confdata_expected_packet=conf_expected,
+    )
+    fixdep_stderr_marker = (
+        "PHASE2_FIXDEP_STDERR_PACKET="
+        "sample_comment_only_expected.stderr.txt,sample_missing_dep_expected.stderr.txt"
+    )
+    assert fixdep_stderr_marker in sample_required_markers
+    missing_fixdep_stderr = require_markers(
+        "\n".join(marker for marker in sample_required_markers if marker != fixdep_stderr_marker),
+        [fixdep_stderr_marker],
+        "closure",
+    )
+    assert missing_fixdep_stderr == [f"closure:{fixdep_stderr_marker}"]
     cases_run += 1
 
     duplicate_make = "\n".join(
