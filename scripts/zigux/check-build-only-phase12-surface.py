@@ -39,12 +39,19 @@ FORBIDDEN_GLOBS = [
     "scripts/zigux/check-phase12-*.py",
 ]
 
+DOCS_PHASE12_FREEZE_REMINDER_MARKER = (
+    "the PMO closure companion, the adjacent release-readiness survey, the compact "
+    "release-coordination matrix, the freeze-boundary reminder, the driver-only "
+    "anti-overlap companion, and the shared fallback-overview note"
+)
+
 REQUIRED_FILE_MARKERS = {
     DOCS_README_PATH: [
         "Phase 12 notes",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
         "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
+        DOCS_PHASE12_FREEZE_REMINDER_MARKER,
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
@@ -364,6 +371,7 @@ REQUIRED_FILE_MARKERS = {
 
 EXACT_COUNT_FILE_MARKERS = {
     DOCS_README_PATH: {
+        DOCS_PHASE12_FREEZE_REMINDER_MARKER: 1,
         "`zigux/tests/phase12_virtio_net_manifest.json`": 1,
         "`zigux/tests/phase12_libbpf_manifest.json`": 1,
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
