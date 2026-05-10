@@ -597,7 +597,7 @@ def run_self_test() -> int:
         label="phase2_closure_validator",
         markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
     ) == []
-    closure_validator_anchor = 'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",' 
+    closure_validator_anchor = 'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",'
     missing_phase2_closure_validator = validate_required_markers(
         valid_phase2_closure_validator.replace(closure_validator_anchor, "", 1),
         label="phase2_closure_validator",
