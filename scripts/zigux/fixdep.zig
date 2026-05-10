@@ -7,7 +7,14 @@ const max_file_bytes: usize = std.math.maxInt(usize);
 const FixdepError = error{
     NoTargets,
     OpenDependencyFile,
+    StatDependencyFile,
     ReadDependencyFile,
+};
+
+const DependencyFileFailure = enum {
+    open,
+    stat,
+    read,
 };
 
 fn isIdentByte(ch: u8) bool {
@@ -31,7 +38,7 @@ fn bytesBeforeFirstNull(bytes: []const u8) []const u8 {
 fn describeFileReadError(err: anyerror) []const u8 {
     return switch (err) {
         error.FileNotFound => "No such file or directory",
-        error.AccessDenied => "Permission denied",
+        error.AccessDenied, error.PermissionDenied => "Permission denied",
         error.IsDir => "Is a directory",
         error.NotDir => "Not a directory",
         error.NameTooLong => "File name too long",
@@ -46,30 +53,45 @@ fn describeFileReadError(err: anyerror) []const u8 {
     };
 }
 
-fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
+fn writeDependencyFileError(
+    writer: anytype,
+    failure: DependencyFileFailure,
+    path: []const u8,
+    err: anyerror,
+) !void {
+    switch (failure) {
+        .open => {
+            try writer.writeAll("fixdep: error opening file: ");
+            try writer.writeAll(path);
+            try writer.writeAll(": ");
+            try writer.writeAll(describeFileReadError(err));
+            try writer.writeAll("\n");
+        },
+        .stat => {
+            try writer.writeAll("fixdep: error fstat'ing file: ");
+            try writer.writeAll(path);
+            try writer.writeAll(": ");
+            try writer.writeAll(describeFileReadError(err));
+            try writer.writeAll("\n");
+        },
+        .read => {
+            try writer.writeAll("fixdep: read: ");
+            try writer.writeAll(describeFileReadError(err));
+            try writer.writeAll("\n");
+        },
+    }
+}
+
+fn emitDependencyFileError(
+    io: std.Io,
+    failure: DependencyFileFailure,
+    path: []const u8,
+    err: anyerror,
+) !noreturn {
     var stderr_buffer: [512]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
     const stderr = &stderr_writer.interface;
-    try stderr.writeAll("fixdep: error opening file: ");
-    try stderr.writeAll(path);
-    try stderr.writeAll(": ");
-    try stderr.writeAll(describeFileReadError(err));
-    try stderr.writeAll("\n");
-    try stderr.flush();
-    std.process.exit(2);
-}
-
-fn writeReadFileError(writer: anytype, err: anyerror) !void {
-    try writer.writeAll("fixdep: read: ");
-    try writer.writeAll(describeFileReadError(err));
-    try writer.writeAll("\n");
-}
-
-fn emitReadFileError(io: std.Io, err: anyerror) !noreturn {
-    var stderr_buffer: [256]u8 = undefined;
-    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-    const stderr = &stderr_writer.interface;
-    try writeReadFileError(stderr, err);
+    try writeDependencyFileError(stderr, failure, path, err);
     try stderr.flush();
     std.process.exit(2);
 }
@@ -103,6 +125,7 @@ const Processor = struct {
     file_seen: std.ArrayListUnmanaged([]const u8),
     last_file_error_path: []const u8,
     last_file_error: ?anyerror,
+    last_file_failure: ?DependencyFileFailure,
 
     pub fn init(backing_allocator: std.mem.Allocator, io: std.Io) Processor {
         var self: Processor = undefined;
@@ -112,6 +135,7 @@ const Processor = struct {
         self.file_seen = .empty;
         self.last_file_error_path = "";
         self.last_file_error = null;
+        self.last_file_failure = null;
         return self;
     }
 
@@ -171,6 +195,7 @@ const Processor = struct {
         }) catch |err| switch (err) {
             error.FileNotFound,
             error.AccessDenied,
+            error.PermissionDenied,
             error.IsDir,
             error.NotDir,
             error.NameTooLong,
@@ -184,21 +209,53 @@ const Processor = struct {
             => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = err;
+                self.last_file_failure = .open;
                 return error.OpenDependencyFile;
             },
             else => return err,
         };
         defer file.close(self.io);
 
-        var file_reader = file.reader(self.io, &.{ });
-        return file_reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
-            error.ReadFailed => {
+        const stat = file.stat(self.io) catch |err| switch (err) {
+            error.SystemResources,
+            error.AccessDenied,
+            error.PermissionDenied,
+            error.Streaming,
+            => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
-                self.last_file_error = file_reader.err.?;
+                self.last_file_error = err;
+                self.last_file_failure = .stat;
+                return error.StatDependencyFile;
+            },
+            else => return err,
+        };
+
+        const dep_len = std.math.cast(usize, stat.size) orelse return error.StreamTooLong;
+        const dep_text = try self.arena.allocator().alloc(u8, dep_len);
+        const read_len = file.readPositionalAll(self.io, dep_text, 0) catch |err| switch (err) {
+            error.InputOutput,
+            error.SystemResources,
+            error.IsDir,
+            error.WouldBlock,
+            error.AccessDenied,
+            error.LockViolation,
+            error.Unseekable,
+            error.NotOpenForReading,
+            => {
+                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+                self.last_file_error = err;
+                self.last_file_failure = .read;
                 return error.ReadDependencyFile;
             },
-            error.OutOfMemory, error.StreamTooLong => |e| return e,
+            else => return err,
         };
+        if (read_len != dep_text.len) {
+            self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+            self.last_file_error = error.EndOfStream;
+            self.last_file_failure = .read;
+            return error.ReadDependencyFile;
+        }
+        return dep_text;
     }
 
     fn parseDepFile(self: *Processor, writer: anytype, dep_text_with_tail: []const u8, target: []const u8) !void {
@@ -319,24 +376,22 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
 
     try writer.print("savedcmd_{s} := {s}\n\n", .{ target, cmdline });
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
-        error.OpenDependencyFile => {
+        error.OpenDependencyFile,
+        error.StatDependencyFile,
+        error.ReadDependencyFile,
+        => {
             flushOutputIgnoringError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
-        },
-        error.ReadDependencyFile => {
-            flushOutputIgnoringError(writer);
-            try emitReadFileError(io, processor.last_file_error.?);
+            try emitDependencyFileError(io, processor.last_file_failure.?, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return flushOutputPreservingPrimaryError(writer, err),
     };
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
-        error.OpenDependencyFile => {
+        error.OpenDependencyFile,
+        error.StatDependencyFile,
+        error.ReadDependencyFile,
+        => {
             flushOutputIgnoringError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
-        },
-        error.ReadDependencyFile => {
-            flushOutputIgnoringError(writer);
-            try emitReadFileError(io, processor.last_file_error.?);
+            try emitDependencyFileError(io, processor.last_file_failure.?, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return flushOutputPreservingPrimaryError(writer, err),
     };
@@ -705,10 +760,42 @@ test "read failure wording matches C perror prefix" {
     var capture = try Capture.init(std.testing.allocator);
     defer capture.deinit();
 
-    try writeReadFileError(&capture, error.InputOutput);
+    try writeDependencyFileError(&capture, .read, "ignored.d", error.InputOutput);
 
     try std.testing.expectEqualStrings(
         "fixdep: read: Input/output error\n",
+        capture.list.items,
+    );
+}
+
+test "stat failure wording matches C perror prefix" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 80),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeDependencyFileError(&capture, .stat, "sample.d", error.AccessDenied);
+
+    try std.testing.expectEqualStrings(
+        "fixdep: error fstat'ing file: sample.d: Permission denied\n",
         capture.list.items,
     );
 }
