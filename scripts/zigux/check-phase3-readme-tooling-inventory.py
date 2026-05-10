@@ -29,9 +29,10 @@ REQUIRED_MARKERS = (
     "phase3_check_lib.py",
     "generate-phase3-check-wrappers.py",
     "run-phase3-checks.py",
-    "current `master` does not ship standalone `phase3_catalog.py`",
-    "historical references rather than part of the active scripts-root packet",
+    "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
     "zigux/uapi/dev_t.zig",
+    "python3 scripts/zigux/phase3_catalog.py --self-test",
+    "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
@@ -64,11 +65,18 @@ def run_self_test() -> int:
         return 1
 
     broken = validate_text(
-        sample.replace("historical references rather than part of the active scripts-root packet", "", 1)
+        sample.replace(
+            "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
+            "",
+            1,
+        )
     )
-    if "historical references rather than part of the active scripts-root packet" not in broken:
+    if (
+        "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog"
+        not in broken
+    ):
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-        print("expected historical-reference disclaimer marker was not reported")
+        print("expected compatibility-entrypoint marker was not reported")
         return 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
