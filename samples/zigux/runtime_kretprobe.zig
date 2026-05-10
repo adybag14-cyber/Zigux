@@ -283,6 +283,57 @@ test "kretprobe sample keeps selftest-ready replay explicit in helper-local life
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
 }
 
+test "kretprobe sample keeps the selftest hook single-shot after completion and exit" {
+    var module = RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+
+    const selftest_summary = try module.runSelftest();
+    const after_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", selftest_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), after_selftest.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), after_selftest.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.selftest_runs);
+    try std.testing.expect(!after_selftest.entry_timestamp_armed);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_repeat = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(after_selftest.active_instances, after_rejected_repeat.active_instances);
+    try std.testing.expectEqual(after_selftest.skipped_kernel_threads, after_rejected_repeat.skipped_kernel_threads);
+    try std.testing.expectEqual(after_selftest.nmissed, after_rejected_repeat.nmissed);
+    try std.testing.expectEqual(after_selftest.last_retval, after_rejected_repeat.last_retval);
+    try std.testing.expectEqual(after_selftest.last_duration_ns, after_rejected_repeat.last_duration_ns);
+    try std.testing.expectEqual(after_selftest.selftest_runs, after_rejected_repeat.selftest_runs);
+    try std.testing.expectEqual(after_selftest.entry_timestamp_armed, after_rejected_repeat.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 42), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), exited_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), exited_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expect(!exited_summary.entry_timestamp_armed);
+}
+
 test "kretprobe sample rejects selftest while a probe instance is still armed" {
     var module = RuntimeKretprobeSample{};
     try module.init();
