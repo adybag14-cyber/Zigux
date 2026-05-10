@@ -76,6 +76,7 @@ REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
