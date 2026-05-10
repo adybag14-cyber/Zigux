@@ -13,6 +13,7 @@ DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PAT
 REQUIRED_FILES = [
     "Documentation/zigux/phase1-closure.md",
     "zigux/tests/fixtures/phase1_helpers.json",
+    "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/phase1_helpers.zig",
     "tools/lib/bitmap.zig",
 ]
@@ -31,6 +32,26 @@ REQUIRED_CLOSURE_MARKERS = [
     (
         "closure_copy_alias_review_count",
         "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
+        1,
+    ),
+    (
+        "closure_cross_word_review_count",
+        "PHASE1_BITMAP_SCNPRINTF_CROSS_WORD_REVIEW=helper-local bitmap.scnprintf cross-word range-collapse proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so contiguous runs crossing a machine-word boundary still render as one collapsed range instead of splitting at the word edge",
+        1,
+    ),
+    (
+        "closure_zero_sized_destination_view_review_count",
+        "PHASE1_BITMAP_ZERO_SIZED_DESTINATION_VIEW_REVIEW=helper-local zero-sized destination-view proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so copyClearTail, bitmap_copy_clear_tail, copyAndExtend, and bitmap_copy_and_extend leave zero-sized destination views untouched instead of clearing caller sentinel storage",
+        1,
+    ),
+    (
+        "closure_zero_bit_binary_identity_review_count",
+        "PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so andBits, andNotBits, equal, intersects, and subset keep empty-window identity semantics without treating zero-bit windows as live data",
+        1,
+    ),
+    (
+        "closure_linux_alias_review_count",
+        "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface",
         1,
     ),
 ]
@@ -56,6 +77,26 @@ REQUIRED_BITMAP_TEST_MARKERS = [
         'test "bitmap copy aliases preserve tail clearing and extension semantics"',
         1,
     ),
+    (
+        "bitmap_cross_word_scnprintf_test_count",
+        'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
+        1,
+    ),
+    (
+        "bitmap_zero_sized_destination_view_test_count",
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+        1,
+    ),
+    (
+        "bitmap_zero_bit_binary_identity_test_count",
+        'test "bitmap zero-bit binary helpers stay explicit identity operations"',
+        1,
+    ),
+    (
+        "bitmap_linux_alias_test_count",
+        'test "bitmap Linux-style aliases mirror the primary helper surface"',
+        1,
+    ),
 ]
 
 REQUIRED_BITMAP_FIXTURE_KEYS = [
@@ -63,6 +104,17 @@ REQUIRED_BITMAP_FIXTURE_KEYS = [
     "partial_xor_masked_values",
     "scnprintf",
 ]
+
+REQUIRED_BITMAP_MANIFEST_FIELDS = {
+    "cross_word_scnprintf_anchor": 'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
+    "zero_sized_destination_view_anchor": 'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
+    "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
+}
+
+REQUIRED_BITMAP_REVIEW_PACKET_SUMMARY = (
+    "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, zero-sized destination-view, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
+)
 
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
@@ -125,6 +177,29 @@ def collect_fixture_markers(fixture: object) -> list[str]:
     return missing
 
 
+def collect_manifest_markers(manifest: object) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["phase1_helper_manifest:json_object"]
+
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["phase1_helper_manifest:review_anchors"]
+
+    bitmap_review = review_anchors.get("tools/lib/bitmap.zig")
+    if not isinstance(bitmap_review, dict):
+        return ["phase1_helper_manifest:bitmap_review_anchor_object"]
+
+    missing: list[str] = []
+    for field, expected_value in REQUIRED_BITMAP_MANIFEST_FIELDS.items():
+        if bitmap_review.get(field) != expected_value:
+            missing.append(f"phase1_helper_manifest:{field}")
+
+    if bitmap_review.get("review_packet_summary") != REQUIRED_BITMAP_REVIEW_PACKET_SUMMARY:
+        missing.append("phase1_helper_manifest:review_packet_summary")
+
+    return missing
+
+
 def write_file(root: Path, rel: str, content: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +233,22 @@ def make_fixture_root(tmp_root: Path) -> None:
                     "scnprintf": "1-3,7,10-11",
                 }
             }
+        )
+        + "\n",
+    )
+    write_file(
+        tmp_root,
+        "zigux/tests/fixtures/phase1_helper_manifest.json",
+        json.dumps(
+            {
+                "review_anchors": {
+                    "tools/lib/bitmap.zig": {
+                        **REQUIRED_BITMAP_MANIFEST_FIELDS,
+                        "review_packet_summary": REQUIRED_BITMAP_REVIEW_PACKET_SUMMARY,
+                    }
+                }
+            },
+            indent=2,
         )
         + "\n",
     )
@@ -233,8 +324,65 @@ def run_self_test() -> None:
             in fixture_parse_markers
         )
 
+        manifest, manifest_parse_markers = load_json_file(
+            tmp_root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+            "phase1_helper_manifest",
+        )
+        assert manifest_parse_markers == []
+        assert collect_manifest_markers(manifest) == []
+
+        write_file(
+            tmp_root,
+            "zigux/tests/fixtures/phase1_helper_manifest.json",
+            json.dumps(
+                {
+                    "review_anchors": {
+                        "tools/lib/bitmap.zig": {
+                            **{
+                                key: value
+                                for key, value in REQUIRED_BITMAP_MANIFEST_FIELDS.items()
+                                if key != "linux_alias_anchor"
+                            },
+                            "review_packet_summary": REQUIRED_BITMAP_REVIEW_PACKET_SUMMARY,
+                        }
+                    }
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        manifest, manifest_parse_markers = load_json_file(
+            tmp_root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+            "phase1_helper_manifest",
+        )
+        assert manifest_parse_markers == []
+        assert "phase1_helper_manifest:linux_alias_anchor" in collect_manifest_markers(manifest)
+
+        write_file(
+            tmp_root,
+            "zigux/tests/fixtures/phase1_helper_manifest.json",
+            json.dumps(
+                {
+                    "review_anchors": {
+                        "tools/lib/bitmap.zig": {
+                            **REQUIRED_BITMAP_MANIFEST_FIELDS,
+                            "review_packet_summary": "wrong",
+                        }
+                    }
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        manifest, manifest_parse_markers = load_json_file(
+            tmp_root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+            "phase1_helper_manifest",
+        )
+        assert manifest_parse_markers == []
+        assert "phase1_helper_manifest:review_packet_summary" in collect_manifest_markers(manifest)
+
     print("PHASE1_BITMAP_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_BITMAP_REVIEW_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_BITMAP_REVIEW_PACKET_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
@@ -273,6 +421,10 @@ def main() -> int:
         root / "zigux/tests/fixtures/phase1_helpers.json",
         "phase1_helpers_fixture",
     )
+    manifest, manifest_parse_markers = load_json_file(
+        root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+        "phase1_helper_manifest",
+    )
 
     missing_markers = collect_exact_count_markers(closure, REQUIRED_CLOSURE_MARKERS)
     missing_markers.extend(
@@ -282,6 +434,9 @@ def main() -> int:
     missing_markers.extend(fixture_parse_markers)
     if fixture is not None:
         missing_markers.extend(collect_fixture_markers(fixture))
+    missing_markers.extend(manifest_parse_markers)
+    if manifest is not None:
+        missing_markers.extend(collect_manifest_markers(manifest))
 
     if missing_markers:
         print("PHASE1_BITMAP_REVIEW_PACKET=fail")
@@ -295,7 +450,7 @@ def main() -> int:
     print(f"PHASE1_BITMAP_REVIEW_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_BITMAP_REVIEW_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_PHASE1_HELPERS_MARKERS) + len(REQUIRED_BITMAP_TEST_MARKERS) + len(REQUIRED_BITMAP_FIXTURE_KEYS)}"
+        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_PHASE1_HELPERS_MARKERS) + len(REQUIRED_BITMAP_TEST_MARKERS) + len(REQUIRED_BITMAP_FIXTURE_KEYS) + len(REQUIRED_BITMAP_MANIFEST_FIELDS) + 1}"
     )
     return 0
 
