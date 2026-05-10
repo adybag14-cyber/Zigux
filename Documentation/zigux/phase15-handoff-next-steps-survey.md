@@ -5,8 +5,8 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 ## Status
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=handoff-next-steps-survey`
-- `PHASE15_PROVENANCE_MODE=exact_master_readback`
-- commit `90e6fb8d996262f84fae76d55011982a46d88c7c` observed on May 10, 2026 is the current reviewed handoff-survey anchor for this parked packet.
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-10`
 - no Architecture Council approval is currently recorded for a freeze-map status change.
 - current review-process evidence is still limited to named `phase`, `current status bucket`, `required approver set`, `validation gate summary`, `parity scorecard link or blocker record`, and `indefinite-C policy link or non-applicability note` fields instead of a shipped status-change approval packet.
 - the current repo already keeps the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the Linux-style `make -C zigux phase15-validate` route, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the aggregate `make -C zigux phase15` route explicit.
