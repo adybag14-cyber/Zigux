@@ -27,7 +27,6 @@ What it does not ship is equally important:
 - there is no dedicated `scripts/zigux/validate-phase10.py`
 - there is no dedicated `scripts/zigux/validate-phase10-closure.py`
 - there is no broader `scripts/zigux/check-phase10-harness-coverage.py`
-- there is no dedicated `zigux/tests/phase10_closure_manifest.json`; current `zigux/tests/` keeps the four per-slice manifest anchors only
 - there is no dedicated `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`; current `zigux-alpha/` on `master` only carries the bootstrap `README.md`, `ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, and `BOOTSTRAP_COMMIT_LEDGER.md`
 - there is no `make -C zigux phase10-validate` surface on `master`
 
@@ -60,6 +59,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
@@ -126,14 +126,14 @@ This note does not claim:
 
 ## Review Rule
 
-Reviewers should treat any future claim that the active Phase 10 tranche already ships a dedicated shared closure manifest, a dedicated closure validator, a harness-coverage checker, a separate `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared packet reminders.
+Reviewers should treat any future claim that the active Phase 10 tranche already ships a dedicated closure validator, a harness-coverage checker, a separate `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared packet reminders.
 
 ## Next bounded step
 
 Keep the shared Phase 10 tranche parked unless the closure packet itself moves again or another one-file shared-summary undercount becomes visible.
 
-Fresh current-master readback during this run showed this note had drifted around shared-manifest truthfulness: current `master` no longer ships `zigux/tests/phase10_closure_manifest.json`, so any follow-up should start by rereading the broader shared summary surfaces before repeating that removed shared-manifest claim.
+Fresh current-master fallback readback during this run confirmed that `zigux/tests/phase10_closure_manifest.json` and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` are still live shared reminder surfaces, so this note should keep treating the shared closure manifest as present on current `master`.
 
-The same readback also showed the broad shared tests-root reminder keeps the landed direct `drivers/virtio/virtio.zig` plus `drivers/virtio/virtio_driver_id.zig` core review surfaces explicit, but it still relies on `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_mmio.zig` plus their focused verifier replays rather than spelling out `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, or `drivers/virtio/virtio_mmio.zig` as direct shared-summary surfaces.
+That same readback also showed one remaining summary-surface undercount: `Documentation/zigux/README.md` still omits `zigux/tests/phase10_virtio_input_probe_preflight.zig` even though this closure note, `scripts/zigux/README.md`, `zigux/tests/README.md`, the compact tests-root companion, and the shared closure manifest-backed packet keep that focused replay explicit.
 
-If this lane reopens soon, prefer one summary-surface sync that points at the four per-slice manifests, the existing packet checkers, and that direct-driver split instead of widening into helper, MMIO transport, IRQ, reset, queue-discovery, or lifecycle behavior.
+If this lane reopens soon, prefer one docs-root summary sync that adds `zigux/tests/phase10_virtio_input_probe_preflight.zig` to the shared Phase 10 reminder and stop there instead of widening into helper, MMIO transport, IRQ, reset, queue-discovery, or lifecycle behavior.
