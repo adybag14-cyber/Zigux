@@ -25,6 +25,7 @@ FILES = [
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -52,6 +53,7 @@ MARKERS = {
         "Documentation/zigux/phase10-closure-evidence.md",
         "drivers/virtio/virtio_mmio_verify.zig",
         "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -73,6 +75,7 @@ MARKERS = {
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
         "drivers/virtio/virtio_mmio_verify.zig",
         "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -86,6 +89,7 @@ MARKERS = {
         "scripts/zigux/check-phase10-mmio-packet.py",
         "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
         "drivers/virtio/virtio_mmio_verify.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "selected-queue readiness",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
@@ -96,6 +100,7 @@ MARKERS = {
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
         "zigux/tests/phase10_virtio_mmio_survey.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "make -C zigux phase10-test",
     ],
     "scripts/zigux/README.md": [
@@ -104,6 +109,7 @@ MARKERS = {
         "phase10_virtio_mmio.zig",
         "phase10_virtio_mmio_survey.zig",
         "drivers/virtio/virtio_mmio_verify.zig",
+        "phase10_virtio_input_probe_preflight.zig",
         "phase10_virtio_input_queue_callback_preflight.zig",
         "phase10_virtio_input_registration_preflight.zig",
         "phase10_virtio_input_teardown_observation.zig",
@@ -115,10 +121,12 @@ MARKERS = {
         "phase10_virtio_mmio.zig",
         "phase10_virtio_mmio_survey.zig",
         "phase10_virtio_mmio_manifest.json",
+        "phase10_virtio_input_probe_preflight.zig",
     ],
     "zigux/tests/phase10_closure_manifest.json": [
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_driver_id.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -133,6 +141,9 @@ MARKERS = {
     ],
     "zigux/tests/phase10_virtio_driver_id.zig": [
         'test "phase10 virtio driver id helper records bounded registration identity strings" {',
+    ],
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
+        'test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
     ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
         'test "phase10 virtio input queue callback preflight reports queue and ready blockers and resets cleanly" {',
@@ -222,6 +233,7 @@ MARKERS = {
         'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
         'try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);',
         'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_probe_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
@@ -273,6 +285,7 @@ MARKERS = {
         "phase10-mmio-lifecycle-and-irq-paths",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -502,6 +515,12 @@ def run_self_test() -> int:
                 'test "phase10 virtio core blocks fresh queue registration once reset is required" {',
                 'test "phase10 virtio core reset replay drift" {',
                 'phase10_virtio_core_reset_queue.zig:test "phase10 virtio core blocks fresh queue registration once reset is required" {',
+            ),
+            (
+                "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+                'test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
+                'test "phase10 virtio input probe preflight drift" {',
+                'phase10_virtio_input_probe_preflight.zig:test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
             ),
         ]
 
