@@ -14,6 +14,26 @@ The current Phase 13 packet stays centered on four roadmap-owned helper families
 - `security/landlock/ruleset.c`
 - `security/landlock/syscalls.c`
 
+Broad summaries should keep the validator-first eight-test shared-helper replay visible through:
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
+
+Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_libfs_addressability.zig`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+
 Broad summaries should also keep the bounded `devres` dma/scatterlist release evidence visible through:
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_devres_reviewability.zig`
@@ -37,6 +57,8 @@ Broad summaries should also keep the adjacent notifier evidence packet visible t
 
 Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
+- the validator-first release path is the eight-test shared-helper replay in `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig` and `zigux/tests/phase13_libfs_addressability.zig` stay adjacent direct evidence rather than extra shared replay steps
 - `devres` dma/scatterlist evidence stays inside the active helper packet rather than reading like a separate replay lane
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
@@ -54,6 +76,9 @@ Refresh these notes together when a contributor-facing Phase 13 summary changes:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/validate-phase13-release.py`
 
 ## Non-Goals
 
