@@ -34,7 +34,14 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/validate-phase13-release.py`
+- `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_build.zig`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
@@ -58,7 +65,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
 3. Refresh `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, and `Documentation/zigux/phase13-landlock-syscalls-governance.md` when the change sharpens the shared replay route, the owner-map split, the Phase 10 or Phase 11 closure wording, the helper-owned boundary notes, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, the notifier survey plus checker route, the adjacent notifier manifest, reviewability, ABI, helper, and HVC interop evidence.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
-5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
+5. Refresh `scripts/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_build.zig`, and `zigux/Makefile` when the wording change affects the scripts-root validator-first replay summary, the dedicated Phase 13 checker wording, the shared eight-test inventory, or the Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
 7. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
 8. Re-read the shared guidance surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording, especially around the adjacent notifier packet.
@@ -145,10 +152,17 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_gpio_wdt_survey.zig`
+- `zigux/tests/phase11_bcm2835_wdt.zig`
 - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt.zig`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -234,6 +248,7 @@ Before closing a contributor-guidance change, ask:
 - Did one shared Phase 10 prompt collapse the shipped `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, or `scripts/zigux/check-phase10-mmio-freeze-boundary.py` guards back into core-only shorthand, leave the scripts-root Phase 10 flow talking as if only the core and input packet guards exist, or drop `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, or `zigux/tests/phase10_virtio_mmio_survey.zig` after the packet-local evidence named them explicitly?
 - Did one shared Phase 11 prompt leave `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zig build test --build-file zigux/tests/phase11_build.zig --summary all`, `make -C zigux phase11`, `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`, or `make -C zigux phase11-hvc-survey` implicit after the docs-root summary, the shared replay contract, or the compact tests-root companion made the focused header-boundary survey packet, the shared replay route, and the dedicated bcm2835 plus HVC archival routes explicit?
 - Did one shared Phase 13 prompt turn shipped adjacent release-surface evidence such as `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, `drivers/tty/hvc/hvc_console.h`, or the shipped `scripts/zigux/check-phase13-notifier-packet.py` route into extra replay steps, drop that adjacent notifier checker from the packet, or otherwise misstate the notifier evidence?
+- Did the broad shared-surfaces list or the update-order block still leave `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `zigux/tests/phase13_build.zig`, `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` implicit after the contributor guide, the lane-sequencing note, or the compact tests-root companion made that validator-first shared route explicit?
 - Do any shared Phase 13 prompts still imply `scripts/zigux/check-phase13-release-replay-exact-counts.py` as a shipped surface even though that exact-count checker does not currently round-trip on `master`?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
