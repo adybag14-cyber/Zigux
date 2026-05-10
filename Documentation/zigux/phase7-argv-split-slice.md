@@ -12,8 +12,11 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - product boundary:
   - `lib/argv_split.zig`
   - `samples/zigux/README.md`
+  - `Documentation/zigux/README.md`
   - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
   - `Documentation/zigux/review-checklist.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `zigux/tests/phase7_argv_split.zig`
   - `zigux/tests/phase7_argv_split_survey.zig`
   - `zigux/tests/phase7_argv_split_manifest.json`
@@ -42,7 +45,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
-The Phase 5 roadmap keeps approved reference idioms under four sample anchors in `samples/zigux/`, and no `samples/zigux/*argv*` Phase 5 reference sample is expected here; treat any new `samples/zigux/*argv*.zig` claim as a separate roadmap-boundary decision instead of silently folding it into this helper slice.
+The Phase 5 roadmap keeps approved reference idioms under four sample anchors in `samples/zigux/`, and no `samples/zigux/*argv*` Phase 5 reference sample is expected here; keep `argv_split` reviewability under this slice, `samples/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/README.md`, `lib/argv_split.zig`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig` instead of silently folding it into a fifth Phase 5 sample or leaving those already-landed sibling review surfaces implicit.
 
 ## Gates
 
