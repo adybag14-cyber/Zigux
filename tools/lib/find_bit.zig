@@ -204,6 +204,10 @@ pub fn findLastBit(addr: []const Word, nbits: usize) usize {
     return lastBitIndex(idx, value);
 }
 
+pub fn _find_last_bit(addr: []const Word, nbits: usize) usize {
+    return findLastBit(addr, nbits);
+}
+
 test "find first and next set bits across words" {
     var bitmap = [_]Word{ 0, 0, 0 };
     bitmap[0] |= @as(Word, 1) << 5;
@@ -245,6 +249,7 @@ test "underscore entry points reuse the public helper behavior" {
     try std.testing.expectEqual(findNextBit(&set_map, nbits, 6), _find_next_bit(&set_map, nbits, 6));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 7), _find_next_zero_bit(&zero_map, nbits, 7));
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, 10), _find_next_and_bit(&and_lhs, &and_rhs, nbits, 10));
+    try std.testing.expectEqual(findLastBit(&set_map, nbits), _find_last_bit(&set_map, nbits));
 }
 
 test "single-word next scans honor start masks" {
@@ -417,4 +422,5 @@ test "low-level underscore aliases mirror the primary find helpers" {
     try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), _find_next_bit(&bitmap, nbits, 8));
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), _find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), _find_next_zero_bit(&zero_map, nbits, 5));
+    try std.testing.expectEqual(findLastBit(&bitmap, nbits), _find_last_bit(&bitmap, nbits));
 }
