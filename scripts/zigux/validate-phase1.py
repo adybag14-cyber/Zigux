@@ -97,14 +97,23 @@ EXPECTED_MANIFEST = json.loads(
       "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\""
     },
     "tools/lib/find_bit.zig": {
+      "helper_test_anchors": [
+        "test \"single-word next scans honor start masks\"",
+        "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
+        "test \"tail-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
+        "test \"zero-bit windows return without reading bitmap words\"",
+        "test \"next scans past nbits return without reading bitmap words\"",
+        "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
+        "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
+        "test \"low-level underscore aliases mirror the primary find helpers\""
+      ],
       "same_word_start_masks": "test \"single-word next scans honor start masks\"",
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
+      "tail_word_inclusive_boundary_start": "test \"tail-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
-      "tail_word_next_set_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
-      "tail_word_next_zero_and_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
-      "tail_word_start_mask_review_summary": "helper-local tail-word next-scan anchors stay explicit because the shared Phase 1 replay locks tail-clamped results but does not isolate same-tail-word starts that must skip earlier in-range matches before clamping",
+      "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
@@ -114,7 +123,8 @@ EXPECTED_MANIFEST = json.loads(
         "tail_and_clamped_next",
         "tail_clamped_last",
         "tail_clamped_empty_last"
-      ]
+      ],
+      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
     },
     "tools/lib/rbtree.zig": {
       "helper_test_anchors": [
