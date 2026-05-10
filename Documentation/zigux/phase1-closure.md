@@ -208,6 +208,14 @@ That means `test "bitmap range helpers honor exact first-word boundaries"` stays
 
 - `PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary`
 
+The helper-local final partial-word proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap range helpers clamp the final partial word"` stays present and review-visible whenever `setRange()` or `clearRange()` changes. This helper-local test is the bounded proof that the bitmap range helpers still clamp trailing partial-word masks to the requested live tail window instead of spilling work beyond it.
+
+- `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it`
+
 The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
@@ -250,6 +258,15 @@ That means `test "bitmap zero-bit helpers stay explicit no-ops"` stays present a
 
 - `PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes`
 
+The helper-local bitmap Linux-style alias proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap Linux-style aliases mirror the primary helper surface"` stays present and review-visible whenever `bitmap_alloc()`, `bitmap_zalloc()`, `bitmap_free()`, `bitmap_zero()`, `bitmap_fill()`, `bitmap_empty()`, `bitmap_full()`, `bitmap_weight()`, `bitmap_or()`, `bitmap_xor()`, `bitmap_and()`, `bitmap_andnot()`, `bitmap_complement()`, `bitmap_equal()`, `bitmap_intersects()`, `bitmap_subset()`, `bitmap_set()`, `bitmap_clear()`, `bitmap_copy()`, `bitmap_copy_clear_tail()`, `bitmap_copy_and_extend()`, or `bitmap_scnprintf()` changes. This helper-local test and the manifest anchor are the bounded proof that the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface instead of drifting into a second semantics path.
+
+- `PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface`
+
 ## Rbtree Review Rule
 
 For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtree surface explicit through:
@@ -261,7 +278,7 @@ For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtr
 
 That means `test "rbtree inserts and traverses in sorted order"`, `test "rbtree erase and replace keep traversal consistent"`, `test "rbtree eraseInit detaches erased node"`, `test "rbtree postorder and empty node helpers behave"`, `test "rbtree findAdd keeps the first duplicate and inserts new keys"`, `test "rbtree nextMatch walks the duplicate range in order"`, `test "rbtree addCached returns the inserted node only when it becomes leftmost"`, `test "rbtree cached root keeps the leftmost pointer in sync"`, `test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"`, `test "rbtree eraseCached returns null for a singleton cached tree"`, `test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"`, and `test "rbtree eraseInitCached clears singleton cached roots before reseed"` stay present and review-visible whenever the helper changes. The shared replay must also keep `empty_root`, `insert_order`, `reverse_order`, `replace_order`, `erase_init_order`, `postorder_count`, `erase_init_node_empty`, `cleared_node_empty`, `find_found_key`, `find_missing`, `find_first_serial`, `next_match_serials`, and `next_match_terminal_null` explicit so traversal, detached-node, and duplicate-search parity remain reviewable while cached-root replacement, detach, and reseed paths stay owned by direct helper-local anchors instead of implying a broader shared cached-root fixture packet than current `master` actually ships.
 
-- `PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root replacement, detach, and reseed behavior keeps direct review anchors without implying a broader shared cached-root fixture packet than current master ships`
+- `PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared cached-root fixture packet than current master ships`
 
 The committed shared replay in `zigux/tests/phase1_helpers.zig` now consumes `find_found_key`, `find_missing`, `find_first_serial`, `next_match_serials`, and `next_match_terminal_null` directly, so duplicate-search parity is shared-replay-owned as well as helper-local. Reviewers should keep those shared fixture fields and the direct helper-local duplicate-search anchors `test "rbtree findAdd keeps the first duplicate and inserts new keys"` and `test "rbtree nextMatch walks the duplicate range in order"` aligned whenever `find()`, `findFirst()`, `findAdd()`, or `nextMatch()` changes.
 
