@@ -16,7 +16,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64`
 - `PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge`
-- `PHASE3_MMIO_BLOB_SHA=a35b19c710c73155fc374623a92fc598bda37d05`
+- `PHASE3_MMIO_BLOB_SHA=1fbf2e247fb62987644e52ac8888ac278ca4c225`
 - `PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders`
 - `PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy`
