@@ -104,6 +104,12 @@ test "phase3 allocator policy stays explicit" {
         .unsafe_scope = 1,
         .reserved = 0,
     };
+    const arena_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
     const reserved_policy = abi.InteropPolicy{
         .panic_mode = 2,
         .allocator_mode = 2,
@@ -119,11 +125,13 @@ test "phase3 allocator policy stays explicit" {
 
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), modeFromInteropPolicy(arena_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
+    try std.testing.expect(recognizesInteropPolicy(arena_policy));
     try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
     try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
 
@@ -132,6 +140,7 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expect(requiresExplicitCallerPolicyBytes(0, 0));
     try std.testing.expect(requiresExplicitCallerInteropPolicy(caller_policy));
     try std.testing.expect(!requiresExplicitCallerInteropPolicy(heap_policy));
+    try std.testing.expect(!requiresExplicitCallerInteropPolicy(arena_policy));
     try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));
     try std.testing.expect(!requiresExplicitCallerPolicyBytes(1, 0));
     try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));
@@ -149,6 +158,7 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expect(permitsGlobalFallbackPolicyBytes(1, 0));
     try std.testing.expect(permitsGlobalFallbackPolicyBytes(2, 0));
     try std.testing.expect(permitsGlobalFallbackInteropPolicy(heap_policy));
+    try std.testing.expect(permitsGlobalFallbackInteropPolicy(arena_policy));
     try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));
     try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));
     try std.testing.expect(!permitsGlobalFallbackByte(9));
