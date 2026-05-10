@@ -364,3 +364,38 @@ test "phase3 low-level wrappers keep barrier locality reviewable" {
     try std.testing.expectEqual(@as(u8, 8), left);
     try std.testing.expectEqual(@as(u8, 21), right);
 }
+
+test "phase3 low-level wrappers keep barrier handoff reviewable" {
+    const Packet = struct {
+        ready: bool,
+        value: u32,
+        mirror: u32,
+    };
+
+    var packet = Packet{
+        .ready = false,
+        .value = 0,
+        .mirror = 0,
+    };
+
+    packet.value = 41;
+    barrier.release();
+    packet.ready = true;
+
+    barrier.acquire();
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 41), packet.value);
+
+    barrier.full();
+    packet.mirror = packet.value;
+    barrier.acquireRelease();
+
+    try std.testing.expectEqual(@as(u32, 41), packet.mirror);
+
+    packet.value = 73;
+    barrier.release();
+    packet.ready = false;
+    barrier.acquire();
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 73), packet.value);
+}
