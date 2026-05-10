@@ -70,7 +70,7 @@ Do not use this lane for packet-local export/UAPI wording, policy-byte wording, 
 
 ### 2. Export and UAPI starter lane
 
-Use this lane for starter boundary growth or truthfulness work tied to the export shim, starter UAPI helper, focused layout replay, packet-local validator, or dedicated Linux-header governance note.
+Use this lane for starter boundary growth or truthfulness work tied to the export shim, starter UAPI helpers, direct behavior replay, focused layout replay, packet-local validator, or dedicated Linux-header governance note.
 
 Own:
 
@@ -78,14 +78,19 @@ Own:
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
+- `zigux/uapi/dev_t.zig`
+- `zigux/tests/phase3_export_uapi.zig`
+- `zigux/tests/phase3_export_uapi_build.zig`
 - `zigux/tests/phase3_export_uapi_layout.zig`
+- `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - the starter-boundary claims around `include/linux/zigux.h`
 
 Keep this lane narrow.
 
+- this lane owns both the direct `phase3_export_uapi.zig` behavior replay and the focused `phase3_export_uapi_layout.zig` replay, plus their paired build wrappers
 - the shared ABI slice still owns the broader `include/linux/zigux.h` aggregation rule
-- this lane owns only the starter export/UAPI subset it directly proves
+- this lane owns only the starter export/UAPI subset it directly proves, including the current `version.zig` and `dev_t.zig` starter helpers
 - if a new top-level boundary family lands, refresh this packet and the shared ABI packet together instead of treating header growth alone as closure
 
 ### 3. Policy and unsafe lane
@@ -137,7 +142,7 @@ Keep those follow-through edits bounded to one shared summary at a time. If a wo
 Today the strongest Phase 3 sequencing correction is to keep the current substrate split explicit:
 
 - shared ABI and bindings work stays with the shared route, manifest, catalog, and generated-wrapper packet
-- export/UAPI work stays with the starter boundary survey, layout replay, validator, and dedicated Linux-header governance note
+- export/UAPI work stays with the starter boundary survey, `version.zig` plus `dev_t.zig` starter helpers, direct behavior and focused layout replays, paired build wrappers, validator, and dedicated Linux-header governance note
 - policy and unsafe work stays with the survey wording, policy-byte checker, and explicit caller-policy surfaces
 - low-level wrapper work stays with the atomic, barrier, MMIO, and narrow-unsafe helper packet plus the focused low-level replay
 - MMIO and narrow unsafe are the overlap hotspots, so use the reason for the change to choose the lane: policy-byte and policy-wording changes stay policy-owned, while helper-surface and replay changes stay low-level-wrapper-owned
