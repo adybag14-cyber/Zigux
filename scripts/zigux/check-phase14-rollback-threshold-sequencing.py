@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""PHASE14_CHECK_PACKET=rollback_threshold_sequencing
+
+Fail-closed checker for the current Phase 14 rollback-owner packet.
+
+This lane stays narrow on purpose: it verifies the shared smoke manifest,
+smoke note, review checklist, and local make route around the current
+study-only rollback posture on `master` without reopening older missing notes
+or anchor-local survey ownership.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import tempfile
+from pathlib import Path
+
+MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
+VALIDATION_GATE = (
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all "
+    "&& make -C zigux phase14"
+)
+ROLLBACK_OWNER = "Repo Tooling Pod"
+STATUS_BUCKET = "study_only"
+ATTACHED_TOOLCHAIN_EXAMPLES = [
+    "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
+    "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
+    "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
+]
+ANCHOR_MANIFEST_MARKERS = [
+    "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+    "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
+    "- `zigux/tests/phase14_ring_buffer_manifest.json`",
+    "- `zigux/tests/phase14_rcu_tree_manifest.json`",
+]
+
+ROOT = Path.cwd()
+MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+SMOKE_NOTE_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
+MAKEFILE_PATH = Path("zigux/Makefile")
+
+
+def read_text(root: Path, rel: Path) -> str:
+    return (root / rel).read_text(encoding="utf-8")
+
+
+def source_text() -> str:
+    return Path(__file__).read_text(encoding="utf-8")
+
+
+def check(root: Path) -> list[str]:
+    errors: list[str] = []
+
+    if MARKER not in source_text():
+        errors.append("checker marker missing from checker source")
+
+    for rel in [MANIFEST_PATH, SMOKE_NOTE_PATH, CHECKLIST_PATH, MAKEFILE_PATH]:
+        if not (root / rel).exists():
+            errors.append(f"missing file: {rel.as_posix()}")
+    if errors:
+        return errors
+
+    try:
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid json in {MANIFEST_PATH.as_posix()}: {exc}")
+        return errors
+
+    productization = manifest.get("productization")
+    if not isinstance(productization, dict):
+        errors.append("manifest:productization missing")
+    else:
+        if productization.get("status_bucket") != STATUS_BUCKET:
+            errors.append(
+                "manifest:productization.status_bucket "
+                f"{productization.get('status_bucket')!r} != {STATUS_BUCKET!r}"
+            )
+        if productization.get("rollback_owner") != ROLLBACK_OWNER:
+            errors.append(
+                "manifest:productization.rollback_owner "
+                f"{productization.get('rollback_owner')!r} != {ROLLBACK_OWNER!r}"
+            )
+        if productization.get("validation_gate") != VALIDATION_GATE:
+            errors.append("manifest:productization.validation_gate drifted")
+
+    if manifest.get("phase") != "Phase 14":
+        errors.append(f"manifest:phase {manifest.get('phase')!r} != 'Phase 14'")
+    if manifest.get("smoke_commands") != [
+        "make -C zigux phase14-validate",
+        "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+        "make -C zigux phase14",
+    ]:
+        errors.append("manifest:smoke_commands drifted")
+    if manifest.get("smoke_shard_commands") != [
+        "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+        "make -C zigux phase14-smoke",
+    ]:
+        errors.append("manifest:smoke_shard_commands drifted")
+
+    anchor_packets = manifest.get("anchor_packets")
+    if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
+        errors.append("manifest:anchor_packets must list four shared anchors")
+
+    smoke_note = read_text(root, SMOKE_NOTE_PATH)
+    for marker in [
+        "- `PHASE14_STAY_IN_C_BOUNDARY=explicit`",
+        f"- rollback owner: `{ROLLBACK_OWNER}`",
+        f"- status bucket: `{STATUS_BUCKET}`",
+        f"- validation gate: `{VALIDATION_GATE}`",
+        "- attached-toolchain fallback examples for this note's shared replay routes only:",
+        "Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+    ]:
+        if marker not in smoke_note:
+            errors.append(f"missing marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}")
+
+    for marker in ATTACHED_TOOLCHAIN_EXAMPLES + ANCHOR_MANIFEST_MARKERS:
+        count = smoke_note.count(marker)
+        if count != 1:
+            errors.append(
+                f"marker count drift in {SMOKE_NOTE_PATH.as_posix()}: {marker} "
+                f"(expected 1, found {count})"
+            )
+
+    checklist = read_text(root, CHECKLIST_PATH)
+    for marker in [
+        "if the change touches the shared Phase 14 smoke packet",
+        "same study-only stay-in-C posture without implying an active deep-core port claim?",
+    ]:
+        if marker not in checklist:
+            errors.append(f"missing marker in {CHECKLIST_PATH.as_posix()}: {marker}")
+
+    makefile = read_text(root, MAKEFILE_PATH)
+    for marker in [
+        "phase14-validate:",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+        "phase14-smoke:",
+        "phase14-test:",
+        "phase14: phase14-validate phase14-smoke phase14-test",
+    ]:
+        if marker not in makefile:
+            errors.append(f"missing marker in {MAKEFILE_PATH.as_posix()}: {marker}")
+
+    return errors
+
+
+def write(root: Path, rel: Path, text: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def current_manifest_text() -> str:
+    return json.dumps(
+        {
+            "lane_key": "P14-L03",
+            "phase": "Phase 14",
+            "productization": {
+                "status_bucket": STATUS_BUCKET,
+                "validation_gate": VALIDATION_GATE,
+                "rollback_owner": ROLLBACK_OWNER,
+            },
+            "smoke_commands": [
+                "make -C zigux phase14-validate",
+                "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+                "make -C zigux phase14",
+            ],
+            "smoke_shard_commands": [
+                "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+                "make -C zigux phase14-smoke",
+            ],
+            "anchor_packets": [{}, {}, {}, {}],
+        },
+        indent=2,
+    ) + "\n"
+
+
+def current_smoke_note_text() -> str:
+    parts = [
+        "- `PHASE14_STAY_IN_C_BOUNDARY=explicit`",
+        f"- rollback owner: `{ROLLBACK_OWNER}`",
+        f"- status bucket: `{STATUS_BUCKET}`",
+        f"- validation gate: `{VALIDATION_GATE}`",
+        "- attached-toolchain fallback examples for this note's shared replay routes only:",
+        *ATTACHED_TOOLCHAIN_EXAMPLES,
+        *ANCHOR_MANIFEST_MARKERS,
+        "Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+    ]
+    return "\n".join(parts) + "\n"
+
+
+def current_checklist_text() -> str:
+    return (
+        "if the change touches the shared Phase 14 smoke packet\n"
+        "same study-only stay-in-C posture without implying an active deep-core port claim?\n"
+    )
+
+
+def current_makefile_text() -> str:
+    return "\n".join(
+        [
+            "phase14-validate:",
+            "\tpython3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+            "phase14-smoke:",
+            "phase14-test:",
+            "phase14: phase14-validate phase14-smoke phase14-test",
+        ]
+    ) + "\n"
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+
+        write(root, MANIFEST_PATH, current_manifest_text())
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+        write(root, CHECKLIST_PATH, current_checklist_text())
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+        if errors := check(root):
+            print("self-test expected success but failed:", file=sys.stderr)
+            for error in errors:
+                print(f"- {error}", file=sys.stderr)
+            return 1
+
+        write(
+            root,
+            MANIFEST_PATH,
+            current_manifest_text().replace(
+                f"\"rollback_owner\": \"{ROLLBACK_OWNER}\"",
+                '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
+                1,
+            ),
+        )
+        if not any("manifest:productization.rollback_owner" in error for error in check(root)):
+            print("self-test expected rollback-owner drift failure", file=sys.stderr)
+            return 1
+        write(root, MANIFEST_PATH, current_manifest_text())
+
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(ATTACHED_TOOLCHAIN_EXAMPLES[-1] + "\n", "", 1),
+        )
+        if not any(ATTACHED_TOOLCHAIN_EXAMPLES[-1] in error for error in check(root)):
+            print("self-test expected attached-toolchain drift failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(
+                ANCHOR_MANIFEST_MARKERS[-1] + "\n",
+                ANCHOR_MANIFEST_MARKERS[-1] + "\n" + ANCHOR_MANIFEST_MARKERS[-1] + "\n",
+                1,
+            ),
+        )
+        if not any("marker count drift" in error for error in check(root)):
+            print("self-test expected duplicate-anchor failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(root, CHECKLIST_PATH, "")
+        if not any(CHECKLIST_PATH.as_posix() in error for error in check(root)):
+            print("self-test expected checklist drift failure", file=sys.stderr)
+            return 1
+
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    errors = check(ROOT)
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        return 1
+
+    print("phase14 rollback-threshold sequencing packet validated")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
