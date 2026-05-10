@@ -278,6 +278,15 @@ test "zero-bit windows return without reading bitmap words" {
     try std.testing.expectEqual(@as(usize, 0), findFirstAndBit(&empty, &empty, 0));
 }
 
+test "zero-sized scans ignore populated backing words" {
+    const populated = [_]Word{~@as(Word, 0)};
+
+    try std.testing.expectEqual(@as(usize, 0), findFirstBit(&populated, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstZeroBit(&populated, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstAndBit(&populated, &populated, 0));
+    try std.testing.expectEqual(@as(usize, 0), findLastBit(&populated, 0));
+}
+
 test "next scans past nbits return without reading bitmap words" {
     const empty = [_]Word{};
 
