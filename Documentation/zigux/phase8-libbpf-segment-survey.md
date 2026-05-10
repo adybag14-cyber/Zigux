@@ -15,6 +15,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `tools/lib/bpf/zigux_segments/verify.zig`
+  - `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
   - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
   - `Documentation/zigux/phase8-libbpf-logging-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
@@ -115,6 +116,7 @@ The current tests check:
 - ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch
 - non-ready wait observations cannot claim record processing
 - the final perf-buffer return-path choice stays explicit across success, wait-error, and processing-failure summaries
+- the dedicated perf-buffer poll gate stays reviewable beside the focused shard and shared replay routes
 
 ## Gates
 1. run the shared Phase 8 validator route first
@@ -128,13 +130,15 @@ The current tests check:
 4. run the focused file-path handle bridge wrapper
    - `make -C zigux phase8-file-path-handle-bridge-test`
    - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
-5. run the focused perf-buffer poll wrapper
+5. run the dedicated perf-buffer poll gate
+   - `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+6. run the focused perf-buffer poll wrapper
    - `make -C zigux phase8-perf-buffer-poll-test`
    - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-6. run the shared Phase 8 wrapper
+7. run the shared Phase 8 wrapper
    - `make -C zigux phase8-test`
    - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-7. run the convenience target
+8. run the convenience target
    - `make -C zigux phase8`
 
 ## Non-goals
