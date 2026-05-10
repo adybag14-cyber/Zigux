@@ -19,7 +19,7 @@
       "dump_types_file"
     ]
   },
-  "case_count": 22,
+  "case_count": 23,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -39,6 +39,7 @@
     "abbreviated_version",
     "invalid_option",
     "missing_reference_argument",
+    "missing_dump_types_argument",
     "unsupported_long_option",
     "missing_long_reference_argument",
     "missing_long_dump_types_argument",
@@ -63,6 +64,7 @@
     "abbreviated_version_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
+    "missing_dump_types_argument_expected.json",
     "unsupported_long_option_expected.json",
     "missing_long_reference_argument_expected.json",
     "missing_long_dump_types_argument_expected.json",
@@ -73,6 +75,7 @@
     "unexpected_help_argument_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
+    "missing_dump_types_argument_expected.json",
     "unsupported_long_option_expected.json",
     "missing_long_reference_argument_expected.json",
     "missing_long_dump_types_argument_expected.json",
@@ -96,6 +99,7 @@
       "unexpected_help_argument",
       "invalid_option",
       "missing_reference_argument",
+      "missing_dump_types_argument",
       "unsupported_long_option",
       "missing_long_reference_argument",
       "missing_long_dump_types_argument",
