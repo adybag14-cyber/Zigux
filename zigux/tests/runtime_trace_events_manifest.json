@@ -80,7 +80,7 @@
       "surface": "samples/zigux/runtime_trace_events_loader.zig",
       "role": "loader_scaffold",
       "owner": "P9-L10",
-      "boundary": "Owns the sample-side loader-handoff scaffold, the prepared shared-request contract and selftest-hook drift checks before any local runtime handoff, the non-prepared shared-request rejection, the selftest-complete shared-request snapshot that stays pinned even after a later sample exit, and release-without-substrate behavior, while the shared runtime-loader lane owns the reusable facade, contract, and allocator replay surfaces it consumes."
+      "boundary": "Owns the sample-side loader-handoff scaffold, the prepared shared-request contract plus allocator-handoff and init-flow drift checks, the prepared shared selftest-hook drift checks before any local runtime handoff, the non-prepared shared-request rejection, the selftest-complete shared-request snapshot that stays pinned even after a later sample exit, and release-without-substrate behavior, while the shared runtime-loader lane owns the reusable facade, contract, and allocator replay surfaces it consumes."
     },
     {
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
@@ -143,7 +143,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit tracepoint register and unregister APIs, prepared and initialized-stage handoff snapshots that stay stable even if later sample replay mutates local counters, a selftest-complete shared-request snapshot that stays pinned even if the sample exits before shared runtime handoff, prepared shared-request contract drift, non-prepared shared-request rejection, and selftest-hook drift checks before any live handoff claim, shared release-failure guards that keep the local loader stage synchronized, and a no-substrate release path without pretending a real runtime loader already exists."
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit tracepoint register and unregister APIs, prepared and initialized-stage handoff snapshots that stay stable even if later sample replay mutates local counters, a selftest-complete shared-request snapshot that stays pinned even if the sample exits before shared runtime handoff, prepared shared-request contract drift, allocator-handoff and init-flow drift checks, non-prepared shared-request rejection, and selftest-hook drift checks before any live handoff claim, shared release-failure guards that keep the local loader stage synchronized, and a no-substrate release path without pretending a real runtime loader already exists."
     },
     {
       "id": "runtime-trace-events-substrate-handoff",
