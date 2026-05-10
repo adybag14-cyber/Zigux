@@ -52,6 +52,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "zigux/kernel/export_shim.zig",
     NARROW_REL,
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
     ABI_TEST_REL,
     ABI_DUMP_REL,
     "zigux/tests/phase3_export_uapi.zig",
@@ -75,6 +76,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -82,6 +84,9 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "Documentation/zigux/README.md",
     ABI_SLICE_DOC_REL,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     DOC_REL,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
@@ -574,6 +579,14 @@ def run_self_test() -> int:
         write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         issues = validate(root)
         assert "manifest_missing_entry:scripts/zigux/validate_phase3_selftest.py" in issues, issues
+
+        build_valid_workspace(root)
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != "zigux/uapi/dev_t.zig"]
+        manifest["file_count"] = len(manifest["files"])
+        write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert "manifest_missing_entry:zigux/uapi/dev_t.zig" in issues, issues
 
         build_valid_workspace(root)
         write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
