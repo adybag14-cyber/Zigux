@@ -16,6 +16,7 @@
   "review_prompts": [
     "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
     "the packet keeps the live VFS replay command plus the dedicated local and Linux-style survey wrappers explicit without implying a shipped Zig sample",
+    "the direct validation entrypoint intentionally stays aligned to the dedicated build-step survey wrapper, so the parked packet cannot silently retarget one replay surface without the other",
     "the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route",
     "the packet stays outside the shared gate-evidence target set while the shared validator still rereads it through the dedicated exact-readback checker"
   ],
