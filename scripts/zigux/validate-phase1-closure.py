@@ -142,6 +142,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
     "PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys",
+    "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data",
     "PHASE1_FIND_BIT_TAIL_WORD_SET_SKIP_REVIEW=helper-local tail-word next-set skip proof stays explicit through the direct find_bit test anchor so tail-word next set scans skip earlier in-range matches before clamping to nbits",
     "PHASE1_FIND_BIT_TAIL_WORD_SKIP_REVIEW=helper-local tail-word skip proof stays explicit through the direct find_bit test anchor and the Phase 1 helper manifest so tail-word next zero and shared scans skip earlier in-range matches before clamping to nbits",
@@ -402,6 +403,14 @@ def run_self_test() -> None:
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
         assert any(item.startswith("closure:PHASE1_STATUS=closed") for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        marker = "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior"
+        closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
+        assert any(item.startswith("closure:PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=") for item in collect_missing_markers(root))
         case_count += 1
         make_fixture_root(root)
 
