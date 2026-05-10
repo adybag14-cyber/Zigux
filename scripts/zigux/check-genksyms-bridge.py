@@ -44,6 +44,7 @@ EXPECTED_VERSION_STDERR_CASES = [
     'version_then_short_help',
     'version_then_long_help',
     'version_then_invalid_option',
+    'version_then_unexpected_help_argument',
 ]
 
 
