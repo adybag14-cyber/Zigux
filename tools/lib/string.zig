@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub const ParseBoolError = error{Invalid};
 
@@ -144,9 +145,16 @@ fn repeatedByteWord(value: u8) u64 {
     return repeated;
 }
 
-fn firstMismatchingWordByte(word: u64, repeated: u64) usize {
+fn firstMismatchingWordByteForEndian(comptime endian: std.builtin.Endian, word: u64, repeated: u64) usize {
     const diff = word ^ repeated;
-    return @as(usize, @intCast(@ctz(diff) >> 3));
+    return switch (endian) {
+        .little => @as(usize, @intCast(@ctz(diff) >> 3)),
+        .big => @as(usize, @intCast(@clz(diff) >> 3)),
+    };
+}
+
+fn firstMismatchingWordByte(word: u64, repeated: u64) usize {
+    return firstMismatchingWordByteForEndian(builtin.cpu.arch.endian(), word, repeated);
 }
 
 fn checkBytes(buf: []const u8, value: u8) ?usize {
@@ -176,7 +184,7 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     const repeated = repeatedByteWord(value);
     var word_start = start;
     while (word_start + 8 <= buf.len) : (word_start += 8) {
-        const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
+        const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], builtin.cpu.arch.endian());
         if (word != repeated) {
             return word_start + firstMismatchingWordByte(word, repeated);
         }
@@ -598,6 +606,13 @@ test "memchrInv follows the earliest dirty byte as long buffers change" {
 }
 
 test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries" {
+    const repeated = repeatedByteWord(0);
+    const lane_bytes = [_]u8{ 0, 0, 0, 1, 0, 0, 0, 2 };
+    const little_word = std.mem.readInt(u64, &lane_bytes, .little);
+    const big_word = std.mem.readInt(u64, &lane_bytes, .big);
+    try std.testing.expectEqual(@as(usize, 3), firstMismatchingWordByteForEndian(.little, little_word, repeated));
+    try std.testing.expectEqual(@as(usize, 3), firstMismatchingWordByteForEndian(.big, big_word, repeated));
+
     var aligned = [_]u8{0} ** 24;
     aligned[8] = 1;
     aligned[15] = 2;
