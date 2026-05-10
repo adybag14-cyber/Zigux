@@ -284,6 +284,8 @@ REQUIRED_DOCS_ROOT_MARKERS = [
 
 REQUIRED_TOOLCHAIN_NOTES_MARKERS = [
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "python3 scripts/zigux/check-zig-toolchain.py",
+    "make -C zigux phase2-toolchain",
 ]
 
 REQUIRED_REVIEW_MARKERS = [
@@ -622,7 +624,11 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py"] == 1
     assert "python3 scripts/zigux/check-kconfig-bridge.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-kconfig-bridge.py --self-test"] == 1
-    assert REQUIRED_TOOLCHAIN_NOTES_MARKERS == ["zigux/tests/fixtures/phase2_artifact_tools_manifest.json"]
+    assert REQUIRED_TOOLCHAIN_NOTES_MARKERS == [
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        "python3 scripts/zigux/check-zig-toolchain.py",
+        "make -C zigux phase2-toolchain",
+    ]
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-bridge.py" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-crc-diff.py" in REQUIRED_REVIEW_MARKERS
