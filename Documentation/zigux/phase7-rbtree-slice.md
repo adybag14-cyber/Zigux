@@ -58,6 +58,7 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 
 3. keep the survey record machine-checked
 - `zig test zigux/tests/phase7_rbtree_survey.zig`
+- `make -C zigux phase7-rbtree-survey`
 
 4. check the committed C parity fixture
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
