@@ -24,7 +24,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-barrier-acquire-release-handoff-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface-and-barrier-handoff`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=ea47ed7408b5481604eeeb3c4d6bd9de5f13082c`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=b5c117db34137664484f9e81a65d0bd9663195d9`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
