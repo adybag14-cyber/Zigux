@@ -389,6 +389,7 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zigux/tests/phase12_virtio_scsi_manifest.json`": 1,
     },
     TESTS_README_PATH: {
+        "`Documentation/zigux/freeze-map.md` visible beside `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and the shipped smoke-first replay order so queueing, throughput, rollback, and recovery wording stays below frozen `net/core/skbuff.c` and boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c`, and so the shared libbpf ownership split does not blur back into the driver-only lanes": 1,
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12-smoke`": 1,
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
@@ -409,6 +410,7 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
         "`make -C zigux phase12-smoke`": 1,
         "`make -C zigux phase12`": 1,
+        "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, deterministic libbpf artifact companions, and smoke-set summary remain reviewable together without turning this survey into a second sequencing document.": 1,
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and the direct PMO drift-control reruns are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` plus `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay in `.github/workflows/zigux-bootstrap.yml`, so this shared fallback-overview wording stays aligned with the shipped PMO release packet.": 1,
         "PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5": 1,
     },
