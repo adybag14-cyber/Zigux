@@ -36,6 +36,7 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
+    "make -C zigux phase3-selftest",
     "make -C zigux phase3",
     "validate-phase4.py",
     "check-artifact-diff-contract.py",
@@ -101,6 +102,12 @@ def run_self_test() -> int:
     if "validate-phase3-abi-header-family-survey.py" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected header-family validator marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("make -C zigux phase3-selftest", "", 1))
+    if "make -C zigux phase3-selftest" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected phase3 selftest route marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("check-phase4-gate-evidence.py", "", 1))
