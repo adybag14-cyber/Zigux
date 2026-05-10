@@ -28,6 +28,11 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 
 - keep same-lane follow-through here limited to one header-family truthfulness,
   syntax-guard, or layout-survey adjustment at a time
+- `scripts/zigux/survey-phase3-abi-constant-parity.py` now holds two exact
+  nested chrdev ack-window policy budget view-plus-summary footholds across
+  `include/zigux/abi.h` and `zigux/bindings/abi.zig`; keep extending that
+  family one bounded sibling pair at a time instead of widening into another
+  packet
 - if `include/zigux/abi.h` grows, update `zigux/bindings/abi.zig`,
   `zigux/uapi/dev_t.zig` or `zigux/uapi/version.zig`, and the export or UAPI
   replay packet together instead of widening into unrelated helper work
