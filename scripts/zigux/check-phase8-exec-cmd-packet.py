@@ -32,6 +32,7 @@ SLICE_MARKERS = (
     "`planDeferredExeclCallWithPwd()`",
     "`make -C zigux phase8-exec-cmd-test`",
     "`kernel/workqueue.c`",
+    "workqueue-style execution substrate",
 )
 
 CHECKLIST_MARKERS = (
@@ -91,7 +92,7 @@ HELPER_MARKERS = (
     'test "planDeferredExeclCallWithPwd reuses caller-proved logical PWD aliases" {',
 )
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 7
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -164,11 +165,11 @@ def run_self_test() -> None:
         slice_path = root / "Documentation/zigux/phase8-exec-cmd-slice.md"
         slice_path.write_text(
             slice_path.read_text(encoding="utf-8").replace(
-                "`planDeferredExeclCallWithPwd()`\n", "", 1
+                "workqueue-style execution substrate\n", "", 1
             ),
             encoding="utf-8",
         )
-        expect_failure(root, "`planDeferredExeclCallWithPwd()`")
+        expect_failure(root, "workqueue-style execution substrate")
         build_fixture(root)
 
         checklist_path = root / "Documentation/zigux/review-checklist.md"
@@ -218,6 +219,16 @@ def run_self_test() -> None:
 
         (root / "zigux" / "tests" / "phase8_exec_cmd.zig").unlink()
         expect_failure(root, "zigux/tests/phase8_exec_cmd.zig")
+        build_fixture(root)
+
+        slice_path = root / "Documentation/zigux/phase8-exec-cmd-slice.md"
+        slice_path.write_text(
+            slice_path.read_text(encoding="utf-8").replace(
+                "`planDeferredExeclCallWithPwd()`\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(root, "`planDeferredExeclCallWithPwd()`")
 
     print("PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass")
     print(f"PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
@@ -225,10 +236,12 @@ def run_self_test() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    script_path = Path(__file__).resolve()
+    default_root = script_path.parents[2] if len(script_path.parents) > 2 else Path.cwd()
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path(__file__).resolve().parents[2],
+        default=default_root,
         help="repository root to validate",
     )
     parser.add_argument(
