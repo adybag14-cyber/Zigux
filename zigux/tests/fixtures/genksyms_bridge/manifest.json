@@ -19,7 +19,7 @@
       "dump_types_file"
     ]
   },
-  "case_count": 23,
+  "case_count": 24,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -33,6 +33,7 @@
     "help",
     "version_then_short_help",
     "version_then_long_help",
+    "version_then_invalid_option",
     "abbreviated_help",
     "unexpected_help_argument",
     "version",
@@ -59,6 +60,7 @@
     "ambiguous_long_option_expected.json",
     "help_expected.json",
     "version_then_help_expected.json",
+    "version_then_invalid_option_expected.json",
     "unexpected_help_argument_expected.json",
     "version_expected.json",
     "abbreviated_version_expected.json",
@@ -72,6 +74,7 @@
   ],
   "normalized_stderr_packet": [
     "ambiguous_long_option_expected.json",
+    "version_then_invalid_option_expected.json",
     "unexpected_help_argument_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
@@ -96,6 +99,7 @@
     ],
     "normalized_stderr_cases": [
       "ambiguous_long_option",
+      "version_then_invalid_option",
       "unexpected_help_argument",
       "invalid_option",
       "missing_reference_argument",
@@ -109,7 +113,8 @@
       "version",
       "abbreviated_version",
       "version_then_short_help",
-      "version_then_long_help"
+      "version_then_long_help",
+      "version_then_invalid_option"
     ]
   },
   "action_abbrev_cases": [
@@ -120,6 +125,7 @@
     "genksyms bridge parses repeated short flags and arguments",
     "genksyms bridge parses long options and quiet override",
     "genksyms bridge keeps version as a side effect while parsing later options",
+    "genksyms bridge preserves version side effects before later parse failures",
     "genksyms bridge accepts unambiguous abbreviated long options",
     "genksyms bridge canonicalizes unexpected long option argument failures",
     "genksyms bridge treats lone dash as positional passthrough",
