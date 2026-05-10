@@ -45,6 +45,10 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "- `check-phase11-hvc-survey-packet.py`",
     "Phase 11 flow",
     "- `Documentation/zigux/README.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
+    "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`drivers/watchdog/dw_wdt_verify.zig`",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
@@ -161,7 +165,7 @@ def run_self_test() -> int:
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
-            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[1]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
