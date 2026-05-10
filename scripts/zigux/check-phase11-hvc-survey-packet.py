@@ -111,6 +111,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "khvcd polling contract boundary",
     "notifier-driven versus polling-driven wakeups",
     "bounded reschedule intent",
+    "minimum-timeout flooring, maximum-timeout clamping",
     "worker-entry sleep, kick, poll-mask, timeout-backoff, and invalid-open-count replays in `drivers/tty/hvc/hvc_console_verify.zig`",
     "`hvc_hangup()` disconnect boundary",
     "stale-count short-circuiting",
@@ -130,6 +131,7 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
     "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
     "no-dispatch sysrq notifier-deferral",
+    "minimum-timeout flooring, maximum-timeout clamping",
     "The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split explicit in one driver-local note",
 ]
@@ -279,7 +281,7 @@ REQUIRED_EXISTING_PATHS = [
     SCRIPT_PATH,
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -415,6 +417,12 @@ def run_self_test() -> int:
             expect_failure(
                 fixture_root,
                 SHARED_REPLAY_CONTRACT_PATH,
+                "minimum-timeout flooring, maximum-timeout clamping",
+                "shared_replay_contract:minimum-timeout flooring, maximum-timeout clamping",
+            )
+            expect_failure(
+                fixture_root,
+                SHARED_REPLAY_CONTRACT_PATH,
                 "The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
                 "shared_replay_contract:The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
             )
@@ -423,6 +431,12 @@ def run_self_test() -> int:
                 VALIDATION_MATRIX_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "validation_matrix:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                fixture_root,
+                VALIDATION_MATRIX_PATH,
+                "minimum-timeout flooring, maximum-timeout clamping",
+                "validation_matrix:minimum-timeout flooring, maximum-timeout clamping",
             )
             expect_failure(
                 fixture_root,
