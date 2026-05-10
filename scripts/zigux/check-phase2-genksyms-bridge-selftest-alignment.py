@@ -13,6 +13,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 BRIDGE_CHECKER = Path("scripts/zigux/check-genksyms-bridge.py")
 GENKSYMS_ZIG = Path("scripts/zigux/genksyms.zig")
+VALIDATOR = Path("scripts/zigux/validate-phase2.py")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE = Path("zigux/Makefile")
 BRIDGE_CASES = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
@@ -61,6 +62,12 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+)
+REQUIRED_VALIDATOR_LINES = (
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"), "--self-test"],',
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py")],',
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py"), "--self-test"],',
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py")],',
 )
 
 
@@ -276,12 +283,20 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     bridge_text = read_text(root / BRIDGE_CHECKER)
+    validator_text = read_text(root / VALIDATOR)
     workflow_text = read_text(root / WORKFLOW)
     makefile_text = read_text(root / MAKEFILE)
 
     for marker in REQUIRED_BRIDGE_MARKERS:
         if marker not in bridge_text:
             issues.append(("MISSING_BRIDGE_MARKERS", marker))
+
+    for marker in REQUIRED_VALIDATOR_LINES:
+        count = count_exact_lines(validator_text, marker)
+        if count == 0:
+            issues.append(("MISSING_VALIDATOR_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_VALIDATOR_HOOKS", f"{marker}:count={count}"))
 
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -408,6 +423,42 @@ def build_self_test_root(root: Path) -> None:
         ),
     )
     write_text(
+        root / VALIDATOR,
+        "\n".join(
+            (
+                "guard_issues.extend(",
+                "    run_guard(",
+                '        root,',
+                '        [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"), "--self-test"],',
+                '        ["PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass"],',
+                "    )",
+                ")",
+                "guard_issues.extend(",
+                "    run_guard(",
+                '        root,',
+                '        [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py")],',
+                '        ["PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=pass"],',
+                "    )",
+                ")",
+                "guard_issues.extend(",
+                "    run_guard(",
+                '        root,',
+                '        [sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py"), "--self-test"],',
+                '        ["GENKSYMS_BRIDGE_SELF_TEST=pass"],',
+                "    )",
+                ")",
+                "guard_issues.extend(",
+                "    run_guard(",
+                '        root,',
+                '        [sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py")],',
+                '        ["GENKSYMS_BRIDGE_DIFF=pass"],',
+                "    )",
+                ")",
+                "",
+            )
+        ),
+    )
+    write_text(
         root / WORKFLOW,
         "\n".join(
             (
@@ -490,6 +541,40 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_BRIDGE_MARKERS[0], "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_BRIDGE_MARKERS", REQUIRED_BRIDGE_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_VALIDATOR_LINES[0], '        [sys.executable, str(root / "scripts" / "zigux" / "other.py"), "--self-test"],'),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_HOOKS", REQUIRED_VALIDATOR_LINES[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_VALIDATOR_LINES[1]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_HOOKS", f"{REQUIRED_VALIDATOR_LINES[1]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_VALIDATOR_LINES[2], '        [sys.executable, str(root / "scripts" / "zigux" / "other_bridge.py"), "--self-test"],'),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_HOOKS", REQUIRED_VALIDATOR_LINES[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_VALIDATOR_LINES[3]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_HOOKS", f"{REQUIRED_VALIDATOR_LINES[3]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -688,7 +773,7 @@ def run_self_test() -> int:
         ) in issues
         cases += 1
 
-    assert cases == 21
+    assert cases == 25
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
     return 0
@@ -696,7 +781,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 genksyms bridge self-test surface stays wired into CI and make routes."
+        description="Check that the Phase 2 genksyms bridge self-test surface stays wired into CI, validator, and make routes."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -711,6 +796,7 @@ def main() -> int:
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_BRIDGE_MARKER_COUNT={len(REQUIRED_BRIDGE_MARKERS)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_VALIDATOR_HOOK_COUNT={len(REQUIRED_VALIDATOR_LINES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_MANIFEST_PATH=" + BRIDGE_MANIFEST_PATH)
