@@ -69,7 +69,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqual(@as(usize, 3), manifest.named_reopen_triggers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "phase15-parity-scorecard.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "phase15_parity_scorecard.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "phase15_governance_lane_sequencing.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared README summaries") != null);
 }
 
@@ -102,9 +103,17 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_parity_scorecard.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_governance_lane_sequencing.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_architecture_council_review_process.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_policy.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "tests-root Phase 15 guards") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard.md") == null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-governance-lane-sequencing.md") == null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-indefinite-c-policy.md") == null);
 }
