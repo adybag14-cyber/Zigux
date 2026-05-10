@@ -21,6 +21,7 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_catalog.py",
@@ -55,7 +56,7 @@ def run_self_test() -> int:
         print("\n".join(missing))
         return 1
 
-    unique_marker = "shipped helper entrypoints on current `master`"
+    unique_marker = "scripts/zigux/validate-phase3-validator-support-surface.py"
     broken = validate_text(sample.replace(unique_marker, "", 1))
     if unique_marker not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
