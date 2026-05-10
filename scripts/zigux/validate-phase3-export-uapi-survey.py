@@ -28,7 +28,7 @@ EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 LINUX_HEADER_GOVERNANCE_REL = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 VALIDATOR_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 10
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -83,7 +83,10 @@ SURVEY_EXACT_MARKERS = (
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION_REL}`",
     f"`PHASE3_LINUX_HEADER_PATH={LINUX_HEADER_REL}`",
     f"`PHASE3_ABI_HEADER_PATH={ABI_HEADER_REL}`",
+    f"`PHASE3_EXPORT_UAPI_BEHAVIOR_PATH={EXPORT_UAPI_TEST_REL}`",
+    f"`PHASE3_EXPORT_UAPI_BUILD_PATH={EXPORT_UAPI_BUILD_REL}`",
     f"`PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
+    f"`PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH={EXPORT_UAPI_LAYOUT_BUILD_REL}`",
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR_REL}`",
 )
 
@@ -92,7 +95,10 @@ SURVEY_BLOB_MARKERS = (
     ("PHASE3_UAPI_VERSION_BLOB_SHA", UAPI_VERSION_REL),
     ("PHASE3_LINUX_HEADER_BLOB_SHA", LINUX_HEADER_REL),
     ("PHASE3_ABI_HEADER_BLOB_SHA", ABI_HEADER_REL),
+    ("PHASE3_EXPORT_UAPI_BEHAVIOR_BLOB_SHA", EXPORT_UAPI_TEST_REL),
+    ("PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA", EXPORT_UAPI_BUILD_REL),
     ("PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA", EXPORT_UAPI_LAYOUT_REL),
+    ("PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA", EXPORT_UAPI_LAYOUT_BUILD_REL),
     ("PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA", VALIDATOR_REL),
 )
 
@@ -561,7 +567,10 @@ def baseline_survey(root: Path) -> str:
     uapi_sha = blob_sha(root / UAPI_VERSION_REL)
     linux_sha = blob_sha(root / LINUX_HEADER_REL)
     abi_sha = blob_sha(root / ABI_HEADER_REL)
+    behavior_sha = blob_sha(root / EXPORT_UAPI_TEST_REL)
+    build_sha = blob_sha(root / EXPORT_UAPI_BUILD_REL)
     layout_sha = blob_sha(root / EXPORT_UAPI_LAYOUT_REL)
+    layout_build_sha = blob_sha(root / EXPORT_UAPI_LAYOUT_BUILD_REL)
     validator_sha = blob_sha(root / VALIDATOR_REL)
     return "\n".join(
         (
@@ -583,8 +592,14 @@ def baseline_survey(root: Path) -> str:
             SURVEY_EXACT_MARKERS[7],
             f"`PHASE3_ABI_HEADER_BLOB_SHA={abi_sha}`",
             SURVEY_EXACT_MARKERS[8],
-            f"`PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA={layout_sha}`",
+            f"`PHASE3_EXPORT_UAPI_BEHAVIOR_BLOB_SHA={behavior_sha}`",
             SURVEY_EXACT_MARKERS[9],
+            f"`PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA={build_sha}`",
+            SURVEY_EXACT_MARKERS[10],
+            f"`PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA={layout_sha}`",
+            SURVEY_EXACT_MARKERS[11],
+            f"`PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA={layout_build_sha}`",
+            SURVEY_EXACT_MARKERS[12],
             f"`PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA={validator_sha}`",
             "",
         )
@@ -691,6 +706,31 @@ def run_self_test() -> int:
         _write(root / SURVEY_REL, survey_text)
         issues = validate(root)
         assert f"missing_survey_marker:{SURVEY_EXACT_MARKERS[8]}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        build_blob = blob_sha(root / EXPORT_UAPI_BUILD_REL)
+        survey_text = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            f"`PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA={build_blob}`",
+            "",
+        )
+        _write(root / SURVEY_REL, survey_text)
+        issues = validate(root)
+        assert "missing_survey_marker:`PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=<sha>`" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        layout_build_blob = blob_sha(root / EXPORT_UAPI_LAYOUT_BUILD_REL)
+        survey_text = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            f"`PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA={layout_build_blob}`",
+            "`PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=deadbeef`",
+        )
+        _write(root / SURVEY_REL, survey_text)
+        issues = validate(root)
+        assert (
+            f"stale_survey_blob:PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA:deadbeef!={layout_build_blob}"
+            in issues
+        ), issues
         case_count += 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
