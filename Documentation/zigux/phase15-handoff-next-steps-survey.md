@@ -9,6 +9,7 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-10`
 - no Architecture Council approval is currently recorded for a freeze-map status change.
 - current review-process evidence is still limited to named `phase`, `current status bucket`, `required approver set`, `validation gate summary`, `parity scorecard link or blocker record`, and `indefinite-C policy link or non-applicability note` fields instead of a shipped status-change approval packet.
+- the current docs-root Phase 15 note packet is still limited to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-readiness-gate-survey.md`; the live parity-scorecard, review-process, indefinite-C, blocker-evidence, and lane-sequencing companions are currently exposed through tests-root Phase 15 guards rather than separate docs-root notes on `master`.
 - the current repo already keeps the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the Linux-style `make -C zigux phase15-validate` route, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the aggregate `make -C zigux phase15` route explicit.
 - landed `phase15-docs-root-handoff-pointer-visible` keeps the shared docs root pointed back at this dedicated handoff packet instead of understating the parked maintenance surface.
 - landed `phase15-build-handoff-replay-visible` keeps the dedicated handoff replay wired into the shared Phase 15 build packet instead of leaving it out of the parked governance route.
@@ -26,11 +27,10 @@ That means the current handoff question is not whether Zigux still needs its fir
 ## Current Handoff Surface
 
 The current handoff surface on `master` is still the shared governance packet around:
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `Documentation/zigux/phase15-governance-lane-sequencing.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -39,8 +39,15 @@ The current handoff surface on `master` is still the shared governance packet ar
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
+- `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_readiness_gate.zig`
 - `zigux/tests/phase15_build.zig`
+
+The dedicated handoff packet should treat those tests-root Phase 15 guards as the authoritative companion surfaces for parity-scorecard, review-process, indefinite-C, blocker-evidence, and lane-sequencing state until separate docs-root notes actually land. This lane should not imply a broader docs packet than the current tree really ships.
 
 This packet is still a parked governance packet only. It does not record a deep-core status-change approval, and it should continue to treat freeze-map anchors as blocked until the parity scorecard and stay-in-C evidence say otherwise.
 
@@ -53,5 +60,5 @@ This packet is still a parked governance packet only. It does not record a deep-
 ## Next Steps
 
 - Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.
-- If it reopens, reread `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` together with `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, and `Documentation/zigux/README.md` before widening anywhere else.
+- If it reopens, reread `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` together with `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `Documentation/zigux/README.md` before widening anywhere else.
 - Do not widen this lane into shared README summaries, shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully.
