@@ -6,6 +6,42 @@
   "roadmap_destinations": [
     "lib/argv_split.zig"
   ],
+  "review_surfaces": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase7-argv-split-slice.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
+    "zigux/tests/README.md",
+    "zigux/tests/phase7_build.zig",
+    "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/phase7_argv_split_survey.zig",
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "lib/argv_split.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
+  ],
+  "covered_helpers": [
+    "countArgc",
+    "argvSplit",
+    "argvSplitWithArgc",
+    "cArgv",
+    "argvFree",
+    "deinit"
+  ],
+  "ownership_focus": [
+    "copied token-buffer ownership and later source-mutation isolation",
+    "owned-storage reuse keeps token pointers inside caller-managed storage",
+    "blank-input sentinel reuse stays stable across argvFree and deinit",
+    "non-blank results keep storage, argv slices, and C-argv views distinct across callers"
+  ],
   "survey_summary": {
     "argv_split_c_lines": 95,
     "preexisting_phase7_test_files": 1,
