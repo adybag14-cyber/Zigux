@@ -122,10 +122,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "preview-truncation-boundary")) {
             saw_preview_boundary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "stage_before_replay and stage_after_replay stay initialized") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "snapshotInto still begins with [2,3,4,5]") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "previewInto copies [2,3,4,5,6,7,8,9]") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "reports 10 visible bytes") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the queued data intact") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "queue_len_after_preview at 10") != null);
         }
         if (std.mem.eql(u8, check.id, "remaining-capacity")) {
             saw_available_capacity = true;
