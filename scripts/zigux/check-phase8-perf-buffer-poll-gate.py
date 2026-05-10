@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "scripts/zigux/README.md",
@@ -17,12 +18,21 @@ REQUIRED_FILES = [
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
+    "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_libbpf_segments.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/phase8-libbpf-segment-survey.md": [
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        "make -C zigux phase8-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+    ],
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
         "perf_buffer__poll(timeout_ms)",
         "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
@@ -61,6 +71,11 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "make -C zigux phase8-perf-buffer-poll-test",
+    ],
+    "zigux/tests/phase8_build.zig": [
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "\"phase8_perf_buffer_poll.zig\"",
+        "phase8-perf-buffer-poll-tests",
     ],
     "zigux/tests/phase8_libbpf_segments.zig": [
         "perf-buffer-online-cpu-routing",
@@ -171,19 +186,24 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_checker", "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
+        ("missing_survey", "Documentation/zigux/phase8-libbpf-segment-survey.md"),
         ("missing_poll_note", "Documentation/zigux/phase8-perf-buffer-poll-slice.md"),
         ("missing_bridge_note", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_tests_readme", "zigux/tests/README.md"),
+        ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_poll_test", "zigux/tests/phase8_perf_buffer_poll.zig"),
     ]
     marker_cases = [
+        ("survey_checker_route", "Documentation/zigux/phase8-libbpf-segment-survey.md", "scripts/zigux/check-phase8-perf-buffer-poll-gate.py", "scripts/zigux/check-phase8-perf-buffer-poll-surface.py", "Documentation/zigux/phase8-libbpf-segment-survey.md: scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
+        ("survey_shared_build_route", "Documentation/zigux/phase8-libbpf-segment-survey.md", "zig build test --build-file zigux/tests/phase8_build.zig --summary all", "zig build test --build-file zigux/tests/phase8_shared_build.zig --summary all", "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all"),
         ("poll_note_checker_route", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py", "python3 scripts/zigux/check-phase8-perf-buffer-poll-surface.py", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
         ("poll_note_route", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-poll-test", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("bridge_note_boundary", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md", "perf-buffer-online-cpu-routing", "perf-buffer-routing", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md: perf-buffer-online-cpu-routing"),
         ("scripts_readme_checker", "scripts/zigux/README.md", "scripts/zigux/check-phase8-perf-buffer-poll-gate.py", "scripts/zigux/check-phase8-perf-buffer-poll-surface.py", "scripts/zigux/README.md: scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
         ("tests_readme_route", "zigux/tests/README.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-poll-test", "zigux/tests/README.md: make -C zigux phase8-perf-buffer-poll-test"),
+        ("phase8_build_perf_module", "zigux/tests/phase8_build.zig", "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", "../../tools/lib/bpf/zigux_segments/perf_buffer_poll_missing.zig", "zigux/tests/phase8_build.zig: ../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
         ("poll_test_checker_surface", "zigux/tests/phase8_perf_buffer_poll.zig", "phase 8 perf-buffer poll gate checker keeps the dedicated review packet explicit", "phase 8 perf-buffer poll gate checker keeps the review packet explicit", "zigux/tests/phase8_perf_buffer_poll.zig: phase 8 perf-buffer poll gate checker keeps the dedicated review packet explicit"),
         ("poll_test_guard", "zigux/tests/phase8_perf_buffer_poll.zig", "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch", "ready-buffer processing attempts cannot exceed counted ready buffers", "zigux/tests/phase8_perf_buffer_poll.zig: ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch"),
         ("poll_test_underprocessed_guard", "zigux/tests/phase8_perf_buffer_poll.zig", "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result", "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers", "zigux/tests/phase8_perf_buffer_poll.zig: phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result"),
