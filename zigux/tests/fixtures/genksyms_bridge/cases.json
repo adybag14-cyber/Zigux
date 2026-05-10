@@ -86,6 +86,13 @@
       "expected": "unexpected_help_argument_expected.json"
     },
     {
+      "name": "version_then_unexpected_help_argument",
+      "argv": ["-V", "--help=extra"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "version_then_unexpected_help_argument_expected.json"
+    },
+    {
       "name": "version",
       "argv": ["-Vd", "--reference", "foo.symref"],
       "mode": "process_json",
