@@ -5,7 +5,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=parked`
-- `PHASE5_LANE_KEY=P5-L18`
+- `PHASE5_LANE_KEY=P5-L16`
 - `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
 - scope: roadmap-vs-repo sample delivery, approved probe-lifecycle guidance, and exact bounded checks for the first `samples/zigux/` kretprobe-style replay
@@ -119,7 +119,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux kretprobe example
-   - `rg -n "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L18|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5" Documentation/zigux samples zigux/tests`
+   - `rg -n "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L16|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5" Documentation/zigux samples zigux/tests`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 kretprobe lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
 3. run the exact bounded Phase 5 sample checks
