@@ -28,7 +28,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kprobes/kretprobe_example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows the bounded roadmap anchor already landed as `samples/zigux/kretprobe_example.zig` inside the four-sample Phase 5 packet, with the separate Phase 9 `runtime_kretprobe` family still kept distinct. The remaining same-lane job is no longer to add a missing kretprobe anchor; it is to keep the approved probe-lifecycle idiom and its coupled contributor surfaces truthful without implying runtime registration or module substrate closure.
+Fresh repo inspection now shows the bounded roadmap anchor already landed as `samples/zigux/kretprobe_example.zig` inside the four-sample Phase 5 packet, with the separate Phase 9 `runtime_kretprobe` family still kept distinct. The remaining same-lane job is no longer to add a missing kretprobe anchor; it is to keep the approved non-runtime probe-lifecycle idiom and its coupled contributor surfaces truthful without implying runtime registration or module substrate closure.
 
 ## Survey findings
 
