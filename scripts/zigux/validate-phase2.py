@@ -550,6 +550,26 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py"), "--self-test"],
+            ["ZIG_TOOLCHAIN_SELF_TEST=pass", "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=15"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py")],
+            [
+                "ZIG_TOOLCHAIN_STATUS=present",
+                "ZIG_TOOLCHAIN_PATH=",
+                "ZIG_TOOLCHAIN_VERSION=",
+                "ZIG_TOOLCHAIN_MIN_SUPPORTED=",
+                "ZIG_TOOLCHAIN_EXPECTED_VERSION=",
+            ],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
             ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=37"],
         )
@@ -620,10 +640,16 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-cross.py --self-test"] == 1
     assert "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py"] == 1
     assert "python3 scripts/zigux/check-kconfig-bridge.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-kconfig-bridge.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-toolchain-pin-scope.py"] == 1
     assert REQUIRED_TOOLCHAIN_NOTES_MARKERS == [
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         "python3 scripts/zigux/check-zig-toolchain.py",
@@ -689,7 +715,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
