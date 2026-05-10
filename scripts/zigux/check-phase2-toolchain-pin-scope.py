@@ -112,7 +112,6 @@ PHASE2_VALIDATOR_MARKERS = [
 ]
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
-    'CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
     "PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [",
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
@@ -120,7 +119,9 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"scripts/zigux/check-zig-toolchain.py": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
-    "issues.extend(validate_exact_makefile_runs(makefile_text))",
+    "validate_exact_runs(",
+    'prefix="make",',
+    'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",',
 ]
 
 MAKEFILE_MARKERS = [
@@ -594,9 +595,7 @@ def run_self_test() -> int:
         label="phase2_closure_validator",
         markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
     ) == []
-    closure_validator_anchor = (
-        'CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"'
-    )
+    closure_validator_anchor = 'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",'
     missing_phase2_closure_validator = validate_required_markers(
         valid_phase2_closure_validator.replace(closure_validator_anchor, "", 1),
         label="phase2_closure_validator",
