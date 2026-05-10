@@ -16,11 +16,13 @@ It stays inside the shared closure packet that is already landed and reviewable,
 
 ## Shared Replay Surface On `master`
 
-The active shared Phase 11 packet is the docs-root, checker, workflow, and replay surface that keeps the already-landed starter packet reviewable together:
+The active shared Phase 11 packet is the docs-root, closure-note, owner-map, checker, workflow, and replay surface that keeps the already-landed starter packet reviewable together:
 
 * `Documentation/zigux/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `Documentation/zigux/phase11-shared-replay-contract.md`
+* `Documentation/zigux/phase11-closure-note.md`
+* `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/README.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `zigux/tests/README.md`
@@ -29,6 +31,8 @@ The active shared Phase 11 packet is the docs-root, checker, workflow, and repla
 * `.github/workflows/zigux-bootstrap.yml`
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `make -C zigux phase11`
+
+These shared docs, the workflow-backed routes, the shared contract checker, the shared closure note, and the shared driver-lane owner map prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
 
 The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.
 The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.
@@ -65,5 +69,5 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest shared-packet truthfulness repair.
-Prefer a docs-root, checker, closure-note, or shared replay-route sync only when the active simple-driver tranche drifts across those already-shipped shared surfaces.
+Prefer a docs-root, closure-note, owner-map, checker, or shared replay-route sync only when the active simple-driver tranche drifts across those already-shipped shared surfaces.
 Driver-local survey, manifest, teardown-note, validation-matrix, scaffold, or helper follow-through should return to the owning lane instead of widening this contract.
