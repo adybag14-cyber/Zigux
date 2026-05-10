@@ -68,6 +68,7 @@ REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -75,6 +76,7 @@ REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
@@ -88,6 +90,10 @@ REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
     "python3 scripts/zigux/survey-phase3-abi-constant-parity.py",
     "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
+)
+REQUIRED_HEADER_FAMILY_DOC_MARKERS = (
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
 )
 REQUIRED_BINDINGS_DOC_MARKERS = (
     "include/zigux/dev_t.h",
@@ -185,7 +191,7 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
             )
 
     doc_markers = _normalize_doc_lines(doc_path.read_text(encoding="utf-8"))
-    for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_BINDINGS_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
+    for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_HEADER_FAMILY_DOC_MARKERS, *REQUIRED_BINDINGS_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
         if marker not in doc_markers:
             issues.append(f"{doc_path}:missing_doc_marker:{marker}")
     if isinstance(manifest_file_count, int):
@@ -308,6 +314,8 @@ def run_self_test() -> int:
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`",
                     "- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py`",
                     "- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test`",
+                    "- `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`",
+                    "- `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test`",
                     "- `include/zigux/dev_t.h`",
                     "- `include/linux/zigux.h`",
                     "- `zigux/bindings/abi.zig`",
@@ -498,6 +506,8 @@ def run_self_test() -> int:
                 "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
                 "python3 scripts/zigux/survey-phase3-abi-constant-parity.py",
                 "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
+                "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+                "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
                 *REQUIRED_BINDINGS_DOC_MARKERS,
                 *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
                 f"{MANIFEST_COUNT_DOC_MARKER_PREFIX}{len(REQUIRED_MANIFEST_FILES)}",
