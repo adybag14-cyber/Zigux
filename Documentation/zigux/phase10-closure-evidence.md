@@ -34,7 +34,7 @@ Current `master` keeps the roadmap-backed Phase 10 scoreboard explicit through t
 - `mmio_wrappers=starter_landed`
   - evidence: `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `lab_only_driver_validation=starter_landed`
-  - evidence: `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
+  - evidence: `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - `dual_implementations_for_risky_areas=blocked_on_risky_transport`
   - evidence: `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`
 
@@ -58,9 +58,10 @@ The exact replay packet recorded by the current shared closure packet is:
 3. `python3 scripts/zigux/check-phase10-input-packet.py`
 4. `python3 scripts/zigux/check-phase10-mmio-packet.py`
 5. `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
-6. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-7. `make -C zigux phase10-test`
-8. `make -C zigux phase10`
+6. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+7. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+8. `make -C zigux phase10-test`
+9. `make -C zigux phase10`
 
 ## Cross-Phase Scoreboard Boundary
 
