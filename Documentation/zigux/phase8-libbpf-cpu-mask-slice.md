@@ -84,10 +84,10 @@ This slice does not yet claim:
 - per-CPU perf-buffer routing
 - deferred `perf-buffer-online-cpu-routing` setup or the broader interrupt-routing-sensitive timing boundary
 - `perf_buffer__poll(timeout_ms)` timeout handling
-- standalone timer helper behavior
-- standalone clockevent helper behavior
+- no standalone timer helper
+- no standalone clockevent helper
 - perf-buffer or feature-probe integration
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments, keep the shared `make -C zigux phase8-validate` route aligned with this parked cpu-mask packet plus the explicit deferred routing boundary, and do not reopen file I/O, caching, `perf_buffer__new()` online CPU selection, per-CPU perf-buffer routing, `perf_buffer__poll(timeout_ms)` timeout handling, timer or clockevent behavior, or feature-probe work from this note.
+Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments, keep the shared `make -C zigux phase8-validate` route aligned with this parked cpu-mask packet plus the explicit deferred routing boundary, and do not reopen file I/O, caching, `perf_buffer__new()` online CPU selection, per-CPU perf-buffer routing, `perf_buffer__poll(timeout_ms)` timeout handling, no standalone timer helper expectations, no standalone clockevent helper expectations, or feature-probe work from this note.
