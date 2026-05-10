@@ -116,9 +116,9 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8, closi
 }
 
 fn isTristateValue(raw_value: []const u8) bool {
-    return std.ascii.eqlIgnoreCase(raw_value, "y") or
-        std.ascii.eqlIgnoreCase(raw_value, "m") or
-        std.ascii.eqlIgnoreCase(raw_value, "n");
+    return std.mem.eql(u8, raw_value, "y") or
+        std.mem.eql(u8, raw_value, "m") or
+        std.mem.eql(u8, raw_value, "n");
 }
 
 fn isConfigSymbol(name: []const u8) bool {
@@ -464,14 +464,16 @@ test "confdata bridge recognizes uppercase tristate assignments" {
     );
     defer deinitSummary(allocator, &summary);
 
+    // Upstream confdata.c only accepts lowercase tristate tokens; uppercase
+    // spellings stay as raw scalar values in this bounded bridge too.
     try std.testing.expectEqual(@as(usize, 3), summary.set_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
     try std.testing.expectEqualStrings("Y", summary.entries[0].value);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[1].kind);
     try std.testing.expectEqualStrings("M", summary.entries[1].value);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[2].kind);
     try std.testing.expectEqualStrings("N", summary.entries[2].value);
 }
 
