@@ -66,6 +66,13 @@
       "expected": "version_then_help_expected.json"
     },
     {
+      "name": "version_then_invalid_option",
+      "argv": ["-Vx"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "version_then_invalid_option_expected.json"
+    },
+    {
       "name": "abbreviated_help",
       "argv": ["--hel"],
       "mode": "process_json",
