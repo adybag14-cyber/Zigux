@@ -183,6 +183,8 @@ def collect_conf_manifest_issues(
     expected_case_names = [str(case["name"]) for case in conf_cases]
     expected_stdout_packet = [str(case["expected"]) for case in conf_cases]
     expected_mode_arg_cases = [str(case["name"]) for case in conf_cases if "mode_arg" in case]
+    expected_silent_request_packet = [str(case["expected"]) for case in conf_cases if case.get("silent")]
+    expected_syncconfig_env_packet = [str(case["expected"]) for case in conf_cases if "nosilentupdate" in case]
     expected_allconfig_sentinel_packet = [
         str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES
     ]
@@ -207,6 +209,8 @@ def collect_conf_manifest_issues(
         "cases": expected_case_names,
         "stdout_packet": expected_stdout_packet,
         "mode_arg_cases": expected_mode_arg_cases,
+        "silent_request_packet": expected_silent_request_packet,
+        "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
@@ -499,6 +503,12 @@ def build_self_test_root(root: Path) -> None:
                 "mode_arg_cases": [
                     "defconfig",
                     "savedefconfig",
+                ],
+                "silent_request_packet": [
+                    "helpnewconfig_expected.json",
+                ],
+                "syncconfig_env_packet": [
+                    "syncconfig_expected.json",
                 ],
                 "allconfig_sentinel_packet": [
                     "allnoconfig_expected.json",
@@ -830,7 +840,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
