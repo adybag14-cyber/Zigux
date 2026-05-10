@@ -70,10 +70,11 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - focused replay: `zigux/tests/phase6_checksum.zig`
 - direct C parity replay: `zigux/tests/phase6_checksum_c_parity.zig`
 - dedicated perf replay: `zigux/tests/phase6_checksum_perf.zig`
+- direct local perf rerun: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - dedicated external parity checker: `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: helper parity plus the shipped direct 41-case C-vs-Zig replay through the dedicated parity replay, C harness, and checker script, alongside the dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`
+- current review posture: helper parity plus the shipped direct 41-case C-vs-Zig replay through the dedicated parity replay, C harness, and checker script, alongside the dedicated slowdown gate exposed through both `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe` and `make -C zigux phase6-checksum-perf`
 
 ### hexdump
 
