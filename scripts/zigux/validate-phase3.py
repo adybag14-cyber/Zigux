@@ -63,6 +63,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "scripts/zigux/validate-phase3.py",
