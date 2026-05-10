@@ -60,7 +60,7 @@ fn bitmapWindowBench() struct { checksum: u64 } {
             rhs[1] &= ~(@as(bitmap.Word, 1) << 4);
         } else {
             lhs[1] &= ~(@as(bitmap.Word, 1) << 2);
-            rhs[1] |= @as(bitmap.Word, 1) << 4;
+            rhs[1] |= (@as(bitmap.Word, 1) << 4);
         }
 
         bitmap.orBits(&dst, &lhs, &rhs, nbits);
@@ -185,6 +185,13 @@ fn stringBench() !struct { checksum: u64 } {
         var strim_cstr_buf = [_]u8{ ' ', 'a', 'b', ' ', '\n', 0, alt_tail_byte, tail_byte };
         const strim_cstr = string.strim(&strim_cstr_buf);
 
+        const memparse_input = if ((idx & 1) == 0) "-2KiBtail" else "+42done";
+        const memparse_value = string.memparse(memparse_input);
+        const prefix_len = string.str_has_prefix("prefix", if ((idx & 1) == 0) "pre" else "prefix");
+        const ends_with = string.str_ends_with("prefix", "fix");
+        const sysfs_match = string.sysfs_streq("zigux\n", "zigux");
+        const memparse_low: u16 = @truncate(memparse_value.value);
+
         const aligned_first: usize = if ((idx & 1) == 0) 64 else 72;
         aligned_dirty[aligned_first] = 'X';
         aligned_dirty[aligned_first + 4] = 'Y';
@@ -205,6 +212,11 @@ fn stringBench() !struct { checksum: u64 } {
         checksum +%= @intCast(strim_cstr.len);
         checksum +%= @as(u64, trim_cstr_buf[6]);
         checksum +%= @as(u64, strim_cstr_buf[7]);
+        checksum +%= @intCast(memparse_low);
+        checksum +%= @intCast(memparse_value.rest.len);
+        checksum +%= @intCast(prefix_len);
+        checksum +%= @as(u64, @intFromBool(ends_with));
+        checksum +%= @as(u64, @intFromBool(sysfs_match));
         checksum +%= @intCast(aligned_dirty_idx);
         checksum +%= @intCast(misaligned_dirty_idx);
     }
