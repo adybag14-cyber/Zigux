@@ -25,7 +25,6 @@ That roadmap boundary matters more than older reminder wording. If live `master`
 
 This survey can read these shared reminder surfaces:
 
-- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `scripts/zigux/README.md`
@@ -33,7 +32,7 @@ This survey can read these shared reminder surfaces:
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
-This survey can also read the shared loader-facing file family on current `master`:
+Older shared reminder surfaces still name the following loader-facing file family, but current `master` readback through the GitHub connector did not confirm any of these paths:
 
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
@@ -51,10 +50,8 @@ This survey can also read the broad Phase 9 pilot-family review packet on curren
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
-- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-- `samples/zigux/runtime_trace_events.zig`
 
-That means the shared Phase 9 reviewability packet should now treat the loader-facing family as live reminder evidence again, while still keeping the loadable-runtime-substrate blocker explicit and keeping pilot-family notes separate from shared loader proof.
+That means the shared Phase 9 reviewability packet must treat the missing loader-facing family as a current release-discipline blocker on `master`, while still keeping the loadable-runtime-substrate blocker explicit and keeping pilot-family notes separate from missing shared-loader proof.
 
 ## Governance rule for this lane
 
@@ -62,11 +59,11 @@ Shared Phase 9 reminder truthfulness is split across the active shared reminder 
 
 That means this lane may:
 
-- tighten shared reminder wording in `Documentation/zigux/README.md`
 - tighten shared reminder wording in `Documentation/zigux/review-checklist.md`
 - tighten shared reminder wording in `scripts/zigux/README.md`
 - tighten shared reminder wording in `zigux/tests/README.md`
 - refresh this sequencing note when repo reality changes
+- record the missing shared loader-facing family as a blocker when current-`master` readback cannot confirm the older reminder packet
 - narrow one shared reminder overclaim or stale missing-file claim at a time when the sequencing note is already the strongest current-`master` source of truth
 
 That does not mean this lane should reopen:
@@ -118,8 +115,8 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 ## Recommended next-step order
 
 1. Re-read shared reminder surfaces against the live shared loader-facing family plus the four pilot-family survey packets whenever the Phase 9 owner map is in doubt.
-2. If one shared reminder note still carries stale missing-file wording or omits a now-live shared loader route, repair that note one file at a time instead of widening into pilot behavior or checker growth.
-3. If the shared loader-facing family changes again, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
+2. If one shared reminder note still carries stale missing-file wording or still treats the missing shared loader-facing family as shipped current-`master` evidence, repair that note one file at a time instead of widening into pilot behavior or checker growth.
+3. If the shared loader-facing family returns or its missing-path blocker changes, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
 4. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
 
 ## Anti-overlap rule
