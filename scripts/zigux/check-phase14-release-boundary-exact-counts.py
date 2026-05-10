@@ -733,6 +733,21 @@ def run_self_test() -> int:
         write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
         manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"] = [
+            surface for surface in manifest_data["surfaces"]
+            if surface.get("path") != "zigux/tests/phase14_rcu_tree_manifest.json"
+        ]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 manifest PHASE14_SHARED_SURFACE_COUNT drifted from the expected 29 surface count (found 28)" in error for error in errors):
+            print("self-test expected shared surface count drift failure when a test surface disappeared", file=sys.stderr)
+            return 1
+        if not any("phase14 manifest PHASE14_TEST_SURFACE_COUNT drifted from the expected 13 surface count (found 12)" in error for error in errors):
+            print("self-test expected test-surface count drift failure", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
         manifest_data["surfaces"].append(
             {
                 "path": "zigux/helpers/phase14_extra_note.zig",
