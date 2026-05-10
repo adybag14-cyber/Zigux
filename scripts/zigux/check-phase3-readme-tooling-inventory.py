@@ -64,6 +64,12 @@ def run_self_test() -> int:
         print("expected missing marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("validate-phase3-abi-header-family-survey.py", "", 1))
+    if "validate-phase3-abi-header-family-survey.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected header-family validator marker was not reported")
+        return 1
+
     broken = validate_text(
         sample.replace(
             "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
