@@ -123,6 +123,7 @@ REQUIRED_MARKERS = {
         'test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
         'test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
         'test "argvSplit frees intermediate allocations when allocator failure interrupts setup"',
+        'test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
         'test "argvSplit reports overflow before sizing the null-terminated argv vector"',
     ],
 }
@@ -854,6 +855,38 @@ def run_self_test() -> None:
             "argv_split_helper_deinit_idempotent_marker",
             tmp_root,
             'lib/argv_split.zig: test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplit frees intermediate allocations when allocator failure interrupts setup"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_allocation_failure_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplit frees intermediate allocations when allocator failure interrupts setup"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_owned_storage_allocation_failure_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
         )
         case_count += 1
         helper_path.write_text(original_helper, encoding="utf-8")
