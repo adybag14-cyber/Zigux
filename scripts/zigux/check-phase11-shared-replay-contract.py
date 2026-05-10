@@ -18,8 +18,12 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 REQUIRED_NOTE_MARKERS = (
     "# Phase 11 Shared Replay Contract",
     "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.",
     "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.",
     "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
+    "* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
+    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
     "The dedicated archival HVC evidence still stays explicit beside that shared route:",
     "* there is no shared `make -C zigux phase11-validate` target on `master`",
 )
@@ -155,13 +159,14 @@ def run_self_test() -> int:
 
         mutations = (
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
+            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[1]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
         for label, rel_path, needle in mutations:
-            case_root = Path(tmp) / label
+            case_root = Path(tmp) / f"{label}_{cases}"
             shutil.copytree(baseline_root, case_root)
             assert_missing_case(case_root, label, rel_path, needle)
             cases += 1
