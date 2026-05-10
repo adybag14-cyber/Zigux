@@ -136,6 +136,28 @@ def load_json(path: str) -> dict[str, object]:
     return json.loads(text(path))
 
 
+def summarize_gap_ids(manifest: dict[str, object]) -> tuple[str, str]:
+    ready_next_gap = ""
+    blocked_gap = ""
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        return ready_next_gap, blocked_gap
+
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            continue
+        gap_id = gap.get("id")
+        status = gap.get("status")
+        if not isinstance(gap_id, str) or not isinstance(status, str):
+            continue
+        if status == "ready_next":
+            ready_next_gap = gap_id
+        elif status.startswith("blocked"):
+            blocked_gap = gap_id
+
+    return ready_next_gap, blocked_gap
+
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE14_VALIDATION=fail")
@@ -243,6 +265,12 @@ else:
             missing.append(f"{manifest_path}:anchor")
         if anchor_manifest.get("surveyed_commit") != packet_commit:
             missing.append(f"{manifest_path}:surveyed_commit")
+
+        expected_ready_next_gap, expected_blocked_gap = summarize_gap_ids(anchor_manifest)
+        if ready_next_gap != expected_ready_next_gap:
+            missing.append(f"{manifest_path}:ready_next_gap")
+        if blocked_gap != expected_blocked_gap:
+            missing.append(f"{manifest_path}:blocked_gap")
 
 smoke_commands = manifest.get("smoke_commands")
 expected_smoke_commands = [
