@@ -256,3 +256,47 @@ test "phase 8 cpu mask reader interface keeps failures explicit" {
         .readFn = ReaderState.read,
     }));
 }
+
+test "phase 8 cpu mask highest-index helpers keep failures explicit" {
+    const ReaderState = struct {
+        mode: enum { empty_chunk, oversized_chunk },
+
+        fn read(context: ?*anyopaque, _: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            return switch (self.mode) {
+                .empty_chunk => 0,
+                .oversized_chunk => 9,
+            };
+        }
+    };
+
+    var empty_state = ReaderState{ .mode = .empty_chunk };
+    var oversize_state = ReaderState{ .mode = .oversized_chunk };
+    var scratch: [8]u8 = undefined;
+
+    try std.testing.expectError(
+        error.InvalidCpuRange,
+        cpu_mask.highestPossibleCpuIndexFromString(std.testing.allocator, "x"),
+    );
+    try std.testing.expectError(
+        error.EmptyReadChunk,
+        cpu_mask.highestPossibleCpuIndexFromReader(std.testing.allocator, &scratch, .{
+            .context = &empty_state,
+            .readFn = ReaderState.read,
+        }),
+    );
+    try std.testing.expectError(
+        error.InvalidReadCount,
+        cpu_mask.highestPossibleCpuIndexFromReader(std.testing.allocator, &scratch, .{
+            .context = &oversize_state,
+            .readFn = ReaderState.read,
+        }),
+    );
+    try std.testing.expectError(
+        error.EmptyReadBuffer,
+        cpu_mask.highestPossibleCpuIndexFromReader(std.testing.allocator, &.{}, .{
+            .context = &empty_state,
+            .readFn = ReaderState.read,
+        }),
+    );
+}
