@@ -1,0 +1,90 @@
+# Phase 8 Userspace-Kernel Bridge Boundary Survey
+
+This document records the bounded Phase 8 userspace-adjacent tooling boundary around the current libbpf bridge helpers parked under `tools/lib/bpf/zigux_segments/`.
+## Status
+  * `PHASE8_STATUS=parked`
+  * `PHASE8_SLICE=userspace-kernel-bridge-boundary-survey`
+  * scope: helper-first review of the current fdinfo bridge packet plus the landed adjacent perf-buffer poll helper packet and the still-queued adjacent bridge steps only
+  * product boundary:
+    * `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+    * `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+    * `zigux/tests/phase8_file_path_handle_bridge.zig`
+    * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+    * `zigux/tests/phase8_perf_buffer_poll.zig`
+    * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+    * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+    * `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+    * `Documentation/zigux/phase8-libbpf-segment-survey.md`
+## Why this survey exists
+
+The live Phase 8 packet already carries a bounded fdinfo helper slice, but the adjacent bridge boundary was still only implicit across the file-path helper note and the broader libbpf segment survey. This survey keeps that boundary explicit so the validator-first Phase 8 packet can describe the shipped helpers and the queued follow-through without implying procfs, bpffs, object-model, or deferred interrupt-routing closure.
+## Roadmap alignment
+
+This survey stays attached to the Phase 8 roadmap anchor at `tools/lib/bpf/libbpf.c` and its recommended segmented Zigux destination under `tools/lib/bpf/zigux_segments/`.
+
+It does not own the separate command-side tooling packet around `tools/lib/subcmd/exec-cmd.c` or `tools/lib/subcmd/help.c`; those remain parked under the dedicated `exec-cmd` and `help` Phase 8 slices.
+Inside this lane, the relevant boundary is the point where helper-first libbpf review would widen into procfs reads, bpffs opens, perf-event setup, token creation, or descriptor-ownership side effects.
+## Current landed packet
+
+The currently landed bridge-side helper remains intentionally small:
+  * `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly, bounded fdinfo map-info parsing, explicit decimal or octal or hex numeric handling, compact completion summaries, the helper-only `mapReuseObservationFromFdinfo()` handoff from parsed fdinfo fields into reuse planning, and planning-only reuse-pinned-map attempt gating reviewable
+  * the landed reuse-planning helper requires a non-empty pinned path plus compatible fdinfo-derived map info before any real reopen attempt can even be considered, while still keeping actual bpffs opens and handle replacement outside the current Zig slice
+  * `zigux/tests/phase8_file_path_handle_bridge.zig` keeps the helper packet wired to stable path, ignored-line, repeated-field, numeric-base, summary, and planning-only reopen-attempt expectations
+  * the adjacent `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` packet keeps bounded `perf_buffer__poll(timeout_ms)` wait-result classification, poll waits, ready-buffer bookkeeping, explicit `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx)` slot lookup plus errno-shaped return shaping, and ordered record-processing summaries reviewable without claiming live epoll wiring, per-CPU setup, mmap-backed ring ownership, or standalone timer or clockevent helper behavior
+  * the helper family stays smaller than direct procfs reads, pinned-object reopen flow, token creation, descriptor lifecycle behavior, and the still-deferred `perf_buffer__new()` online-CPU routing packet
+## Boundary findings
+
+The current packet is productively landed, but the remaining bridge-facing work still needs a sharp fence:
+  * `mapReuseObservationFromFdinfo()` now keeps the fdinfo-to-observation handoff inside the shipped helper packet so later reuse planning starts from bounded parsed map info instead of raw fdinfo text
+  * `resolveReusePinnedMapAttempt()` now stays inside the shipped helper packet as a planning-only gate: it only checks for a non-empty pinned path, compatible fdinfo-derived map info, and truncated-name reuse compatibility before any future reopen path is allowed to proceed
+  * `planTokenPreparation()` now stays inside the shipped helper packet as a planning-only gate: it only checks for a non-empty token path plus a ready reuse-pinned-map bridge plan before any future token-open attempt is allowed to proceed
+  * direct procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, and fd close or ownership semantics remain intentionally outside the current packet
+  * token materialization or capability handoff and map reopen or bpffs compatibility closure still remain queued follow-through beyond the current planning-only gate
+  * the deferred `perf-buffer-online-cpu-routing` packet still remains outside the current helper-first bridge surface because it combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, timeout-driven poll waits, and poll-loop ownership beyond the already-landed bounded `perf_buffer__poll(timeout_ms)` helper packet
+  * the current helper-first bridge note should stay adjacent to the libbpf segment survey until the queued bridge packet can be reviewed as one tighter step
+## Review gates
+
+  1. run the shared Phase 8 validator route first
+
+  * `make -C zigux phase8-validate`
+
+  2. run the shared Phase 8 validator self-test
+
+  * `python3 scripts/zigux/validate-phase8.py --self-test`
+
+  3. run the shared Phase 8 validator
+
+  * `python3 scripts/zigux/validate-phase8.py`
+
+  4. run the focused file-path bridge wrapper
+
+  * `make -C zigux phase8-file-path-handle-bridge-test`
+  * `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
+  5. run the focused perf-buffer poll wrapper
+
+  * `make -C zigux phase8-perf-buffer-poll-test`
+  * `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+
+  6. run the shared Phase 8 replay
+
+  * `make -C zigux phase8-test`
+  * `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+  * `make -C zigux phase8`
+## Non-goals
+
+This survey does not claim:
+  * direct procfs file reads
+  * token materialization or capability handoff
+  * map reopen or bpffs compatibility closure
+  * object-model or loader parity
+  * descriptor duplication, transfer, or close ownership rules
+  * deferred `execv_cmd()` or `execl_cmd()` command-boundary work from the separate Phase 8 command packet
+  * `/sys/devices/system/cpu/online` reads or cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`
+  * online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, or epoll-backed perf FD registration
+  * timeout-driven poll waits beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet
+  * poll-loop ownership beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet
+  * standalone timer or clockevent helper behavior
+## Next bounded step
+Keep this survey parked beside the landed fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface.
+Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, keep the Phase 8 roadmap ownership pinned to `tools/lib/bpf/libbpf.c` plus `tools/lib/bpf/zigux_segments/`, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity or absorb the separate command-boundary packet.
+The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note and planning-only gate to queued token preparation or actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, live interrupt-routing behavior, or the parked `exec-cmd` and `help` tooling slices.
