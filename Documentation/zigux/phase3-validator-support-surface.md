@@ -16,6 +16,7 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
+- `scripts/zigux/validate-phase3-validator-support-surface.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 - `scripts/zigux/survey-phase3-abi-constant-parity.py`
 - `scripts/zigux/phase3_catalog.py`
@@ -48,6 +49,9 @@ Phase 3 ABI and runtime tranche.
 - treat `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`,
   and `run-phase3-checks.py` as shipped helper entrypoints on current `master`,
   not as historical-only references
+- keep `Documentation/zigux/phase3-validator-support-surface.md` paired with
+  `scripts/zigux/validate-phase3-validator-support-surface.py` so the shipped
+  validator-support inventory fails closed when this note drifts
 - keep `make -C zigux phase3-selftest` as a focused companion route that
   complements but does not duplicate the default `make -C zigux phase3-validate`
   packet
@@ -61,6 +65,7 @@ Phase 3 ABI and runtime tranche.
 ## Shared reminder
 
 Broad Phase 3 summaries that name the validator-support packet should keep this
-note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`, and
-`Documentation/zigux/review-checklist.md` so the shipped support helpers do not
-get restated as missing historical-only entrypoints.
+note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
+`Documentation/zigux/review-checklist.md`, and
+`scripts/zigux/validate-phase3-validator-support-surface.py` so the shipped
+support helpers do not get restated as missing historical-only entrypoints.
