@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 scripts-root tooling inventory reminder."""
+"""Fail-close the Phase 3 tooling inventory reminder and shared Phase 4 route markers."""
 
 from __future__ import annotations
 
@@ -36,6 +36,13 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
+    "validate-phase4.py",
+    "check-artifact-diff-contract.py",
+    "check-phase4-gate-evidence.py",
+    "check-phase4-artifact-diff-determinism.py",
+    "check-phase4-workflow-route-counts.py",
+    "make -C zigux phase4-validate",
+    "make -C zigux phase4",
 )
 
 
@@ -68,6 +75,18 @@ def run_self_test() -> int:
     if "validate-phase3-abi-header-family-survey.py" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected header-family validator marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase4-gate-evidence.py", "", 1))
+    if "check-phase4-gate-evidence.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected phase4 gate-evidence marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("make -C zigux phase4-validate", "", 1))
+    if "make -C zigux phase4-validate" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected phase4 validate route marker was not reported")
         return 1
 
     broken = validate_text(
