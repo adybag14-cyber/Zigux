@@ -116,6 +116,7 @@ These surfaces remain adjacent release evidence:
   * `zigux/helpers/list_view.zig`
   * `zigux/helpers/hlist_view.zig`
   * `zigux/helpers/notifier_chain_view.zig`
+  * `drivers/tty/hvc/hvc_console.h`
 
 They stay reviewable beside the Phase 13 helper tranche, but they are not extra shared replay steps and they do not transfer notifier ownership into `libfs`, `devres`, `landlock/ruleset`, or `landlock/syscalls` lanes.
 
