@@ -478,7 +478,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"), "--self-test"],
             [
                 "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=20",
+                "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=25",
             ],
         )
     )
