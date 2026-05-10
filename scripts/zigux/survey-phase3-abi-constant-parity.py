@@ -14,7 +14,7 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 10
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 11
 
 REQUIRED_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
@@ -43,6 +43,14 @@ REQUIRED_FAMILY_TYPE_MARKERS = (
     (
         "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {",
         "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary = extern struct {",
+    ),
+    (
+        "struct zigux_chrdev_notify_ack_delivery_budget_guard_view {",
+        "pub const ChrdevNotifyAckDeliveryBudgetGuardView = extern struct {",
+    ),
+    (
+        "struct zigux_chrdev_notify_ack_delivery_budget_guard_summary {",
+        "pub const ChrdevNotifyAckDeliveryBudgetGuardSummary = extern struct {",
     ),
 )
 
@@ -313,6 +321,20 @@ def run_self_test() -> int:
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[1][1]}" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                REQUIRED_FAMILY_TYPE_MARKERS[2][0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[2][0]}" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
