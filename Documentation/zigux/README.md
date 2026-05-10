@@ -158,7 +158,10 @@ Phase 8 notes
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_exec_cmd_only_build.zig`
 - `zigux/tests/phase8_help.zig`
+- `zigux/tests/phase8_help_only_build.zig`
+- `zigux/tests/phase8_help_kallsyms_only_build.zig`
 - `zigux/tests/phase8_kallsyms.zig`
+- `zigux/tests/phase8_kallsyms_only_build.zig`
 - `zigux/tests/phase8_cpu_mask.zig`
 - `zigux/tests/phase8_logging.zig`
 - `zigux/tests/phase8_pin_path.zig`
