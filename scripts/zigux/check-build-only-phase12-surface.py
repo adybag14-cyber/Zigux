@@ -86,6 +86,16 @@ PHASE12_REMOVED_SURFACE_MARKER = (
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, "
     "cross-build, or `phase12-validate` surfaces that are not on `master`."
 )
+PHASE12_DOCS_ARTIFACT_MARKER = (
+    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and "
+    "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned artifacts, "
+    "while `virtio_net` and `libbpf` remain shared-tree-only anchors rather than implied fallback maps."
+)
+PHASE12_DOCS_REMOVED_VALIDATOR_MARKER = (
+    "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target "
+    "on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make "
+    "surfaces until new validator files actually land."
+)
 
 REQUIRED_SCRIPTS_README_MARKERS = [
     "Phase 12 flow",
@@ -99,6 +109,33 @@ REQUIRED_SCRIPTS_README_MARKERS = [
 
 REQUIRED_SCRIPTS_README_EXACT_COUNTS = {
     PHASE12_REMOVED_SURFACE_MARKER: 1,
+}
+
+REQUIRED_DOCS_README_MARKERS = [
+    "Phase 12 notes -",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`tools/lib/bpf/zigux_segments/verify.zig`",
+    "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
+    PHASE12_DOCS_ARTIFACT_MARKER,
+    PHASE12_DOCS_REMOVED_VALIDATOR_MARKER,
+]
+
+REQUIRED_DOCS_README_EXACT_COUNTS = {
+    PHASE12_DOCS_ARTIFACT_MARKER: 1,
+    PHASE12_DOCS_REMOVED_VALIDATOR_MARKER: 1,
+}
+
+REQUIRED_TESTS_README_MARKERS = [
+    "keep the shared Phase 12 complex-driver packet explicit in the tests root too:",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
+    "`make -C zigux phase12-smoke`",
+    PHASE12_REMOVED_SURFACE_MARKER.rstrip("."),
+]
+
+REQUIRED_TESTS_README_EXACT_COUNTS = {
+    PHASE12_REMOVED_SURFACE_MARKER.rstrip("."): 1,
 }
 
 REQUIRED_WORKFLOW_MARKERS = [
@@ -210,12 +247,18 @@ def validate(root: Path) -> list[str]:
         return failures
 
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    docs_readme = read_text(root, DOCS_README_PATH)
+    tests_readme = read_text(root, TESTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     phase12_build = read_text(root, PHASE12_BUILD_PATH)
 
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_MARKERS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
+    ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
+    ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
+    ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
+    ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
     ensure_absent(failures, "workflow", workflow, FORBIDDEN_WORKFLOW_MARKERS)
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
@@ -229,6 +272,10 @@ def validate(root: Path) -> list[str]:
 def placeholder_for(rel_path: str) -> str:
     if rel_path == PHASE12_BUILD_PATH:
         return minimal_phase12_build()
+    if rel_path == DOCS_README_PATH:
+        return minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS)
+    if rel_path == TESTS_README_PATH:
+        return minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS)
     if rel_path.endswith(".zig"):
         return "// phase12 placeholder\n"
     if rel_path.endswith(".json"):
@@ -282,11 +329,13 @@ def write_fixture_tree(root: Path) -> None:
         shutil.rmtree(root)
 
     write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPTS_README_MARKERS))
+    write_text(root / DOCS_README_PATH, minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS))
+    write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
     write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
     for rel_path in REQUIRED_PHASE12_PATHS:
-        if rel_path in {SCRIPTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
+        if rel_path in {SCRIPTS_README_PATH, DOCS_README_PATH, TESTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
             continue
         write_text(root / rel_path, placeholder_for(rel_path))
 
@@ -306,6 +355,8 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         scripts_readme_path = base / SCRIPTS_README_PATH
+        docs_readme_path = base / DOCS_README_PATH
+        tests_readme_path = base / TESTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
@@ -315,11 +366,16 @@ def run_self_test() -> int:
         expect_failure(base, f"scripts_readme:{PHASE12_REMOVED_SURFACE_MARKER}")
 
         write_fixture_tree(base)
-        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(scripts_readme + PHASE12_REMOVED_SURFACE_MARKER + "\n", encoding="utf-8")
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(docs_readme.replace(PHASE12_DOCS_REMOVED_VALIDATOR_MARKER, "", 1), encoding="utf-8")
+        expect_failure(base, f"docs_readme:{PHASE12_DOCS_REMOVED_VALIDATOR_MARKER}")
+
+        write_fixture_tree(base)
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(tests_readme + PHASE12_REMOVED_SURFACE_MARKER.rstrip(".") + "\n", encoding="utf-8")
         expect_failure(
             base,
-            f"scripts_readme_exact_count:{PHASE12_REMOVED_SURFACE_MARKER}:expected=1:actual=2",
+            f"tests_readme_exact_count:{PHASE12_REMOVED_SURFACE_MARKER.rstrip('.')}:expected=1:actual=2",
         )
 
         write_fixture_tree(base)
@@ -377,7 +433,7 @@ def run_self_test() -> int:
         expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -415,7 +471,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
     )
     return 0
 
