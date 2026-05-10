@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
   * `PHASE14_STATUS=active`
   * `PHASE14_SLICE=workqueue-boundary-map-audit`
-  * scope: the landed `kernel/workqueue_bridge.zig` boundary map, its explicit stay-in-C decisions, its expanded concurrency audit outline and lock-handoff checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the current packet against the roadmap
+  * scope: the landed `kernel/workqueue_bridge.zig` boundary map, its explicit stay-in-C decisions, its expanded concurrency audit outline and lock-handoff checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, the shared reviewer surface, and the lane notes that compare the current packet against the roadmap
   * product boundary:
     * `kernel/workqueue_bridge.zig`
     * `zigux/tests/phase14_workqueue_bridge.zig`
@@ -12,6 +12,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
     * `zigux/tests/phase14_build.zig`
     * `Documentation/zigux/phase14-workqueue-bridge-slice.md`
     * `Documentation/zigux/phase14-workqueue-bridge-survey.md`
+    * `Documentation/zigux/review-checklist.md`
 ## Why this slice exists
 
 The Phase 14 roadmap explicitly names `kernel/workqueue.c` as a boundary-study target and calls for boundary maps, concurrency audits, explicit stay-in-C decisions, and a wrapper-first or study-only posture.
@@ -26,6 +27,7 @@ The highest-value honest step in this lane is therefore not to sketch a fake asy
   * the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
   * the same bridge now makes the roadmap-required stay-in-C packet explicit instead of leaving it implied by the boundary map alone: `manage_workers()`, the `worker_pool` state machine, `rescuer_thread()`, and the scheduler-facing `wq_worker_running()` or `wq_worker_sleeping()` hooks are all recorded as reviewable stay-in-C decisions.
   * the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the `__queue_work()` `last_pool->lock` handoff, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+  * the shared `Documentation/zigux/review-checklist.md` is a coupled reviewer surface for this lane because any workqueue packet refresh needs to stay aligned on the same stay-in-C posture, landed concurrency audits, and pending-bit follow-up without drifting into live worker-pool or scheduler ownership claims.
   * the next honest workqueue-facing step is a pending-bit and retry audit around `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so the lane names those submission ownership rules before any wrapper claims live enqueue control.
 ## Recorded gaps
 
