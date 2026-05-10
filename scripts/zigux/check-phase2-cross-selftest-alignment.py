@@ -110,12 +110,9 @@ WORKFLOW_SCOPE_MARKERS = [
     "Detect Phase 2 cross-target scope changes",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "scripts/zigux/validate-phase2.py",
-    "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/install-zig.py",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/Makefile",
-    "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "should_run=true",
     "should_run=false",
@@ -447,10 +444,10 @@ def run_self_test() -> int:
         assert "toolchain_notes:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
 
         build_self_test_root(root)
-        workflow_text = abspath(root, WORKFLOW).read_text(encoding="utf-8").replace("scripts/zigux/check-phase2-toolchain-pin-scope.py\n", "", 1)
+        workflow_text = abspath(root, WORKFLOW).read_text(encoding="utf-8").replace("scripts/zigux/zig-toolchain-policy.json\n", "", 1)
         write_text(abspath(root, WORKFLOW), workflow_text)
         issues = validate_root(root)
-        assert "workflow_scope:scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
+        assert "workflow_scope:scripts/zigux/zig-toolchain-policy.json" in issues
 
         build_self_test_root(root)
         workflow_text = abspath(root, WORKFLOW).read_text(encoding="utf-8").replace("zigux/tests/fixtures/phase2_cross_targets.json\n", "", 1)
