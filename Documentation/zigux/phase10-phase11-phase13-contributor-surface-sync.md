@@ -93,6 +93,7 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces a
 - `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
 - `zigux/bindings/notifier_abi.zig`
+- `drivers/tty/hvc/hvc_console.h`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
@@ -100,6 +101,7 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces a
 Contributor reminder:
 - keep the validator-first eight-test release route explicit
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
+- keep `drivers/tty/hvc/hvc_console.h` explicit beside the notifier ABI and helper footholds
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
 - refresh this note only with surfaces verified on current `master`, not with hoped-for follow-up notes
 
