@@ -135,6 +135,8 @@ The closed Phase 1 packet also keeps one explicit anti-overlap rule from `zigux/
 
 Reviewers should keep that split explicit whenever Phase 1 follow-up work reopens. Shared-replay parked helpers only reopen for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys. Batching work across those two sets in one follow-up lane is a closure regression because it hides which bounded proof actually owns the reopened behavior on current `master`.
 
+Direct-anchor follow-up must stay helper-family-local as well. Even inside that four-helper direct-anchor set, one reopened lane should cover only one of `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, or `tools/lib/string.zig` at a time, so nearby runs cannot collapse multiple helper-local proof packets into one blended follow-up.
+
 - `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`
 
 ## Find Bit Review Rule
