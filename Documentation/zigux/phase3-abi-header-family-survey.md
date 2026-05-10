@@ -41,6 +41,7 @@ This note keeps one already-landed Phase 3 ABI header packet reviewable without 
 ## Shared Surface Reminder
 
 - broad Phase 3 shared summaries should keep `Documentation/zigux/phase3-abi-header-family-survey.md` and `scripts/zigux/validate-phase3-abi-header-family-survey.py` explicit whenever they name the validator-support packet or the baseline constant-parity survey.
+- current `master` already keeps that pair explicit in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/phase3-boundary-lane-sequencing.md`, but the broad Phase 3 validator-support reminder in `zigux/tests/README.md` still omits both paths, so the next bounded same-lane shared-surface follow-through is tests-root wording plus its local `scripts/zigux/check-phase3-readme-tooling-inventory.py` guard.
 - `scripts/zigux/validate_phase3_selftest.py` and `zigux/Makefile` already treat the header-family survey as part of the shipped validator-support roster, so future same-lane shared-surface wording passes should refresh `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` before treating this landed two-family proof as implicit again.
 - do not let `scripts/zigux/survey-phase3-abi-constant-parity.py` stand in for this narrower landed family proof; the baseline constant survey and this dedicated family survey carry different bounded reviewability claims.
 
