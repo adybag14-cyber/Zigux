@@ -29,10 +29,10 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - this dedicated handoff note, its manifest, and its focused Zig guard are now wired into the shared `zigux/tests/phase15_build.zig` replay so the parked next-step synthesis remains reviewable as a bounded packet
 - the dedicated shared-build handoff replay gap is now closed on current `master`
 - the docs-root pointer back to this handoff packet is now present in current `Documentation/zigux/README.md`
-- the scripts root and the tests root still carry this parked governance packet through `scripts/zigux/README.md`, `zigux/tests/README.md`, the scripts-root validator-first route, and the shared build replay instead of leaving that handoff surface implicit
+- the scripts root still carries this parked governance packet through `scripts/zigux/README.md`, the scripts-root validator-first route, and the shared build replay, while the broad tests-root reminder in `zigux/tests/README.md` still leaves the dedicated `make -C zigux phase15-test` route implicit
 - the focused `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `zigux/tests/phase15_governance_lane_sequencing.zig` replays keep the blocker vocabulary, lane-owner vocabulary, and anti-overlap posture explicit beside this parked next-step packet instead of leaving that handoff evidence implicit in adjacent notes
 - the paired readiness note remains visible at `Documentation/zigux/phase15-readiness-gate-survey.md` and still records the same deep-core-only blocker posture
-- the current handoff summary no longer leaves the validator-first route or the dedicated `make -C zigux phase15-test` replay implicit when describing the parked governance packet
+- this dedicated handoff note keeps both the validator-first route and the dedicated `make -C zigux phase15-test` replay explicit when describing the parked governance packet, so the remaining same-packet follow-through is the broad tests-root reminder
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
 - the parity scorecard lane `P15-L12`, readiness lane `P15-L01`, parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, dedicated `make -C zigux phase15-test` route, shared build replay, workflow, and this handoff packet still agree that the remaining blocked work is only the deep-core status-change evidence, and this handoff packet now keeps both neighboring lane identities plus matched dated-readback timing explicit beside that scorecard packet without implying exact-head parity
 - the parked next-bound queue now mirrors the named scorecard reopen-trigger catalog owned by the paired parity-scorecard lane `P15-L12`: `evidence_packet_stale_or_contradictory` reopens this packet for truthfulness drift, while `narrower_followup_answers_blocker` and `ownership_or_validation_changed` reopen it only when the shared deep-core blocker posture or validation ownership actually moves
@@ -43,10 +43,14 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 - `phase15-deep-core-status-change-blocker`: the freeze-in-C anchors still lack enough evidence for any status change
 
+### Tests-Root Reminder Still Undercounts a Dedicated Replay Route
+
+- the broad Phase 15 governance reminder in `zigux/tests/README.md` still leaves `make -C zigux phase15-test` implicit even though this dedicated handoff note, the paired review-process note, and the scripts-root checker packet already keep that dedicated replay route explicit
+
 ## Pending Next Steps
 
-1. keep this handoff lane parked unless `evidence_packet_stale_or_contradictory` fires for this packet or a nearby Phase 15 governance packet
-2. reopen only if `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture, the current parity-scorecard lane `P15-L12`, the current readiness lane `P15-L01`, or the parked governance validation ownership
+1. update `zigux/tests/README.md` so the broad Phase 15 governance reminder explicitly keeps `make -C zigux phase15-test` beside `zigux/Makefile` and `make -C zigux phase15`
+2. once that tests-root reminder matches this handoff note, keep this handoff lane parked unless `evidence_packet_stale_or_contradictory` fires for this packet or a nearby Phase 15 governance packet, or `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture, the current parity-scorecard lane `P15-L12`, the current readiness lane `P15-L01`, or the parked governance validation ownership
 
 ## Gates
 
