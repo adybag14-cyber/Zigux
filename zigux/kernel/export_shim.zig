@@ -20,6 +20,10 @@ pub const CompatibilityDecision = struct {
         return self.evaluation.compatibility();
     }
 
+    pub fn compatibilityTag(self: @This()) u32 {
+        return if (self.compatibility()) |mode| @intFromEnum(mode) else 0;
+    }
+
     pub fn canonical(self: @This()) ?Header {
         return self.evaluation.canonical();
     }
@@ -67,6 +71,10 @@ pub fn acceptHeader(header_value: Header) ?HeaderAcceptance {
 
 pub fn headerCompatibility(header_value: Header) ?HeaderCompatibility {
     return uapi_version.compatibility(header_value);
+}
+
+pub fn compatibilityTag(header_value: Header) u32 {
+    return uapi_version.compatibilityTag(header_value);
 }
 
 pub fn isCompatibleHeader(header_value: Header) bool {
@@ -216,4 +224,21 @@ test "phase3 export shim evaluation keeps compatibility evidence and status toge
     try std.testing.expectEqual(@as(i64, 0), mismatch_evaluation.sizeDelta());
     try std.testing.expect(!isOk(mismatch_evaluation.status));
     try std.testing.expectEqual(@as(i32, -71), mismatch_evaluation.status.code);
+}
+
+test "phase3 export shim relays explicit compatibility tags beside evaluation" {
+    const canonical = boundaryHeader(0x21);
+    const future_compatible = compatibleHeader(header_size + 8, 0x21);
+    const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x21);
+
+    const canonical_evaluation = evaluateHeader(canonical, -22, .kernel);
+    const future_evaluation = evaluateHeader(future_compatible, -75, .helpers);
+    const mismatch_evaluation = evaluateHeader(mismatched_version, -71, .kernel);
+
+    try std.testing.expectEqual(@as(u32, 1), compatibilityTag(canonical));
+    try std.testing.expectEqual(@as(u32, 2), compatibilityTag(future_compatible));
+    try std.testing.expectEqual(@as(u32, 0), compatibilityTag(mismatched_version));
+    try std.testing.expectEqual(@as(u32, 1), canonical_evaluation.compatibilityTag());
+    try std.testing.expectEqual(@as(u32, 2), future_evaluation.compatibilityTag());
+    try std.testing.expectEqual(@as(u32, 0), mismatch_evaluation.compatibilityTag());
 }
