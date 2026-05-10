@@ -397,10 +397,10 @@ EXACT_COUNT_MARKERS = {
         ),
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
+        ("Documentation/zigux/review-checklist.md", 2),
         ("`kstrdup_quotable()` over the bounded quotable-log escape path", 1),
         ("`kasprintf_strarray()` over the bounded sequential prefix-index ownership path", 1),
         ("`kfree_strarray()` over the bounded repeated-teardown-safe release path", 1),
-        ("zigux/tests/phase7_string_helpers_manifest.json", 1),
         (
             "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
             1,
@@ -416,8 +416,9 @@ EXACT_COUNT_MARKERS = {
         ("python3 scripts/zigux/check-phase7-argv-split-packet.py", 1),
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
-        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 2),
-        ("zig build test --build-file zigux/tests/phase7_build.zig", 2),
+        ("Documentation/zigux/review-checklist.md", 3),
+        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 1),
+        ("zig build test --build-file zigux/tests/phase7_build.zig", 1),
         ("This slice does not carry an open parity-fixture follow-up", 1),
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
