@@ -377,7 +377,7 @@ def run_self_test() -> int:
             assert 'invalid archive_sha256' in str(exc)
         else:
             raise AssertionError('expected invalid archive_sha256 to fail')
-        policy_path.writeText('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
+        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
         try:
             load_policy_archive_sha256(policy_path, 'x86_64-linux')
         except SystemExit as exc:
