@@ -253,8 +253,51 @@ def run_self_test() -> int:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
+
+    missing_reviewability_build = "\n".join(
+        [f'.name = "{name}"' for name in EXPECTED_BUILD_TEST_NAMES]
+        + [
+            f"test_step.dependOn(&{step}.step);"
+            for step in [
+                "run_phase14_workqueue_bridge_tests",
+                "run_phase14_skbuff_bridge_tests",
+                "run_phase14_ring_buffer_survey_tests",
+                "run_phase14_rcu_tree_survey_tests",
+                "run_phase14_end_to_end_smoke_tests",
+            ]
+        ]
+    )
+    missing_build_markers = [
+        marker for marker in BUILD_MARKERS if marker not in missing_reviewability_build
+    ]
+    if missing_build_markers != [
+        "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_reviewability_dependency_gap_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in missing_build_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+    if BUILD_TEST_NAME_RE.findall(missing_reviewability_build) != EXPECTED_BUILD_TEST_NAMES:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_reviewability_dependency_test_names")
+        return 1
+    if BUILD_DEPEND_STEP_RE.findall(missing_reviewability_build) != [
+        "run_phase14_workqueue_bridge_tests",
+        "run_phase14_skbuff_bridge_tests",
+        "run_phase14_ring_buffer_survey_tests",
+        "run_phase14_rcu_tree_survey_tests",
+        "run_phase14_end_to_end_smoke_tests",
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_reviewability_dependency_parse_result")
+        return 1
+
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
+    print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     return 0
 
 
@@ -521,7 +564,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="run the validator's internal JSON-decode coverage check",
+        help="run the validator's internal self-test coverage checks",
     )
     return parser.parse_args(argv)
 
