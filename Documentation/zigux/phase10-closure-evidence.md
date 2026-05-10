@@ -134,4 +134,6 @@ Keep the shared Phase 10 tranche parked unless the closure packet itself moves a
 
 Fresh current-master readback during this run showed this note had drifted around shared-manifest truthfulness: current `master` no longer ships `zigux/tests/phase10_closure_manifest.json`, so any follow-up should start by rereading the broader shared summary surfaces before repeating that removed shared-manifest claim.
 
-If this lane reopens soon, prefer one summary-surface sync that points at the four per-slice manifests and the existing packet checkers instead of widening into helper, MMIO transport, IRQ, reset, queue-discovery, or lifecycle behavior.
+The same readback also showed the broad shared tests-root reminder keeps the landed direct `drivers/virtio/virtio.zig` plus `drivers/virtio/virtio_driver_id.zig` core review surfaces explicit, but it still relies on `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_mmio.zig` plus their focused verifier replays rather than spelling out `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, or `drivers/virtio/virtio_mmio.zig` as direct shared-summary surfaces.
+
+If this lane reopens soon, prefer one summary-surface sync that points at the four per-slice manifests, the existing packet checkers, and that direct-driver split instead of widening into helper, MMIO transport, IRQ, reset, queue-discovery, or lifecycle behavior.
