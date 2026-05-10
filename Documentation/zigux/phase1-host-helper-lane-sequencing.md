@@ -43,11 +43,11 @@ These are the only helpers that still keep bounded direct helper-local follow-up
 
 ## Current Repo Reality
 
-Fresh repo-first inspection during Slot 349 showed that the older saved bitmap closure-validator blocker is already closed on current `master`.
+Fresh repo-first inspection shows that the older saved bitmap closure-validator blocker is already closed on current `master`.
 
 The Phase 1 closure validator already carries the bitmap final-partial-word and Linux-style alias closure markers that older lane memory still described as missing. Future runs should not reopen that already-landed validator sync.
 
-The live next same-lane drift is smaller and different: `Documentation/zigux/README.md` and `scripts/zigux/README.md` already treat this owner-map note as part of the shipped Phase 1 review surface, but the shared closure-validator packet still does not name this note in its required-file contract. That means the owner-map split can drift without the fail-closed Phase 1 closure gate noticing.
+The smallest live same-lane drift is smaller and different: `Documentation/zigux/README.md` and `scripts/zigux/README.md` already treat this owner-map note as part of the shipped Phase 1 review surface, but the shared closure-validator packet still does not name this note in its required-file contract. That means the owner-map split can drift without the fail-closed Phase 1 closure gate noticing.
 
 ## Anti-Overlap Rules
 
