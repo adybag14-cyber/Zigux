@@ -141,6 +141,24 @@ pub const SelectedQueueReadinessSummary = struct {
     queue_ready_for_handoff: bool,
 };
 
+pub const QueuePairHandoffSummary = struct {
+    anchor: []const u8,
+    selected_queue: u16,
+    first_queue_index: u16,
+    second_queue_index: u16,
+    first_queue_num_max: u16,
+    second_queue_num_max: u16,
+    first_queue_num: u16,
+    second_queue_num: u16,
+    first_queue_ready: bool,
+    second_queue_ready: bool,
+    programmed_queue_count: usize,
+    ready_queue_count: usize,
+    handoff_ready_queue_count: usize,
+    both_programmed: bool,
+    both_ready_for_handoff: bool,
+};
+
 pub const ConfiguredQueueCoverageSummary = struct {
     anchor: []const u8,
     configured_queue_count: usize,
@@ -405,6 +423,47 @@ pub const VirtioMmioLab = struct {
             .queue_ready = queue_ready,
             .queue_size_programmed = queue_num != 0,
             .queue_ready_for_handoff = queue_num != 0 and queue_ready,
+        };
+    }
+
+    pub fn queuePairHandoffSummary(
+        self: *const Self,
+        first_queue_index: u16,
+        second_queue_index: u16,
+    ) !QueuePairHandoffSummary {
+        if (first_queue_index == second_queue_index) return error.QueuePairRequiresDistinctQueues;
+
+        const first_index = try self.checkedQueueIndex(first_queue_index);
+        const second_index = try self.checkedQueueIndex(second_queue_index);
+
+        const first_queue_num = self.queue_num[first_index];
+        const second_queue_num = self.queue_num[second_index];
+        const first_queue_ready = self.queue_ready[first_index];
+        const second_queue_ready = self.queue_ready[second_index];
+        const first_programmed = first_queue_num != 0;
+        const second_programmed = second_queue_num != 0;
+        const first_handoff_ready = first_programmed and first_queue_ready;
+        const second_handoff_ready = second_programmed and second_queue_ready;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_queue = self.selected_queue,
+            .first_queue_index = first_queue_index,
+            .second_queue_index = second_queue_index,
+            .first_queue_num_max = self.queue_num_max[first_index],
+            .second_queue_num_max = self.queue_num_max[second_index],
+            .first_queue_num = first_queue_num,
+            .second_queue_num = second_queue_num,
+            .first_queue_ready = first_queue_ready,
+            .second_queue_ready = second_queue_ready,
+            .programmed_queue_count = @as(usize, @intFromBool(first_programmed)) +
+                @as(usize, @intFromBool(second_programmed)),
+            .ready_queue_count = @as(usize, @intFromBool(first_queue_ready)) +
+                @as(usize, @intFromBool(second_queue_ready)),
+            .handoff_ready_queue_count = @as(usize, @intFromBool(first_handoff_ready)) +
+                @as(usize, @intFromBool(second_handoff_ready)),
+            .both_programmed = first_programmed and second_programmed,
+            .both_ready_for_handoff = first_handoff_ready and second_handoff_ready,
         };
     }
 
@@ -684,6 +743,62 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
     try std.testing.expect(!summary.queue_size_programmed);
     try std.testing.expect(!summary.queue_ready_for_handoff);
+}
+
+test "phase10 virtio mmio summarizes queue-pair handoff readiness for two-queue lab drivers" {
+    var device = try VirtioMmioLab.init(62, &[_]u16{ 8, 16, 32 });
+
+    _ = try device.writeRegister(.queue_sel, 2);
+    var summary = try device.queuePairHandoffSummary(0, 1);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 2), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 0), summary.first_queue_index);
+    try std.testing.expectEqual(@as(u16, 1), summary.second_queue_index);
+    try std.testing.expectEqual(@as(u16, 8), summary.first_queue_num_max);
+    try std.testing.expectEqual(@as(u16, 16), summary.second_queue_num_max);
+    try std.testing.expectEqual(@as(usize, 0), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.handoff_ready_queue_count);
+    try std.testing.expect(!summary.both_programmed);
+    try std.testing.expect(!summary.both_ready_for_handoff);
+    try std.testing.expectEqual(@as(u16, 2), device.selected_queue);
+
+    _ = try device.writeRegister(.queue_sel, 0);
+    _ = try device.writeRegister(.queue_num, 8);
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_num, 16);
+    _ = try device.writeRegister(.queue_sel, 2);
+
+    summary = try device.queuePairHandoffSummary(0, 1);
+    try std.testing.expectEqual(@as(u16, 8), summary.first_queue_num);
+    try std.testing.expectEqual(@as(u16, 16), summary.second_queue_num);
+    try std.testing.expect(summary.first_queue_ready);
+    try std.testing.expect(!summary.second_queue_ready);
+    try std.testing.expectEqual(@as(usize, 2), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.handoff_ready_queue_count);
+    try std.testing.expect(summary.both_programmed);
+    try std.testing.expect(!summary.both_ready_for_handoff);
+    try std.testing.expectEqual(@as(u16, 2), device.selected_queue);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 2);
+    summary = try device.queuePairHandoffSummary(0, 1);
+    try std.testing.expectEqual(@as(usize, 2), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.handoff_ready_queue_count);
+    try std.testing.expect(summary.both_programmed);
+    try std.testing.expect(summary.both_ready_for_handoff);
+    try std.testing.expectEqual(@as(u16, 2), device.selected_queue);
+}
+
+test "phase10 virtio mmio queue-pair handoff summary rejects duplicate or out-of-range queue selections" {
+    var device = try VirtioMmioLab.init(63, &[_]u16{ 8, 16 });
+
+    try std.testing.expectError(error.QueuePairRequiresDistinctQueues, device.queuePairHandoffSummary(0, 0));
+    try std.testing.expectError(error.QueueSelectionOutOfRange, device.queuePairHandoffSummary(0, 2));
 }
 
 test "phase10 virtio mmio summarizes configured-queue coverage before queue discovery work" {
