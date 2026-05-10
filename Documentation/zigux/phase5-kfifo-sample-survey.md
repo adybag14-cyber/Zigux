@@ -17,6 +17,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `samples/zigux/README.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `samples/zigux/bytestream_fifo.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_bytestream_fifo.zig`
@@ -53,7 +54,7 @@ For the `kfifo` anchor, current `master` already ships the roadmap-backed side-b
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters, loader-side follow-ons, and focused `runtime_bitmap_top_bit_contract.zig` companion replay separate from these non-runtime reference readings.
-- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, shared guide, checklist, sample root, scripts root, and tests root.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, shared guide, checklist, sample root, scripts root, tests root, and workflow surface.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for the landed bytestream FIFO sample
