@@ -71,6 +71,15 @@ fn hasGapWithStatus(gaps: []const AnchorGap, gap_id: []const u8, status: []const
     return false;
 }
 
+fn hasString(items: []const []const u8, needle: []const u8) bool {
+    for (items) |item| {
+        if (std.mem.eql(u8, item, needle)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 test "phase14 shared smoke manifest records the current evidence bundle" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -98,7 +107,10 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 10), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.shared_smoke_surfaces.len);
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
@@ -233,6 +245,9 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-docs-root-smoke-summary.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
 
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
