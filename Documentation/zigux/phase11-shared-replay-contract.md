@@ -154,7 +154,7 @@ The focused shared header-boundary evidence also stays explicit beside that shar
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all keep the older docs-root reread, the dedicated gpio teardown companion, the dedicated DesignWare packet-checker route, the dedicated DesignWare teardown companion, and the dedicated HVC survey packet explicit beside the parked driver-lane owner map on current `master`. Reopen `Documentation/zigux/review-checklist.md` next; its broad Phase 11 checklist question still names the shared contract, the focused header-boundary packet, and the dedicated HVC survey route, but it does not yet keep the parked shared closure checkpoint or the dedicated bcm2835 and DesignWare archival checker routes explicit even though the shared contract, scripts root, and tests root now do.
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all keep the older docs-root reread, the dedicated gpio teardown companion, the dedicated DesignWare packet-checker route, the dedicated DesignWare teardown companion, and the dedicated HVC survey packet explicit beside the parked driver-lane owner map on current `master`. Reopen `Documentation/zigux/review-checklist.md` next; its broad Phase 11 checklist question still names the shared contract, the parked shared closure checkpoint, the focused header-boundary packet, and the dedicated HVC survey route, but it does not yet keep the dedicated bcm2835 and DesignWare archival checker routes explicit even though the shared contract, scripts root, and tests root now do.
 
 ## What This Contract Does Not Claim
 
