@@ -65,7 +65,7 @@ Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`
 - `Documentation/zigux/phase7-string-helpers-slice.md` plus `lib/string_helpers.zig`
 - `Documentation/zigux/phase7-cmdline-slice.md` plus `lib/cmdline.zig`
 - `Documentation/zigux/phase7-argv-split-slice.md` plus `lib/argv_split.zig`
-- `Documentation/zigux/phase7-rbtree-slice.md` plus `lib/rbtree.zig`
+- `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`
 - `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase4-validation-matrix.md`, and `tools/lib/bitmap.zig` for direct bitmap helper reviewability
 
 Keep the later `samples/zigux/runtime_atomic64*.zig`, `runtime_bitmap*.zig`, `runtime_kretprobe*.zig`, and `runtime_trace_events*.zig` families in the separate Phase 9 runtime lane instead of implying runtime-substrate closure from the shared Phase 5 review route.
