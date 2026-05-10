@@ -69,6 +69,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase5_bitmap_sample_boundary_module = b.createModule(.{
+        .root_source_file = b.path("phase5_bitmap_sample_boundary.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase5_bytestream_fifo_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-tests",
@@ -111,6 +116,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase5_trace_events_sample_survey_module,
     });
     const run_phase5_trace_events_sample_survey_tests = b.addRunArtifact(phase5_trace_events_sample_survey_tests);
+    const phase5_bitmap_sample_boundary_tests = b.addTest(.{
+        .name = "phase5-bitmap-sample-boundary-tests",
+        .root_module = phase5_bitmap_sample_boundary_module,
+    });
+    const run_phase5_bitmap_sample_boundary_tests = b.addRunArtifact(phase5_bitmap_sample_boundary_tests);
 
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
@@ -121,4 +131,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kretprobe_example_survey_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_survey_tests.step);
+    test_step.dependOn(&run_phase5_bitmap_sample_boundary_tests.step);
 }
