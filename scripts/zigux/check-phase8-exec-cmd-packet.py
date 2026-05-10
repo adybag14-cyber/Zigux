@@ -12,7 +12,9 @@ from pathlib import Path
 REQUIRED_FILES = (
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase8_exec_cmd.zig",
@@ -45,6 +47,14 @@ CHECKLIST_MARKERS = (
     "separate `kernel/workqueue.c` Phase 14 boundary-study target",
 )
 
+DOCS_ROOT_MARKERS = (
+    "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+    "`zigux/tests/phase8_exec_cmd.zig`",
+    "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+    "`make -C zigux phase8-exec-cmd-test`",
+    "`make -C zigux phase8-validate`",
+)
+
 SCRIPTS_README_MARKERS = (
     "`check-phase8-exec-cmd-packet.py`",
     "`Documentation/zigux/phase8-exec-cmd-slice.md`",
@@ -55,12 +65,22 @@ SCRIPTS_README_MARKERS = (
     "`make -C zigux phase8-exec-cmd-test`",
 )
 
+WORKFLOW_MARKERS = (
+    " - name: Validate Phase 8 tooling packet",
+    " - name: Run focused Phase 8 exec-cmd tests",
+    " run: make -C zigux phase8-exec-cmd-test",
+    " - name: Run focused Phase 8 help tests",
+    " - name: Run focused Phase 8 kallsyms tests",
+    " - name: Run focused Phase 8 help and kallsyms tests",
+)
+
 TESTS_README_MARKERS = (
     "Phase 8 flow",
     "`zigux/tests/phase8_exec_cmd.zig`",
     "`zigux/tests/phase8_exec_cmd_only_build.zig`",
     "`make -C zigux phase8-exec-cmd-test`",
     "`make -C zigux phase8-validate`",
+    "`make -C zigux phase8`",
 )
 
 MAKEFILE_MARKERS = (
@@ -92,7 +112,7 @@ HELPER_MARKERS = (
     'test "planDeferredExeclCallWithPwd reuses caller-proved logical PWD aliases" {',
 )
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 9
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -118,7 +138,9 @@ def validate(root: Path) -> None:
 
     require_markers(root, "Documentation/zigux/phase8-exec-cmd-slice.md", SLICE_MARKERS)
     require_markers(root, "Documentation/zigux/review-checklist.md", CHECKLIST_MARKERS)
+    require_markers(root, "Documentation/zigux/README.md", DOCS_ROOT_MARKERS)
     require_markers(root, "scripts/zigux/README.md", SCRIPTS_README_MARKERS)
+    require_markers(root, ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS)
     require_markers(root, "zigux/tests/README.md", TESTS_README_MARKERS)
     require_markers(root, "zigux/Makefile", MAKEFILE_MARKERS)
     require_markers(root, "zigux/tests/phase8_exec_cmd.zig", TEST_MARKERS)
@@ -136,7 +158,9 @@ def build_fixture(root: Path) -> None:
 
     write(root / "Documentation/zigux/phase8-exec-cmd-slice.md", "\n".join(SLICE_MARKERS) + "\n")
     write(root / "Documentation/zigux/review-checklist.md", "\n".join(CHECKLIST_MARKERS) + "\n")
+    write(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
     write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_MARKERS) + "\n")
     write(root / "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
     write(root / "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / "zigux/tests/phase8_exec_cmd.zig", "\n".join(TEST_MARKERS) + "\n")
@@ -182,6 +206,16 @@ def run_self_test() -> None:
         expect_failure(root, "helper-first, output-stable deferred-exec planning packet")
         build_fixture(root)
 
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                "`make -C zigux phase8-exec-cmd-test`\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(root, "`make -C zigux phase8-exec-cmd-test`")
+        build_fixture(root)
+
         scripts_readme_path = root / "scripts/zigux/README.md"
         scripts_readme_path.write_text(
             scripts_readme_path.read_text(encoding="utf-8").replace(
@@ -190,6 +224,16 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(root, "`scripts/zigux/check-phase8-exec-cmd-packet.py`")
+        build_fixture(root)
+
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                " run: make -C zigux phase8-exec-cmd-test\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(root, " run: make -C zigux phase8-exec-cmd-test")
         build_fixture(root)
 
         makefile_path = root / "zigux/Makefile"
