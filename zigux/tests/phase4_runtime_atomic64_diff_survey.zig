@@ -64,7 +64,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expectEqualStrings("b03d10e18821c2a239c39906f81943e73f7fb306", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
-    try std.testing.expectEqualStrings("c2fb45991974e1768182955b63397ed6549bc8b0", manifest.phase4_gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("492cdecc11d5adbdc9086f7bbce72bfb0b8c4fbe", manifest.phase4_gate_evidence_blob_sha);
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("613dd2d8ad020c72a523c8fb8b2fe51ae65e6bba", manifest.phase9_build_blob_sha);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
@@ -100,7 +100,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
 // runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
 // validator blob b03d10e18821c2a239c39906f81943e73f7fb306
-// phase4 gate evidence blob c2fb45991974e1768182955b63397ed6549bc8b0
+// phase4 gate evidence blob 492cdecc11d5adbdc9086f7bbce72bfb0b8c4fbe
 // phase4 matrix blob 89da8bf3722b8f0265279181929e9982ad0c59ef
 // review checklist blob 8cc12bb18de948b312b47989a813dd3666fcebdd
 // phase9 build blob 613dd2d8ad020c72a523c8fb8b2fe51ae65e6bba
