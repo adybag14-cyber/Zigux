@@ -307,6 +307,9 @@ REQUIRED_MARKERS = {
         "phase 7 parseIntArray keeps base and sign parsing explicit",
         "phase 7 stringUnescape covers deterministic Linux escape fixtures",
         "phase 7 stringUnescapeInplace reuses the core escape path without extra buffers",
+        "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds",
+        "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned",
+        "phase 7 kstrdupQuotable frees the owned copy when allocation fails",
         "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
         "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
@@ -407,8 +410,8 @@ EXACT_COUNT_MARKERS = {
         ("python3 scripts/zigux/check-phase7-argv-split-packet.py", 1),
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
-        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 1),
-        ("zig build test --build-file zigux/tests/phase7_build.zig", 1),
+        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 2),
+        ("zig build test --build-file zigux/tests/phase7_build.zig", 2),
         ("This slice does not carry an open parity-fixture follow-up", 1),
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
@@ -429,6 +432,7 @@ EXACT_COUNT_MARKERS = {
     ],
     "samples/zigux/README.md": [
         ("current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1),
+        ("treat any new `samples/zigux/*string*.zig` file as review-blocking", 1),
         ("Documentation/zigux/phase7-string-helpers-slice.md", 1),
         ("lib/string_helpers.zig", 1),
         ("zigux/tests/phase7_string_helpers.zig", 1),
