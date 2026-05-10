@@ -119,27 +119,9 @@ fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
     try writer.print("invalid option -- '{s}'\n", .{rendered});
 }
 
-fn ambiguousLongOptionPrefix(option: []const u8) []const u8 {
-    const name_end = std.mem.indexOfScalar(u8, option, '=') orelse option.len;
-    return option[2..name_end];
-}
-
 fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
     try writer.writeAll(getopt_error_prefix);
-    try writer.print("option '{s}' is ambiguous", .{option});
-    if (std.mem.startsWith(u8, option, "--")) {
-        const prefix = ambiguousLongOptionPrefix(option);
-        var found = false;
-        for (long_option_specs) |spec| {
-            if (!std.mem.startsWith(u8, spec.name, prefix)) continue;
-            if (!found) {
-                try writer.writeAll("; possibilities:");
-                found = true;
-            }
-            try writer.print(" '--{s}'", .{spec.name});
-        }
-    }
-    try writer.writeByte('\n');
+    try writer.print("option '{s}' is ambiguous\n", .{option});
 }
 
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
@@ -633,14 +615,14 @@ test "genksyms bridge renders ambiguous long option possibilities" {
 
     try writeAmbiguousOptionError(&output.writer, "--du");
     try testing.expectEqualStrings(
-        "genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
+        "genksyms: option '--du' is ambiguous\n",
         output.written(),
     );
 
     output.clearRetainingCapacity();
     try writeAmbiguousOptionError(&output.writer, "--=value");
     try testing.expectEqualStrings(
-        "genksyms: option '--=value' is ambiguous; possibilities: '--help' '--version' '--debug' '--warnings' '--quiet' '--dump' '--reference' '--dump-types' '--preserve'\n",
+        "genksyms: option '--=value' is ambiguous\n",
         output.written(),
     );
 }
