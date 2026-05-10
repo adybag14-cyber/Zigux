@@ -70,21 +70,21 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
   - `drivers/scsi/virtio_scsi.zig`: `5f76c9e23a470545238df3ec10db60b91ab12786`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md`: `a5c85a0a2326237278217c4a86744adb239c71c4`
   - `Documentation/zigux/phase12-virtio-scsi-survey.md`: `73269ae39f8381b9ea3b559ecdbe9ec09b9886d1`
-  - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`: `2ffc4c8c7cb64549ba7905b5c7ade3d6f606c5a9`
+  - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`: `83d1c9f1474a290f16ee1ef2ee681ea196937e2a`
   - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`: `ff935dc32370d61080062b4de8134b51449ebbb2`
   - `Documentation/zigux/phase12-raw-github-coverage-survey.md`: `3a0e7c32ccc27c870272db9d1d920c563c3467b6`
   - `Documentation/zigux/phase12-release-closure-checklist.md`: `0deddc05ac992935f6a10ccc65df444683d67847`
-  - `Documentation/zigux/phase12-release-readiness-survey.md`: `32084a128911d4062fe1fe4d2d40d6cec4682469`
+  - `Documentation/zigux/phase12-release-readiness-survey.md`: `bc5a0a49308d089ab2eac6127a0422b7ad87872f`
   - `Documentation/zigux/phase12-release-coordination-matrix.md`: `6ca8d9e0d3f198f0f83f863ce6b2fa0790744cf1`
-  - `zigux/tests/README.md`: `705ed8ce93c79802ea1978e1e8013a053b7c7b77`
+  - `zigux/tests/README.md`: `471d7f68b444eba615c95640cac3424824b353db`
   - `zigux/tests/phase12_build.zig`: `be8a03ec689903142e917ba874803520b7bbf056`
   - `zigux/tests/phase12_virtio_scsi.zig`: `00f25168064832145bc5a1d70221bc5e432084b5`
   - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`: `fb036ca89d9e2ce547756781dc0d3e1507620abc`
   - `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`: `514bea34a366e74e3aa0114c3f7afe98b696502f`
   - `zigux/tests/phase12_virtio_scsi_survey.zig`: `33f694e21d02f93995b67e7273e27727ce9ec735`
   - `zigux/tests/phase12_virtio_scsi_manifest.json`: `30b6878de70003eb2f893cb3b16b65441017dbc7`
-  - `scripts/zigux/README.md`: `efc02077ea90a8ac66aa62fada196b6a7802d704`
-  - `Documentation/zigux/README.md`: `65f831044b3a89b0c785575ccc086f9c5598b5a2`
+  - `scripts/zigux/README.md`: `fb283f7acc63fc51fdea9d9f0dc2264adafb11a1`
+  - `Documentation/zigux/README.md`: `176c25abc8ca7dfa0ee7fde8d6025cd42d1da298`
   - `zigux/Makefile`: `06d4605ed21ec25e9c6793d0a713b72852ad1822`
 - bounded coverage result: the current public tree and raw fallback packet still resolves cleanly for all 19 listed surfaces, and the shipped fallback note still matches the live `virtio_scsi` release-adjacent packet on `master`
 
