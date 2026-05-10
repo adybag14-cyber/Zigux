@@ -169,8 +169,10 @@ REQUIRED_MARKERS = {
         'const dev_t_bindings = @import("dev_t_bindings");',
         'const uapi_dev_t = @import("uapi_dev_t");',
         'test "phase3 export shim and uapi keep canonical boundary layout" {',
+        'test "phase3 export shim keeps compatibility status relays explicit" {',
         'test "phase3 export shim evaluation mirrors the uapi boundary classification" {',
         'test "phase3 uapi dev_t starter keeps curated boundary parity explicit" {',
+        'test "phase3 export shim and uapi keep explicit compatibility tags aligned" {',
     ),
     EXPORT_UAPI_LAYOUT_BUILD_REL: (
         '.root_source_file = b.path("../bindings/dev_t.zig"),',
@@ -426,13 +428,25 @@ def run_self_test() -> int:
         ), issues
         build_valid_workspace(root)
 
+        text = (root / EXPORT_UAPI_LAYOUT_REL).read_text(encoding="utf-8").replace(
+            'test "phase3 export shim and uapi keep explicit compatibility tags aligned" {',
+            "test noop {",
+        )
+        _write(root / EXPORT_UAPI_LAYOUT_REL, text)
+        issues = validate(root)
+        assert (
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:test "phase3 export shim and uapi keep explicit compatibility tags aligned" {'
+            in issues
+        ), issues
+        build_valid_workspace(root)
+
         makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[1] + "\n", "", 1)
         _write(root / MAKEFILE_REL, makefile)
         issues = validate(root)
         assert f"missing_makefile_marker:{MAKEFILE_MARKERS[1]}" in issues, issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
