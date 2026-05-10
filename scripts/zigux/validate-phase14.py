@@ -777,6 +777,21 @@ def run_self_test() -> int:
             return 1
 
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n"
+                "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey" not in errors:
+            print("self-test expected forbidden smoke dependency failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
         rcu_survey_path = root / RCU_SURVEY_PATH
         rcu_survey_path.write_text(
             rcu_survey_path.read_text(encoding="utf-8").replace(
