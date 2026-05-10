@@ -60,6 +60,7 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 5. keep the dedicated no-string-sample boundary guard reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
+- `make -C zigux phase7-string-helpers-sample-boundary`
 6. keep the dedicated manifest packet explicit
 - `zigux/tests/phase7_string_helpers_manifest.json`
 
@@ -116,7 +117,7 @@ The current tests check:
 - zero-capacity escape-destination accounting that still reports the full would-be escaped length without promising an appended terminator
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
 - one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe
-- the dedicated survey gate, the dedicated manifest packet, the shared make-wrapper checker, the dedicated build-wiring checker, the roadmap anchor, helper replay, shared build route, the shared make-wrapper selftest-alignment control surface, and the no-string-sample boundary stay reviewable together
+- the dedicated survey gate, the dedicated manifest packet, the shared make-wrapper checker, the dedicated build-wiring checker, the roadmap anchor, helper replay, shared build route, the shared make-wrapper selftest-alignment control surface, the Linux-style `make -C zigux phase7-string-helpers-sample-boundary` replay route, and the no-string-sample boundary stay reviewable together
 - the Phase 5-versus-Phase 7 boundary check that keeps `samples/zigux/` free of approved string-helper reference samples while pointing reviewers back to this helper packet
 
 The dedicated string-helper packet is now also recorded in `zigux/tests/phase7_string_helpers_manifest.json`, so the parked helper, slice note, survey gate, no-string-sample boundary replay, and shared validator-backed route have a machine-readable Phase 7 record alongside the sibling `argv_split` and `rbtree` manifests without reopening helper logic.
