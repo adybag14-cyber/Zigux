@@ -214,7 +214,11 @@ EXACT_COUNT_CHECKS = {
         "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
         "python3 scripts/zigux/validate-phase2.py": 1,
         "python3 scripts/zigux/validate-phase2-closure.py": 1,
+        "make -C zigux phase2-toolchain": 2,
         "make -C zigux phase2-validate": 3,
+        "make -C zigux phase2-tools": 2,
+        "make -C zigux phase2-kconfig": 2,
+        "make -C zigux phase2-cross": 2,
         "make -C zigux phase2": 2,
     },
     "Documentation/zigux/review-checklist.md": {
