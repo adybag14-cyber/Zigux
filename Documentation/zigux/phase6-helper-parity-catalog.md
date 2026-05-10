@@ -41,10 +41,12 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - focused replay: `zigux/tests/phase6_base64.zig`
 - direct C parity replay: `zigux/tests/phase6_base64_c_parity.zig`
 - dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`
+- focused local perf rerun: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
+- Linux-style perf rerun: `make -C zigux phase6-base64-perf`
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - dedicated external parity checker: `scripts/zigux/check-phase6-base64-c-parity.py`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: the focused replay keeps the helper-local `paddedChars` and `maxDecodedBytes` sizing surfaces explicit beside the broader functional encode, decode, variant, invalid-input, canonical-tail, and short-roundtrip checks, while the shipped direct 24-case C-vs-Zig spot check keeps representative encode, decode, returned `chars` sizing, returned `bytes` sizing, and malformed-tail rejection parity reviewable through the dedicated parity replay, C harness, and checker script, alongside the dedicated helper-local encode and decode slowdown gate exposed through `make -C zigux phase6-base64-perf`
+- current review posture: the focused replay keeps the helper-local `paddedChars` and `maxDecodedBytes` sizing surfaces explicit beside the broader functional encode, decode, std-or-URL-safe-or-IMAP variant, exhaustive canonical-tail, exhaustive short-roundtrip, and destination-write-safety checks. The shipped direct 24-case C-vs-Zig spot check keeps representative encode, decode, returned `chars` sizing, returned `bytes` sizing, and malformed-tail rejection parity reviewable through the dedicated parity replay, C harness, and checker script, while the dedicated helper-local encode and decode slowdown gate remains directly rerunnable through both the focused `zig build` route and the Linux-style make route.
 
 ### bsearch
 
