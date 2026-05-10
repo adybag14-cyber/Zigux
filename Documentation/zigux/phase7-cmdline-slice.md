@@ -101,6 +101,6 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked for behavior, fixtures, and shared README wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, and `scripts/zigux/validate-phase7.py` already requires that manifest file to exist.
+Keep the helper slice parked for behavior, fixtures, and shared reminder wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, and `scripts/zigux/validate-phase7.py` already fail-closes on those reminder markers as well as the manifest file itself.
 
-The next honest same-lane follow-up is narrower: tighten `scripts/zigux/validate-phase7.py` so the shared Phase 7 validator fail-closes if those shared reminder surfaces drop the cmdline manifest marker, instead of steering future runs back into already-finished Phase 7 helper logic or shared README churn.
+The next honest same-lane follow-up is narrower still: reopen only if fresh repo inspection finds a new cmdline-local parity, survey, manifest, fixture, or shared reminder drift inside the parked `next_arg()`, `get_option()`, `get_options()`, `memparse()`, and `parse_option_str()` packet, instead of steering future runs back into already-closed validator hardening.
