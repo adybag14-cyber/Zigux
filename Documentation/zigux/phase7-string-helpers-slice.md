@@ -12,6 +12,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - product boundary:
   - `lib/string_helpers.zig`
   - `samples/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
   - `scripts/zigux/validate-phase7.py`
   - `scripts/zigux/check-phase7-make-wrapper.py`
@@ -34,7 +35,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families
 - keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, first-NUL-bounded ASCII case-copy behavior that leaves trailing destination bytes untouched, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one quotable-log duplication helper
-- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, `zigux/tests/phase7_string_helpers_manifest.json`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
+- keep integration with validation substrate explicit through `Documentation/zigux/review-checklist.md`, `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, `zigux/tests/phase7_string_helpers_manifest.json`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
