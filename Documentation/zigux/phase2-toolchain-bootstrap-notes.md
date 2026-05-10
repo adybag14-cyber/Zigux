@@ -9,6 +9,8 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 - shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`
+- shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
+- shared cross selftest-alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
 - shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`
 - shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`
@@ -53,6 +55,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 
 ## Alignment Notes
 
+- `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep this dedicated bootstrap note aligned with `zigux/tests/fixtures/phase2_cross_targets.json`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` so the bounded three-target compile matrix stays reviewable from the same Phase 2 note instead of being implied only by sibling reminder surfaces
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `artifact_tools` (`genksyms_crc` plus `mk_elfconfig`), `kconfig`, and `confdata` packet links it pins, `.github/workflows/zigux-bootstrap.yml`, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator
 - the dedicated fixdep gate checker keeps the bounded fixdep workflow gate paired with the direct `zig test scripts/zigux/fixdep.zig` replay and the shared tools route
 - the direct fixdep parity checker keeps the direct fixdep parity surface reviewable beside the same artifact packet and Linux-style tool replay
