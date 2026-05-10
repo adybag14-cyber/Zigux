@@ -49,7 +49,7 @@ WORKFLOW_MARKERS = [
     "Run Phase 14 smoke shard",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "Run Phase 14 internal bridge tests",
-    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-test",
 ]
 
 SCRIPT_README_MARKERS = [
