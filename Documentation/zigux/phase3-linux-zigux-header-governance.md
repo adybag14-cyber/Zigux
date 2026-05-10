@@ -30,6 +30,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Current Gap
 
 - live `master` already uses `include/linux/zigux.h` as a broad aggregation header for many landed helper views and summaries, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- live `include/linux/zigux.h` still hard-codes `ZIGUX_DEV_MINOR_BITS` and `ZIGUX_DEV_MINOR_MASK` locally even though `include/zigux/dev_t.h` already owns that canonical `dev_t` boundary, so the next honest same-lane fix is a header-only aggregation sync that folds those aliases back under the canonical header instead of leaving two sources of truth in the C-facing packet
 - the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into additional top-level curated boundary families with their own proof surfaces
 - `zigux/uapi/` still stops at `version.zig`, so wider exported boundary ownership is still absent from the shipped substrate
 - until a new boundary family lands with its own header, bindings, manifest-backed replay, and note refresh, more `include/linux/zigux.h` aggregation alone should be treated as reviewability risk, not interop closure
@@ -37,6 +38,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Boundary
 
 - `include/linux/zigux.h` may aggregate already-approved helper entry points, but it should not become a second source of truth for canonical struct layout, policy enums, or UAPI version ownership
+- when the Linux-facing relay needs `dev_t` minor-width aliases, it should aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally, because those aliases already belong to the canonical `dev_t` boundary
 - if a helper surface needs new ownership wording before it can be reviewed safely, add that wording here first instead of burying it in a dump-only or wrapper-only follow-up
 - if an already-landed helper surface is rehomed into `include/linux/zigux.h`, refresh this note in the same bounded change so the shared ABI slice and the dedicated header-governance note continue to name the same owner map
 - export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly
