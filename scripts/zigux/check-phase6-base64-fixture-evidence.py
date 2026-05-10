@@ -39,6 +39,12 @@ REQUIRED_SLICE_SNIPPETS = [
 
 PERF_PAYLOAD_KEY = "perf_payload_cases"
 PERF_PAYLOAD_MARKER = "pub const perf_payload ="
+PERF_CASE_FIELDS = (
+    ("label", "str"),
+    ("iterations", "int"),
+    ("max_encode_slowdown_pct", "int"),
+    ("max_decode_slowdown_pct", "int"),
+)
 
 
 def read_text(path: Path) -> str:
@@ -68,6 +74,71 @@ def extract_array_block(content: str, rel_path: str, anchor: str) -> str:
 def count_zig_cases(content: str, rel_path: str, anchor: str) -> int:
     block = extract_array_block(content, rel_path, anchor)
     return len(re.findall(r"^\s*\.\{", block, flags=re.MULTILINE))
+
+
+def extract_perf_case_blocks(content: str, rel_path: str) -> list[str]:
+    block = extract_array_block(content, rel_path, COUNT_ANCHORS["perf_replay_cases"])
+    case_blocks = re.findall(r"\.\{\n(.*?)\n\s*\},", block, flags=re.DOTALL)
+    if not case_blocks:
+        raise ValidationError(f"missing Phase 6 base64 perf cases in {rel_path}")
+    return case_blocks
+
+
+def extract_perf_case_value(case_block: str, rel_path: str, field_name: str, value_kind: str) -> str | int:
+    if value_kind == "str":
+        pattern = rf"\.{field_name}\s*=\s*\"([^\"]+)\""
+        match = re.search(pattern, case_block)
+        if not match:
+            raise ValidationError(f"missing Phase 6 base64 perf field in {rel_path}: {field_name}")
+        return match.group(1)
+    if value_kind == "int":
+        pattern = rf"\.{field_name}\s*=\s*([0-9_]+)"
+        match = re.search(pattern, case_block)
+        if not match:
+            raise ValidationError(f"missing Phase 6 base64 perf field in {rel_path}: {field_name}")
+        return int(match.group(1).replace("_", ""))
+    raise AssertionError(f"unsupported value kind: {value_kind}")
+
+
+def extract_perf_cases(content: str, rel_path: str) -> list[dict[str, str | int]]:
+    cases: list[dict[str, str | int]] = []
+    for case_block in extract_perf_case_blocks(content, rel_path):
+        case: dict[str, str | int] = {}
+        for field_name, value_kind in PERF_CASE_FIELDS:
+            case[field_name] = extract_perf_case_value(case_block, rel_path, field_name, value_kind)
+        cases.append(case)
+    return cases
+
+
+def validate_manifest_perf_thresholds(manifest: dict[str, object], fixture_text: str, fixture_rel: str, manifest_rel: str) -> None:
+    perf_thresholds = manifest.get("perf_thresholds")
+    if not isinstance(perf_thresholds, dict):
+        raise ValidationError(f"missing perf_thresholds in {manifest_rel}")
+    base64_thresholds = perf_thresholds.get("base64")
+    if not isinstance(base64_thresholds, dict):
+        raise ValidationError(f"missing perf_thresholds.base64 in {manifest_rel}")
+    cases = base64_thresholds.get("cases")
+    if not isinstance(cases, list):
+        raise ValidationError(f"missing perf_thresholds.base64.cases in {manifest_rel}")
+
+    actual_cases = extract_perf_cases(fixture_text, fixture_rel)
+    if len(cases) != len(actual_cases):
+        raise ValidationError(
+            f"Phase 6 base64 perf-case count drifted between {manifest_rel} ({len(cases)}) "
+            f"and {fixture_rel} ({len(actual_cases)})"
+        )
+
+    for idx, (recorded, actual) in enumerate(zip(cases, actual_cases), start=1):
+        if not isinstance(recorded, dict):
+            raise ValidationError(f"expected object entries in perf_thresholds.base64.cases in {manifest_rel}")
+        for field_name, _value_kind in PERF_CASE_FIELDS:
+            recorded_value = recorded.get(field_name)
+            actual_value = actual[field_name]
+            if recorded_value != actual_value:
+                raise ValidationError(
+                    f"Phase 6 base64 perf field drifted for case #{idx} between {manifest_rel} "
+                    f"({field_name}={recorded_value!r}) and {fixture_rel} ({actual_value!r})"
+                )
 
 
 def validate_manifest_and_fixture(repo_root: Path) -> None:
@@ -103,6 +174,8 @@ def validate_manifest_and_fixture(repo_root: Path) -> None:
             f"({PERF_PAYLOAD_KEY}={payload_cases!r}) and {fixture_rel} ({actual_payload_cases})"
         )
 
+    validate_manifest_perf_thresholds(manifest, fixture_text, fixture_rel, manifest_rel)
+
     exact_checks = manifest.get("exact_checks")
     if not isinstance(exact_checks, list):
         raise ValidationError(f"missing exact_checks list in {manifest_rel}")
@@ -137,6 +210,32 @@ def scaffold_fixture_block(name: str, count: int) -> list[str]:
     return lines
 
 
+def scaffold_perf_cases() -> list[str]:
+    cases = [
+        ("STD_PAD", 12000, 150, 325),
+        ("STD_NO_PAD", 12000, 150, 325),
+        ("URLSAFE_PAD", 12000, 150, 325),
+        ("URLSAFE_NO_PAD", 12000, 150, 325),
+    ]
+    lines = [COUNT_ANCHORS["perf_replay_cases"]]
+    for label, iterations, encode_pct, decode_pct in cases:
+        lines.extend(
+            [
+                "    .{",
+                f'        .label = "{label}",',
+                '        .payload = perf_payload,',
+                "        .padding = true,",
+                '        .variant_name = "std",',
+                f"        .iterations = {iterations},",
+                f"        .max_encode_slowdown_pct = {encode_pct},",
+                f"        .max_decode_slowdown_pct = {decode_pct},",
+                "    },",
+            ]
+        )
+    lines.append("};")
+    return lines
+
+
 def scaffold_repo(root: Path) -> None:
     manifest = {
         "determinism_evidence": {
@@ -149,6 +248,36 @@ def scaffold_repo(root: Path) -> None:
                 "c_parity_cases": 24,
                 "perf_payload_cases": 1,
                 "perf_replay_cases": 4,
+            }
+        },
+        "perf_thresholds": {
+            "base64": {
+                "cases": [
+                    {
+                        "label": "STD_PAD",
+                        "iterations": 12000,
+                        "max_encode_slowdown_pct": 150,
+                        "max_decode_slowdown_pct": 325,
+                    },
+                    {
+                        "label": "STD_NO_PAD",
+                        "iterations": 12000,
+                        "max_encode_slowdown_pct": 150,
+                        "max_decode_slowdown_pct": 325,
+                    },
+                    {
+                        "label": "URLSAFE_PAD",
+                        "iterations": 12000,
+                        "max_encode_slowdown_pct": 150,
+                        "max_decode_slowdown_pct": 325,
+                    },
+                    {
+                        "label": "URLSAFE_NO_PAD",
+                        "iterations": 12000,
+                        "max_encode_slowdown_pct": 150,
+                        "max_decode_slowdown_pct": 325,
+                    },
+                ]
             }
         },
         "exact_checks": list(REQUIRED_EXACT_CHECKS),
@@ -168,7 +297,7 @@ def scaffold_repo(root: Path) -> None:
     fixture_lines.append("")
     fixture_lines.append('pub const perf_payload = "payload";')
     fixture_lines.append("")
-    fixture_lines.extend(scaffold_fixture_block(COUNT_ANCHORS["perf_replay_cases"], 4))
+    fixture_lines.extend(scaffold_perf_cases())
     fixture_lines.append("")
     write(root / FIXTURE_PATH, "\n".join(fixture_lines))
 
@@ -218,8 +347,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             FIXTURE_PATH.as_posix(),
-            '    .{ .tag = "04" },',
-            '    // removed perf case',
+            '        .label = "STD_PAD",',
+            '        .label = "STD_PAD_MISSING",',
+        )
+        assert_failure(
+            root,
+            FIXTURE_PATH.as_posix(),
+            "        .max_decode_slowdown_pct = 325,",
+            "        .max_decode_slowdown_pct = 400,",
         )
         assert_failure(
             root,
