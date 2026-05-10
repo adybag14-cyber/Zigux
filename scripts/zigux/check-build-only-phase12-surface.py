@@ -28,6 +28,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 
 REQUIRED_PHASE12_PATHS = [
     DOCS_README_PATH,
@@ -51,7 +52,7 @@ REQUIRED_PHASE12_PATHS = [
     "Documentation/zigux/phase12-virtio-scsi-slice.md",
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
-    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    PHASE12_LIBBPF_SURVEY_PATH,
     "drivers/nvme/host/pci_verify.zig",
     PHASE12_BUILD_PATH,
     "zigux/tests/phase12_nvme_pci.zig",
@@ -104,6 +105,21 @@ PHASE12_FREEZE_MAP_MARKER = (
     "queueing, throughput, rollback, and recovery wording there must stay bounded to driver-local review evidence, "
     "lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery "
     "against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`"
+)
+PHASE12_LIBBPF_SURVEY_FALLBACK_MARKER = (
+    "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact."
+)
+PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER = (
+    "rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`"
+)
+PHASE12_LIBBPF_SURVEY_CLOSURE_MARKER = (
+    "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO closure companion when judging whether this shared-tree libbpf survey packet is close enough to describe the active Phase 12 tranche as release-closed."
+)
+PHASE12_LIBBPF_SURVEY_COORDINATION_MARKER = (
+    "Keep `Documentation/zigux/phase12-release-coordination-matrix.md` visible beside that same PMO closure companion when judging whether the compact lane-owner split, fallback split, and smoke-set summary still match this shared-tree libbpf packet."
+)
+PHASE12_LIBBPF_SURVEY_DETERMINISM_MARKER = (
+    "the deterministic Phase 12 tracked-helper snapshot still stays narrower than that shared bridge file"
 )
 
 REQUIRED_SCRIPTS_README_MARKERS = [
@@ -232,6 +248,21 @@ REQUIRED_PHASE12_BUILD_EXACT_COUNTS = {
     "test_step.dependOn(": 8,
 }
 
+REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS = [
+    PHASE12_LIBBPF_SURVEY_FALLBACK_MARKER,
+    PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER,
+    PHASE12_LIBBPF_SURVEY_CLOSURE_MARKER,
+    PHASE12_LIBBPF_SURVEY_COORDINATION_MARKER,
+    PHASE12_LIBBPF_SURVEY_DETERMINISM_MARKER,
+]
+
+REQUIRED_PHASE12_LIBBPF_SURVEY_EXACT_COUNTS = {
+    PHASE12_LIBBPF_SURVEY_FALLBACK_MARKER: 1,
+    PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER: 1,
+    PHASE12_LIBBPF_SURVEY_CLOSURE_MARKER: 1,
+    PHASE12_LIBBPF_SURVEY_COORDINATION_MARKER: 1,
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -283,6 +314,7 @@ def validate(root: Path) -> list[str]:
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     phase12_build = read_text(root, PHASE12_BUILD_PATH)
+    phase12_libbpf_survey = read_text(root, PHASE12_LIBBPF_SURVEY_PATH)
 
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_MARKERS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
@@ -300,6 +332,8 @@ def validate(root: Path) -> list[str]:
     ensure_absent(failures, "makefile", makefile, FORBIDDEN_MAKEFILE_MARKERS)
     ensure_contains(failures, "phase12_build", phase12_build, REQUIRED_PHASE12_BUILD_MARKERS)
     ensure_exact_counts(failures, "phase12_build", phase12_build, REQUIRED_PHASE12_BUILD_EXACT_COUNTS)
+    ensure_contains(failures, "phase12_libbpf_survey", phase12_libbpf_survey, REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
+    ensure_exact_counts(failures, "phase12_libbpf_survey", phase12_libbpf_survey, REQUIRED_PHASE12_LIBBPF_SURVEY_EXACT_COUNTS)
 
     return failures
 
@@ -307,6 +341,8 @@ def validate(root: Path) -> list[str]:
 def placeholder_for(rel_path: str) -> str:
     if rel_path == PHASE12_BUILD_PATH:
         return minimal_phase12_build()
+    if rel_path == PHASE12_LIBBPF_SURVEY_PATH:
+        return minimal_marker_doc("Documentation/zigux/phase12-libbpf-segment-survey", REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
     if rel_path == DOCS_README_PATH:
         return minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS)
     if rel_path == REVIEW_CHECKLIST_PATH:
@@ -403,6 +439,7 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
+        phase12_libbpf_survey_path = base / PHASE12_LIBBPF_SURVEY_PATH
 
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(scripts_readme.replace(PHASE12_REMOVED_SURFACE_MARKER, "", 1), encoding="utf-8")
@@ -485,8 +522,16 @@ def run_self_test() -> int:
         )
         expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
 
+        write_fixture_tree(base)
+        phase12_libbpf_survey = phase12_libbpf_survey_path.read_text(encoding="utf-8")
+        phase12_libbpf_survey_path.write_text(
+            phase12_libbpf_survey.replace(PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_libbpf_survey:{PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER}")
+
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -524,7 +569,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)}"
     )
     return 0
 
