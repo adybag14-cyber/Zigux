@@ -86,6 +86,7 @@ When a shared Phase 9 review surface is touched, it must follow these rules.
    - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 references
    - `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` remain earlier-phase command and environment cue owners
 6. If shared reminder surfaces drift behind the live loader-facing or pilot-family packet, narrow the wording or record the blocker directly. Do not keep stale missing-file claims, stale build-route claims, or invented validation surfaces in place once current-`master` readback contradicts them.
+7. `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` must defer the exact shared loader-facing path inventory, convenience-target names, and blocker posture to this sequencing note. If this note cannot confirm those shared loader-facing paths on current `master`, the other shared reminder surfaces must record a blocker or defer back here instead of relisting those paths as live shipped evidence.
 
 ## Adjacent lane boundaries
 
@@ -116,8 +117,9 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 
 1. Re-read shared reminder surfaces against the live shared loader-facing family plus the four pilot-family survey packets whenever the Phase 9 owner map is in doubt.
 2. If one shared reminder note still carries stale missing-file wording or still treats the missing shared loader-facing family as shipped current-`master` evidence, repair that note one file at a time instead of widening into pilot behavior or checker growth.
-3. If the shared loader-facing family returns or its missing-path blocker changes, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
-4. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
+3. If a shared reminder surface still relists unconfirmed loader-facing paths or replay-route names instead of deferring to this sequencing note, narrow that one surface next before touching pilot-local notes.
+4. If the shared loader-facing family returns or its missing-path blocker changes, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
+5. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
 
 ## Anti-overlap rule
 
