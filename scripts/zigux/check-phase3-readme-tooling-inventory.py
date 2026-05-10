@@ -89,6 +89,12 @@ def run_self_test() -> int:
         print("expected phase4 validate route marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("check-phase4-workflow-route-counts.py", "", 1))
+    if "check-phase4-workflow-route-counts.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected phase4 workflow-route-counts marker was not reported")
+        return 1
+
     broken = validate_text(
         sample.replace(
             "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
