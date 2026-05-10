@@ -80,11 +80,11 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings(&gitBlobShaHex(phase4_build_source), manifest.phase4_build_blob_sha);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/bitmap_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared Phase 4 gate-evidence note") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "directly coupled bitmap survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared validator or docs-side artifact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "exact bitmap_fill prefixes at 35 and 115 bits") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "lib/test_bitmap.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "64 and 128") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Shared Subsystems Pod") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same-lane roadmap-visible gap") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_live_helper_replay.zig") != null);
@@ -94,10 +94,11 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "directly coupled manifest-backed bitmap survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "reviewer-facing artifact") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared validator and reviewer-facing summaries still agree") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane survey step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "helper-backed replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Linux anchor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "fill-vs-Linux rounded prefix mismatch explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared validators") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "sample packets, or perf-threshold approval") != null);
 }
 
@@ -147,6 +148,14 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
 }
 
+test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
+    try expectContains(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
+    try expectContains(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
+    try expectContains(bitmap_live_helper_replay_source, "phase4 bitmap live helper replay keeps fill exact and zero rounded");
+    try expectContains(bitmap_live_helper_replay_source, "try std.testing.expectEqual(@as(usize, 35), bitmap.firstZero());");
+    try expectContains(bitmap_live_helper_replay_source, "try std.testing.expectEqual(@as(usize, 115), bitmap.firstZero());");
+}
+
 test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks explicit" {
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
@@ -179,6 +188,6 @@ test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" 
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "refresh the directly coupled manifest-backed bitmap survey or reviewer-facing artifact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "fill-semantics mismatch itself") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "keep the fill-vs-Linux rounded prefix mismatch explicit") != null);
 }
