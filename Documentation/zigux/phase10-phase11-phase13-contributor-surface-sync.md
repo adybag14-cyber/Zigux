@@ -76,22 +76,31 @@ Contributor reminder:
 
 ## Phase 13 contributor packet
 
-Keep the shared-subsystems packet explicit through the verified broad surfaces and adjacent evidence anchors:
+Keep the shared-subsystems packet explicit through the verified broad surfaces, validator-first route, and adjacent evidence anchors:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_libfs_addressability.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
