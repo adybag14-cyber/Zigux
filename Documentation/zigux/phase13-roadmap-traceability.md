@@ -14,6 +14,18 @@ The active contributor-facing packet stays inside that helper-first scope by kee
 - `security/landlock/syscalls.c`
 
 Adjacent notifier evidence supports the same Phase 13 packet, but it remains adjacent evidence rather than a fifth roadmap anchor.
+That adjacent evidence packet should stay explicit through:
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
+- `include/zigux/notifier_abi.h`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
+- `zigux/helpers/notifier_chain_view.zig`
+- `drivers/tty/hvc/hvc_console.h`
 
 ## Traceability Map
 
@@ -21,7 +33,7 @@ Adjacent notifier evidence supports the same Phase 13 packet, but it remains adj
 - `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
-- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors.
+- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
 
 ## Broad Surface Expectations
 
@@ -41,6 +53,8 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 
 ## Non-Goals
 
