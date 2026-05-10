@@ -56,6 +56,7 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
     "`drivers/watchdog/bcm2835_wdt_verify.zig`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
+    "`Documentation/zigux/phase11-closure-note.md`",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
@@ -177,6 +178,7 @@ def run_self_test() -> int:
             ("driver-lane", DRIVER_LANE_PATH, REQUIRED_DRIVER_LANE_MARKERS[0]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[1]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
