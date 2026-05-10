@@ -310,6 +310,7 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+        "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "`Documentation/zigux/freeze-map.md`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "`zigux/tests/phase12_virtio_net_manifest.json`",
