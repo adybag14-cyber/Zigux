@@ -118,6 +118,7 @@ test "phase3 export shim keeps compatibility status relays explicit" {
 
 test "phase3 export shim evaluation mirrors the uapi boundary classification" {
     const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 24, 0x77);
+    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x77);
     const version_mismatch = export_shim.versionedHeader(
         export_shim.header_size,
         export_shim.abi_version + 1,
@@ -133,6 +134,25 @@ test "phase3 export shim evaluation mirrors the uapi boundary classification" {
     try std.testing.expectEqual(uapi_future.canonical().?, export_future.canonical().?);
     try std.testing.expectEqual(uapi_future.sizeDelta(), export_future.sizeDelta());
     try std.testing.expect(export_shim.isOk(export_future.status));
+
+    const export_undersized = export_shim.evaluateHeader(undersized, -22, .drivers);
+    const uapi_undersized = uapi_version.evaluateHeader(undersized);
+
+    try std.testing.expect(!export_undersized.isAccepted());
+    try std.testing.expect(!uapi_undersized.isAccepted());
+    try std.testing.expect(export_undersized.compatibility() == null);
+    try std.testing.expect(uapi_undersized.compatibility() == null);
+    try std.testing.expect(export_undersized.canonical() == null);
+    try std.testing.expect(uapi_undersized.canonical() == null);
+    try std.testing.expectEqual(uapi_undersized.sizeDelta(), export_undersized.sizeDelta());
+    try std.testing.expectEqual(@as(i64, -1), export_undersized.sizeDelta());
+    try std.testing.expectEqual(@as(u32, 0), export_shim.compatibilityTag(undersized));
+    try std.testing.expectEqual(@as(u32, 0), uapi_version.compatibilityTag(undersized));
+    try std.testing.expectEqual(@as(u32, 0), export_undersized.compatibilityTag());
+    try std.testing.expect(!export_shim.isOk(export_undersized.status));
+    try std.testing.expectEqual(@as(i32, -22), export_undersized.status.code);
+    try std.testing.expectEqual(@intFromEnum(abi.Facility.drivers), export_undersized.status.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), export_undersized.status.flags);
 
     const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);
     const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);
