@@ -30,11 +30,11 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 
 REQUIRED_FILE_MARKERS = {
     MANIFEST_PATH: [
-        '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
-        '"kernel/workqueue.c"',
-        '"kernel/trace/ring_buffer.c"',
-        '"kernel/rcu/tree.c"',
-        '"net/core/skbuff.c"',
+        '\"rollback_owner\": \"keep the freeze-map anchors in C and reopen only with stronger evidence\"',
+        '\"kernel/workqueue.c\"',
+        '\"kernel/trace/ring_buffer.c\"',
+        '\"kernel/rcu/tree.c\"',
+        '\"net/core/skbuff.c\"',
     ],
     SMOKE_SURVEY_PATH: [
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
@@ -451,6 +451,56 @@ def run_self_test() -> int:
             print("self-test expected missing repo-local toolchain fallback guidance failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_survey_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_manifest_path = root / MANIFEST_PATH
+        write_text(broken_manifest_path, "{\n")
+        errors = check(root)
+        if not any(
+            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:"
+            in error
+            for error in errors
+        ):
+            print("self-test expected invalid shared-smoke manifest json failure", file=sys.stderr)
+            return 1
+        write_text(broken_manifest_path, required_text(root, MANIFEST_PATH))
+
+        broken_review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        broken_review_checklist_path.write_text(
+            broken_review_checklist_path.read_text(encoding="utf-8").replace(
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/review-checklist.md: same study-only stay-in-C posture without implying an active deep-core port claim?"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing review-checklist stay-in-C guidance failure", file=sys.stderr)
+            return 1
+        write_text(broken_review_checklist_path, required_text(root, REVIEW_CHECKLIST_PATH))
+
+        broken_review_checklist_path.write_text(
+            broken_review_checklist_path.read_text(encoding="utf-8").replace(
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n"
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/review-checklist.md: same study-only stay-in-C posture without implying an active deep-core port claim? (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate review-checklist stay-in-C guidance failure", file=sys.stderr)
+            return 1
+        write_text(broken_review_checklist_path, required_text(root, REVIEW_CHECKLIST_PATH))
 
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
