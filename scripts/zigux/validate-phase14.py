@@ -131,23 +131,18 @@ RCU_REQUIRED_GAP_STATUSES = {
     "phase14-rcu-tree-bridge-blocker": "blocked_on_stay_in_c_evidence",
 }
 
-
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
-
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
-
 def load_json_file(path: Path) -> dict:
     return json.loads(read_text(path))
-
 
 def blocked_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
@@ -158,7 +153,6 @@ def blocked_gap_id(manifest: dict) -> str | None:
                 return gap_id
     return None
 
-
 def ready_next_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
         if gap.get("status") == "ready_next":
@@ -166,7 +160,6 @@ def ready_next_gap_id(manifest: dict) -> str | None:
             if isinstance(gap_id, str):
                 return gap_id
     return None
-
 
 def gap_status(manifest: dict, gap_id: str) -> str | None:
     for gap in manifest.get("gaps", []):
@@ -177,10 +170,8 @@ def gap_status(manifest: dict, gap_id: str) -> str | None:
             return None
     return None
 
-
 def compile_matrix_note_row(label: str, root_source: str, coverage: str) -> str:
     return f"- `{label}`: root `{root_source}`, coverage `{coverage}`"
-
 
 def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
@@ -223,7 +214,6 @@ def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
             markers.append(f"- blocked gap: `{blocked_gap}`")
     return markers, errors
 
-
 def check_traceability_note(root: Path) -> list[str]:
     traceability_path = root / TRACEABILITY_PATH
     if not traceability_path.exists():
@@ -242,7 +232,6 @@ def check_traceability_note(root: Path) -> list[str]:
                     f"(expected {expected_count}, found {actual_count})"
                 )
     return errors
-
 
 def check_rcu_rollback_threshold(root: Path) -> list[str]:
     errors: list[str] = []
@@ -282,7 +271,6 @@ def check_rcu_rollback_threshold(root: Path) -> list[str]:
             )
     return errors
 
-
 def run_checker(root: Path, rel_path: str, missing_message: str, failure_message: str) -> list[str]:
     checker = root / rel_path
     if not checker.exists():
@@ -303,7 +291,6 @@ def run_checker(root: Path, rel_path: str, missing_message: str, failure_message
     if stdout:
         return stdout
     return [failure_message]
-
 
 def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Counter[str], list[str]]:
     raw_surfaces = manifest.get("surfaces", [])
@@ -328,7 +315,6 @@ def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Co
         surfaces[path] = required_marker
     return surfaces, surface_counts, errors
 
-
 def check_manifest_productization(manifest: dict) -> list[str]:
     productization = manifest.get("productization")
     if not isinstance(productization, dict):
@@ -341,7 +327,6 @@ def check_manifest_productization(manifest: dict) -> list[str]:
                 f"phase14 shared smoke manifest productization.{key} drifted from the current study-only packet"
             )
     return errors
-
 
 def check_compile_matrix(root: Path) -> list[str]:
     errors: list[str] = []
@@ -393,37 +378,15 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("missing compile-artifact dependency in zigux/tests/phase14_build.zig: phase14_workqueue_reviewability")
     return errors
 
-
 def check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not manifest_path.exists():
         return [f"missing file: {manifest_path.as_posix()}"]
 
     errors: list[str] = []
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            "phase14 docs-root smoke-summary checker failed without output",
-        )
-    )
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            "phase14 rollback-threshold sequencing checker failed without output",
-        )
-    )
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-            "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-            "phase14 release-boundary exact-counts checker failed without output",
-        )
-    )
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-docs-root-smoke-summary.py", "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py", "phase14 docs-root smoke-summary checker failed without output"))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "phase14 rollback-threshold sequencing checker failed without output"))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-release-boundary-exact-counts.py", "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py", "phase14 release-boundary exact-counts checker failed without output"))
 
     try:
         manifest = load_json_file(manifest_path)
@@ -464,11 +427,9 @@ def check(root: Path) -> list[str]:
     errors.extend(check_rcu_rollback_threshold(root))
     return errors
 
-
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-
         manifest = {
             "lane_key": EXPECTED_LANE_KEY,
             "phase": "Phase 14",
@@ -478,75 +439,30 @@ def run_self_test() -> int:
             "productization": dict(EXPECTED_PRODUCTIZATION),
             "commands": REQUIRED_COMMANDS,
             "compile_shards": REQUIRED_COMPILE_SHARDS,
-            "surfaces": [
-                {"path": path, "required_marker": marker}
-                for path, marker in REQUIRED_SURFACES.items()
-            ],
-            "blocked_anchors": [
-                "kernel/workqueue.c",
-                "kernel/trace/ring_buffer.c",
-                "kernel/rcu/tree.c",
-                "net/core/skbuff.c",
-            ],
+            "surfaces": [{"path": path, "required_marker": marker} for path, marker in REQUIRED_SURFACES.items()],
+            "blocked_anchors": ["kernel/workqueue.c","kernel/trace/ring_buffer.c","kernel/rcu/tree.c","net/core/skbuff.c"],
         }
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-
         anchor_manifests = {
-            "zigux/tests/phase14_workqueue_bridge_manifest.json": {
-                "lane_key": "P14-L02",
-                "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
-                "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}],
-            },
-            "zigux/tests/phase14_ring_buffer_manifest.json": {
-                "lane_key": "P14-L08",
-                "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
-                "gaps": [
-                    {"id": "phase14-ring-buffer-read-page-copy-followup", "status": "ready_next"},
-                    {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
-                ],
-            },
-            "zigux/tests/phase14_skbuff_bridge_manifest.json": {
-                "lane_key": "P14-L11",
-                "surveyed_commit": "synthetic-skbuff-commit",
-                "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}],
-            },
-            RCU_MANIFEST_PATH: {
-                "lane_key": "P14-L13",
-                "surveyed_commit": "synthetic-rcu-commit",
-                "gaps": [
-                    {"id": "phase14-rcu-tree-rollback-threshold-guardrail", "status": "starter_landed"},
-                    {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"},
-                ],
-            },
+            "zigux/tests/phase14_workqueue_bridge_manifest.json": {"lane_key": "P14-L02", "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c", "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_ring_buffer_manifest.json": {"lane_key": "P14-L08", "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c", "gaps": [{"id": "phase14-ring-buffer-read-page-copy-followup", "status": "ready_next"}, {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_skbuff_bridge_manifest.json": {"lane_key": "P14-L11", "surveyed_commit": "synthetic-skbuff-commit", "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            RCU_MANIFEST_PATH: {"lane_key": "P14-L13", "surveyed_commit": "synthetic-rcu-commit", "gaps": [{"id": "phase14-rcu-tree-rollback-threshold-guardrail", "status": "starter_landed"}, {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
         }
         for rel_path, data in anchor_manifests.items():
             write_text(root / rel_path, json.dumps(data, indent=2) + "\n")
-
         traceability_markers, traceability_errors = traceability_expected_markers(root)
         if traceability_errors:
             for error in traceability_errors:
                 print(error, file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(traceability_markers) + "\n")
-
         placeholder_text = {
             "Documentation/zigux/README.md": "Phase 14 notes\nDocumentation/zigux/phase14-core-boundary-traceability.md\nmake -C zigux phase14-validate\n",
             "Documentation/zigux/phase14-release-boundary-survey.md": "PHASE14_RELEASE_BOUNDARY=present\nDocumentation/zigux/phase14-core-boundary-traceability.md\nmake -C zigux phase14-smoke\nmake -C zigux phase14-test\nmake -C zigux phase14\n",
             "Documentation/zigux/freeze-map.md": "kernel/workqueue.c\n",
             "Documentation/zigux/review-checklist.md": "shared Phase 14 smoke packet\n",
-            RCU_SURVEY_PATH: "\n".join([
-                "# Phase 14 RCU Tree Survey",
-                "## Rollback threshold",
-                "- status bucket: `freeze_in_c`",
-                "- blocker status: `blocked_on_stay_in_c_evidence`",
-                "- rollback owner: `Repo Tooling Pod`",
-                "- Architecture Council reopen record linked from the reviewable packet",
-                "- parity scorecard evidence and benchmark notes attached to the same review packet",
-                "- validation replay command and evidence archive path recorded beside the latest blocker disposition",
-                "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
-                "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
-                "- freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
-            ]) + "\n",
+            RCU_SURVEY_PATH: "\n".join(["# Phase 14 RCU Tree Survey","## Rollback threshold","- status bucket: `freeze_in_c`","- blocker status: `blocked_on_stay_in_c_evidence`","- rollback owner: `Repo Tooling Pod`","- Architecture Council reopen record linked from the reviewable packet","- parity scorecard evidence and benchmark notes attached to the same review packet","- validation replay command and evidence archive path recorded beside the latest blocker disposition","- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record","- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet","- freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",]) + "\n",
             "scripts/zigux/README.md": "Phase 14 flow\npython3 scripts/zigux/validate-phase14.py\nmake -C zigux phase14-validate\nDocumentation/zigux/phase14-core-boundary-traceability.md\n",
             "scripts/zigux/check-phase14-docs-root-smoke-summary.py": f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n",
             "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n",
@@ -561,201 +477,97 @@ def run_self_test() -> int:
             "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab = struct {};\n",
             "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab = struct {};\n",
             "kernel/rcu/tree_bridge.zig": "pub const RcuTreeBridgeLab = struct {};\n",
-            WORKFLOW_PATH: "\n".join([
-                "Validate Phase 14 shared smoke packet",
-                "run: make -C zigux phase14-validate",
-                "Run focused Phase 14 smoke shard",
-                "run: make -C zigux phase14-smoke",
-                "Run Phase 14 internal bridge tests",
-                "run: make -C zigux phase14-test",
-            ]) + "\n",
-            "zigux/Makefile": "\n".join([
-                "phase14-validate:",
-                "\tpython3 scripts/zigux/validate-phase14.py --self-test",
-                "phase14-smoke:",
-                "\t$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig",
-                "phase14-test:",
-                "\t$(ZIG) build test --build-file zigux/tests/phase14_build.zig",
-                "phase14: phase14-validate phase14-smoke phase14-test",
-                "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-                "zigux/tests/phase14_build.zig",
-            ]) + "\n",
-            "zigux/tests/phase14_build.zig": "\n".join([
-                'const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")',
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-                'const test_step = b.step("test", "Run Phase 14 bounded internal bridge tests")',
-                "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
-                "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
-                "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
-                "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
-                "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
-                "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-                *["b.addTest(.{" for _ in range(6)],
-                *["b.addRunArtifact(" for _ in range(6)],
-                "phase14-workqueue-bridge-tests",
-                "phase14_workqueue_bridge.zig",
-                "phase14-workqueue-reviewability-tests",
-                "phase14_workqueue_reviewability.zig",
-                "phase14-skbuff-bridge-tests",
-                "phase14_skbuff_bridge.zig",
-                "phase14-ring-buffer-survey-tests",
-                "phase14_ring_buffer_survey.zig",
-                "phase14-rcu-tree-survey-tests",
-                "phase14_rcu_tree_survey.zig",
-                "phase14-end-to-end-smoke-tests",
-                "phase14_end_to_end_smoke_survey.zig",
-            ]) + "\n",
+            WORKFLOW_PATH: "\n".join(["Validate Phase 14 shared smoke packet","run: make -C zigux phase14-validate","Run focused Phase 14 smoke shard","run: make -C zigux phase14-smoke","Run Phase 14 internal bridge tests","run: make -C zigux phase14-test",]) + "\n",
+            "zigux/Makefile": "\n".join(["phase14-validate:","\tpython3 scripts/zigux/validate-phase14.py --self-test","phase14-smoke:","\t$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig","phase14-test:","\t$(ZIG) build test --build-file zigux/tests/phase14_build.zig","phase14: phase14-validate phase14-smoke phase14-test","scripts/zigux/check-phase14-docs-root-smoke-summary.py","zigux/tests/phase14_build.zig",]) + "\n",
+            "zigux/tests/phase14_build.zig": "\n".join(['const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")',"smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",'const test_step = b.step("test", "Run Phase 14 bounded internal bridge tests")',"test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);","test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);","test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);","test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);","test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);","test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",*["b.addTest(.{" for _ in range(6)],*["b.addRunArtifact(" for _ in range(6)],"phase14-workqueue-bridge-tests","phase14_workqueue_bridge.zig","phase14-workqueue-reviewability-tests","phase14_workqueue_reviewability.zig","phase14-skbuff-bridge-tests","phase14_skbuff_bridge.zig","phase14-ring-buffer-survey-tests","phase14_ring_buffer_survey.zig","phase14-rcu-tree-survey-tests","phase14_rcu_tree_survey.zig","phase14-end-to-end-smoke-tests","phase14_end_to_end_smoke_survey.zig",]) + "\n",
         }
-
         for rel_path, text in placeholder_text.items():
             write_text(root / rel_path, text)
-
         write_text(root / "scripts/zigux/validate-phase14.py", read_text(Path(__file__)))
-
-        smoke_note_lines = [
-            "# Phase 14 End-to-End Smoke Survey",
-            "PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test",
-            "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
-            "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
-            "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-            "PHASE14_SHARED_SURFACE_COUNT=29",
-            "PHASE14_DOC_SURFACE_COUNT=6",
-            "PHASE14_SCRIPT_SURFACE_COUNT=5",
-            "PHASE14_TEST_SURFACE_COUNT=13",
-            "PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3",
-            "PHASE14_WORKFLOW_SURFACE_COUNT=1",
-            "PHASE14_MAKEFILE_SURFACE_COUNT=1",
-            "PHASE14_COMPILE_ARTIFACT_COUNT=6",
-            "PHASE14_FOCUSED_SHARD_COUNT=1",
-            "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5",
-            "kernel/rcu/tree_bridge.zig",
-            "This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator.",
-            "`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08`",
-            "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
-            "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
-            "Documentation/zigux/phase14-core-boundary-traceability.md",
-            "zigux/tests/phase14_workqueue_reviewability.zig",
-        ]
+        smoke_note_lines = ["# Phase 14 End-to-End Smoke Survey","PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test","PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate","PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py","PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all","PHASE14_SHARED_SURFACE_COUNT=29","PHASE14_DOC_SURFACE_COUNT=6","PHASE14_SCRIPT_SURFACE_COUNT=5","PHASE14_TEST_SURFACE_COUNT=13","PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3","PHASE14_WORKFLOW_SURFACE_COUNT=1","PHASE14_MAKEFILE_SURFACE_COUNT=1","PHASE14_COMPILE_ARTIFACT_COUNT=6","PHASE14_FOCUSED_SHARD_COUNT=1","PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5","kernel/rcu/tree_bridge.zig","This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator.","`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08`","PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate","PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py","Documentation/zigux/phase14-core-boundary-traceability.md","zigux/tests/phase14_workqueue_reviewability.zig",]
         smoke_note_lines.extend(compile_matrix_note_row(*row) for row in COMPILE_MATRIX_ROWS)
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(smoke_note_lines) + "\n")
-
         errors = check(root)
         if errors:
             print("self-test expected success but failed:", file=sys.stderr)
-            for error in errors:
-                print(f"- {error}", file=sys.stderr)
+            [print(f"- {error}", file=sys.stderr) for error in errors]
             return 1
-
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["lane_key"] = "P14-L99"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" not in errors:
-            print("self-test expected lane-key drift failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected lane-key drift failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["productization"]["status_bucket"] = "active_delivery"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 shared smoke manifest productization.status_bucket drifted from the current study-only packet" not in errors:
-            print("self-test expected productization status-bucket drift failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected productization status-bucket drift failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["productization"]["roadmap_risk_bundle"] = EXPECTED_ROADMAP_RISK_BUNDLE[:-1]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 shared smoke manifest productization.roadmap_risk_bundle drifted from the current study-only packet" not in errors:
-            print("self-test expected productization risk-bundle drift failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected productization risk-bundle drift failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken.pop("productization", None)
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 shared smoke manifest productization payload is not an object" not in errors:
-            print("self-test expected missing productization payload failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected missing productization payload failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["compile_shards"] = REQUIRED_COMPILE_SHARDS[:-1]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest compile_shards drifted from the current six-row compile packet" not in errors:
-            print("self-test expected compile-shard drift failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected compile-shard drift failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["commands"] = REQUIRED_COMMANDS[:-1]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest commands drifted from the shared validate/smoke/test packet" not in errors:
-            print("self-test expected commands drift failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected commands drift failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["surfaces"] = "not-a-list"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surfaces payload is not a list" not in errors:
-            print("self-test expected non-list manifest surfaces failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected non-list manifest surfaces failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["surfaces"] = [17]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surface entry is not an object" not in errors:
-            print("self-test expected non-object manifest surface failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected non-object manifest surface failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken["surfaces"] = [
-            {"required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"]}
-        ]
+        broken["surfaces"] = [{"required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"]}]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surface entry is missing a string path" not in errors:
-            print("self-test expected missing manifest surface path failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected missing manifest surface path failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken["surfaces"].append(
-            {
-                "path": "Documentation/zigux/README.md",
-                "required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"],
-            }
-        )
+        broken["surfaces"].append({"path": "Documentation/zigux/README.md", "required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"]})
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surface count drift for Documentation/zigux/README.md (expected 1, found 2)" not in errors:
-            print("self-test expected duplicate manifest surface failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected duplicate manifest surface failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken["surfaces"].append(
-            {
-                "path": "Documentation/zigux/phase14-extra-note.md",
-                "required_marker": "phase14 extra drift",
-            }
-        )
+        broken["surfaces"].append({"path": "Documentation/zigux/phase14-extra-note.md", "required_marker": "phase14 extra drift"})
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "unexpected manifest surface in zigux/tests/phase14_end_to_end_smoke_manifest.json: Documentation/zigux/phase14-extra-note.md" not in errors:
-            print("self-test expected unexpected-surface failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected unexpected-surface failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         for surface in broken["surfaces"]:
@@ -765,51 +577,43 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surface missing string required_marker for Documentation/zigux/README.md" not in errors:
-            print("self-test expected missing manifest required-marker failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected missing manifest required-marker failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         build_path = root / "zigux/tests/phase14_build.zig"
         build_path.write_text(build_path.read_text(encoding="utf-8").replace("b.addRunArtifact(\n", "", 1), encoding="utf-8")
         errors = check(root)
         if "phase14 build bundle no longer wires the current six compile-artifact runs" not in errors:
-            print("self-test expected build run-count failure", file=sys.stderr)
-            return 1
-
+            print("self-test expected build run-count failure", file=sys.stderr); return 1
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        build_path.write_text(build_path.read_text(encoding="utf-8").replace("smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n", "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n", 1), encoding="utf-8")
+        errors = check(root)
+        if "phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey" not in errors:
+            print("self-test expected forbidden smoke dependency failure", file=sys.stderr); return 1
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        build_path.write_text(build_path.read_text(encoding="utf-8").replace("test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);\n", "", 1), encoding="utf-8")
+        errors = check(root)
+        if "missing compile-artifact dependency in zigux/tests/phase14_build.zig: phase14_workqueue_reviewability" not in errors:
+            print("self-test expected missing compile-artifact dependency failure", file=sys.stderr); return 1
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n"
-                "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey" not in errors:
-            print("self-test expected forbidden smoke dependency failure", file=sys.stderr)
-            return 1
-
-        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
-        rcu_survey_path = root / RCU_SURVEY_PATH
-        rcu_survey_path.write_text(
-            rcu_survey_path.read_text(encoding="utf-8").replace(
-                "- rollback owner: `Repo Tooling Pod`\n",
+                "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         errors = check(root)
-        if not any(
-            "missing marker in Documentation/zigux/phase14-rcu-tree-survey.md: - rollback owner: `Repo Tooling Pod`"
-            in error
-            for error in errors
-        ):
-            print("self-test expected rcu rollback-owner failure", file=sys.stderr)
+        if "missing compile-artifact dependency in zigux/tests/phase14_build.zig: phase14_workqueue_reviewability" not in errors:
+            print("self-test expected missing compile-artifact dependency failure", file=sys.stderr)
             return 1
 
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        rcu_survey_path = root / RCU_SURVEY_PATH
+        rcu_survey_path.write_text(rcu_survey_path.read_text(encoding="utf-8").replace("- rollback owner: `Repo Tooling Pod`\n", "", 1), encoding="utf-8")
+        errors = check(root)
+        if not any("missing marker in Documentation/zigux/phase14-rcu-tree-survey.md: - rollback owner: `Repo Tooling Pod`" in error for error in errors):
+            print("self-test expected rcu rollback-owner failure", file=sys.stderr); return 1
         write_text(root / RCU_SURVEY_PATH, placeholder_text[RCU_SURVEY_PATH])
         broken_rcu_manifest = load_json_file(root / RCU_MANIFEST_PATH)
         for gap in broken_rcu_manifest["gaps"]:
@@ -817,16 +621,9 @@ def run_self_test() -> int:
                 gap["status"] = "blocked_on_stay_in_c_evidence"
         write_text(root / RCU_MANIFEST_PATH, json.dumps(broken_rcu_manifest, indent=2) + "\n")
         errors = check(root)
-        if not any(
-            "phase14 rcu rollback-threshold gap drift for phase14-rcu-tree-rollback-threshold-guardrail"
-            in error
-            for error in errors
-        ):
-            print("self-test expected rcu rollback-threshold manifest failure", file=sys.stderr)
-            return 1
-
+        if not any("phase14 rcu rollback-threshold gap drift for phase14-rcu-tree-rollback-threshold-guardrail" in error for error in errors):
+            print("self-test expected rcu rollback-threshold manifest failure", file=sys.stderr); return 1
         return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -841,7 +638,6 @@ def main() -> int:
         return 1
     print("phase14 shared smoke packet validated")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
