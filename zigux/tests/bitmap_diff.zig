@@ -706,16 +706,16 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ BitmapHarness.bits_per_long + 19, (BitmapHarness.bits_per_long * 2) - 1 },
         },
         .{
-            .name = "test_copy full-width replay from a cleared destination",
+            .name = "test_copy full-width replay keeps the earlier 23-bit destination state honest",
             .source_set_len = 109,
             .copy_nbits = BitmapHarness.bitmap_nbits,
-            .destination_init = .zero,
+            .destination_init = .{ .prefix_set = 19 },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 109,
                 .weight = 109,
             },
-            .must_be_set = &.{ 0, 108 },
+            .must_be_set = &.{ 0, 18, 108 },
             .must_be_clear = &.{ 109, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
@@ -913,7 +913,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy exact word-aligned replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy exact word-aligned replay clears the first-word tail and leaves later filled words untouched");
     try expectMarker(bitmap_diff_source, "test_copy exact two-word replay clears the second-word tail before the filled tail resumes");
-    try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
+    try expectMarker(bitmap_diff_source, "test_copy full-width replay keeps the earlier 23-bit destination state honest");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
