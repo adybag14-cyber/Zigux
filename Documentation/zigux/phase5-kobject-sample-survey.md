@@ -17,6 +17,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `samples/zigux/README.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kobject_example.zig`
@@ -98,6 +99,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, integer roundtrip, shared `baz` and `bar` dispatch, and pre-registration access boundary run through `zigux/tests/phase5_build.zig`?
 - does `Documentation/zigux/phase5-sample-review-guide.md` still route the shared Phase 5 contributor packet back through this exact kobject sample packet when a change touches more than one sample surface, while keeping the kobject note distinct from the later Phase 9 runtime starters?
 - do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet, keep `ownershipSummary()` and sample-owned `runOwnershipReplay()` explicit as the shared ownership cues, keep the shared `phase5_build.zig` route plus the shipped `make -C zigux phase5-test` and `make -C zigux phase5` wrappers explicit, and keep it separate from later runtime-backed work instead of leaving this note to carry the boundary alone?
+- do those same shared contributor surfaces plus `.github/workflows/zigux-bootstrap.yml` still keep workflow wording honest by treating `zig build test --build-file zigux/tests/phase5_build.zig --summary all` as the only shared CI replay while `make -C zigux phase5-test` and `make -C zigux phase5` stay local Linux-style wrappers over that same build entrypoint?
 - the shared docs-root, checklist, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too whenever those broader guidance surfaces move together with the landed kobject packet.
 - do the manifest prompts still keep the initialized-but-not-registered zero-active-attributes plus no-show-or-store boundary explicit before `registerAttributes()` opens the sample?
 - do the manifest prompts and exact checks still keep sample-owned `runPreRegistrationBoundaryReplay()` explicit for that initialized-but-not-registered boundary?
