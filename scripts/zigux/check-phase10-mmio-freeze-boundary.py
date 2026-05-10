@@ -81,7 +81,7 @@ EXPECTED_COMPONENTS = {
     "ring": {
         "manifest_path": RING_MANIFEST_PATH,
         "lane_key": "P10-L07",
-        "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
+        "surveyed_commit": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
         "landed_helper_key": "landed_ring_helper_evidence",
         "landed_helper_evidence": [
             "phase10-virtqueue-shape-helper",
@@ -386,7 +386,7 @@ def baseline_manifest(lane_key: str, surveyed_commit: str, anchor: str) -> dict:
 def baseline_manifests() -> tuple[dict[str, dict], dict]:
     manifests = {
         "core": baseline_manifest("P10-L01", "31e9763eea7964dad7085d1a24bc098b4af49789", "drivers/virtio/virtio.c"),
-        "ring": baseline_manifest("P10-L07", "e42103fc02f544e1bd23a5ec2e5b584734f5af7d", "drivers/virtio/virtio_ring.c"),
+        "ring": baseline_manifest("P10-L07", "bdfe88e865b94387b3c3bd41ca98054c452f78b9", "drivers/virtio/virtio_ring.c"),
         "input": baseline_manifest("P10-L13", "aab20011833191e49e31bcdf2a0fcfcd4c0451d0", "drivers/virtio/virtio_input.c"),
         "mmio": baseline_manifest("P10-L10", "84f90e23ad1c28ae345905d5293a8c5395f37d43", "drivers/virtio/virtio_mmio.c"),
     }
