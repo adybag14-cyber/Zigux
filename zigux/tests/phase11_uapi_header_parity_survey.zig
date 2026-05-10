@@ -163,16 +163,17 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "rather than the shared `test` step");
 }
 
-test "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture" {
+test "phase11 shared header parity survey keeps shared replay markers explicit without reviving removed validator claims" {
     const contract = try readFileAlloc(std.testing.allocator, "Documentation/zigux/phase11-shared-replay-contract.md", 64 * 1024);
     defer std.testing.allocator.free(contract);
 
-    try expectContains(contract, "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable");
+    try expectContains(contract, "PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful");
     try expectContains(contract, "zigux/tests/phase11_build.zig");
     try expectContains(contract, "zigux/tests/phase11_uapi_header_parity_survey.zig");
     try expectContains(contract, "zigux/tests/phase11_hvc_console_survey.zig");
-    try expectContains(contract, "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`");
-    try expectContains(contract, "there is no broader multi-checker Phase 11 validator stack on `master`");
+    try expectContains(contract, "no shared `validate-phase11.py`");
+    try expectContains(contract, "no shared `make -C zigux phase11-validate` target on `master`");
+    try expectContains(contract, "The dedicated archival HVC evidence still stays explicit beside that shared route:");
 }
 
 test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
