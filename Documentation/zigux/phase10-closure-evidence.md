@@ -104,4 +104,4 @@ Reviewers should treat any future claim that current `master` already ships the 
 
 Stay in the same Phase 10 lane and repair one shared reminder surface at a time so it only names exact Phase 10 paths that are materializable on current `master`.
 
-The next bounded follow-through should start with `zigux/tests/README.md`, `Documentation/zigux/README.md`, or `scripts/zigux/README.md`, because those broad shared summaries still carry the stale exact-path Phase 10 packet that this slot could not re-materialize through the authenticated contents read path.
+The next bounded follow-through should stay with `zigux/tests/README.md` only. In current live rereads, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` already keep `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` explicit, while the broad Phase 10 tests-root reminder still omits those two direct core review surfaces.
