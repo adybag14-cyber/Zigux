@@ -87,6 +87,12 @@ jobs:
       - name: Check Phase 1 installer-review surfaces
         run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py
 
+      - name: Self-test Phase 1 installer companion checks
+        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test
+
+      - name: Check Phase 1 installer companion checks
+        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py
+
       - name: Validate Phase 1 closure
         run: |
           python3 - <<'PY'
