@@ -391,7 +391,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
         {
             "lane_key": "P10-L07",
             "phase": "Phase 10",
-            "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
+            "surveyed_commit": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
             "anchor": "drivers/virtio/virtio_ring.c",
             "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
             "freeze_map": "Documentation/zigux/freeze-map.md",
@@ -481,7 +481,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio_ring.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio_ring.c")
-    if manifest.get("surveyed_commit") != "e42103fc02f544e1bd23a5ec2e5b584734f5af7d":
+    if manifest.get("surveyed_commit") != "bdfe88e865b94387b3c3bd41ca98054c452f78b9":
         missing_markers.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
