@@ -775,6 +775,17 @@ def run_self_test() -> int:
             return 1
 
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        workflow_path = root / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + "run: python3 scripts/zigux/validate-phase14.py\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow reintroduced direct phase14 validator or zig-build commands outside the wrapper routes" not in errors:
+            print("self-test expected forbidden workflow direct-run failure", file=sys.stderr)
+            return 1
+
+        write_text(root / WORKFLOW_PATH, placeholder_text[WORKFLOW_PATH])
         rcu_survey_path = root / RCU_SURVEY_PATH
         rcu_survey_path.write_text(
             rcu_survey_path.read_text(encoding="utf-8").replace(
