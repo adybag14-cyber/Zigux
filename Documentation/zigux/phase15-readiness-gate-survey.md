@@ -27,7 +27,6 @@ The current Phase 15 readiness packet is the shared governance bundle around:
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_docs_root_reviewability.zig`
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 - `make -C zigux phase15-validate`
 - `make -C zigux phase15-test`
@@ -43,7 +42,7 @@ Readiness here means:
 - the freeze-map, review-process, parity-scorecard, indefinite-C policy, and handoff notes all point at the same blocked posture
 - the validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
 - the shared replay route stays explicit through `zigux/tests/phase15_build.zig`, `zig build test --build-file zigux/tests/phase15_build.zig`, `make -C zigux phase15-test`, and `make -C zigux phase15`
-- the dedicated docs-root guard in `zigux/tests/phase15_docs_root_reviewability.zig` continues to prove that the docs-root Phase 15 summary now matches the dedicated readiness and handoff packet
+- the docs-root Phase 15 summary stays reviewable through `Documentation/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `python3 scripts/zigux/validate-phase15.py`; there is no separate dedicated docs-root Zig guard on current `master`
 - the remaining blocker is still `phase15-deep-core-status-change-blocker`
 
 ## Remaining Blocker
@@ -55,4 +54,4 @@ Readiness here means:
 ## Next Step
 
 - keep this readiness packet parked unless a named reopen trigger or a real blocker-posture change appears
-- if the shared packet drifts again, re-check `Documentation/zigux/README.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `zigux/tests/phase15_docs_root_reviewability.zig` together before widening into any new governance slice
+- if the shared packet drifts again, re-check `Documentation/zigux/README.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `zigux/tests/README.md` together before widening into any new governance slice
