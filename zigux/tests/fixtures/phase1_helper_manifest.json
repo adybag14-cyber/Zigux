@@ -109,6 +109,7 @@
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
       "zero_sized_short_circuit": "test \"zero-sized scans ignore populated backing words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
+      "past_nbits_owner_summary": "the shared Phase 1 replay now consumes the committed past_nbits_* fixture fields directly, while the direct helper-local past-nbits test remains a review-visible boundary anchor for that path",
       "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
@@ -189,7 +190,7 @@
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
-      "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
+      "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
@@ -233,7 +234,7 @@
         "test \"strEndsWith honors C-string boundaries\""
       ],
       "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
-      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation",
+      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
       "parity_fixture_keys": [
