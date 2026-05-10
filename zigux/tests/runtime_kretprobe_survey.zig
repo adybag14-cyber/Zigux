@@ -203,6 +203,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "overlapping entry stamps distinct under concurrent load");
     try expectContains(survey_doc, "loader-owned prepared handoff snapshot");
     try expectContains(survey_doc, "active probe drains");
+    try expectContains(survey_doc, "approved-family anchor drift plus entry-symbol and exit-symbol drift");
     try expectContains(survey_doc, "Roadmap gap vs current pilot");
     try expectContains(survey_doc, "first loadable Zigux runtime modules");
     try expectContains(survey_doc, "starter_landed_without_loadable_runtime_substrate");
@@ -245,6 +246,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(loader_source, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(loader_source, "runtime kretprobe loader bridges the shared request lifecycle without widening registration claims");
     try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared runtime-substrate drift before any local runtime handoff");
+    try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff");
     try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared selftest-hook drift before any local runtime handoff");
     try expectContains(loader_source, "runtime kretprobe loader rejects non-prepared shared requests before any local runtime handoff");
     try expectContains(loader_source, "runtime kretprobe loader rejects shared selftest-hook drift before any live registration claim");
