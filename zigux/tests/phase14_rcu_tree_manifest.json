@@ -1,5 +1,5 @@
 {
-  "lane_key": "P14-L14",
+  "lane_key": "P14-L13",
   "phase": "Phase 14",
   "surveyed_commit": "0855a2fc20664cd4a138379d7731edf8183d74e6",
   "anchor": "kernel/rcu/tree.c",
@@ -24,8 +24,8 @@
     {
       "roadmap_destination": "kernel/rcu/tree_bridge.zig",
       "current_state": "blocked_on_stay_in_c_evidence",
-      "reviewable_artifact": "Documentation/zigux/freeze-map.md",
-      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still shows gp-sequence publication, expedited waits, NOCB offload, and memory-ordering behavior that are too coupled for a Phase 14 bridge claim."
+      "reviewable_artifact": "kernel/rcu/tree_bridge.zig",
+      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the already-landed `kernel/rcu/tree_bridge.zig` boundary map still records gp-sequence publication, expedited waits, NOCB offload, and memory-ordering behavior as too coupled for a Phase 14 bridge claim."
     }
   ],
   "survey_summary": {
@@ -42,7 +42,7 @@
     "preexisting_phase14_workqueue_bridge_present": true,
     "preexisting_phase14_ring_buffer_manifest_present": true,
     "preexisting_phase14_skbuff_bridge_present": true,
-    "preexisting_tree_bridge_zig_present": false,
+    "preexisting_tree_bridge_zig_present": true,
     "preexisting_phase14_rcu_tree_manifest_present": true,
     "preexisting_phase14_rcu_tree_survey_test_present": true,
     "preexisting_phase14_rcu_tree_survey_note_present": true,
@@ -199,7 +199,7 @@
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "kernel/rcu/tree_bridge.zig",
-      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, but the current survey still shows gp_seq publication, expedited waits, NOCB offload, and memory-ordering rules that are too coupled to the deep-core RCU implementation for a Phase 14 bridge claim."
+      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, and the already-landed review-only bridge now keeps that destination explicit, but the current survey still shows gp_seq publication, expedited waits, NOCB offload, and memory-ordering rules that are too coupled to the deep-core RCU implementation for a Phase 14 bridge claim."
     }
   ]
 }
