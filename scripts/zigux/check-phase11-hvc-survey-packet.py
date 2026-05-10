@@ -111,6 +111,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "khvcd polling contract boundary",
     "notifier-driven versus polling-driven wakeups",
     "bounded reschedule intent",
+    "worker-entry sleep, kick, poll-mask, timeout-backoff, and invalid-open-count replays in `drivers/tty/hvc/hvc_console_verify.zig`",
     "`hvc_hangup()` disconnect boundary",
     "stale-count short-circuiting",
     "preserving buffered-write state when the stale port-count guard wins",
@@ -173,6 +174,9 @@ REQUIRED_VERIFY_REPLAY_MARKERS = [
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
     'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
     'test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit"',
+    "try std.testing.expectEqual(hvc_console.min_timeout_ms, active_worker.timeout_ms_before_sleep);",
+    "try std.testing.expectEqual(hvc_console.max_timeout_ms, idle_worker.timeout_ms_after_backoff);",
+    'try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{',
     'test "hvc_console verify rejects impossible hangup buffered-write state"',
 ]
 
@@ -275,7 +279,7 @@ REQUIRED_EXISTING_PATHS = [
     SCRIPT_PATH,
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -419,6 +423,30 @@ def run_self_test() -> int:
                 VALIDATION_MATRIX_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "validation_matrix:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                fixture_root,
+                VALIDATION_MATRIX_PATH,
+                "worker-entry sleep, kick, poll-mask, timeout-backoff, and invalid-open-count replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:worker-entry sleep, kick, poll-mask, timeout-backoff, and invalid-open-count replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+            )
+            expect_failure(
+                fixture_root,
+                VERIFY_REPLAY_PATH,
+                "try std.testing.expectEqual(hvc_console.min_timeout_ms, active_worker.timeout_ms_before_sleep);",
+                "verify_replay:try std.testing.expectEqual(hvc_console.min_timeout_ms, active_worker.timeout_ms_before_sleep);",
+            )
+            expect_failure(
+                fixture_root,
+                VERIFY_REPLAY_PATH,
+                "try std.testing.expectEqual(hvc_console.max_timeout_ms, idle_worker.timeout_ms_after_backoff);",
+                "verify_replay:try std.testing.expectEqual(hvc_console.max_timeout_ms, idle_worker.timeout_ms_after_backoff);",
+            )
+            expect_failure(
+                fixture_root,
+                VERIFY_REPLAY_PATH,
+                "try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{",
+                "verify_replay:try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{",
             )
             expect_missing_file(fixture_root, SCRIPT_PATH)
         except AssertionError as exc:
