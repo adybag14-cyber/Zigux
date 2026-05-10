@@ -117,15 +117,15 @@ The shared review surfaces below keep Phase 3 reviewable, but they do not transf
 - `scripts/zigux/validate_phase3_selftest.py`
 - `scripts/zigux/check-phase3-selftest-surface.py`
 - `scripts/zigux/check-phase3-readme-tooling-inventory.py`
-- `scripts/zigux/check-phase3-abi-dump-gate.py`
 - `scripts/zigux/check-phase3-catalog-selftest.py`
+- `scripts/zigux/check-phase3-abi-dump-gate.py`
 - `scripts/zigux/phase3_catalog.py`
 - `scripts/zigux/phase3_check_lib.py`
 - `scripts/zigux/generate-phase3-check-wrappers.py`
 - `scripts/zigux/run-phase3-checks.py`
 - `zigux/Makefile`
 
-That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, dump-gate proof, catalog self-check, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, while the same runner roster also keeps the paired `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `validate-phase3-abi-header-family-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, and `validate-phase3-export-uapi-survey.py` child marker contracts explicit when those packet-local validators stay in the replay set, but none of those scripts become packet-local owners on their own.
+That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, catalog self-check, dump-gate proof, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, while the same runner roster also keeps the paired `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `validate-phase3-abi-header-family-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, and `validate-phase3-export-uapi-survey.py` child marker contracts explicit when those packet-local validators stay in the replay set, but none of those scripts become packet-local owners on their own.
 
 Within that shared validator-support packet, `scripts/zigux/validate_phase3_selftest.py` is still the contract surface for which child support scripts must remain in the shipped replay set and which exact `--self-test` pass-plus-case-count markers they expose. If that runner roster drifts, treat the runner as the first shared surface that moved rather than widening immediately into a broader README or checklist refresh.
 
