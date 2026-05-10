@@ -176,8 +176,8 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, ".github/workflows/zigux-bootstrap.yml") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "check-phase15-scripts-readme-alignment.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "check-phase15-review-process-handoff.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/check-phase15-scripts-readme-alignment.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "phase15_architecture_council_review_process_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "phase15_architecture_council_review_process.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
@@ -575,8 +575,8 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-scripts-readme-alignment.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-review-process-handoff.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "scripts/zigux/check-phase15-scripts-readme-alignment.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);
 
