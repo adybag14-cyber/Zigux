@@ -10,6 +10,8 @@ import tempfile
 
 SCRIPT_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 NOTE_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
+CLOSURE_NOTE_PATH = "Documentation/zigux/phase11-closure-note.md"
+LANE_NOTE_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -18,14 +20,39 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 REQUIRED_NOTE_MARKERS = (
     "# Phase 11 Shared Replay Contract",
     "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "* `Documentation/zigux/phase11-closure-note.md`",
+    "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
     "The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.",
     "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.",
     "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
     "* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
     "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
     "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
-    "The dedicated archival HVC evidence on current `master` is narrower than the older parked packet and stays explicit beside that shared route only through the still-present survey-facing surfaces:",
+    "The dedicated archival HVC evidence on current `master` is also kept explicit beside that shared route through the bounded survey, teardown, and failure-mode packet:",
     "* there is no shared `make -C zigux phase11-validate` target on `master`",
+)
+
+REQUIRED_CLOSURE_NOTE_MARKERS = (
+    "# Phase 11 Closure Note",
+    "* `PHASE11_CLOSURE_STATUS=shared_packet_parked`",
+    "* `Documentation/zigux/phase11-shared-replay-contract.md`",
+    "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
+    "* `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
+    "* `make -C zigux phase11-hvc-survey`",
+    "* there is no shared `make -C zigux phase11-validate` target on `master`",
+)
+
+REQUIRED_LANE_NOTE_MARKERS = (
+    "# Phase 11 Driver Lane Sequencing",
+    "Keep the current lane split explicit:",
+    "- bcm2835 lane `P11-L03` owns",
+    "- gpio lane `P11-L06` owns",
+    "- DesignWare lane `P11-L11` owns",
+    "- HVC lane `P11-L14` owns",
+    "- header-boundary lane `P11-L18` owns",
+    "`Documentation/zigux/phase11-closure-note.md`",
+    "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "`make -C zigux phase11-hvc-survey`",
 )
 
 REQUIRED_DOCS_README_MARKERS = (
@@ -81,6 +108,8 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
 REQUIRED_FILES = (
     SCRIPT_PATH,
     NOTE_PATH,
+    CLOSURE_NOTE_PATH,
+    LANE_NOTE_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -102,6 +131,8 @@ def validate(root: Path) -> list[str]:
 
     checks = (
         ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS),
+        ("phase11-closure-note", CLOSURE_NOTE_PATH, REQUIRED_CLOSURE_NOTE_MARKERS),
+        ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS),
         ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
         ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS),
@@ -149,6 +180,8 @@ def make_fixture_root(root: Path) -> None:
     script_text = Path(__file__).read_text(encoding="utf-8")
     write_text(root, SCRIPT_PATH, script_text)
     write_text(root, NOTE_PATH, "\n".join(REQUIRED_NOTE_MARKERS) + "\n")
+    write_text(root, CLOSURE_NOTE_PATH, "\n".join(REQUIRED_CLOSURE_NOTE_MARKERS) + "\n")
+    write_text(root, LANE_NOTE_PATH, "\n".join(REQUIRED_LANE_NOTE_MARKERS) + "\n")
     write_text(root, DOCS_README_PATH, "\n".join(REQUIRED_DOCS_README_MARKERS) + "\n")
     write_text(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
     write_text(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
@@ -171,11 +204,12 @@ def run_self_test() -> int:
 
         mutations = (
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
-            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
+            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[7]),
+            ("phase11-closure-note", CLOSURE_NOTE_PATH, REQUIRED_CLOSURE_NOTE_MARKERS[2]),
+            ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[6]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
-            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[12]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[7]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
