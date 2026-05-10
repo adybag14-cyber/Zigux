@@ -14,6 +14,13 @@ The current Phase 13 packet stays centered on four roadmap-owned helper families
 - `security/landlock/ruleset.c`
 - `security/landlock/syscalls.c`
 
+Broad summaries should also keep the bounded `devres` dma/scatterlist release evidence visible through:
+- `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
+
 Broad summaries should also keep the adjacent notifier evidence packet visible through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/bindings/notifier_abi.zig`
@@ -28,6 +35,7 @@ Broad summaries should also keep the adjacent notifier evidence packet visible t
 
 Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
+- `devres` dma/scatterlist evidence stays inside the active helper packet rather than reading like a separate replay lane
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
