@@ -169,10 +169,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\"",
     );
-    try expectMarker(
-        phase4_runtime_atomic64_manifest_source,
-        "\"phase4_gate_evidence_blob_sha\": \"edd5cbfb0ead65cde206606b1cce7b98a764528e\"",
-    );
+    try expectNoMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_gate_evidence_blob_sha\": ");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_review_checklist_blob_sha\": \"b9297064f411b9289b5cb26a18f5fcf36a9fcd30\"",
