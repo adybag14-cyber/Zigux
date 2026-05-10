@@ -13,6 +13,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   - `lib/cmdline.zig`
   - `samples/zigux/README.md`
   - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
+  - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/phase7_cmdline.zig`
   - `zigux/tests/phase7_cmdline_survey.zig`
   - `zigux/tests/phase7_cmdline_manifest.json`
