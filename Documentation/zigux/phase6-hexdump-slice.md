@@ -1,0 +1,18 @@
+# Phase 6 Hexdump Slice
+
+## Status
+- `PHASE6_STATUS=parked`
+- `PHASE6_SLICE=hexdump-leaf-helper`
+- helper anchor: `lib/hexdump.zig`
+
+## Review Surface
+- `zigux/tests/phase6_hexdump.zig`
+- `zigux/tests/phase6_hexdump_perf.zig`
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
+- a dedicated hexdump-only build step now reruns the focused helper replay without dragging the full shared Phase 6 helper packet along
+- `make -C zigux phase6-hexdump-test`
+- `make -C zigux phase6-hexdump-perf`
+
+## Next Step
+Leave this slice parked unless helper formatting semantics, fixture evidence, or the dedicated perf replay drifts on current `master`.
