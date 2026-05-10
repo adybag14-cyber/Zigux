@@ -35,6 +35,28 @@ ANCHOR_MANIFEST_MARKERS = [
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
+SELF_TEST_ANCHOR_PACKETS = [
+    {
+        "lane_key": "P14-L01",
+        "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
+    },
+    {
+        "lane_key": "P14-Y03",
+        "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
+        "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+    },
+    {
+        "lane_key": "P14-L08",
+        "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
+        "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+    },
+    {
+        "lane_key": "P14-L16",
+        "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
+        "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
+    },
+]
 
 ROOT = Path.cwd()
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
@@ -49,6 +71,13 @@ def read_text(root: Path, rel: Path) -> str:
 
 def source_text() -> str:
     return Path(__file__).read_text(encoding="utf-8")
+
+
+def anchor_note_fragment(packet: dict[str, object]) -> str:
+    return (
+        f"`{packet['manifest_path']}`, lane `{packet['lane_key']}`, "
+        f"surveyed commit `{packet['surveyed_commit']}`"
+    )
 
 
 def check(root: Path) -> list[str]:
@@ -103,6 +132,7 @@ def check(root: Path) -> list[str]:
     anchor_packets = manifest.get("anchor_packets")
     if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
         errors.append("manifest:anchor_packets must list four shared anchors")
+        anchor_packets = []
 
     smoke_note = read_text(root, SMOKE_NOTE_PATH)
     for marker in [
@@ -122,6 +152,23 @@ def check(root: Path) -> list[str]:
             errors.append(
                 f"marker count drift in {SMOKE_NOTE_PATH.as_posix()}: {marker} "
                 f"(expected 1, found {count})"
+            )
+
+    for packet in anchor_packets:
+        if not isinstance(packet, dict):
+            errors.append("manifest:anchor_packet must be an object")
+            continue
+        for key in ["manifest_path", "lane_key", "surveyed_commit"]:
+            value = packet.get(key)
+            if not isinstance(value, str) or not value:
+                errors.append(f"manifest:anchor_packet missing {key}")
+        if errors and any(msg.startswith("manifest:anchor_packet") for msg in errors):
+            continue
+        fragment = anchor_note_fragment(packet)
+        if fragment not in smoke_note:
+            errors.append(
+                "shared smoke note anchor metadata drifted for "
+                f"{packet['manifest_path']}: expected fragment {fragment}"
             )
 
     checklist = read_text(root, CHECKLIST_PATH)
@@ -171,7 +218,7 @@ def current_manifest_text() -> str:
                 "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
                 "make -C zigux phase14-smoke",
             ],
-            "anchor_packets": [{}, {}, {}, {}],
+            "anchor_packets": SELF_TEST_ANCHOR_PACKETS,
         },
         indent=2,
     ) + "\n"
@@ -185,6 +232,10 @@ def current_smoke_note_text() -> str:
         f"- validation gate: `{VALIDATION_GATE}`",
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
         *ATTACHED_TOOLCHAIN_EXAMPLES,
+        *[
+            f"- anchor packet: {anchor_note_fragment(packet)}"
+            for packet in SELF_TEST_ANCHOR_PACKETS
+        ],
         *ANCHOR_MANIFEST_MARKERS,
         "Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]
@@ -230,7 +281,7 @@ def run_self_test() -> int:
             MANIFEST_PATH,
             current_manifest_text().replace(
                 f"\"rollback_owner\": \"{ROLLBACK_OWNER}\"",
-                '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
+                "\"rollback_owner\": \"keep the freeze-map anchors in C and reopen only with stronger evidence\"",
                 1,
             ),
         )
@@ -260,6 +311,16 @@ def run_self_test() -> int:
         )
         if not any("marker count drift" in error for error in check(root)):
             print("self-test expected duplicate-anchor failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace("lane `P14-L16`", "lane `P14-L99`", 1),
+        )
+        if not any("shared smoke note anchor metadata drifted" in error for error in check(root)):
+            print("self-test expected anchor-metadata drift failure", file=sys.stderr)
             return 1
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
 
