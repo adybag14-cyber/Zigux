@@ -52,7 +52,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("cd03346960b3eee07e3f30d1461b089b30212de5", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("90e6fb8d996262f84fae76d55011982a46d88c7c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
@@ -94,7 +94,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     defer std.testing.allocator.free(workflow);
 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "commit `cd03346960b3eee07e3f30d1461b089b30212de5` observed on May 10, 2026") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "commit `90e6fb8d996262f84fae76d55011982a46d88c7c` observed on May 10, 2026") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Named Reopen Triggers") != null);
