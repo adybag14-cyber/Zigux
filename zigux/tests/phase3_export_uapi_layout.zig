@@ -160,3 +160,29 @@ test "phase3 uapi dev_t starter keeps curated boundary parity explicit" {
     );
     try std.testing.expectError(error.RangeExhausted, uapi_dev_t.lastInRange(1, uapi_dev_t.minor_mask - 1, 3));
 }
+
+test "phase3 export shim and uapi keep explicit compatibility tags aligned" {
+    const flags: u16 = 0x7a;
+    const canonical = export_shim.boundaryHeader(flags);
+    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, flags);
+    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, flags);
+    const mismatched_version = export_shim.versionedHeader(
+        export_shim.header_size,
+        export_shim.abi_version + 1,
+        flags,
+    );
+
+    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(uapi_version.Compatibility.canonical));
+    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(uapi_version.Compatibility.future_compatible));
+    try std.testing.expectEqual(@as(u32, 1), uapi_version.compatibilityTag(canonical));
+    try std.testing.expectEqual(@as(u32, 2), uapi_version.compatibilityTag(future_compatible));
+    try std.testing.expectEqual(@as(u32, 1), export_shim.compatibilityTag(canonical));
+    try std.testing.expectEqual(@as(u32, 2), export_shim.compatibilityTag(future_compatible));
+    try std.testing.expectEqual(@as(u32, 0), uapi_version.compatibilityTag(undersized));
+    try std.testing.expectEqual(@as(u32, 0), uapi_version.compatibilityTag(mismatched_version));
+    try std.testing.expectEqual(@as(u32, 0), export_shim.compatibilityTag(undersized));
+    try std.testing.expectEqual(@as(u32, 0), export_shim.compatibilityTag(mismatched_version));
+    try std.testing.expectEqual(canonical, export_shim.canonicalizeHeader(future_compatible).?);
+    try std.testing.expect(export_shim.acceptHeader(undersized) == null);
+    try std.testing.expect(export_shim.acceptHeader(mismatched_version) == null);
+}
