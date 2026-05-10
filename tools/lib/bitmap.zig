@@ -225,6 +225,24 @@ pub fn bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits:
     return andNotBits(dst, src1, src2, nbits);
 }
 
+pub fn complement(dst: []Word, src: []const Word, nbits: usize) void {
+    assertBitmapLen(dst, nbits);
+    assertBitmapLen(src, nbits);
+
+    const lim = nbits / bits_per_long;
+    for (0..lim) |idx| {
+        dst[idx] = ~src[idx];
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        dst[lim] = ~src[lim] & lastWordMask(nbits);
+    }
+}
+
+pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
+    complement(dst, src, nbits);
+}
+
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -607,6 +625,20 @@ test "bitmap and andnot clamp tail bits in partial words" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
 }
 
+test "bitmap complement clamps tail bits and alias mirrors the primary helper" {
+    const nbits = bits_per_long + 5;
+    const src = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    var primary_dst = [_]Word{ 0, 0 };
+    var alias_dst = [_]Word{ 0, 0 };
+
+    complement(&primary_dst, &src, nbits);
+    bitmap_complement(&alias_dst, &src, nbits);
+
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+    try std.testing.expectEqual(@as(Word, 0), primary_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0b1_1011), primary_dst[1]);
+}
+
 test "bitmap predicates ignore out-of-range tail bits" {
     const nbits = bits_per_long + 5;
     const in_range_only = [_]Word{ 0, @as(Word, 1) << 2 };
@@ -833,6 +865,10 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), bitmap_andnot(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    complement(&primary_dst, &lhs, nbits);
+    bitmap_complement(&alias_dst, &lhs, nbits);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));
