@@ -213,3 +213,17 @@ test "phase3 atomic wrappers keep non-seq-cst fetch orderings reviewable" {
     try std.testing.expectEqual(@as(u32, 0b1100), fetchNand(u32, &bitwise_nand_value, 0b1010, .release));
     try std.testing.expectEqual(@as(u32, 0xffff_fff7), bitwise_nand_value);
 }
+
+test "phase3 atomic wrappers keep fetch min-max no-op edges reviewable" {
+    var unsigned_value: u32 = 12;
+    try std.testing.expectEqual(@as(u32, 12), fetchMin(u32, &unsigned_value, 18, .monotonic));
+    try std.testing.expectEqual(@as(u32, 12), unsigned_value);
+    try std.testing.expectEqual(@as(u32, 12), fetchMax(u32, &unsigned_value, 4, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 12), unsigned_value);
+
+    var signed_value: i32 = -3;
+    try std.testing.expectEqual(@as(i32, -3), fetchMin(i32, &signed_value, 6, .acquire));
+    try std.testing.expectEqual(@as(i32, -3), signed_value);
+    try std.testing.expectEqual(@as(i32, -3), fetchMax(i32, &signed_value, -7, .release));
+    try std.testing.expectEqual(@as(i32, -3), signed_value);
+}
