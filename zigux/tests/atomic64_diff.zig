@@ -171,11 +171,11 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_gate_evidence_blob_sha\": \"9649aca1fcea86946ab3dd8c421346f5386dc070\"",
+        "\"phase4_gate_evidence_blob_sha\": \"edd5cbfb0ead65cde206606b1cce7b98a764528e\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_review_checklist_blob_sha\": \"8cc12bb18de948b312b47989a813dd3666fcebdd\"",
+        "\"phase4_review_checklist_blob_sha\": \"b9297064f411b9289b5cb26a18f5fcf36a9fcd30\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -646,5 +646,5 @@ test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with th
     try expectMarker(perf_survey_source, "@as(u64, 9210681150676220922)");
     try expectMarker(perf_survey_source, "@as(i64, 130322557735600376)");
     try expectMarker(perf_survey_source, "seven monotonic samples");
-    try expectMarker(perf_survey_source, "shared CI perf approval");
+    try expectMarker(perf_survey_source, "shared CI perf promotion");
 }
