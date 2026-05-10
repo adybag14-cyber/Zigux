@@ -36,6 +36,19 @@ That adjacent evidence packet should stay explicit through:
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
 - adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, packet checker, priority-signal checker, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
 
+## Landlock Ruleset Lane Traceability
+
+Keep the current `landlock/ruleset` mapping explicit through:
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_build.zig`
+
+Those same-lane files are the shipped repo evidence that the roadmap-owned `security/landlock/ruleset.c` anchor now has a bounded helper-first Zigux packet.
+That packet honestly covers access-mask accounting, the matching-rule-versus-no-match `insert_rule()` planning split, tree-search outcome planning, and explicit no-match tree-link mode reviewability without claiming live rb-tree mutation, `rb_replace_node()`, object ownership, hierarchy lifetime, deferred frees, or full Landlock enforcement.
+The dedicated ruleset survey and manifest should stay visible here as roadmap-to-repo evidence, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
+
 ## Broad Surface Expectations
 
 When a shared contributor-facing summary mentions Phase 13, it should keep these expectations visible:
