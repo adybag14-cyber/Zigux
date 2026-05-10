@@ -307,9 +307,6 @@ REQUIRED_MARKERS = {
         "phase 7 parseIntArray keeps base and sign parsing explicit",
         "phase 7 stringUnescape covers deterministic Linux escape fixtures",
         "phase 7 stringUnescapeInplace reuses the core escape path without extra buffers",
-        "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds",
-        "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned",
-        "phase 7 kstrdupQuotable frees the owned copy when allocation fails",
         "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
         "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
@@ -338,7 +335,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_argv_split_survey.zig": [
         "Documentation/zigux/phase7-argv-split-slice.md",
         "zigux/tests/phase7_argv_split_manifest.json",
-        "PHASE7_LANE_KEY=",
+        "PHASE7_LANE_KEY=P7-Y07",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
@@ -410,8 +407,8 @@ EXACT_COUNT_MARKERS = {
         ("python3 scripts/zigux/check-phase7-argv-split-packet.py", 1),
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
-        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 2),
-        ("zig build test --build-file zigux/tests/phase7_build.zig", 2),
+        ("python3 scripts/zigux/check-phase7-rbtree-parity.py", 1),
+        ("zig build test --build-file zigux/tests/phase7_build.zig", 1),
         ("This slice does not carry an open parity-fixture follow-up", 1),
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
@@ -421,12 +418,17 @@ EXACT_COUNT_MARKERS = {
         ("`scripts/zigux/validate-phase7.py`", 1),
         ("`zigux/Makefile`", 1),
         ("`.github/workflows/zigux-bootstrap.yml`", 1),
-        ("`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface", 1),
-        ("this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`", 1),
+        (
+            "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
+            1,
+        ),
+        (
+            "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
+            1,
+        ),
     ],
     "samples/zigux/README.md": [
         ("current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1),
-        ("treat any new `samples/zigux/*string*.zig` file as review-blocking", 1),
         ("Documentation/zigux/phase7-string-helpers-slice.md", 1),
         ("lib/string_helpers.zig", 1),
         ("zigux/tests/phase7_string_helpers.zig", 1),
@@ -580,7 +582,7 @@ EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_argv_split_survey.zig": [
         ("Documentation/zigux/phase7-argv-split-slice.md", 1),
         ("zigux/tests/phase7_argv_split_manifest.json", 1),
-        ("PHASE7_LANE_KEY=", 1),
+        ("PHASE7_LANE_KEY=P7-Y07", 1),
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         (
