@@ -120,6 +120,10 @@ EXPECTED_COMPILE_SHARDS = [
     for label, root_source, coverage in COMPILE_MATRIX_ROWS
 ]
 
+WORKQUEUE_REVIEWABILITY_BUILD_TEST = "phase14-workqueue-reviewability-tests"
+WORKQUEUE_REVIEWABILITY_DEP_STEP = "run_phase14_workqueue_reviewability_tests"
+WORKQUEUE_REVIEWABILITY_ROOT_SOURCE = "phase14_workqueue_reviewability.zig"
+
 EXPECTED_ANCHOR_LANES = [
     ("P14-L01", "kernel/workqueue.c"),
     ("P14-L11", "net/core/skbuff.c"),
@@ -257,11 +261,30 @@ else:
 
 build_text = text("zigux/tests/phase14_build.zig")
 build_names = BUILD_TEST_NAME_RE.findall(build_text)
+workqueue_reviewability_present = WORKQUEUE_REVIEWABILITY_BUILD_TEST in build_names
 if build_names != EXPECTED_BUILD_TEST_NAMES:
-    missing.append("build:test_names")
+    if workqueue_reviewability_present:
+        missing.append(
+            "build:phase14-workqueue-reviewability-tests present but the shared compile matrix still publishes only the five older shards"
+        )
+    else:
+        missing.append("build:test_names")
+
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 if len(depend_steps) != 5:
-    missing.append(f"build:depend_step_count={len(depend_steps)}")
+    if workqueue_reviewability_present and len(depend_steps) == 6 and WORKQUEUE_REVIEWABILITY_DEP_STEP in depend_steps:
+        missing.append(
+            "build:phase14-workqueue-reviewability-tests adds a sixth test dependency but the manifest, smoke survey, and validator still describe a five-shard packet"
+        )
+    else:
+        missing.append(f"build:depend_step_count={len(depend_steps)}")
+
+if workqueue_reviewability_present:
+    smoke_note_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+    if WORKQUEUE_REVIEWABILITY_BUILD_TEST not in smoke_note_text and WORKQUEUE_REVIEWABILITY_ROOT_SOURCE not in smoke_note_text:
+        missing.append("survey:compile_shard_matrix_missing_phase14_workqueue_reviewability")
+    if compile_shards == EXPECTED_COMPILE_SHARDS:
+        missing.append("manifest:compile_shards_missing_phase14_workqueue_reviewability")
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
