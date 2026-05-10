@@ -181,7 +181,8 @@
       "phase10-mmio-transport-identity-helper",
       "phase10-mmio-probe-preflight-helper",
       "phase10-mmio-config-write-disposition-helper",
-      "phase10-mmio-selected-queue-readiness-helper"
+      "phase10-mmio-selected-queue-readiness-helper",
+      "phase10-mmio-configured-queue-coverage-helper"
     ]
   },
   "focused_harness_replays": {
