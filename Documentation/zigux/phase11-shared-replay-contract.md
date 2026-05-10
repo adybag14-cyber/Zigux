@@ -46,18 +46,15 @@ The shared replay surface keeps the simple-driver tranche visible together, but 
 * bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
 * DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts
 
-The dedicated archival HVC evidence still stays explicit beside that shared route:
+The dedicated archival HVC evidence on current `master` is narrower than the older parked packet and stays explicit beside that shared route only through the still-present survey-facing surfaces:
 
-* `Documentation/zigux/phase11-hvc-console-slice.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
-* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-* `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_survey.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
+
+The older HVC manifest, slice-note, validation-matrix, teardown-note, helper, verifier, and cleanup-replay file claims are intentionally not repeated here because those file paths are not all present on current `master`.
+That follow-through still belongs to the owning Phase 11 HVC lane rather than the shared replay packet.
 
 ## What This Contract Does Not Claim
 
