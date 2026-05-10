@@ -26,7 +26,7 @@ REQUIRED_SNIPPETS = {
         "# Phase 6 Helper Parity Catalog",
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
-        "- surveyed head: `911470d`",
+        "- surveyed head: `3ea8f93`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
@@ -136,7 +136,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
-        "\"surveyed_commit\": \"911470d\",",
+        "\"surveyed_commit\": \"3ea8f93\",",
         "\"id\": \"base64\"",
         "\"zigux/tests/phase6_base64_c_parity.zig\"",
         "\"zigux/tests/fixtures/phase6_base64_c_harness.c\"",
@@ -171,37 +171,37 @@ REQUIRED_SNIPPETS = {
         "\"generated_fixture_artifacts_committed\": false",
     ],
     "zigux/tests/phase6_build.zig": [
-        'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
-        '.root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),',
-        '.root_source_file = b.path("phase6_bsearch_c_abi_budget.zig"),',
-        '.name = "phase6-base64-tests"',
-        '.name = "phase6-bsearch-tests"',
-        '.name = "phase6-bsearch-lower-bound-c-abi-tests"',
-        '.name = "phase6-bsearch-c-abi-budget-tests"',
-        'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
-        'bsearch_test_step.dependOn(&run_bsearch_tests.step);',
-        'bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);',
-        'bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);',
-        'test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);',
-        'test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);',
-        'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
-        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
-        'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
+        "const test_step = b.step(\"test\", \"Run Phase 6 leaf helper tests\");",
+        ".root_source_file = b.path(\"phase6_bsearch_lower_bound_c_abi.zig\"),",
+        ".root_source_file = b.path(\"phase6_bsearch_c_abi_budget.zig\"),",
+        ".name = \"phase6-base64-tests\"",
+        ".name = \"phase6-bsearch-tests\"",
+        ".name = \"phase6-bsearch-lower-bound-c-abi-tests\"",
+        ".name = \"phase6-bsearch-c-abi-budget-tests\"",
+        "const bsearch_test_step = b.step(\"phase6-bsearch-test\", \"Run Phase 6 bsearch helper tests\");",
+        "bsearch_test_step.dependOn(&run_bsearch_tests.step);",
+        "bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);",
+        "bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);",
+        "test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);",
+        "test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);",
+        "const base64_perf_step = b.step(\"phase6-base64-perf\", \"Run Phase 6 base64 perf gate\");",
+        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+        "const hexdump_perf_step = b.step(\"phase6-hexdump-perf\", \"Run Phase 6 hexdump perf gate\");",
     ],
     "zigux/tests/phase6_bsearch.zig": [
-        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
-        'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
-        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
-        'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
+        "test \"phase 6 bsearch keeps representative lookup work inside a binary-search budget\"",
+        "test \"phase 6 bsearch keeps descending lookup work inside a binary-search budget\"",
+        "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\"",
+        "test \"phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget\"",
     ],
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig": [
-        'test "phase 6 bsearch lower-bound helpers accept runtime-selected c abi comparator pointers"',
-        'test "phase 6 bsearch lower-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
-        'test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
-        'test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget"',
+        "test \"phase 6 bsearch lower-bound helpers accept runtime-selected c abi comparator pointers\"",
+        "test \"phase 6 bsearch lower-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded\"",
+        "test \"phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges\"",
+        "test \"phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget\"",
     ],
     "zigux/tests/phase6_bsearch_c_abi_budget.zig": [
-        'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
+        "test \"phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget\"",
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
@@ -353,7 +353,7 @@ def scaffold_repo(root: Path) -> None:
             manifest = {
                 "phase": "Phase 6",
                 "tranche": "leaf-helper-parity",
-                "surveyed_commit": "911470d",
+                "surveyed_commit": "3ea8f93",
                 "helpers": [
                     {"id": "base64", "helper": "lib/base64.zig", "tests": ["zigux/tests/phase6_base64.zig", "zigux/tests/phase6_base64_c_parity.zig", "zigux/tests/phase6_base64_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_base64_vectors.zig", "zigux/tests/fixtures/phase6_base64_c_harness.c"], "slice_note": "Documentation/zigux/phase6-base64-slice.md", "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py"},
                     {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"},
@@ -416,13 +416,13 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
-        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `911470d`", "- surveyed head: `deadbeef`")
+        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `3ea8f93`", "- surveyed head: `deadbeef`")
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`", "- direct local rerun route: `zig build phase6-bsearch-missing --build-file zigux/tests/phase6_build.zig`")
-        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "911470d",', '"surveyed_commit": "",')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '\"surveyed_commit\": \"3ea8f93\",', '\"surveyed_commit\": \"\",')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
-        assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
+        assert_failure(root, "zigux/tests/phase6_build.zig", '.name = \"phase6-bsearch-c-abi-budget-tests\"', '.name = \"phase6-bsearch-c-abi-tests\"')
     print("self-test passed")
 
 
