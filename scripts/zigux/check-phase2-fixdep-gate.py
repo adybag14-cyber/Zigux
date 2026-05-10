@@ -40,6 +40,7 @@ REQUIRED_HELPER_ANCHORS = (
     "dependency file reads beyond the legacy one mebibyte ceiling",
     "output write failure uses C-style wording",
     "escaped hash dependency survives concatenated target comment path",
+    "escaped space dependency survives concatenated target comment path",
 )
 REQUIRED_CASE_NAMES = tuple(name for name, _ in REQUIRED_CASE_PACKET)
 REQUIRED_STDOUT_PACKET = tuple(expected for _, expected in REQUIRED_CASE_PACKET)
