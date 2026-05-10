@@ -461,7 +461,6 @@ def run_self_test() -> int:
             _, markers = validate(root)
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
-            path.writeText if False else None
             path.write_text(original, encoding="utf-8")
             case_count += 1
 
