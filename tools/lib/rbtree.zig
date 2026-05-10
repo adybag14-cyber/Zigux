@@ -666,6 +666,35 @@ pub fn rb_next_postorder(node: ?*const Node) ?*Node {
     return nextPostorder(node);
 }
 
+pub const PostorderSafeIterator = struct {
+    root: *const Root,
+    current: ?*Node,
+    previous: ?*Node = null,
+
+    pub fn init(root: *const Root) PostorderSafeIterator {
+        return .{
+            .root = root,
+            .current = firstPostorder(root),
+        };
+    }
+
+    pub fn next(self: *PostorderSafeIterator) ?*Node {
+        if (self.previous) |previous| {
+            if (emptyNode(previous)) {
+                self.current = firstPostorder(self.root);
+            }
+        }
+        const node = self.current orelse return null;
+        self.previous = node;
+        self.current = nextPostorder(node);
+        return node;
+    }
+};
+
+pub fn iteratePostorderSafe(root: *const Root) PostorderSafeIterator {
+    return PostorderSafeIterator.init(root);
+}
+
 test "rbtree inserts and traverses in sorted order" {
     const Entry = struct {
         key: i32,
@@ -838,6 +867,35 @@ test "rbtree postorder and empty node helpers behave" {
 
     try std.testing.expectEqual(@as(usize, 3), count);
     try std.testing.expect(nextPostorder(null) == null);
+
+    var safe_entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 4 },
+        .{ .key = 3 },
+    };
+    var safe_root = Root.init();
+    for (&safe_entries) |*entry| {
+        add(&entry.node, &safe_root, less);
+    }
+
+    var safe_order: [4]i32 = undefined;
+    var safe_count: usize = 0;
+    var iterator = iteratePostorderSafe(&safe_root);
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        safe_order[safe_count] = entry.key;
+        safe_count += 1;
+        eraseInit(node, &safe_root);
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), safe_count);
+    std.mem.sort(i32, safe_order[0..safe_count], {}, std.sort.asc(i32));
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 2, 3, 4 }, safe_order[0..safe_count]);
+    try std.testing.expect(emptyRoot(&safe_root));
+    for (&safe_entries) |*entry| {
+        try std.testing.expect(emptyNode(&entry.node));
+    }
 
     var detached = Node.init();
     clearNode(&detached);
