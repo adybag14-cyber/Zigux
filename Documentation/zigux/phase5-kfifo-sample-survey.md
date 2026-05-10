@@ -8,7 +8,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_LANE_KEY=P5-L01`
 - `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
 - `PHASE5_SLICE=kfifo-reference-sample-starter`
-- scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
+- scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the shipped `samples/zigux/bytestream_fifo.zig` replay
 - product boundary:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -56,7 +56,7 @@ For the `kfifo` anchor, current `master` already ships the roadmap-backed side-b
 - the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, shared guide, checklist, sample root, scripts root, and tests root.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
-## Approved idiom for the landed kfifo-style sample
+## Approved idiom for the landed bytestream FIFO sample
 
 Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` reference sample for this anchor should:
 
