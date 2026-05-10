@@ -171,6 +171,12 @@ jobs:
       - name: Validate Phase 4 diff gates
         run: make -C zigux phase4-validate
 
+      - name: Self-test Phase 4 validator directly
+        run: python3 scripts/zigux/validate-phase4.py --self-test
+
+      - name: Validate Phase 4 diff packet directly
+        run: python3 scripts/zigux/validate-phase4.py
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
@@ -306,8 +312,8 @@ jobs:
       - name: Run Phase 3 ABI/interp substrate tests
         run: zig build phase3-test --build-file zigux/tests/build.zig
 
-      - name: Run Phase 4 diff tests through shared Make route
-        run: make -C zigux phase4-test
+      - name: Run Phase 4 diff tests directly
+        run: zig build test --build-file zigux/tests/phase4_build.zig
 
       - name: Run Phase 5 reference sample tests
         run: zig build test --build-file zigux/tests/phase5_build.zig --summary all
