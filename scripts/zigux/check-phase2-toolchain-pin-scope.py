@@ -44,6 +44,7 @@ NOTE_APPROVAL_MARKERS = [
 
 README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
     "make -C zigux phase2-toolchain",
     "x86_64-linux bootstrap host target",
     "cross-target compile matrix stays a separate Phase 2 surface",
