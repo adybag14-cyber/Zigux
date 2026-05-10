@@ -28,6 +28,8 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+PHASE12_RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+PHASE12_RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 
@@ -39,9 +41,9 @@ REQUIRED_PHASE12_PATHS = [
     TESTS_README_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
-    "Documentation/zigux/phase12-release-sequencing.md",
+    PHASE12_RELEASE_SEQUENCING_PATH,
     "Documentation/zigux/phase12-release-closure-checklist.md",
-    "Documentation/zigux/phase12-release-readiness-survey.md",
+    PHASE12_RELEASE_READINESS_PATH,
     "Documentation/zigux/phase12-release-coordination-matrix.md",
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
@@ -106,6 +108,16 @@ PHASE12_FREEZE_MAP_MARKER = (
     "queueing, throughput, rollback, and recovery wording there must stay bounded to driver-local review evidence, "
     "lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery "
     "against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`"
+)
+PHASE12_RELEASE_READINESS_CHECKER_MARKER = (
+    "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` "
+    "and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns "
+    "so build-only contract drift still fails closed when the local runtime needs the fallback path."
+)
+PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER = (
+    "The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` "
+    "and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, "
+    "while `virtio_net` and `libbpf` remain shared-tree-only anchors."
 )
 PHASE12_LIBBPF_SURVEY_FALLBACK_MARKER = (
     "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact."
@@ -175,6 +187,16 @@ REQUIRED_FREEZE_MAP_MARKERS = [
 
 REQUIRED_FREEZE_MAP_EXACT_COUNTS = {
     PHASE12_FREEZE_MAP_MARKER: 1,
+}
+
+REQUIRED_PHASE12_RELEASE_READINESS_MARKERS = [
+    PHASE12_RELEASE_READINESS_CHECKER_MARKER,
+    PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER,
+]
+
+REQUIRED_PHASE12_RELEASE_READINESS_EXACT_COUNTS = {
+    PHASE12_RELEASE_READINESS_CHECKER_MARKER: 1,
+    PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER: 1,
 }
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -327,6 +349,7 @@ def validate(root: Path) -> list[str]:
     docs_readme = read_text(root, DOCS_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     freeze_map = read_text(root, FREEZE_MAP_PATH)
+    phase12_release_readiness = read_text(root, PHASE12_RELEASE_READINESS_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -342,6 +365,18 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
     ensure_contains(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_MARKERS)
     ensure_exact_counts(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_EXACT_COUNTS)
+    ensure_contains(
+        failures,
+        "phase12_release_readiness",
+        phase12_release_readiness,
+        REQUIRED_PHASE12_RELEASE_READINESS_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_release_readiness",
+        phase12_release_readiness,
+        REQUIRED_PHASE12_RELEASE_READINESS_EXACT_COUNTS,
+    )
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
@@ -371,6 +406,11 @@ def validate(root: Path) -> list[str]:
 def placeholder_for(rel_path: str) -> str:
     if rel_path == PHASE12_BUILD_PATH:
         return minimal_phase12_build()
+    if rel_path == PHASE12_RELEASE_READINESS_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-release-readiness-survey",
+            REQUIRED_PHASE12_RELEASE_READINESS_MARKERS,
+        )
     if rel_path == PHASE12_LIBBPF_SURVEY_PATH:
         return minimal_marker_doc("Documentation/zigux/phase12-libbpf-segment-survey", REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
     if rel_path == PHASE12_RAW_GITHUB_COVERAGE_PATH:
@@ -442,12 +482,28 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / DOCS_README_PATH, minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS))
     write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Documentation/zigux/review-checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
     write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Documentation/zigux/freeze-map", REQUIRED_FREEZE_MAP_MARKERS))
+    write_text(
+        root / PHASE12_RELEASE_READINESS_PATH,
+        minimal_marker_doc(
+            "Documentation/zigux/phase12-release-readiness-survey",
+            REQUIRED_PHASE12_RELEASE_READINESS_MARKERS,
+        ),
+    )
     write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
     write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
     for rel_path in REQUIRED_PHASE12_PATHS:
-        if rel_path in {SCRIPTS_README_PATH, DOCS_README_PATH, REVIEW_CHECKLIST_PATH, FREEZE_MAP_PATH, TESTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
+        if rel_path in {
+            SCRIPTS_README_PATH,
+            DOCS_README_PATH,
+            REVIEW_CHECKLIST_PATH,
+            FREEZE_MAP_PATH,
+            PHASE12_RELEASE_READINESS_PATH,
+            TESTS_README_PATH,
+            WORKFLOW_PATH,
+            MAKEFILE_PATH,
+        }:
             continue
         write_text(root / rel_path, placeholder_for(rel_path))
 
@@ -470,6 +526,7 @@ def run_self_test() -> int:
         docs_readme_path = base / DOCS_README_PATH
         review_checklist_path = base / REVIEW_CHECKLIST_PATH
         freeze_map_path = base / FREEZE_MAP_PATH
+        phase12_release_readiness_path = base / PHASE12_RELEASE_READINESS_PATH
         tests_readme_path = base / TESTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
@@ -495,6 +552,22 @@ def run_self_test() -> int:
         freeze_map = freeze_map_path.read_text(encoding="utf-8")
         freeze_map_path.write_text(freeze_map.replace(PHASE12_FREEZE_MAP_MARKER, "", 1), encoding="utf-8")
         expect_failure(base, f"freeze_map:{PHASE12_FREEZE_MAP_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_readiness = phase12_release_readiness_path.read_text(encoding="utf-8")
+        phase12_release_readiness_path.write_text(
+            phase12_release_readiness.replace(PHASE12_RELEASE_READINESS_CHECKER_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_readiness:{PHASE12_RELEASE_READINESS_CHECKER_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_readiness = phase12_release_readiness_path.read_text(encoding="utf-8")
+        phase12_release_readiness_path.write_text(
+            phase12_release_readiness.replace(PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_readiness:{PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER}")
 
         write_fixture_tree(base)
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
@@ -578,7 +651,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -616,7 +689,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_PHASE12_RELEASE_READINESS_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
     )
     return 0
 
