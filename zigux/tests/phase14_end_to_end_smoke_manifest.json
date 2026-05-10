@@ -1,0 +1,90 @@
+{
+  "lane_key": "P14-L03",
+  "phase": "Phase 14",
+  "surveyed_commit": "c1ca884d084f000475bcb79019227d50a873896a",
+  "productization": {
+    "owner": "Core-Adjacent Pod",
+    "status_bucket": "study_only",
+    "validation_gate": "zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14",
+    "rollback_owner": "Repo Tooling Pod",
+    "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux."
+  },
+  "shared_smoke_surfaces": [
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_build.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md"
+  ],
+  "anchor_packets": [
+    {
+      "lane_key": "P14-L01",
+      "anchor": "kernel/workqueue.c",
+      "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
+      "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+      "ready_next_gap": "phase14-workqueue-drain-cancel-followup",
+      "blocked_gap": "phase14-workqueue-live-execution-blocker"
+    },
+    {
+      "lane_key": "P14-L11",
+      "anchor": "net/core/skbuff.c",
+      "surveyed_commit": "f65e3d897847bf205198e5c47a41782085620579",
+      "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+      "ready_next_gap": "phase14-skbuff-validate-xmit-republish-followup",
+      "blocked_gap": "phase14-skbuff-live-ownership-blocker"
+    },
+    {
+      "lane_key": "P14-L06",
+      "anchor": "kernel/trace/ring_buffer.c",
+      "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
+      "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "ready_next_gap": "phase14-ring-buffer-read-page-extraction-followup",
+      "blocked_gap": "phase14-ring-buffer-zig-port-blocker"
+    },
+    {
+      "lane_key": "P14-L14",
+      "anchor": "kernel/rcu/tree.c",
+      "surveyed_commit": "0855a2fc20664cd4a138379d7731edf8183d74e6",
+      "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
+      "ready_next_gap": "",
+      "blocked_gap": "phase14-rcu-tree-bridge-blocker"
+    }
+  ],
+  "smoke_commands": [
+    "make -C zigux phase14-validate",
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14"
+  ],
+  "smoke_shard_commands": [
+    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-smoke"
+  ],
+  "survey_summary": {
+    "phase14_validate_script_present": true,
+    "phase14_validate_entrypoint_present": true,
+    "phase14_build_has_shared_smoke_step": true,
+    "phase14_build_has_smoke_shard_step": true,
+    "phase14_make_target_present": true,
+    "phase14_make_smoke_target_present": true,
+    "workflow_runs_phase14_validate": true,
+    "workflow_runs_phase14_build": true,
+    "workflow_runs_phase14_smoke_shard": true,
+    "review_checklist_has_phase14_smoke_prompt": true,
+    "review_checklist_has_productization_prompt": true,
+    "smoke_note_records_owner_and_rollback": true,
+    "smoke_note_records_transfer_rationale": true,
+    "freeze_map_lists_workqueue_c": true,
+    "freeze_map_lists_skbuff_c": true,
+    "freeze_map_lists_ring_buffer_c": true,
+    "freeze_map_lists_tree_c": true
+  }
+}
