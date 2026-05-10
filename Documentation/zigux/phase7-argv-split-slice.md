@@ -55,8 +55,9 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-3. run the dedicated Phase 7 survey gate
+3. run the dedicated manifest-backed Phase 7 survey gate from `repo_root`
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
+- `make -C zigux phase7-argv-split-survey`
 
 4. keep the dedicated packet surface machine-checked
 - `python3 scripts/zigux/check-phase7-argv-split-packet.py`
