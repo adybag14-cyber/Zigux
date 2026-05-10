@@ -1,102 +1,68 @@
 # Phase 10 Closure Evidence
 
-This document records the bounded shared closure packet for the active Phase 10 virtio lane.
+This note records only the Phase 10 virtio closure evidence that this runtime could verify directly on current `master`.
 
 ## Status
 
 - `PHASE10_STATUS=active`
 - `PHASE10_TRANCHE=virtio-lab-bundle`
-- `PHASE10_CLOSURE_POSTURE=parked_shared_packet`
-- shared packet: closure evidence stays in the shared virtio reminder surfaces rather than a dedicated lane-local validator
+- `PHASE10_CLOSURE_POSTURE=truthfulness_recheck`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- shared closure inventory now reads `11` docs, `4` manifests, `5` drivers, and `15` tests on current `master`
-- scope: keep the shared Phase 10 closure note aligned with the checker-backed roadmap scoreboard, the live survey provenance, and the still-parked risky transport blockers
+- scope: keep the shared Phase 10 closure note aligned with live, directly readable repo artifacts instead of repeating older inventories that this runtime could not confirm on `master`
 
-## Shared Packet Inventory
+## Verified Live Artifacts
 
-The current shared closure packet keeps this Phase 10 bundle explicit:
+This run directly verified these current Phase 10 review surfaces through authenticated GitHub file reads:
 
-- docs: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- manifests: `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`
-- drivers: `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig`
-- tests: `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
 
-The shared reminder surfaces around this packet stay reviewable through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`.
+These reads are enough to prove that current `master` still carries an active Phase 10 reminder packet, a dedicated tests-root core-surfaces checker, and at least one surviving queue-handling manifest-backed virtio ring survey record.
 
-## Roadmap Scoreboard
+## Verified Queue And Harness Coverage
 
-Current `master` keeps the roadmap-backed Phase 10 scoreboard explicit through the shared closure packet:
+The live Phase 10 virtio evidence that this runtime could verify directly is:
 
-- `virtqueue_wrappers=starter_landed`
-  - evidence: `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `mmio_wrappers=starter_landed`
-  - evidence: `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `lab_only_driver_validation=starter_landed`
-  - evidence: `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
-- `dual_implementations_for_risky_areas=blocked_on_risky_transport`
-  - evidence: `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`
+- a dedicated tests-root checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, that keeps the broad Phase 10 tests-root reminder explicit about direct virtio core surfaces plus the shared `phase10` test and make routes
+- a manifest-backed virtio ring survey record, `zigux/tests/phase10_virtio_ring_manifest.json`, that still records queue-wrapper footholds such as queue-shape metadata, used-buffer polling, callback enable and delay bookkeeping, notify-prepare state, broken-queue guards, queue reset, reset-readiness checks, and the wrapper-facing ring verify replay, while still marking the transport-backed bridge as blocked on risky transport work
+- the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, which still describe an active Phase 10 virtio packet on current `master`
 
-The current closure packet also keeps the landed helper ladders explicit for the core, ring, input, and MMIO survey families, the direct driver-id review path, and records the focused probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain input replays that keep the shared Phase 10 lab bundle reviewable without widening into risky transport claims.
+## Current Truthfulness Blocker
 
-## Survey Provenance
+This runtime could not verify several Phase 10 paths that older shared reminders and the previous version of this note still named as live artifacts. Authenticated GitHub file reads returned `404 Not Found` for these representative paths on current `master`:
 
-The manifest-derived survey provenance for the current closure bundle is:
+- `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `zigux/tests/phase10_virtio_core_manifest.json`
+- `zigux/tests/phase10_virtio_input_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `drivers/virtio/virtio.zig`
+- `drivers/virtio/virtio_ring.zig`
+- `drivers/virtio/virtio_input.zig`
+- `drivers/virtio/virtio_mmio.zig`
 
-- core: lane `P10-L01`, surveyed commit `31e9763eea7964dad7085d1a24bc098b4af49789`
-- ring: lane `P10-L07`, surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
-- input: lane `P10-L13`, surveyed commit `7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- mmio: lane `P10-L10`, surveyed commit `84f90e23ad1c28ae345905d5293a8c5395f37d43`
-
-## Closure Gates
-
-The exact replay packet recorded by the current shared closure packet is:
-
-1. `python3 scripts/zigux/check-phase10-core-packet.py`
-2. `python3 scripts/zigux/check-phase10-ring-packet.py`
-3. `python3 scripts/zigux/check-phase10-input-packet.py`
-4. `python3 scripts/zigux/check-phase10-mmio-packet.py`
-5. `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
-6. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-7. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-8. `make -C zigux phase10-test`
-9. `make -C zigux phase10`
-
-## Cross-Phase Scoreboard Boundary
-
-The shared Phase 10 closure packet still keeps two adjacent parity-scoreboard buckets explicit so reviewers do not overcount non-Phase-10 evidence as virtio closure progress.
-
-- `reference_samples` stays `out_of_scope`; its evidence remains under the landed Phase 5 sample packet and should not widen the active Phase 10 closure claim.
-- `runtime_starters` stays `out_of_scope`; its evidence remains under the bounded Phase 9 runtime-loader packet and should not widen the active Phase 10 risky-transport closure claim.
+Because those paths were not readable through the same authenticated repo interface that succeeded for the verified artifacts above, this note now treats the broader Phase 10 inventory as unresolved instead of repeating it as confirmed live evidence.
 
 ## Parked Boundary
 
-Phase 10 remains limited to `drivers/virtio/*.zig` plus justified helper bridges in `zigux/kernel/` or `zigux/helpers/`, and it stays limited to driver-local lab slices, survey manifests, and shared validation gates as its allowed evidence kinds.
+The roadmap posture remains unchanged:
 
-This note still does not claim:
+- Phase 10 stays inside virtio driver ports, queue handling, and harness coverage
+- risky transport work remains blocked until a narrower, directly reviewable packet lands or an Architecture Council reopen explicitly widens the tranche
+- `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain separate Phase 14 study-only anchors rather than Phase 10 closure evidence
 
-- queue setup or reset parity
-- IRQ parity
-- DMA paths
-- input registration lifecycle parity
-- probe or remove lifecycle parity
+## Next Bounded Step
 
-The current ready-next risky transport follow-ups remain:
+The next truthful virtio-driver follow-through should stay inside one of these two bounded options:
 
-- `zigux/tests/phase10_virtio_input_manifest.json`: `phase10-virtio-input-registration-lifecycle`
-- `zigux/tests/phase10_virtio_mmio_manifest.json`: `phase10-mmio-lifecycle-and-irq-paths`
-
-The blocked transport gaps recorded by the current shared closure packet remain:
-
-- `zigux/tests/phase10_virtio_core_manifest.json`: `phase10-core-probe-remove-lifecycle`
-- `zigux/tests/phase10_virtio_input_manifest.json`: `phase10-virtio-input-registration-lifecycle`
-- `zigux/tests/phase10_virtio_mmio_manifest.json`: `phase10-mmio-lifecycle-and-irq-paths`
-
-The shared closure packet also keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family. Any future freeze-boundary status change still needs an Architecture Council reopen record before this tranche can widen.
-
-## Next bounded step
-
-Leave this shared closure packet parked unless the scoreboard changes again or one of the two remaining risky transport blockers splits into a smaller helper-local packet.
-
-The next truthful follow-through should stay bounded to either `phase10-virtio-input-registration-lifecycle` or `phase10-mmio-lifecycle-and-irq-paths`, and any future shared-note refresh should start from the dedicated `zigux/tests/phase10_virtio_{core,ring,input,mmio}_manifest.json` files plus the current Phase 10 packet checkers before restating scoreboard counts, survey provenance, or closure gates.
+1. Materialize the live Phase 10 tree through a publish-capable repo path and determine whether the missing Phase 10 docs, manifests, and driver files were removed, renamed, or made inaccessible through the current GitHub read bridge.
+2. Once that repo reality is confirmed, either restore the missing Phase 10 artifacts or prune the stale Phase 10 reminder surfaces so `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` stop overstating the live virtio packet.
