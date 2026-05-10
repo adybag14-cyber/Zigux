@@ -30,6 +30,7 @@ FILES = [
     "zigux/tests/phase14_skbuff_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
 ]
 
 MAKE_MARKERS = [
@@ -87,6 +88,8 @@ RELEASE_MARKERS = [
     "phase14_skbuff_bridge_manifest.json",
     "phase14_ring_buffer_manifest.json",
     "phase14_rcu_tree_manifest.json",
+    "phase14-workqueue-reviewability-tests",
+    "phase14_workqueue_reviewability.zig",
 ]
 
 CHECKLIST_MARKERS = [
@@ -95,11 +98,13 @@ CHECKLIST_MARKERS = [
 
 BUILD_MARKERS = [
     "phase14-workqueue-bridge-tests",
+    "phase14-workqueue-reviewability-tests",
     "phase14-skbuff-bridge-tests",
     "phase14-ring-buffer-survey-tests",
     "phase14-rcu-tree-survey-tests",
     "phase14-end-to-end-smoke-tests",
     "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+    "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
     "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
     "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
@@ -108,6 +113,7 @@ BUILD_MARKERS = [
 
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
+    ("phase14-workqueue-reviewability-tests", "phase14_workqueue_reviewability.zig", "full_bundle_only"),
     ("phase14-skbuff-bridge-tests", "phase14_skbuff_bridge.zig", "full_bundle_only"),
     ("phase14-ring-buffer-survey-tests", "phase14_ring_buffer_survey.zig", "full_bundle_only"),
     ("phase14-rcu-tree-survey-tests", "phase14_rcu_tree_survey.zig", "full_bundle_only"),
@@ -120,14 +126,10 @@ EXPECTED_COMPILE_SHARDS = [
     for label, root_source, coverage in COMPILE_MATRIX_ROWS
 ]
 
-WORKQUEUE_REVIEWABILITY_BUILD_TEST = "phase14-workqueue-reviewability-tests"
-WORKQUEUE_REVIEWABILITY_DEP_STEP = "run_phase14_workqueue_reviewability_tests"
-WORKQUEUE_REVIEWABILITY_ROOT_SOURCE = "phase14_workqueue_reviewability.zig"
-
 EXPECTED_ANCHOR_LANES = [
-    ("P14-L01", "kernel/workqueue.c"),
-    ("P14-L11", "net/core/skbuff.c"),
-    ("P14-L06", "kernel/trace/ring_buffer.c"),
+    ("P14-L04", "kernel/workqueue.c"),
+    ("P14-Y03", "net/core/skbuff.c"),
+    ("P14-L08", "kernel/trace/ring_buffer.c"),
     ("P14-L14", "kernel/rcu/tree.c"),
 ]
 
@@ -192,6 +194,7 @@ else:
         "zigux/tests/phase14_end_to_end_smoke_manifest.json",
         "zigux/tests/phase14_end_to_end_smoke_survey.zig",
         "zigux/tests/phase14_build.zig",
+        "zigux/tests/phase14_workqueue_reviewability.zig",
         "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
         "Documentation/zigux/review-checklist.md",
         "Documentation/zigux/freeze-map.md",
@@ -261,35 +264,17 @@ else:
 
 build_text = text("zigux/tests/phase14_build.zig")
 build_names = BUILD_TEST_NAME_RE.findall(build_text)
-workqueue_reviewability_present = WORKQUEUE_REVIEWABILITY_BUILD_TEST in build_names
 if build_names != EXPECTED_BUILD_TEST_NAMES:
-    if workqueue_reviewability_present:
-        missing.append(
-            "build:phase14-workqueue-reviewability-tests present but the shared compile matrix still publishes only the five older shards"
-        )
-    else:
-        missing.append("build:test_names")
+    missing.append("build:test_names")
 
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-if len(depend_steps) != 5:
-    if workqueue_reviewability_present and len(depend_steps) == 6 and WORKQUEUE_REVIEWABILITY_DEP_STEP in depend_steps:
-        missing.append(
-            "build:phase14-workqueue-reviewability-tests adds a sixth test dependency but the manifest, smoke survey, and validator still describe a five-shard packet"
-        )
-    else:
-        missing.append(f"build:depend_step_count={len(depend_steps)}")
-
-if workqueue_reviewability_present:
-    smoke_note_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
-    if WORKQUEUE_REVIEWABILITY_BUILD_TEST not in smoke_note_text and WORKQUEUE_REVIEWABILITY_ROOT_SOURCE not in smoke_note_text:
-        missing.append("survey:compile_shard_matrix_missing_phase14_workqueue_reviewability")
-    if compile_shards == EXPECTED_COMPILE_SHARDS:
-        missing.append("manifest:compile_shards_missing_phase14_workqueue_reviewability")
+if len(depend_steps) != 6:
+    missing.append(f"build:depend_step_count={len(depend_steps)}")
 
 for manifest_path, lane_key, anchor in [
-    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
-    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-L11", "net/core/skbuff.c"),
-    ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L06", "kernel/trace/ring_buffer.c"),
+    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L04", "kernel/workqueue.c"),
+    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-Y03", "net/core/skbuff.c"),
+    ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L08", "kernel/trace/ring_buffer.c"),
     ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L14", "kernel/rcu/tree.c")
 ]:
     anchor_manifest = load_json(manifest_path)
