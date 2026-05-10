@@ -56,6 +56,7 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - focused helper rerun route: `make -C zigux phase6-bsearch-test`
+- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
 - current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
 
