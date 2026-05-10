@@ -19,6 +19,7 @@ That adjacent evidence packet should stay explicit through:
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
@@ -33,7 +34,7 @@ That adjacent evidence packet should stay explicit through:
 - `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
-- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, packet checker, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
+- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, packet checker, priority-signal checker, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
 
 ## Broad Surface Expectations
 
