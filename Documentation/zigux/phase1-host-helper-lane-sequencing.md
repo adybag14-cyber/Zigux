@@ -47,7 +47,7 @@ Fresh repo-first inspection shows that the older saved bitmap closure-validator 
 
 The Phase 1 closure validator already carries the bitmap final-partial-word and Linux-style alias closure markers that older lane memory still described as missing. Future runs should not reopen that already-landed validator sync.
 
-The smallest live same-lane drift is smaller and different: `Documentation/zigux/README.md` and `scripts/zigux/README.md` already treat this owner-map note as part of the shipped Phase 1 review surface, but the shared closure-validator packet still does not name this note in its required-file contract. That means the owner-map split can drift without the fail-closed Phase 1 closure gate noticing.
+The smallest live same-lane drift is smaller and different: `scripts/zigux/README.md` already treats this owner-map note as part of the shipped Phase 1 review surface, but `Documentation/zigux/README.md` still does not name it. That means the docs-root Phase 1 summary can drift behind the current owner-map split even before the shared closure-validator packet is tightened around this note.
 
 ## Anti-Overlap Rules
 
@@ -60,9 +60,9 @@ When this lane reopens, stay inside one bounded step only.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to add this lane-sequencing note to the shared Phase 1 closure-validator packet so the docs-root and scripts-root references cannot drift past the fail-closed review gate.
+The next honest same-lane follow-up is to add this lane-sequencing note to `Documentation/zigux/README.md`, then tighten the shared Phase 1 closure-validator packet around the same owner-map note so the docs-root and fail-closed review surfaces cannot drift apart.
 
-Until that validator sync lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+Until that docs-root and validator sync lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
