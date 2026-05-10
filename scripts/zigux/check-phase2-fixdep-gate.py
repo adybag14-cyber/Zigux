@@ -35,6 +35,7 @@ REQUIRED_HELPER_ANCHORS = (
     "dep parsing returns NoTargets for comment-only depfiles",
     "dep parsing keeps escaped spaces inside tokens",
     "dep parsing unescapes escaped colons inside tokens",
+    "dep parsing continues dependency tokens across escaped newlines",
     "dep parsing skips bytes after the first embedded NUL",
     "dependency file reads beyond the legacy one mebibyte ceiling",
     "output write failure uses C-style wording",
