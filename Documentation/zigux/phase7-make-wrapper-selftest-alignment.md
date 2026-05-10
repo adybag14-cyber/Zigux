@@ -74,4 +74,4 @@ It does not add a new helper-local parity claim, and it does not widen the packe
 
 ## Next bounded step
 
-Keep this note parked unless a future Phase 7 shared-surface pass changes one of the shipped `make -C zigux phase7-validate` or `make -C zigux phase7` routes, removes one of the dedicated checker self-tests from that packet, or changes the landed four-helper family named above.
+Keep this note parked unless a future Phase 7 shared-surface pass changes one of the shipped `make -C zigux phase7-validate` or `make -C zigux phase7` routes, removes one of the dedicated checker self-tests from that packet, changes the landed four-helper family named above, or closes the still-pending docs-root shared-surface truthfulness pass around the broad Phase 7 reminder in `Documentation/zigux/README.md`, starting with the cmdline-manifest wording that the other Phase 7 shared surfaces already keep explicit.
