@@ -1,0 +1,130 @@
+{
+  "lane_key": "P15-L14",
+  "phase": "Phase 15",
+  "surveyed_commit": "febebdae089598f228fff0bc6ee44c1a860fd905",
+  "roadmap_requirement": "Architecture Council review process",
+  "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
+  "current_approval_state": "no_freeze_map_status_change_approved",
+  "ownership_evidence_fields": [
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "reopen triggers",
+    "parity scorecard link or blocker record"
+  ],
+  "trigger_conditions": [
+    "freeze-map list change",
+    "freeze-map status-bucket change",
+    "bounded dual-implementation request for a deep-core study target",
+    "contradictory validation needing a written council decision"
+  ],
+  "required_review_packet_fields": [
+    "linux anchor path",
+    "phase",
+    "current status bucket",
+    "requested decision bucket",
+    "decision record ID",
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "reopen triggers",
+    "parity scorecard link or blocker record",
+    "explicit non-goals",
+    "written rationale"
+  ],
+  "reopen_trigger_catalog": [
+    "narrower_followup_answers_blocker",
+    "evidence_packet_stale_or_contradictory",
+    "ownership_or_validation_changed"
+  ],
+  "decision_buckets": [
+    "keep_in_c",
+    "study_only_followup",
+    "bounded_dual_implementation",
+    "defer_or_reject"
+  ],
+  "handoff": {
+    "current_mode": "maintenance_mode",
+    "replay_commands": [
+      "zig build test --build-file zigux/tests/phase15_build.zig",
+      "make -C zigux phase15"
+    ],
+    "blocker_posture_requirement": "deep_core_blocker_posture_change",
+    "next_step": "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice"
+  },
+  "gaps": [
+    {
+      "id": "phase15-architecture-council-review-process-doc",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The roadmap names an Architecture Council review process, but the live repo lacked a reviewable process note that says when council review is required and what packet it must carry."
+    },
+    {
+      "id": "phase15-architecture-council-review-process-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+      "why_now": "A dedicated manifest keeps the new governance slice explicit and machine-checkable instead of burying the scope inside prose."
+    },
+    {
+      "id": "phase15-architecture-council-review-process-test",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
+      "why_now": "The Phase 15 review-process note should stay runnable so future edits do not quietly drop required trigger, packet, or decision-bucket language."
+    },
+    {
+      "id": "phase15-review-checklist-hook",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The live review checklist needed one explicit prompt that links freeze-map status-change requests back to the Architecture Council review record and decision bucket."
+    },
+    {
+      "id": "phase15-build-gate-review-process",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "The shared Phase 15 build gate should run the review-process test alongside the existing freeze-map governance test so the governance lane stays coherent."
+    },
+    {
+      "id": "phase15-parity-scorecard-baseline",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The landed Phase 15 parity scorecard is now the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
+    },
+    {
+      "id": "phase15-evidence-archive-followup",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process packet now standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
+    },
+    {
+      "id": "phase15-stay-in-c-retirement-rule",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process note now records the retained `retired_from_active_discussion` closeout state and the reopen triggers that keep a stay-in-C outcome reviewable without implying approval."
+    },
+    {
+      "id": "phase15-reopen-trigger-catalog-followup",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process note now names the bounded reopen-trigger catalog so later exception records and scorecard updates reuse the same stay-in-C reopen vocabulary."
+    }
+  ]
+}
