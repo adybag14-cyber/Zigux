@@ -10,6 +10,12 @@ WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test': 1,
     'python3 scripts/zigux/check-phase1-installer-review-surfaces.py': 1,
     'python3 scripts/zigux/validate-phase1-closure.py': 1,
+    'python3 scripts/zigux/check-phase6-shared-surface.py --self-test': 1,
+    'python3 scripts/zigux/check-phase6-shared-surface.py': 1,
+    'zig build test --build-file zigux/tests/phase6_build.zig --summary all': 1,
+    'zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all': 1,
+    'zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all': 1,
+    'zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py --self-test': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py': 1,
 }
