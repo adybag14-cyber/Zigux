@@ -414,6 +414,22 @@ test "phase4 perf baseline survey keeps the shared matrix and reviewer packet on
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
+    const scripts_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
     const required_matrix_markers = [_][]const u8{
         "zigux/tests/phase4_perf_baseline_manifest.json",
         "zigux/tests/phase4_perf_baseline_survey.zig",
@@ -441,5 +457,31 @@ test "phase4 perf baseline survey keeps the shared matrix and reviewer packet on
 
     for (required_review_checklist_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, review_checklist, marker) != null);
+    }
+
+    const required_docs_readme_markers = [_][]const u8{
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        "the dedicated local-only perf-baseline survey packet's approved benchmark commands and acceptable limits",
+        "the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+        "the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+        "the intentionally unapproved shared-CI perf-threshold posture explicit for the shipped Phase 4 gates",
+    };
+
+    for (required_docs_readme_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, docs_readme, marker) != null);
+    }
+
+    const required_scripts_readme_markers = [_][]const u8{
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        "approved local-only benchmark commands and acceptable limits",
+        "the Validation and Perf Team stays named here as the decision owner for any broader shared-CI perf promotion",
+        "the ABI and Runtime Team plus Shared Subsystems Pod stay named here as the coordination owners for that policy call",
+        "the shared reminder surfaces keep that promotion explicitly pending",
+    };
+
+    for (required_scripts_readme_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, scripts_readme, marker) != null);
     }
 }
