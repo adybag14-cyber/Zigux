@@ -119,6 +119,12 @@ test "phase3 panic policy stays explicit" {
         .unsafe_scope = 1,
         .reserved = 0,
     };
+    const unknown_policy = abi.InteropPolicy{
+        .panic_mode = 9,
+        .allocator_mode = 0,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
     const reserved_policy = abi.InteropPolicy{
         .panic_mode = 2,
         .allocator_mode = 1,
@@ -128,12 +134,15 @@ test "phase3 panic policy stays explicit" {
 
     try std.testing.expect(recognizesInteropPolicy(abort_policy));
     try std.testing.expect(recognizesInteropPolicy(warn_policy));
+    try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
     try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?abi.PanicMode, .abort), modeFromInteropPolicy(abort_policy));
     try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromInteropPolicy(warn_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?Action, .abort_now), actionForInteropPolicy(abort_policy));
     try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForInteropPolicy(warn_policy));
+    try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));
 
     try std.testing.expect(!canReturn(.abort));
@@ -150,5 +159,6 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));
     try std.testing.expect(!canReturnInteropPolicy(abort_policy));
     try std.testing.expect(canReturnInteropPolicy(warn_policy));
+    try std.testing.expect(!canReturnInteropPolicy(unknown_policy));
     try std.testing.expect(!canReturnInteropPolicy(reserved_policy));
 }
