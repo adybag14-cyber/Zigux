@@ -120,6 +120,10 @@ pub const RuntimeKretprobeLoader = struct {
         module: *const runtime_kretprobe_sample.RuntimeKretprobeSample,
     ) !runtime_loader.PreparedRequest {
         const plan = try self.prepare(module);
+        errdefer {
+            self.cached_plan = null;
+            self.stage_state = .idle;
+        }
         return runtime_loader.prepareRequest(toSharedLoadPlan(plan));
     }
 
@@ -134,12 +138,16 @@ pub const RuntimeKretprobeLoader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
-        const plan = try self.requestRuntimeLoad();
-        const shared_plan = try shared_request.requestRuntimeLoad();
-        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
+        if (self.stage_state != .prepared) return error.InvalidLoaderState;
+        if (shared_request.state != .prepared) return error.InvalidLoaderState;
+
+        const plan = self.cached_plan orelse return error.MissingLoadPlan;
+        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_request.plan)) {
             return error.SharedLoadPlanDrift;
         }
-        return shared_plan;
+
+        _ = try self.requestRuntimeLoad();
+        return shared_request.requestRuntimeLoad();
     }
 
     pub fn releaseWithoutSubstrate(self: *Self) !void {
@@ -151,8 +159,8 @@ pub const RuntimeKretprobeLoader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !void {
-        try self.releaseWithoutSubstrate();
         try shared_request.releaseWithoutSubstrate();
+        try self.releaseWithoutSubstrate();
     }
 };
 
@@ -340,9 +348,13 @@ test "runtime kretprobe loader surfaces shared request drift before any live reg
 
     var loader = RuntimeKretprobeLoader{};
     var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = loader.cached_plan orelse unreachable;
     shared_request.plan.module_name = "runtime_kretprobe_drift";
 
     try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expectEqualStrings(prepared_plan.module_name, (loader.cached_plan orelse unreachable).module_name);
 }
 
 test "runtime kretprobe loader rejects shared-load-plan snapshot drift" {
