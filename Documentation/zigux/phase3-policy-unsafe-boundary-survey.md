@@ -25,6 +25,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=40974c1d0aa4c66bc5a6373e94e7721148954e78`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=38c3682b010308c0254c326927f8ca92a2f53711`
+- `PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR_PATH=scripts/zigux/validate-phase3-policy-unsafe-survey.py`
+- `PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR_BLOB_SHA=33bc2d27c576510e11405045f1c7481fb0b89e13`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
@@ -49,7 +51,7 @@ This lane does not justify broad runtime policy machinery on its own.
 
 ## Live Repo Reality
 
-This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.
+This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet, including its dedicated packet-local survey validator.
 
 The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
 
@@ -62,7 +64,7 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `zigux/helpers/mmio.zig` now also mirrors the Phase 3 policy helpers with explicit `InteropPolicy`-gated `range`, `read*`, and `write*` entry points instead of forcing volatile MMIO callers to re-check unsafe-scope bytes outside the helper before using the bounded pointer bridge.
 - `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` plus the shared `zig build phase3-dump --build-file zigux/tests/build.zig` route keep the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the dump path.
-- `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
+- `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, `scripts/zigux/validate-phase3.py`, and `scripts/zigux/validate-phase3-policy-unsafe-survey.py` already treat these helpers as part of the shared `abi` slice.
 
 The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair or a broader policy-and-unsafe helper family. This note should stay tied to the real shared ABI packet instead of claiming more than that.
 
