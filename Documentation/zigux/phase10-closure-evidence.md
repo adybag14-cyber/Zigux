@@ -11,7 +11,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices, the bounded core-side `virtio_driver_id` helper, the current manifest-backed checker packet, the 14-file tests-root build packet, the direct core, ring, input, and MMIO replays, the focused core, ring, input, and MMIO verifier replays, the four dedicated survey gates, the dedicated input probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, and Linux-style replay routes
+- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices, the bounded core-side `virtio_driver_id` helper, the current manifest-backed checker packet, the 15-file tests-root build packet, the direct core, ring, input, and MMIO replays, the focused core, ring, input, and MMIO verifier replays, the four dedicated survey gates, the dedicated input probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, and Linux-style replay routes
 
 ## Why this note exists
 
