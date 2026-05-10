@@ -15,6 +15,7 @@ const Manifest = struct {
     rollback_owner: []const u8,
     shared_gate_evidence_packet_present: bool,
     validation_entrypoint: []const u8,
+    reversible_delivery_evidence: []const u8,
     review_prompts: []const []const u8,
     non_goals: []const []const u8,
 };
@@ -68,6 +69,10 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
     try std.testing.expectEqualStrings(
         "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
         manifest.validation_entrypoint,
+    );
+    try std.testing.expectEqualStrings(
+        "the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, the matching Linux-style wrapper `make -C zigux phase4-test-fsmount-survey`, and the adjacent shared gate-evidence packet keep the parked test_fsmount gap reviewable and reversible without claiming a shipped Zig starter",
+        manifest.reversible_delivery_evidence,
     );
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqualStrings(
@@ -132,6 +137,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, the matching Linux-style wrapper `make -C zigux phase4-test-fsmount-survey`, and the adjacent shared gate-evidence packet keep the parked test_fsmount gap reviewable and reversible without claiming a shipped Zig starter",
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
         "`samples/zigux/test_fsmount.zig` is still absent",
@@ -150,6 +156,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.makefile_wrapper) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
 
