@@ -23,6 +23,7 @@ EXPECTED_HELPER_LOCAL_ANCHORS = [
     'genksyms bridge parses repeated short flags and arguments',
     'genksyms bridge parses long options and quiet override',
     'genksyms bridge keeps version as a side effect while parsing later options',
+    'genksyms bridge preserves version side effects before later parse failures',
     'genksyms bridge accepts unambiguous abbreviated long options',
     'genksyms bridge canonicalizes unexpected long option argument failures',
     'genksyms bridge treats lone dash as positional passthrough',
@@ -38,6 +39,7 @@ EXPECTED_VERSION_STDERR_CASES = [
     'abbreviated_version',
     'version_then_short_help',
     'version_then_long_help',
+    'version_then_invalid_option',
 ]
 
 
