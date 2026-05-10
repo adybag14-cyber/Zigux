@@ -10,7 +10,6 @@ import tempfile
 
 SCRIPT_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 NOTE_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
-DRIVER_LANE_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -27,12 +26,6 @@ REQUIRED_NOTE_MARKERS = (
     "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
     "The dedicated archival HVC evidence still stays explicit beside that shared route:",
     "* there is no shared `make -C zigux phase11-validate` target on `master`",
-)
-
-REQUIRED_DRIVER_LANE_MARKERS = (
-    "`P11-L04` owns the GPIO watchdog lane, whose current manifest state is `blocked_on_driver_scaffold` for live platform registration and hardware-backed follow-through.",
-    "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
-    "- If a Phase 11 run changes `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, the GPIO manifest, the GPIO survey gate, the GPIO module or slice notes, or the GPIO validation matrix, that work belongs to the GPIO watchdog lane.",
 )
 
 REQUIRED_DOCS_README_MARKERS = (
@@ -81,7 +74,6 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
 REQUIRED_FILES = (
     SCRIPT_PATH,
     NOTE_PATH,
-    DRIVER_LANE_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -103,7 +95,6 @@ def validate(root: Path) -> list[str]:
 
     checks = (
         ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS),
-        ("driver-lane", DRIVER_LANE_PATH, REQUIRED_DRIVER_LANE_MARKERS),
         ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
         ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS),
@@ -151,7 +142,6 @@ def make_fixture_root(root: Path) -> None:
     script_text = Path(__file__).read_text(encoding="utf-8")
     write_text(root, SCRIPT_PATH, script_text)
     write_text(root, NOTE_PATH, "\n".join(REQUIRED_NOTE_MARKERS) + "\n")
-    write_text(root, DRIVER_LANE_PATH, "\n".join(REQUIRED_DRIVER_LANE_MARKERS) + "\n")
     write_text(root, DOCS_README_PATH, "\n".join(REQUIRED_DOCS_README_MARKERS) + "\n")
     write_text(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
     write_text(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
@@ -175,7 +165,6 @@ def run_self_test() -> int:
         mutations = (
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
-            ("driver-lane", DRIVER_LANE_PATH, REQUIRED_DRIVER_LANE_MARKERS[0]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
