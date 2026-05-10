@@ -474,7 +474,7 @@ def run_self_test() -> int:
         "channel": "0.17.0-dev.87+9b177a7d2",
         "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
-            "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+            "x86_64-linux": "a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858",
         },
         "approval_policy": {
             "shared_phase2_checklist_ack_required": True,
@@ -489,7 +489,7 @@ def run_self_test() -> int:
             "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
             "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
             "- current pinned bootstrap archive target: `x86_64-linux`",
-            "- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`",
+            "- current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`",
             *[f"- {marker}" for marker in NOTE_APPROVAL_MARKERS],
             *[f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
