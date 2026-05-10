@@ -112,6 +112,24 @@ test "blockSub reverses fixture-backed fragment composition across odd and even 
     }
 }
 
+test "shift and block helpers keep odd-byte composition explicit on the phase 6 checksum surface" {
+    const seed: u32 = 0x1357_9bdf;
+    const fragment: u32 = 0x2468_ace0;
+
+    try std.testing.expectEqual(fragment, checksum.shift(fragment, 0));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), checksum.shift(fragment, 1));
+    try std.testing.expectEqual(fragment, checksum.shift(fragment, 2));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), checksum.shift(fragment, 3));
+
+    const even_added = checksum.blockAdd(seed, fragment, 0);
+    const odd_added = checksum.blockAdd(seed, fragment, 1);
+
+    try std.testing.expectEqual(checksum.add(seed, fragment), even_added);
+    try std.testing.expectEqual(checksum.add(seed, std.math.rotr(u32, fragment, 8)), odd_added);
+    try std.testing.expectEqual(seed, checksum.blockSub(even_added, fragment, 0));
+    try std.testing.expectEqual(seed, checksum.blockSub(odd_added, fragment, 1));
+}
+
 test "seeded partial accumulation matches the fixture-backed reference" {
     for (fixtures.seeded_cases) |case| {
         try std.testing.expectEqual(case.expected_partial, checksum.partial(case.bytes, case.seed));
