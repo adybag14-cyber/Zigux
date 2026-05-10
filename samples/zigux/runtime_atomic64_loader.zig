@@ -158,6 +158,11 @@ pub const RuntimeAtomic64Loader = struct {
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
         _ = try runtime_loader.prepareRequest(shared_request.plan);
 
+        const prepared_plan = self.cached_plan orelse error.MissingLoadPlan;
+        if (!keepsSharedLoadPlanSnapshotExplicit(prepared_plan, shared_request.plan)) {
+            return error.SharedLoadPlanDrift;
+        }
+
         const plan = try self.requestRuntimeLoad();
         const shared_plan = try shared_request.requestRuntimeLoad();
         if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
@@ -646,6 +651,123 @@ test "runtime atomic64 loader rejects prepared shared runtime-substrate drift be
         shared_request,
         .prepared,
         shared_request.plan,
+    ));
+}
+
+test "runtime atomic64 loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var anchor_loader = RuntimeAtomic64Loader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+    anchor_request.plan.anchor = "lib/atomic64_test_drift.c";
+
+    try std.testing.expectError(error.InvalidPilotFamilyContract, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = RuntimeAtomic64Loader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+    entry_request.plan.entry_symbol = "zigux_runtime_atomic64_init_drift";
+
+    try std.testing.expectError(error.InvalidPilotFamilyContract, entry_loader.requestSharedRuntimeLoad(&entry_request));
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+
+    var exit_loader = RuntimeAtomic64Loader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+    exit_request.plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
+
+    try std.testing.expectError(error.InvalidPilotFamilyContract, exit_loader.requestSharedRuntimeLoad(&exit_request));
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+}
+
+test "runtime atomic64 loader rejects prepared shared allocator and init-flow drift before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var allocator_loader = RuntimeAtomic64Loader{};
+    var allocator_request = try allocator_loader.prepareSharedRequest(&module);
+    const prepared_allocator_plan = allocator_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        allocator_request,
+        .prepared,
+        allocator_request.plan,
+    ));
+    allocator_request.plan.allocator_handoff = .arena;
+    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(prepared_allocator_plan, allocator_request.plan));
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        allocator_request,
+        .prepared,
+        allocator_request.plan,
+    ));
+
+    var init_flow_loader = RuntimeAtomic64Loader{};
+    var init_flow_request = try init_flow_loader.prepareSharedRequest(&module);
+    const prepared_init_flow_plan = init_flow_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        init_flow_request,
+        .prepared,
+        init_flow_request.plan,
+    ));
+    init_flow_request.plan.init_flow.handoff_stage = .initialized;
+    init_flow_request.plan.init_flow.selftest_runs = 0;
+    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(prepared_init_flow_plan, init_flow_request.plan));
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        init_flow_request,
+        .prepared,
+        init_flow_request.plan,
     ));
 }
 
