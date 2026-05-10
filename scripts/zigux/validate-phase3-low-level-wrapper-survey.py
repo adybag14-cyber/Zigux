@@ -23,11 +23,12 @@ ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_HARNESS_REL = "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
+VALIDATOR_REL = "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
@@ -78,7 +79,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    VALIDATOR_REL,
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
@@ -93,6 +94,21 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "scripts/zigux/README.md",
     ".github/workflows/zigux-bootstrap.yml",
+)
+
+LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES = (
+    DOC_REL,
+    ATOMIC_REL,
+    BARRIER_REL,
+    MMIO_REL,
+    NARROW_REL,
+    LOW_LEVEL_TEST_REL,
+    ABI_TEST_REL,
+    ABI_DUMP_REL,
+    ABI_EXPECTED_REL,
+    ABI_HARNESS_REL,
+    ABI_SLICE_DOC_REL,
+    VALIDATOR_REL,
 )
 
 REQUIRED_DOC_MARKERS = (
@@ -191,7 +207,7 @@ TOKEN_CHECKS = {
         "pub fn read64InteropPolicyByte",
         "pub fn write64InteropPolicyBytes",
         "pub fn write64InteropPolicy",
-        "pub fn write64InteropPolicyByte",
+        "pub fn write64InteropPolicyByte(",
         'test "phase3 mmio interop policy gates stay explicit"',
         "narrow.pointerAt",
     ),
@@ -271,10 +287,12 @@ TOKEN_CHECKS = {
     ),
 }
 
+
 def blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
+
 
 def doc_payload(line: str) -> str:
     payload = line.strip()
@@ -286,11 +304,14 @@ def doc_payload(line: str) -> str:
         payload = payload[1:-1]
     return payload
 
+
 def exact_doc_count(doc: str, expected: str) -> int:
     return sum(1 for line in doc.splitlines() if doc_payload(line) == expected)
 
+
 def prefixed_doc_values(doc: str, prefix: str) -> list[str]:
     return [payload for line in doc.splitlines() for payload in (doc_payload(line),) if payload.startswith(prefix)]
+
 
 def require_doc_marker(issues: list[str], doc: str, expected: str) -> None:
     count = exact_doc_count(doc, expected)
@@ -301,15 +322,18 @@ def require_doc_marker(issues: list[str], doc: str, expected: str) -> None:
     else:
         issues.append(f"duplicate_doc_marker:{expected}:{count}")
 
+
 def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str, ...]) -> None:
     for token in tokens:
         if token not in text:
             issues.append(f"{prefix}:{token}")
 
+
 def require_token_count(issues: list[str], text: str, prefix: str, token: str, expected: int) -> None:
     count = text.count(token)
     if count != expected:
         issues.append(f"{prefix}:{token}:{count}!={expected}")
+
 
 def validate_mmio_pointer_bridge(root: Path, issues: list[str]) -> None:
     path = root / MMIO_REL
@@ -327,6 +351,7 @@ def validate_mmio_pointer_bridge(root: Path, issues: list[str]) -> None:
     for token in MMIO_FORBIDDEN_RAW_POINTER_TOKENS:
         if token in source:
             issues.append(f"mmio_forbidden_raw_pointer_token:{MMIO_REL}:{token}")
+
 
 def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
     path = root / ABI_MANIFEST_REL
@@ -357,7 +382,15 @@ def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
             issues.append(f"manifest_file_count_mismatch:{file_count}!={len(files)}")
         if file_count != expected_count:
             issues.append(f"manifest_packet_count_mismatch:{file_count}!={expected_count}")
+
+    focused_count = sum(1 for rel in files if rel in LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES)
+    expected_focused_count = len(LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES)
+    if focused_count != expected_focused_count:
+        issues.append(
+            f"manifest_focused_packet_count_mismatch:{focused_count}!={expected_focused_count}"
+        )
     return files
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -422,9 +455,11 @@ def validate(root: Path) -> list[str]:
 
     return issues
 
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
 
 def build_self_test_doc(root: Path) -> str:
     lines = [
@@ -455,6 +490,7 @@ def build_self_test_doc(root: Path) -> str:
     for key, rel in BLOB_MARKERS:
         lines.append(f"{key}={blob_sha(root / rel)}")
     return "\n".join(lines) + "\n"
+
 
 def build_self_test_mmio_source() -> str:
     return "\n".join(
@@ -527,6 +563,7 @@ def build_self_test_mmio_source() -> str:
         )
     ) + "\n"
 
+
 def build_valid_workspace(root: Path) -> None:
     for rel in ABI_MANIFEST_REQUIRED_FILES + (DOC_REL, ABI_MANIFEST_REL, ABI_HARNESS_REL, ABI_SLICE_DOC_REL):
         path = root / rel
@@ -559,6 +596,7 @@ def build_valid_workspace(root: Path) -> None:
     )
     write(root / DOC_REL, build_self_test_doc(root))
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_low_level_wrapper_") as tmp_dir:
         root = Path(tmp_dir)
@@ -587,6 +625,30 @@ def run_self_test() -> int:
         write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         issues = validate(root)
         assert "manifest_missing_entry:zigux/uapi/dev_t.zig" in issues, issues
+
+        build_valid_workspace(root)
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != DOC_REL]
+        manifest["files"].append("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
+        manifest["file_count"] = len(manifest["files"])
+        write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert (
+            f"manifest_focused_packet_count_mismatch:{len(LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES) - 1}!={len(LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES)}"
+            in issues
+        ), issues
+
+        build_valid_workspace(root)
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != "scripts/zigux/run-phase3-checks.py"]
+        manifest["files"].append(ATOMIC_REL)
+        manifest["file_count"] = len(manifest["files"])
+        write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert (
+            f"manifest_focused_packet_count_mismatch:{len(LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES) + 1}!={len(LOW_LEVEL_WRAPPER_FOCUSED_MANIFEST_FILES)}"
+            in issues
+        ), issues
 
         build_valid_workspace(root)
         write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
@@ -683,11 +745,13 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         write(root / MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8").replace(
-            "pub fn write64InteropPolicyByte", "", 1
+            "pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) !void { _ = unsafe_scope; write64(base_addr, offset, value); }",
+            "",
+            1,
         ))
         issues = validate(root)
         assert (
-            "missing_token:zigux/helpers/mmio.zig:pub fn write64InteropPolicyByte" in issues
+            "missing_token:zigux/helpers/mmio.zig:pub fn write64InteropPolicyByte(" in issues
         ), issues
 
         build_valid_workspace(root)
@@ -711,6 +775,7 @@ def run_self_test() -> int:
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the Phase 3 low-level-wrapper survey against current repo state.")
