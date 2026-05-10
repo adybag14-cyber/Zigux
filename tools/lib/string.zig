@@ -145,6 +145,10 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
+pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
+    return memchrInv(buf, value);
+}
+
 fn cStringLen(buf: []const u8) usize {
     for (buf, 0..) |ch, idx| {
         if (ch == 0) {
@@ -152,6 +156,28 @@ fn cStringLen(buf: []const u8) usize {
         }
     }
     return buf.len;
+}
+
+fn sysfsStringLen(buf: []const u8) usize {
+    const len = cStringLen(buf);
+    if (len > 0 and buf[len - 1] == '\n') {
+        return len - 1;
+    }
+    return len;
+}
+
+pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {
+    const lhs_len = sysfsStringLen(lhs);
+    const rhs_len = sysfsStringLen(rhs);
+    if (lhs_len != rhs_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, lhs[0..lhs_len], rhs[0..rhs_len]);
+}
+
+pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
+    return sysfsStreq(lhs, rhs);
 }
 
 fn digitValue(ch: u8, base: u8) ?u8 {
@@ -423,6 +449,24 @@ test "strEndsWith honors C-string boundaries" {
     try std.testing.expect(!strEndsWith(&cstr, &trailing_miss));
 }
 
+test "sysfsStreq treats trailing newline and NUL as equivalent" {
+    try std.testing.expect(sysfsStreq("zigux\n", "zigux"));
+    try std.testing.expect(sysfsStreq("zigux", "zigux\n"));
+    try std.testing.expect(sysfsStreq("zigux\n", "zigux\n"));
+    try std.testing.expect(!sysfsStreq("zig\nux", "zigux"));
+    try std.testing.expect(!sysfsStreq("zigux\nmore", "zigux"));
+
+    const newline = [_]u8{ 'o', 'k', '\n', 0, 'x' };
+    const nul = [_]u8{ 'o', 'k', 0, 'y' };
+    try std.testing.expect(sysfsStreq(&newline, &nul));
+}
+
+test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence" {
+    try std.testing.expect(sysfs_streq("zigux\n", "zigux"));
+    try std.testing.expect(sysfs_streq("zigux", "zigux\n"));
+    try std.testing.expect(!sysfs_streq("zigux\nmore", "zigux"));
+}
+
 test "memdup and memchrInv preserve byte content" {
     const allocator = std.testing.allocator;
     const duplicated = try memdup(allocator, "zigux");
@@ -431,6 +475,11 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqualStrings("zigux", duplicated);
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
+}
+
+test "memchr_inv mirrors memchrInv byte-search semantics" {
+    try std.testing.expectEqual(memchrInv("aaaaXaaa", 'a'), memchr_inv("aaaaXaaa", 'a'));
+    try std.testing.expectEqual(memchrInv("bbbb", 'b'), memchr_inv("bbbb", 'b'));
 }
 
 test "memchrInv keeps long-buffer first-dirty-byte results stable" {
@@ -462,6 +511,30 @@ test "memchrInv follows the earliest dirty byte as long buffers change" {
 
     moving_dirty[96] = 'a';
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&moving_dirty, 'a'));
+}
+
+test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries" {
+    var word_aligned = [_]u8{0} ** 80;
+    word_aligned[64] = 0x7f;
+    try std.testing.expectEqual(@as(?usize, 64), memchrInv(&word_aligned, 0));
+}
+
+test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment" {
+    var backing = [_]u8{0} ** 96;
+    for (0..8) |prefix| {
+        @memset(backing[0..], 0);
+        const slice = backing[prefix .. prefix + 33];
+        slice[17] = 0x7f;
+        slice[25] = 0x33;
+        try std.testing.expectEqual(@as(?usize, 17), memchrInv(slice, 0));
+    }
+}
+
+test "memchrInv short zero-value scans stay byte-accurate" {
+    var short_zero_scan = [_]u8{ 0, 0, 0x7f, 0 };
+    try std.testing.expectEqual(@as(?usize, 2), memchrInv(&short_zero_scan, 0));
+    short_zero_scan[2] = 0;
+    try std.testing.expectEqual(@as(?usize, null), memchrInv(&short_zero_scan, 0));
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
@@ -496,6 +569,16 @@ test "memparse saturates signed overflow instead of trapping" {
     const negative = memparse("-9223372036854775809");
     try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
     try std.testing.expectEqualStrings("", negative.rest);
+}
+
+test "memparse clamps explicit positive signed overflow" {
+    const positive = memparse("+9223372036854775808");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
+    try std.testing.expectEqualStrings("", positive.rest);
+
+    const suffixed = memparse("+9223372036854775808Ktail");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), suffixed.value);
+    try std.testing.expectEqualStrings("tail", suffixed.rest);
 }
 
 test "memparse keeps signed values and their trailing rest aligned" {
