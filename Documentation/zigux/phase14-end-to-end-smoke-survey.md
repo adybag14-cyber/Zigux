@@ -17,6 +17,9 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - survey provenance captured against verified `master` head `c1ca884d084f000475bcb79019227d50a873896a`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
+  - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
+  - `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
+  - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   - `scripts/zigux/README.md`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
@@ -52,7 +55,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Shared smoke findings
 
 - `zigux/tests/phase14_build.zig` is the shared Phase 14 replay entrypoint and now includes the dedicated smoke survey alongside the four anchor-local packets.
-- `scripts/zigux/validate-phase14.py` and `scripts/zigux/README.md` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
 - `zigux/tests/phase14_build.zig` now also exposes a dedicated `phase14-smoke` shard so the shared smoke packet can be replayed without compiling the heavier anchor-local bundle.
 - `zigux/Makefile` now exposes `make -C zigux phase14-validate` before the full `make -C zigux phase14` replay and also keeps `make -C zigux phase14-smoke` available as the focused shared smoke shard.
 - `.github/workflows/zigux-bootstrap.yml` now runs the validator-backed shared smoke packet, the focused smoke shard, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the existing end-to-end replay.
