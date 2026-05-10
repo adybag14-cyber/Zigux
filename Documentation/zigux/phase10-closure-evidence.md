@@ -19,38 +19,38 @@ This run directly verified these current Phase 10 review surfaces through authen
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_closure_manifest.json`
 
-These reads are enough to prove that current `master` still carries an active Phase 10 reminder packet, a dedicated tests-root core-surfaces checker, and at least one surviving queue-handling manifest-backed virtio ring survey record.
+These reads are enough to prove that current `master` still carries an active shared Phase 10 reminder packet, a dedicated tests-root checker for the direct core surfaces, and a manifest-backed closure packet that still records the intended virtio lane boundaries.
 
 ## Verified Queue And Harness Coverage
 
 The live Phase 10 virtio evidence that this runtime could verify directly is:
 
-- a dedicated tests-root checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, that keeps the broad Phase 10 tests-root reminder explicit about direct virtio core surfaces plus the shared `phase10` test and make routes
-- a manifest-backed virtio ring survey record, `zigux/tests/phase10_virtio_ring_manifest.json`, that still records queue-wrapper footholds such as queue-shape metadata, used-buffer polling, callback enable and delay bookkeeping, notify-prepare state, broken-queue guards, queue reset, reset-readiness checks, and the wrapper-facing ring verify replay, while still marking the transport-backed bridge as blocked on risky transport work
-- the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, which still describe an active Phase 10 virtio packet on current `master`
+- a dedicated tests-root checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, that now fails closed unless the broad Phase 10 tests-root reminder keeps `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` explicit beside the existing shared `phase10` build and make routes
+- a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, that still records the allowed destination families, the blocked risky-transport posture, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane
+- the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, which still describe an active Phase 10 virtio packet on current `master`
 
 ## Current Truthfulness Blocker
 
-This runtime could not verify several Phase 10 paths that older shared reminders and the previous version of this note still named as live artifacts. Authenticated GitHub file reads returned `404 Not Found` for these representative paths on current `master`:
+The remaining blocker is no longer the absence of a focused tests-root checker. That checker already exists on current `master`.
+
+The truthful blocker is shared-surface drift: multiple broad Phase 10 reminder surfaces still read as if the wider docs, driver, manifest, and checker inventory is directly readable end to end through the current GitHub contents bridge, while representative direct reads still return `404 Not Found` for paths such as:
 
 - `Documentation/zigux/phase10-virtio-core-slice.md`
-- `Documentation/zigux/phase10-virtio-core-survey.md`
-- `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `zigux/tests/phase10_virtio_core_manifest.json`
-- `zigux/tests/phase10_virtio_input_manifest.json`
-- `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_ring.zig`
-- `drivers/virtio/virtio_input.zig`
-- `drivers/virtio/virtio_mmio.zig`
+- `zigux/tests/phase10_virtio_core_manifest.json`
+- `zigux/tests/phase10_virtio_input_manifest.json`
+- `scripts/zigux/check-phase10-core-packet.py`
+- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 
-Because those paths were not readable through the same authenticated repo interface that succeeded for the verified artifacts above, this note now treats the broader Phase 10 inventory as unresolved instead of repeating it as confirmed live evidence.
+Because those representative reads still fail through the same authenticated repo interface that succeeds for the verified artifacts above, the broad shared reminders remain overstated from this runtime's point of view even though the closure manifest and the dedicated tests-root checker clearly preserve the intended Phase 10 lane shape.
 
 ## Parked Boundary
 
@@ -62,7 +62,7 @@ The roadmap posture remains unchanged:
 
 ## Next Bounded Step
 
-The next truthful virtio-driver follow-through should stay inside one of these two bounded options:
+The next truthful virtio-driver follow-through should stay inside one shared-surface repair at a time:
 
-1. Materialize the live Phase 10 tree through a publish-capable repo path and determine whether the missing Phase 10 docs, manifests, and driver files were removed, renamed, or made inaccessible through the current GitHub read bridge.
-2. Once that repo reality is confirmed, either restore the missing Phase 10 artifacts or prune the stale Phase 10 reminder surfaces so `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` stop overstating the live virtio packet.
+1. land the already-shipped tests-root direct-core reminder sync in `zigux/tests/README.md` so the broad Phase 10 tests-root line matches `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+2. then reread `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` against the same authenticated bridge and prune or restate any remaining Phase 10 claims that still overstate paths this runtime cannot read directly
