@@ -60,6 +60,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
     var saw_registered_teardown_prompt = false;
+    var saw_registered_counter_roundtrip_prompt = false;
     var saw_input_validation_prompt = false;
     var saw_ownership_summary_prompt = false;
     var saw_counter_progression_prompt = false;
@@ -94,6 +95,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "runTeardownReplay()") != null)
         {
             saw_registered_teardown_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "1/1/0") != null and
+            std.mem.indexOf(u8, prompt, "registered-state foo roundtrip") != null)
+        {
+            saw_registered_counter_roundtrip_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "runInputValidationReplay()") != null and
             std.mem.indexOf(u8, prompt, "parse-failure") != null)
@@ -150,6 +156,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "duplicate registerAttributes()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runAnchorReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1/1/0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo write/read roundtrip afterward") != null);
         }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
             saw_ownership_summary = true;
@@ -201,6 +209,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_registered_teardown_prompt);
+    try std.testing.expect(saw_registered_counter_roundtrip_prompt);
     try std.testing.expect(saw_input_validation_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
     try std.testing.expect(saw_counter_progression_prompt);
@@ -219,6 +228,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "uevent delivery"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "loadable module registration"));
 }
 
 test "phase 5 kobject survey packet stays repo-local and keeps the shared review surfaces explicit" {
@@ -264,6 +275,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "`ownershipSummary()` and sample-owned `runOwnershipReplay()`",
         "runPreRegistrationBoundaryReplay()",
         "`runRegisteredBoundaryReplay()` keeps that already-registered duplicate-registration and replay-restart packet executable while still proving the registered sample can accept a bounded foo write/read roundtrip afterward",
+        "the unchanged init/register/exit counter snapshot at 1/1/0 after those registered-stage rejections",
         "`runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection packet executable while the sample remains in the `registered` stage",
         "`runTeardownReplay()` keeps the registered teardown reset, post-`exit()` show-or-store rejection, second-`exit()` rejection, and anchor-replay rejection explicit",
         "`abandoned_before_registration`",
