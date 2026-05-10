@@ -17,7 +17,7 @@ REQUIRED_FILES = {
     "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
 }
 
-CURRENT_LANE_KEY = "P11-L18"
+CURRENT_LANE_KEY = "P11-L16"
 
 SURVEY_GATE_MARKERS = [
     "phase11-hvc-console-survey-gate",
