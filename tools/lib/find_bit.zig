@@ -347,6 +347,20 @@ test "head-word boundary scans keep the last in-range bit reachable from an incl
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
 
+test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {
+    const tail_bits: usize = 5;
+    const boundary = bits_per_long + tail_bits - 1;
+    const nbits = boundary + 1;
+    const set_map = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const and_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const and_rhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const zero_map = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) & ~(@as(Word, 1) << @intCast(tail_bits - 1)) };
+
+    try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
+}
+
 test "find last bit scans backward across words" {
     const nbits = bits_per_long * 3;
     var bitmap = [_]Word{ 0, 0, 0 };
