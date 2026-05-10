@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 
 
 README_PATH = Path("scripts/zigux/README.md")
@@ -44,6 +45,13 @@ REQUIRED_MARKERS = (
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
 )
+PHASE4_REQUIRED_FILES = (
+    Path("scripts/zigux/validate-phase4.py"),
+    Path("scripts/zigux/check-artifact-diff-contract.py"),
+    Path("scripts/zigux/check-phase4-gate-evidence.py"),
+    Path("scripts/zigux/check-phase4-artifact-diff-determinism.py"),
+    Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
+)
 
 
 def load_text(path: Path) -> str:
@@ -55,6 +63,24 @@ def load_text(path: Path) -> str:
 
 def validate_text(text: str) -> list[str]:
     return [marker for marker in REQUIRED_MARKERS if marker not in text]
+
+
+def validate_repo_files(repo_root: Path) -> list[str]:
+    missing = []
+    for rel_path in PHASE4_REQUIRED_FILES:
+        if not (repo_root / rel_path).is_file():
+            missing.append(f"missing repo file: {rel_path.as_posix()}")
+    return missing
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def _populate_phase4_files(root: Path) -> None:
+    for rel_path in PHASE4_REQUIRED_FILES:
+        _write(root / rel_path, "# stub\n")
 
 
 def run_self_test() -> int:
@@ -110,6 +136,25 @@ def run_self_test() -> int:
         print("expected compatibility-entrypoint marker was not reported")
         return 1
 
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        _write(root / README_PATH, sample)
+        _populate_phase4_files(root)
+        broken = validate_repo_files(root)
+        if broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("\n".join(broken))
+            return 1
+
+        missing_path = PHASE4_REQUIRED_FILES[2]
+        (root / missing_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing repo file was not reported")
+            return 1
+
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     return 0
 
@@ -135,9 +180,13 @@ def main() -> int:
     readme_path = args.repo_root / README_PATH
     text = load_text(readme_path)
     missing = validate_text(text)
+    missing.extend(validate_repo_files(args.repo_root))
     if missing:
-        for marker in missing:
-            print(f"missing marker: {marker}", file=sys.stderr)
+        for entry in missing:
+            if entry.startswith("missing repo file: "):
+                print(entry, file=sys.stderr)
+            else:
+                print(f"missing marker: {entry}", file=sys.stderr)
         return 1
 
     print(f"validated {readme_path}")
