@@ -72,7 +72,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e42103fc02f544e1bd23a5ec2e5b584734f5af7d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("bdfe88e865b94387b3c3bd41ca98054c452f78b9", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
     try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/kernel/"));
@@ -163,7 +163,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     defer std.testing.allocator.free(closure_manifest);
 
     try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"ring\": \"P10-L07\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"ring\": \"e42103fc02f544e1bd23a5ec2e5b584734f5af7d\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"ring\": \"bdfe88e865b94387b3c3bd41ca98054c452f78b9\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"drivers/virtio/virtio_ring.zig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"drivers/virtio/virtio_ring_verify.zig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"scripts/zigux/check-phase10-ring-packet.py\"") != null);
