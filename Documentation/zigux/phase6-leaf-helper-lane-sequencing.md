@@ -42,7 +42,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-base64-slice.md`
 - the `base64` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat base64 fixture, direct parity, perf-threshold, or review-gate follow-ups as base64-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
+Treat base64 fixture, direct parity, perf-threshold, or review-gate follow-ups as base64-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note. When a later same-lane review needs only the shipped base64 packet, rerun the direct C parity spot check through `python3 scripts/zigux/check-phase6-base64-c-parity.py` and the helper-local slowdown gate through `make -C zigux phase6-base64-perf` instead of reopening the whole shared Phase 6 helper bundle by default.
 
 ### `P6-L09` bsearch packet
 
@@ -71,7 +71,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-checksum-slice.md`
 - the `checksum` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat checksum note, count-correction, helper, or fixture follow-ups as checksum-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
+Treat checksum note, count-correction, helper, or fixture follow-ups as checksum-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note. When a later same-lane review needs only the shipped checksum packet, rerun the direct C parity replay through `python3 scripts/zigux/check-phase6-checksum-c-parity.py` and the helper-local slowdown gate through `make -C zigux phase6-checksum-perf` instead of reopening the whole shared Phase 6 helper bundle by default.
 
 ### hexdump packet
 
@@ -84,7 +84,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat hexdump row, threshold, or fixture follow-ups as hexdump-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
+Treat hexdump row, threshold, or fixture follow-ups as hexdump-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note. When a later same-lane review needs only the shipped hexdump packet, use `make -C zigux phase6-hexdump-test` for the focused helper replay and `make -C zigux phase6-hexdump-perf` for the dedicated slowdown gate instead of reopening the whole shared Phase 6 helper bundle by default.
 
 ## Anti-Overlap Rules
 
