@@ -22,8 +22,10 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-landlock-ruleset-slice.md",
     "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
     "Documentation/zigux/phase13-landlock-syscalls-slice.md",
     "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "scripts/zigux/README.md",
@@ -474,48 +476,90 @@ def validate(root: Path) -> list[str]:
     review_checklist = _read(root / "Documentation/zigux/review-checklist.md")
     release_notes = _read(root / "Documentation/zigux/phase13-release-notes-survey.md")
     roadmap_traceability = _read(root / "Documentation/zigux/phase13-roadmap-traceability.md")
-    contributor_workflow_guide = _read(root / "Documentation/zigux/phase13-contributor-workflow-guide.md")
+    contributor_guide = _read(root / "Documentation/zigux/phase13-contributor-workflow-guide.md")
     contributor_surface_sync = _read(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md")
     tests_review_companion = _read(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
     scripts_readme = _read(root / "scripts/zigux/README.md")
     tests_readme = _read(root / "zigux/tests/README.md")
-    makefile_text = _read(root / "zigux/Makefile")
-    workflow_text = _read(root / ".github/workflows/zigux-bootstrap.yml")
+    makefile = _read(root / "zigux/Makefile")
+    workflow = _read(root / ".github/workflows/zigux-bootstrap.yml")
     phase13_build = _read(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
     issues.extend(_collect_exact_count_issues(docs_readme, DOC_EXACT_COUNTS, "docs-readme-exact"))
+
     issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
     issues.extend(_collect_exact_count_issues(review_checklist, REVIEW_EXACT_COUNTS, "review-checklist-exact"))
+
     issues.extend(_collect_missing_markers(release_notes, RELEASE_NOTES_REQUIRED_MARKERS, "release-notes"))
     issues.extend(_collect_exact_count_issues(release_notes, RELEASE_NOTES_EXACT_COUNTS, "release-notes-exact"))
-    issues.extend(_collect_missing_markers(roadmap_traceability, ROADMAP_TRACEABILITY_REQUIRED_MARKERS, "roadmap-traceability"))
-    issues.extend(_collect_exact_count_issues(roadmap_traceability, ROADMAP_TRACEABILITY_EXACT_COUNTS, "roadmap-traceability-exact"))
-    issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-guide"))
-    issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-guide-exact"))
-    issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
-    issues.extend(_collect_exact_count_issues(contributor_surface_sync, CONTRIBUTOR_SYNC_EXACT_COUNTS, "contributor-surface-sync-exact"))
-    issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
-    issues.extend(_collect_exact_count_issues(tests_review_companion, TESTS_REVIEW_COMPANION_EXACT_COUNTS, "tests-review-companion-exact"))
+
+    issues.extend(
+        _collect_missing_markers(
+            roadmap_traceability,
+            ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
+            "roadmap-traceability",
+        )
+    )
+    issues.extend(
+        _collect_exact_count_issues(
+            roadmap_traceability,
+            ROADMAP_TRACEABILITY_EXACT_COUNTS,
+            "roadmap-traceability-exact",
+        )
+    )
+
+    issues.extend(_collect_missing_markers(contributor_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-guide"))
+    issues.extend(_collect_exact_count_issues(contributor_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-guide-exact"))
+
+    issues.extend(
+        _collect_missing_markers(
+            contributor_surface_sync,
+            CONTRIBUTOR_SYNC_REQUIRED_MARKERS,
+            "contributor-surface-sync",
+        )
+    )
+    issues.extend(
+        _collect_exact_count_issues(
+            contributor_surface_sync,
+            CONTRIBUTOR_SYNC_EXACT_COUNTS,
+            "contributor-surface-sync-exact",
+        )
+    )
+
+    issues.extend(
+        _collect_missing_markers(
+            tests_review_companion,
+            TESTS_REVIEW_COMPANION_REQUIRED_MARKERS,
+            "tests-review-companion",
+        )
+    )
+    issues.extend(
+        _collect_exact_count_issues(
+            tests_review_companion,
+            TESTS_REVIEW_COMPANION_EXACT_COUNTS,
+            "tests-review-companion-exact",
+        )
+    )
+
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_exact_count_issues(scripts_readme, SCRIPTS_EXACT_COUNTS, "scripts-readme-exact"))
+
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
     issues.extend(_collect_exact_count_issues(tests_readme, TESTS_EXACT_COUNTS, "tests-readme-exact"))
 
     for line in MAKE_REQUIRED_LINES:
-        if line not in makefile_text:
+        if line not in makefile:
             issues.append(f"makefile:{line}")
     for line in MAKE_FORBIDDEN_LINES:
-        if line in makefile_text:
+        if line in makefile:
             issues.append(f"makefile-forbidden:{line}")
 
-    issues.extend(_collect_missing_markers(workflow_text, WORKFLOW_REQUIRED_MARKERS, "workflow"))
-    issues.extend(_collect_exact_count_issues(workflow_text, WORKFLOW_EXACT_COUNTS, "workflow-exact"))
-    issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
-    for marker in PHASE13_BUILD_REQUIRED_MARKERS:
-        if marker not in phase13_build:
-            issues.append(f"phase13-build-marker:{marker}")
+    issues.extend(_collect_missing_markers(workflow, WORKFLOW_REQUIRED_MARKERS, "workflow"))
+    issues.extend(_collect_exact_count_issues(workflow, WORKFLOW_EXACT_COUNTS, "workflow-exact"))
 
+    issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
+    issues.extend(_collect_missing_markers(phase13_build, PHASE13_BUILD_REQUIRED_MARKERS, "phase13-build-marker"))
     return issues
 
 
@@ -527,10 +571,6 @@ def _baseline_makefile() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
-            "",
-            "phase13-test:",
-            "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig",
-            "",
             "phase13: phase13-validate phase13-test",
             "",
         )
@@ -984,6 +1024,24 @@ def run_self_test() -> int:
             "missing_shared_helper_lane_sequencing_file_failed",
         )
         _write(root / "Documentation/zigux/phase13-shared-helper-lane-sequencing.md", "# stub\n")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-landlock-ruleset-ownership.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-landlock-ruleset-ownership.md"],
+            "missing_landlock_ruleset_ownership_file_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-landlock-ruleset-ownership.md", "# stub\n")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-landlock-syscalls-governance.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-landlock-syscalls-governance.md"],
+            "missing_landlock_syscalls_governance_file_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-landlock-syscalls-governance.md", "# stub\n")
         case_count += 1
 
         (root / "zigux/tests/phase13_landlock_syscalls_reviewability.zig").unlink()
