@@ -39,10 +39,14 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`
 - `ZIG=zig python3 scripts/zigux/check-phase6-base64-c-parity.py`
 
-3. keep the shared Phase 6 surface checker aligned with this slice
+3. keep the exact base64 fixture-corpus evidence aligned
+- `python3 scripts/zigux/check-phase6-base64-fixture-evidence.py --self-test`
+- `python3 scripts/zigux/check-phase6-base64-fixture-evidence.py`
+
+4. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
 
-4. keep the dedicated base64 perf sanity replay green
+5. keep the dedicated base64 perf sanity replay green
 - `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-base64-perf`
 
@@ -81,7 +85,7 @@ The current landed helper and replay tests check:
 - dedicated encode and decode perf sanity across std and URL-safe paths with and without padding through `zigux/tests/phase6_base64_perf.zig`, which consumes the same committed four-case perf corpus and payload markers from `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - a direct 24-case C-vs-Zig spot check derived from the same committed standard, variant, and malformed-tail expectations in `zigux/tests/fixtures/phase6_base64_vectors.zig`, covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 
-The fixture layer stays intentionally small. It keeps the deterministic parity matrix and the committed four-case slowdown corpus reviewable in one place, and the direct C replay now reads those same committed vector expectations through `zigux/tests/phase6_base64_c_parity.zig` before checking them against the C harness, so portability-sensitive behavior does not stop at Zig-only expectations.
+The fixture layer stays intentionally small. It keeps the deterministic parity matrix and the committed four-case slowdown corpus reviewable in one place, and the direct C replay now reads those same committed vector expectations through `zigux/tests/phase6_base64_c_parity.zig` before checking them against the C harness, so portability-sensitive behavior does not stop at Zig-only expectations. The manifest-backed fixture counts and perf-payload marker now stay fail-closed through `scripts/zigux/check-phase6-base64-fixture-evidence.py` as well.
 
 ## Non-goals
 
