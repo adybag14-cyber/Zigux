@@ -87,7 +87,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - `runOwnershipReplay()` keeps the init/register/exit counter progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1` across those same lifecycle snapshots
 - initialized-only `exit()` reports `abandoned_before_registration` before attributes are registered
 - storing `42` into `foo` renders back as `42\n`
-- `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
+- `baz` and `bar` share the same show and store path while still rendering `9\n` and `10\n` through their own attribute names
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
 - `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-`exit()` show-or-store, second-`exit()`, and anchor-replay rejection explicit
 
