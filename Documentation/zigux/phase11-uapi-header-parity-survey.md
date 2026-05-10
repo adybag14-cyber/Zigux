@@ -12,8 +12,10 @@
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/phase11_build.zig`
+- `Documentation/zigux/phase11-closure-note.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `drivers/tty/hvc/hvc_console.h`
@@ -32,7 +34,8 @@
 - shared replay path: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - wider Phase 11 replay route: `make -C zigux phase11`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md` keeps the parked owner-map split explicit so this shared header packet stays outside the bcm2835, GPIO, DesignWare, and HVC driver-local lanes even when those lanes cite the shared UAPI boundary.
-- the dedicated HVC note and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, `zigux/tests/phase11_hvc_console_manifest.json` keeps the archival HVC landing checkpoint explicit, and that survey replay stays on the dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step plus the fail-closed `scripts/zigux/check-phase11-hvc-survey-packet.py` and `make -C zigux phase11-hvc-survey` route inside the same `phase11_build.zig` file on `master` rather than the shared `test` step
+- `Documentation/zigux/phase11-closure-note.md` keeps the parked shared closure checkpoint explicit so this survey stays tied to the same bounded Phase 11 packet as the wider build-and-make route.
+- the dedicated HVC note, teardown companion, and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, `zigux/tests/phase11_hvc_console_manifest.json` keeps the archival HVC landing checkpoint explicit, `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the dedicated teardown companion explicit, and that survey replay stays on the dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step plus the fail-closed `scripts/zigux/check-phase11-hvc-survey-packet.py` and `make -C zigux phase11-hvc-survey` route inside the same `phase11_build.zig` file on `master` rather than the shared `test` step
 
 ## Why This Stays Bounded
 
