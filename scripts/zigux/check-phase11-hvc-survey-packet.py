@@ -81,11 +81,16 @@ def check_manifest(root: Path) -> None:
     except json.JSONDecodeError as exc:
         raise CheckError(f"invalid json in {manifest_path}: {exc}") from exc
 
-    if payload.get("lane") != "P11-L16":
-        raise CheckError("phase11_hvc_console_manifest.json lost lane P11-L16")
+    if payload.get("lane_key") != "P11-L16":
+        raise CheckError("phase11_hvc_console_manifest.json lost lane_key P11-L16")
 
-    if payload.get("status") != "starter_landed":
-        raise CheckError("phase11_hvc_console_manifest.json lost starter_landed status")
+    if payload.get("phase") != "Phase 11":
+        raise CheckError("phase11_hvc_console_manifest.json lost Phase 11 tag")
+
+    if payload.get("anchor") != "drivers/tty/hvc/hvc_console.c":
+        raise CheckError(
+            "phase11_hvc_console_manifest.json lost drivers/tty/hvc/hvc_console.c anchor"
+        )
 
     gaps = payload.get("gaps")
     if not isinstance(gaps, list):
@@ -103,6 +108,16 @@ def check_manifest(root: Path) -> None:
             "phase11_hvc_console_manifest.json is missing required gap ids: "
             + ", ".join(missing)
         )
+
+    gap_statuses = {
+        gap.get("id"): gap.get("status") for gap in gaps if isinstance(gap, dict)
+    }
+    for gap_id in required_gap_ids:
+        if gap_statuses.get(gap_id) != "starter_landed":
+            raise CheckError(
+                "phase11_hvc_console_manifest.json lost starter_landed status for "
+                + gap_id
+            )
 
 
 def run_check(root: Path) -> None:
@@ -144,12 +159,31 @@ def build_self_test_fixture(root: Path) -> None:
         root / REQUIRED_FILES["manifest"],
         json.dumps(
             {
-                "lane": "P11-L16",
-                "status": "starter_landed",
+                "lane_key": "P11-L16",
+                "phase": "Phase 11",
+                "surveyed_commit": "test-surveyed-commit",
+                "anchor": "drivers/tty/hvc/hvc_console.c",
+                "roadmap_destinations": [
+                    "drivers/tty/hvc/*.zig",
+                    "zigux/tests/",
+                    "Documentation/zigux/",
+                ],
+                "survey_summary": {
+                    "hvc_console_c_lines": 1066,
+                    "preexisting_phase11_build_present": True,
+                    "preexisting_phase11_watchdog_lanes": 3,
+                    "hvc_console_zig_present": True,
+                    "hvc_console_test_present": True,
+                    "hvc_console_survey_gate_present": True,
+                    "hvc_console_survey_note_present": True,
+                    "hvc_console_teardown_note_present": True,
+                    "winsize_layout_assert_present": True,
+                    "hv_ops_layout_assert_present": True,
+                },
                 "gaps": [
-                    {"id": "phase11-hvc-console-survey-gate"},
-                    {"id": "phase11-hvc-console-survey-note"},
-                    {"id": "phase11-hvc-console-sysrq-handoff"},
+                    {"id": "phase11-hvc-console-survey-gate", "status": "starter_landed"},
+                    {"id": "phase11-hvc-console-survey-note", "status": "starter_landed"},
+                    {"id": "phase11-hvc-console-sysrq-handoff", "status": "starter_landed"},
                 ],
             },
             indent=2,
