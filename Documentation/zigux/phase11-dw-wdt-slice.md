@@ -15,6 +15,8 @@ The starter stays intentionally narrow:
 - adds an explicit `summarizeRemoveHandoff()` helper so debugfs clear, unregister-device ordering, reset-control-backed remove, and non-reset remove fallout stay reviewable before any live platform remove, PM, or debugfs-backed teardown work
 - keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running, so reset-backed interrupt clearing and non-reset preserved pending interrupt state stay reviewable without claiming a live remove callback
 
+The paired teardown ownership note in `Documentation/zigux/phase11-dw-wdt-teardown-note.md` now gathers those stop, restart, remove, and idle-remove boundaries into one driver-local review note so later lane work can change the helper or the matrix without losing the current teardown split.
+
 This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, custom devicetree TOP arrays beyond the bounded in-memory ordering helper, live MMIO access, or hardware validation coverage yet.
 
 The next honest larger move is still blocked on platform-driver scaffold work such as live clock or reset acquisition, IRQ registration, watchdog registration execution, PM handling, and a hardware-validation plan.
