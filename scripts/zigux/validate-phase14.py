@@ -40,14 +40,14 @@ MAKE_MARKERS = [
     "$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14-test:",
     "$(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "phase14: phase14-validate phase14-test",
+    "phase14: phase14-validate phase14-smoke phase14-test",
 ]
 
 WORKFLOW_MARKERS = [
     "Validate Phase 14 shared smoke packet",
     "make -C zigux phase14-validate",
     "Run Phase 14 smoke shard",
-    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-smoke",
     "Run Phase 14 internal bridge tests",
     "make -C zigux phase14-test",
 ]
