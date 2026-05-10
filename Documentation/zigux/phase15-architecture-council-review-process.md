@@ -7,7 +7,8 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against verified `master` head `febebdae089598f228fff0bc6ee44c1a860fd905`
+- survey provenance last refreshed against reviewed head `febebdae089598f228fff0bc6ee44c1a860fd905`
+- as of the 2026-05-10 live compare-against-master reread, that reviewed head sits 13,166 commits behind current `master`, so a fresh bounded provenance refresh is required before this note should claim newer current-`master` coverage
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
