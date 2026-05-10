@@ -33,7 +33,7 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 - a dedicated tests-root checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, that now fails closed unless the broad Phase 10 tests-root reminder keeps `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` explicit beside the existing shared `phase10` build and make routes, and the current `zigux/tests/README.md` reminder line already carries that direct-core sync on `master`
 - a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, that still records the allowed destination families, the blocked risky-transport posture, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane
-- the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, which still describe an active Phase 10 virtio packet on current `master`
+- the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, which still describe an active Phase 10 packet on current `master` without by themselves proving that every packet-local Phase 10 path is directly readable through the same authenticated contents bridge
 
 ## Current Truthfulness Blocker
 
@@ -41,6 +41,7 @@ The remaining blocker is no longer the absence of a focused tests-root checker o
 
 The truthful blocker is shared-surface drift: multiple broad Phase 10 reminder surfaces still read as if the wider docs, driver, manifest, and checker inventory is directly readable end to end through the current GitHub contents bridge, while representative direct reads still return `404 Not Found` for paths such as:
 
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `Documentation/zigux/phase10-virtio-core-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `drivers/virtio/virtio.zig`
@@ -64,5 +65,5 @@ The roadmap posture remains unchanged:
 
 The next truthful virtio-driver follow-through should stay inside one shared-surface repair at a time:
 
-1. reread `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` against the same authenticated bridge and prune or restate any remaining Phase 10 claims that still overstate paths this runtime cannot read directly
+1. reread `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` against the same authenticated bridge and prune or restate any remaining Phase 10 claims that still overstate packet-local direct readability or list the lane-sequencing note as directly confirmed evidence
 2. keep any follow-up one shared reminder surface at a time so the lane stays parked on truthfulness repairs instead of reopening transport, IRQ, reset, queue-discovery, or lifecycle behavior
