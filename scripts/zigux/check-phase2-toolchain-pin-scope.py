@@ -44,7 +44,6 @@ NOTE_APPROVAL_MARKERS = [
 
 README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py --self-test",
-    "check-phase2-toolchain-pin-scope.py",
     "make -C zigux phase2-toolchain",
     "x86_64-linux bootstrap host target",
     "cross-target compile matrix stays a separate Phase 2 surface",
@@ -239,6 +238,7 @@ EXACT_SURFACE_COUNTS = {
         "scripts/zigux/check-kconfig-bridge.py": 1,
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+        "python3 scripts/zigux/install-zig.py --self-test": 1,
         "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2-tools": 1,
