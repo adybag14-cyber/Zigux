@@ -167,7 +167,7 @@ test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks
     try expectContains(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
     try expectContains(
         bitmap_diff_source,
-        "test_copy aligned 97-bit replay keeps the full second copied word before the cleared tail resumes",
+        "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
     );
     try expectContains(bitmap_diff_source, "test \\\"bitmap diff gate rejects out-of-bounds bitmap operations\\\" {");
     try expectContains(
