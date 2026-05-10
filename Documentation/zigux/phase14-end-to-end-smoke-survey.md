@@ -59,10 +59,10 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-rcu-tree-survey-tests` -> `phase14_rcu_tree_survey.zig` -> `full_bundle_only`
   - `phase14-end-to-end-smoke-tests` -> `phase14_end_to_end_smoke_survey.zig` -> `focused_and_full_bundle`
 - anchor packets in the current smoke bundle:
-  - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `phase14-workqueue-pending-bit-followup`, blocked `phase14-workqueue-live-execution-blocker`
+  - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `007f00d0c6b6b430bfbb2110555544cc5faefe8b`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-Y03`, surveyed commit `f05e02445443e7743c3675a6f8ca4f70f6e736fb`, ready-next none currently recorded, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L08`, surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, ready-next `phase14-ring-buffer-read-page-copy-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
-  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L14`, surveyed commit `0855a2fc20664cd4a138379d7731edf8183d74e6`, ready-next none currently recorded, blocked `phase14-rcu-tree-bridge-blocker`
+  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4c889233d157960514b241bcd5aff7cac5fda312`, ready-next none currently recorded, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
 
