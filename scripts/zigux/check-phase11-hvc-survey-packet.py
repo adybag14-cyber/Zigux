@@ -204,6 +204,7 @@ REQUIRED_SURVEY_REPLAY_MARKERS = [
 REQUIRED_CLEANUP_REPLAY_MARKERS = [
     'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
     'test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
+    'test "phase11 hvc console keeps oversized buffered-write rejection reviewable"',
     "final_cleanup.tty_port_put_requested",
     "hangup_cleanup.close_skipped",
     "try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, active_hangup.flush_intent);",
@@ -212,6 +213,8 @@ REQUIRED_CLEANUP_REPLAY_MARKERS = [
     "error.CleanupRequiresFinalCloseOrHangup",
     "error.CleanupRequiresTtyPortReference",
     "try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
+    "try std.testing.expectEqual(@as(usize, hvc_console.outbuf_capacity * 2), bounded_hangup.buffered_write_len_after_hangup);",
+    "try std.testing.expectError(error.BufferedWriteTooLarge, console.summarizeHangupDisconnect(.{",
     "error.ConsoleUnavailable",
 ]
 
@@ -286,7 +289,7 @@ REQUIRED_EXISTING_PATHS = [
     SCRIPT_PATH,
 ]
 
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -496,6 +499,18 @@ def run_self_test() -> int:
                 CLEANUP_REPLAY_PATH,
                 "try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
                 "cleanup_replay:try std.testing.expectError(error.ConsoleUnavailable, console.summarizeWriteTeardownHandoff(.{",
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                'test "phase11 hvc console keeps oversized buffered-write rejection reviewable"',
+                'cleanup_replay:test "phase11 hvc console keeps oversized buffered-write rejection reviewable"',
+            )
+            expect_failure(
+                fixture_root,
+                CLEANUP_REPLAY_PATH,
+                "try std.testing.expectError(error.BufferedWriteTooLarge, console.summarizeHangupDisconnect(.{",
+                "cleanup_replay:try std.testing.expectError(error.BufferedWriteTooLarge, console.summarizeHangupDisconnect(.{",
             )
             expect_missing_file(fixture_root, SCRIPT_PATH)
         except AssertionError as exc:
