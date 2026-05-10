@@ -138,6 +138,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "exported storage and argv views resetting back to the canonical empty sentinels after teardown");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(slice_note, "run the dedicated manifest-backed Phase 7 survey gate from `repo_root`");
+    try expectContains(slice_note, "`make -C zigux phase7-argv-split-survey`");
     try expectContains(slice_note, "- `argvSplitWithArgc()`");
     try expectContains(slice_note, "- `cArgv()`");
     try expectContains(slice_note, "- `argvFree()` plus `deinit()`");
@@ -270,7 +272,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(zigux_makefile, "phase7-validate:");
     try expectContains(zigux_makefile, "scripts/zigux/check-phase7-argv-split-packet.py --self-test");
-    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-survey --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-survey --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(zigux_makefile, "scripts/zigux/check-phase7-build-wiring.py --self-test");
     try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
