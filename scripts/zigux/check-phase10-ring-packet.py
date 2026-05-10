@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -134,6 +136,25 @@ EXPECTED_DOCS_README_MARKERS = [
     "make -C zigux phase10-test",
 ]
 
+EXPECTED_REVIEW_CHECKLIST_MARKERS = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
+
+EXPECTED_FREEZE_MAP_MARKERS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+
 EXPECTED_CLOSURE_NOTE_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "drivers/virtio/virtio_ring_verify.zig",
@@ -228,6 +249,21 @@ BASELINE_FIXTURE = {
 - zigux/tests/phase10_virtio_ring_manifest.json
 - zigux/tests/phase10_virtio_ring_survey.zig
 - make -C zigux phase10-test
+""",
+    "Documentation/zigux/review-checklist.md": """- Documentation/zigux/phase10-closure-evidence.md
+- drivers/virtio/virtio_ring.zig
+- drivers/virtio/virtio_ring_verify.zig
+- zigux/tests/phase10_virtio_ring_manifest.json
+- zigux/tests/phase10_virtio_ring_survey.zig
+- make -C zigux phase10-test
+- make -C zigux phase10
+""",
+    "Documentation/zigux/freeze-map.md": """- kernel/sched/core.c
+- mm/page_alloc.c
+- kernel/rcu/tree.c
+- net/core/skbuff.c
+- kernel/workqueue.c
+- kernel/trace/ring_buffer.c
 """,
     "Documentation/zigux/phase10-closure-evidence.md": """- Documentation/zigux/review-checklist.md
 - drivers/virtio/virtio_ring_verify.zig
@@ -422,6 +458,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_markers: list[str] = []
 
     expect_markers(read_text(root, "Documentation/zigux/README.md"), EXPECTED_DOCS_README_MARKERS, "docs_readme", missing_markers)
+    expect_markers(read_text(root, "Documentation/zigux/review-checklist.md"), EXPECTED_REVIEW_CHECKLIST_MARKERS, "review_checklist", missing_markers)
+    expect_markers(read_text(root, "Documentation/zigux/freeze-map.md"), EXPECTED_FREEZE_MAP_MARKERS, "freeze_map", missing_markers)
     expect_markers(read_text(root, "Documentation/zigux/phase10-closure-evidence.md"), EXPECTED_CLOSURE_NOTE_MARKERS, "closure_note", missing_markers)
     expect_markers(read_text(root, "scripts/zigux/README.md"), EXPECTED_SCRIPTS_README_MARKERS, "scripts_readme", missing_markers)
     expect_markers(read_text(root, "zigux/tests/README.md"), EXPECTED_TESTS_README_MARKERS, "tests_readme", missing_markers)
@@ -745,6 +783,20 @@ def run_self_test() -> int:
             "drivers/virtio/virtio_ring_verify.zig",
             "drivers/virtio/virtio_ring_verify_drift.zig",
             "docs_readme:drivers/virtio/virtio_ring_verify.zig",
+        )
+        run_missing_case(
+            tmp_root,
+            "Documentation/zigux/review-checklist.md",
+            "drivers/virtio/virtio_ring_verify.zig",
+            "drivers/virtio/virtio_ring_verify_drift.zig",
+            "review_checklist:drivers/virtio/virtio_ring_verify.zig",
+        )
+        run_missing_case(
+            tmp_root,
+            "Documentation/zigux/freeze-map.md",
+            "kernel/trace/ring_buffer.c",
+            "kernel/trace/ring_buffer_drift.c",
+            "freeze_map:kernel/trace/ring_buffer.c",
         )
         run_missing_case(
             tmp_root,
