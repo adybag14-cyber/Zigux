@@ -168,13 +168,43 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        next_step_rel = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
         _write(root / missing_rel, "# restored\n")
+        (root / next_step_rel).unlink()
+        issues = validate_repo(root)
+        expected_next_step_missing = f"missing repo file: {next_step_rel.as_posix()}"
+        if expected_next_step_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing next-step note was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / next_step_rel, "# restored\n")
         _write(root / "zigux/Makefile", "phase3-validate:\n")
         issues = validate_repo(root)
         expected_marker = f"missing make marker: {MAKE_MARKERS[1]}"
         if expected_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_catalog_marker = (
+            "missing make marker: $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test"
+        )
+        if expected_catalog_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing catalog self-test make marker was not reported")
             return 1
         case_count += 1
 
