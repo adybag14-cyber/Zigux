@@ -81,6 +81,13 @@ pub const TailOverflowMutationReplay = struct {
     rejected_overflow_mutations: u8,
 };
 
+pub const CrossWordBoundaryReplay = struct {
+    boundary_start: u32,
+    retained_boundary_bit: u32,
+    summary_after_set: RuntimeBitmapSummary,
+    summary_after_clear: RuntimeBitmapSummary,
+};
+
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
@@ -292,6 +299,23 @@ pub const RuntimeBitmapSample = struct {
             .summary_before = summary_before,
             .summary_after = self.summary(),
             .rejected_overflow_mutations = rejected_overflow_mutations,
+        };
+    }
+
+    pub fn runCrossWordBoundaryReplay(self: *Self) !CrossWordBoundaryReplay {
+        try self.ensureMutable();
+
+        const boundary_start = bitmap_view.bits_per_long - 1;
+        try self.setRange(boundary_start, 3);
+        const summary_after_set = self.summary();
+        try self.clearRange(boundary_start, 2);
+        const summary_after_clear = self.summary();
+
+        return .{
+            .boundary_start = boundary_start,
+            .retained_boundary_bit = boundary_start + 2,
+            .summary_after_set = summary_after_set,
+            .summary_after_clear = summary_after_clear,
         };
     }
 
@@ -514,28 +538,21 @@ test "runtime bitmap sample keeps tail-overflow mutation replay local to the sam
 
 test "runtime bitmap sample keeps cross-word boundary mutations explicit" {
     var module = RuntimeBitmapSample{};
-    const boundary_start = bitmap_view.bits_per_long - 1;
 
     try module.initWithSetBits(&.{});
-    try module.setRange(boundary_start, 3);
+    const replay = try module.runCrossWordBoundaryReplay();
 
-    const after_set = module.summary();
-    try std.testing.expect(module.isSet(boundary_start));
-    try std.testing.expect(module.isSet(boundary_start + 1));
-    try std.testing.expect(module.isSet(boundary_start + 2));
-    try std.testing.expectEqual(boundary_start, after_set.first_set);
-    try std.testing.expectEqual(@as(u32, 0), after_set.first_zero);
-    try std.testing.expectEqual(@as(u32, 3), after_set.weight);
-
-    try module.clearRange(boundary_start, 2);
-
-    const after_clear = module.summary();
-    try std.testing.expect(!module.isSet(boundary_start));
-    try std.testing.expect(!module.isSet(boundary_start + 1));
-    try std.testing.expect(module.isSet(boundary_start + 2));
-    try std.testing.expectEqual(boundary_start + 2, after_clear.first_set);
-    try std.testing.expectEqual(@as(u32, 0), after_clear.first_zero);
-    try std.testing.expectEqual(@as(u32, 1), after_clear.weight);
+    try std.testing.expectEqual(bitmap_view.bits_per_long - 1, replay.boundary_start);
+    try std.testing.expectEqual(replay.boundary_start + 2, replay.retained_boundary_bit);
+    try std.testing.expect(module.isSet(replay.retained_boundary_bit));
+    try std.testing.expect(!module.isSet(replay.boundary_start));
+    try std.testing.expect(!module.isSet(replay.boundary_start + 1));
+    try std.testing.expectEqual(replay.boundary_start, replay.summary_after_set.first_set);
+    try std.testing.expectEqual(@as(u32, 0), replay.summary_after_set.first_zero);
+    try std.testing.expectEqual(@as(u32, 3), replay.summary_after_set.weight);
+    try std.testing.expectEqual(replay.retained_boundary_bit, replay.summary_after_clear.first_set);
+    try std.testing.expectEqual(@as(u32, 0), replay.summary_after_clear.first_zero);
+    try std.testing.expectEqual(@as(u32, 1), replay.summary_after_clear.weight);
     try std.testing.expectEqual(ModuleStage.initialized, module.stage());
 }
 
