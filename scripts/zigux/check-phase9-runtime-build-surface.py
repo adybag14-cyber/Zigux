@@ -9,7 +9,7 @@ import pathlib
 import re
 import sys
 
-ROOT_SOURCE_RE = re.compile(r'\.root_source_file\s*=\s*=b\.path\("([^"]+)"\)')
+ROOT_SOURCE_RE = re.compile(r'\.root_source_file\s*=\s*b\.path\("([^"]+)"\)')
 
 
 def extract_runtime_paths(build_text: str) -> list[str]:
