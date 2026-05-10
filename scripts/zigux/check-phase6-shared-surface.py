@@ -195,6 +195,7 @@ REQUIRED_SNIPPETS = {
         "test \"phase 6 bsearch keeps descending lookup work inside a binary-search budget\"",
         "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\"",
         "test \"phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget\"",
+        "test \"phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers\"",
     ],
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig": [
         "test \"phase 6 bsearch lower-bound helpers accept runtime-selected c abi comparator pointers\"",
