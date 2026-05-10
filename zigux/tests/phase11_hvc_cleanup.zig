@@ -111,3 +111,22 @@ test "phase11 hvc console keeps write-teardown hangup buffering split reviewable
         .put_result = hvc_console.eagain,
     }));
 }
+
+test "phase11 hvc console keeps oversized buffered-write rejection reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(7);
+    _ = console.instantiate(0x67);
+
+    const bounded_hangup = try console.summarizeHangupDisconnect(.{
+        .port_count_before_hangup = 0,
+        .buffered_write_len = hvc_console.outbuf_capacity * 2,
+    });
+    try std.testing.expect(bounded_hangup.hangup_skipped);
+    try std.testing.expectEqual(@as(usize, hvc_console.outbuf_capacity * 2), bounded_hangup.buffered_write_len_after_hangup);
+
+    try std.testing.expectError(error.BufferedWriteTooLarge, console.summarizeHangupDisconnect(.{
+        .buffered_write_len = hvc_console.outbuf_capacity * 2 + 1,
+    }));
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeHangupDisconnect(.{}));
+}
