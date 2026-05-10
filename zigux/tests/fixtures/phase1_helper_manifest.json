@@ -74,10 +74,7 @@
         "truncated_scnprintf",
         "terminator_only_scnprintf_len",
         "terminator_only_nul",
-        "zero_length_scnprintf_len",
-        "alloc_words",
-        "zalloc_words",
-        "zalloc_values"
+        "zero_length_scnprintf_len"
       ],
       "partial_xor_review_fields": [
         "partial_xor_nbits",
@@ -92,7 +89,7 @@
       "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\"",
       "zero_bit_binary_identity_anchor": "test \"bitmap zero-bit binary helpers stay explicit identity operations\"",
       "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\"",
-      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, allocator, and partial-window xor replay, while helper-local anchors keep predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, zero-sized destination-view, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
+      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, zero-sized destination-view, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
     },
     "tools/lib/find_bit.zig": {
       "helper_test_anchors": [
