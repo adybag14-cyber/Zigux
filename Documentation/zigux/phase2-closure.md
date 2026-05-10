@@ -7,6 +7,8 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - `PHASE2_STATUS=closed`
 - `PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1`
 - `PHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux`
+- `PHASE2_LINUX_STYLE_ROUTE_COUNT=6`
+- `PHASE2_LINUX_STYLE_ROUTES=phase2-toolchain,phase2-validate,phase2-tools,phase2-kconfig,phase2-cross,phase2`
 - the pinned bootstrap archive stays limited to `x86_64-linux` while the compile matrix remains a separate three-target Phase 2 replay surface under `zigux/tests/fixtures/phase2_cross_targets.json`
 - the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset remains part of the active shared Phase 2 packet together with `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`
 
@@ -49,4 +51,5 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - `zigux/tests/fixtures/phase2_tool_manifest.json` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit
 - the dedicated tests README alignment checker keeps `Documentation/zigux/README.md`, this closure note, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes aligned around the same bounded toolchain packet
 - the dedicated Phase 2 `genksyms` bridge packet remains the live `27-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared alignment checker plus scripts-root summary should keep that case count explicit instead of drifting back to older undercounts
+- the six-route inventory above now keeps the dedicated toolchain and cross compile wrappers explicit beside the broader tranche route, which matches the active `zigux/Makefile` Phase 2 packet and reduces reminder-surface undercounts during future closure maintenance
 - rollback remains toolchain-first and bounded: keep C authoritative, remove or disable the failing Zigux Phase 2 helper replay from shared make and workflow wiring, and preserve the pinned toolchain policy plus closure-note truthfulness until the bounded packet is green again
