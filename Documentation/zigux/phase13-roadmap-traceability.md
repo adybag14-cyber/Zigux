@@ -59,14 +59,26 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 
 ## Shared Replay Route
 
-Keep the roadmap traceability note aligned with the shipped validator-first replay route through:
+Keep the roadmap traceability note aligned with the shipped validator-first eight-test replay route through:
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-That route should stay described as reviewability support for the four roadmap anchors plus adjacent notifier evidence, not as a fifth helper lane or a closure claim.
+That shared replay route should keep these eight build-backed tests explicit on current `master`:
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+
+Direct evidence outside that eight-test shared replay should stay explicit too:
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig` remains shipped focused syscall evidence beside `zigux/tests/phase13_landlock_syscalls.zig` rather than an extra build-backed replay step.
+- adjacent notifier evidence remains release-surface support rather than a fifth helper lane or an extra shared replay step.
 
 ## Non-Goals
 
