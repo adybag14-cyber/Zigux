@@ -28,7 +28,7 @@ VALIDATOR_REL = "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
@@ -259,6 +259,8 @@ TOKEN_CHECKS = {
         "try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
         "const scoped_desc = try mmio.rangeInteropPolicy(base, 16, 4, mmio_policy);",
         "mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio))",
+        "try mmio.write16InteropPolicyByte(base, 4, 0x5678, volatile_scope);",
+        "try std.testing.expectEqual(@as(u16, 0x5678), try mmio.read16InteropPolicyByte(base, 4, volatile_scope));",
         "const scoped_ptr = try narrow.pointerAtInteropPolicy(u32, base, @sizeOf(u32), raw_policy);",
         "try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));",
         "const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);",
@@ -675,6 +677,15 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_token:zigux/tests/phase3_low_level_wrappers.zig:const scoped_desc = try mmio.rangeInteropPolicy(base, 16, 4, mmio_policy);" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
+            "try mmio.write16InteropPolicyByte(base, 4, 0x5678, volatile_scope);\n", "", 1
+        ))
+        issues = validate(root)
+        assert (
+            "missing_token:zigux/tests/phase3_low_level_wrappers.zig:try mmio.write16InteropPolicyByte(base, 4, 0x5678, volatile_scope);" in issues
         ), issues
 
         build_valid_workspace(root)
