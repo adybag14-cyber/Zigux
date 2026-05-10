@@ -80,17 +80,19 @@ Do not use the export/UAPI survey to claim ownership of broader `include/zigux/a
 
 ### Policy and unsafe owner
 
-`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` owns the bounded allocator-policy, panic-policy, MMIO-policy, and narrow-unsafe wording plus the packet-local byte-guard contract.
+`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` owns the bounded allocator-policy, panic-policy, MMIO interop-policy, and narrow-unsafe wording plus the packet-local byte-guard contract.
 
 Use the policy-and-unsafe survey when the change is about:
 
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
 - `zigux/unsafe/narrow.zig`
+- `zigux/helpers/mmio.zig` only when the drift is about `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, or the `read*InteropPolicy*` and `write*InteropPolicy*` admission surface
 - the policy-byte guard in `scripts/zigux/check-phase3-policy-byte-guards.py`
-- packet-local truthfulness around `InteropPolicy` mode and reserved-byte handling
+- packet-local truthfulness around `InteropPolicy` mode, reserved-byte handling, or unsafe-scope admission rules
 
 Do not use this survey to imply that a dedicated focused replay pair already exists when the current live packet is still nested under the shared ABI slice.
+Do not use this survey to claim ownership of MMIO width, alignment, offset, or direct read-write replay behavior that already belongs to the focused low-level-wrapper packet.
 
 ### Low-level-wrapper owner
 
@@ -100,10 +102,11 @@ Use the low-level-wrapper survey when the change is about:
 
 - `zigux/helpers/atomic.zig`
 - `zigux/helpers/barrier.zig`
-- `zigux/helpers/mmio.zig`
+- `zigux/helpers/mmio.zig` when the drift is about direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, `write64()`, or the width, alignment, and odd-offset behavior replayed by `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - focused replay coverage for signed atomic edges, compare-exchange behavior, barrier locality, or MMIO width and alignment behavior
 
+Do not use this survey to claim ownership of MMIO interop-policy gate wording or unsafe-scope admission rules, which still belong to the policy-and-unsafe survey.
 Do not use this survey to claim ownership of the broader shared ABI compile, layout, or dump proof, which still belongs to the shared ABI slice.
 
 ## Shared Review Surfaces Are Not Owners
@@ -148,8 +151,8 @@ When a later run finds a new Phase 3 mismatch, route it through the smallest own
 
 - if `include/zigux/abi.h` or `zigux/bindings/abi.zig` grows at the top level, reopen the header-next-step note, the constant-parity survey, or the dedicated header-family survey
 - if boundary-header relay helpers or starter UAPI wording moves, reopen the export/UAPI survey and the focused layout replay
-- if panic, allocator, or unsafe policy bytes move, reopen the policy-and-unsafe survey and the policy-byte guard
-- if atomic, barrier, or MMIO helper behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
+- if panic, allocator, unsafe policy bytes, or MMIO interop-policy gates move, reopen the policy-and-unsafe survey and the policy-byte guard
+- if atomic, barrier, or MMIO width, alignment, odd-offset, or direct read-write behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
 - if the validator-support packet drifts because a child self-test script joins, leaves, or changes its shared `--self-test` marker contract while no packet-local owner moved first, reopen `scripts/zigux/validate_phase3_selftest.py` before widening into broader shared-surface wording
 - if the validator-support packet drifts because the scripts-root support-packet sentence alone dropped or misordered one named support checker while the runner roster stayed unchanged, reopen `scripts/zigux/check-phase3-readme-tooling-inventory.py` before widening into `validate_phase3_selftest.py` or a broader README refresh
 - if the validator-support packet drifts but no packet-local owner moved first, reopen the shared ABI slice plus the smallest shared support surface such as `validate_phase3_selftest.py` or the specific checker-local script that went stale
