@@ -26,6 +26,8 @@ The shipped replay routes for that packet are:
 - `make -C zigux phase5-test`
 - `make -C zigux phase5`
 
+The shared workflow surface is narrower than the local wrapper surface: `.github/workflows/zigux-bootstrap.yml` currently reruns only `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, while `make -C zigux phase5-test` and `make -C zigux phase5` remain local Linux-style wrappers over that same shared build entrypoint.
+
 Current `master` still ships no shared `validate-phase5.py`, no `check-phase5-*.py` checker packet, and no `phase5-validate` target. Keep Phase 5 follow-through inside sample-backed contributor guidance or exact replay-contract repairs unless a new shipped validation surface lands first.
 
 ## Sample map
@@ -149,7 +151,7 @@ Keep out of scope
 5. If the change touches `kobject_example`, recheck the sample-local survey note, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_survey.zig`, and the shared `phase5_build.zig` route so `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, `runTeardownReplay()`, the init/register/exit counter progression, the unnamed attribute-group shape, and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split stay synchronized across the note, guide, checklist, and shared packet map.
 6. If the change touches `kretprobe_example`, recheck the sample-local survey note, `zig test samples/zigux/kretprobe_example.zig`, the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay, and the shared `phase5_build.zig` route so `runRetargetReplay()`, `runLifecycleGuardReplay()`, the fixed `maxactiveBudget()` cue, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, and `runRecoveryReplay()` do not drift apart across the note, guide, checklist, and shared packet map.
 7. If the change touches `trace_events_sample`, recheck the sample-local survey note, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`, and the shared `phase5_build.zig` route so the manifest-backed provenance, `formattedMessage()` formatting boundary, the public `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, and `runCallbackBoundaryReplay()` helpers, the no-standalone-format-sample reminder, and the ownership-replay guidance stay synchronized across the note, guide, checklist, and shared packet map.
-8. Re-run the shared Phase 5 replay route through `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5` so the direct shared build route and both Linux-style wrappers stay aligned.
+8. Re-run the shared Phase 5 replay route through `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`; keep the two `make` routes aligned as local Linux-style wrappers over that shared build entrypoint, and keep workflow wording honest by remembering that `.github/workflows/zigux-bootstrap.yml` currently reruns only the direct `zig build test --build-file zigux/tests/phase5_build.zig --summary all` command.
 9. Keep the shared packet distinct from the separate Phase 9 runtime starters and loader-side follow-ons.
 
 ## Boundary reminders
