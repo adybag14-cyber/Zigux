@@ -53,6 +53,7 @@ const DiffCase = struct {
     clear_ranges: []const RangeOp,
     fill_prefixes: []const u32,
     zero_prefixes: []const u32,
+    expected_ranges: []const RangeOp,
     expected_summary: SummaryExpectation,
     must_be_set: []const u32,
     must_be_clear: []const u32,
@@ -63,6 +64,7 @@ const CopyCase = struct {
     source_set_len: u32,
     copy_nbits: u32,
     destination_init: DestinationInit,
+    expected_ranges: []const RangeOp,
     expected_summary: SummaryExpectation,
     must_be_set: []const u32,
     must_be_clear: []const u32,
@@ -301,6 +303,26 @@ fn expectSummary(summary: SummaryExpectation, expected: SummaryExpectation) !voi
     try std.testing.expectEqual(expected.weight, summary.weight);
 }
 
+fn expectExactRanges(bitmap: *const BitmapHarness, expected_ranges: []const RangeOp) !void {
+    var bit: u32 = 0;
+
+    for (expected_ranges) |range| {
+        try BitmapHarness.validateRange(range.start, range.len);
+        while (bit < range.start) : (bit += 1) {
+            try std.testing.expect(!bitmap.isSet(bit));
+        }
+
+        const range_end = range.start + range.len;
+        while (bit < range_end) : (bit += 1) {
+            try std.testing.expect(bitmap.isSet(bit));
+        }
+    }
+
+    while (bit < BitmapHarness.bitmap_nbits) : (bit += 1) {
+        try std.testing.expect(!bitmap.isSet(bit));
+    }
+}
+
 fn expectCase(case: DiffCase) !void {
     var bitmap = BitmapHarness{};
     try bitmap.initWithSetBits(case.init_bits);
@@ -319,6 +341,7 @@ fn expectCase(case: DiffCase) !void {
         try bitmap.zeroPrefix(nbits);
     }
 
+    try expectExactRanges(&bitmap, case.expected_ranges);
     try expectSummary(bitmap.summary(), case.expected_summary);
 
     for (case.must_be_set) |bit| {
@@ -346,6 +369,7 @@ fn expectCopyCase(case: CopyCase) !void {
     try destination.copyFrom(&source, case.copy_nbits);
     try std.testing.expect(case.name.len != 0);
 
+    try expectExactRanges(&destination, case.expected_ranges);
     try expectSummary(destination.summary(), case.expected_summary);
 
     for (case.must_be_set) |bit| {
@@ -444,6 +468,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{},
             .expected_summary = .{
                 .first_set = BitmapHarness.bitmap_nbits,
                 .first_zero = 0,
@@ -459,6 +484,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{.{ .start = 0, .len = 9 }},
             .expected_summary = .{ .first_set = 0, .first_zero = 9, .weight = 9 },
             .must_be_set = &.{ 0, 8 },
             .must_be_clear = &.{ 9, 10, BitmapHarness.bitmap_nbits - 1 },
@@ -470,6 +496,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{35},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{.{ .start = 0, .len = 35 }},
             .expected_summary = .{ .first_set = 0, .first_zero = 35, .weight = 35 },
             .must_be_set = &.{ 8, 34 },
             .must_be_clear = &.{ 35, 63, 127, BitmapHarness.bitmap_nbits - 1 },
@@ -481,6 +508,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
             .expected_summary = .{ .first_set = 0, .first_zero = 64, .weight = 83 },
             .must_be_set = &.{ 63, 79, 97 },
             .must_be_clear = &.{ 64, 78, 98 },
@@ -492,6 +520,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{115},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{.{ .start = 0, .len = 115 }},
             .expected_summary = .{ .first_set = 0, .first_zero = 115, .weight = 115 },
             .must_be_set = &.{ 97, 114 },
             .must_be_clear = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
@@ -503,6 +532,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{BitmapHarness.bitmap_nbits},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = BitmapHarness.bitmap_nbits,
@@ -518,6 +548,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{.{ .start = 0, .len = 9 }},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{.{ .start = 9, .len = BitmapHarness.bitmap_nbits - 9 }},
             .expected_summary = .{
                 .first_set = 9,
                 .first_zero = 0,
@@ -533,6 +564,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{35},
+            .expected_ranges = &.{.{ .start = 64, .len = BitmapHarness.bitmap_nbits - 64 }},
             .expected_summary = .{
                 .first_set = 64,
                 .first_zero = 0,
@@ -548,6 +580,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{.{ .start = 79, .len = 19 }},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{ .{ .start = 64, .len = 15 }, .{ .start = 98, .len = BitmapHarness.bitmap_nbits - 98 } },
             .expected_summary = .{
                 .first_set = 64,
                 .first_zero = 0,
@@ -563,6 +596,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{115},
+            .expected_ranges = &.{.{ .start = 128, .len = BitmapHarness.bitmap_nbits - 128 }},
             .expected_summary = .{
                 .first_set = 128,
                 .first_zero = 0,
@@ -578,6 +612,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{BitmapHarness.bitmap_nbits},
+            .expected_ranges = &.{},
             .expected_summary = .{
                 .first_set = BitmapHarness.bitmap_nbits,
                 .first_zero = 0,
@@ -593,6 +628,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{ .{ .start = 63, .len = 0 }, .{ .start = 300, .len = 0 } },
             .fill_prefixes = &.{0},
             .zero_prefixes = &.{0},
+            .expected_ranges = &.{ .{ .start = 5, .len = 1 }, .{ .start = 63, .len = 1 }, .{ .start = 80, .len = 1 }, .{ .start = 123, .len = 1 } },
             .expected_summary = .{ .first_set = 5, .first_zero = 0, .weight = 4 },
             .must_be_set = &.{ 5, 63, 80, 123 },
             .must_be_clear = &.{ 0, 4, 64, 124 },
@@ -604,6 +640,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{},
+            .expected_ranges = &.{ .{ .start = 10, .len = 1 }, .{ .start = 20, .len = 1 }, .{ .start = 30, .len = 1 }, .{ .start = 40, .len = 1 }, .{ .start = 50, .len = 1 }, .{ .start = 60, .len = 1 }, .{ .start = 80, .len = 1 }, .{ .start = 123, .len = 1 } },
             .expected_summary = .{ .first_set = 10, .first_zero = 0, .weight = 8 },
             .must_be_set = &.{ 10, 80, 123 },
             .must_be_clear = &.{ 0, 79, 124 },
@@ -632,6 +669,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 19,
             .copy_nbits = 23,
             .destination_init = .zero,
+            .expected_ranges = &.{.{ .start = 0, .len = 19 }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 19,
@@ -645,6 +683,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 19,
             .copy_nbits = 23,
             .destination_init = .{ .prefix_set = 23 },
+            .expected_ranges = &.{.{ .start = 0, .len = 19 }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 19,
@@ -658,6 +697,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 19,
             .copy_nbits = 23,
             .destination_init = .fill,
+            .expected_ranges = &.{ .{ .start = 0, .len = 19 }, .{ .start = 64, .len = BitmapHarness.bitmap_nbits - 64 } },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 19,
@@ -671,6 +711,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 19,
             .copy_nbits = BitmapHarness.bits_per_long,
             .destination_init = .zero,
+            .expected_ranges = &.{.{ .start = 0, .len = 19 }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 19,
@@ -684,6 +725,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 19,
             .copy_nbits = BitmapHarness.bits_per_long,
             .destination_init = .fill,
+            .expected_ranges = &.{ .{ .start = 0, .len = 19 }, .{ .start = BitmapHarness.bits_per_long, .len = BitmapHarness.bitmap_nbits - BitmapHarness.bits_per_long } },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 19,
@@ -697,6 +739,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = BitmapHarness.bits_per_long + 19,
             .copy_nbits = BitmapHarness.bits_per_long * 2,
             .destination_init = .fill,
+            .expected_ranges = &.{ .{ .start = 0, .len = BitmapHarness.bits_per_long + 19 }, .{ .start = BitmapHarness.bits_per_long * 2, .len = BitmapHarness.bitmap_nbits - (BitmapHarness.bits_per_long * 2) } },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = BitmapHarness.bits_per_long + 19,
@@ -710,6 +753,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 109,
             .copy_nbits = BitmapHarness.bitmap_nbits,
             .destination_init = .{ .prefix_set = 19 },
+            .expected_ranges = &.{.{ .start = 0, .len = 109 }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 109,
@@ -723,6 +767,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 109,
             .copy_nbits = BitmapHarness.bitmap_nbits,
             .destination_init = .fill,
+            .expected_ranges = &.{.{ .start = 0, .len = 109 }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 109,
@@ -736,6 +781,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 109,
             .copy_nbits = 109,
             .destination_init = .fill,
+            .expected_ranges = &.{ .{ .start = 0, .len = 109 }, .{ .start = 128, .len = BitmapHarness.bitmap_nbits - 128 } },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 109,
@@ -749,6 +795,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 109,
             .copy_nbits = 97,
             .destination_init = .fill,
+            .expected_ranges = &.{ .{ .start = 0, .len = 109 }, .{ .start = 128, .len = BitmapHarness.bitmap_nbits - 128 } },
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = 109,
@@ -762,6 +809,7 @@ test "bitmap diff gate records exact bounded copy checks" {
             .source_set_len = 109,
             .copy_nbits = 0,
             .destination_init = .fill,
+            .expected_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .expected_summary = .{
                 .first_set = 0,
                 .first_zero = BitmapHarness.bitmap_nbits,
@@ -932,6 +980,9 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, ".threshold_posture = \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\",");
     try expectMarker(bitmap_diff_source, "const manifest_source = @embedFile(\"phase4_bitmap_diff_manifest.json\");");
     try expectMarker(bitmap_diff_source, "fn expectBlobShaShape(value: []const u8) !void {");
+    try expectMarker(bitmap_diff_source, "fn expectExactRanges(bitmap: *const BitmapHarness, expected_ranges: []const RangeOp) !void {");
+    try expectMarker(bitmap_diff_source, "try expectExactRanges(&bitmap, case.expected_ranges);");
+    try expectMarker(bitmap_diff_source, "try expectExactRanges(&destination, case.expected_ranges);");
     try expectMarker(bitmap_diff_source, "test \"bitmap diff gate keeps the manifest-backed rollback packet aligned\" {");
     try expectMarker(bitmap_diff_source, "try expectBlobShaShape(manifest.live_gate_blob_sha);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqualStrings(bitmap_diff_governance.threshold_posture, manifest.threshold_posture);");
