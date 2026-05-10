@@ -77,6 +77,7 @@ Contributor reminder:
 ## Phase 13 contributor packet
 
 Keep the shared-subsystems packet explicit through the verified broad surfaces and adjacent evidence anchors:
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
