@@ -37,11 +37,22 @@ test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoi
     try expectHasDecl(type_names, "libbpfBpfProgTypeStr");
 
     try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
+    try expectHasDecl(file_path_handle_bridge, "buildProcFdPath");
     try expectHasDecl(file_path_handle_bridge, "parseFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "summarizeFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "mapReuseObservationFromFdinfo");
     try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
     try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
     try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
 
+    try expectHasDecl(perf_buffer_poll, "lookupBufferFd");
+    try expectHasDecl(perf_buffer_poll, "resolveBufferFdResultFromSlots");
+    try expectHasDecl(perf_buffer_poll, "lookupBufferWindow");
+    try expectHasDecl(perf_buffer_poll, "resolveBufferWindowResultFromSlots");
+    try expectHasDecl(perf_buffer_poll, "lookupSignaledBufferIndex");
+    try expectHasDecl(perf_buffer_poll, "resolveSignaledBufferIndexResultFromSlots");
+    try expectHasDecl(perf_buffer_poll, "lookupReadyBufferIndex");
+    try expectHasDecl(perf_buffer_poll, "resolveReadyBufferIndexResultFromSlots");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecution");
     try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResult");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecutionResultFromWaitResult");
