@@ -5,13 +5,17 @@ This note records the bounded teardown and poweroff-ownership surface already pr
 ## Status
 
 - `PHASE11_BCM2835_WDT_TEARDOWN_STATUS=teardown_note_landed`
+- archival packet identity remains `P11-L08` for traceability while current scheduled continuity for this bounded bcm2835 watchdog packet is tracked through `P11-L10`
 - lane scope: keep the current bcm2835 watchdog teardown story reviewable without widening into live platform remove, PM base plumbing, watchdog-core deregistration, or hardware-backed poweroff execution
 - paired driver-local packet:
   - `drivers/watchdog/bcm2835_wdt.zig`
   - `zigux/tests/phase11_bcm2835_wdt.zig`
+  - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
   - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+  - `Documentation/zigux/phase11-driver-lane-sequencing.md`
   - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+  - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 
 ## Teardown Ownership
 
@@ -25,7 +29,7 @@ The current bcm2835 watchdog packet already keeps one small teardown boundary ex
 
 - treat this note as an ownership boundary, not as proof of live platform remove execution
 - do not claim PM base release, watchdog-core deregistration, platform-driver remove ordering, or hardware-backed poweroff coverage from this note alone
-- keep the current teardown packet tied to the same bounded evidence already tracked in the focused driver replay, survey note, validation matrix, and manifest
+- keep the current teardown packet tied to the same bounded evidence already tracked in the focused driver replay, survey note, validation matrix, manifest, survey gate, lane-sequencing note, and bcm2835 packet checker
 - if a later Phase 11 lane widens into live platform registration or PM base plumbing, update this note together with the bcm2835 survey and validation matrix so the teardown story stays truthful
 
 ## Next Blocked Step
