@@ -85,6 +85,10 @@ DOC_README_MARKERS = [
     "registration-lifecycle blocker",
 ]
 
+FORBIDDEN_DOC_README_MARKERS = [
+    "there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` target on `master`",
+]
+
 SLICE_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
@@ -182,6 +186,7 @@ for name, source, markers in [
 for name, source, markers in [
     ("script_readme", text("scripts/zigux/README.md"), FORBIDDEN_SCRIPT_README_MARKERS),
     ("tests_readme", text("zigux/tests/README.md"), FORBIDDEN_TESTS_README_MARKERS),
+    ("doc_readme", text("Documentation/zigux/README.md"), FORBIDDEN_DOC_README_MARKERS),
 ]:
     for marker in markers:
         if marker in source:
@@ -297,5 +302,5 @@ print("PHASE10_VALIDATION=pass")
 print(f"PHASE10_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(HELPER_MARKERS) + len(TEST_MARKERS) + len(SURVEY_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(FORBIDDEN_DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(HELPER_MARKERS) + len(TEST_MARKERS) + len(SURVEY_TEST_MARKERS)}"
 )
