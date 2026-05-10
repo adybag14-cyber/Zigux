@@ -49,9 +49,11 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
 - current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
+- `PHASE2_LINUX_STYLE_ROUTE_COUNT=6`
+- `PHASE2_LINUX_STYLE_ROUTES=phase2-toolchain,phase2-validate,phase2-tools,phase2-kconfig,phase2-cross,phase2`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
-- the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset currently stays anchored in this dedicated note, `scripts/zigux/README.md`, and `scripts/zigux/check-phase2-toolchain-pin-scope.py` until the broader shared reminder surfaces restate the same detail explicitly
+- the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset currently stays anchored in this dedicated note, `scripts/zigux/README.md`, and `scripts/zigux/check-phase2-toolchain-pin-scope.py` until the broader shared reminder surfaces restate the same detail explicitly and keep the same six-route inventory visible
 
 ## Alignment Notes
 
@@ -61,3 +63,4 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - the direct fixdep parity checker keeps the direct fixdep parity surface reviewable beside the same artifact packet and Linux-style tool replay
 - the shared and closure validators above are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
 - the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note
+- the six-route inventory above should stay byte-for-byte aligned with the active Phase 2 entries in `zigux/Makefile` so future reminder-surface widening does not silently drop the dedicated toolchain or cross compile routes
