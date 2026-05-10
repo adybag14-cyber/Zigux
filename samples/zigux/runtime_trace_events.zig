@@ -7,6 +7,12 @@ pub const ModuleStage = enum(u8) {
     exited,
 };
 
+pub const LastEmissionSource = enum(u8) {
+    none,
+    main_thread,
+    function_thread,
+};
+
 pub const EventFamily = enum {
     foo_bar,
     template,
@@ -66,6 +72,7 @@ pub const RuntimeTraceEventsSummary = struct {
     last_fn_count: i32,
     last_main_emitted_events: usize,
     last_fn_emitted_events: usize,
+    last_emission_source: LastEmissionSource,
     saw_vararg_payload: bool,
     saw_rel_loc_payload: bool,
     saw_conditional_path: bool,
@@ -92,6 +99,7 @@ pub const RuntimeTraceEventsSample = struct {
     last_fn_count: i32 = -1,
     last_main_emitted_events: usize = 0,
     last_fn_emitted_events: usize = 0,
+    last_emission_source: LastEmissionSource = .none,
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
     saw_conditional_path: bool = false,
@@ -131,6 +139,7 @@ pub const RuntimeTraceEventsSample = struct {
             .last_fn_count = self.last_fn_count,
             .last_main_emitted_events = self.last_main_emitted_events,
             .last_fn_emitted_events = self.last_fn_emitted_events,
+            .last_emission_source = self.last_emission_source,
             .saw_vararg_payload = self.saw_vararg_payload,
             .saw_rel_loc_payload = self.saw_rel_loc_payload,
             .saw_conditional_path = self.saw_conditional_path,
@@ -161,6 +170,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.last_fn_count = -1;
         self.last_main_emitted_events = 0;
         self.last_fn_emitted_events = 0;
+        self.last_emission_source = .none;
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
         self.saw_conditional_path = false;
@@ -192,6 +202,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.main_iterations += 1;
         self.last_main_count = count;
         self.last_main_emitted_events = 6;
+        self.last_emission_source = .main_thread;
         self.saw_vararg_payload = true;
         self.saw_rel_loc_payload = true;
         self.saw_conditional_path = true;
@@ -215,6 +226,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.fn_iterations += 1;
         self.last_fn_count = count;
         self.last_fn_emitted_events = 2;
+        self.last_emission_source = .function_thread;
         self.last_function_payload = .{
             .foo_bar_message = "Look at me",
             .template_message = "Look at me too",
@@ -266,6 +278,7 @@ pub const RuntimeTraceEventsSample = struct {
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
+    try std.testing.expectEqual(LastEmissionSource.none, module.summary().last_emission_source);
 
     const selftest_summary = try module.runSelftest();
     try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
@@ -273,10 +286,13 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(usize, 6), selftest_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), selftest_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), selftest_summary.total_events);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 
     try module.registerFunctionThread();
     _ = try module.emitMainIteration(3);
+    try std.testing.expectEqual(LastEmissionSource.main_thread, module.summary().last_emission_source);
     _ = try module.emitFunctionIteration(5);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
     try module.unregisterFunctionThread();
 
     const after_replay = module.summary();
@@ -293,6 +309,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(i32, 5), after_replay.last_fn_count);
     try std.testing.expectEqual(@as(usize, 6), after_replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(usize, 2), after_replay.last_fn_emitted_events);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, after_replay.last_emission_source);
     const main_payload = after_replay.last_main_payload orelse return error.ExpectedMainPayload;
     try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
     try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
@@ -307,6 +324,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(after_replay.total_events, exited_summary.total_events);
     try std.testing.expectEqual(after_replay.register_runs, exited_summary.register_runs);
     try std.testing.expectEqual(after_replay.unregister_runs, exited_summary.unregister_runs);
+    try std.testing.expectEqual(after_replay.last_emission_source, exited_summary.last_emission_source);
 }
 
 test "trace-events sample keeps initialized-stage failed-exit rollback explicit before selftest" {
@@ -314,8 +332,10 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try module.init();
 
     _ = try module.emitMainIteration(4);
+    try std.testing.expectEqual(LastEmissionSource.main_thread, module.summary().last_emission_source);
     try module.registerFunctionThread();
     _ = try module.emitFunctionIteration(6);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 
     const before_failed_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);
@@ -332,6 +352,7 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(@as(i32, 4), before_failed_exit.last_main_count);
     try std.testing.expectEqual(@as(i32, 6), before_failed_exit.last_fn_count);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, before_failed_exit.last_emission_source);
 
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
 
@@ -349,6 +370,7 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(before_failed_exit.last_fn_count, after_failed_exit.last_fn_count);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
+    try std.testing.expectEqual(before_failed_exit.last_emission_source, after_failed_exit.last_emission_source);
     const main_payload = after_failed_exit.last_main_payload orelse return error.ExpectedMainPayload;
     try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
     try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
@@ -367,6 +389,7 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_count, exited_summary.last_main_count);
     try std.testing.expectEqual(before_failed_exit.last_fn_count, exited_summary.last_fn_count);
+    try std.testing.expectEqual(before_failed_exit.last_emission_source, exited_summary.last_emission_source);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.registration_stop_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
@@ -378,7 +401,9 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
 
     try module.registerFunctionThread();
     _ = try module.emitMainIteration(4);
+    try std.testing.expectEqual(LastEmissionSource.main_thread, module.summary().last_emission_source);
     _ = try module.emitFunctionIteration(6);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 
     const before_failed_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);
@@ -393,6 +418,7 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(i32, 4), before_failed_exit.last_main_count);
     try std.testing.expectEqual(@as(i32, 6), before_failed_exit.last_fn_count);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, before_failed_exit.last_emission_source);
 
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
 
@@ -409,6 +435,7 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(before_failed_exit.last_main_count, after_failed_exit.last_main_count);
     try std.testing.expectEqual(before_failed_exit.last_fn_count, after_failed_exit.last_fn_count);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
+    try std.testing.expectEqual(before_failed_exit.last_emission_source, after_failed_exit.last_emission_source);
 
     try module.unregisterFunctionThread();
     try module.exit();
@@ -421,6 +448,7 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(usize, 2), exited_summary.registration_start_runs);
     try std.testing.expectEqual(@as(usize, 2), exited_summary.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(before_failed_exit.last_emission_source, exited_summary.last_emission_source);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
 
@@ -435,6 +463,7 @@ test "trace-events sample keeps callback-registration edge refcounts explicit" {
     try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
 
     _ = try module.emitFunctionIteration(2);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), module.unregister_runs);
@@ -443,14 +472,17 @@ test "trace-events sample keeps callback-registration edge refcounts explicit" {
 
     try module.exit();
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 }
 
 test "trace-events sample rejects selftest when callback registration is already outstanding" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
     _ = try module.emitMainIteration(8);
+    try std.testing.expectEqual(LastEmissionSource.main_thread, module.summary().last_emission_source);
     try module.registerFunctionThread();
     _ = try module.emitFunctionIteration(9);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 
     const before_failed_selftest = module.summary();
     try std.testing.expectEqual(ModuleStage.initialized, before_failed_selftest.stage);
@@ -465,6 +497,7 @@ test "trace-events sample rejects selftest when callback registration is already
     try std.testing.expectEqual(@as(usize, 0), before_failed_selftest.selftest_runs);
     try std.testing.expectEqual(@as(i32, 8), before_failed_selftest.last_main_count);
     try std.testing.expectEqual(@as(i32, 9), before_failed_selftest.last_fn_count);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, before_failed_selftest.last_emission_source);
 
     try std.testing.expectError(error.OutstandingRegistration, module.runSelftest());
 
@@ -481,6 +514,7 @@ test "trace-events sample rejects selftest when callback registration is already
     try std.testing.expectEqual(before_failed_selftest.selftest_runs, after_failed_selftest.selftest_runs);
     try std.testing.expectEqual(before_failed_selftest.last_main_count, after_failed_selftest.last_main_count);
     try std.testing.expectEqual(before_failed_selftest.last_fn_count, after_failed_selftest.last_fn_count);
+    try std.testing.expectEqual(before_failed_selftest.last_emission_source, after_failed_selftest.last_emission_source);
 
     try module.unregisterFunctionThread();
     const selftest_summary = try module.runSelftest();
@@ -492,6 +526,7 @@ test "trace-events sample rejects selftest when callback registration is already
     try std.testing.expectEqual(@as(usize, 12), selftest_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), selftest_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
 }
 
 test "trace-events sample rejects duplicate function-thread registration" {
@@ -503,6 +538,7 @@ test "trace-events sample rejects duplicate function-thread registration" {
     try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
     _ = try module.emitFunctionIteration(2);
+    try std.testing.expectEqual(LastEmissionSource.function_thread, module.summary().last_emission_source);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
 }
