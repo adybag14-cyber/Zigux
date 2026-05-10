@@ -67,6 +67,8 @@ REQUIRED_PHASE12_PATHS = [
     "zigux/tests/phase12_libbpf_reviewability.zig",
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
+    "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 
@@ -267,12 +269,12 @@ def run_self_test() -> int:
         expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[0]}")
 
         write_fixture_tree(base)
-        missing_path = base / REQUIRED_PHASE12_PATHS[-1]
+        missing_path = base / "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
         missing_path.unlink()
-        expect_failure(base, f"missing_file:{REQUIRED_PHASE12_PATHS[-1]}")
+        expect_failure(base, f"missing_file:{missing_path.relative_to(base).as_posix()}")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
