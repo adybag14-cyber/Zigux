@@ -1,0 +1,14 @@
+{
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "policy_note": "Bounded Phase 2 x86_64-linux bootstrap archive-pin contract.",
+  "archive_sha256": {
+    "x86_64-linux": "a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858"
+  },
+  "approval_policy": {
+    "shared_phase2_checklist_ack_required": true,
+    "fresh_bootstrap_runner_evidence_required": true,
+    "separate_cross_target_expansion_approval_required": true
+  }
+}
