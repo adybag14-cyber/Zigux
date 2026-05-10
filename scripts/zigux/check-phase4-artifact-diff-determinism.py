@@ -562,6 +562,14 @@ def run_self_test() -> None:
         )
 
     print("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass")
+    print(
+        "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT="
+        f"{len(EXPECTED_SELF_TEST_CASES)}"
+    )
+    print(
+        "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES="
+        + ",".join(EXPECTED_SELF_TEST_CASES)
+    )
 
 
 def main() -> int:
