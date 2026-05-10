@@ -237,12 +237,19 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
+    try expectContains(loader_source, "runtime kretprobe loader prepares a bounded registration handoff plan");
+    try expectContains(loader_source, "runtime kretprobe loader emits the shared runtime-loader contract plan");
+    try expectContains(loader_source, "runtime kretprobe loader keeps initialized-stage shared contract plans explicit");
     try expectContains(loader_source, "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation");
     try expectContains(loader_source, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(loader_source, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(loader_source, "runtime kretprobe loader bridges the shared request lifecycle without widening registration claims");
     try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared runtime-substrate drift before any local runtime handoff");
     try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared selftest-hook drift before any local runtime handoff");
+    try expectContains(loader_source, "runtime kretprobe loader rejects non-prepared shared requests before any local runtime handoff");
     try expectContains(loader_source, "runtime kretprobe loader rejects shared selftest-hook drift before any live registration claim");
+    try expectContains(loader_source, "runtime kretprobe loader rejects shared-load-plan snapshot drift");
+    try expectContains(loader_source, "runtime kretprobe loader rejects registration snapshot drift");
     try expectContains(loader_source, "runtime kretprobe loader keeps shared release failures from desynchronizing loader state");
     try expectContains(loader_source, "runtime kretprobe loader recovers from initialized-stage failed exit into the same bounded handoff plan");
 
