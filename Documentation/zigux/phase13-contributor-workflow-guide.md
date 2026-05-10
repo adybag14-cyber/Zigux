@@ -19,7 +19,6 @@ Keep notifier evidence adjacent to that packet rather than treating it as a fift
 The adjacent notifier evidence packet is tracked through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
@@ -58,6 +57,7 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep `libfs`, `devres`, `landlock`, and adjacent notifier evidence as separate ownership buckets?
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
+- Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig`?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
 
 ## Non-Goals
