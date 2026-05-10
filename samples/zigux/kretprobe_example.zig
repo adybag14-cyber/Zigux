@@ -87,6 +87,19 @@ pub const RetargetReplaySummary = struct {
     init_runs: usize,
 };
 
+pub const HandlerBoundaryReplaySummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    skipped_kernel_thread_path_checked: bool,
+    outstanding_instance_rejected: bool,
+    return_value: usize,
+    duration_ns: i64,
+    nmissed: usize,
+    maxactive: usize,
+};
+
 pub const RecoveryReplaySummary = struct {
     anchor: []const u8,
     symbol_name: []const u8,
@@ -406,6 +419,43 @@ pub const KretprobeExampleSample = struct {
         };
     }
 
+    pub fn runHandlerBoundaryReplay(self: *Self) !HandlerBoundaryReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        const skipped = try self.entryHandler(false, 11);
+        if (skipped) return error.UnexpectedEntryArming;
+
+        const armed = try self.entryHandler(true, 100);
+        if (!armed) return error.UnexpectedEntrySkip;
+
+        var outstanding_instance_rejected = false;
+        if (self.entryHandler(true, 120)) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.OutstandingProbeInstance => outstanding_instance_rejected = true,
+            else => return err,
+        }
+
+        const result = try self.retHandler(37, 145);
+        try self.recordMissedInstance();
+        self.replay_runs += 1;
+        self.stage_state = .replay_complete;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .stage_before_replay = .cold,
+            .stage_after_replay = self.stage(),
+            .skipped_kernel_thread_path_checked = self.skipped_kernel_threads == 1,
+            .outstanding_instance_rejected = outstanding_instance_rejected,
+            .return_value = result.retval,
+            .duration_ns = result.duration_ns,
+            .nmissed = self.nmissed,
+            .maxactive = self.maxactiveBudget(),
+        };
+    }
+
     pub fn runRecoveryReplay(self: *Self, symbol_name: []const u8) !RecoveryReplaySummary {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -542,6 +592,23 @@ test "kretprobe sample retarget replay keeps symbol selection explicit" {
     try std.testing.expect(replay.empty_symbol_rejected);
     try std.testing.expect(replay.post_init_retarget_rejected);
     try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+}
+
+test "kretprobe sample handler boundary replay keeps direct handler checks explicit" {
+    var sample_instance = KretprobeExampleSample{};
+    const replay = try sample_instance.runHandlerBoundaryReplay();
+
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expect(replay.outstanding_instance_rejected);
+    try std.testing.expectEqual(@as(usize, 37), replay.return_value);
+    try std.testing.expectEqual(@as(i64, 45), replay.duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
+    try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
+    try std.testing.expectEqual(SampleStage.replay_complete, sample_instance.stage());
 }
 
 test "kretprobe sample ownership replay keeps lifecycle snapshots explicit" {
