@@ -392,6 +392,20 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     const append_newline_hex_escape = try findUniqueEscapeCase("append dictionary entries with hex escaping");
     const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
 
+    try std.testing.expectEqualStrings("line\\n", newline_suffix.input);
+    try std.testing.expectEqual(string_helpers.UNESCAPE_SPACE, newline_suffix.flags);
+    try std.testing.expectEqualStrings("\n", newline_hex_escape.input);
+    try std.testing.expectEqual(string_helpers.ESCAPE_HEX, newline_hex_escape.flags);
+    try std.testing.expect(newline_hex_escape.only == null);
+    try std.testing.expectEqualStrings("A\n\tZ", selected_newline_escape.input);
+    try std.testing.expectEqual(string_helpers.ESCAPE_SPACE, selected_newline_escape.flags);
+    try std.testing.expect(selected_newline_escape.only != null);
+    try std.testing.expectEqualStrings("\n", selected_newline_escape.only.?);
+    try std.testing.expectEqualStrings("A\nZ", append_newline_hex_escape.input);
+    try std.testing.expectEqual(string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, append_newline_hex_escape.flags);
+    try std.testing.expect(append_newline_hex_escape.only != null);
+    try std.testing.expectEqualStrings("\n", append_newline_hex_escape.only.?);
+
     var sample = string_helpers_sample.StringHelpersSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
