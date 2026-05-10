@@ -29,6 +29,7 @@ FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
+PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 
 REQUIRED_PHASE12_PATHS = [
     DOCS_README_PATH,
@@ -44,7 +45,7 @@ REQUIRED_PHASE12_PATHS = [
     "Documentation/zigux/phase12-release-coordination-matrix.md",
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    PHASE12_RAW_GITHUB_COVERAGE_PATH,
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
@@ -120,6 +121,12 @@ PHASE12_LIBBPF_SURVEY_COORDINATION_MARKER = (
 )
 PHASE12_LIBBPF_SURVEY_DETERMINISM_MARKER = (
     "the deterministic Phase 12 tracked-helper snapshot still stays narrower than that shared bridge file"
+)
+PHASE12_RAW_GITHUB_COVERAGE_LIBBPF_ANTI_OVERLAP_MARKER = (
+    "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes"
+)
+PHASE12_RAW_GITHUB_COVERAGE_DRIVER_ANTI_OVERLAP_MARKER = (
+    "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion"
 )
 
 REQUIRED_SCRIPTS_README_MARKERS = [
@@ -263,6 +270,16 @@ REQUIRED_PHASE12_LIBBPF_SURVEY_EXACT_COUNTS = {
     PHASE12_LIBBPF_SURVEY_COORDINATION_MARKER: 1,
 }
 
+REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS = [
+    PHASE12_RAW_GITHUB_COVERAGE_LIBBPF_ANTI_OVERLAP_MARKER,
+    PHASE12_RAW_GITHUB_COVERAGE_DRIVER_ANTI_OVERLAP_MARKER,
+]
+
+REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_EXACT_COUNTS = {
+    PHASE12_RAW_GITHUB_COVERAGE_LIBBPF_ANTI_OVERLAP_MARKER: 1,
+    PHASE12_RAW_GITHUB_COVERAGE_DRIVER_ANTI_OVERLAP_MARKER: 1,
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -315,6 +332,7 @@ def validate(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     phase12_build = read_text(root, PHASE12_BUILD_PATH)
     phase12_libbpf_survey = read_text(root, PHASE12_LIBBPF_SURVEY_PATH)
+    phase12_raw_github_coverage = read_text(root, PHASE12_RAW_GITHUB_COVERAGE_PATH)
 
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_MARKERS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
@@ -334,6 +352,18 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "phase12_build", phase12_build, REQUIRED_PHASE12_BUILD_EXACT_COUNTS)
     ensure_contains(failures, "phase12_libbpf_survey", phase12_libbpf_survey, REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
     ensure_exact_counts(failures, "phase12_libbpf_survey", phase12_libbpf_survey, REQUIRED_PHASE12_LIBBPF_SURVEY_EXACT_COUNTS)
+    ensure_contains(
+        failures,
+        "phase12_raw_github_coverage",
+        phase12_raw_github_coverage,
+        REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_raw_github_coverage",
+        phase12_raw_github_coverage,
+        REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_EXACT_COUNTS,
+    )
 
     return failures
 
@@ -343,6 +373,11 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_phase12_build()
     if rel_path == PHASE12_LIBBPF_SURVEY_PATH:
         return minimal_marker_doc("Documentation/zigux/phase12-libbpf-segment-survey", REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
+    if rel_path == PHASE12_RAW_GITHUB_COVERAGE_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-raw-github-coverage-survey",
+            REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS,
+        )
     if rel_path == DOCS_README_PATH:
         return minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS)
     if rel_path == REVIEW_CHECKLIST_PATH:
@@ -440,6 +475,7 @@ def run_self_test() -> int:
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
         phase12_libbpf_survey_path = base / PHASE12_LIBBPF_SURVEY_PATH
+        phase12_raw_github_coverage_path = base / PHASE12_RAW_GITHUB_COVERAGE_PATH
 
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(scripts_readme.replace(PHASE12_REMOVED_SURFACE_MARKER, "", 1), encoding="utf-8")
@@ -530,8 +566,19 @@ def run_self_test() -> int:
         )
         expect_failure(base, f"phase12_libbpf_survey:{PHASE12_LIBBPF_SURVEY_ROLLBACK_MARKER}")
 
+        write_fixture_tree(base)
+        phase12_raw_github_coverage = phase12_raw_github_coverage_path.read_text(encoding="utf-8")
+        phase12_raw_github_coverage_path.write_text(
+            phase12_raw_github_coverage.replace(PHASE12_RAW_GITHUB_COVERAGE_LIBBPF_ANTI_OVERLAP_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase12_raw_github_coverage:{PHASE12_RAW_GITHUB_COVERAGE_LIBBPF_ANTI_OVERLAP_MARKER}",
+        )
+
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=17")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -569,7 +616,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
     )
     return 0
 
