@@ -17,6 +17,7 @@ from tempfile import TemporaryDirectory
 
 EXPECTED_MAKE_TARGETS = [
     "phase4-validate",
+    "phase4-artifact-diff-contract",
     "phase4-test",
     "phase4-runtime-atomic64-diff",
     "phase4-runtime-atomic64-diff-survey",
@@ -43,6 +44,9 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
+    "phase4-artifact-diff-contract:",
+    "scripts/zigux/artifact_diff.py --self-test",
+    "scripts/zigux/check-artifact-diff-contract.py --self-test",
     "phase4-test:",
     "$(ZIG) build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
@@ -86,6 +90,11 @@ phase4-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
+
+phase4-artifact-diff-contract:
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 
 phase4-test:
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase4_build.zig
