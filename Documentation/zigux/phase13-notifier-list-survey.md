@@ -32,9 +32,7 @@ surfaces without promoting it into a separate shared replay count.
 
 `scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet.
 
-`scripts/zigux/check-phase13-notifier-priority-signal.py` now keeps that nonincreasing-priority signal aligned across the binding, helper, exported header, reviewability replay, and survey note.
-
-`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the focused notifier packet checker, and the priority-signal checker should be rerun alongside that route whenever this adjacent notifier packet changes.
+`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the focused notifier packet checker, and the landed nonincreasing-priority signal should stay explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig` whenever this adjacent notifier packet changes.
 
 ## Adjacent Evidence On Current Master
 
@@ -46,7 +44,6 @@ surfaces without promoting it into a separate shared replay count.
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `drivers/tty/hvc/hvc_console.h`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
@@ -61,7 +58,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 
 - it shows the shipped notifier ABI and list-helper boundary surfaces
 - it keeps the dedicated notifier manifest and reviewability replay explicit
-- it keeps the adjacent helper, header, focused checker, and helper-local priority-signal guard explicit
+- it keeps the adjacent helper, header, focused checker, and helper-local priority-signal surface explicit
 - it keeps the landed nonincreasing-priority signal reviewable without widening into callback or registration behavior
 - it supports the broader contributor-facing Phase 13 release packet
 - it does not add extra shared replay steps beyond the current eight-test shared helper replay
@@ -81,8 +78,10 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 Those summaries should keep this notifier survey, the notifier manifest, the
 reviewability replay, the ABI footholds, the list-helper footholds, the adjacent
 notifier helper and exported notifier header, the focused checker,
-`check-phase13-notifier-priority-signal.py`, and `drivers/tty/hvc/hvc_console.h`
-explicit as one adjacent evidence packet.
+and `drivers/tty/hvc/hvc_console.h`
+explicit as one adjacent evidence packet while keeping the landed nonincreasing-priority
+signal visible through `zigux/tests/phase13_notifier_list_reviewability.zig` and
+`zigux/helpers/notifier_chain_view.zig`.
 
 ## Non-goals
 
