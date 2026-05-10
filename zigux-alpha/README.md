@@ -18,6 +18,14 @@ Rules
 - Treat ZAR as the research/proving ground and Zigux as the product repo.
 - On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.
 
+Active product surfaces
+- `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.
+- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.
+- `Documentation/zigux/freeze-map.md` records the stay-in-C boundaries and study-only areas that still govern delivery.
+
 Start here
 - [ZAR to Zigux Product Roadmap](./ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md)
 - [Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)
+- [Live Product Docs](../Documentation/zigux/README.md)
+- [Review Checklist](../Documentation/zigux/review-checklist.md)
+- [Freeze Map](../Documentation/zigux/freeze-map.md)
