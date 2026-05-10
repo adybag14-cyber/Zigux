@@ -30,11 +30,11 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 
 REQUIRED_FILE_MARKERS = {
     MANIFEST_PATH: [
-        '\"rollback_owner\": \"keep the freeze-map anchors in C and reopen only with stronger evidence\"',
-        '\"kernel/workqueue.c\"',
-        '\"kernel/trace/ring_buffer.c\"',
-        '\"kernel/rcu/tree.c\"',
-        '\"net/core/skbuff.c\"',
+        '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
+        '"kernel/workqueue.c"',
+        '"kernel/trace/ring_buffer.c"',
+        '"kernel/rcu/tree.c"',
+        '"net/core/skbuff.c"',
     ],
     SMOKE_SURVEY_PATH: [
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
@@ -449,6 +449,42 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected missing repo-local toolchain fallback guidance failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_survey_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_smoke_survey_path.write_text(
+            broken_smoke_survey_path.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/phase14_ring_buffer_manifest.json`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_ring_buffer_manifest.json` (expected 1, found 0)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing smoke-survey ring-buffer manifest bullet failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_survey_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_smoke_survey_path.write_text(
+            broken_smoke_survey_path.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                "- `zigux/tests/phase14_rcu_tree_manifest.json`\n- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_rcu_tree_manifest.json` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate smoke-survey rcu manifest bullet failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_survey_path, required_text(root, SMOKE_SURVEY_PATH))
 
