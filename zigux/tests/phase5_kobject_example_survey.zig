@@ -46,7 +46,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L20", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
@@ -255,7 +255,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
 
     const required_markers = [_][]const u8{
         "PHASE5_STATUS=parked",
-        "PHASE5_LANE_KEY=P5-L20",
+        "PHASE5_LANE_KEY=P5-L10",
         "Documentation/zigux/phase5-sample-review-guide.md",
         "## Approved idiom for the landed kobject-style sample",
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
