@@ -55,7 +55,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - the `bsearch` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L09` as a closed legacy verification label only. New bsearch lower-bound, upper-bound, direct C ABI equality-budget, comparison-budget, or slice-note follow-ups stay bsearch-owned in Memory and should not reuse `P6-L09` as the packet-wide routing label. When a later same-lane review needs only the shipped bsearch packet, use `make -C zigux phase6-bsearch-test` so the focused helper rerun stays scoped to `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` instead of reopening the whole shared Phase 6 bundle by default.
+Treat `P6-L09` as a closed legacy verification label only. New bsearch lower-bound, upper-bound, direct C ABI equality-budget, comparison-budget, or slice-note follow-ups stay bsearch-owned in Memory and should not reuse `P6-L09` as the packet-wide routing label. When a later same-lane review needs only the shipped bsearch packet, use `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig` or `make -C zigux phase6-bsearch-test` so the focused helper rerun stays scoped to `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` instead of reopening the whole shared Phase 6 bundle by default.
 
 ### checksum packet
 
@@ -84,7 +84,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat hexdump row, threshold, or fixture follow-ups as hexdump-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note. When a later same-lane review needs only the shipped hexdump packet, use `make -C zigux phase6-hexdump-test` for the focused helper replay and `make -C zigux phase6-hexdump-perf` for the dedicated slowdown gate instead of reopening the whole shared Phase 6 helper bundle by default.
+Treat hexdump row, threshold, or fixture follow-ups as hexdump-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note. When a later same-lane review needs only the shipped hexdump packet, use `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig` or `make -C zigux phase6-hexdump-test` for the focused helper replay and `make -C zigux phase6-hexdump-perf` for the dedicated slowdown gate instead of reopening the whole shared Phase 6 helper bundle by default.
 
 ## Anti-Overlap Rules
 
