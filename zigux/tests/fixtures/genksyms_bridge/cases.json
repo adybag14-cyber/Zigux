@@ -105,6 +105,13 @@
       "expected": "missing_reference_argument_expected.json"
     },
     {
+      "name": "missing_dump_types_argument",
+      "argv": ["-T"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "missing_dump_types_argument_expected.json"
+    },
+    {
       "name": "unsupported_long_option",
       "argv": ["--bogus"],
       "mode": "process_json",
