@@ -84,7 +84,7 @@ The sample intentionally stays small:
 - it now exposes a tiny `runPreviewBoundaryReplay()` check so reviewers can see preview truncation stay non-destructive before the full drain
 - it now exposes a tiny `runWrappedPreviewReplay()` check so reviewers can see preview truncation stay non-destructive after a drained-and-refilled rollover too, instead of inferring wrapped-window behavior only from raw span counters
 - it now keeps the queue-shape idiom reviewable through explicit `visibleSpanSummary()`, `available()`, and `usesWrappedStorageWindow()` cues instead of hiding rollover behavior behind the fixed ring-buffer internals
-- it exposes a single bounded self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
+- it now exposes one anchor replay plus five focused self-checks so reviewers can validate queue order, preview truncation, wrapped-window boundaries, helper behavior, and ownership-lifetime cues without inferring them from helper internals alone
 
 The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
