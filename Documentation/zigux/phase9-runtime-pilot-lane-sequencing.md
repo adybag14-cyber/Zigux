@@ -25,6 +25,7 @@ That roadmap boundary matters more than older reminder wording. If live `master`
 
 This survey can read these shared reminder surfaces:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `scripts/zigux/README.md`
@@ -69,6 +70,7 @@ Shared Phase 9 reminder truthfulness is split across the active shared reminder 
 
 That means this lane may:
 
+- tighten shared reminder wording in `Documentation/zigux/README.md`
 - tighten shared reminder wording in `Documentation/zigux/review-checklist.md`
 - tighten shared reminder wording in `scripts/zigux/README.md`
 - tighten shared reminder wording in `zigux/tests/README.md`
@@ -96,7 +98,7 @@ When a shared Phase 9 review surface is touched, it must follow these rules.
    - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 references
    - `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` remain earlier-phase command and environment cue owners
 6. If shared reminder surfaces drift behind the live loader-facing or pilot-family packet, narrow the wording or record the blocker directly. Do not keep stale missing-file claims, stale build-route claims, or invented validation surfaces in place once current-`master` readback contradicts them.
-7. `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` must defer the exact shared loader-facing path inventory, convenience-target names, and blocker posture to this sequencing note. If this note no longer confirms those shared loader-facing paths on current `master`, the other shared reminder surfaces must record a blocker or defer back here instead of relisting those paths as live shipped evidence.
+7. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` must defer the exact shared loader-facing path inventory, convenience-target names, and blocker posture to this sequencing note. If this note no longer confirms those shared loader-facing paths on current `master`, the other shared reminder surfaces must record a blocker or defer back here instead of relisting those paths as live shipped evidence.
 8. If a shared reminder surface or a family-local note cites the `kernel/trace/ring_buffer.c` study-only boundary through the trace-events packet, keep the survey-gate proof manifest-backed and literal: `zigux/tests/runtime_trace_events_manifest.json` remains the source of `surveyed_commit`, and `zigux/tests/runtime_trace_events_survey.zig` must still fail if the survey note drops that commit, the blocked loader scaffold, or the no-status-change posture.
 
 ## Adjacent lane boundaries
