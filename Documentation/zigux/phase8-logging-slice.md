@@ -9,6 +9,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/bpf/zigux_segments/logging.zig`
   - `zigux/tests/phase8_logging.zig`
+  - `zigux/tests/phase8_logging_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -24,10 +25,12 @@ The logging starter stays small and reviewable because it focuses on stable text
    - `python3 scripts/zigux/validate-phase8.py --self-test`
 3. run the shared Phase 8 validator
    - `python3 scripts/zigux/validate-phase8.py`
-4. run the shared Phase 8 tooling replay
+4. run the focused logging build shard
+   - `zig build test --build-file zigux/tests/phase8_logging_only_build.zig --summary all`
+5. run the shared Phase 8 tooling replay
    - `make -C zigux phase8-test`
    - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-5. run the convenience target
+6. run the convenience target
    - `make -C zigux phase8`
 
 ## Current parity surface
@@ -48,6 +51,7 @@ The current tests check:
 - the version tuple still reports the landed `1.8` major, minor, and string helpers
 - representative custom libbpf error messages stay stable across positive and negative errno-shaped inputs
 - unmapped custom codes still fall back to the compact unknown-error formatter instead of inventing broader strerror coverage
+- the dedicated focused logging replay stays wired to the bounded helper packet and this slice note
 
 ## Non-goals
 
