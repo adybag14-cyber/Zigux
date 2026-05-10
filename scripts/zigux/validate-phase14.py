@@ -25,6 +25,22 @@ TRACEABILITY_TITLE = "# Phase 14 Core Boundary Traceability"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 RCU_SURVEY_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
 RCU_MANIFEST_PATH = "zigux/tests/phase14_rcu_tree_manifest.json"
+EXPECTED_ROADMAP_RISK_BUNDLE = [
+    "hidden runtime behavior",
+    "memory-ordering mistakes",
+    "overpromising full parity",
+    "deep-core scope creep",
+]
+EXPECTED_PRODUCTIZATION = {
+    "named_owner": "Core-Adjacent Pod",
+    "status_bucket": "study_only",
+    "validation_gate": "make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14",
+    "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "transfer_rationale": "transfer ZAR runtime research into explicit reviewability evidence instead of widening Phase 14 into a deep-core port",
+    "roadmap_risk_bundle": EXPECTED_ROADMAP_RISK_BUNDLE,
+    "fallback_path": "Keep kernel/workqueue.c, net/core/skbuff.c, kernel/trace/ring_buffer.c, and kernel/rcu/tree.c as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
+}
 TRACEABILITY_MANIFEST_PATHS = [
     "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
@@ -313,6 +329,20 @@ def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Co
     return surfaces, surface_counts, errors
 
 
+def check_manifest_productization(manifest: dict) -> list[str]:
+    productization = manifest.get("productization")
+    if not isinstance(productization, dict):
+        return ["phase14 shared smoke manifest productization payload is not an object"]
+
+    errors: list[str] = []
+    for key, expected_value in EXPECTED_PRODUCTIZATION.items():
+        if productization.get(key) != expected_value:
+            errors.append(
+                f"phase14 shared smoke manifest productization.{key} drifted from the current study-only packet"
+            )
+    return errors
+
+
 def check_compile_matrix(root: Path) -> list[str]:
     errors: list[str] = []
     smoke_note_text = read_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md")
@@ -407,6 +437,8 @@ def check(root: Path) -> list[str]:
     if manifest.get("compile_shards") != REQUIRED_COMPILE_SHARDS:
         errors.append("phase14 manifest compile_shards drifted from the current six-row compile packet")
 
+    errors.extend(check_manifest_productization(manifest))
+
     surfaces, surface_counts, surface_errors = collect_manifest_surface_markers(manifest)
     errors.extend(surface_errors)
     unexpected_surface_paths = sorted(set(surface_counts) - EXPECTED_SURFACE_PATHS)
@@ -443,6 +475,7 @@ def run_self_test() -> int:
             "packet_name": "phase14_shared_smoke_packet",
             "focus": "study_only_shared_smoke_packet",
             "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
+            "productization": dict(EXPECTED_PRODUCTIZATION),
             "commands": REQUIRED_COMMANDS,
             "compile_shards": REQUIRED_COMPILE_SHARDS,
             "surfaces": [
@@ -619,6 +652,33 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" not in errors:
             print("self-test expected lane-key drift failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["productization"]["status_bucket"] = "active_delivery"
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest productization.status_bucket drifted from the current study-only packet" not in errors:
+            print("self-test expected productization status-bucket drift failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["productization"]["roadmap_risk_bundle"] = EXPECTED_ROADMAP_RISK_BUNDLE[:-1]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest productization.roadmap_risk_bundle drifted from the current study-only packet" not in errors:
+            print("self-test expected productization risk-bundle drift failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken.pop("productization", None)
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest productization payload is not an object" not in errors:
+            print("self-test expected missing productization payload failure", file=sys.stderr)
             return 1
 
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
