@@ -1,0 +1,8 @@
+{
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "archive_sha256": {
+    "x86_64-linux": "a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858"
+  }
+}
