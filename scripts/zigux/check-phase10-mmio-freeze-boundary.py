@@ -82,7 +82,6 @@ EXPECTED_COMPONENTS = {
         "manifest_path": RING_MANIFEST_PATH,
         "lane_key": "P10-L07",
         "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
-        "blocked_gap": "phase10-ring-lab-driver-bridge",
         "landed_helper_key": "landed_ring_helper_evidence",
         "landed_helper_evidence": [
             "phase10-virtqueue-shape-helper",
@@ -433,7 +432,6 @@ def baseline_manifests() -> tuple[dict[str, dict], dict]:
         },
         "blocked_transport_gaps": {
             CORE_MANIFEST_PATH: EXPECTED_COMPONENTS["core"]["blocked_gap"],
-            RING_MANIFEST_PATH: EXPECTED_COMPONENTS["ring"]["blocked_gap"],
             INPUT_MANIFEST_PATH: EXPECTED_COMPONENTS["input"]["blocked_gap"],
             MMIO_MANIFEST_PATH: EXPECTED_COMPONENTS["mmio"]["blocked_gap"],
         },
@@ -492,7 +490,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_core_lane_key_marker_missing")
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
-        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).readText(encoding="utf-8"))
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
         drifted["survey_provenance"]["surveyed_commits"]["mmio"] = "phase10-mmio-drifted-commit"
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
