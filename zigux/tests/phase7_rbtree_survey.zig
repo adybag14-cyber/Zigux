@@ -72,6 +72,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(slice_note);
 
+    const shared_make_wrapper_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(shared_make_wrapper_note);
+
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
@@ -230,6 +238,18 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(slice_note, "returned-leftmost handoff state");
     try expectContains(slice_note, "linked-node neighbour tracking plus detached linked-ownership reset through `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`");
     try expectContains(slice_note, "linked-node neighbour tracking, leftmost updates, and detached linked-ownership reset across `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`");
+    try expectContains(shared_make_wrapper_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(shared_make_wrapper_note, "`scripts/zigux/check-phase7-rbtree-parity.py`");
+    try expectContains(shared_make_wrapper_note, "`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`");
+    try expectContains(shared_make_wrapper_note, "`scripts/zigux/validate-phase7.py`");
+    try expectContains(
+        shared_make_wrapper_note,
+        "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
+    );
+    try expectContains(
+        shared_make_wrapper_note,
+        "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
+    );
     try expectContains(docs_root, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample");
     try expectContains(docs_root, "lib/rbtree.zig");
