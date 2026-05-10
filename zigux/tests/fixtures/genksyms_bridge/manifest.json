@@ -109,6 +109,7 @@
     ]
   },
   "action_abbrev_cases": [
+    "abbreviated_long_options",
     "abbreviated_help",
     "abbreviated_version"
   ],
