@@ -18,7 +18,8 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_HARNESS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'genksyms.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
-SELF_TEST_CASE_COUNT = 8
+GENKSYMS_TEST_DECL_PATTERN = re.compile(r'^test "([^"]+)" \{$', re.MULTILINE)
+SELF_TEST_CASE_COUNT = 9
 EXPECTED_HELPER_LOCAL_ANCHORS = [
     'genksyms bridge parses repeated short flags and arguments',
     'genksyms bridge parses long options and quiet override',
@@ -87,6 +88,25 @@ def load_manifest(fixture_dir: Path) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise ValueError('genksyms bridge manifest must be a JSON object')
     return payload
+
+
+def load_genksyms_test_names(root: Path) -> list[str]:
+    text = (root / 'scripts' / 'zigux' / 'genksyms.zig').read_text(encoding='utf-8')
+    names = GENKSYMS_TEST_DECL_PATTERN.findall(text)
+    if not names:
+        raise ValueError('genksyms helper-local test anchors missing from scripts/zigux/genksyms.zig')
+
+    seen_names: set[str] = set()
+    duplicate_names: list[str] = []
+    for name in names:
+        if name in seen_names:
+            duplicate_names.append(name)
+            continue
+        seen_names.add(name)
+
+    if duplicate_names:
+        raise ValueError('duplicate genksyms.zig test names: ' + ','.join(duplicate_names))
+    return names
 
 
 def dedup_append(items: list[str], value: str) -> None:
@@ -192,6 +212,20 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(('INVALID_GENKSYMS_BRIDGE_MANIFEST', str(exc)))
         return issues
 
+    try:
+        expected_helper_local_anchors = load_genksyms_test_names(root)
+    except (FileNotFoundError, ValueError) as exc:
+        issues.append(('GENKSYMS_BRIDGE_HELPER_LOCAL_ANCHOR_DRIFT', str(exc)))
+        return issues
+
+    if EXPECTED_HELPER_LOCAL_ANCHORS != expected_helper_local_anchors:
+        issues.append(
+            (
+                'GENKSYMS_BRIDGE_HELPER_LOCAL_ANCHOR_DRIFT',
+                f'expected={expected_helper_local_anchors!r}:actual={EXPECTED_HELPER_LOCAL_ANCHORS!r}',
+            )
+        )
+
     expected_scalars = {
         'tool': 'scripts/zigux/genksyms.zig',
         'status': 'closed',
@@ -217,7 +251,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         'process_packet': process_packet,
         'normalized_stderr_packet': normalized_stderr_packet,
         'action_abbrev_cases': action_abbrev_cases,
-        'helper_local_anchors': EXPECTED_HELPER_LOCAL_ANCHORS,
+        'helper_local_anchors': expected_helper_local_anchors,
     }
     for field, expected in expected_lists.items():
         actual = manifest.get(field)
@@ -405,6 +439,19 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json', '{}\n')
     write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'help_expected.json', '{}\n')
     write_text(
+        root / 'scripts' / 'zigux' / 'genksyms.zig',
+        '\n'.join(
+            [
+                *[
+                    line
+                    for name in EXPECTED_HELPER_LOCAL_ANCHORS
+                    for line in (f'test "{name}" {{', '}',)
+                ],
+                '',
+            ]
+        ),
+    )
+    write_text(
         root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'manifest.json',
         json.dumps(
             {
@@ -477,6 +524,21 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'helper_local_anchors:' in value for block, value in issues)
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'expected_output_governance:' in value for block, value in issues)
+        cases += 1
+
+        build_self_test_root(root)
+        genksyms_path = root / 'scripts' / 'zigux' / 'genksyms.zig'
+        genksyms_path.write_text(
+            genksyms_path.read_text(encoding='utf-8')
+            + 'test "genksyms bridge keeps version side effect before long help again" {\n}\n',
+            encoding='utf-8',
+        )
+        issues = collect_manifest_issues(root)
+        assert any(
+            block == 'GENKSYMS_BRIDGE_HELPER_LOCAL_ANCHOR_DRIFT'
+            and 'keeps version side effect before long help again' in value
+            for block, value in issues
+        )
         cases += 1
 
         build_self_test_root(root)
