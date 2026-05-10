@@ -178,6 +178,10 @@ pub const perf_cases = [_]PerfCase{
 pub const perf_payload_buf_size = perf_payload.len;
 pub const perf_encoded_buf_size = 512;
 
+pub fn perfReferenceSupportedVariant(variant_name: []const u8) bool {
+    return std.mem.eql(u8, variant_name, "std") or std.mem.eql(u8, variant_name, "urlsafe");
+}
+
 fn encodedChars(nbytes: usize, padding: bool) usize {
     const full_groups = (nbytes / 3) * 4;
     if (padding) {
@@ -425,9 +429,7 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
         try std.testing.expect(case.max_decode_slowdown_pct > 0);
         try std.testing.expect(perf_payload_buf_size >= case.payload.len);
         try std.testing.expect(perf_encoded_buf_size >= encodedChars(case.payload.len, case.padding));
-        try std.testing.expect(
-            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe"),
-        );
+        try std.testing.expect(perfReferenceSupportedVariant(case.variant_name));
 
         if (std.mem.eql(u8, case.variant_name, "std")) {
             if (case.padding) {
@@ -456,4 +458,19 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     try std.testing.expect(saw_std_no_pad);
     try std.testing.expect(saw_urlsafe_pad);
     try std.testing.expect(saw_urlsafe_no_pad);
+}
+
+test "phase 6 base64 perf fixture packet keeps IMAP outside the slowdown corpus until a direct baseline lands" {
+    var saw_std = false;
+    var saw_urlsafe = false;
+
+    for (perf_cases) |case| {
+        try std.testing.expect(perfReferenceSupportedVariant(case.variant_name));
+        if (std.mem.eql(u8, case.variant_name, "std")) saw_std = true;
+        if (std.mem.eql(u8, case.variant_name, "urlsafe")) saw_urlsafe = true;
+    }
+
+    try std.testing.expect(saw_std);
+    try std.testing.expect(saw_urlsafe);
+    try std.testing.expect(!perfReferenceSupportedVariant("imap"));
 }
