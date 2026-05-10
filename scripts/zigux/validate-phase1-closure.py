@@ -84,7 +84,7 @@ EXPECTED_REVIEW_ANCHORS = {
         "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
         "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
         "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
-        "review_packet_summary": "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, allocator, and partial-window xor replay, while helper-local anchors keep predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, zero-sized destination-view, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
+        "review_packet_summary": "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-sized destination-view, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
     },
     "tools/lib/find_bit.zig": {
         "same_word_start_masks": 'test "single-word next scans honor start masks"',
@@ -427,6 +427,14 @@ def run_self_test() -> None:
         marker = "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface"
         closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
         assert any(item.startswith("closure:PHASE1_BITMAP_LINUX_ALIAS_REVIEW=") for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["review_packet_summary"] = "stale summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "manifest:tools/lib/bitmap.zig:review_packet_summary" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
