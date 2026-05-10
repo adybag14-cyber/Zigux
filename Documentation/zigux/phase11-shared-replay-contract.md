@@ -1,76 +1,71 @@
 # Phase 11 Shared Replay Contract
 
-This note records only the Phase 11 simple-driver review surfaces that were directly re-verified on live `master` during Slot 215. It intentionally avoids claiming landed HVC or watchdog teardown artifacts that were not readable from current `master` in that repo-first check.
+This note records the bounded shared replay surface for the active Phase 11 simple-driver tranche on `master`.
+It stays inside the shared closure packet that is already landed and reviewable, and it does not promote any driver-local next step into a broader Phase 11 closure claim.
 
 ## Status
 
-* `PHASE11_SHARED_REPLAY_STATUS=contract_truthfulness_repair`
-* scope: keep the Phase 11 simple-driver lane honest while the roadmap still asks for teardown and failure-mode parity, without overstating missing HVC or watchdog evidence as landed `master` state
+* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`
+* scope: keep the active Phase 11 simple-driver shared packet honest while the roadmap still keeps broader teardown, failure-mode parity, and execution-facing follow-through inside the owning driver lanes
 
 ## Roadmap Anchor
 
 * the product roadmap still defines Phase 11 as the simple-production-driver tranche for `drivers/watchdog/*.zig` and `drivers/tty/hvc/*.zig`
-* the required evidence remains hardware-validation matrix coverage plus teardown and failure-mode parity
-* this contract update stays inside that bounded review-surface lane and does not widen into tty registration, khvcd execution, notifier execution, sysrq execution, watchdog-core glue, or host-backed teardown behavior
+* the shared packet should only name review surfaces that keep the landed simple-driver tranche replayable together on `master`
+* driver-local teardown, manifest, validation-matrix, registration, notifier, sysrq, khvcd, reset, clock, poweroff, and platform-backed follow-through still belong to the owning Phase 11 driver lanes
 
-## Re-Verified Surfaces On `master`
+## Shared Replay Surface On `master`
+
+The active shared Phase 11 packet is the docs-root, checker, workflow, and replay surface that keeps the already-landed starter packet reviewable together:
 
 * `Documentation/zigux/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `Documentation/zigux/phase11-shared-replay-contract.md`
+* `Documentation/zigux/phase11-closure-note.md`
+* `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/README.md`
+* `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `zigux/tests/README.md`
+* `zigux/tests/phase11_build.zig`
+* `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
+* `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+* `make -C zigux phase11`
 
-## Missing Or Unverified Phase 11 HVC Surfaces
+The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.
+The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.
+The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
 
-Direct GitHub content reads against live `master` returned `404` for each of these HVC-facing Phase 11 paths during this run:
+## Driver-Local Evidence That Stays Beside The Shared Route
 
+The shared replay surface keeps the simple-driver tranche visible together, but the detailed evidence still stays with the owning lane packet instead of being absorbed into this note:
+
+* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
+* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
+* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts
+
+The dedicated archival HVC evidence still stays explicit beside that shared route:
+
+* `Documentation/zigux/phase11-hvc-console-slice.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-* `scripts/zigux/check-phase11-hvc-survey-packet.py`
-* `drivers/tty/hvc/hvc_console.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `drivers/tty/hvc/hvc_console_sysrq.zig`
-* `zigux/tests/phase11_build.zig`
-* `zigux/tests/phase11_hvc_console.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_survey.zig`
-
-The same repo-first check also returned `404` for several broader Phase 11 review-surface paths that older reminders still describe as shipped, including:
-
-* `zigux/tests/phase11_gpio_wdt_manifest.json`
-* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-* `Documentation/zigux/phase11-uapi-header-parity-survey.md`
-* `scripts/zigux/check-phase11-header-boundary-packet.py`
-* `zigux/Makefile`
-
-## Shared Replay Commands
-
-No executable Phase 11 build or make replay command was re-verified from a readable backing file on live `master` in this run.
-
-Treat older references to these commands as historical or branch-local until their backing files are readable on `master` again:
-
-* `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-* `make -C zigux phase11`
+* `drivers/tty/hvc/hvc_console_verify.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
+* `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 
 ## What This Contract Does Not Claim
 
-* no landed HVC teardown or failure-mode packet on `master` beyond the high-level roadmap and reminder surfaces re-read above
-* no landed watchdog validation-matrix, manifest, or scaffold packet that was directly re-read in this run
-* no shipped `validate-phase11.py` or broader Phase 11 validator stack on `master`
-* no tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, watchdog-core glue, or host-backed teardown validation
+* no shared `validate-phase11.py` or broader multi-checker validator stack beyond the landed shared contract checker and the dedicated driver or header packet checkers already named elsewhere in the shared packet
+* there is no shared `make -C zigux phase11-validate` target on `master`
+* no driver-local next-step widening beyond the active shared replay packet
+* no tty registration, notifier execution, sysrq execution, khvcd execution, host-backed cleanup, platform registration, live IRQ registration, clock acquisition, reset acquisition, or hardware-backed watchdog validation beyond the landed driver-local notes and replays
 
 ## Follow-Through Rule
 
-Future Phase 11 work should stay inside the next smallest same-lane truthfulness repair.
-
-Prefer one of these bounded follow-through steps:
-
-* land one actual `master`-readable HVC teardown or failure-mode artifact and then wire this contract back to that concrete file
-* restore one missing watchdog or HVC review surface at a time on `master` instead of restating a full shared starter packet from stale branch history
-
-## Footer
+Future shared Phase 11 work should stay inside the next smallest shared-packet truthfulness repair.
+Prefer a docs-root, checker, closure-note, or shared replay-route sync only when the active simple-driver tranche drifts across those already-shipped shared surfaces.
+Driver-local survey, manifest, teardown-note, validation-matrix, scaffold, or helper follow-through should return to the owning lane instead of widening this contract.
