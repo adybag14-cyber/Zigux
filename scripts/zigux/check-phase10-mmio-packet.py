@@ -205,7 +205,7 @@ MARKERS = {
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
         'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
         'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
-        'try std.testing.expectEqual(@as(usize, 14), manifest.survey_summary.preexisting_phase10_test_files);',
+        'try std.testing.expectEqual(@as(usize, 15), manifest.survey_summary.preexisting_phase10_test_files);',
         'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
         'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
         'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
@@ -254,7 +254,7 @@ MARKERS = {
     "Documentation/zigux/phase10-virtio-mmio-survey.md": [
         "PHASE10_STATUS=parked",
         "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
-        "fourteen dedicated Phase 10 virtio test or survey files under `zigux/tests/`",
+        "fifteen dedicated Phase 10 virtio test or survey files under `zigux/tests/`",
         "phase10-mmio-transport-identity-helper",
         "phase10-mmio-config-write-disposition-helper",
         "phase10-mmio-probe-preflight-helper",
@@ -304,7 +304,7 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 ]
 EXPECTED_SUMMARY = {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 14,
+    "preexisting_phase10_test_files": 15,
     "preexisting_virtio_mmio_verify_present": True,
 }
 EXPECTED_GAPS = {
@@ -412,7 +412,7 @@ def build_fixture() -> dict[str, str]:
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "survey_summary": {
                 "virtio_mmio_c_lines": 829,
-                "preexisting_phase10_test_files": 14,
+                "preexisting_phase10_test_files": 15,
                 "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
