@@ -224,11 +224,18 @@
       "perf_replay_cases": 4
     },
     "bsearch": {
-      "inline_corpus": "sorted integer and symbol tables",
+      "inline_corpus": "15-element ascending and descending sorted integer slices plus sorted symbol and packed-record replays",
+      "representative_lookup_len": 15,
       "comparison_budget_typed_cases": 10,
       "comparison_budget_raw_cases": 10,
       "comparison_budget_max_compare_calls": 4,
-      "c_abi_equality_budget_replay": true
+      "lower_upper_dynamic_lengths": 33,
+      "lower_upper_max_probe_formula": "len == 0 ? 1 : 2 * len + 2",
+      "lower_upper_probe_count_formula": "len == 0 ? 2 : 2 * len + 3",
+      "lower_upper_record_member_size_replay": true,
+      "c_abi_equality_dynamic_lengths": 33,
+      "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
+      "c_abi_equality_record_member_size_replay": true
     },
     "checksum": {
       "compute_vectors": 5,
@@ -272,6 +279,8 @@
   "exact_checks": [
     "python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
     "python3 scripts/zigux/check-phase6-shared-surface.py",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-validate",
