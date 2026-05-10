@@ -95,6 +95,42 @@ RELEASE_MARKERS = [
     "phase14_workqueue_reviewability.zig",
 ]
 
+SKBUFF_SURVEY_MARKERS = [
+    "`PHASE14_LANE_KEY=P14-L11`",
+    "`phase14-skbuff-live-ownership-blocker`",
+    "explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`",
+    "explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C",
+    "After the roadmap-alignment helper and the exported-tail checkpoint, no smaller review-only skbuff follow-up remains before the live ownership blocker.",
+]
+
+REQUIRED_SKBUFF_DECISION_CHECKLIST = {
+    "shared-info-refcount-ownership": [
+        "struct skb_shared_info",
+        "dataref",
+        "skb_header_cloned",
+    ],
+    "destructor-and-free-path": [
+        "skb_release_head_state",
+        "skb_release_data",
+        "consume_skb",
+    ],
+    "segmentation-partial-tail-owner-transfer": [
+        "skb_segment",
+        "SKB_GSO_PARTIAL",
+        "sock_wfree",
+    ],
+    "segmentation-checksum-data-offset-crossover": [
+        "skb_segment",
+        "SKB_GSO_CB",
+        "remcsum_offload",
+    ],
+    "segmentation-tail-publication-consumer-contract": [
+        "skb_segment",
+        "segs->prev",
+        "validate_xmit_skb_list",
+    ],
+}
+
 CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?",
 ]
@@ -233,6 +269,7 @@ def run_validation() -> int:
         return 1
 
     survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+    skbuff_survey_text = text("Documentation/zigux/phase14-skbuff-bridge-survey.md")
     missing: list[str] = []
     json_decode_errors: list[str] = []
     for name, source, markers in [
@@ -240,6 +277,7 @@ def run_validation() -> int:
         ("make", text("zigux/Makefile"), MAKE_MARKERS),
         ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
         ("survey", survey_text, RELEASE_MARKERS),
+        ("skbuff_survey", skbuff_survey_text, SKBUFF_SURVEY_MARKERS),
         ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
         ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
     ]:
@@ -346,6 +384,49 @@ def run_validation() -> int:
                 if blocked_gap != expected_blocked_gap:
                     missing.append(f"{manifest_path}:blocked_gap")
 
+                if manifest_path == "zigux/tests/phase14_skbuff_bridge_manifest.json":
+                    decision_checklist = anchor_manifest.get("decision_checklist")
+                    if not isinstance(decision_checklist, list):
+                        missing.append(f"{manifest_path}:decision_checklist")
+                    else:
+                        checklist_by_id: dict[str, dict[str, object]] = {}
+                        for item in decision_checklist:
+                            if not isinstance(item, dict):
+                                missing.append(f"{manifest_path}:decision_checklist:item")
+                                continue
+                            item_id = item.get("id")
+                            if not isinstance(item_id, str):
+                                missing.append(
+                                    f"{manifest_path}:decision_checklist:id={item_id}"
+                                )
+                                continue
+                            checklist_by_id[item_id] = item
+
+                        for decision_id, required_symbols in (
+                            REQUIRED_SKBUFF_DECISION_CHECKLIST.items()
+                        ):
+                            entry = checklist_by_id.get(decision_id)
+                            if entry is None:
+                                missing.append(
+                                    f"{manifest_path}:decision_checklist:{decision_id}"
+                                )
+                                continue
+                            if entry.get("ownership") != "stay_in_c":
+                                missing.append(
+                                    f"{manifest_path}:decision_checklist:{decision_id}:ownership={entry.get('ownership')}"
+                                )
+                            anchor_symbols = entry.get("anchor_symbols")
+                            if not isinstance(anchor_symbols, list):
+                                missing.append(
+                                    f"{manifest_path}:decision_checklist:{decision_id}:anchor_symbols"
+                                )
+                                continue
+                            for symbol in required_symbols:
+                                if symbol not in anchor_symbols:
+                                    missing.append(
+                                        f"{manifest_path}:decision_checklist:{decision_id}:anchor_symbol:{symbol}"
+                                    )
+
                 expected_survey_anchor_lines.append(
                     (packet_lane_key, format_anchor_packet_survey_line(packet))
                 )
@@ -428,7 +509,7 @@ def run_validation() -> int:
     print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE14_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
     )
     print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
