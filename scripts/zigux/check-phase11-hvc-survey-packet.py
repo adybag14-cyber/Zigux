@@ -13,6 +13,8 @@ from pathlib import Path
 REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
+    "validation_matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
 }
@@ -22,6 +24,19 @@ NOTE_MARKERS = [
     "exported hvc helper signature proof",
     "default `notifier_*_irq()` export-signature parity",
     "live sysrq execution",
+]
+
+TEARDOWN_NOTE_MARKERS = [
+    "summarizeCleanupHandoff()",
+    "tty_port_put()",
+    "host-backed teardown",
+    "summarizeRemoveHandoff()",
+]
+
+VALIDATION_MATRIX_MARKERS = [
+    "sysrq dispatch boundary `summarizeSysrqHandoff()`",
+    "targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+    "make -C zigux phase11-hvc-survey",
 ]
 
 SURVEY_GATE_MARKERS = [
@@ -38,7 +53,7 @@ SYSRQ_HELPER_MARKERS = [
     ".keeps_tty_registration_out_of_scope = true,",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -98,6 +113,16 @@ def run_check(root: Path) -> None:
         NOTE_MARKERS,
     )
     expect_markers(
+        REQUIRED_FILES["teardown_note"],
+        read_text(root, REQUIRED_FILES["teardown_note"]),
+        TEARDOWN_NOTE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["validation_matrix"],
+        read_text(root, REQUIRED_FILES["validation_matrix"]),
+        VALIDATION_MATRIX_MARKERS,
+    )
+    expect_markers(
         REQUIRED_FILES["survey_gate"],
         read_text(root, REQUIRED_FILES["survey_gate"]),
         SURVEY_GATE_MARKERS,
@@ -144,6 +169,14 @@ def build_self_test_fixture(root: Path) -> None:
         + "\n",
     )
     write(
+        root / REQUIRED_FILES["teardown_note"],
+        "\n".join(TEARDOWN_NOTE_MARKERS) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["validation_matrix"],
+        "\n".join(VALIDATION_MATRIX_MARKERS) + "\n",
+    )
+    write(
         root / REQUIRED_FILES["survey_gate"],
         "\n".join(SURVEY_GATE_MARKERS) + "\n",
     )
@@ -179,6 +212,26 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "exported hvc helper signature proof")
+        build_self_test_fixture(tmpdir)
+
+        teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
+        teardown_missing.write_text(
+            teardown_missing.read_text(encoding="utf-8").replace(
+                "tty_port_put()\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "tty_port_put()")
+        build_self_test_fixture(tmpdir)
+
+        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
+        matrix_missing.write_text(
+            matrix_missing.read_text(encoding="utf-8").replace(
+                "make -C zigux phase11-hvc-survey\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "make -C zigux phase11-hvc-survey")
         build_self_test_fixture(tmpdir)
 
         helper_missing = tmpdir / REQUIRED_FILES["sysrq_helper"]
