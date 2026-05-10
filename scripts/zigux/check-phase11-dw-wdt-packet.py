@@ -76,8 +76,8 @@ EXPECTED_GAP_STATUSES = {
     "phase11-dw-wdt-driver-tests": "starter_landed",
     "phase11-dw-wdt-registration-order-scaffold": "starter_landed",
     "phase11-dw-wdt-teardown-parity": "starter_landed",
-    "phase11-dw-wdt-platform-registration-scaffold": "ready_next",
-    "phase11-dw-wdt-live-platform-pm": "blocked_on_driver_scaffold",
+    "phase11-dw-wdt-platform-registration-scaffold": "starter_landed",
+    "phase11-dw-wdt-live-platform-pm": "ready_next",
 }
 
 SELF_TEST_CASE_COUNT = 8
