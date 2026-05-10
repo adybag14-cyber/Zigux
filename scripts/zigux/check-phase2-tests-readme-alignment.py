@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/phase2-closure.md",
@@ -284,6 +285,7 @@ FILE_MARKERS = {
 }
 
 MISSING_FILE_CASES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
