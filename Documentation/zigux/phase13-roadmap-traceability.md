@@ -33,7 +33,7 @@ That adjacent evidence packet should stay explicit through:
 - `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
-- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
+- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, manifest, reviewability replay, packet checker, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit.
 
 ## Broad Surface Expectations
 
@@ -47,14 +47,25 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+## Shared Replay Route
+
+Keep the roadmap traceability note aligned with the shipped validator-first replay route through:
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/tests/phase13_build.zig`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
+
+That route should stay described as reviewability support for the four roadmap anchors plus adjacent notifier evidence, not as a fifth helper lane or a closure claim.
 
 ## Non-Goals
 
