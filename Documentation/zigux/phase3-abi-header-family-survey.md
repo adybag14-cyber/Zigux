@@ -29,6 +29,11 @@ This note keeps one already-landed Phase 3 ABI header family reviewable without 
 - this dedicated survey keeps the bounded family explicit by fail-closing on one exact status constant pair, one exact budget-flag constant pair, and the current view-plus-summary type pair across `include/zigux/abi.h` and `zigux/bindings/abi.zig`.
 - the survey stays deliberately narrower than broader chrdev-family growth: it does not claim generator coverage, wider header-family closure, export/UAPI growth, helper behavior changes, or a new top-level ABI packet.
 
+## Shared Surface Reminder
+
+- broad Phase 3 shared summaries should keep `Documentation/zigux/phase3-abi-header-family-survey.md` and `scripts/zigux/validate-phase3-abi-header-family-survey.py` explicit whenever they name the validator-support packet or the baseline constant-parity survey.
+- do not let `scripts/zigux/survey-phase3-abi-constant-parity.py` stand in for this narrower landed family proof; the baseline constant survey and this dedicated family survey carry different bounded reviewability claims.
+
 ## Boundary
 
 - stay inside the authoritative C header and curated Zig bindings only
