@@ -12,6 +12,11 @@ test "phase10 virtio input drains queued status completions without touching sup
     try device.markReady();
     device.setMultitouch(true);
 
+    var queue_preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(queue_preflight.ready_for_queue_callbacks);
+    try std.testing.expect(queue_preflight.blocker == null);
+    try std.testing.expectEqual(@as(u16, 16), queue_preflight.queued_event_buffer_count);
+
     try std.testing.expectError(error.EmptyStatusCompletionCount, device.drainStatusQueue(0));
 
     _ = try device.sendStatus(0x11, 0x01, 1);
@@ -26,12 +31,22 @@ test "phase10 virtio input drains queued status completions without touching sup
     try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
     try std.testing.expect(summary.ready);
 
+    queue_preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(queue_preflight.ready_for_queue_callbacks);
+    try std.testing.expect(queue_preflight.blocker == null);
+    try std.testing.expectEqual(@as(u16, 16), queue_preflight.queued_event_buffer_count);
+
     summary = try device.drainStatusQueue(1);
     try std.testing.expectEqual(@as(usize, 1), summary.completed_status_count);
     try std.testing.expectEqual(@as(usize, 1), summary.pending_status_count_before);
     try std.testing.expectEqual(@as(usize, 0), summary.pending_status_count_after);
     try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
     try std.testing.expect(summary.ready);
+
+    queue_preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(queue_preflight.ready_for_queue_callbacks);
+    try std.testing.expect(queue_preflight.blocker == null);
+    try std.testing.expectEqual(@as(u16, 16), queue_preflight.queued_event_buffer_count);
 
     try std.testing.expectError(error.StatusCompletionCountExceedsQueued, device.drainStatusQueue(1));
 }
