@@ -128,6 +128,7 @@ pub const OwnershipReplaySummary = struct {
     saw_vararg_payload: bool,
     saw_rel_loc_payload: bool,
     saw_function_callback_path: bool,
+    checked_focus: []const SampleFocus,
 };
 
 pub const TraceEventsReferenceSample = struct {
@@ -426,6 +427,7 @@ pub const TraceEventsReferenceSample = struct {
             .saw_vararg_payload = exit_summary.saw_vararg_payload,
             .saw_rel_loc_payload = exit_summary.saw_rel_loc_payload,
             .saw_function_callback_path = exit_summary.saw_function_callback_path,
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -688,6 +690,13 @@ test "trace-events sample ownership replay keeps the lifecycle helper public" {
     try std.testing.expect(ownership_replay.saw_vararg_payload);
     try std.testing.expect(ownership_replay.saw_rel_loc_payload);
     try std.testing.expect(ownership_replay.saw_function_callback_path);
+    try std.testing.expectEqual(@as(usize, 6), ownership_replay.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.payload_shape, ownership_replay.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.string_selection, ownership_replay.checked_focus[1]);
+    try std.testing.expectEqual(SampleFocus.formatted_message, ownership_replay.checked_focus[2]);
+    try std.testing.expectEqual(SampleFocus.conditional_event_families, ownership_replay.checked_focus[3]);
+    try std.testing.expectEqual(SampleFocus.function_callback_registration, ownership_replay.checked_focus[4]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, ownership_replay.checked_focus[5]);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runOwnershipReplay());
 }
 
