@@ -78,8 +78,11 @@ RELEASE_MARKERS = [
     "PHASE14_ANCHOR_PACKET_COUNT=4",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
+    "compile shard matrix captured in the current shared packet",
     "scripts/zigux/validate-phase14.py",
-    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "phase14_workqueue_bridge_manifest.json",
     "phase14_skbuff_bridge_manifest.json",
     "phase14_ring_buffer_manifest.json",
@@ -103,12 +106,18 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
 ]
 
-EXPECTED_BUILD_TEST_NAMES = [
-    "phase14-workqueue-bridge-tests",
-    "phase14-skbuff-bridge-tests",
-    "phase14-ring-buffer-survey-tests",
-    "phase14-rcu-tree-survey-tests",
-    "phase14-end-to-end-smoke-tests",
+COMPILE_MATRIX_ROWS = [
+    ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
+    ("phase14-skbuff-bridge-tests", "phase14_skbuff_bridge.zig", "full_bundle_only"),
+    ("phase14-ring-buffer-survey-tests", "phase14_ring_buffer_survey.zig", "full_bundle_only"),
+    ("phase14-rcu-tree-survey-tests", "phase14_rcu_tree_survey.zig", "full_bundle_only"),
+    ("phase14-end-to-end-smoke-tests", "phase14_end_to_end_smoke_survey.zig", "focused_and_full_bundle"),
+]
+
+EXPECTED_BUILD_TEST_NAMES = [label for label, _, _ in COMPILE_MATRIX_ROWS]
+EXPECTED_COMPILE_SHARDS = [
+    {"label": label, "root_source": root_source, "coverage": coverage}
+    for label, root_source, coverage in COMPILE_MATRIX_ROWS
 ]
 
 EXPECTED_ANCHOR_LANES = [
@@ -172,6 +181,9 @@ if not isinstance(shared_smoke_surfaces, list):
 else:
     for required_surface in [
         "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
         "scripts/zigux/README.md",
         "zigux/tests/phase14_end_to_end_smoke_manifest.json",
         "zigux/tests/phase14_end_to_end_smoke_survey.zig",
@@ -212,6 +224,10 @@ expected_smoke_shard_commands = [
 ]
 if smoke_shard_commands != expected_smoke_shard_commands:
     missing.append("manifest:smoke_shard_commands")
+
+compile_shards = manifest.get("compile_shards")
+if compile_shards != EXPECTED_COMPILE_SHARDS:
+    missing.append("manifest:compile_shards")
 
 summary = manifest.get("survey_summary")
 if not isinstance(summary, dict):
