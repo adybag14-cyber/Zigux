@@ -84,6 +84,11 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.",
 )
 
+FORBIDDEN_SURVEY_SNIPPETS = (
+    "phase3_policy_unsafe.zig",
+    "phase3_policy_unsafe_build.zig",
+)
+
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
     "fn assertInteropPolicyModeValues() void {",
     'assertInteropPolicyByteValue("panic_mode.abort", @intFromEnum(abi.PanicMode.abort), 0);',
@@ -244,6 +249,12 @@ def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[
             issues.append(f"missing_{prefix}_snippet:{snippet}")
 
 
+def require_absent_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
+    for snippet in snippets:
+        if snippet in text:
+            issues.append(f"unexpected_{prefix}_snippet:{snippet}")
+
+
 def require_exact_normalized_snippets(
     issues: list[str],
     text: str,
@@ -379,6 +390,7 @@ def validate(root: Path) -> list[str]:
         LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS,
     )
     require_exact_normalized_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
+    require_absent_snippets(issues, survey, "survey_legacy", FORBIDDEN_SURVEY_SNIPPETS)
     require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
     require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
     require_snippets(issues, allocator_policy, "allocator_policy", REQUIRED_ALLOCATOR_POLICY_SNIPPETS)
@@ -533,6 +545,12 @@ def run_self_test() -> int:
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[3]}" in issues
 
         build_valid_workspace(root)
+        legacy_focused_replay = (root / SURVEY_REL).read_text(encoding="utf-8") + "- stale legacy `zigux/tests/phase3_policy_unsafe.zig`\n"
+        write_file(root / SURVEY_REL, legacy_focused_replay)
+        issues = validate(root)
+        assert "unexpected_survey_legacy_snippet:phase3_policy_unsafe.zig" in issues
+
+        build_valid_workspace(root)
         broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
             REQUIRED_LAYOUT_ASSERT_SNIPPETS[5] + "\n",
             "",
@@ -632,7 +650,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_stdout_shape:PHASE3_POLICY_BYTE_GUARDS=pass|extra" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=22")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
