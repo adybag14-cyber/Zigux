@@ -1005,3 +1005,85 @@ test "runtime loader facade keeps prepared trace-events requests pinned when pre
     try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
     try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
 }
+
+test "runtime loader facade keeps releaseWithoutSubstrate waiting state pinned across broader prepared-plan drift" {
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable_plan);
+    _ = try request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        request,
+        .waiting_on_runtime_substrate,
+        stable_plan,
+    ));
+
+    request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.module_name = "runtime_trace_events_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.init_flow.selftest_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+}
