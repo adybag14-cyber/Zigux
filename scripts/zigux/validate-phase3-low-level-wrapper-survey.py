@@ -27,14 +27,14 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
 )
 DOC_MMIO_SCOPE = "range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64"
-DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
-DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
+DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-barrier-acquire-release-handoff-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
+DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-byte-16-bit-32-bit-and-64-bit-mmio-range-direct-barrier-locality-and-barrier-acquire-release-handoff-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -108,7 +108,7 @@ REQUIRED_DOC_MARKERS = (
     "PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders",
     "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
     f"PHASE3_LOW_LEVEL_TEST_SCOPE={DOC_LOW_LEVEL_TEST_SCOPE}",
-    "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
+    "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface-and-barrier-handoff",
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
@@ -222,6 +222,7 @@ TOKEN_CHECKS = {
         'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"',
         'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable"',
         'test "phase3 low-level wrappers keep barrier locality reviewable"',
+        'test "phase3 low-level wrappers keep barrier handoff reviewable"',
         "atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst)",
         "atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst)",
         "atomic.fetchMin(i32, &signed_value, -3, .seq_cst)",
@@ -436,7 +437,7 @@ def build_self_test_doc(root: Path) -> str:
         "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
         f"PHASE3_LOW_LEVEL_TEST_SCOPE={DOC_LOW_LEVEL_TEST_SCOPE}",
-        "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
+        "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface-and-barrier-handoff",
         f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
         f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
@@ -584,6 +585,15 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
+            'test "phase3 low-level wrappers keep barrier handoff reviewable"\n', '', 1
+        ))
+        issues = validate(root)
+        assert (
+            'missing_token:zigux/tests/phase3_low_level_wrappers.zig:test "phase3 low-level wrappers keep barrier handoff reviewable"' in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
             "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)", "", 1
         ))
         issues = validate(root)
@@ -598,6 +608,18 @@ def run_self_test() -> int:
         write(root / DOC_REL, stale_doc)
         issues = validate(root)
         assert any(issue.startswith("stale_blob_marker:PHASE3_ABI_MANIFEST_BLOB_SHA:") for issue in issues), issues
+
+        build_valid_workspace(root)
+        stale_doc = (root / DOC_REL).read_text(encoding="utf-8").replace(
+            "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface-and-barrier-handoff",
+            "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
+            1,
+        )
+        write(root / DOC_REL, stale_doc)
+        issues = validate(root)
+        assert (
+            "missing_doc_marker:PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface-and-barrier-handoff" in issues
+        ), issues
 
         build_valid_workspace(root)
         write(root / NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(
