@@ -34,6 +34,12 @@ REQUIRED_MARKERS = (
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "validate-phase3-abi-bindings-syntax.py",
@@ -175,6 +181,18 @@ def run_self_test() -> int:
     if "validate-phase3-abi-header-family-survey.py" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected header-family validator marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("Documentation/zigux/phase3-boundary-lane-sequencing.md", "", 1))
+    if "Documentation/zigux/phase3-boundary-lane-sequencing.md" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected boundary-lane sequencing marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("Documentation/zigux/phase3-export-uapi-boundary-survey.md", "", 1))
+    if "Documentation/zigux/phase3-export-uapi-boundary-survey.md" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected export-uapi boundary marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("make -C zigux phase3-selftest", "", 1))
