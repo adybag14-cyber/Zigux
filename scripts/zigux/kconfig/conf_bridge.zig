@@ -224,7 +224,8 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
             if (mode != .syncconfig) return error.UnexpectedArgument;
             if (saw_nosilentupdate) return error.DuplicateNoSilentUpdate;
             saw_nosilentupdate = true;
-            options.nosilentupdate = arg["nosilentupdate=".len..];
+            const value = arg["nosilentupdate=".len..];
+            options.nosilentupdate = if (value.len == 0) null else value;
             continue;
         }
         return error.UnexpectedArgument;
@@ -265,9 +266,11 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
         if (request.nosilentupdate) |nosilentupdate| {
-            try writer.writeAll(",\"KCONFIG_NOSILENTUPDATE\":\"");
-            try writeJsonEscaped(writer, nosilentupdate);
-            try writer.writeAll("\"");
+            if (nosilentupdate.len != 0) {
+                try writer.writeAll(",\"KCONFIG_NOSILENTUPDATE\":\"");
+                try writeJsonEscaped(writer, nosilentupdate);
+                try writer.writeAll("\"");
+            }
         }
     }
     if (request.mode == .randconfig) {
@@ -462,6 +465,21 @@ test "conf bridge emits syncconfig nosilentupdate when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\":\"1\"") != null);
 }
 
+test "conf bridge omits empty syncconfig nosilentupdate" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .syncconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "riscv64",
+        .nosilentupdate = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\"") == null);
+}
+
 test "conf bridge emits silent flag before mode flag" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -629,6 +647,12 @@ test "bridge options parser accepts syncconfig nosilentupdate" {
     try std.testing.expect(options.silent == false);
     try std.testing.expect(options.nosilentupdate != null);
     try std.testing.expectEqualStrings("1", options.nosilentupdate.?);
+}
+
+test "bridge options parser keeps empty syncconfig nosilentupdate unset" {
+    const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate="});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.nosilentupdate == null);
 }
 
 test "bridge options parser accepts generic silent flag" {
