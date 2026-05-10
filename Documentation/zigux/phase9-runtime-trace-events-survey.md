@@ -83,10 +83,16 @@ This keeps the survey useful after the first starter slice lands without pretend
 2. run the focused shared runtime-loader convenience target
 - `make -C zigux phase9-runtime-loader-shared-tests`
 
-3. run the dedicated Phase 9 survey and starter gates
+3. run the focused runtime trace-events lane step
+- `zig build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig`
+
+4. run the focused runtime trace-events convenience target
+- `make -C zigux phase9-runtime-trace-events-test`
+
+5. run the dedicated Phase 9 survey and starter gates
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the convenience target
+6. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
