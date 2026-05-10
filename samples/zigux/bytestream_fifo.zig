@@ -882,6 +882,12 @@ test "bytestream fifo sample keeps preview truncation explicit" {
 
 test "bytestream fifo sample keeps wrapped preview truncation non-destructive" {
     var sample = BytestreamFifoSample{};
+    const wrapped_expected_after_preview = [_]u8{
+        'o', 0, 1, 2, 3, 4, 5, 6,
+        7, 8, 9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22,
+        23, 24, 25, 26, 200, 201, 202, 203,
+    };
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runWrappedPreviewReplay());
 
     try sample.init();
@@ -919,6 +925,15 @@ test "bytestream fifo sample keeps wrapped preview truncation non-destructive" {
     try std.testing.expectEqual(@as(usize, 4), wrapped_spans.second_span_len);
     try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_spans.total_visible);
     try std.testing.expect(wrapped_spans.wrapped);
+
+    var drained_after_preview: [fifo_capacity]u8 = undefined;
+    const drained_after_preview_count = sample.drain(drained_after_preview[0..]);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), drained_after_preview_count);
+    try std.testing.expectEqualSlices(u8, wrapped_expected_after_preview[0..], drained_after_preview[0..]);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
+    try std.testing.expect(!sample.usesWrappedStorageWindow());
 }
 
 test "bytestream fifo sample exposes empty full and wrapped state boundaries explicitly" {
