@@ -13,7 +13,7 @@ import tempfile
 SELFTEST_SCRIPTS = (
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
-    Path("scripts/zigux/check-phase3-wrapper-partial-guard.py"),
+    Path("scripts/zigux/check-phase3-selftest-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
 )
