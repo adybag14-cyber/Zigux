@@ -21,8 +21,6 @@ The active shared Phase 11 packet is the docs-root, checker, workflow, and repla
 * `Documentation/zigux/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `Documentation/zigux/phase11-shared-replay-contract.md`
-* `Documentation/zigux/phase11-closure-note.md`
-* `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/README.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `zigux/tests/README.md`
