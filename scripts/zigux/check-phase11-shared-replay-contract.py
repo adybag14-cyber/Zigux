@@ -139,6 +139,7 @@ REQUIRED_TESTS_README_MARKERS = [
     "`Documentation/zigux/phase11-closure-note.md`",
     "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`make -C zigux phase11-hvc-survey`",
@@ -207,7 +208,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 85
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 86
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -255,6 +256,7 @@ SELF_TEST_CASES = [
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[13], REQUIRED_DOCS_README_MARKERS[13]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[14], REQUIRED_DOCS_README_MARKERS[14]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[1], REQUIRED_SCRIPT_README_MARKERS[1]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[4]),
 ]
 
 FORBIDDEN_SELF_TEST_CASES = [
