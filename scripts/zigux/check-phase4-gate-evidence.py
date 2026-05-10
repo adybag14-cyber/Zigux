@@ -167,6 +167,10 @@ SHARED_PHASE4_REVIEW_SURFACE_MARKERS = {
         "the dedicated local-only perf-baseline survey packet",
         "shared CI coverage",
     ],
+    "zigux/tests/README.md": [
+        "make -C zigux phase4-kprobe-example-survey",
+        "make -C zigux phase4-test-fsmount-survey",
+    ],
 }
 
 
@@ -431,7 +435,10 @@ def build_fixture_tree(root: Path) -> None:
             "approved local-only benchmark commands and acceptable limits\n"
             "without implying a shipped Phase 4 slowdown budget\n"
         ),
-        "zigux/tests/README.md": "tests readme fixture\n",
+        "zigux/tests/README.md": (
+            "make -C zigux phase4-kprobe-example-survey\n"
+            "make -C zigux phase4-test-fsmount-survey\n"
+        ),
         "zigux/tests/atomic64_diff.zig": "atomic64 diff fixture\n",
         "zigux/tests/runtime_atomic64_diff.zig": "runtime atomic64 diff fixture\n",
         "zigux/tests/bitmap_diff.zig": "bitmap diff fixture\n",
