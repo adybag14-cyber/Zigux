@@ -1,4 +1,4 @@
-# Phase 10, 11, and 13 Tests-Root Review Companion
+# Phase 10 Tests-Root Review Companion
 
 Use this note when a change touches the active Phase 10 virtio lab packet and
 the review needs a compact tests-root carryover prompt.
