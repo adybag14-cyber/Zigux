@@ -14,24 +14,24 @@ This note keeps the current `include/zigux/abi.h` boundary honest without wideni
 ## Current Repo Evidence
 
 - `include/zigux/abi.h` is no longer only the small Phase 3 root described by the original ABI-substrate skeleton commit train.
-- The live header still owns the baseline boundary root (`zigux_boundary_header`, `zigux_export_status`, bitmap or cpumask, list, hlist, err_ptr, xarray, ida, and related starter packets), but it also now carries a very large `ZIGUX_CHRDEV_*` family with deeply nested notify, ack, budget, window, and delivery-budget-guard constants and structs.
+- the live header still owns the baseline boundary root (`zigux_boundary_header`, `zigux_export_status`, bitmap or cpumask, list, hlist, err_ptr, xarray, ida, and related starter packets), but it also now carries a very large `ZIGUX_CHRDEV_*` family with deeply nested notify, ack, budget, window, and delivery-budget-guard constants and structs.
 - `zigux/bindings/abi.zig` mirrors that same large family, so this is real shared boundary surface, not a C-only stub.
-- The current shipped guards around this boundary are still narrower than the live family growth:
+- the current shipped guards around this boundary are still intentionally bounded:
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py` fail-closes on fused top-level declarations and verifies the shared ABI packet contract.
-  - `scripts/zigux/survey-phase3-abi-constant-parity.py` now checks the baseline facility, status, panic, allocator, and unsafe constants, two landed chrdev ack-window policy budget binding markers, and one exact ack-window policy budget window view-plus-summary type pair across both `include/zigux/abi.h` and `zigux/bindings/abi.zig`, but it still does not carry a broader dedicated family-growth survey for the rest of the chrdev notify or ack ladder now living in `include/zigux/abi.h`.
-- That means current `master` now documents and syntax-guards the header and carries one bounded constant-and-type parity foothold inside the chrdev ladder, but it still does not yet carry a broader dedicated family-growth survey for the large chrdev notify or ack ladder now living in `include/zigux/abi.h`.
+  - `scripts/zigux/survey-phase3-abi-constant-parity.py` checks the baseline facility, status, panic, allocator, and unsafe constants, two landed chrdev delivery-window family constants, and one exact delivery-window view-plus-summary type pair across both `include/zigux/abi.h` and `zigux/bindings/abi.zig`.
+  - `scripts/zigux/validate-phase3-abi-header-family-survey.py` plus `Documentation/zigux/phase3-abi-header-family-survey.md` now keep one dedicated `chrdev_notify_ack_window_policy_budget_window_delivery_window` family foothold explicit by fail-closing on that family's exact skipped-status constant pair, exact budget-applied constant pair, and landed view-plus-summary type pair across the authoritative C header and curated Zig bindings.
+- that means current `master` now documents and syntax-guards the header, carries the bounded baseline constant-parity survey, and also carries one dedicated header-family survey foothold inside the live chrdev ladder without claiming broader family closure.
 
 ## Next Safe Step
 
-Before adding another top-level `ZIGUX_CHRDEV_*` family or another sibling family to `include/zigux/abi.h`, add one dedicated header-family survey that stays bounded to this same boundary:
+Before adding another top-level `ZIGUX_CHRDEV_*` family or another sibling family to `include/zigux/abi.h`, stay inside the same bounded review packet:
 
-- inspect only `include/zigux/abi.h` and `zigux/bindings/abi.zig`
-- anchor one already-landed family prefix, starting with the current chrdev notify or ack delivery-budget guard ladder
-- fail closed if the curated C header and curated Zig bindings drift on that family’s root constants or view or summary type names, then extend that same bounded survey one family foothold at a time instead of widening into another packet
-- record the survey in the shared Phase 3 ABI packet instead of widening into helper, export/UAPI, or later driver lanes
+- inspect only `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the dedicated `phase3-abi-header-family-survey` note or checker
+- extend the already-landed `chrdev_notify_ack_window_policy_budget_window_delivery_window` survey one exact constant or one exact view or summary foothold at a time, or move to the directly adjacent delivery-budget-guard family only when the same bounded survey pattern is preserved
+- keep the proof in the shared Phase 3 ABI packet instead of widening into helper, export/UAPI, or later driver lanes
 
 ## Non-Goals
 
 This note does not claim that the chrdev family should be expanded further now.
 It also does not claim a broad Phase 3 ABI rewrite, generator switch, or packet split.
-The immediate goal is only to make the next bounded `abi.h` follow-up explicit before more top-level surface lands.
+The immediate goal is only to keep the next bounded `abi.h` follow-up explicit before more top-level surface lands.
