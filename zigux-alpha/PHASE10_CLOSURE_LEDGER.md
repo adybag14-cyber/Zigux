@@ -72,8 +72,10 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_12=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
-- `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper`
-- `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper`
+- `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-queue-shape-bookkeeping-helper,phase10-config-generation-bookkeeping-helper,phase10-interrupt-ack-bookkeeping-helper,phase10-lifecycle-guard-bookkeeping-helper,phase10-driver-validation-narrowing-helper,phase10-reset-replay-bookkeeping-helper`
+- `PHASE10_LEDGER_LANDED_RING_HELPERS=phase10-virtqueue-shape-helper,phase10-used-buffer-polling-helper,phase10-callback-enable-helper,phase10-callback-delay-helper,phase10-notify-prepare-helper,phase10-broken-queue-poll-guard,phase10-queue-reset-helper,phase10-queue-reset-readiness-helper,phase10-ring-verify-replay,phase10-virtio-ring-slice-note`
+- `PHASE10_LEDGER_LANDED_INPUT_HELPERS=phase10-virtio-input-capability-setup-helper,phase10-virtio-input-multitouch-slot-helper,phase10-virtio-input-teardown-observation-helper,phase10-virtio-input-registration-preflight-helper,phase10-virtio-input-queue-callback-preflight-helper,phase10-virtio-input-status-drain-helper`
+- `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-size-helper,phase10-mmio-feature-word-selector-helper,phase10-mmio-feature-negotiation-summary-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-plan-helper,phase10-mmio-transport-identity-helper,phase10-mmio-probe-preflight-helper,phase10-mmio-config-write-disposition-helper,phase10-mmio-selected-queue-readiness-helper`
 
 This ledger stays intentionally narrow.
 
@@ -85,7 +87,7 @@ The ledger now also mirrors the exact supporting evidence lists for each roadmap
 
 The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes instead of leaving that tranche evidence implicit.
 
-The shared closure manifest now also keeps the landed core helper packet explicit: the core survey surface has advanced beyond the earlier config-summary pair and now includes the non-nestable `phase10-config-driver-toggle-guard-helper` beside `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, so this ledger mirrors that three-rung core packet instead of leaving the newest core-local parity step visible only in the manifest-backed survey files.
+The shared closure manifest now also keeps the landed helper ladders explicit across all four bounded Phase 10 lanes, so this ledger mirrors those manifest-backed packets directly instead of leaving the newest shared review state visible only in JSON: the core packet now runs through `phase10-reset-replay-bookkeeping-helper`, the ring packet now runs through `phase10-queue-reset-readiness-helper` plus its dedicated verify and slice-note companions, the input packet now keeps the teardown-observation, registration-preflight, queue-callback-preflight, and status-drain helpers explicit, and the MMIO packet now runs through `phase10-mmio-selected-queue-readiness-helper` after the already-landed config-write-disposition and probe-preflight rungs.
 
 The same closure packet also stays reviewable through the dedicated core lab gate plus the dedicated core, ring, input, and MMIO survey gates, and now also the focused ring drained-reset reuse, multitouch-preflight, and queue-isolation replays, so this ledger names the parked queue-handling and ready-state harness surface explicitly instead of letting those focused replays live only inside the shared build wiring.
 
@@ -95,7 +97,7 @@ The shared closure note and manifest also keep the roadmap-boundary packet expli
 
 The same freeze-boundary packet keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, so this ledger now records those parked anchors directly instead of leaving them implicit in the companion closure note.
 
-The shared closure manifest, the dedicated MMIO survey gate, the dedicated harness-coverage checker, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker. The exact replay packet for the current closure bundle is:
+The shared closure manifest-backed helper ladders now stay explicit here for all four bounded Phase 10 lanes, so reviewers can recover the current core, ring, input, and MMIO starter packet directly from this tranche record instead of stopping at the older core-only and interrupt-ack-only shorthand. The exact replay packet for the current closure bundle is:
 
 1. `python3 scripts/zigux/check-phase10-closure-inventory.py`
 2. `python3 scripts/zigux/check-phase10-core-packet.py`
