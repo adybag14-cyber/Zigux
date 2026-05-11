@@ -66,4 +66,4 @@ This note does not claim:
 
 ## Next Bounded Step
 
-If this lane reopens, the next honest follow-through is the smallest same-packet wording sync that keeps `Documentation/zigux/phase12-libbpf-segment-survey.md` and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the live verify shard and the already-landed bridge-local helper foundations, without widening into helper behavior or blocked object-model work.
+If this lane reopens, the next honest follow-through is the one-file tests-root wording sync that keeps `zigux/tests/README.md` explicit about `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, then reread `Documentation/zigux/phase12-libbpf-segment-survey.md` and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` against that same live verify shard without widening into helper behavior or blocked object-model work.
