@@ -1,0 +1,65 @@
+{
+  "lane_key": "P13-L08",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-11",
+  "anchor": "lib/devres.c",
+  "roadmap_destinations": [
+    "lib/devres.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "preexisting_phase13_build_present": false,
+    "preexisting_phase13_make_target_present": true,
+    "preexisting_devres_zig_present": true,
+    "preexisting_phase13_devres_test_present": false,
+    "preexisting_phase13_devres_slice_present": true,
+    "preexisting_phase13_devres_reviewability_present": false,
+    "preexisting_phase13_devres_survey_present": true,
+    "preexisting_phase13_devres_dma_coherent_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-build-gate",
+      "status": "blocked_on_missing_shared_build_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "Current master no longer ships the older shared Phase 13 build packet, so this narrower helper-local replay stays standalone instead of pretending the build route is still present."
+    },
+    {
+      "id": "phase13-devres-test-gate",
+      "status": "blocked_on_missing_direct_devres_test_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres.zig",
+      "why_now": "The older direct devres packet is not on current master, so this lane currently keeps only the helper-local DMA or scatterlist boundary replay explicit."
+    },
+    {
+      "id": "phase13-devres-reviewability-gate",
+      "status": "blocked_on_missing_reviewability_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
+      "why_now": "The dedicated reviewability gate referenced by earlier lane notes is absent on current master, so this slice records that drift instead of claiming it still ships."
+    },
+    {
+      "id": "phase13-devres-dma-coherent-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_dma_coherent.zig",
+      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA or scatterlist boundary machine-checkable even while the wider Phase 13 packet remains partially missing on current master."
+    },
+    {
+      "id": "phase13-devres-live-dma-backed-helpers",
+      "status": "blocked_on_dma_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live DMA-backed helpers remain blocked because the current helper packet does not claim dmam_alloc_* coverage, does not model dma_map_sgtable() or unmap flows, and must stay helper-first instead of pretending to own real DMA mapping state."
+    },
+    {
+      "id": "phase13-devres-live-scatterlist-ownership",
+      "status": "blocked_on_scatterlist_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live scatterlist ownership remains blocked because the current helper packet does not model struct scatterlist traversal, sg_table lifecycle, or broader sg_* ownership transfer."
+    }
+  ]
+}
