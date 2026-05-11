@@ -97,7 +97,6 @@ FILE_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-        "make -C zigux phase2-cross",
         FALLBACK_REMINDER,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-fixdep-gate.py",
@@ -130,7 +129,6 @@ FILE_MARKERS = {
         "make -C zigux phase2",
         FALLBACK_REMINDER,
         "zig test scripts/zigux/fixdep.zig",
-        "the shipped fixdep workflow gate plus direct `fixdep.zig` parity surface",
     ],
     "zigux/Makefile": [
         "phase2-toolchain:",
@@ -149,7 +147,6 @@ FILE_MARKERS = {
 EXACT_COUNT_CHECKS = {
     "Documentation/zigux/review-checklist.md": {
         FALLBACK_REMINDER: 1,
-        "make -C zigux phase2-cross": 1,
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     },
     "scripts/zigux/README.md": {
@@ -169,6 +166,15 @@ EXACT_COUNT_CHECKS = {
         "phase2-tools:": 1,
         "phase2-kconfig:": 1,
         "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross": 1,
+    },
+}
+
+REQUIRED_VARIANT_PRESENCE_CHECKS = {
+    "zigux/tests/README.md": {
+        "phase2_fixdep_surface": (
+            "the shipped fixdep workflow gate plus direct `fixdep.zig` parity surface",
+            "the shipped fixdep workflow gate plus direct fixdep parity surface",
+        ),
     },
 }
 
@@ -216,11 +222,22 @@ def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str
     return issues
 
 
+def collect_required_variant_presence_issues(
+    text: str, checks: dict[str, tuple[str, ...]], *, prefix: str
+) -> list[str]:
+    issues: list[str] = []
+    for label, variants in checks.items():
+        counts = [text.count(variant) for variant in variants]
+        if not any(counts):
+            issues.append(f"{prefix}:variant_missing:{label}:counts={counts}:expected_any=1")
+    return issues
+
+
 def collect_line_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
     issues: list[str] = []
     lines = text.splitlines()
     for marker, expected in checks.items():
-        count = sum(1 for line in lines if line == marker)
+        count = sum(1 for line in lines if line == marker or line.strip() == marker)
         if count != expected:
             issues.append(f"{prefix}:line_exact_count:{marker}:count={count}:expected={expected}")
     return issues
@@ -239,6 +256,14 @@ def validate_root(root: Path) -> list[str]:
         issues.extend(collect_missing_markers(text, markers, prefix=rel_path))
         if rel_path in EXACT_COUNT_CHECKS:
             issues.extend(collect_exact_count_issues(text, EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
+        if rel_path in REQUIRED_VARIANT_PRESENCE_CHECKS:
+            issues.extend(
+                collect_required_variant_presence_issues(
+                    text,
+                    REQUIRED_VARIANT_PRESENCE_CHECKS[rel_path],
+                    prefix=rel_path,
+                )
+            )
         if rel_path in LINE_EXACT_COUNT_CHECKS:
             issues.extend(collect_line_exact_count_issues(text, LINE_EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
     return issues
@@ -288,6 +313,8 @@ def render_file_text(rel_path: str) -> str:
         current = count_occurrences("\n".join(markers), marker)
         if current < expected:
             markers.extend([marker] * (expected - current))
+    for variants in REQUIRED_VARIANT_PRESENCE_CHECKS.get(rel_path, {}).values():
+        markers.append(variants[0])
     if not markers:
         return "placeholder\n"
     return "\n".join(markers) + "\n"
@@ -314,6 +341,19 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
+        assert validate_root(root) == []
+        case_count += 1
+
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            "\n".join(
+                f"        {line}" if line.startswith("run: ") else line
+                for line in workflow_text.splitlines()
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         assert validate_root(root) == []
         case_count += 1
 
@@ -354,6 +394,27 @@ def run_self_test() -> int:
                 assert f"{rel_path}:exact_count:{marker}:count={expected + 1}:expected={expected}" in issues
                 case_count += 1
 
+        for rel_path, checks in REQUIRED_VARIANT_PRESENCE_CHECKS.items():
+            for label, variants in checks.items():
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                updated = original
+                for variant in variants:
+                    updated = updated.replace(variant, "", 1)
+                path.write_text(updated, encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:variant_missing:{label}:counts={[0 for _ in variants]}:expected_any=1" in issues
+                case_count += 1
+
+                if len(variants) > 1:
+                    build_self_test_root(root)
+                    path = root / rel_path
+                    original = path.read_text(encoding="utf-8")
+                    path.write_text(original.replace(variants[0], variants[1], 1), encoding="utf-8")
+                    assert validate_root(root) == []
+                    case_count += 1
+
         for rel_path, checks in LINE_EXACT_COUNT_CHECKS.items():
             for marker, expected in checks.items():
                 build_self_test_root(root)
@@ -380,10 +441,17 @@ def run_self_test() -> int:
             case_count += 1
 
     expected_case_count = (
-        1
+        2
         + len(FILE_MARKERS)
         + 1
         + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values())
+        + sum(len(checks) for checks in REQUIRED_VARIANT_PRESENCE_CHECKS.values())
+        + sum(
+            1
+            for checks in REQUIRED_VARIANT_PRESENCE_CHECKS.values()
+            for variants in checks.values()
+            if len(variants) > 1
+        )
         + 2 * sum(len(checks) for checks in LINE_EXACT_COUNT_CHECKS.values())
         + len(MISSING_FILE_CASES)
     )
