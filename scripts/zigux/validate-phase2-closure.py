@@ -31,13 +31,11 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
-    "shared genksyms bridge selftest-alignment self-test: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`",
-    "shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
-    "direct genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
-    "direct genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
+    "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
+    "committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`",
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "the dedicated Phase 2 `genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
+    "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",
     "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `11-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
 ]
 
