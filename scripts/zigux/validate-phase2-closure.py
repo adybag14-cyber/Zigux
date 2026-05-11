@@ -600,7 +600,7 @@ def main() -> int:
             )
         )
 
-    if args.self-test:
+    if args.self_test:
         issues.extend(run_self_test_checks())
         if issues:
             print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=fail")
