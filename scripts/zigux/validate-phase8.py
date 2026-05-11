@@ -8,8 +8,11 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
+COMMAND_GAP_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
+    COMMAND_GAP_SURVEY_PATH,
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
@@ -25,7 +28,19 @@ REQUIRED_MARKERS = {
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
     ],
+    COMMAND_GAP_SURVEY_PATH: [
+        "PHASE8_USERSPACE_KERNEL_BRIDGE_STATUS=parked_gap_packet_landed",
+        "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
+        "tools/lib/subcmd/exec-cmd.c",
+        "tools/lib/subcmd/help.c",
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "python3 scripts/zigux/validate-phase8.py",
+        "make -C zigux phase8-validate",
+        "tools/lib/subcmd/exec-cmd.zig",
+        "tools/lib/subcmd/help.zig",
+    ],
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "make -C zigux phase8-libbpf-segments-test",
@@ -116,6 +131,7 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_segment_gate", "scripts/zigux/check-phase8-libbpf-segment-gate.py"),
         ("missing_shard_routes", "scripts/zigux/check-phase8-libbpf-shard-routes.py"),
+        ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
         ("missing_lane_note", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
         ("missing_makefile", "zigux/Makefile"),
     ]
@@ -128,11 +144,18 @@ def run_self_test() -> None:
             "scripts/zigux/README.md: scripts/zigux/validate-phase8.py",
         ),
         (
-            "lane_note_shard_routes_marker",
+            "lane_note_command_gap_marker",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "scripts/zigux/check-phase8-libbpf-shard-routes.py",
-            "scripts/zigux/check-phase8-libbpf-routes.py",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: scripts/zigux/check-phase8-libbpf-shard-routes.py",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+            "Documentation/zigux/phase8-command-gap-survey.md",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        ),
+        (
+            "command_gap_scope_marker",
+            COMMAND_GAP_SURVEY_PATH,
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-gap",
+            f"{COMMAND_GAP_SURVEY_PATH}: PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
         ),
         (
             "review_checklist_validator_marker",
