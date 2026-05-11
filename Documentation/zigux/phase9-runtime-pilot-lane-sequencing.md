@@ -67,7 +67,7 @@ That means the shared Phase 9 reviewability packet should keep the loader-facing
 Current `master` now exposes one concrete shared-governance result for this sequencing lane.
 
 - direct current-`master` file readback confirms the shared loader-facing family instead of the older missing-family blocker wording
-- direct current-`master` readback now also confirms `Documentation/zigux/README.md` already carries this sequencing note inside its broad Phase 9 shared reminder packet, so docs-root follow-through is no longer the next truthful same-lane step
+- direct current-`master` readback now shows `Documentation/zigux/README.md` keeps the shared loader-facing family explicit but still omits the dedicated lane-sequencing owner map from its broad Phase 9 shared reminder packet, so docs-root follow-through is now the next truthful same-lane step
 - the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 - `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
@@ -75,7 +75,7 @@ Current `master` now exposes one concrete shared-governance result for this sequ
 - this sequencing note should therefore stay the owner of the exact shared-loader inventory, convenience-target names, and blocker posture for the surrounding shared reminder packet
 - future same-lane follow-through should narrow only a shared reminder surface that still drifts away from that confirmed packet, one file at a time
 
-Because this note is the shared owner map rather than a pilot-family packet, the next safe Phase 9 follow-through is now the next one-file shared reminder truthfulness repair that current `master` still needs after this owner-map refresh, starting with whichever remaining checklist, scripts-root, or tests-root surface actually drifts from the confirmed packet.
+Because this note is the shared owner map rather than a pilot-family packet, the next safe Phase 9 follow-through is now the next one-file shared reminder truthfulness repair that current `master` still needs after this owner-map refresh, starting with `Documentation/zigux/README.md` while it still skips the dedicated lane-sequencing owner map inside the broad shared Phase 9 summary.
 
 ## Governance rule for this lane
 
