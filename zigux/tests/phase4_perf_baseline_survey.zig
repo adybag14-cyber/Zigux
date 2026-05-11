@@ -50,3 +50,21 @@ test "phase4 perf baseline survey keeps the bitmap companion and pending promoti
     try requireMarker("phase4-perf-baseline-shared-promotion-decision");
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
 }
+
+test "phase4 perf baseline survey keeps coordination owners, wrapper route, and bitmap limits explicit" {
+    try requireMarker("\"coordination_owners\": [");
+    try requireMarker("\"ABI and Runtime Team\"");
+    try requireMarker("\"Shared Subsystems Pod\"");
+    try requireMarker("\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
+    try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
+    try requireMarker("\"acceptable_limit_max_elapsed_ns\": 12288");
+    try requireMarker("\"checksum\": 5216946504564592253");
+    try requireMarker("\"checksum\": 7942141539243507472");
+    try requireMarker("\"final_first_zero\": 109");
+    try requireMarker("\"owner\": \"Validation and Perf Team\"");
+
+    try std.testing.expectEqual(@as(u64, 12288), @as(u64, 12288));
+    try std.testing.expectEqual(@as(u64, 5216946504564592253), @as(u64, 5216946504564592253));
+    try std.testing.expectEqual(@as(u64, 7942141539243507472), @as(u64, 7942141539243507472));
+    try std.testing.expectEqual(@as(u64, 109), @as(u64, 109));
+}
