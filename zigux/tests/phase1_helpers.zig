@@ -52,6 +52,9 @@ const Fixture = struct {
         terminator_only_scnprintf_len: usize,
         terminator_only_nul: u8,
         zero_length_scnprintf_len: usize,
+        alloc_words: usize,
+        zalloc_words: usize,
+        zalloc_values: []const u64,
         and_result: bool,
         and_values: []const u64,
         andnot_result: bool,
@@ -379,6 +382,18 @@ test "phase 1 helper ports match committed parity fixture" {
     var zero_length = [_]u8{};
     const zero_length_len = bitmap.scnprintf(&single_bit_bitmap, 32, &zero_length);
     try std.testing.expectEqual(fixture.bitmap.zero_length_scnprintf_len, zero_length_len);
+
+    const bitmap_allocator = std.testing.allocator;
+    var bitmap_allocated = try bitmap.alloc(bitmap_allocator, bitmap.bits_per_long + 5);
+    defer bitmap.free(bitmap_allocator, &bitmap_allocated);
+    try std.testing.expect(bitmap_allocated != null);
+    try std.testing.expectEqual(fixture.bitmap.alloc_words, bitmap_allocated.?.len);
+
+    var bitmap_zero_allocated = try bitmap.zalloc(bitmap_allocator, bitmap.bits_per_long + 5);
+    defer bitmap.free(bitmap_allocator, &bitmap_zero_allocated);
+    try std.testing.expect(bitmap_zero_allocated != null);
+    try std.testing.expectEqual(fixture.bitmap.zalloc_words, bitmap_zero_allocated.?.len);
+    try expectWordSlice(bitmap_zero_allocated.?, fixture.bitmap.zalloc_values);
 
     try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
     try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("On"));
