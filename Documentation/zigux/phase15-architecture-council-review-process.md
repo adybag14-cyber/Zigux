@@ -97,7 +97,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
-- next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+- next future target: before treating this lane as fully parked again, sync the shared Phase 15 checklist bullet so `Documentation/zigux/review-checklist.md` makes `make -C zigux phase15-test` explicit beside `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15`, and the shipped scripts-root checker pair; after that one truthfulness repair lands, return to waiting for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Recorded Gaps
 
@@ -113,8 +113,9 @@ The current lane state is:
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-review-packet-field-sync`
+- open `phase15-review-checklist-phase15-test-route-sync`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, and now records the one remaining shared-summary follow-up before the lane can honestly return to pure maintenance mode, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -135,4 +136,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The review-packet field sync for the required approver set, rollback threshold, and indefinite-C policy linkage is now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Before this lane goes back to pure maintenance mode, sync the shared Phase 15 checklist bullet so `Documentation/zigux/review-checklist.md` makes `make -C zigux phase15-test` explicit beside `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15`, and the shipped scripts-root checker pair. After that one shared-summary truthfulness repair lands, wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
