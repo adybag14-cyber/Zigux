@@ -1,0 +1,39 @@
+{
+  "lane_key": "P13-L07",
+  "phase": "Phase 13",
+  "anchor": "lib/devres.c",
+  "helper_target": "lib/devres.zig",
+  "surveyed_commit": "e7a3a1b2a55972961337186320d2ee31e64496db",
+  "surveyed_commit_title": "Align Phase 13 notifier priority checker with repo reality",
+  "status_bucket": "survey_only",
+  "validation_gate": "zig test zigux/tests/phase13_devres_resource_lifetime_survey.zig",
+  "gaps": [
+    {
+      "id": "phase13-devres-zig-anchor-empty",
+      "status": "blocked_on_repo_gap",
+      "evidence": "The roadmap names lib/devres.zig, but the current repo view still exposes the C anchor while the Zig peer remains an empty placeholder.",
+      "next_step": "Keep the survey packet explicit until a bounded helper slice is ready to replace the placeholder with reviewed code."
+    },
+    {
+      "id": "phase13-devres-managed-ioremap-slice",
+      "status": "ready_next",
+      "evidence": "The existing C anchor groups managed ioremap, managed resource wrappers, and managed release callbacks into a leaf-sized lifetime helper surface.",
+      "next_step": "Port one managed ioremap/resource wrapper slice first, with focused parity notes for allocation, release, and error-return behavior."
+    },
+    {
+      "id": "phase13-shared-helper-churn-risk",
+      "status": "guardrail",
+      "evidence": "Current repo activity already shows helper-tree growth and non-devres Phase 13 maintenance, so inventing a broad helper subtree here would add churn rather than product-ready parity.",
+      "next_step": "Stay on a single leaf slice under lib/devres.zig and avoid spreading Phase 13 work into unrelated shared-helper wrappers."
+    }
+  ],
+  "survey_summary": {
+    "c_anchor_present": true,
+    "c_anchor_exports_managed_ioremap": true,
+    "c_anchor_exports_managed_resource_wrapper": true,
+    "zig_helper_missing_or_empty": true,
+    "latest_phase13_commit_targets_devres": false,
+    "note_records_roadmap_anchor_set": true,
+    "note_records_churn_warning": true
+  }
+}
