@@ -7,7 +7,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_LANE=libbpf-heavy-consumer-shared-release-packet`
-- scope: shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey and reviewability packet already shipped on current `master`
+- scope: shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey packet plus the parked verify-shard boundary already documented on current `master`
 - release-order companion: `Documentation/zigux/phase12-release-sequencing.md`
 - closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
@@ -17,7 +17,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 - verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 
 ## Lane Scope
-- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json`.
+- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md` and `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, while treating the parked `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` paths as absent-file boundaries until fresh repo reality on current `master` proves otherwise.
 - Keep the shared replay order fixed unless a new shipped route lands first:
   1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
   2. `make -C zigux phase12-smoke`
@@ -31,7 +31,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 ## Anti-Overlap Rules
 - Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening helper-local behavior.
 - Keep the shared fallback split explicit here too: only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.
-- Keep the deterministic tracked-helper snapshot and reviewability wording explicit so the release-facing libbpf packet does not collapse back to manifest-only prose.
+- Keep the parked-file boundary and reviewability wording explicit so the release-facing libbpf packet does not collapse back into manifest-only prose or wrongly treat absent reviewability files as shipped current-`master` surfaces.
 - Leave driver-local replay and survey evolution to the separate complex-driver companion and the concrete `nvme_pci`, `virtio_net`, or `virtio_scsi` packet that changes.
 - The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.
 
