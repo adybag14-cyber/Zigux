@@ -422,7 +422,7 @@ jobs:
       - name: Run Phase 15 governance tests
         run: make -C zigux phase15-test
 
-  phase2-cross-scope:
+  phase2_cross_scope:
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.scope.outputs.should_run }}
@@ -463,8 +463,8 @@ jobs:
           fi
 
   phase2-cross:
-    if: ${{ needs['phase2-cross-scope'].outputs.should_run == 'true' }}
-    needs: [bootstrap, phase2-cross-scope]
+    if: ${{ needs.phase2_cross_scope.outputs.should_run == 'true' }}
+    needs: [bootstrap, phase2_cross_scope]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
