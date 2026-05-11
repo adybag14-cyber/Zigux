@@ -2,6 +2,12 @@
 
 This note keeps the shared Phase 7 make-wrapper review route honest.
 
+## Status
+
+- `PHASE7_STATUS=parked`
+- `PHASE7_SLICE=make-wrapper-shared-control-surface`
+- `PHASE7_LANE_KEY=P7-Y05`
+
 The current shared Phase 7 helper packet depends on `make -C zigux phase7-validate`
 replaying both the built-in self-tests and the direct repo-root checks for the
 same checker family:
@@ -42,3 +48,7 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `zigux/tests/phase7_build.zig` aligned around that same shared replay packet so
 the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
 not drift back toward per-slice ad hoc checks.
+
+`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface.
+
+this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`; it only keeps the already-landed shared control surface truthful.
