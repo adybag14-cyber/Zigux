@@ -14,6 +14,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - `zigux/bindings/abi.zig`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
+- `zigux/uapi/dev_t.zig`
 - `zigux/tests/phase3_abi_dump.zig`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
@@ -32,16 +33,17 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   family one bounded sibling pair at a time instead of widening into another
   packet
 - if `include/zigux/abi.h` grows, update `zigux/bindings/abi.zig`,
-  `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and the shared ABI
-  reminder packet together; only add a new `zigux/uapi/*` companion when that
-  companion lands with its own bounded export or UAPI packet instead of letting
-  the shared reminder surfaces get ahead of the tree
+  `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
+  and the shared ABI reminder packet together; only add a new `zigux/uapi/*`
+  companion when that companion lands with its own bounded export or UAPI
+  packet instead of letting the shared reminder surfaces get ahead of the tree
 - treat `scripts/zigux/validate-phase3-abi-header-family-survey.py` and
   `scripts/zigux/validate-phase3-abi-bindings-syntax.py` as the first review
   gates before broader ABI slice follow-through reopens
 - keep broad shared reminders honest whenever they name the header-family
-  packet, including the current version-only `zigux/uapi/version.zig` starter
-  companion beside the dedicated survey and next-step notes
+  packet, including the current `zigux/uapi/version.zig` and
+  `zigux/uapi/dev_t.zig` starter companions beside the dedicated survey and
+  next-step notes
 
 ## Non-goals
 
