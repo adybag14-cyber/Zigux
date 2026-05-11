@@ -20,6 +20,8 @@ same checker family:
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
+`Documentation/zigux/phase7-string-helpers-slice.md`,
+`Documentation/zigux/phase7-cmdline-slice.md`,
 `Documentation/zigux/phase7-argv-split-slice.md`,
 `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/README.md`,
 `samples/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and
