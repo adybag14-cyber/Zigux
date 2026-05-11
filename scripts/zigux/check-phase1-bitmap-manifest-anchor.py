@@ -13,6 +13,7 @@ DEFAULT_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase1_helper_m
 
 BITMAP_HELPER = "tools/lib/bitmap.zig"
 EXPECTED_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
+EXPECTED_COPY_ALIAS_ANCHOR = 'test "bitmap copy aliases preserve tail clearing and extension semantics"'
 EXPECTED_REVIEW_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, "
     "while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word "
@@ -54,6 +55,13 @@ def validate_manifest(manifest: dict) -> list[str]:
             f"{BITMAP_HELPER}:phase1_helper_replay_anchor:expected={EXPECTED_REPLAY_ANCHOR!r}:actual={replay_anchor!r}"
         )
 
+    copy_alias_anchor = bitmap.get("copy_alias_anchor")
+    if copy_alias_anchor != EXPECTED_COPY_ALIAS_ANCHOR:
+        problems.append(
+            "phase1_manifest_review_anchor_mismatch:"
+            f"{BITMAP_HELPER}:copy_alias_anchor:expected={EXPECTED_COPY_ALIAS_ANCHOR!r}:actual={copy_alias_anchor!r}"
+        )
+
     review_summary = bitmap.get("review_packet_summary")
     if review_summary != EXPECTED_REVIEW_SUMMARY:
         problems.append(
@@ -83,6 +91,7 @@ def run_self_test() -> int:
         "review_anchors": {
             BITMAP_HELPER: {
                 "phase1_helper_replay_anchor": EXPECTED_REPLAY_ANCHOR,
+                "copy_alias_anchor": EXPECTED_COPY_ALIAS_ANCHOR,
                 "review_packet_summary": EXPECTED_REVIEW_SUMMARY,
             }
         }
@@ -93,6 +102,11 @@ def run_self_test() -> int:
     bad_manifest["review_anchors"][BITMAP_HELPER]["phase1_helper_replay_anchor"] = "wrong"
     replay_anchor_problems = validate_manifest(bad_manifest)
     assert any("phase1_helper_replay_anchor" in item for item in replay_anchor_problems)
+
+    bad_manifest = json.loads(json.dumps(manifest))
+    bad_manifest["review_anchors"][BITMAP_HELPER]["copy_alias_anchor"] = "wrong"
+    copy_alias_problems = validate_manifest(bad_manifest)
+    assert any("copy_alias_anchor" in item for item in copy_alias_problems)
 
     bad_manifest = json.loads(json.dumps(manifest))
     bad_manifest["review_anchors"][BITMAP_HELPER]["review_packet_summary"] = "wrong"
@@ -110,7 +124,7 @@ def run_self_test() -> int:
     assert any(problem.startswith("missing_validator_marker:") for problem in missing_problems)
 
     print("PHASE1_BITMAP_MANIFEST_ANCHOR_CHECK_SELF_TEST=pass")
-    print("PHASE1_BITMAP_MANIFEST_ANCHOR_CHECK_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_BITMAP_MANIFEST_ANCHOR_CHECK_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -118,7 +132,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Fail closed when validate-phase1.py stops enforcing the current bitmap manifest replay anchor "
-            "and review-packet summary carried by phase1_helper_manifest.json."
+            "and when phase1_helper_manifest.json stops naming the shipped bitmap copy-alias review anchor "
+            "or review-packet summary."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker tests.")
