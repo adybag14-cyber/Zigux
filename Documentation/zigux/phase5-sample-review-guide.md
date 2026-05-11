@@ -129,6 +129,24 @@ Before landing a Phase 5 change, confirm:
 * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
+## Focused Sample Cues
+
+### `trace_events_sample`
+
+Review the landed trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
+
+Keep `formattedMessage()`, the selected-string plus `iter=%d` replay, `runPayloadBoundaryReplay()` formatting cue, `runConditionalBoundaryReplay()` helper, `runCallbackBoundaryReplay()` helper, exact `checked_focus` order, restored registration balance, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, post-exit replay and callback-registration rejection, docs-root and sample-root contributor surfaces, and Phase 5-versus-Phase 9 cues explicit.
+
+Keep the no-extra-formatting reminder explicit too: no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
+
+### `kretprobe_example`
+
+Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+
+Keep pre-init retargeting, `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries, the fixed `maxactiveBudget()` cue at `20`, `runRecoveryReplay()` plus outstanding-instance rejection, timestamp-order rejection and recovery plus post-exit handler rejection, and the sample-owned lifecycle summary packet explicit.
+
+Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample. Keep `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` under their existing helper, rollback, and runtime lanes instead of treating bitmap as a shared Phase 5 approved idiom.
+
 ## Non-goals
 
 This shared Phase 5 guide does not claim:
