@@ -84,7 +84,9 @@ The current tests keep these packet edges explicit:
 * focused parity fixtures through `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 * blank-input reuse of the empty exported argv view
 * blank-input reuse of the empty storage sentinel without allocator space
+* explicit `ArgvSplitResult.deinit()` clearing of exported storage, argv, and null-terminated sentinel views
 * safe and repeatable sentinel teardown through `argvFree()`
+* explicit `argvFree()` ownership mirroring that keeps the `argv_free` teardown contract reviewable for C-style callers
 * the dedicated packet checker, the shared build replay, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together instead of drifting into separate ad hoc reminders
 
 ## Non-goals
@@ -98,6 +100,6 @@ This slice still does not yet claim:
 ## Next bounded step
 
 Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
-If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, blank-input sentinel, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
+If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, exported-view clearing, blank-input sentinel, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
 
 ## Footer
