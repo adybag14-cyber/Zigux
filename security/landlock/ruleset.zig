@@ -736,3 +736,29 @@ test "landlock ruleset tree-replacement rejects matched plans with earlier match
         .{ .level = 5, .access = 0x10 },
     ));
 }
+
+test "landlock ruleset tree-replacement returns a merged-layer replacement plan for matched rules" {
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    const replacement = try RulesetHelperLab.planRuleTreeReplacement(
+        search_plan,
+        existing,
+        .{ .level = 5, .access = 0x10 },
+    );
+
+    try std.testing.expectEqualStrings(RulesetHelperLab.descriptor().anchor, replacement.anchor);
+    try std.testing.expectEqual(TreeRoot.inode, replacement.root);
+    try std.testing.expectEqual(@as(u64, 99), replacement.matched_key_data);
+    try std.testing.expect(replacement.performs_rb_replace_node);
+    try std.testing.expectEqual(@as(u32, 6), replacement.resulting_num_rules);
+    try std.testing.expectEqual(@as(usize, 3), replacement.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 5), replacement.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x10), replacement.resulting_rule.layers[2].access);
+}
