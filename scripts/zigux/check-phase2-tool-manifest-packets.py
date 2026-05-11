@@ -379,6 +379,23 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        build_self_test_root(root)
+        review_checklist = root / "Documentation/zigux/review-checklist.md"
+        review_checklist.write_text(
+            review_checklist.read_text(encoding="utf-8").replace(
+                "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:Documentation/zigux/review-checklist.md:scripts/zigux/check-phase2-tool-manifest-packets.py"
+            in issues
+        )
+        case_count += 1
+
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
