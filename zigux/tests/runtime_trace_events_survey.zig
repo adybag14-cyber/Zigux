@@ -111,6 +111,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     defer std.testing.allocator.free(module_slice_note);
 
+    const runtime_trace_events_module = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_trace_events_module.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_trace_events_module);
+
     const phase9_build = try cwd.readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase9_build.zig",
@@ -307,8 +315,25 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
     );
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
+    try expectContains(
+        runtime_trace_events_module,
+        "test \"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "test \"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expectEqual(sample.ModuleStage.selftest_complete, after_failed_exit.stage);",
+    );
 
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-module-tests");
     try expectContains(phase9_build, "runtime_trace_events_diff.zig");
     try expectContains(phase9_build, "runtime_trace_events_survey.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-survey-tests");
