@@ -48,7 +48,7 @@ REQUIRED_LANE_NOTE_MARKERS = (
     "- bcm2835 lane `P11-L03` owns",
     "- gpio lane `P11-L06` owns",
     "- DesignWare lane `P11-L11` owns",
-    "- HVC lane `P11-L14` owns",
+    "- HVC lane `P11-L16` owns",
     "- header-boundary lane `P11-L18` owns",
     "`Documentation/zigux/phase11-closure-note.md`",
     "`scripts/zigux/check-phase11-shared-replay-contract.py`",
