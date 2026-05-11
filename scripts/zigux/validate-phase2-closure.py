@@ -14,6 +14,7 @@ CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2
 CHECK_PHASE2_KCONFIG_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_MAKEFILE = ROOT / "zigux" / "Makefile"
+PHASE2_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
 KCONFIG_BRIDGE_CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 KCONFIG_BRIDGE_CONFDATA_MANIFEST = (
@@ -40,6 +41,11 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+}
+
+PHASE2_WORKFLOW_RUN_COUNTS = {
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
 }
 
 EXPECTED_CONF_CASES = (
@@ -310,6 +316,16 @@ def validate_exact_makefile_runs(makefile_text: str) -> list[str]:
     return issues
 
 
+def validate_exact_workflow_runs(workflow_text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in workflow_text.splitlines()]
+    for command, expected in PHASE2_WORKFLOW_RUN_COUNTS.items():
+        count = sum(1 for item in lines if item == command)
+        if count != expected:
+            issues.append(f"workflow:exact_count:{command}:count={count}:expected={expected}")
+    return issues
+
+
 def load_json_object(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -459,6 +475,26 @@ def run_self_test_checks() -> list[str]:
             ),
             ["kconfig_bridge_confdata_manifest:case_count:expected=11:actual=10"],
         ),
+        (
+            "workflow_tests_readme_selftest_missing",
+            validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=0:expected=1"
+            ],
+        ),
+        (
+            "workflow_tests_readme_gate_duplicate",
+            validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
+            ],
+        ),
     ]
 
     issues: list[str] = []
@@ -485,6 +521,7 @@ def main() -> int:
         CHECK_PHASE2_KCONFIG_README_ALIGNMENT,
         PHASE2_CLOSURE_DOC,
         PHASE2_MAKEFILE,
+        PHASE2_WORKFLOW,
         KCONFIG_BRIDGE_CASES,
         KCONFIG_BRIDGE_CONF_MANIFEST,
         KCONFIG_BRIDGE_CONFDATA_MANIFEST,
@@ -503,6 +540,7 @@ def main() -> int:
     closure_text = PHASE2_CLOSURE_DOC.read_text(encoding="utf-8")
     issues.extend(validate_required_markers(closure_text, PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"))
     issues.extend(validate_exact_makefile_runs(PHASE2_MAKEFILE.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_workflow_runs(PHASE2_WORKFLOW.read_text(encoding="utf-8")))
 
     cases_payload, cases_load_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
     issues.extend(cases_load_issues)
@@ -552,7 +590,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=6")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=8")
         return 0
 
     if issues:
