@@ -16,15 +16,13 @@ The active contributor-facing packet stays inside that helper-first scope by kee
 Adjacent notifier evidence supports the same Phase 13 packet, but it remains adjacent evidence rather than a fifth roadmap anchor.
 That adjacent evidence packet should stay explicit through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `zigux/bindings/notifier_abi.zig`
-- `include/zigux/abi.h`
-- `include/zigux/notifier_abi.h`
-- `zigux/helpers/list_view.zig`
-- `zigux/helpers/hlist_view.zig`
-- `zigux/helpers/notifier_chain_view.zig`
-- `drivers/tty/hvc/hvc_console.h`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 
-If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, or `scripts/zigux/check-phase13-notifier-priority-signal.py` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped evidence.
+If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, or `drivers/tty/hvc/hvc_console.h` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped evidence.
 
 ## Traceability Map
 
@@ -32,7 +30,7 @@ If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifes
 - `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and checker-backed packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
-- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the notifier survey, ABI footholds, list-helper footholds, and `drivers/tty/hvc/hvc_console.h` explicit
+- adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the shipped notifier survey, the landed priority-signal guard, the validator-first release handle, and the Linux-style make routes explicit; direct notifier ABI, helper, tests-root, and header footholds stay repo-reality gaps until current `master` materializes them again
 
 ## Landlock Ruleset Lane Traceability
 
@@ -41,7 +39,7 @@ Keep the current `landlock/ruleset` mapping explicit through:
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 
-If direct companions such as `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as shipped repo evidence.
+If direct companions such as `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `landlock/ruleset` packet still covers access-mask accounting, the matching-rule-versus-no-match `insert_rule()` planning split, tree-search outcome planning, and explicit no-match tree-link mode reviewability without claiming live rb-tree mutation, `rb_replace_node()`, object ownership, hierarchy lifetime, deferred frees, or full Landlock enforcement.
 The dedicated ruleset survey and ownership note should stay visible here as roadmap-to-repo evidence, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
@@ -72,7 +70,7 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 Keep the roadmap-to-repo map explicit about the shipped or repo-reality-gapped Phase 13 packet-truthfulness checks that sit beside the shared replay:
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py` is still materialized on current `master` and keeps `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-ruleset-ownership.md` aligned as one roadmap-backed `landlock/ruleset` packet while the direct tests-root companions remain subject to repo reality.
 - If `scripts/zigux/check-phase13-devres-packet.py` cannot be materialized on current `master`, keep the bounded `devres` helper packet anchored to the shipped docs-root notes and record the missing checker plus any paired direct tests-root companions as repo-reality gaps instead of claiming a shipped checker-backed packet.
-- If `scripts/zigux/check-phase13-notifier-packet.py` or `scripts/zigux/check-phase13-notifier-priority-signal.py` cannot be materialized on current `master`, keep adjacent notifier evidence anchored to `Documentation/zigux/phase13-notifier-list-survey.md` plus the notifier ABI and helper footholds and record the missing checker paths as repo-reality gaps instead of shipped current-master evidence.
+- If `scripts/zigux/check-phase13-notifier-packet.py` cannot be materialized on current `master`, keep adjacent notifier evidence anchored to `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`, and record the missing checker plus direct notifier ABI, helper, tests-root, and HVC header companions as repo-reality gaps instead of shipped current-master evidence.
 
 ## Shared Replay Route
 
@@ -85,7 +83,7 @@ If direct companions such as `scripts/zigux/validate-phase13-release.py`, `zigux
 
 Direct evidence outside that stable make-route summary should stay explicit too:
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig` remains focused syscall evidence only when current `master` can materialize it; otherwise record it as a repo-reality gap instead of an extra shipped replay step.
-- adjacent notifier evidence remains release-surface support rather than a fifth helper lane or an extra shared replay step.
+- adjacent notifier evidence remains release-surface support rather than a fifth helper lane or an extra shared replay step; keep the shipped survey, the landed priority-signal guard, the release validator, and the stable make-route handles explicit while treating direct notifier ABI, helper, tests-root, and header footholds as repo-reality gaps until current `master` materializes them again.
 
 ## Non-Goals
 
