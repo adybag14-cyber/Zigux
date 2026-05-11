@@ -14,11 +14,13 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase10-closure.py",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
@@ -67,6 +69,18 @@ MANIFEST_MARKERS = [
     '"ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"',
     '"input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
     '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"',
+    '"phase10-mmio-selected-queue-readiness-helper"',
+    '"zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"',
+]
+
+MMIO_SURVEY_MARKERS = [
+    "phase10-mmio-selected-queue-readiness-helper",
+    "phase10-mmio-lifecycle-and-irq-paths",
+]
+
+MMIO_MANIFEST_MARKERS = [
+    '"phase10-mmio-selected-queue-readiness-helper"',
+    '"phase10-mmio-lifecycle-and-irq-paths"',
 ]
 
 LEDGER_EXACT_ONCE_MARKERS = [
@@ -116,8 +130,10 @@ def collect_missing_markers(root: Path) -> list[str]:
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
         ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
+        ("mmio-survey", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
         ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
         ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_MARKERS),
+        ("mmio-manifest", "zigux/tests/phase10_virtio_mmio_manifest.json", MMIO_MANIFEST_MARKERS),
     ]
     for label, rel_path, markers in checks:
         text = read_text(root, rel_path)
@@ -154,6 +170,7 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": (
             "#!/usr/bin/env python3\n"
@@ -173,6 +190,7 @@ def write_fixture(root: Path) -> None:
         ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_mmio_manifest.json": "\n".join(MMIO_MANIFEST_MARKERS) + "\n",
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_EXACT_ONCE_MARKERS) + "\n",
     }
     for rel_path, content in files.items():
@@ -227,6 +245,15 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:missing_lane_marker_not_detected")
         write_fixture(root)
 
+        mmio_survey = root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace("phase10-mmio-selected-queue-readiness-helper\n", "", 1),
+            encoding="utf-8",
+        )
+        if "mmio-survey:phase10-mmio-selected-queue-readiness-helper" not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:mmio_survey_marker_not_detected")
+        write_fixture(root)
+
         review = root / "Documentation/zigux/review-checklist.md"
         review.write_text(
             review.read_text(encoding="utf-8").replace("zigux/tests/phase10_closure_manifest.json\n", "", 1),
@@ -255,6 +282,15 @@ def run_self_test() -> int:
         )
         if 'manifest:"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"' not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_manifest_commit_marker_not_detected")
+        write_fixture(root)
+
+        mmio_manifest = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+        mmio_manifest.write_text(
+            mmio_manifest.read_text(encoding="utf-8").replace('"phase10-mmio-lifecycle-and-irq-paths"\n', '"phase10-mmio-config-window-helper"\n', 1),
+            encoding="utf-8",
+        )
+        if 'mmio-manifest:"phase10-mmio-lifecycle-and-irq-paths"' not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:mmio_manifest_marker_not_detected")
         write_fixture(root)
 
         ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
@@ -310,7 +346,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -358,7 +394,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS) + len(LEDGER_EXACT_ONCE_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(MMIO_SURVEY_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS) + len(MMIO_MANIFEST_MARKERS) + len(LEDGER_EXACT_ONCE_MARKERS)}"
     )
     print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
     return 0
