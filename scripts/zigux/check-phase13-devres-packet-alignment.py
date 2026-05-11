@@ -14,6 +14,9 @@ REPLAY_PATH = "zigux/tests/phase13_devres.zig"
 
 STALE_SLICE_MARKER = "PHASE13_SLICE=devres-dma-scatterlist-boundary-survey"
 SURVEYED_COMMIT_PREFIX = "reviewed against live `master` `"
+STALE_CHECKER_WARNING = (
+    "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift"
+)
 
 MANIFEST_TO_SURVEY_MARKERS = {
     '"id": "phase13-devres-arch-phys-wc-token-planner"': "devm_arch_phys_wc_add()",
@@ -78,6 +81,9 @@ def validate(root: Path) -> list[str]:
         if manifest_marker in manifest_text and survey_marker not in survey_text:
             errors.append(f"survey:missing_marker:{survey_marker}")
 
+    if STALE_CHECKER_WARNING not in survey_text:
+        errors.append("survey:missing_stale_checker_warning")
+
     return errors
 
 
@@ -111,6 +117,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                 "- `devm_arch_phys_wc_add()` remains helper-first",
                 "- keep the helper-only DMA/scatterlist boundary explicit",
+                "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
             ]
         )
         + "\n",
@@ -153,6 +160,7 @@ def run_self_test() -> int:
                 "survey:stale_slice_label",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
+                "survey:missing_stale_checker_warning",
             ],
             "stale_slice_label_failed",
         )
@@ -199,6 +207,7 @@ def run_self_test() -> int:
                 "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
+                "survey:missing_stale_checker_warning",
             ],
             "survey_marker_failed",
         )
@@ -214,6 +223,7 @@ def run_self_test() -> int:
                     "- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`",
                     "- `devm_arch_phys_wc_add()` remains helper-first",
                     "- keep the helper-only DMA/scatterlist boundary explicit",
+                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
                 ]
             )
             + "\n",
@@ -222,6 +232,27 @@ def run_self_test() -> int:
             validate(root),
             ["survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22"],
             "survey_commit_mismatch_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(
+                [
+                    "# Phase 13 devres Survey",
+                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                    "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
+                    "- `devm_arch_phys_wc_add()` remains helper-first",
+                    "- keep the helper-only DMA/scatterlist boundary explicit",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["survey:missing_stale_checker_warning"],
+            "missing_stale_checker_warning_failed",
         )
         case_count += 1
 
