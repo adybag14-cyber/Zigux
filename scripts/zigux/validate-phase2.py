@@ -18,9 +18,14 @@ TESTS_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-test
 KCONFIG_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
 KCONFIG_BRIDGE_REQUIRED_FILES = [
     ROOT / "scripts" / "kconfig" / "conf.c",
+    ROOT / "scripts" / "kconfig" / "confdata.c",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "duplicate_assignments.config",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "duplicate_assignments_expected.json",
 ]
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
