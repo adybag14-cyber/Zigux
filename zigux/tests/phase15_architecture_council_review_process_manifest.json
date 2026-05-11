@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L14",
   "phase": "Phase 15",
-  "surveyed_commit": "febebdae089598f228fff0bc6ee44c1a860fd905",
+  "surveyed_commit": "current-master-readback-2026-05-11",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "because the saved Phase 15 shared-checklist repair is already landed on current `master`, stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if another same-lane reminder truthfulness follow-up is still needed before then, publish only the smallest `zigux/tests/README.md` sync that keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`"
+    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; only reread the shared Phase 15 summaries if repo reality drifts away from the current `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet beside `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`"
   },
   "gaps": [
     {
@@ -143,10 +143,10 @@
     },
     {
       "id": "phase15-tests-readme-validator-route-sync",
-      "status": "open",
+      "status": "starter_landed",
       "kind": "governance",
       "zigux_destination": "zigux/tests/README.md",
-      "why_now": "The broader Phase 15 tests-root reminder still undercounts the shipped validator-first route because it does not yet keep `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes on current master."
+      "why_now": "The broader Phase 15 tests-root reminder now keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes on current master, so this follow-through is closed unless repo reality drifts again."
     }
   ]
 }
