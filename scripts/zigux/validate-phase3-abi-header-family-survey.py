@@ -23,6 +23,20 @@ REQUIRED_MARKERS = (
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
 )
+REQUIRED_SHARED_REMINDER_MARKERS = (
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "zigux/uapi/dev_t.zig",
+    "zigux/tests/README.md",
+    "zigux/bindings/abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
+)
 
 
 def load_text(path: Path) -> str:
@@ -33,11 +47,24 @@ def load_text(path: Path) -> str:
 
 
 def validate_text(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_MARKERS if marker not in text]
+    missing = [marker for marker in REQUIRED_MARKERS if marker not in text]
+    if "## Shared reminder" not in text:
+        missing.append("missing shared reminder section")
+        return missing
+
+    shared_reminder = text.split("## Shared reminder", 1)[1]
+    missing.extend(
+        f"shared reminder missing marker: {marker}"
+        for marker in REQUIRED_SHARED_REMINDER_MARKERS
+        if marker not in shared_reminder
+    )
+    return missing
 
 
 def run_self_test() -> int:
-    sample = "\n".join(REQUIRED_MARKERS)
+    sample = "\n".join(REQUIRED_MARKERS) + "\n## Shared reminder\n" + "\n".join(
+        REQUIRED_SHARED_REMINDER_MARKERS
+    )
     missing = validate_text(sample)
     if missing:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
@@ -48,6 +75,13 @@ def run_self_test() -> int:
     if "include/zigux/abi.h" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected missing marker was not reported")
+        return 1
+
+    broken_sample = sample.rsplit("zigux/uapi/dev_t.zig", 1)
+    broken = validate_text("".join(broken_sample))
+    if "shared reminder missing marker: zigux/uapi/dev_t.zig" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected shared reminder marker was not reported")
         return 1
 
     print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")
