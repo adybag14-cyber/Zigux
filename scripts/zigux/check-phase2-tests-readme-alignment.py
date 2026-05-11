@@ -106,6 +106,7 @@ FILE_MARKERS = {
     ],
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
         "python3 scripts/zigux/install-zig.py --self-test",
         "python3 scripts/zigux/check-zig-toolchain.py --self-test",
         "make -C zigux phase2-validate",
