@@ -17,17 +17,19 @@ REQUIRED_FILES = {
     "makefile": "zigux/Makefile",
     "focused_test": "zigux/tests/phase6_hexdump.zig",
     "perf_test": "zigux/tests/phase6_hexdump_perf.zig",
+    "perf_matrix_test": "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "fixtures": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
 }
 
 SLICE_NOTE_MARKERS = [
     "`PHASE6_SLICE=hexdump-leaf-helper`",
+    "`zigux/tests/phase6_hexdump_perf_matrix.zig`",
     "`scripts/zigux/check-phase6-hexdump-packet.py`",
     "direct local checker route: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
     "`make -C zigux phase6-hexdump-test`",
     "`make -C zigux phase6-hexdump-perf`",
     "`make -C zigux phase6-hexdump-review`",
-    "the helper-local checker, focused replay, and perf gate under the same `PYTHON` and `ZIG` environment plumbing",
+    "the helper-local checker, focused replay, perf-matrix preflight, and perf gate under the same `PYTHON` and `ZIG` environment plumbing",
 ]
 
 CATALOG_MARKERS = [
@@ -59,10 +61,14 @@ BUILD_FILE_MARKERS = [
     '.root_source_file = b.path("fixtures/phase6_hexdump_vectors.zig"),',
     '.root_source_file = b.path("phase6_hexdump.zig"),',
     'hexdump_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);',
+    '.root_source_file = b.path("phase6_hexdump_perf_matrix.zig"),',
+    '.name = "phase6-hexdump-perf-matrix-tests"',
+    "const run_hexdump_perf_matrix_tests = b.addRunArtifact(hexdump_perf_matrix_tests);",
     '.root_source_file = b.path("phase6_hexdump_perf.zig"),',
     'hexdump_perf_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);',
     'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
+    "hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
 ]
 
 MAKEFILE_MARKERS = [
@@ -72,7 +78,7 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 class CheckError(RuntimeError):
@@ -106,6 +112,7 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
     expect_nonempty(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]))
     expect_nonempty(REQUIRED_FILES["perf_test"], read_text(root, REQUIRED_FILES["perf_test"]))
+    expect_nonempty(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]))
     expect_nonempty(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]))
 
 
@@ -121,8 +128,9 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["manifest"], "\n".join(MANIFEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["build_file"], "\n".join(BUILD_FILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["focused_test"], "test \"phase6 hexdump focused replay placeholder\" {}\n")
-    write(root / REQUIRED_FILES["perf_test"], "const perf_case = \"phase6 hexdump perf placeholder\";\n")
+    write(root / REQUIRED_FILES["focused_test"], 'test "phase6 hexdump focused replay placeholder" {}\n')
+    write(root / REQUIRED_FILES["perf_test"], 'const perf_case = "phase6 hexdump perf placeholder";\n')
+    write(root / REQUIRED_FILES["perf_matrix_test"], 'test "phase6 hexdump perf matrix placeholder" {}\n')
     write(root / REQUIRED_FILES["fixtures"], "pub const length_cases = [_]u8{0};\n")
 
 
@@ -180,6 +188,11 @@ def run_self_test() -> None:
         perf_test = tmpdir / REQUIRED_FILES["perf_test"]
         perf_test.unlink()
         expect_failure(tmpdir, REQUIRED_FILES["perf_test"])
+
+        build_self_test_fixture(tmpdir)
+        perf_matrix_test = tmpdir / REQUIRED_FILES["perf_matrix_test"]
+        perf_matrix_test.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["perf_matrix_test"])
 
         build_self_test_fixture(tmpdir)
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
