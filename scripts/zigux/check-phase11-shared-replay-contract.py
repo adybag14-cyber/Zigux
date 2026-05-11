@@ -27,7 +27,7 @@ REQUIRED_NOTE_MARKERS = (
     "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.",
     "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
     "* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
-    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
     "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
     "The dedicated archival HVC evidence on current `master` is also kept explicit beside that shared route through the bounded survey, teardown, and failure-mode packet:",
     "* there is no shared `make -C zigux phase11-validate` target on `master`",
@@ -58,7 +58,7 @@ REQUIRED_LANE_NOTE_MARKERS = (
 )
 
 REQUIRED_DOCS_README_MARKERS = (
-    "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`",
+    "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet",
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
@@ -205,7 +205,7 @@ def run_self_test() -> int:
         mutations = (
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
-            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[8]),
+            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[9]),
             ("phase11-closure-note", CLOSURE_NOTE_PATH, REQUIRED_CLOSURE_NOTE_MARKERS[2]),
             ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[4]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
