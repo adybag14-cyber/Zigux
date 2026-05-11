@@ -400,106 +400,179 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_string_memparse_review_count",
-        "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation",
+        "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation",
         1,
     ),
     (
-        "closure_string_prefix_suffix_review_count",
-        "PHASE1_STRING_PREFIX_SUFFIX_REVIEW=helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
+        "closure_string_review_packet_count",
+        "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
         1,
-    ),
-    (
-        "closure_string_replace_char_cstr_review_count",
-        "PHASE1_STRING_REPLACE_CHAR_CSTR_REVIEW=the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
-        1,
-    ),
-    (
-        "closure_string_sysfs_streq_review_count",
-        "PHASE1_STRING_SYSFS_STREQ_REVIEW=helper-local sysfsStreq and sysfs_streq anchors stay explicit through the direct string tests so trailing newline and trailing NUL remain equivalent without widening the shared Phase 1 replay surface",
-        1,
-    ),
-    (
-        "closure_string_memchr_inv_dirty_word_review_count",
-        "PHASE1_STRING_MEMCHR_INV_DIRTY_WORD_REVIEW=helper-local memchrInv long-buffer and zero-value dirty-word anchors stay explicit through the direct string tests while the shared Phase 1 replay keeps the committed first-dirty-byte and all-clean parity keys stable",
-        1,
-    ),
+    )
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
-    ("workflow_force_node24", "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"),
-    ("workflow_phase1_validate_line", "python3 scripts/zigux/validate-phase1.py"),
-    ("workflow_phase1_closure_line", "python3 scripts/zigux/validate-phase1-closure.py"),
-    ("workflow_phase1_parity_line", "python3 scripts/zigux/check-phase1-parity.py"),
-    ("workflow_phase1_bench_line", "python3 scripts/zigux/check-phase1-bench.py"),
+    ("workflow_node24_env", "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"),
 ]
 
 REQUIRED_EXACT_WORKFLOW_MARKERS = [
-    ("workflow_job_bootstrap", "bootstrap:"),
-    ("workflow_phase1_validate_name_count", "- name: Validate Phase 1 helper files", 1),
-    ("workflow_phase1_validate_count", "run: python3 scripts/zigux/validate-phase1.py", 1),
-    ("workflow_phase1_closure_name_count", "- name: Validate Phase 1 closure", 1),
-    ("workflow_phase1_closure_count", "run: python3 scripts/zigux/validate-phase1-closure.py", 1),
-    ("workflow_phase1_parity_name_count", "- name: Check Phase 1 helper parity", 1),
-    ("workflow_phase1_parity_count", "run: python3 scripts/zigux/check-phase1-parity.py", 1),
-    ("workflow_phase1_bench_name_count", "- name: Check Phase 1 helper benchmark output", 1),
-    ("workflow_phase1_bench_count", "run: python3 scripts/zigux/check-phase1-bench.py", 1),
+    ("workflow_bootstrap_job", "bootstrap:"),
+    (
+        "workflow_install_zig",
+        "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+    ),
 ]
 
 REQUIRED_PHASE1_WORKFLOW_MARKERS = [
-    ("workflow_phase1_build_test_count", "run: zig build test --build-file zigux/tests/build.zig", 1),
-    ("workflow_phase1_build_bench_count", "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe", 1),
+    ("workflow_phase1_validate_count", "run: python3 scripts/zigux/validate-phase1.py", 1),
+    (
+        "workflow_phase1_installer_review_count",
+        "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py",
+        1,
+    ),
+    (
+        "workflow_phase1_closure_count",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    ("workflow_phase1_bench_count", "run: python3 scripts/zigux/check-phase1-bench.py", 1),
 ]
 
 REQUIRED_BUILD_MARKERS = [
-    ("build_phase1_helpers_import", '@import("phase1_helpers.zig")', 1),
-    ("build_phase1_bench_import", '@import("phase1_bench.zig")', 1),
-    ("build_test_step_name", 'const test_step = b.step("test", "Run the Phase 1 helper tests")', 1),
-    ("build_bench_step_name", 'const bench_step = b.step("bench", "Run the Phase 1 helper benchmark smoke")', 1),
+    ("build_phase1_test_count", 'const phase1_tests = b.step("phase1-test", "Run Phase 1 helper parity tests")', 1),
+    (
+        "build_phase1_bench_count",
+        'const phase1_bench = b.step("phase1-bench", "Run Phase 1 helper microbenchmarks")',
+        1,
+    ),
+    (
+        "build_phase1_helpers_count",
+        'const phase1_helpers = b.addTest(.{\n        .root_source_file = b.path("phase1_helpers.zig"),',
+        1,
+    ),
+    (
+        "build_phase1_bench_add_count",
+        'const phase1_bench_tests = b.addTest(.{\n        .root_source_file = b.path("phase1_bench.zig"),',
+        1,
+    ),
 ]
 
 REQUIRED_LEDGER_MARKERS = [
-    ("ledger_phase1_status_count", "- Status: closed and guarded by the bootstrap workflow, `make -C zigux phase1`, and the Phase 1 closure validator.", 1),
-    ("ledger_phase1_lane_guard_count", "- Lane guard: Phase 1 remains limited to the bounded host-side helper tranche while follow-up work routes through the direct helper-local anchors or parked shared replay noted in `Documentation/zigux/phase1-closure.md`.", 1),
+    (
+        "ledger_phase1_summary_count",
+        "- Phase 1 baseline commit `551af7d1d2450b4f3fb2546b034f2df1223cea77` captures the full helper packet from `ad67fcd89c8f1df010271bc89e76e798274d524a`.",
+        1,
+    ),
+    (
+        "ledger_phase1_closure_count",
+        "- Phase 1 current closure packet commit `4da669f95b50aee6ff2e66dc7f77b29f41648a4e` locks the closed helper surface plus the shared Phase 1 review anchors.",
+        1,
+    ),
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
-    ("makefile_phase1_validate", "phase1-validate:", 1),
-    ("makefile_phase1_validate_cmd", "\tpython3 ../scripts/zigux/validate-phase1.py", 1),
-    ("makefile_phase1_closure_cmd", "\tpython3 ../scripts/zigux/validate-phase1-closure.py", 1),
-    ("makefile_phase1_test", "phase1-test:", 1),
-    ("makefile_phase1_test_cmd", "\tzig build test --build-file tests/build.zig", 1),
-    ("makefile_phase1_bench", "phase1-bench:", 1),
-    ("makefile_phase1_bench_cmd", "\tzig build bench --build-file tests/build.zig -Doptimize=ReleaseSafe", 1),
     ("makefile_phase1_target", "phase1: phase1-validate phase1-test phase1-bench", 1),
+    (
+        "makefile_phase1_validate_target",
+        "phase1-validate:\n\tpython3 ../scripts/zigux/validate-phase1.py\n\tpython3 ../scripts/zigux/check-phase1-installer-review-surfaces.py\n\tpython3 ../scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    ("makefile_phase1_test_target", "phase1-test:\n\tzig build phase1-test --build-file tests/build.zig", 1),
+    ("makefile_phase1_bench_target", "phase1-bench:\n\tzig build phase1-bench --build-file tests/build.zig\n\tpython3 ../scripts/zigux/check-phase1-bench.py", 1),
 ]
 
 REQUIRED_DOCS_ROOT_MARKERS = [
-    ("docs_root_phase1_status_count", "- Phase 1 is closed as a bounded helper tranche. The shipped helper packet is `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` plus the parked shared-replay helper set listed in `Documentation/zigux/phase1-closure.md`.", 1),
-    ("docs_root_phase1_gate_count", "- The closure gate is `python3 scripts/zigux/validate-phase1-closure.py`, and the release path stays `make -C zigux phase1` plus `python3 scripts/zigux/check-phase1-parity.py` and `python3 scripts/zigux/check-phase1-bench.py` before any direct-anchor or parked shared-replay follow-up lands.", 1),
-    ("docs_root_phase1_review_packet_count", "- Review packet: `Documentation/zigux/phase1-closure.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`.", 1),
+    ("docs_root_phase1_closure_doc_count", "- `Documentation/zigux/phase1-closure.md`", 1),
+    (
+        "docs_root_phase1_workflow_count",
+        "- `.github/workflows/zigux-bootstrap.yml` wires the shared install, parity, closure, and benchmark checks into the default review route.",
+        1,
+    ),
 ]
 
 REQUIRED_SCRIPTS_README_MARKERS = [
-    ("scripts_readme_phase1_status_count", "- Phase 1 is closed. Use `python3 validate-phase1.py` and `python3 validate-phase1-closure.py` to guard the bounded helper packet before running `python3 check-phase1-parity.py` and `python3 check-phase1-bench.py` or `make -C ../../zigux phase1`.", 1),
-    ("scripts_readme_phase1_install_review_count", "- `check-phase1-installer-review-surfaces.py`: keeps the closed Phase 1 installer-review packet aligned across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, and the review-checklist plus tests-root command markers.", 1),
-    ("scripts_readme_phase1_companion_count", "- `check-phase1-installer-companion-checks.py`: keeps the focused companion review markers for `python3 scripts/zigux/install-zig.py --self-test` and `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test` aligned across `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` without widening the closed Phase 1 packet.", 1),
-    ("scripts_readme_phase1_helper_anchor_count", "- `check-phase1-parity.py`: validates the committed parity fixture for the direct helper tranche and keeps the shared replay-only follow-up owners in `Documentation/zigux/phase1-closure.md` review-visible while Phase 1 stays closed.", 1),
-    ("scripts_readme_phase1_bench_anchor_count", "- `check-phase1-bench.py`: validates the committed benchmark expectation packet before any direct helper-local follow-up updates Phase 1 benchmark checksums or iteration counts.", 1),
+    ("scripts_readme_phase1_closure_validator_count", "### `validate-phase1-closure.py`", 1),
+    (
+        "scripts_readme_phase1_closure_validator_summary_count",
+        "Owns the bounded closed-surface audit for the shipped Phase 1 packet.",
+        1,
+    ),
+    ("scripts_readme_phase1_parity_checker_count", "### `check-phase1-parity.py`", 1),
+    (
+        "scripts_readme_phase1_parity_summary_count",
+        "Keeps the committed Phase 1 helper fixture aligned with the shipped Zig helper implementations.",
+        1,
+    ),
+    ("scripts_readme_phase1_bench_checker_count", "### `check-phase1-bench.py`", 1),
+    (
+        "scripts_readme_phase1_bench_summary_count",
+        "Checks the deterministic Phase 1 helper microbenchmark expectations.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_review_checklist_count",
+        "- `Documentation/zigux/review-checklist.md`: Phase 1 checklist lines that cite the shared review surfaces and the direct helper-local follow-up anchors.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_workflow_count",
+        "- `.github/workflows/zigux-bootstrap.yml`: shared install, parity, closure, and benchmark gates on the default review path.",
+        1,
+    ),
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
-    ("tests_readme_phase1_status_count", "- Phase 1 is closed and limited to the bounded helper tranche listed in `Documentation/zigux/phase1-closure.md`. Keep helper-local follow-up on direct anchors for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, and treat the parked shared-replay helper set as closed unless packet drift forces a validator refresh.", 1),
-    ("tests_readme_phase1_gate_count", "- Phase 1 release path: `python3 ../scripts/zigux/validate-phase1.py`, `python3 ../scripts/zigux/validate-phase1-closure.py`, `python3 ../scripts/zigux/check-phase1-parity.py`, `python3 ../scripts/zigux/check-phase1-bench.py`, `zig build test --build-file build.zig`, `zig build bench --build-file build.zig -Doptimize=ReleaseSafe`, and `make -C .. phase1`.", 1),
-    ("tests_readme_phase1_review_packet_count", "- Review packet: `fixtures/phase1_helper_manifest.json`, `fixtures/phase1_bench_expectations.json`, `phase1_helpers.zig`, `phase1_bench.zig`, `build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `../Documentation/zigux/phase1-closure.md`.", 1),
-    ("tests_readme_phase1_installer_companion_count", "- Keep `python3 scripts/zigux/install-zig.py --self-test` and `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces.", 1),
+    ("tests_readme_phase1_helpers_count", "### `phase1_helpers.zig`", 1),
+    (
+        "tests_readme_phase1_helpers_summary_count",
+        "Replays the committed Phase 1 helper fixture against the shipped Zig helper ports.",
+        1,
+    ),
+    ("tests_readme_phase1_bench_count", "### `phase1_bench.zig`", 1),
+    (
+        "tests_readme_phase1_bench_summary_count",
+        "Exercises the deterministic Phase 1 helper microbenchmarks before the expectation checker compares their checksums.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_manifest_count",
+        "- `fixtures/phase1_helper_manifest.json`: the committed helper inventory plus shared-vs-direct review-anchor ownership for the closed Phase 1 packet.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_bench_expectations_count",
+        "- `fixtures/phase1_bench_expectations.json`: deterministic benchmark iteration counts and checksum labels for the shared Phase 1 microbenchmark replay.",
+        1,
+    ),
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
-    ("review_phase1_status_count", "* if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?", 1),
-    ("review_phase1_bitmap_review_count", "- `tools/lib/bitmap.zig`: keeps direct first-word-boundary, final-partial-word, predicate-tail-mask, scnprintf truncation or tiny-buffer, copy-alias, raw-copy, zero-bit, and Linux-style alias proofs explicit while the shared parity fixture owns the committed bitmap replay keys.", 1),
-    ("review_phase1_find_bit_review_count", "- `tools/lib/find_bit.zig`: keeps direct same-word start-mask, inclusive-boundary, zero-window, past-nbits, tail-word skip, and underscore-alias proofs explicit while the shared parity fixture owns the committed tail-clamp replay keys.", 1),
-    ("review_phase1_rbtree_review_count", "- `tools/lib/rbtree.zig`: keeps direct match-iterator plus cached-root insert-miss, replacement, detach, and reseed proofs explicit while the shared parity fixture owns traversal, detached-node, and duplicate-search replay keys.", 1),
-    ("review_phase1_string_review_count", "- `tools/lib/string.zig`: keeps direct memparse safety and prefix or suffix boundary anchors explicit while the shared replay owns the committed embedded-NUL replacement bytes and parity fixture keys.", 1),
+    ("review_phase1_parity_count", "- `python3 scripts/zigux/check-phase1-parity.py`", 1),
+    ("review_phase1_closure_doc_count", "- `Documentation/zigux/phase1-closure.md`", 1),
+    (
+        "review_phase1_workflow_count",
+        "- `.github/workflows/zigux-bootstrap.yml` wires the shared install, parity, closure, and benchmark checks into the default review route.",
+        1,
+    ),
+    (
+        "review_phase1_find_bit_review_count",
+        "- `tools/lib/find_bit.zig`: keeps the direct single-word, inclusive-boundary, zero-window, past-nbits, tail-word skip, and underscore-alias proofs explicit while the shared parity fixture owns the tail-clamp replay fields.",
+        1,
+    ),
+    (
+        "review_phase1_bitmap_review_count",
+        "- `tools/lib/bitmap.zig`: keeps the direct predicate-tail-mask, first-word-boundary, scnprintf truncation or tiny-buffer, alias-copy, zero-bit no-op, and Linux-style alias proofs explicit while the shared parity fixture owns the partial-xor review fields.",
+        1,
+    ),
+    (
+        "review_phase1_rbtree_review_count",
+        "- `tools/lib/rbtree.zig`: keeps direct match-iterator plus cached-root insert-miss, replacement, detach, and reseed proofs explicit while the shared parity fixture owns traversal, detached-node, and duplicate-search replay keys.",
+        1,
+    ),
+    (
+        "review_phase1_string_review_count",
+        "- `tools/lib/string.zig`: keeps direct memparse safety and prefix or suffix boundary anchors explicit while the shared replay owns the committed embedded-NUL replacement bytes and parity fixture keys.",
+        1,
+    ),
 ]
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
@@ -606,6 +679,7 @@ def collect_manifest_review_anchor_markers(manifest: object) -> list[str]:
         for field_name in anchors:
             if field_name not in expected_fields:
                 missing.append(f"manifest:unexpected_review_anchor_field={helper_path}:{field_name}")
+
     for helper_path in sorted(expected_helpers - actual_helpers):
         missing.append(f"manifest:missing_review_helper={helper_path}")
     for helper_path in sorted(actual_helpers - expected_helpers):
@@ -617,20 +691,16 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
         return ["manifest:json_object"]
 
     missing: list[str] = []
+    helpers = manifest.get("helpers")
+    if not isinstance(helpers, list):
+        return ["manifest:helpers=list"]
+
     if manifest.get("phase") != "Phase 1":
         missing.append("manifest:phase=Phase 1")
     if manifest.get("status") != "closed":
         missing.append("manifest:status=closed")
     if manifest.get("helper_count") != len(EXPECTED_HELPERS):
         missing.append(f"manifest:helper_count={len(EXPECTED_HELPERS)}")
-
-    helpers = manifest.get("helpers")
-    if not isinstance(helpers, list):
-        missing.append("manifest:helpers=list")
-        return missing
-
-    if manifest.get("helper_count") != len(helpers):
-        missing.append(f"manifest:helper_count={len(helpers)}")
     if len(helpers) != len(EXPECTED_HELPERS):
         missing.append(f"manifest:helpers_len={len(EXPECTED_HELPERS)}")
 
