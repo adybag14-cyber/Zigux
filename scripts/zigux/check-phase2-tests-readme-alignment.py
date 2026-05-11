@@ -327,6 +327,15 @@ def run_self_test() -> int:
             assert f"{rel_path}:missing:{marker}" in issues
             case_count += 1
 
+        build_self_test_root(root)
+        path = root / "zigux/tests/README.md"
+        original = path.read_text(encoding="utf-8")
+        marker = "scripts/zigux/check-phase2-kconfig-readme-alignment.py"
+        path.write_text(remove_marker_once(original, marker), encoding="utf-8")
+        issues = validate_root(root)
+        assert f"zigux/tests/README.md:missing:{marker}" in issues
+        case_count += 1
+
         for rel_path, checks in EXACT_COUNT_CHECKS.items():
             for marker, expected in checks.items():
                 build_self_test_root(root)
@@ -373,6 +382,7 @@ def run_self_test() -> int:
     expected_case_count = (
         1
         + len(FILE_MARKERS)
+        + 1
         + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values())
         + 2 * sum(len(checks) for checks in LINE_EXACT_COUNT_CHECKS.values())
         + len(MISSING_FILE_CASES)
