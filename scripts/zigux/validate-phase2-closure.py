@@ -19,6 +19,10 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
 
+PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
+    "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
+]
+
 PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
@@ -93,6 +97,13 @@ def main() -> int:
             "phase2_closure",
         )
     )
+    issues.extend(
+        validate_required_markers(
+            closure_text,
+            PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS,
+            "phase2_closure",
+        )
+    )
     issues.extend(validate_exact_makefile_runs(makefile_text))
 
     if args.self_test:
@@ -102,7 +113,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=9")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=10")
         return 0
 
     if issues:
