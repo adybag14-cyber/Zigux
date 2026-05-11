@@ -37,8 +37,10 @@ SHARED_REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
         "### 3. Libbpf helper lane",
         "### 4. Shared wording lane",
-        "default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`",
-        "default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet",
+        "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
+        "`zigux/tests/phase8_cpu_mask.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "do not let older absent-file assumptions overrule current tree evidence",
     ],
     "Documentation/zigux/review-checklist.md": [
         "if the change touches the shared parked Phase 8 libbpf packet",
@@ -90,21 +92,16 @@ LEGACY_PACKET_REQUIRED_MARKERS = {
         "make -C zigux phase8-libbpf-segments-test",
     ],
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
-        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
         "zigux/tests/phase8_libbpf_segments.zig",
-        "zigux/tests/phase8_libbpf_segments_only_build.zig",
-        "make -C zigux phase8-libbpf-segments-test",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "Documentation/zigux/phase8-libbpf-segment-survey.md",
         "tools/lib/bpf/zigux_segments/manifest.json",
         "zigux/tests/phase8_libbpf_segments.zig",
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
         "make -C zigux phase8-libbpf-segments-test",
     ],
     "scripts/zigux/README.md": [
-        "Documentation/zigux/phase8-libbpf-segment-survey.md",
-        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
         "make -C zigux phase8-libbpf-segments-test",
     ],
@@ -121,8 +118,8 @@ LEGACY_PACKET_REQUIRED_MARKERS = {
         "phase8_libbpf_segments.zig",
     ],
     "tools/lib/bpf/zigux_segments/manifest.json": [
-        '"surveyed_commit":',
-        '"segments": [',
+        "\"surveyed_commit\":",
+        "\"segments\": [",
     ],
 }
 
@@ -197,15 +194,12 @@ FIXTURE_TEXT = {
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": """# Phase 8 Tooling Lane Sequencing
 
 ### 3. Libbpf helper lane
-- default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`
-- default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet
-- Documentation/zigux/phase8-libbpf-segment-survey.md
-- zigux/tests/phase8_libbpf_segments.zig
-- zigux/tests/phase8_libbpf_segments_only_build.zig
-- make -C zigux phase8-libbpf-segments-test
+- the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`
+- the current Phase 8 test packet includes `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, and `zigux/tests/phase8_libbpf_segments.zig`
 
 ### 4. Shared wording lane
 - Keep follow-up inside the shared wording lane
+- do not let older absent-file assumptions overrule current tree evidence
 """,
     "Documentation/zigux/review-checklist.md": """# Zigux Review Checklist
 
@@ -319,8 +313,8 @@ def parked_wording_mode(root: Path) -> bool:
     text = lane_note.read_text(encoding="utf-8")
     required = [
         "### 4. Shared wording lane",
-        "default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`",
-        "default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet",
+        "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
+        "do not let older absent-file assumptions overrule current tree evidence",
     ]
     return all(marker in text for marker in required)
 
