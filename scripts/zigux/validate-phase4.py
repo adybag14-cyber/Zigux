@@ -522,11 +522,13 @@ def _write_fixture_tree(root: Path) -> None:
     phase4_build_sha = _git_blob_sha1((root / "zigux/tests/phase4_build.zig").read_bytes())
     validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
     matrix_sha = _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes())
+    review_checklist_sha = _git_blob_sha1((root / "Documentation/zigux/review-checklist.md").read_bytes())
     phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
     manifest = {
         "phase4_build_blob_sha": phase4_build_sha,
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
+        "phase4_review_checklist_blob_sha": review_checklist_sha,
         "phase9_build_blob_sha": phase9_build_sha,
         "reversible_delivery_evidence": (
             "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, "
@@ -556,6 +558,7 @@ def _write_fixture_tree(root: Path) -> None:
         f"// {phase4_build_sha}",
         f"// {validator_sha}",
         f"// {matrix_sha}",
+        f"// {review_checklist_sha}",
         f"// {phase9_build_sha}",
         "",
     ]))
