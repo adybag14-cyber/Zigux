@@ -42,6 +42,8 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - dedicated perf replay: `zigux/tests/phase6_checksum_perf.zig`
 - fixtures: `zigux/tests/fixtures/phase6_checksum_vectors.zig` and `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - checker: `scripts/zigux/check-phase6-checksum-c-parity.py`
+- direct local C parity rerun route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
 
 ### hexdump
 - helper: `lib/hexdump.zig`
@@ -56,6 +58,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ## Shared Routes
 - `make -C zigux phase6-base64-c-parity`
 - `make -C zigux phase6-bsearch-test`
+- `make -C zigux phase6-checksum-c-parity`
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
