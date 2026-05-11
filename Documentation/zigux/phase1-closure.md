@@ -229,7 +229,7 @@ The helper-local first-word boundary proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap range helpers honor exact first-word boundaries"` stays present and review-visible whenever `setRange()` or `clearRange()` changes. This helper-local test is the bounded proof that first-word masks stay exact when a range starts near the end of one word and stops exactly on that first-word boundary instead of spilling into the next word or clearing too much.
+That means `test "bitmap range helpers honor exact first-word boundaries"` stays present and review-visible whenever `setRange()`, `clearRange()` changes. This helper-local test is the bounded proof that first-word masks stay exact when a range starts near the end of one word and stops exactly on that first-word boundary instead of spilling into the next word or clearing too much.
 
 - `PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary`
 
@@ -237,7 +237,7 @@ The helper-local final partial-word proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap range helpers clamp the final partial word"` stays present and review-visible whenever `setRange()` or `clearRange()` changes. This helper-local test is the bounded proof that the bitmap range helpers still clamp trailing partial-word masks to the requested live tail window instead of spilling work beyond it.
+That means `test "bitmap range helpers clamp the final partial word"` stays present and review-visible whenever `setRange()`, `clearRange()` changes. This helper-local test is the bounded proof that the bitmap range helpers still clamp trailing partial-word masks to the requested live tail window instead of spilling work beyond it.
 
 - `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it`
 
@@ -271,7 +271,7 @@ The helper-local bitmap copy alias proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap copy aliases preserve tail clearing and extension semantics"` stays present and review-visible whenever `bitmap_copy_clear_tail()` or `bitmap_copy_and_extend()` changes. This helper-local test is the bounded proof that the alias entrypoints preserve last-word tail masking and zero-filled extension instead of drifting away from `copyClearTail()` and `bitmap_copy_clear_tail()`.
+That means `test "bitmap copy aliases preserve tail clearing and extension semantics"` stays present and review-visible whenever `bitmap_copy_clear_tail()`, `bitmap_copy_and_extend()` changes. This helper-local test is the bounded proof that the alias entrypoints preserve last-word tail masking and zero-filled extension instead of drifting away from `copyClearTail()` and `bitmap_copy_clear_tail()`.
 
 - `PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics`
 
@@ -279,9 +279,17 @@ The helper-local raw `bitmap_copy()` alias proof must also stay explicit through
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap copy alias preserves raw source words without tail clearing"` stays present and review-visible whenever `copy()` or `bitmap_copy()` changes. This helper-local test is the bounded proof that the raw alias entrypoint preserves unmasked source words instead of silently adopting the tail-clearing semantics reserved for `copyClearTail()` and `bitmap_copy_clear_tail()`.
+That means `test "bitmap copy alias preserves raw source words without tail clearing"` stays present and review-visible whenever `copy()`, `bitmap_copy()` changes. This helper-local test is the bounded proof that the raw alias entrypoint preserves unmasked source words instead of silently adopting the tail-clearing semantics reserved for `copyClearTail()` and `bitmap_copy_clear_tail()`.
 
 - `PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics`
+
+The helper-local zero-sized and aligned copy proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap copy and extend handles zero and aligned counts"` and `test "bitmap copy helpers keep zero-sized destination views untouched"` stay present and review-visible whenever `copyClearTail()`, `copyAndExtend()`, `bitmap_copy_clear_tail()`, or `bitmap_copy_and_extend()` changes. This direct test pair is the bounded proof that zero-sized destination views stay untouched and aligned-word copies preserve raw aligned words while zero-filling only the requested extension space instead of regressing into partial-tail handling or hidden writes.
+
+- `PHASE1_BITMAP_COPY_ZERO_AND_ALIGNED_REVIEW=helper-local bitmap zero-sized and aligned copy proof stays explicit through the direct bitmap test anchors so zero-sized destination views remain untouched and aligned-word copies preserve raw aligned words while zero-filling only the requested extension space`
 
 The helper-local zero-bit no-op proof must also stay explicit through:
 
@@ -290,6 +298,14 @@ The helper-local zero-bit no-op proof must also stay explicit through:
 That means `test "bitmap zero-bit helpers stay explicit no-ops"` stays present and review-visible whenever `zero()`, `orBits()`, `xorBits()`, `copy()`, or `scnprintf()` changes. This helper-local test is the bounded proof that zero-bit windows keep the mutating helpers, boolean queries, and rendered empty-window path explicit without touching caller-visible storage or writing hidden bytes.
 
 - `PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes`
+
+The helper-local zero-bit binary identity proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap zero-bit binary helpers stay explicit identity operations"` stays present and review-visible whenever `andBits()`, `andNotBits()`, `bitmap_and()`, `bitmap_andnot()`, `complement()`, `bitmap_complement()`, `equal()`, `bitmap_equal()`, `intersects()`, `bitmap_intersects()`, `subset()`, or `bitmap_subset()` changes. This helper-local test is the bounded proof that zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift from out-of-range state.
+
+- `PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor so zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift`
 
 The helper-local bitmap Linux-style alias proof must also stay explicit through:
 
@@ -333,7 +349,7 @@ That means `test "strtobool accepts common Linux forms"`, `test "strlcpy copies 
 
 The direct helper-local follow-up `test "memchrInv follows the earliest dirty byte as long buffers change"` must also stay review-visible whenever `memchrInv()` changes. The shared Phase 1 fixture still pins one fixed first-dirty-byte position and the all-clean case, so this direct follow-up remains the owning proof that the earliest mismatch advances correctly as later dirty bytes become the next live divergence instead of drifting to a stale earlier offset.
 
-The direct helper-local follow-up test `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` must also stay review-visible whenever `trimSpaces()` or `strim()` changes. The shared Phase 1 string fixture still records the trimmed bytes but not the preserved tail bytes beyond the first terminator, so this direct follow-up remains the owning proof that trailing-whitespace trimming stops at the first embedded NUL instead of mutating bytes past the C-string boundary.
+The direct helper-local follow-up test `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` must also stay review-visible whenever `trimSpaces()`, `strim()` changes. The shared Phase 1 string fixture still records the trimmed bytes but not the preserved tail bytes beyond the first terminator, so this direct follow-up remains the owning proof that trailing-whitespace trimming stops at the first embedded NUL instead of mutating bytes past the C-string boundary.
 
 ## Rollback
 
