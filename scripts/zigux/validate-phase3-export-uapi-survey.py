@@ -15,10 +15,6 @@ WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
-EXPORT_UAPI_TEST = Path("zigux/tests/phase3_export_uapi.zig")
-EXPORT_UAPI_BUILD = Path("zigux/tests/phase3_export_uapi_build.zig")
-EXPORT_UAPI_LAYOUT = Path("zigux/tests/phase3_export_uapi_layout.zig")
-EXPORT_UAPI_LAYOUT_BUILD = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 BUILD_FILE = Path("zigux/tests/build.zig")
 MAKEFILE = Path("zigux/Makefile")
 VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
@@ -28,19 +24,31 @@ PROVENANCE = (
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`",
 )
 SURVEY_LINES = (
-    "`PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-packet-local-replay-readback-plus-shared-review-surface-refresh`",
-    "`PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-packet-local-and-shared-phase3-build-route-wording-for-the-starter-surface`",
+    "`PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`",
+    "`PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`",
     f"`PHASE3_EXPORT_SHIM_PATH={EXPORT_SHIM.as_posix()}`",
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`",
     f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`",
-    f"`PHASE3_EXPORT_UAPI_TEST_PATH={EXPORT_UAPI_TEST.as_posix()}`",
-    f"`PHASE3_EXPORT_UAPI_BUILD_PATH={EXPORT_UAPI_BUILD.as_posix()}`",
-    f"`PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT.as_posix()}`",
-    f"`PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH={EXPORT_UAPI_LAYOUT_BUILD.as_posix()}`",
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_MAKEFILE_PATH={MAKEFILE.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
+)
+FORBIDDEN_SURVEY_MARKERS = (
+    "PHASE3_EXPORT_UAPI_TEST_PATH=",
+    "PHASE3_EXPORT_UAPI_BUILD_PATH=",
+    "PHASE3_EXPORT_UAPI_LAYOUT_PATH=",
+    "PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH=",
+    "phase3_export_uapi.zig",
+    "phase3_export_uapi_build.zig",
+    "phase3_export_uapi_layout.zig",
+    "phase3_export_uapi_layout_build.zig",
+)
+FORBIDDEN_SCRIPTS_README_MARKERS = (
+    "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/phase3_export_uapi_build.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 
@@ -99,10 +107,6 @@ def validate(root: Path) -> list[str]:
         EXPORT_SHIM,
         UAPI_VERSION,
         UAPI_DEV_T,
-        EXPORT_UAPI_TEST,
-        EXPORT_UAPI_BUILD,
-        EXPORT_UAPI_LAYOUT,
-        EXPORT_UAPI_LAYOUT_BUILD,
         BUILD_FILE,
         MAKEFILE,
         VALIDATOR,
@@ -118,6 +122,9 @@ def validate(root: Path) -> list[str]:
     require_one_of(issues, survey_text, "survey_provenance", PROVENANCE)
     for marker in SURVEY_LINES:
         require_exact(issues, survey_text, "survey_marker", marker)
+    for marker in FORBIDDEN_SURVEY_MARKERS:
+        if marker in survey_text:
+            issues.append(f"forbidden_survey_marker:{marker}")
 
     for key, rel in (
         ("PHASE3_EXPORT_SHIM_BLOB_SHA", EXPORT_SHIM),
@@ -150,24 +157,6 @@ def validate(root: Path) -> list[str]:
             "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
             'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {',
         ),
-        EXPORT_UAPI_TEST: (
-            'const uapi_dev_t = @import("uapi_dev_t");',
-            'test "phase3 export shim and uapi share the bounded boundary-header contract" {',
-            'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {',
-        ),
-        EXPORT_UAPI_BUILD: (
-            '.root_source_file = b.path("../uapi/dev_t.zig"),',
-            'root_module.addImport("uapi_dev_t", uapi_dev_t_module);',
-            'b.step("test", "Run Phase 3 export/UAPI behavior tests")',
-        ),
-        EXPORT_UAPI_LAYOUT: (
-            'test "phase3 export shim and uapi keep canonical boundary layout" {',
-            'const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
-        ),
-        EXPORT_UAPI_LAYOUT_BUILD: (
-            '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
-            'b.step("test", "Run Phase 3 export/UAPI layout tests")',
-        ),
         MAKEFILE: (
             "phase3-validate:",
             "phase3-abi:",
@@ -180,15 +169,25 @@ def validate(root: Path) -> list[str]:
             if marker not in text:
                 issues.append(f"missing_marker:{rel.as_posix()}:{marker}")
 
+    docs_text = (root / DOCS_README).read_text(encoding="utf-8")
     for marker in (
         "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
         "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
         "`zig build phase3-test --build-file zigux/tests/build.zig`",
         "`make -C zigux phase3`",
     ):
-        require_exact(issues, (root / DOCS_README).read_text(encoding="utf-8"), "docs_root_marker", marker)
+        require_exact(issues, docs_text, "docs_root_marker", marker)
 
-    require_exact(issues, (root / SCRIPTS_README).read_text(encoding="utf-8"), "scripts_readme_marker", "`validate-phase3-export-uapi-survey.py`")
+    scripts_readme_text = (root / SCRIPTS_README).read_text(encoding="utf-8")
+    require_exact(
+        issues,
+        scripts_readme_text,
+        "scripts_readme_marker",
+        "`validate-phase3-export-uapi-survey.py`",
+    )
+    for marker in FORBIDDEN_SCRIPTS_README_MARKERS:
+        if marker in scripts_readme_text:
+            issues.append(f"forbidden_scripts_readme_marker:{marker}")
 
     workflow_lines = [line.strip() for line in (root / WORKFLOW).read_text(encoding="utf-8").splitlines()]
     for marker in (
@@ -209,7 +208,7 @@ def validate(root: Path) -> list[str]:
 
 
 def build_valid_workspace(root: Path) -> None:
-    write(root / EXPORT_SHIM, '\n'.join((
+    write(root / EXPORT_SHIM, "\n".join((
         'const uapi_version = @import("uapi_version");',
         "pub const Header = uapi_version.Header;",
         "pub const HeaderCompatibility = uapi_version.Compatibility;",
@@ -217,44 +216,22 @@ def build_valid_workspace(root: Path) -> None:
         'test "phase3 export shim relays compatibility through explicit status packets" {}',
         "",
     )))
-    write(root / UAPI_VERSION, '\n'.join((
+    write(root / UAPI_VERSION, "\n".join((
         "pub const Header = extern struct {};",
         "pub const Compatibility = enum { canonical, future_compatible };",
         "pub fn compatibility(header: Header) ?Compatibility { _ = header; return null; }",
         'test "phase3 uapi evaluation keeps requested boundary shape explicit" {}',
         "",
     )))
-    write(root / UAPI_DEV_T, '\n'.join((
+    write(root / UAPI_DEV_T, "\n".join((
         "pub const EncodeError = error{};",
         "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }",
         "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }",
         'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {}',
         "",
     )))
-    write(root / EXPORT_UAPI_TEST, '\n'.join((
-        'const uapi_dev_t = @import("uapi_dev_t");',
-        'test "phase3 export shim and uapi share the bounded boundary-header contract" {}',
-        'test "phase3 uapi dev_t starter keeps encode and range parity explicit" { _ = uapi_dev_t; }',
-        "",
-    )))
-    write(root / EXPORT_UAPI_BUILD, '\n'.join((
-        '.root_source_file = b.path("../uapi/dev_t.zig"),',
-        'root_module.addImport("uapi_dev_t", uapi_dev_t_module);',
-        'b.step("test", "Run Phase 3 export/UAPI behavior tests")',
-        "",
-    )))
-    write(root / EXPORT_UAPI_LAYOUT, '\n'.join((
-        'test "phase3 export shim and uapi keep canonical boundary layout" {}',
-        'const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
-        "",
-    )))
-    write(root / EXPORT_UAPI_LAYOUT_BUILD, '\n'.join((
-        '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
-        'b.step("test", "Run Phase 3 export/UAPI layout tests")',
-        "",
-    )))
     write(root / BUILD_FILE, "// shared phase3 build route\n")
-    write(root / MAKEFILE, '\n'.join((
+    write(root / MAKEFILE, "\n".join((
         "phase3-validate:",
         "phase3-abi:",
         "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
@@ -262,7 +239,7 @@ def build_valid_workspace(root: Path) -> None:
         "",
     )))
     write(root / VALIDATOR, "# validator placeholder\n")
-    write(root / DOCS_README, '\n'.join((
+    write(root / DOCS_README, "\n".join((
         "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
         "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
         "- `zig build phase3-test --build-file zigux/tests/build.zig`",
@@ -270,7 +247,7 @@ def build_valid_workspace(root: Path) -> None:
         "",
     )))
     write(root / SCRIPTS_README, "- `validate-phase3-export-uapi-survey.py`\n")
-    write(root / WORKFLOW, '\n'.join((
+    write(root / WORKFLOW, "\n".join((
         "- name: Validate Phase 3 export/UAPI survey",
         "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "- name: Self-test Phase 3 export/UAPI survey",
@@ -279,7 +256,7 @@ def build_valid_workspace(root: Path) -> None:
         "  run: zig build phase3-test --build-file zigux/tests/build.zig",
         "",
     )))
-    write(root / SURVEY, '\n'.join((
+    write(root / SURVEY, "\n".join((
         "# Phase 3 Export Shim and UAPI Boundary Survey",
         "",
         "## Status",
@@ -289,6 +266,10 @@ def build_valid_workspace(root: Path) -> None:
         f"- `PHASE3_EXPORT_SHIM_BLOB_SHA={blob_sha(root / EXPORT_SHIM)}`",
         f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
         f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
+        "",
+        "## Live Boundary",
+        "",
+        "The starter export shim and starter UAPI companions stay on the shared Phase 3 route.",
         "",
     )))
 
@@ -304,11 +285,6 @@ def run_self_test() -> int:
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_UAPI_DEV_T_BLOB_SHA:"), issues
         build_valid_workspace(root)
 
-        write(root / EXPORT_UAPI_BUILD, "")
-        issues = validate(root)
-        assert f"missing_marker:{EXPORT_UAPI_BUILD.as_posix()}:root_module.addImport(\"uapi_dev_t\", uapi_dev_t_module);" in issues, issues
-        build_valid_workspace(root)
-
         write(root / SCRIPTS_README, "")
         assert validate(root) == ["missing_scripts_readme_marker:`validate-phase3-export-uapi-survey.py`"]
         build_valid_workspace(root)
@@ -321,12 +297,12 @@ def run_self_test() -> int:
         assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"]
         build_valid_workspace(root)
 
-        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
-            f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`",
-            "`PHASE3_UAPI_DEV_T_PATH=broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_survey_marker:`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`"]
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8") + "phase3_export_uapi.zig\n")
+        assert validate(root) == ["forbidden_survey_marker:phase3_export_uapi.zig"]
+        build_valid_workspace(root)
+
+        write(root / SCRIPTS_README, (root / SCRIPTS_README).read_text(encoding="utf-8") + "zigux/tests/phase3_export_uapi.zig\n")
+        assert validate(root) == ["forbidden_scripts_readme_marker:zigux/tests/phase3_export_uapi.zig"]
         build_valid_workspace(root)
 
         write(root / MAKEFILE, "phase3-validate:\n")
@@ -355,7 +331,7 @@ def main() -> int:
             print(issue)
         return 1
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=14")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=10")
     return 0
 
 
