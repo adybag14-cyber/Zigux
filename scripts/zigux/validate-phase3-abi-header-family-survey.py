@@ -12,6 +12,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 REQUIRED_MARKERS = (
     "include/linux/zigux.h",
     "include/zigux/abi.h",
+    "include/zigux/dev_t.h",
     "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
@@ -37,6 +38,7 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "include/zigux/dev_t.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/tests/README.md",
@@ -153,6 +155,12 @@ def run_self_test() -> int:
     if "shared reminder missing marker: scripts/zigux/README.md" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected scripts README marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("include/zigux/dev_t.h", "", 1))
+    if "include/zigux/dev_t.h" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected canonical dev_t header marker was not reported")
         return 1
 
     print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")
