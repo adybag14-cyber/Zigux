@@ -623,12 +623,113 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
+        docs_readme_path = base / DOCS_README_PATH
+        scripts_readme_path = base / SCRIPTS_README_PATH
+        tests_readme_path = base / TESTS_README_PATH
+        samples_readme_path = base / SAMPLES_README_PATH
         checklist_path = base / REVIEW_CHECKLIST_PATH
-        checklist = checklist_path.read_text(encoding="utf-8")
+        freeze_map_path = base / FREEZE_MAP_PATH
         lane_sequencing_path = base / PHASE9_LANE_SEQUENCING_PATH
         runtime_loader_path = base / RUNTIME_LOADER_PATH
         runtime_loader_contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        makefile_path = base / MAKEFILE_PATH
 
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace(PHASE9_NON_OWNER_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}")
+
+        write_fixture_tree(base)
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme + PHASE9_NON_OWNER_BOUNDARY_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"docs_readme_exact_count:{PHASE9_NON_OWNER_BOUNDARY_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme.replace(PHASE9_SCRIPTS_README_OWNER_MAP_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"scripts_readme:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}")
+
+        write_fixture_tree(base)
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme + PHASE9_SCRIPTS_README_OWNER_MAP_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"scripts_readme_exact_count:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace(REQUIRED_TESTS_README_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"tests_readme:{REQUIRED_TESTS_README_MARKERS[0]}")
+
+        write_fixture_tree(base)
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme + REQUIRED_TESTS_README_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"tests_readme_exact_count:{REQUIRED_TESTS_README_MARKERS[0]}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme.replace(REQUIRED_SAMPLES_README_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[2]}")
+
+        write_fixture_tree(base)
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme + REQUIRED_SAMPLES_README_MARKERS[2] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[2]}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(
+            freeze_map.replace(REQUIRED_FREEZE_MAP_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"freeze_map:{REQUIRED_FREEZE_MAP_MARKERS[0]}")
+
+        write_fixture_tree(base)
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(
+            freeze_map + REQUIRED_FREEZE_MAP_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"freeze_map_exact_count:{REQUIRED_FREEZE_MAP_MARKERS[0]}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
         checklist_path.write_text(
             checklist.replace(PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER, "", 1),
             encoding="utf-8",
@@ -692,7 +793,6 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
-        makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile.replace("phase9-runtime-loader-shared-tests:\n", "", 1),
@@ -862,7 +962,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=32")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
