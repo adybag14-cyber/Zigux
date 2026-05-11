@@ -143,6 +143,17 @@
         "rcu_do_batch"
       ],
       "rationale": "Callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded batch execution, so this seam is still coupled to live Tree RCU state rather than a narrow wrapper contract."
+    },
+    {
+      "id": "cpu-hotplug-callback-migration",
+      "summary": "Keep CPU hotplug enrollment, teardown, and callback migration in C while the survey records the callback-migration boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "rcutree_prepare_cpu",
+        "rcutree_offline_cpu",
+        "rcutree_migrate_callbacks"
+      ],
+      "rationale": "CPU hotplug still couples rcutree_prepare_cpu() enrollment, rcutree_offline_cpu() teardown, and callback migration to the live rcu_data and rcu_node hierarchy, so this path remains blocked on stay-in-C evidence instead of being a detachable tree_bridge wrapper seam."
     }
   ],
   "gaps": [
