@@ -86,3 +86,11 @@ test "phase4 perf baseline survey keeps coordination owners, both wrapper routes
     try std.testing.expectEqual(@as(u64, 7942141539243507472), @as(u64, 7942141539243507472));
     try std.testing.expectEqual(@as(u64, 109), @as(u64, 109));
 }
+
+test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
+    try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
+    try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
+
+    try std.testing.expectEqual(@as(u64, 4), @as(u64, 4));
+    try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));
+}
