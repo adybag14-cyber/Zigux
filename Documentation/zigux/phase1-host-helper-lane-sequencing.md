@@ -59,9 +59,9 @@ The earlier shared Phase 1 validator packet gap is now closed on current `master
 
 The queued Phase 1 closure-validator expected-manifest drift is already closed on current `master` too. `scripts/zigux/validate-phase1-closure.py` now carries the `tools/lib/find_bit.zig` tail-word inclusive-boundary anchor, its paired contract text, and the widened review-summary wording already present in `zigux/tests/fixtures/phase1_helper_manifest.json`.
 
-Fresh repo-first reread also shows one smaller closure-packet drift still open on current `master`. The direct string helper anchors and `zigux/tests/fixtures/phase1_helper_manifest.json` already keep the signed trailing-rest `memparse()` split explicit, but the compact `PHASE1_STRING_MEMPARSE_REVIEW=` summary in `Documentation/zigux/phase1-closure.md` still shortens that contract, and the paired exact-count marker in `scripts/zigux/validate-phase1-closure.py` still enforces the shorter wording.
+Fresh repo-first reread also shows the older compact Phase 1 string memparse follow-through is no longer a live blocker on current `master`. `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` both keep `PHASE1_STRING_MEMPARSE_REVIEW=` explicit with the signed trailing-rest split, signed-overflow saturation, and suffix-after-saturation cues still visible beside the direct string anchors and the shared manifest wording.
 
-That means the older shared-reminder follow-up and the queued closure-validator expected-manifest sync are no longer the next bounded steps. Fresh repo-first inspection closes the earlier tests-root, validator, and closure-validator omissions, and narrows the next honest host-tools follow-up to that newly observed string memparse closure-summary drift instead of replaying any of those already-landed repairs.
+That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, and the later string memparse closure-summary sync are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and leaves future host-tools follow-up to start from the next newly observed same-lane exact-check drift instead of replaying any of those already-landed repairs.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
@@ -80,26 +80,26 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed `tests_root_phase1_packet` validator sync in `scripts/zigux/validate-phase1.py`.
 - Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
 - Do not reopen the already-landed `validate-phase1-closure.py` expected-manifest sync for the `find_bit` tail-word inclusive-boundary packet.
-- Do not widen the next slot past the one remaining `PHASE1_STRING_MEMPARSE_REVIEW=` closure-summary sync until that exact closure note and checker wording is aligned with the shipped manifest and direct helper anchors.
+- Do not reopen the already-landed `PHASE1_STRING_MEMPARSE_REVIEW=` closure-summary sync unless a fresh repo-first reread finds a new exact wording drift across the closure note, validator, direct string anchors, or shared manifest.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
 ## Next Bounded Step
 
-Keep the next host-tools-alpha slot inside the one remaining shared Phase 1 closure-summary drift before reopening any helper-local work.
+Keep the next host-tools-alpha slot inside one freshly observed same-lane truthfulness or checker-local gap before reopening any helper-local work.
 
-Start with these already-shipped shared Phase 1 packet surfaces:
+Start with these already-shipped shared and direct Phase 1 packet surfaces:
 
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `tools/lib/string.zig`
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
 
-The next run should sync the compact `PHASE1_STRING_MEMPARSE_REVIEW=` closure summary and the paired exact-count marker in `scripts/zigux/validate-phase1-closure.py` so they explicitly keep the signed trailing-rest `memparse()` split aligned with the already-shipped direct helper anchors and manifest wording, without reopening any broader Phase 1 reminder packet.
+The next run should reread those Phase 1 closure, manifest, and shared-reminder surfaces together and choose only the next exact current-`master` mismatch that still remains after the already-landed tests-root, validator, closure-validator, and memparse-summary syncs.
 
-If that exact wording drift is already closed on a future reread, advance only to the next newly observed same-lane checker-local or review-surface mismatch that current `master` still leaves open.
-
-Until a fresh same-lane gap is observed, keep Phase 1 follow-up work on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+If no new same-lane drift is visible on that reread, keep Phase 1 follow-up parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
