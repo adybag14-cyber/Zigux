@@ -27,6 +27,7 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening fallback claims or release wording
 - keep the current smoke-first replay order explicit through `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 - if `zig` is unavailable on `PATH`, reuse that same smoke-first order through the shipped Make routes with `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing `phase12-validate` or another unshipped fallback route
+- keep `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` explicit as shared-tree raw-read anchors when GitHub contents reads degrade; they stay part of the shipped smoke-first packet and are not extra commit-pinned fallback artifacts
 
 ## Anti-Overlap Notes
 - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes
