@@ -191,6 +191,9 @@ jobs:
       - name: Check Phase 4 artifact-diff determinism directly
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
 
+      - name: Check Phase 4 gate evidence directly
+        run: python3 scripts/zigux/check-phase4-gate-evidence.py
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
