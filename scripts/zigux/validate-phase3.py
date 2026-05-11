@@ -17,6 +17,7 @@ REPO_FILES = (
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
+    Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
     Path("zigux/bindings/abi.zig"),
@@ -36,6 +37,7 @@ REPO_FILES = (
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/phase3_catalog.py"),
@@ -179,7 +181,29 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
         _write(root / next_step_rel, "# restored\n")
+        (root / validator_support_rel).unlink()
+        issues = validate_repo(root)
+        expected_validator_support_missing = f"missing repo file: {validator_support_rel.as_posix()}"
+        if expected_validator_support_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support note was not reported")
+            return 1
+        case_count += 1
+
+        support_validator_rel = Path("scripts/zigux/validate-phase3-validator-support-surface.py")
+        _write(root / validator_support_rel, "# restored\n")
+        (root / support_validator_rel).unlink()
+        issues = validate_repo(root)
+        expected_support_validator_missing = f"missing repo file: {support_validator_rel.as_posix()}"
+        if expected_support_validator_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support checker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / support_validator_rel, "# restored\n")
         _write(root / "zigux/Makefile", "phase3-validate:\n")
         issues = validate_repo(root)
         expected_marker = f"missing make marker: {MAKE_MARKERS[1]}"
