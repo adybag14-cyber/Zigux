@@ -64,11 +64,11 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expectEqualStrings("abe089ee72dbb13fa5d7de9c2b4ac8915b9a9658", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("613dd2d8ad020c72a523c8fb8b2fe51ae65e6bba", manifest.phase9_build_blob_sha);
+    try std.testing.expectEqualStrings("7f855cce2b91c156d5c0373b3b0fa096eab0aeda", manifest.phase9_build_blob_sha);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("21a570d4905b1f6397131839bc1857b786aa2f83", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("2939722c7f3bdcc0b8458278098fe58bfa47ec8a", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("9cd5eb0c16133197c9205cb775e8b4669d511e54", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
@@ -94,6 +94,6 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
 // runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
 // validator blob abe089ee72dbb13fa5d7de9c2b4ac8915b9a9658
-// phase4 matrix blob 21a570d4905b1f6397131839bc1857b786aa2f83
-// review checklist blob 2939722c7f3bdcc0b8458278098fe58bfa47ec8a
-// phase9 build blob 613dd2d8ad020c72a523c8fb8b2fe51ae65e6bba
+// phase4 matrix blob d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8
+// review checklist blob 9cd5eb0c16133197c9205cb775e8b4669d511e54
+// phase9 build blob 7f855cce2b91c156d5c0373b3b0fa096eab0aeda
