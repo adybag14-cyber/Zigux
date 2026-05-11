@@ -415,7 +415,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=13")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
