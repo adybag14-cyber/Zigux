@@ -1,0 +1,73 @@
+{
+  "lane_key": "P7-L04",
+  "phase": "Phase 7",
+  "anchor": "lib/string_helpers.c",
+  "roadmap_destinations": [
+    "lib/string_helpers.zig"
+  ],
+  "survey_summary": {
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_build_present": true,
+    "preexisting_phase7_doc_present": true,
+    "preexisting_phase7_helper_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase7-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_build.zig",
+      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the string_helpers runtime-safe leaf packet aligned with the parked helper tranche."
+    },
+    {
+      "id": "phase7-string-helpers-helper",
+      "status": "starter_landed",
+      "kind": "runtime_leaf_helper",
+      "zigux_destination": "lib/string_helpers.zig",
+      "why_now": "The roadmap names lib/string_helpers.zig directly, and the live runtime-safe leaf packet already keeps bounded formatting, escaping, allocator-backed duplication, and string-array ownership helpers reviewable without widening into broader ownership families."
+    },
+    {
+      "id": "phase7-string-helpers-dedicated-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
+      "why_now": "Dedicated Phase 7 tests keep whitespace trimming, size rendering, escape coverage, integer-array parsing, quotable duplication, and string-array teardown behavior reviewable around the landed helper packet."
+    },
+    {
+      "id": "phase7-string-helpers-shared-fixtures",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+      "why_now": "The serialized cases helper-local only fixture layer keeps deterministic escape and unescape review inputs explicit instead of leaving them split across ad hoc inline test bodies."
+    },
+    {
+      "id": "phase7-string-helpers-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase7-string-helpers-slice.md",
+      "why_now": "The slice note records the validator-first handoff, the bounded helper surface, and the no-sample boundary so this Phase 7 lane stays tied to the current product packet instead of drifting into broader parsing or allocation churn."
+    },
+    {
+      "id": "phase7-string-helpers-no-sample-boundary",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+      "why_now": "A dedicated no-sample boundary replay keeps the Phase 5-versus-Phase 7 separation explicit so string helper reviewability does not drift into an unapproved samples/zigux reference lane."
+    },
+    {
+      "id": "phase7-string-helpers-manifest-packet",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_manifest.json",
+      "why_now": "The machine-readable manifest packet keeps the landed helper, survey, boundary replay, and shared validation surfaces auditable from one current Phase 7 record instead of leaving them implicit in surrounding docs and checkers."
+    },
+    {
+      "id": "phase7-string-helpers-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_survey.zig",
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, helper-local review surfaces, and shared validator-backed route explicit without reopening helper behavior."
+    }
+  ]
+}
