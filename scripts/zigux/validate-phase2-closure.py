@@ -28,6 +28,8 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
     "shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
     "shared genksyms bridge selftest-alignment self-test: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`",
     "shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
@@ -643,6 +645,34 @@ def run_self_test_checks() -> list[str]:
             ],
         ),
         (
+            "closure_missing_tool_manifest_root_manifest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker != "`zigux/tests/fixtures/phase2_tool_manifest.json`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            ["phase2_closure:missing:`zigux/tests/fixtures/phase2_tool_manifest.json`"],
+        ),
+        (
+            "closure_missing_tool_manifest_artifact_manifest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker != "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`"
+            ],
+        ),
+        (
             "closure_missing_kconfig_selftest_alignment_marker",
             validate_required_markers(
                 "\n".join(
@@ -788,7 +818,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=18")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=20")
         return 0
 
     if issues:
