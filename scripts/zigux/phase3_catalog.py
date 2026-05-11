@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 RUNNER_MARKER_RE = re.compile(
     r"python3 scripts/zigux/run-phase3-checks.py --slug (?P<slug>[a-z0-9-]+)"
 )
+BUILD_DUMP_RE = re.compile(r"phase3_(?P<family>[a-z0-9_]+)_dump\.zig")
 
 
 @dataclass(frozen=True)
@@ -99,6 +100,16 @@ def discover_phase3_dump_families(root: Path = ROOT) -> set[str]:
     return families
 
 
+def discover_phase3_build_dump_families(root: Path = ROOT) -> set[str]:
+    build_path = root / "zigux/tests/build.zig"
+    if not build_path.exists():
+        return set()
+    return {
+        match.group("family")
+        for match in BUILD_DUMP_RE.finditer(build_path.read_text(encoding="utf-8"))
+    }
+
+
 def audit_dump_surface_reality(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     discovered_families = {
@@ -109,6 +120,20 @@ def audit_dump_surface_reality(root: Path = ROOT) -> list[str]:
     for family in sorted(discover_phase3_dump_families(root) - discovered_families):
         issues.append(
             f"phase3 dump lacks full slice packet: zigux/tests/phase3_{family}_dump.zig"
+        )
+    return issues
+
+
+def audit_build_surface_reality(root: Path = ROOT) -> list[str]:
+    issues: list[str] = []
+    discovered_families = {
+        family
+        for entry in discover_phase3_slices(root)
+        if (family := _dump_family_from_path(entry.dump_path)) is not None
+    }
+    for family in sorted(discover_phase3_build_dump_families(root) - discovered_families):
+        issues.append(
+            f"phase3 build surface lacks full slice packet: zigux/tests/phase3_{family}_dump.zig"
         )
     return issues
 
@@ -136,6 +161,7 @@ def audit_doc_sync(root: Path = ROOT) -> list[str]:
                 issues.append(f"missing artifact-diff marker: {marker}")
 
     issues.extend(audit_dump_surface_reality(root))
+    issues.extend(audit_build_surface_reality(root))
     return issues
 
 
@@ -179,9 +205,14 @@ def run_self_test() -> int:
             path = root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("python3 scripts/zigux/run-phase3-checks.py --slug abi\n", encoding="utf-8")
+        (root / "zigux/tests/build.zig").write_text(
+            'const abi_dump = "phase3_abi_dump.zig";\n',
+            encoding="utf-8",
+        )
         assert [entry.slug for entry in discover_phase3_slices(root)] == ["abi"]
         assert audit_doc_sync(root) == []
         assert audit_artifact_diff_reality(root) == []
+        assert audit_build_surface_reality(root) == []
 
         extra_dir = root / "zigux/tests/fixtures/phase3_bitmap_cpumask"
         extra_dir.mkdir(parents=True, exist_ok=True)
@@ -198,13 +229,24 @@ def run_self_test() -> int:
         assert audit_doc_sync(root) == [expected_dump_issue]
         stray_dump.unlink()
 
+        (root / "zigux/tests/build.zig").write_text(
+            'const abi_dump = "phase3_abi_dump.zig";\n'
+            'const stray_dump = "phase3_bitmap_cpumask_dump.zig";\n',
+            encoding="utf-8",
+        )
+        expected_build_issue = (
+            "phase3 build surface lacks full slice packet: "
+            "zigux/tests/phase3_bitmap_cpumask_dump.zig"
+        )
+        assert audit_build_surface_reality(root) == [expected_build_issue]
+        assert audit_doc_sync(root) == [expected_build_issue]
+
         artifact = root / "Documentation/zigux/artifact-diff.md"
         artifact.write_text(
             "python3 scripts/zigux/run-phase3-checks.py --slug abi\n"
             "python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask\n",
             encoding="utf-8",
         )
-        assert audit_doc_sync(root) == []
         assert audit_artifact_diff_reality(root) == [
             "artifact-diff documents unsupported Phase 3 slug: bitmap-cpumask"
         ]
@@ -216,11 +258,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Focused Phase 3 catalog helper.")
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--audit-doc-sync", action="store_true")
+    parser.add_argument("--audit-build-surface-reality", action="store_true")
     parser.add_argument("--audit-artifact-diff-reality", action="store_true")
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
-    if args.self_test:
+    if args.self-test:
         return run_self_test()
 
     entries = discover_phase3_slices()
@@ -235,6 +278,16 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE3_DOC_SYNC_AUDIT=pass")
+        return 0
+
+    if args.audit_build_surface_reality:
+        issues = audit_build_surface_reality()
+        if issues:
+            print("PHASE3_BUILD_SURFACE_REALITY=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+        print("PHASE3_BUILD_SURFACE_REALITY=pass")
         return 0
 
     if args.audit_artifact_diff_reality:
