@@ -41,6 +41,20 @@ const WinSize = extern struct {
     ws_ypixel: u16,
 };
 
+const HvcStruct = opaque {};
+
+const HvOps = extern struct {
+    get_chars: ?*const fn (vtermno: u32, buf: [*]u8, count: c_int) callconv(.c) c_int,
+    put_chars: ?*const fn (vtermno: u32, buf: [*]const u8, count: c_int) callconv(.c) c_int,
+    flush: ?*const fn (vtermno: u32, wait: bool) callconv(.c) c_int,
+    notifier_add: ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) c_int,
+    notifier_del: ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void,
+    notifier_hangup: ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void,
+    tiocmget: ?*const fn (hp: *HvcStruct) callconv(.c) c_int,
+    tiocmset: ?*const fn (hp: *HvcStruct, set: c_uint, clear: c_uint) callconv(.c) c_int,
+    dtr_rts: ?*const fn (hp: *HvcStruct, active: bool) callconv(.c) void,
+};
+
 fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
@@ -141,6 +155,20 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
     layout_assert.assertOffset(WinSize, "ws_ypixel", 6);
 }
 
+test "phase11 shared header parity survey keeps a bounded hv_ops callback-table layout proof" {
+    layout_assert.assertSize(HvOps, 72);
+    layout_assert.assertAlign(HvOps, 8);
+    layout_assert.assertOffset(HvOps, "get_chars", 0);
+    layout_assert.assertOffset(HvOps, "put_chars", 8);
+    layout_assert.assertOffset(HvOps, "flush", 16);
+    layout_assert.assertOffset(HvOps, "notifier_add", 24);
+    layout_assert.assertOffset(HvOps, "notifier_del", 32);
+    layout_assert.assertOffset(HvOps, "notifier_hangup", 40);
+    layout_assert.assertOffset(HvOps, "tiocmget", 48);
+    layout_assert.assertOffset(HvOps, "tiocmset", 56);
+    layout_assert.assertOffset(HvOps, "dtr_rts", 64);
+}
+
 test "phase11 shared header parity survey keeps the note pinned to the manifest provenance" {
     const manifest_json = try readFileAlloc(std.testing.allocator, "zigux/tests/phase11_uapi_header_parity_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -180,6 +208,16 @@ test "phase11 shared header parity survey keeps the exported hvc header declarat
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
     defer std.testing.allocator.free(hvc_header);
 
+    try expectContains(hvc_header, "struct hv_ops {");
+    try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
+    try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
+    try expectContains(hvc_header, "int (*flush)(uint32_t vtermno, bool wait);");
+    try expectContains(hvc_header, "int (*notifier_add)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_del)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_hangup)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "int (*tiocmget)(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "int (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");
+    try expectContains(hvc_header, "void (*dtr_rts)(struct hvc_struct *hp, bool active);");
     try expectContains(hvc_header, "MAX_NR_HVC_CONSOLES");
     try expectContains(hvc_header, "HVC_ALLOC_TTY_ADAPTERS");
     try expectContains(hvc_header, "extern int hvc_instantiate(uint32_t vtermno, int index,");
