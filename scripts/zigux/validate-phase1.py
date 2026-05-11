@@ -86,6 +86,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase1-installer-review-surfaces.py",
+    "scripts/zigux/check-phase1-installer-companion-checks.py",
     "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/validate-phase1.py",
