@@ -23,6 +23,14 @@ PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
 ]
 
+PHASE2_GENKSYMS_REQUIRED_SOURCE_MARKERS = [
+    "shared genksyms bridge selftest-alignment self-test: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`",
+    "shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
+    "direct genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
+    "direct genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
+    "the dedicated Phase 2 `genksyms` bridge packet remains the live `27-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
+]
+
 PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
@@ -104,6 +112,13 @@ def main() -> int:
             "phase2_closure",
         )
     )
+    issues.extend(
+        validate_required_markers(
+            closure_text,
+            PHASE2_GENKSYMS_REQUIRED_SOURCE_MARKERS,
+            "phase2_closure",
+        )
+    )
     issues.extend(validate_exact_makefile_runs(makefile_text))
 
     if args.self_test:
@@ -113,7 +128,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=10")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=15")
         return 0
 
     if issues:
