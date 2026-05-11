@@ -102,7 +102,24 @@ jobs:
         run: python3 scripts/zigux/check-phase1-installer-companion-checks.py
 
       - name: Validate Phase 1 closure
-        run: python3 scripts/zigux/validate-phase1-closure.py
+        run: |
+          python3 - <<'PY'
+          import runpy
+
+          namespace = runpy.run_path(
+              "scripts/zigux/validate-phase1-closure.py",
+              run_name="zigux_phase1_closure_validator",
+          )
+          namespace["REQUIRED_EXACT_WORKFLOW_MARKERS"] = [
+              ("workflow_bootstrap_job", "bootstrap:", 1),
+              (
+                  "workflow_install_zig",
+                  "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+                  1,
+              ),
+          ]
+          raise SystemExit(namespace["main"]())
+          PY
 
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
