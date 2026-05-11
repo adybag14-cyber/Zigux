@@ -22,6 +22,7 @@ REQUIRED_FILES = [
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/README.md": [
+        "zigux/tests/README.md",
         "zigux/tests/phase7_build.zig",
         "zigux/tests/phase7_cmdline.zig",
         "zigux/tests/phase7_cmdline_survey.zig",
@@ -125,6 +126,13 @@ def run_self_test() -> None:
         ("missing_phase7_build_file", "zigux/tests/phase7_build.zig"),
     ]
     marker_cases = [
+        (
+            "docs_readme_tests_readme_marker",
+            "Documentation/zigux/README.md",
+            "zigux/tests/README.md",
+            "",
+            "Documentation/zigux/README.md: zigux/tests/README.md",
+        ),
         (
             "docs_readme_cmdline_test_marker",
             "Documentation/zigux/README.md",
