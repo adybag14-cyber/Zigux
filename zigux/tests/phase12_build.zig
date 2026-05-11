@@ -77,6 +77,13 @@ pub fn build(b: *std.Build) void {
     });
     phase12_nvme_pci_module.addImport("nvme_pci", nvme_pci_module);
 
+    const phase12_nvme_pci_recovery_replay_module = b.createModule(.{
+        .root_source_file = b.path("phase12_nvme_pci_recovery_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_nvme_pci_recovery_replay_module.addImport("nvme_pci", nvme_pci_module);
+
     const phase12_nvme_pci_survey_module = b.createModule(.{
         .root_source_file = b.path("phase12_nvme_pci_survey.zig"),
         .target = target,
@@ -154,6 +161,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase12_nvme_pci_verify_tests = b.addRunArtifact(phase12_nvme_pci_verify_tests);
 
+    const phase12_nvme_pci_recovery_replay_tests = b.addTest(.{
+        .name = "phase12-nvme-pci-recovery-replay-tests",
+        .root_module = phase12_nvme_pci_recovery_replay_module,
+    });
+    const run_phase12_nvme_pci_recovery_replay_tests = b.addRunArtifact(phase12_nvme_pci_recovery_replay_tests);
+
     const phase12_nvme_pci_survey_tests = b.addTest(.{
         .name = "phase12-nvme-pci-survey-tests",
         .root_module = phase12_nvme_pci_survey_module,
@@ -211,6 +224,7 @@ pub fn build(b: *std.Build) void {
     const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
     smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);
     smoke_step.dependOn(&run_phase12_nvme_pci_verify_tests.step);
+    smoke_step.dependOn(&run_phase12_nvme_pci_recovery_replay_tests.step);
     smoke_step.dependOn(&run_phase12_virtio_net_tests.step);
     smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
     smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);
