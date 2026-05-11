@@ -65,9 +65,11 @@ Fresh repo-first inspection now also shows the installer companion checker is pa
 
 Fresh repo-first inspection now also shows the tighter tests-root installer companion note is already closed on current `master`. `zigux/tests/README.md` now names `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and the paired live checker route, and `scripts/zigux/check-phase1-installer-companion-checks.py` exact-checks that wording so future runs should not keep treating the tests-root reminder as the next same-lane deliverable.
 
-Broader shared reminder undercounts still remain in `Documentation/zigux/README.md`, the Phase 1 flow paragraph in `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md`, but those larger reminder surfaces should stay bounded to one exact same-lane repair per slot.
+Fresh repo-first inspection now also shows the broader docs-root and scripts-root installer companion reminders are already explicit on current `master`. `Documentation/zigux/README.md` names the dedicated installer-companion checker packet in the Phase 1 notes paragraph, and the Phase 1 flow paragraph in `scripts/zigux/README.md` lists both the checker and the same wider reminder packet.
 
-That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, the later string memparse closure-summary sync, and the newer tests-root installer companion repair are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and now leaves the next host-tools follow-up parked on one broader docs-root, scripts-root, or review-checklist reminder undercount instead of the already-landed tests-root companion note.
+That leaves `Documentation/zigux/review-checklist.md` as the smallest remaining broader reminder undercount on current `master`. A future same-lane slot should keep that reviewer-facing sync bounded to one exact repair instead of reopening the already-landed docs-root, scripts-root, or tests-root companion notes.
+
+That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, the later string memparse closure-summary sync, and the newer tests-root installer companion repair are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, closure-summary, docs-root, and scripts-root omissions, and now leaves the next host-tools follow-up parked on the remaining review-checklist reminder undercount instead of the already-landed companion notes.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, installer-companion, or helper-local anchor surfaces.
 
@@ -88,6 +90,7 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed `validate-phase1-closure.py` expected-manifest sync for the `find_bit` tail-word inclusive-boundary packet.
 - Do not reopen the already-landed `PHASE1_STRING_MEMPARSE_REVIEW=` closure-summary sync unless a fresh repo-first reread finds a new exact wording drift across the closure note, validator, direct string anchors, or shared manifest.
 - Do not reopen the already-landed tests-root installer companion note repair in the same slot as a broader docs-root, scripts-root, or review-checklist reminder sync.
+- Do not reopen the already-aligned docs-root or scripts-root installer companion reminder wording unless a fresh repo-first reread finds a new exact drift there.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, installer-companion, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
@@ -108,9 +111,9 @@ Start with these already-shipped shared and direct Phase 1 packet surfaces:
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-The next run should first reread `Documentation/zigux/README.md` together with `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, then land only the exact broader reminder repair that keeps the shipped installer companion checker packet equally explicit on one remaining summary surface.
+The next run should first reread `Documentation/zigux/review-checklist.md` together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, then land only the exact reviewer-facing reminder repair that keeps the shipped installer companion checker packet equally explicit on the checklist surface.
 
-Only after that single broader reminder repair lands should a later same-lane slot widen to another docs-root, scripts-root, or review-checklist reminder undercount if it still remains on current `master`.
+Only after that single review-checklist reminder repair lands should a later same-lane slot widen to another Phase 1 review-surface sync if a fresh repo-first reread still finds one.
 
 If no new same-lane drift is visible on that reread, keep Phase 1 follow-up parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, installer companion packet drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
