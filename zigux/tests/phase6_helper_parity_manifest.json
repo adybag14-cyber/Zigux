@@ -75,6 +75,45 @@
     "timing_sanity_only_helpers": []
   },
   "perf_thresholds": {
+    "base64": {
+      "replay": "zigux/tests/phase6_base64_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+      "measurement_mode": "relative_slowdown",
+      "cases": [
+        {
+          "label": "STD_PAD",
+          "variant_name": "std",
+          "padding": true,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "STD_NO_PAD",
+          "variant_name": "std",
+          "padding": false,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "URLSAFE_PAD",
+          "variant_name": "urlsafe",
+          "padding": true,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "URLSAFE_NO_PAD",
+          "variant_name": "urlsafe",
+          "padding": false,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        }
+      ]
+    },
     "bsearch": {
       "replay": "zigux/tests/phase6_bsearch.zig",
       "measurement_mode": "comparison_budget",
@@ -105,6 +144,23 @@
         "raw ascending and descending equality ranges through runtime-selected c abi comparator pointers",
         "packed-record member_size equality ranges through runtime-selected raw c abi comparator pointers"
       ]
+    },
+    "checksum": {
+      "replay": "zigux/tests/phase6_checksum_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+      "measurement_mode": "relative_slowdown",
+      "cases": [
+        {
+          "label": "64B",
+          "iterations": 200000,
+          "max_slowdown_pct": 150
+        },
+        {
+          "label": "1501B",
+          "iterations": 12000,
+          "max_slowdown_pct": 150
+        }
+      ]
     }
   },
   "fixture_posture": {
@@ -134,7 +190,9 @@
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-checksum-c-parity.py"
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py"
   ],
   "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
   "determinism_evidence": {
