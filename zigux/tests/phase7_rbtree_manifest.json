@@ -26,14 +26,14 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/rbtree.zig",
-      "why_now": "The roadmap names lib/rbtree.zig directly, and the live helper already carries the bounded duplicate-range, linked-node, cached-leftmost, eraseInit, replaceNodeCached, and postorder leaf-library surface."
+      "why_now": "The roadmap names lib/rbtree.zig directly, and the live helper already carries the bounded duplicate-range search, linked-node ownership, cached-leftmost erase and replacement, clearNode and eraseInit reset, and postorder leaf-library surface."
     },
     {
       "id": "phase7-rbtree-dedicated-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree.zig",
-      "why_now": "A dedicated Phase 7 gate keeps the shared rbtree starter surface reviewable around detached-node ownership, clearNode handoff, eraseInit reset, and traversal stability without widening into subsystem policy."
+      "why_now": "A dedicated Phase 7 gate keeps the shared rbtree starter surface reviewable around duplicate-key range traversal, detached-node ownership, clearNode handoff, cached-leftmost erase state, eraseInit reset, and traversal stability without widening into subsystem policy."
     },
     {
       "id": "phase7-rbtree-parity-fixture-layer",
