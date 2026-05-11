@@ -257,6 +257,14 @@ That means `test "bitmap scnprintf handles terminator-only and zero-length calle
 
 - `PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes`
 
+The helper-local empty-bitmap caller-buffer preservation proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"` stays present and review-visible whenever `bitmap.scnprintf()` changes. The shared Phase 1 parity fixture already locks the empty-bitmap return value, but this helper-local test is the bounded proof that a non-empty caller buffer stays byte-for-byte untouched when no bits are set instead of being silently zeroed or NUL-terminated.
+
+- `PHASE1_BITMAP_EMPTY_BUFFER_REVIEW=helper-local bitmap.scnprintf empty-bitmap caller-buffer preservation stays explicit through the direct bitmap test anchor so a non-empty caller buffer remains untouched when no bits are set instead of being silently zeroed or NUL-terminated`
+
 The helper-local bitmap copy alias proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
