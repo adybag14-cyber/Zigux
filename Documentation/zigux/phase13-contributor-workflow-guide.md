@@ -93,6 +93,7 @@ As of `2026-05-11`, current `master` still does not materialize these direct Pha
 - `drivers/tty/hvc/hvc_console.h`
 
 When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
+If a broad reminder still uses the stale camel-cased form `zigux/tests/phase13Devres_reviewability.zig`, read that as drift for the real underscored `zigux/tests/phase13_devres_reviewability.zig` companion rather than as a second valid Phase 13 path.
 
 ## Broad-Surface Repair Order
 
