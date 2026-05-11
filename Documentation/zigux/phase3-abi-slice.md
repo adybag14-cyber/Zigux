@@ -5,9 +5,9 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 ## Current Status
 
 - `PHASE3_ABI_MANIFEST_FILE_COUNT=shared ABI packet anchored by zigux/tests/fixtures/phase3_abi_manifest.json`
-- `PHASE3_CURRENT_INTEROP_GAP=the direct current-master readback still shows one bounded starter-UAPI drift because the shared ABI validator still names zigux/uapi/dev_t.zig even though the live public zigux/uapi tree still exposes only zigux/uapi/version.zig`
-- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=the bounded ABI lane still routes through scripts/zigux/check-phase3-abi.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, and scripts/zigux/validate-phase3-abi-header-family-survey.py, so the surviving validator-side UAPI requirement needs its own neighboring cleanup before python3 scripts/zigux/run-phase3-checks.py --slug abi can be trusted again`
-- `PHASE3_NEXT_SAFE_STEP=keep the current starter boundary version-only until a real zigux/uapi/dev_t.zig packet lands; keep the shared ABI note and manifest-backed file inventory aligned to current master and let the neighboring validator lane retire the extra UAPI requirement from the shared ABI validator and directly coupled reminder surfaces`
+- `PHASE3_CURRENT_INTEROP_GAP=the direct current-master readback now shows the starter zigux/uapi boundary intentionally staying version-only on current master, so any broader UAPI family still needs its own bounded packet instead of being implied by the shared ABI slice`
+- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=the bounded ABI lane still routes through scripts/zigux/check-phase3-abi.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, and scripts/zigux/validate-phase3-abi-header-family-survey.py, so the shared review packet must keep the shipped version-only starter surface truthful after the validator-side cleanup before python3 scripts/zigux/run-phase3-checks.py --slug abi can be trusted again`
+- `PHASE3_NEXT_SAFE_STEP=keep the current starter boundary version-only until a real zigux/uapi companion lands; keep the shared ABI note, manifest-backed file inventory, and directly coupled reminder surfaces aligned around zigux/uapi/version.zig so they do not recreate the retired dedicated export/UAPI replay family on current master`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 
 ## Packet Markers
