@@ -1,97 +1,219 @@
 #!/usr/bin/env python3
-"""Fail closed on the landed Phase 13 notifier priority-order convenience surface."""
+"""Fail closed on the current Phase 13 notifier priority-signal reminder surface."""
 
 from __future__ import annotations
 
 import argparse
+import shutil
+import tempfile
 from pathlib import Path
-from typing import Iterable
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-PASS_MARKER = "PHASE13_NOTIFIER_PRIORITY_SIGNAL=pass"
-SELF_TEST_CASE_COUNT = 5
+SCRIPT_PATH = "scripts/zigux/check-phase13-notifier-priority-signal.py"
+NOTIFIER_SURVEY_PATH = "Documentation/zigux/phase13-notifier-list-survey.md"
+RELEASE_NOTES_PATH = "Documentation/zigux/phase13-release-notes-survey.md"
+TRACEABILITY_PATH = "Documentation/zigux/phase13-roadmap-traceability.md"
+CONTRIBUTOR_GUIDE_PATH = "Documentation/zigux/phase13-contributor-workflow-guide.md"
+LANE_NOTE_PATH = "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
+CONTRIBUTOR_SYNC_PATH = "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+TESTS_COMPANION_PATH = "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+RELEASE_VALIDATOR_PATH = "scripts/zigux/validate-phase13-release.py"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
 
-FILE_SNIPPETS: dict[str, tuple[str, ...]] = {
-    "zigux/bindings/notifier_abi.zig": (
-        "pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
-        "pub const NotifierChainSummary",
-    ),
-    "zigux/helpers/notifier_chain_view.zig": (
-        "pub fn hasNonincreasingPriorityOrder",
-        "summarize keeps ordered terminated chains marked as nonincreasing priority",
-        "summarize clears the priority-order flag when priorities rise",
-    ),
-    "include/zigux/notifier_abi.h": (
-        "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
-        "zigux_notifier_chain_has_nonincreasing_priority_order",
-    ),
-    "zigux/tests/phase13_notifier_list_reviewability.zig": (
-        'expectContains(notifier_helper_text, "pub fn hasNonincreasingPriorityOrder")',
-        'expectContains(exported_notifier_abi_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING")',
-    ),
-    "Documentation/zigux/phase13-notifier-list-survey.md": (
-        "nonincreasing-priority signal",
-        "check-phase13-notifier-priority-signal.py",
-    ),
-}
+REQUIRED_FILES = (
+    SCRIPT_PATH,
+    NOTIFIER_SURVEY_PATH,
+    RELEASE_NOTES_PATH,
+    TRACEABILITY_PATH,
+    CONTRIBUTOR_GUIDE_PATH,
+    LANE_NOTE_PATH,
+    CONTRIBUTOR_SYNC_PATH,
+    TESTS_COMPANION_PATH,
+    RELEASE_VALIDATOR_PATH,
+    SCRIPTS_README_PATH,
+)
+
+REQUIRED_NOTIFIER_SURVEY_MARKERS = (
+    "# Phase 13 Notifier List Survey",
+    "nonincreasing-priority signal",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "repo-reality gaps instead of independently shipped evidence",
+    "`make -C zigux phase13-validate`",
+)
+
+REQUIRED_RELEASE_NOTES_MARKERS = (
+    "Broad summaries should also keep the adjacent notifier evidence packet visible through the current materialized review surfaces:",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.",
+)
+
+REQUIRED_TRACEABILITY_MARKERS = (
+    "adjacent notifier evidence maps to Phase 13 release-surface truthfulness only",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "record them as repo-reality gaps instead of presenting them here as independently shipped evidence.",
+)
+
+REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
+    "Keep notifier evidence adjacent to that packet rather than treating it as a fifth helper anchor.",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "record them as adjacent repo-reality gaps instead of as independently shipped review evidence:",
+)
+
+REQUIRED_LANE_NOTE_MARKERS = (
+    "Adjacent notifier evidence stays in scope for release-surface truthfulness",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "keep them recorded as adjacent repo-reality gaps instead of shipped evidence.",
+)
+
+REQUIRED_CONTRIBUTOR_SYNC_MARKERS = (
+    "## Phase 13 contributor packet",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor",
+)
+
+REQUIRED_TESTS_COMPANION_MARKERS = (
+    "## Phase 13 tests-root packet",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
+)
+
+REQUIRED_RELEASE_VALIDATOR_MARKERS = (
+    '"scripts/zigux/check-phase13-notifier-priority-signal.py",',
+    '"Documentation/zigux/phase13-notifier-list-survey.md",',
+)
+
+REQUIRED_SCRIPTS_README_MARKERS = (
+    "Phase 13 flow -",
+    "`check-phase13-notifier-priority-signal.py`",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "adjacent release-surface evidence",
+)
 
 
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
 
 
-def missing_snippets(path: Path, snippets: Iterable[str]) -> list[str]:
-    text = read_text(path)
-    return [snippet for snippet in snippets if snippet not in text]
+def validate(root: Path) -> list[str]:
+    problems: list[str] = []
+    for rel_path in REQUIRED_FILES:
+        if not (root / rel_path).exists():
+            problems.append(f"missing-file:{rel_path}")
+    if problems:
+        return problems
 
-
-def validate(repo_root: Path) -> None:
-    missing_messages: list[str] = []
-    for relative_path, snippets in FILE_SNIPPETS.items():
-        path = repo_root / relative_path
-        if not path.is_file():
-            missing_messages.append(f"missing file: {relative_path}")
-            continue
-        missing = missing_snippets(path, snippets)
-        if missing:
-            missing_messages.extend(
-                f"missing snippet in {relative_path}: {snippet}" for snippet in missing
-            )
-
-    if missing_messages:
-        raise SystemExit("\n".join(missing_messages))
-
-    print(PASS_MARKER)
-
-
-def run_self_test() -> None:
-    cases = [
-        {"zigux/helpers/notifier_chain_view.zig": ("pub fn hasNonincreasingPriorityOrder",)},
-        {"include/zigux/notifier_abi.h": ("zigux_notifier_chain_has_nonincreasing_priority_order",)},
-        {"Documentation/zigux/phase13-notifier-list-survey.md": ("nonincreasing-priority signal",)},
-        {"zigux/tests/phase13_notifier_list_reviewability.zig": ('expectContains(notifier_helper_text, "pub fn hasNonincreasingPriorityOrder")',)},
-        {"zigux/bindings/notifier_abi.zig": ("pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",)},
-    ]
-    if len(cases) != SELF_TEST_CASE_COUNT:
-        raise SystemExit(
-            f"PHASE13_NOTIFIER_PRIORITY_SIGNAL_SELF_TEST_CASE_COUNT={len(cases)} expected={SELF_TEST_CASE_COUNT}"
-        )
-    print(
-        f"PHASE13_NOTIFIER_PRIORITY_SIGNAL_SELF_TEST=pass cases={SELF_TEST_CASE_COUNT}"
+    checks = (
+        ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS),
+        ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS),
+        ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS),
+        ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS),
+        ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS),
+        ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS),
+        ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS),
+        ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS),
+        ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
     )
+    for label, rel_path, markers in checks:
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                problems.append(f"missing-marker:{label}:{marker}")
+    return problems
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--self-test", action="store_true")
+def write_text(root: Path, rel_path: str, content: str) -> None:
+    path = root / rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def make_fixture_root(root: Path) -> None:
+    write_text(root, SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
+    write_text(root, NOTIFIER_SURVEY_PATH, "\n".join(REQUIRED_NOTIFIER_SURVEY_MARKERS) + "\n")
+    write_text(root, RELEASE_NOTES_PATH, "\n".join(REQUIRED_RELEASE_NOTES_MARKERS) + "\n")
+    write_text(root, TRACEABILITY_PATH, "\n".join(REQUIRED_TRACEABILITY_MARKERS) + "\n")
+    write_text(root, CONTRIBUTOR_GUIDE_PATH, "\n".join(REQUIRED_CONTRIBUTOR_GUIDE_MARKERS) + "\n")
+    write_text(root, LANE_NOTE_PATH, "\n".join(REQUIRED_LANE_NOTE_MARKERS) + "\n")
+    write_text(root, CONTRIBUTOR_SYNC_PATH, "\n".join(REQUIRED_CONTRIBUTOR_SYNC_MARKERS) + "\n")
+    write_text(root, TESTS_COMPANION_PATH, "\n".join(REQUIRED_TESTS_COMPANION_MARKERS) + "\n")
+    write_text(root, RELEASE_VALIDATOR_PATH, "\n".join(REQUIRED_RELEASE_VALIDATOR_MARKERS) + "\n")
+    write_text(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
+
+
+def assert_missing_case(root: Path, label: str, rel_path: str, needle: str) -> None:
+    text = read_text(root, rel_path)
+    if needle not in text:
+        raise SystemExit(f"self-test-fixture-missing:{label}")
+    write_text(root, rel_path, text.replace(needle, "", 1))
+    problems = validate(root)
+    expected = f"missing-marker:{label}:{needle}"
+    if expected not in problems:
+        raise SystemExit(f"self-test-mismatch:{label}:{problems}")
+
+
+def run_self_test() -> int:
+    cases = 1
+    with tempfile.TemporaryDirectory(prefix="zigux_phase13_notifier_signal_") as tmp:
+        baseline_root = Path(tmp) / "baseline"
+        make_fixture_root(baseline_root)
+        baseline = validate(baseline_root)
+        if baseline:
+            raise SystemExit(f"self-test-baseline-failed:{baseline}")
+
+        mutations = (
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
+            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[2]),
+            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[2]),
+            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[2]),
+            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[2]),
+            ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[2]),
+        )
+        for label, rel_path, needle in mutations:
+            case_root = Path(tmp) / f"{label}_{cases}"
+            shutil.copytree(baseline_root, case_root)
+            assert_missing_case(case_root, label, rel_path, needle)
+            cases += 1
+
+    print("PHASE13_NOTIFIER_PRIORITY_SIGNAL_SELF_TEST=pass")
+    print(f"PHASE13_NOTIFIER_PRIORITY_SIGNAL_SELF_TEST_CASE_COUNT={cases}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 13 notifier priority-signal reminder surfaces."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage.")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path(__file__).resolve().parents[2],
+        help="Repository root to validate.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
-        run_self_test()
-        return
+        return run_self_test()
 
-    validate(REPO_ROOT)
+    problems = validate(args.root)
+    if problems:
+        print("PHASE13_NOTIFIER_PRIORITY_SIGNAL=fail")
+        print("PHASE13_NOTIFIER_PRIORITY_SIGNAL_PROBLEMS_START")
+        for problem in problems:
+            print(problem)
+        print("PHASE13_NOTIFIER_PRIORITY_SIGNAL_PROBLEMS_END")
+        return 1
+
+    print("PHASE13_NOTIFIER_PRIORITY_SIGNAL=pass")
+    print(f"PHASE13_NOTIFIER_PRIORITY_SIGNAL_ROOT={args.root}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
