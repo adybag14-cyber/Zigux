@@ -21,6 +21,8 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
 - shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
+- shared kconfig README alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test`
+- shared kconfig README alignment gate: `python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py`
 - shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
 - shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
 - shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
