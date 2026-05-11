@@ -26,9 +26,10 @@ Treat those anchors as the approved Phase 5 destination set unless the roadmap c
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-11 confirmed that current `master` does carry the shared Phase 5 contributor surfaces below:
+Fresh repo-first inspection on 2026-05-11 confirmed that current `master` does carry these shared Phase 5 contributor surfaces:
 
 * `Documentation/zigux/phase5-sample-review-guide.md`
+* `Documentation/zigux/phase5-kfifo-sample-survey.md`
 * `Documentation/zigux/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
@@ -37,7 +38,7 @@ Fresh repo-first inspection on 2026-05-11 confirmed that current `master` does c
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
 
-That same repo-first inspection did **not** confirm the concrete sample-and-test artifact packet that those shared docs currently describe as already landed. Direct contents reads for these claimed Phase 5 sample and test paths returned not found on current `master`:
+That same repo-first inspection did not confirm the concrete four-sample artifact packet that several of those shared surfaces currently describe as already landed. Direct contents reads for these claimed Phase 5 sample and test paths returned not found on current `master`:
 
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
@@ -54,7 +55,14 @@ That same repo-first inspection did **not** confirm the concrete sample-and-test
 * `zigux/tests/phase5_trace_events_sample.zig`
 * `zigux/tests/phase5_trace_events_sample_manifest.json`
 
-Because those concrete artifact paths are not presently readable from current `master`, do not describe the full four-sample packet as shipped evidence until the sample files, tests, manifests, and shared build entrypoint are restorable and directly visible again.
+The same inspection also confirmed that the per-sample survey layer is only partially readable right now:
+
+* `Documentation/zigux/phase5-kfifo-sample-survey.md` is directly readable on current `master`
+* `Documentation/zigux/phase5-kobject-sample-survey.md` returned not found
+* `Documentation/zigux/phase5-kretprobe-sample-survey.md` returned not found
+* `Documentation/zigux/phase5-trace-events-sample-survey.md` returned not found
+
+Because the repo currently exposes only a partial Phase 5 readback surface, do not describe the full four-sample packet as shipped evidence until the sample files, paired tests, paired manifests, shared `phase5_build.zig` entrypoint, and the missing sibling survey notes are all directly visible again on current `master`.
 
 The same inspection also confirmed that later runtime-facing guidance is still present in shared docs. Keep those later runtime-oriented sample families under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence.
 
@@ -67,7 +75,13 @@ Until the concrete Phase 5 sample artifacts are directly visible again, same-lan
 * one missing-path or shared-route inventory repair at a time
 * one concrete sample-restoration step at a time once the missing artifact packet can be re-established safely
 
-Do not reopen sample behavior broadly, and do not claim the four-sample packet is landed, unless a fresh repo-first inspection can directly read the sample files, their paired test or manifest artifacts, and the shared `phase5_build.zig` entrypoint on current `master`.
+Treat the current Phase 5 packet as partially readable rather than fully landed:
+
+* `Documentation/zigux/phase5-kfifo-sample-survey.md` can still serve as one directly readable sample-local note
+* shared docs that describe all four sample files, all four paired test packets, or the shared `phase5_build.zig` route as present should be treated as stale until the repo contents are readable again
+* local `make -C zigux phase5-test`, `make -C zigux phase5`, and workflow references to `zig build test --build-file zigux/tests/phase5_build.zig --summary all` are contributor-surface claims right now, not direct proof that the underlying Phase 5 build entrypoint is currently readable on `master`
+
+Do not reopen sample behavior broadly, and do not claim the four-sample packet is landed, unless a fresh repo-first inspection can directly read the sample files, their paired test or manifest artifacts, the shared `phase5_build.zig` entrypoint, and the sibling survey notes on current `master`.
 
 ## Boundary reminders
 
@@ -93,6 +107,7 @@ Before landing a Phase 5 change, confirm:
 * the roadmap anchor is one of the four approved Linux sample paths listed above
 * the change says clearly whether it touches shared contributor guidance or one specific sample-restoration packet
 * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
+* if a shared doc claims a sample-local survey note is part of the shipped packet, that exact survey note path is directly readable instead of being inferred from a sibling sample or from older wording
 * if a shared doc claims a sample-local replay route, the corresponding sample file, paired tests, paired manifest, and build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone
 * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
