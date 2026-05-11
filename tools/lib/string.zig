@@ -120,6 +120,10 @@ pub fn removeSpaces(buf: []u8) []u8 {
     return buf[0..write_idx];
 }
 
+pub fn remove_spaces(buf: []u8) []u8 {
+    return removeSpaces(buf);
+}
+
 pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     for (buf, 0..) |*ch, idx| {
         if (ch.* == 0) {
@@ -416,6 +420,10 @@ test "skip trim remove and replace spaces work in place" {
     var remove_cstr_buf = [_]u8{ 'a', ' ', 0, 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("a", removeSpaces(&remove_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 0, 0, 'b', ' ', 'c' }, &remove_cstr_buf);
+
+    var remove_alias_buf = [_]u8{ ' ', 'a', ' ', 'b', 0, 'x' };
+    try std.testing.expectEqualStrings("ab", remove_spaces(&remove_alias_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 'b', 0, 'x' }, &remove_alias_buf);
 
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), replaceChar(&replace_buf, '-', '_'));
