@@ -14,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 16
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 26
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -31,6 +31,9 @@ SELF_TEST_CASES = [
     "shared_validator_expected_self_test_case_count_drift",
     "bitmap_diff_survey_replay_marker_drift",
     "kprobe_gap_packet_presence_drift",
+    "kprobe_owner_drift",
+    "kprobe_validation_entrypoint_drift",
+    "kprobe_next_step_drift",
     "perf_baseline_packet_presence_drift",
     "perf_baseline_note_split_marker_drift",
     "perf_baseline_owner_drift",
@@ -89,6 +92,7 @@ REQUIRED_PROSE_MARKERS = [
     "Validation and Perf Team stays named as the decision owner",
     "phase4-bitmap-live-helper-replay-tests",
     "shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+    "the parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now also stays under the dedicated exact-readback checker",
 ]
 
 REQUIRED_SELF_TEST_CASE_MARKERS = [
@@ -97,6 +101,9 @@ REQUIRED_SELF_TEST_CASE_MARKERS = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "kprobe_owner_drift",
+    "kprobe_validation_entrypoint_drift",
+    "kprobe_next_step_drift",
     "test_fsmount_threshold_posture_drift",
     "test_fsmount_owner_drift",
     "missing_note_file",
@@ -123,6 +130,44 @@ BLOB_TARGETS = {
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA": "Documentation/zigux/review-checklist.md",
 }
+
+KPROBE_NOTE_REL = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
+KPROBE_MANIFEST_REL = Path("zigux/tests/phase4_kprobe_example_manifest.json")
+KPROBE_SURVEY_REL = Path("zigux/tests/phase4_kprobe_example_survey.zig")
+
+KPROBE_NOTE_MARKERS = [
+    "PHASE4_KPROBE_STATUS=parked_gap_packet_landed",
+    "PHASE4_KPROBE_C_ANCHOR=samples/kprobes/kprobe_example.c",
+    "PHASE4_KPROBE_CURRENT_LINUX_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+    "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey",
+    "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig",
+    "PHASE4_KPROBE_OWNER=Validation and Perf Team",
+    "PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team",
+    "Current `master` still does not ship `samples/zigux/kprobe_example.zig`.",
+]
+
+KPROBE_MANIFEST_EXPECTATIONS = {
+    "lane_key": "P4-L19",
+    "phase": "Phase 4",
+    "c_anchor": "samples/kprobes/kprobe_example.c",
+    "current_linux_replay": "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+    "dedicated_local_survey_wrapper": "make -C zigux phase4-kprobe-example-survey",
+    "validation_entrypoint": "zig test zigux/tests/phase4_kprobe_example_survey.zig",
+    "owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+    "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
+    "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
+    "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
+}
+
+KPROBE_SURVEY_MARKERS = [
+    'test "phase4 kprobe survey keeps the parked gap packet explicit" {',
+    'test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {',
+    'test "phase4 kprobe survey keeps the bounded next step explicit" {',
+    '\\"dedicated_local_survey_wrapper\\": \\"make -C zigux phase4-kprobe-example-survey\\"',
+    '\\"validation_entrypoint\\": \\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\"',
+    '\\"owner\\": \\"Validation and Perf Team\\"',
+]
 
 TEST_FSMOUNT_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
 TEST_FSMOUNT_MANIFEST_REL = Path("zigux/tests/phase4_test_fsmount_manifest.json")
@@ -163,9 +208,9 @@ TEST_FSMOUNT_SURVEY_MARKERS = [
     'test "phase4 test_fsmount survey keeps threshold posture explicit" {',
     'test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {',
     'test "phase4 test_fsmount survey keeps the bounded next step explicit" {',
-    '\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-survey\"',
-    '\"threshold_posture\": \"reviewability_only_no_perf_threshold\"',
-    '\"owner\": \"Validation and Perf Team\"',
+    '\\"dedicated_linux_style_survey_wrapper\\": \\"make -C zigux phase4-test-fsmount-survey\\"',
+    '\\"threshold_posture\\": \\"reviewability_only_no_perf_threshold\\"',
+    '\\"owner\\": \\"Validation and Perf Team\\"',
 ]
 
 
@@ -186,6 +231,37 @@ def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(f"missing marker: {old}")
     return text.replace(old, new, 1)
+
+
+def validate_kprobe_packet(root: Path) -> list[str]:
+    failures: list[str] = []
+    note_path = root / KPROBE_NOTE_REL
+    manifest_path = root / KPROBE_MANIFEST_REL
+    survey_path = root / KPROBE_SURVEY_REL
+    for path in (note_path, manifest_path, survey_path):
+        if not path.exists():
+            failures.append(f"file:{path.relative_to(root).as_posix()}")
+    if failures:
+        return failures
+
+    note = read_text(note_path)
+    manifest = json.loads(read_text(manifest_path))
+    survey = read_text(survey_path)
+
+    for marker in KPROBE_NOTE_MARKERS:
+        if marker not in note:
+            failures.append(f"kprobe_note:{marker}")
+
+    for key, expected in KPROBE_MANIFEST_EXPECTATIONS.items():
+        actual = manifest.get(key)
+        if actual != expected:
+            failures.append(f"kprobe_manifest:{key}:{actual}:{expected}")
+
+    for marker in KPROBE_SURVEY_MARKERS:
+        if marker not in survey:
+            failures.append(f"kprobe_survey:{marker}")
+
+    return failures
 
 
 def validate_test_fsmount_packet(root: Path) -> list[str]:
@@ -254,6 +330,7 @@ def validate_root(root: Path) -> list[str]:
         if marker not in text:
             failures.append(f"blob_pin_mismatch:{key}:{digest}")
 
+    failures.extend(validate_kprobe_packet(root))
     failures.extend(validate_test_fsmount_packet(root))
     return failures
 
@@ -301,6 +378,7 @@ def write_fixture_tree(root: Path) -> None:
             "- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.",
             "- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet while shared CI perf coverage stays out of scope.",
             "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.",
+            "- the parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now also stays under the dedicated exact-readback checker so the current C anchor, direct validation entrypoint, local survey wrapper, owner, rollback owner, and absent-starter boundary fail closed together.",
             "",
             "## Current Conclusion",
             "- shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
@@ -308,6 +386,52 @@ def write_fixture_tree(root: Path) -> None:
         ]
     )
     write_text(root / GATE_EVIDENCE_REL, gate_evidence + "\n")
+
+    write_text(
+        root / KPROBE_NOTE_REL,
+        """# Phase 4 kprobe_example Gap Survey
+
+## Status
+- `PHASE4_KPROBE_STATUS=parked_gap_packet_landed`
+- `PHASE4_KPROBE_LANE_KEY=P4-L19`
+- `PHASE4_KPROBE_PHASE=Phase 4`
+- `PHASE4_KPROBE_C_ANCHOR=samples/kprobes/kprobe_example.c`
+- `PHASE4_KPROBE_CURRENT_LINUX_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
+- `PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey`
+- `PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
+- `PHASE4_KPROBE_OWNER=Validation and Perf Team`
+- `PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
+
+Current `master` still does not ship `samples/zigux/kprobe_example.zig`.
+""",
+    )
+
+    write_text(
+        root / KPROBE_MANIFEST_REL,
+        json.dumps(KPROBE_MANIFEST_EXPECTATIONS, indent=2) + "\n",
+    )
+
+    write_text(
+        root / KPROBE_SURVEY_REL,
+        """const std = @import("std");
+
+test "phase4 kprobe survey keeps the parked gap packet explicit" {
+    _ = std.testing.allocator;
+    _ = "\\\"dedicated_local_survey_wrapper\\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"";
+    _ = "\\\"validation_entrypoint\\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"";
+    _ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
+}
+
+test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {
+    _ = std.testing.allocator;
+}
+
+test "phase4 kprobe survey keeps the bounded next step explicit" {
+    _ = std.testing.allocator;
+}
+""",
+    )
 
     write_text(
         root / TEST_FSMOUNT_NOTE_REL,
@@ -650,6 +774,69 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        kprobe_note_path = root / KPROBE_NOTE_REL
+        original_kprobe_note = read_text(kprobe_note_path)
+        kprobe_note_path.write_text(
+            replace_once(
+                original_kprobe_note,
+                "PHASE4_KPROBE_OWNER=Validation and Perf Team",
+                "PHASE4_KPROBE_OWNER=Tooling and Validation Team",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "kprobe owner drift",
+            exact_failure="kprobe_note:PHASE4_KPROBE_OWNER=Validation and Perf Team",
+        ):
+            return 1
+        case_count += 1
+        kprobe_note_path.write_text(original_kprobe_note, encoding="utf-8")
+
+        kprobe_manifest_path = root / KPROBE_MANIFEST_REL
+        original_kprobe_manifest = json.loads(read_text(kprobe_manifest_path))
+        drifted_kprobe_manifest = dict(original_kprobe_manifest)
+        drifted_kprobe_manifest["validation_entrypoint"] = "zig build broken-entrypoint"
+        kprobe_manifest_path.write_text(
+            json.dumps(drifted_kprobe_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "kprobe validation entrypoint drift",
+            prefix_failure="kprobe_manifest:validation_entrypoint:",
+        ):
+            return 1
+        case_count += 1
+        kprobe_manifest_path.write_text(
+            json.dumps(original_kprobe_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        kprobe_survey_path = root / KPROBE_SURVEY_REL
+        original_kprobe_survey = read_text(kprobe_survey_path)
+        kprobe_survey_path.write_text(
+            replace_once(
+                original_kprobe_survey,
+                'test "phase4 kprobe survey keeps the bounded next step explicit" {',
+                'test "phase4 kprobe survey drifted next step" {',
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "kprobe next-step drift",
+            exact_failure=(
+                'kprobe_survey:test "phase4 kprobe survey keeps the bounded next step explicit" {'
+            ),
+        ):
+            return 1
+        case_count += 1
+        kprobe_survey_path.write_text(original_kprobe_survey, encoding="utf-8")
 
         gate_evidence_path.write_text(
             replace_once(
