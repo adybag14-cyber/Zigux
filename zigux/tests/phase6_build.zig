@@ -142,6 +142,19 @@ pub fn build(b: *std.Build) void {
     const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
     hexdump_test_step.dependOn(&run_hexdump_tests.step);
 
+    const hexdump_perf_matrix_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump_perf_matrix.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_perf_matrix_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
+
+    const hexdump_perf_matrix_tests = b.addTest(.{
+        .name = "phase6-hexdump-perf-matrix-tests",
+        .root_module = hexdump_perf_matrix_root_module,
+    });
+    const run_hexdump_perf_matrix_tests = b.addRunArtifact(hexdump_perf_matrix_tests);
+
     const hexdump_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_hexdump_perf.zig"),
         .target = target,
@@ -171,5 +184,6 @@ pub fn build(b: *std.Build) void {
     checksum_perf_step.dependOn(&run_checksum_perf.step);
 
     const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");
+    hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);
     hexdump_perf_step.dependOn(&run_hexdump_perf.step);
 }
