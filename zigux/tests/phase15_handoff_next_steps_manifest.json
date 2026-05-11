@@ -71,7 +71,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "If the compact docs-root Phase 15 reminder still understates the parked maintenance notes, route that repair to `shared-summaries` first and reopen this lane only if the dedicated handoff packet itself drifts.",
+    "If the compact docs-root Phase 15 reminder still understates the parked maintenance notes, route that repair to `shared-summaries` first by restating `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md`; reopen this lane only if the dedicated handoff packet itself drifts.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
