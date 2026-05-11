@@ -62,11 +62,12 @@
   "handoff": {
     "current_mode": "maintenance_mode",
     "replay_commands": [
+      "make -C zigux phase15-validate",
       "zig build test --build-file zigux/tests/phase15_build.zig",
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice"
+    "next_step": "because current `master` still has `evidence_packet_stale_or_contradictory` drift between the shared Phase 15 reminders and the actually shipped companion files, reread `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together and either add one missing companion artifact or repair one overclaiming shared summary before any blocker-posture discussion"
   },
   "gaps": [
     {
