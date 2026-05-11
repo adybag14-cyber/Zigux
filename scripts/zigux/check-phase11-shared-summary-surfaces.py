@@ -46,6 +46,7 @@ MARKERS = {
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "`make -C zigux phase11`",
         "five shipped Phase 11 checker scripts on `master`",
+        "the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -57,7 +58,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 6
 
 
 class CheckError(RuntimeError):
@@ -113,6 +114,7 @@ def run_self_test() -> None:
             (FILES["review_checklist"], MARKERS["review_checklist"][3]),
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
+            (FILES["tests_root"], MARKERS["tests_root"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][2]),
         ]
 
