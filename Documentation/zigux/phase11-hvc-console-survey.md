@@ -41,6 +41,7 @@ The bounded starter and its archival replay now keep these focused cues explicit
 * `__hvc_poll` drain-order summary
 * `hvc_hangup()` disconnect summary
 * `hvc_remove()` handoff summary
+* `hvc_cleanup()` tty-port release handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`
 * exported-helper signature proof for the bounded helper-facing HVC surface
