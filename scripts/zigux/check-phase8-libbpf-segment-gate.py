@@ -11,24 +11,69 @@ import tempfile
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 
-REQUIRED_FILES = [
+SHARED_REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase8.py",
+    "scripts/zigux/check-phase8-libbpf-shard-routes.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
+]
+
+LEGACY_SEGMENT_PACKET_FILES = [
+    "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "zigux/tests/phase8_libbpf_segments.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 
-REQUIRED_MARKERS = {
+SHARED_REQUIRED_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
+    ],
+    "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
+        "### 3. Libbpf helper lane",
+        "### 4. Shared wording lane",
+        "default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`",
+        "default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "if the change touches the shared parked Phase 8 libbpf packet",
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "scripts/zigux/validate-phase8.py",
+    ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "make -C zigux phase8-validate",
+    ],
+    "scripts/zigux/validate-phase8.py": [
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "zigux/Makefile",
+        "zigux/tests/README.md",
+    ],
+    "scripts/zigux/check-phase8-libbpf-shard-routes.py": [
+        "### 4. Shared wording lane",
+        "Keep follow-up inside the shared wording lane",
+        "scripts/zigux/validate-phase8.py",
+    ],
+    "zigux/Makefile": [
+        "phase8-validate:",
+        "scripts/zigux/validate-phase8.py",
+    ],
+    "zigux/tests/README.md": [
+        "scripts/zigux/validate-phase8.py",
+        "make -C zigux phase8-validate",
+    ],
+}
+
+LEGACY_PACKET_REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
         "Run focused Phase 8 libbpf shard tests",
         "make -C zigux phase8-libbpf-segments-test",
     ],
@@ -64,7 +109,6 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-libbpf-segments-test",
     ],
     "zigux/Makefile": [
-        "phase8-validate:",
         "phase8-libbpf-segments-test:",
         "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
     ],
@@ -77,8 +121,42 @@ REQUIRED_MARKERS = {
         "phase8_libbpf_segments.zig",
     ],
     "tools/lib/bpf/zigux_segments/manifest.json": [
-        "\"surveyed_commit\":",
-        "\"segments\": [",
+        '"surveyed_commit":',
+        '"segments": [',
+    ],
+}
+
+PARKED_DRIFT_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Run focused Phase 8 libbpf shard tests",
+        "make -C zigux phase8-libbpf-segments-test",
+    ],
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        "zigux/tests/phase8_libbpf_segments_only_build.zig",
+        "zigux/tests/phase8_libbpf_segments.zig",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        "zigux/tests/phase8_libbpf_segments.zig",
+        "zigux/tests/phase8_libbpf_segments_only_build.zig",
+        "make -C zigux phase8-libbpf-segments-test",
+    ],
+    "scripts/zigux/README.md": [
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "zigux/tests/phase8_libbpf_segments_only_build.zig",
+        "make -C zigux phase8-libbpf-segments-test",
+    ],
+    "zigux/tests/README.md": [
+        "zigux/tests/phase8_libbpf_segments.zig",
+        "zigux/tests/phase8_libbpf_segments_only_build.zig",
+        "make -C zigux phase8-libbpf-segments-test",
+    ],
+    "zigux/Makefile": [
+        "phase8-libbpf-segments-test:",
+        "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
     ],
 }
 
@@ -91,7 +169,6 @@ SURVEYED_COMMIT_TEST_RE = re.compile(
 SURVEYED_COMMIT_MANIFEST_RE = re.compile(
     r'"surveyed_commit"\s*:\s*"([0-9a-f]{40})"'
 )
-
 
 FIXTURE_TEXT = {
     ".github/workflows/zigux-bootstrap.yml": """name: zigux-bootstrap
@@ -119,13 +196,22 @@ FIXTURE_TEXT = {
 """,
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": """# Phase 8 Tooling Lane Sequencing
 
+### 3. Libbpf helper lane
+- default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`
+- default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet
 - Documentation/zigux/phase8-libbpf-segment-survey.md
 - zigux/tests/phase8_libbpf_segments.zig
 - zigux/tests/phase8_libbpf_segments_only_build.zig
 - make -C zigux phase8-libbpf-segments-test
+
+### 4. Shared wording lane
+- Keep follow-up inside the shared wording lane
 """,
     "Documentation/zigux/review-checklist.md": """# Zigux Review Checklist
 
+- if the change touches the shared parked Phase 8 libbpf packet
+- Documentation/zigux/phase8-tooling-lane-sequencing.md
+- scripts/zigux/validate-phase8.py
 - Documentation/zigux/phase8-libbpf-segment-survey.md
 - tools/lib/bpf/zigux_segments/manifest.json
 - zigux/tests/phase8_libbpf_segments.zig
@@ -134,10 +220,24 @@ FIXTURE_TEXT = {
 """,
     "scripts/zigux/README.md": """# scripts/zigux
 
-- Documentation/zigux/phase8-libbpf-segment-survey.md
+- scripts/zigux/validate-phase8.py
+- scripts/zigux/check-phase8-libbpf-shard-routes.py
 - Documentation/zigux/phase8-tooling-lane-sequencing.md
+- make -C zigux phase8-validate
+- Documentation/zigux/phase8-libbpf-segment-survey.md
 - zigux/tests/phase8_libbpf_segments_only_build.zig
 - make -C zigux phase8-libbpf-segments-test
+""",
+    "scripts/zigux/validate-phase8.py": """# fixture
+Documentation/zigux/phase8-tooling-lane-sequencing.md
+scripts/zigux/check-phase8-libbpf-shard-routes.py
+zigux/Makefile
+zigux/tests/README.md
+""",
+    "scripts/zigux/check-phase8-libbpf-shard-routes.py": """# fixture
+### 4. Shared wording lane
+Keep follow-up inside the shared wording lane
+scripts/zigux/validate-phase8.py
 """,
     "zigux/Makefile": """phase8-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
@@ -147,6 +247,8 @@ phase8-libbpf-segments-test:
 """,
     "zigux/tests/README.md": """# zigux/tests
 
+- scripts/zigux/validate-phase8.py
+- make -C zigux phase8-validate
 - zigux/tests/phase8_libbpf_segments.zig
 - zigux/tests/phase8_libbpf_segments_only_build.zig
 - make -C zigux phase8-libbpf-segments-test
@@ -169,12 +271,38 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-def collect_missing_files(root: Path) -> list[str]:
-    return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
+def collect_missing_files(root: Path, rel_paths: list[str]) -> list[str]:
+    return [rel_path for rel_path in rel_paths if not (root / rel_path).exists()]
+
+
+def collect_missing_markers(root: Path, markers_by_file: dict[str, list[str]]) -> list[str]:
+    missing: list[str] = []
+    for rel_path, markers in markers_by_file.items():
+        path = root / rel_path
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                missing.append(f"{rel_path}:{marker}")
+    return missing
+
+
+def collect_present_markers(root: Path, markers_by_file: dict[str, list[str]]) -> list[str]:
+    present: list[str] = []
+    for rel_path, markers in markers_by_file.items():
+        path = root / rel_path
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in text:
+                present.append(f"{rel_path}:{marker}")
+    return present
 
 
 def required_marker_count() -> int:
-    return sum(len(markers) for markers in REQUIRED_MARKERS.values())
+    return sum(len(markers) for markers in SHARED_REQUIRED_MARKERS.values())
 
 
 def find_required_commit(text: str, pattern: re.Pattern[str], label: str) -> str:
@@ -184,18 +312,21 @@ def find_required_commit(text: str, pattern: re.Pattern[str], label: str) -> str
     return match.group(1)
 
 
-def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
-    missing_files = collect_missing_files(root)
-    if missing_files:
-        return missing_files, [], []
+def parked_wording_mode(root: Path) -> bool:
+    lane_note = root / "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+    if not lane_note.exists():
+        return False
+    text = lane_note.read_text(encoding="utf-8")
+    required = [
+        "### 4. Shared wording lane",
+        "default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`",
+        "default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet",
+    ]
+    return all(marker in text for marker in required)
 
-    missing_markers: list[str] = []
-    for rel_path, markers in REQUIRED_MARKERS.items():
-        text = read_text(root, rel_path)
-        for marker in markers:
-            if marker not in text:
-                missing_markers.append(f"{rel_path}:{marker}")
 
+def validate_legacy_segment_packet(root: Path) -> tuple[list[str], list[str]]:
+    missing_markers = collect_missing_markers(root, LEGACY_PACKET_REQUIRED_MARKERS)
     commit_sync_errors: list[str] = []
     try:
         note_commit = find_required_commit(
@@ -224,32 +355,57 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
                     f"tools/lib/bpf/zigux_segments/manifest.json:{manifest_commit}",
                 ]
             )
+    return missing_markers, commit_sync_errors
 
-    return [], missing_markers, commit_sync_errors
+
+def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str], str]:
+    missing_shared_files = collect_missing_files(root, SHARED_REQUIRED_FILES)
+    if missing_shared_files:
+        return missing_shared_files, [], [], [], "missing_shared_files"
+
+    missing_shared_markers = collect_missing_markers(root, SHARED_REQUIRED_MARKERS)
+    if missing_shared_markers:
+        return [], missing_shared_markers, [], [], "missing_shared_markers"
+
+    missing_legacy_files = collect_missing_files(root, LEGACY_SEGMENT_PACKET_FILES)
+    if not missing_legacy_files:
+        legacy_missing_markers, commit_sync_errors = validate_legacy_segment_packet(root)
+        return [], [], legacy_missing_markers, commit_sync_errors, "legacy_segment_packet"
+
+    if parked_wording_mode(root):
+        parked_surface_drift = collect_present_markers(root, PARKED_DRIFT_MARKERS)
+        return [], [], parked_surface_drift, [], "parked_wording_packet"
+
+    return missing_legacy_files, [], [], [], "missing_legacy_files"
 
 
-def clone_fixture_root(destination_root: Path) -> None:
+def clone_fixture_root(destination_root: Path, include_legacy_packet: bool = True) -> None:
     for rel_path, text in FIXTURE_TEXT.items():
+        if not include_legacy_packet and rel_path in LEGACY_SEGMENT_PACKET_FILES:
+            continue
         target = destination_root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
 
 
-def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
-    missing_files, missing_markers, commit_sync_errors = validate(root)
-    if missing_files:
-        raise SystemExit(
-            f"phase8-libbpf-segment-gate-self-test:{label}:unexpected_missing_files:{','.join(missing_files)}"
-        )
-    if commit_sync_errors:
-        raise SystemExit(
-            f"phase8-libbpf-segment-gate-self-test:{label}:unexpected_commit_sync:{','.join(commit_sync_errors)}"
-        )
-    if expected_marker not in missing_markers:
-        actual = ",".join(missing_markers) if missing_markers else "none"
-        raise SystemExit(
-            f"phase8-libbpf-segment-gate-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
-        )
+def expect_validation(
+    case: str,
+    root: Path,
+    expected_files: list[str],
+    expected_shared_markers: list[str],
+    expected_legacy_markers: list[str],
+    expected_commit_sync: list[str],
+    expected_mode: str,
+) -> None:
+    actual = validate(root)
+    expected = (
+        expected_files,
+        expected_shared_markers,
+        expected_legacy_markers,
+        expected_commit_sync,
+        expected_mode,
+    )
+    assert actual == expected, f"{case}: {actual!r} != {expected!r}"
 
 
 def run_self_test() -> int:
@@ -257,116 +413,52 @@ def run_self_test() -> int:
         tmp_root = Path(tmp_dir)
         clone_fixture_root(tmp_root)
 
-        missing_files, missing_markers, commit_sync_errors = validate(tmp_root)
-        if missing_files or missing_markers or commit_sync_errors:
-            raise SystemExit(
-                "phase8-libbpf-segment-gate-self-test:baseline_failed:"
-                f"files={','.join(missing_files) if missing_files else 'none'}:"
-                f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
-                f"commit_sync={','.join(commit_sync_errors) if commit_sync_errors else 'none'}"
-            )
+        expect_validation(
+            "legacy_packet_baseline",
+            tmp_root,
+            [],
+            [],
+            [],
+            [],
+            "legacy_segment_packet",
+        )
 
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace(
-                "make -C zigux phase8-libbpf-segments-test",
-                "make -C zigux phase8-libbpf-test",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "workflow_route",
+        workflow_path.unlink()
+        expect_validation(
+            "missing_shared_file",
             tmp_root,
-            ".github/workflows/zigux-bootstrap.yml:make -C zigux phase8-libbpf-segments-test",
+            [".github/workflows/zigux-bootstrap.yml"],
+            [],
+            [],
+            [],
+            "missing_shared_files",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
-        review_path = tmp_root / "Documentation/zigux/review-checklist.md"
-        original_review = review_path.read_text(encoding="utf-8")
-        review_path.write_text(
-            original_review.replace(
-                "tools/lib/bpf/zigux_segments/manifest.json",
-                "tools/lib/bpf/zigux_segments/segments.json",
+        lane_note_path = tmp_root / "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+        original_lane_note = lane_note_path.read_text(encoding="utf-8")
+        lane_note_path.write_text(
+            original_lane_note.replace(
+                "### 4. Shared wording lane",
+                "### 4. Shared wording packet",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_missing_marker(
-            "review_manifest",
+        expect_validation(
+            "missing_shared_marker",
             tmp_root,
-            "Documentation/zigux/review-checklist.md:tools/lib/bpf/zigux_segments/manifest.json",
+            [],
+            [
+                "Documentation/zigux/phase8-tooling-lane-sequencing.md:### 4. Shared wording lane",
+            ],
+            [],
+            [],
+            "missing_shared_markers",
         )
-        review_path.write_text(original_review, encoding="utf-8")
-
-        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-                "Documentation/zigux/phase8-tooling-sequencing.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_lane_note",
-            tmp_root,
-            "scripts/zigux/README.md:Documentation/zigux/phase8-tooling-lane-sequencing.md",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        tests_readme_path = tmp_root / "zigux/tests/README.md"
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "zigux/tests/phase8_libbpf_segments_only_build.zig",
-                "zigux/tests/phase8_libbpf_segment_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "tests_focused_build",
-            tmp_root,
-            "zigux/tests/README.md:zigux/tests/phase8_libbpf_segments_only_build.zig",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        build_path = tmp_root / "zigux/tests/phase8_libbpf_segments_only_build.zig"
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
-            original_build.replace(
-                "phase8_libbpf_segments.zig",
-                "phase8_segments.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "focused_root_module",
-            tmp_root,
-            "zigux/tests/phase8_libbpf_segments_only_build.zig:phase8_libbpf_segments.zig",
-        )
-        build_path.write_text(original_build, encoding="utf-8")
-
-        survey_path = tmp_root / "Documentation/zigux/phase8-libbpf-segment-survey.md"
-        original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.write_text(
-            original_survey.replace(
-                "make -C zigux phase8-libbpf-segments-test",
-                "make -C zigux phase8-libbpf-test",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "survey_make_route",
-            tmp_root,
-            "Documentation/zigux/phase8-libbpf-segment-survey.md:make -C zigux phase8-libbpf-segments-test",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
+        lane_note_path.write_text(original_lane_note, encoding="utf-8")
 
         manifest_path = tmp_root / "tools/lib/bpf/zigux_segments/manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
@@ -378,19 +470,99 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        missing_files, missing_markers, commit_sync_errors = validate(tmp_root)
-        if missing_files or missing_markers:
-            raise SystemExit(
-                "phase8-libbpf-segment-gate-self-test:commit_sync_mismatch:unexpected_file_or_marker_failure:"
-                f"files={','.join(missing_files) if missing_files else 'none'}:"
-                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
-            )
-        if "tools/lib/bpf/zigux_segments/manifest.json:" not in ",".join(commit_sync_errors):
-            actual = ",".join(commit_sync_errors) if commit_sync_errors else "none"
-            raise SystemExit(
-                "phase8-libbpf-segment-gate-self-test:commit_sync_mismatch:"
-                f"expected_manifest_mismatch:actual:{actual}"
-            )
+        expect_validation(
+            "legacy_commit_sync_mismatch",
+            tmp_root,
+            [],
+            [],
+            [],
+            [
+                "phase8-libbpf-segment-survey.md:0123456789abcdef0123456789abcdef01234567",
+                "phase8_libbpf_segments.zig:0123456789abcdef0123456789abcdef01234567",
+                "tools/lib/bpf/zigux_segments/manifest.json:fedcba9876543210fedcba9876543210fedcba98",
+            ],
+            "legacy_segment_packet",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        parked_root = tmp_root / "parked"
+        clone_fixture_root(parked_root, include_legacy_packet=False)
+        expect_validation(
+            "parked_packet_with_stale_surfaces",
+            parked_root,
+            [],
+            [],
+            [
+                ".github/workflows/zigux-bootstrap.yml:Run focused Phase 8 libbpf shard tests",
+                ".github/workflows/zigux-bootstrap.yml:make -C zigux phase8-libbpf-segments-test",
+                "Documentation/zigux/README.md:Documentation/zigux/phase8-libbpf-segment-survey.md",
+                "Documentation/zigux/README.md:tools/lib/bpf/zigux_segments/manifest.json",
+                "Documentation/zigux/README.md:zigux/tests/phase8_libbpf_segments_only_build.zig",
+                "Documentation/zigux/README.md:zigux/tests/phase8_libbpf_segments.zig",
+                "Documentation/zigux/review-checklist.md:Documentation/zigux/phase8-libbpf-segment-survey.md",
+                "Documentation/zigux/review-checklist.md:tools/lib/bpf/zigux_segments/manifest.json",
+                "Documentation/zigux/review-checklist.md:zigux/tests/phase8_libbpf_segments.zig",
+                "Documentation/zigux/review-checklist.md:zigux/tests/phase8_libbpf_segments_only_build.zig",
+                "Documentation/zigux/review-checklist.md:make -C zigux phase8-libbpf-segments-test",
+                "scripts/zigux/README.md:Documentation/zigux/phase8-libbpf-segment-survey.md",
+                "scripts/zigux/README.md:zigux/tests/phase8_libbpf_segments_only_build.zig",
+                "scripts/zigux/README.md:make -C zigux phase8-libbpf-segments-test",
+                "zigux/tests/README.md:zigux/tests/phase8_libbpf_segments.zig",
+                "zigux/tests/README.md:zigux/tests/phase8_libbpf_segments_only_build.zig",
+                "zigux/tests/README.md:make -C zigux phase8-libbpf-segments-test",
+                "zigux/Makefile:phase8-libbpf-segments-test:",
+                "zigux/Makefile:zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+            ],
+            [],
+            "parked_wording_packet",
+        )
+
+        for rel_path, removals in {
+            ".github/workflows/zigux-bootstrap.yml": [
+                "- name: Run focused Phase 8 libbpf shard tests\n  run: make -C zigux phase8-libbpf-segments-test\n",
+            ],
+            "Documentation/zigux/README.md": [
+                "- `Documentation/zigux/phase8-libbpf-segment-survey.md`\n",
+                "- `tools/lib/bpf/zigux_segments/manifest.json`\n",
+                "- `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
+                "- `zigux/tests/phase8_libbpf_segments.zig`\n",
+            ],
+            "Documentation/zigux/review-checklist.md": [
+                "- Documentation/zigux/phase8-libbpf-segment-survey.md\n",
+                "- tools/lib/bpf/zigux_segments/manifest.json\n",
+                "- zigux/tests/phase8_libbpf_segments.zig\n",
+                "- zigux/tests/phase8_libbpf_segments_only_build.zig\n",
+                "- make -C zigux phase8-libbpf-segments-test\n",
+            ],
+            "scripts/zigux/README.md": [
+                "- Documentation/zigux/phase8-libbpf-segment-survey.md\n",
+                "- zigux/tests/phase8_libbpf_segments_only_build.zig\n",
+                "- make -C zigux phase8-libbpf-segments-test\n",
+            ],
+            "zigux/tests/README.md": [
+                "- zigux/tests/phase8_libbpf_segments.zig\n",
+                "- zigux/tests/phase8_libbpf_segments_only_build.zig\n",
+                "- make -C zigux phase8-libbpf-segments-test\n",
+            ],
+            "zigux/Makefile": [
+                "\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n",
+            ],
+        }.items():
+            path = parked_root / rel_path
+            text = path.read_text(encoding="utf-8")
+            for removal in removals:
+                text = text.replace(removal, "")
+            path.write_text(text, encoding="utf-8")
+
+        expect_validation(
+            "parked_packet_without_stale_surfaces",
+            parked_root,
+            [],
+            [],
+            [],
+            [],
+            "parked_wording_packet",
+        )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=6")
@@ -399,32 +571,54 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the focused Phase 8 libbpf segment survey packet across its shared reminder surfaces."
+        description=(
+            "Validate the Phase 8 libbpf packet when the legacy segment survey exists, "
+            "or report stale shared-surface drift when the packet is parked on wording-only surfaces."
+        )
     )
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="Run built-in drift checks against a compact synthetic Phase 8 fixture tree.",
+        help="Run built-in drift checks against compact synthetic Phase 8 fixture trees.",
     )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    missing_files, missing_markers, commit_sync_errors = validate(ROOT)
+    missing_files, missing_shared_markers, legacy_errors, commit_sync_errors, mode = validate(ROOT)
     if missing_files:
         print("PHASE8_LIBBPF_SEGMENT_GATE=fail")
-        print("MISSING_PHASE8_LIBBPF_SEGMENT_GATE_FILES_START")
-        for item in missing_files:
-            print(item)
-        print("MISSING_PHASE8_LIBBPF_SEGMENT_GATE_FILES_END")
+        if mode == "missing_shared_files":
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_SHARED_FILES_START")
+            for item in missing_files:
+                print(item)
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_SHARED_FILES_END")
+        else:
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_LEGACY_FILES_START")
+            for item in missing_files:
+                print(item)
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_LEGACY_FILES_END")
         return 1
-    if missing_markers:
+    if missing_shared_markers:
         print("PHASE8_LIBBPF_SEGMENT_GATE=fail")
-        print("MISSING_PHASE8_LIBBPF_SEGMENT_GATE_MARKERS_START")
-        for marker in missing_markers:
+        print("MISSING_PHASE8_LIBBPF_SEGMENT_SHARED_MARKERS_START")
+        for marker in missing_shared_markers:
             print(marker)
-        print("MISSING_PHASE8_LIBBPF_SEGMENT_GATE_MARKERS_END")
+        print("MISSING_PHASE8_LIBBPF_SEGMENT_SHARED_MARKERS_END")
+        return 1
+    if legacy_errors:
+        print("PHASE8_LIBBPF_SEGMENT_GATE=fail")
+        if mode == "parked_wording_packet":
+            print("STALE_PHASE8_LIBBPF_PARKED_SURFACES_START")
+            for item in legacy_errors:
+                print(item)
+            print("STALE_PHASE8_LIBBPF_PARKED_SURFACES_END")
+        else:
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_MARKERS_START")
+            for marker in legacy_errors:
+                print(marker)
+            print("MISSING_PHASE8_LIBBPF_SEGMENT_MARKERS_END")
         return 1
     if commit_sync_errors:
         print("PHASE8_LIBBPF_SEGMENT_GATE=fail")
@@ -435,8 +629,12 @@ def main() -> int:
         return 1
 
     print("PHASE8_LIBBPF_SEGMENT_GATE=pass")
-    print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT={required_marker_count()}")
+    print(f"PHASE8_LIBBPF_SEGMENT_GATE_MODE={mode}")
+    print(f"PHASE8_LIBBPF_SEGMENT_GATE_SHARED_FILE_COUNT={len(SHARED_REQUIRED_FILES)}")
+    if mode == "legacy_segment_packet":
+        print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT={required_marker_count()}")
+    else:
+        print("PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT=parked-wording-lane")
     return 0
 
 
