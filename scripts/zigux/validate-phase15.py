@@ -115,6 +115,8 @@ READINESS_SURVEY_MARKERS = [
     "no Architecture Council approval is currently recorded",
     "validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`",
     "shared replay route stays explicit through `zigux/tests/phase15_build.zig`",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "make -C zigux phase15-test",
     "the remaining blocker is still `phase15-deep-core-status-change-blocker`",
     "Later repo movement still requires a fresh bounded provenance refresh",
 ]
