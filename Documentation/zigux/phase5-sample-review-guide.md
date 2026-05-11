@@ -45,6 +45,7 @@ Verified current shared Phase 5 review surfaces on `master` are:
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_sample.zig`
 * `zigux/tests/phase5_build.zig`
+* `zigux/Makefile`
 * `zigux/tests/phase5_bytestream_fifo.zig`
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
