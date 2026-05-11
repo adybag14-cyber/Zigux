@@ -51,7 +51,9 @@ The older saved `scripts/zigux/validate-phase1.py` write-text handoff is already
 
 The docs-root Phase 1 summary still names this owner-map note, so the earlier `Documentation/zigux/README.md` truthfulness gap remains closed on current `master`.
 
-Fresh closure-packet rereads now show that `scripts/zigux/validate-phase1-closure.py` is the next smallest same-lane follow-up instead: its baked-in Phase 1 manifest packet still lags the current live `zigux/tests/fixtures/phase1_helper_manifest.json` review-anchor shape, especially across the newer bitmap, find_bit, rbtree, and string closure anchors that current `master` already treats as authoritative.
+Fresh bench-packet rereads now show that the next smallest same-lane gap is the unlanded `find_bit` edge bench widening instead: current `zigux/tests/phase1_bench.zig` still stops short of the underscore alias and backward-edge `findLastBit()` replay paths that live `tools/lib/find_bit.zig` already keeps review-visible, and `zigux/tests/fixtures/phase1_bench_expectations.json` still pins the older exact edge checksum `12820000`.
+
+The closed PR history for `test(zigux): tighten Phase 1 find_bit edge bench gate` still matches that live gap. Recomputing the widened edge packet against current `tools/lib/find_bit.zig` behavior yields a per-iteration checksum of `1167`, so the exact Phase 1 edge-bench contract should become `23340000` at `20000` iterations when the underscore alias and tail-edge last-bit calls land beside the existing boundary, tail-clamp, and past-`nbits` probes.
 
 ## Anti-Overlap Rules
 
@@ -61,14 +63,19 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed bitmap closure-marker repair.
 - Do not reopen the already-landed `validate-phase1.py` write-text typo repair.
 - Do not reopen the already-landed docs-root owner-map sync.
-- Prefer the smallest same-family reviewability, parity-gate, fixture, or build-route repair before changing helper semantics.
+- Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to refresh `scripts/zigux/validate-phase1-closure.py` against the current live Phase 1 helper manifest packet, rerun its built-in self-test, and land only that one-file closure-checker sync.
+The next honest same-lane follow-up is to land the two-file `find_bit` edge bench-gate sync in:
 
-Until that closure-validator refresh lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+- `zigux/tests/phase1_bench.zig`
+- `zigux/tests/fixtures/phase1_bench_expectations.json`
+
+That bounded change should add the underscore alias and backward-edge `findLastBit()` replay calls to `findBitEdgeBench()`, then refresh `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` from `12820000` to `23340000` without widening into helper semantics or broader Phase 1 surface churn.
+
+Until that bench-gate sync lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
