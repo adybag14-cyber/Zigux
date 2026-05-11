@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This note records the bounded Phase 13 notifier/list evidence that current `master`
-already treats as adjacent release-surface context for the shared subsystem-helper
-packet.
+This note records the bounded Phase 13 notifier or list evidence that current `master`
+can still honestly treat as adjacent release-surface context for the shared
+subsystem-helper packet.
 
 The goal is contributor reviewability, not a new replay lane.
 
@@ -13,9 +13,9 @@ The goal is contributor reviewability, not a new replay lane.
 Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche around bounded
 helper layers such as `fs/libfs.c`, `lib/devres.c`, and the Landlock helpers.
 
-The notifier/list packet stays adjacent to that tranche because the current release
-guidance already uses it as boundary evidence for the shipped notifier ABI and helper
-surfaces without promoting it into a separate shared replay count.
+The notifier or list packet stays adjacent to that tranche because the current
+release guidance still uses it as boundary evidence for notifier-oriented
+truthfulness work without promoting it into a separate shared replay count.
 
 ## Survey Snapshot
 
@@ -24,20 +24,23 @@ surfaces without promoting it into a separate shared replay count.
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 build intentionally omits this packet from the eight-test shared helper replay
 
-`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence.
+## Current Repo Reality
 
-`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers.
+As of `2026-05-11`, current `master` could still materialize these adjacent
+notifier-facing surfaces:
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 
-`zigux/helpers/notifier_chain_view.zig` now also exposes the landed nonincreasing-priority signal through a direct helper-local convenience.
-
-`scripts/zigux/check-phase13-notifier-priority-signal.py` now fails closed on the landed nonincreasing-priority signal across the adjacent notifier packet.
-
-`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the landed notifier priority-signal checker, and the nonincreasing-priority signal should stay explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig` whenever this adjacent notifier packet changes.
-
-## Adjacent Evidence On Current Master
-
+The same current-`master` readback could not materialize these direct notifier or
+list companions, so contributor-facing summaries should record them as repo-reality
+gaps instead of independently shipped evidence:
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
@@ -45,25 +48,21 @@ surfaces without promoting it into a separate shared replay count.
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `drivers/tty/hvc/hvc_console.h`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `scripts/zigux/validate-phase13-release.py`
 
-The direct `zigux/tests/phase13_build.zig` route is not materialized on current `master`, so keep the shipped validator-first handles below explicit instead of treating that missing build file as independently shipped adjacent evidence.
-
-- `zigux/Makefile`
-- `make -C zigux phase13-validate`
-- `make -C zigux phase13`
+The direct `zigux/tests/phase13_build.zig` route is also not materialized on current
+`master`, so keep the shipped validator-first handles above explicit instead of
+presenting that missing build file as adjacent shipped evidence.
 
 ## Review Posture
 
 Keep this packet framed as adjacent Phase 13 evidence:
 
-- it shows the shipped notifier ABI and list-helper boundary surfaces
-- it keeps the dedicated notifier manifest and reviewability replay explicit
-- it keeps the adjacent helper, header, focused checker, and helper-local priority-signal surface explicit
-- it keeps the landed nonincreasing-priority signal reviewable without widening into callback or registration behavior
-- it supports the broader contributor-facing Phase 13 release packet
+- it supports the broader shared-helper release packet without becoming a fifth helper anchor
+- it keeps the shipped notifier priority-signal checker explicit
+- it keeps the broader validator-first and Linux-style replay handles explicit
+- it treats missing direct notifier, helper, binding, header, and tests-root companions as repo-reality gaps
 - it does not add extra shared replay steps beyond the current eight-test shared helper replay
+- it should not claim broader callback, registration, or HVC runtime parity while those direct companions remain absent on current `master`
 
 ## Contributor Checks
 
@@ -72,18 +71,17 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those summaries should keep this notifier survey, the notifier manifest, the
-reviewability replay, the ABI footholds, the list-helper footholds, the adjacent
-notifier helper and exported notifier header, the focused checker,
-and `drivers/tty/hvc/hvc_console.h`
-explicit as one adjacent evidence packet while keeping the landed nonincreasing-priority
-signal visible through `zigux/tests/phase13_notifier_list_reviewability.zig` and
-`zigux/helpers/notifier_chain_view.zig`.
+Those summaries should keep this notifier survey, the shipped
+`check-phase13-notifier-priority-signal.py` helper, and the stable `phase13-validate`
+or `phase13` make routes visible while framing the missing direct notifier packet,
+ABI footholds, helper footholds, and HVC header path as repo-reality gaps rather
+than shipped current-`master` evidence.
 
 ## Non-goals
 
