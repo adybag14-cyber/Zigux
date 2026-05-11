@@ -1,0 +1,83 @@
+{
+  "lane_key": "P5-L20",
+  "phase": "Phase 5",
+  "surveyed_commit": "08e28ad9343a229e4974e54d5fcf09a2b7465f5e",
+  "anchor": "samples/kobject/kobject-example.c",
+  "sample_path": "samples/zigux/kobject_example.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, sample-owned runInputValidationReplay() for shared baz/bar dispatch plus parse-failure visibility, and pre-registration access boundary run through phase5_build.zig",
+    "the manifest prompts keep sample-owned runPreRegistrationBoundaryReplay() explicit so the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary stays executable before registerAttributes() opens the sample",
+    "the manifest prompts keep sample-owned runRegisteredBoundaryReplay(), runInputValidationReplay(), and runTeardownReplay() explicit so the already-registered duplicate-registration plus replay-restart rejection, the shared baz/bar dispatch and parse-failure packet, the still-usable registered-state foo roundtrip, and the registered teardown reset-and-rejection packet stay executable instead of implied",
+    "the manifest prompts keep ownershipSummary() and sample-owned runOwnershipReplay() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
+    "the manifest prompts keep the init/register/exit counter progression explicit inside ownershipSummary() and runOwnershipReplay() so reviewers can see the bounded lifecycle move from 0/0/0 through 1/0/0 and 1/1/0 to 1/1/1",
+    "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
+    "the manifest prompts keep initialized-only exit reporting abandoned_before_registration and registered exit reporting tore_down_registered_attributes",
+    "sample-behavior changes update the manifest-backed registration and lifecycle contract, including runPreRegistrationBoundaryReplay(), runRegisteredBoundaryReplay(), runInputValidationReplay(), runTeardownReplay(), and runOwnershipReplay(), instead of leaving reviewers to infer it from code alone",
+    "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
+  ],
+  "exact_checks": [
+    {
+      "id": "directory-name",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps the Linux directory name kobject_example and an unnamed attribute group"
+    },
+    {
+      "id": "registration-step",
+      "kind": "ownership_lifetime",
+      "expected": "runAnchorReplay requires init first, registers exactly three attributes, leaves the sample in the registered stage, and keeps duplicate registerAttributes plus registered-stage runAnchorReplay calls blocked by InvalidLifecycleTransition"
+    },
+    {
+      "id": "pre-registration-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "runPreRegistrationBoundaryReplay() leaves the sample initialized, keeps activeAttrCount at zero, and shows that show or store calls still return InvalidLifecycleTransition before registerAttributes()"
+    },
+    {
+      "id": "registered-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "runRegisteredBoundaryReplay() leaves the sample registered, keeps activeAttrCount at three, keeps register_runs pinned at one across duplicate registerAttributes() plus registered-stage runAnchorReplay() rejection, and still allows a bounded foo write/read roundtrip afterward"
+    },
+    {
+      "id": "ownership-summary",
+      "kind": "ownership_lifetime",
+      "expected": "ownershipSummary() and runOwnershipReplay() report the cold, initialized, registered, and exited stages with active attribute counts 0, 0, 3, and 0"
+    },
+    {
+      "id": "ownership-counters",
+      "kind": "ownership_lifetime",
+      "expected": "runOwnershipReplay() keeps the init/register/exit counter progression explicit as 0/0/0, 1/0/0, 1/1/0, and 1/1/1 across the cold, initialized, registered, and exited snapshots"
+    },
+    {
+      "id": "initialized-exit-disposition",
+      "kind": "ownership_lifetime",
+      "expected": "exit reports abandoned_before_registration when the sample leaves the initialized stage before attributes are registered"
+    },
+    {
+      "id": "foo-roundtrip",
+      "kind": "attribute_roundtrip",
+      "expected": "storing 42 into foo renders back as the string 42 followed by a newline"
+    },
+    {
+      "id": "shared-b-dispatch",
+      "kind": "attribute_roundtrip",
+      "expected": "sample-owned runInputValidationReplay() keeps baz and bar on the same show and store path while still rendering 7 and -5 through their own attribute names"
+    },
+    {
+      "id": "parse-failure",
+      "kind": "input_validation",
+      "expected": "sample-owned runInputValidationReplay() keeps invalid-integer writes returning InvalidInteger and unknown attribute names as explicit errors while the sample remains in the registered stage"
+    },
+    {
+      "id": "exit-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "runTeardownReplay() reports tore_down_registered_attributes, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit show/store, second-exit, and anchor-replay rejection explicit"
+    }
+  ],
+  "non_goals": [
+    "sysfs file creation parity",
+    "kernel_kobj integration",
+    "uevent delivery",
+    "loadable module registration"
+  ]
+}
