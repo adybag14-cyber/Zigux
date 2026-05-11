@@ -35,6 +35,14 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
+    "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
+    "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`",
+    "shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`",
+    "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`",
+    "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`",
     "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
     "committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`",
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
@@ -183,7 +191,7 @@ EXPECTED_CONF_CASES = (
         "kconfig": "Kconfig",
         "config": "out/help.config",
         "arch": "riscv64",
-        "silent": True,
+        "silent": true,
         "expected": "helpnewconfig_expected.json",
     },
     {
@@ -675,6 +683,134 @@ def run_self_test_checks() -> list[str]:
             ],
         ),
         (
+            "closure_missing_cross_selftest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
+            ],
+        ),
+        (
+            "closure_missing_cross_gate_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`"
+            ],
+        ),
+        (
+            "closure_missing_cross_selftest_alignment_selftest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
+            ],
+        ),
+        (
+            "closure_missing_cross_selftest_alignment_gate_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`"
+            ],
+        ),
+        (
+            "closure_missing_fixdep_gate_selftest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`"
+            ],
+        ),
+        (
+            "closure_missing_fixdep_gate_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`"
+            ],
+        ),
+        (
+            "closure_missing_fixdep_diff_selftest_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`"
+            ],
+        ),
+        (
+            "closure_missing_fixdep_diff_gate_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`"
+            ],
+        ),
+        (
             "closure_missing_kconfig_selftest_alignment_marker",
             validate_required_markers(
                 "\n".join(
@@ -822,7 +958,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=20")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=28")
         return 0
 
     if issues:
