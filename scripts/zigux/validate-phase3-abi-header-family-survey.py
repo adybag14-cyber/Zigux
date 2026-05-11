@@ -12,6 +12,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 REQUIRED_MARKERS = (
     "include/linux/zigux.h",
     "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
@@ -47,7 +48,17 @@ def load_text(path: Path) -> str:
 
 
 def validate_text(text: str) -> list[str]:
-    missing = [marker for marker in REQUIRED_MARKERS if marker not in text]
+    if "## Current packet" not in text:
+        return ["missing current packet section"]
+    if "## Review boundary" not in text:
+        return ["missing review boundary section"]
+
+    current_packet = text.split("## Current packet", 1)[1].split(
+        "## Review boundary", 1
+    )[0]
+    missing = [
+        marker for marker in REQUIRED_MARKERS if marker not in current_packet
+    ]
     if "## Shared reminder" not in text:
         missing.append("missing shared reminder section")
         return missing
@@ -62,8 +73,13 @@ def validate_text(text: str) -> list[str]:
 
 
 def run_self_test() -> int:
-    sample = "\n".join(REQUIRED_MARKERS) + "\n## Shared reminder\n" + "\n".join(
-        REQUIRED_SHARED_REMINDER_MARKERS
+    sample = (
+        "## Current packet\n"
+        + "\n".join(REQUIRED_MARKERS)
+        + "\n## Review boundary\n"
+        + "boundary marker\n"
+        + "\n## Shared reminder\n"
+        + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
     )
     missing = validate_text(sample)
     if missing:
@@ -75,6 +91,12 @@ def run_self_test() -> int:
     if "include/zigux/abi.h" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected missing marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("zigux/bindings/abi.zig", "", 1))
+    if "zigux/bindings/abi.zig" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected bindings marker was not reported")
         return 1
 
     broken_sample = sample.rsplit("zigux/uapi/dev_t.zig", 1)
