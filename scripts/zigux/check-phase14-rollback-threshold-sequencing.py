@@ -57,6 +57,15 @@ SELF_TEST_ANCHOR_PACKETS = [
         "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
     },
 ]
+MAKEFILE_EXACT_LINES = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+]
 
 ROOT = Path.cwd()
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
@@ -78,6 +87,17 @@ def anchor_note_fragment(packet: dict[str, object]) -> str:
         f"`{packet['manifest_path']}`, lane `{packet['lane_key']}`, "
         f"surveyed commit `{packet['surveyed_commit']}`"
     )
+
+
+def require_exact_line_count(errors: list[str], rel_path: str, text: str) -> None:
+    lines = text.splitlines()
+    for marker in MAKEFILE_EXACT_LINES:
+        count = sum(1 for line in lines if line == marker)
+        if count != 1:
+            errors.append(
+                f"marker count drift in {rel_path}: {marker} "
+                f"(expected 1, found {count})"
+            )
 
 
 def check(root: Path) -> list[str]:
@@ -189,6 +209,7 @@ def check(root: Path) -> list[str]:
     ]:
         if marker not in makefile:
             errors.append(f"missing marker in {MAKEFILE_PATH.as_posix()}: {marker}")
+    require_exact_line_count(errors, MAKEFILE_PATH.as_posix(), makefile)
 
     return errors
 
@@ -253,7 +274,13 @@ def current_makefile_text() -> str:
     return "\n".join(
         [
             "phase14-validate:",
-            "\tpython3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
             "phase14-smoke:",
             "phase14-test:",
             "phase14: phase14-validate phase14-smoke phase14-test",
@@ -328,6 +355,41 @@ def run_self_test() -> int:
         if not any(CHECKLIST_PATH.as_posix() in error for error in check(root)):
             print("self-test expected checklist drift failure", file=sys.stderr)
             return 1
+        write(root, CHECKLIST_PATH, current_checklist_text())
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "check-phase14-docs-root-smoke-summary.py --self-test" in error
+            for error in check(root)
+        ):
+            print("self-test expected docs-root self-test route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "check-phase14-release-boundary-exact-counts.py --self-test" in error
+            for error in check(root)
+        ):
+            print("self-test expected release-boundary self-test route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
 
     return 0
 
