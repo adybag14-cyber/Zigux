@@ -46,6 +46,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_rbtree_survey.zig",
     ],
     "zigux/Makefile": [
+        "phase7-string-helpers-survey:",
         "phase7-string-helpers-sample-boundary:",
         "phase7-cmdline-survey:",
         "phase7-argv-split-survey:",
@@ -55,6 +56,8 @@ REQUIRED_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
     ],
     "zigux/tests/phase7_build.zig": [
+        "phase7-string-helpers-survey-tests",
+        "\"phase7_string_helpers_survey.zig\"",
         "phase7-string-helpers-sample-boundary-tests",
         "\"phase7_string_helpers_sample_boundary.zig\"",
         "phase7-cmdline-survey-tests",
@@ -63,6 +66,7 @@ REQUIRED_MARKERS = {
         "\"phase7_argv_split_survey.zig\"",
         "phase7-rbtree-survey-tests",
         "\"phase7_rbtree_survey.zig\"",
+        "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));",
         "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));",
         "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));",
         "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
@@ -118,11 +122,21 @@ def run_self_test() -> None:
 
         build_path = tmp_root / "zigux/tests/phase7_build.zig"
         build_text = build_path.read_text(encoding="utf-8")
-        missing_build_marker = "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));"
+        missing_build_marker = "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));"
         build_path.write_text(build_text.replace(missing_build_marker, "", 1), encoding="utf-8")
         assert validate(tmp_root) == (
             [],
-            ["zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path(\"../..\"));"],
+            ["zigux/tests/phase7_build.zig: run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));"],
+        )
+        write_fixture_root(tmp_root)
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        missing_make_marker = "phase7-string-helpers-survey:"
+        makefile_path.write_text(makefile_text.replace(missing_make_marker, "", 1), encoding="utf-8")
+        assert validate(tmp_root) == (
+            [],
+            ["zigux/Makefile: phase7-string-helpers-survey:"],
         )
         write_fixture_root(tmp_root)
 
@@ -130,7 +144,7 @@ def run_self_test() -> None:
         assert validate(tmp_root) == (["scripts/zigux/check-phase7-build-wiring.py"], [])
 
     print("PHASE7_BUILD_WIRING=pass")
-    print("PHASE7_BUILD_WIRING_CASE_COUNT=3")
+    print("PHASE7_BUILD_WIRING_CASE_COUNT=4")
 
 
 def main() -> int:
