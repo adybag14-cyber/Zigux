@@ -51,6 +51,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/install-zig.py",
@@ -161,6 +162,7 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     },
     "zigux/Makefile": {
@@ -190,6 +192,7 @@ MISSING_FILE_CASES = [
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/install-zig.py",
     "zigux/Makefile",
 ]
