@@ -16,16 +16,10 @@ Keep the current Phase 13 packet bounded to the roadmap-owned helper families:
 - `security/landlock/syscalls.c`
 
 Keep notifier evidence adjacent to that packet rather than treating it as a fifth helper anchor.
-The adjacent notifier evidence packet is tracked through these stable current-`master` surfaces:
+The adjacent notifier evidence packet is tracked through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `scripts/zigux/validate-phase13-release.py`
-- `zigux/Makefile`
-- `make -C zigux phase13-validate`
-- `make -C zigux phase13`
-
-If direct notifier companions such as these cannot be materialized on current `master`, record them as adjacent repo-reality gaps instead of as independently shipped review evidence:
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
@@ -54,64 +48,24 @@ When contributor-facing wording changes, keep these broad surfaces aligned:
 
 Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.
 If a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path cannot be materialized on current `master`, record that gap as repo reality instead of presenting the missing script as independently shipped reviewer evidence.
-The shipped direct `devres` truthfulness guard on current `master` is `scripts/zigux/check-phase13-devres-packet-alignment.py`, which keeps `zigux/tests/phase13_devres_manifest.json` aligned with `Documentation/zigux/phase13-devres-survey.md` even while the direct devres replay companions remain absent.
 
 ## Current Repo Reality
 
-As of `2026-05-11`, current `master` still does not materialize these direct Phase 13 companions:
+As of `2026-05-11`, current `master` materializes the bounded `libfs` foothold through `fs/libfs.zig` and `zigux/tests/phase13_libfs.zig`, but it still does not materialize these direct Phase 13 companions:
 - `zigux/tests/phase13_build.zig`
-- `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
-- `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset.zig`
-- `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
-- `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `Documentation/zigux/phase13-libfs-slice.md`
-- `Documentation/zigux/phase13-libfs-survey.md`
-- `Documentation/zigux/phase13-devres-survey.md`
-- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
-- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `scripts/zigux/check-phase13-notifier-packet.py`
-- `zigux/bindings/notifier_abi.zig`
-- `include/zigux/abi.h`
-- `include/zigux/notifier_abi.h`
-- `zigux/helpers/list_view.zig`
-- `zigux/helpers/hlist_view.zig`
-- `zigux/helpers/notifier_chain_view.zig`
-- `drivers/tty/hvc/hvc_console.h`
+
+- `scripts/zigux/check-phase13-devres-packet.py`
 
 When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
-If a broad reminder still uses the stale camel-cased form `zigux/tests/phase13Devres_reviewability.zig`, read that as drift for the real underscored `zigux/tests/phase13_devres_reviewability.zig` companion rather than as a second valid Phase 13 path.
-
-## Broad-Surface Repair Order
-
-When current `master` still carries the repo-reality gaps above and one of the broad shared reminders drifts anyway, repair the shared contributor packet in this order:
-1. `Documentation/zigux/README.md`
-2. `zigux/tests/README.md`
-3. `Documentation/zigux/review-checklist.md`
-4. `scripts/zigux/README.md`
-
-Use the narrower Phase 13 notes as the truth anchors while repairing those broad reminders:
-- `Documentation/zigux/phase13-release-notes-survey.md`
-- `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
-- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-
-Do not reopen packet-local Phase 13 notes just because a broad reminder drifted.
-Only widen the repair beyond those broad surfaces when current `master` readback proves the underlying repo reality changed.
 
 ## Workflow
 
@@ -120,7 +74,7 @@ Only widen the repair beyond those broad surfaces when current `master` readback
 3. If a broad reminder changes, reread the shared surfaces together before adding packet-local prose.
 4. Before naming a direct scripts-root checker as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing script as a blocker.
 5. Before naming a direct helper-local tests-root companion as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing direct companion as repo reality.
-6. Keep adjacent notifier evidence explicit through the shipped survey, the landed priority-signal checker, and the stable make routes; if direct notifier companions remain missing on current `master`, keep them framed as repo-reality gaps rather than adjacent shipped evidence.
+6. Keep adjacent notifier evidence explicit whenever a contributor-facing summary mentions the shared Phase 13 packet.
 7. Record Phase 13 as still active and reviewable; do not imply closure or a frozen packet.
 
 ## Contributor Prompts
@@ -132,10 +86,9 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
 - Does the wording avoid presenting a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path as independently shipped reviewer evidence when that exact file cannot be materialized on current `master`?
-- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` paths framed as repo-reality gaps instead of shipped evidence while the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard remains explicit?
-- Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md` and `scripts/zigux/check-phase13-notifier-priority-signal.py` while treating direct notifier companions such as `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` as repo-reality gaps on current `master`?
+- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` paths framed as repo-reality gaps instead of shipped evidence while leaving the shipped `zigux/tests/phase13_libfs.zig` foothold and the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard explicit?
+- Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig`?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
-- If broad shared reminders drifted, did the repair start with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, then `Documentation/zigux/review-checklist.md`, and then `scripts/zigux/README.md` before reopening packet-local notes?
 
 ## Non-Goals
 
