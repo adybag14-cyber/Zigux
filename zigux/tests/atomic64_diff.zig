@@ -24,6 +24,41 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn gitBlobShaHex(source: []const u8) ![40]u8 {
+    var header_buf: [64]u8 = undefined;
+    const header = try std.fmt.bufPrint(&header_buf, "blob {}\x00", .{source.len});
+
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    hasher.update(header);
+    hasher.update(source);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    var out: [40]u8 = undefined;
+    const alphabet = "0123456789abcdef";
+    for (digest, 0..) |byte, index| {
+        out[index * 2] = alphabet[byte >> 4];
+        out[index * 2 + 1] = alphabet[byte & 0x0f];
+    }
+    return out;
+}
+
+fn expectManifestContainsGitBlobSha(
+    manifest_source: []const u8,
+    field_name: []const u8,
+    source: []const u8,
+) !void {
+    const blob_sha = try gitBlobShaHex(source);
+    const marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "\"{s}\": \"{s}\"",
+        .{ field_name, blob_sha },
+    );
+    defer std.testing.allocator.free(marker);
+    try expectMarker(manifest_source, marker);
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         std.testing.io,
@@ -141,6 +176,19 @@ test "atomic64 diff wrapper records the current bounded runtime checks" {
         "add_unless applies the addend when the current value differs from the blocked value",
     );
     try expectMarker(runtime_atomic64_diff_source, "runtime atomic64 diff gate keeps selftest family coverage explicit");
+}
+
+test "atomic64 diff wrapper keeps the runtime handoff blob pins exact" {
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "live_gate_blob_sha",
+        runtime_atomic64_diff_source,
+    );
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "runtime_replay_blob_sha",
+        runtime_atomic64_diff_source,
+    );
 }
 
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
