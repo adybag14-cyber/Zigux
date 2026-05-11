@@ -77,12 +77,13 @@ MARKERS = {
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`Documentation/zigux/phase11-closure-note.md`",
         "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 
 
 class CheckError(RuntimeError):
@@ -141,7 +142,8 @@ def run_self_test() -> None:
             (FILES["lane_note"], MARKERS["lane_note"][4]),
             (FILES["docs_readme"], MARKERS["docs_readme"][1]),
             (FILES["tests_readme"], MARKERS["tests_readme"][4]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][5]),
+            (FILES["review_checklist"], MARKERS["review_checklist"][4]),
+            (FILES["review_checklist"], MARKERS["review_checklist"][6]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
