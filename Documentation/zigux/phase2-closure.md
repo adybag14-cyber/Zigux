@@ -31,19 +31,8 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
 - shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
-- shared kconfig bridge gate: `python3 scripts/zigux/check-kconfig-bridge.py`
-- shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
-- shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`
-- shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`
-- shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`
-- shared genksyms bridge selftest-alignment self-test: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
-- shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
-- direct genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
-- direct genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`
-- direct genksyms CRC artifact gate: `python3 scripts/zigux/check-genksyms-crc-diff.py`
-- direct mk_elfconfig artifact self-test: `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
-- direct mk_elfconfig artifact gate: `python3 scripts/zigux/check-mk-elfconfig-diff.py`
+- committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`
+- committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`
 - direct Zig replays: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/genksyms_crc.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, `zig test scripts/zigux/kconfig/confdata_bridge.zig`, and `zig test scripts/zigux/mk_elfconfig.zig`
 - Linux-style routes: `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2`
 
@@ -56,7 +45,6 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract
 - the live fixdep closure packet is still present on current `master` through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, even while some broader Phase 2 bridge-checker families named by the full route inventory still do not materialize as standalone scripts under `scripts/zigux/`
 - the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `11-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit
-- the dedicated `scripts/zigux/check-kconfig-bridge.py` packet now fail-closes when the committed `conf_cases` order drifts from the live `scripts/zigux/kconfig/conf_bridge.zig` `Mode` enum and when the confdata manifest or helper-local anchors drift from the live `scripts/zigux/kconfig/confdata_bridge.zig` packet before the artifact replay runs
-- the dedicated Phase 2 `genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared alignment checker plus scripts-root summary should keep that case count explicit instead of drifting back to older undercounts
+- the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`
 - the six-route inventory above now keeps the dedicated toolchain and cross compile wrappers explicit beside the broader tranche route, which matches the active `zigux/Makefile` Phase 2 packet and reduces reminder-surface undercounts during future closure maintenance
 - rollback remains toolchain-first and bounded: keep C authoritative, remove or disable the failing Zigux Phase 2 helper replay from shared make and workflow wiring, and preserve the pinned toolchain policy plus closure-note truthfulness until the bounded packet is green again
