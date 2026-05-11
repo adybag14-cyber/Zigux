@@ -1,0 +1,52 @@
+const std = @import("std");
+
+const manifest_text = @embedFile("phase4_perf_baseline_manifest.json");
+
+fn requireMarker(marker: []const u8) !void {
+    if (std.mem.indexOf(u8, manifest_text, marker) == null) {
+        return error.MissingManifestMarker;
+    }
+}
+
+test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
+    try requireMarker("\"lane_key\": \"P4-L20\"");
+    try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"surface\": \"zigux/tests/atomic64_diff.zig\"");
+    try requireMarker("\"gate_owner\": \"ABI and Runtime Team\"");
+    try requireMarker("\"gate_rollback_owner\": \"ABI and Runtime Team\"");
+    try requireMarker("\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"");
+    try requireMarker("phase4-perf-baseline-atomic64-command-evidence");
+    try requireMarker("phase4-perf-baseline-atomic64-command");
+    try requireMarker("phase4-perf-baseline-atomic64-acceptable-limit");
+    try requireMarker("\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("\"approved_local_only\"");
+    try requireMarker("\"median_elapsed_ns\"");
+    try requireMarker("seven monotonic samples");
+    try requireMarker("shared CI perf promotion");
+}
+
+test "phase4 perf baseline survey keeps the approved local-only atomic64 limits explicit" {
+    try requireMarker("\"acceptable_limit_max_elapsed_ns\": 8192");
+    try requireMarker("\"checksum\": 3626254113632800175");
+    try requireMarker("\"final_counter\": 130322557735600377");
+    try requireMarker("\"checksum\": 9210681150676220922");
+    try requireMarker("\"final_counter\": 130322557735600376");
+
+    try std.testing.expectEqual(@as(u64, 8192), @as(u64, 8192));
+    try std.testing.expectEqual(@as(u64, 3626254113632800175), @as(u64, 3626254113632800175));
+    try std.testing.expectEqual(@as(i64, 130322557735600377), @as(i64, 130322557735600377));
+    try std.testing.expectEqual(@as(u64, 9210681150676220922), @as(u64, 9210681150676220922));
+    try std.testing.expectEqual(@as(i64, 130322557735600376), @as(i64, 130322557735600376));
+}
+
+test "phase4 perf baseline survey keeps the bitmap companion and pending promotion split explicit" {
+    try requireMarker("\"surface\": \"zigux/tests/bitmap_diff.zig\"");
+    try requireMarker("\"gate_owner\": \"Shared Subsystems Pod\"");
+    try requireMarker("\"gate_rollback_owner\": \"Shared Subsystems Pod\"");
+    try requireMarker("\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
+    try requireMarker("\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("phase4-perf-baseline-bitmap-command");
+    try requireMarker("phase4-perf-baseline-bitmap-acceptable-limit");
+    try requireMarker("phase4-perf-baseline-shared-promotion-decision");
+    try requireMarker("\"status\": \"shared CI perf promotion pending\"");
+}
