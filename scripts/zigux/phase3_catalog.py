@@ -3,16 +3,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-DOCS_DIR = ROOT / "Documentation" / "zigux"
-SCRIPTS_DIR = ROOT / "scripts" / "zigux"
-TESTS_DIR = ROOT / "zigux" / "tests"
-FIXTURES_DIR = TESTS_DIR / "fixtures"
-ARTIFACT_DIFF_PATH = DOCS_DIR / "artifact-diff.md"
+RUNNER_MARKER_RE = re.compile(
+    r"python3 scripts/zigux/run-phase3-checks.py --slug (?P<slug>[a-z0-9-]+)"
+)
 
 
 @dataclass(frozen=True)
@@ -37,29 +36,62 @@ class Phase3Slice:
         }
 
 
+def _slice_family_from_fixture_dir(path: Path) -> str | None:
+    name = path.name
+    if not name.startswith("phase3_"):
+        return None
+    return name[len("phase3_") :]
+
+
+def _build_slice(root: Path, family: str) -> Phase3Slice | None:
+    slug = family.replace("_", "-")
+    doc_path = root / f"Documentation/zigux/phase3-{slug}-slice.md"
+    check_script = root / f"scripts/zigux/check-phase3-{slug}.py"
+    dump_path = root / f"zigux/tests/phase3_{family}_dump.zig"
+    expected_path = root / f"zigux/tests/fixtures/phase3_{family}/expected.json"
+    harness_path = root / f"zigux/tests/fixtures/phase3_{family}/phase3_{family}_c_harness.c"
+    required = (
+        doc_path,
+        check_script,
+        dump_path,
+        expected_path,
+        harness_path,
+    )
+    if not all(path.exists() for path in required):
+        return None
+    return Phase3Slice(
+        slug=slug,
+        description=slug.replace("-", " "),
+        doc_path=doc_path,
+        check_script=check_script,
+        dump_path=dump_path,
+        expected_path=expected_path,
+        harness_path=harness_path,
+    )
+
+
 def discover_phase3_slices(root: Path = ROOT) -> list[Phase3Slice]:
-    return [
-        Phase3Slice(
-            slug="abi",
-            description="ABI layout",
-            doc_path=root / "Documentation/zigux/phase3-abi-slice.md",
-            check_script=root / "scripts/zigux/check-phase3-abi.py",
-            dump_path=root / "zigux/tests/phase3_abi_dump.zig",
-            expected_path=root / "zigux/tests/fixtures/phase3_abi/expected.json",
-            harness_path=root / "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
-        )
-    ]
+    entries: list[Phase3Slice] = []
+    for expected_path in sorted((root / "zigux/tests/fixtures").glob("phase3_*/expected.json")):
+        family = _slice_family_from_fixture_dir(expected_path.parent)
+        if family is None:
+            continue
+        entry = _build_slice(root, family)
+        if entry is not None:
+            entries.append(entry)
+    return entries
 
 
 def audit_doc_sync(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     required = [
-        root / "Documentation/zigux/phase3-abi-slice.md",
         root / "Documentation/zigux/artifact-diff.md",
         root / "scripts/zigux/run-phase3-checks.py",
         root / "scripts/zigux/phase3_check_lib.py",
         root / "scripts/zigux/generate-phase3-check-wrappers.py",
     ]
+    entries = discover_phase3_slices(root)
+    required.extend(entry.doc_path for entry in entries)
     for path in required:
         if not path.exists():
             issues.append(f"missing repo file: {path.relative_to(root).as_posix()}")
@@ -67,9 +99,29 @@ def audit_doc_sync(root: Path = ROOT) -> list[str]:
     artifact_diff = root / "Documentation/zigux/artifact-diff.md"
     if artifact_diff.exists():
         text = artifact_diff.read_text(encoding="utf-8")
-        marker = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
-        if marker not in text:
-            issues.append(f"missing artifact-diff marker: {marker}")
+        for entry in entries:
+            marker = f"python3 scripts/zigux/run-phase3-checks.py --slug {entry.slug}"
+            if marker not in text:
+                issues.append(f"missing artifact-diff marker: {marker}")
+    return issues
+
+
+def audit_artifact_diff_reality(root: Path = ROOT) -> list[str]:
+    issues: list[str] = []
+    artifact_diff = root / "Documentation/zigux/artifact-diff.md"
+    if not artifact_diff.exists():
+        return [f"missing repo file: {artifact_diff.relative_to(root).as_posix()}"]
+
+    documented = {
+        match.group("slug")
+        for match in RUNNER_MARKER_RE.finditer(artifact_diff.read_text(encoding="utf-8"))
+    }
+    discovered = {entry.slug for entry in discover_phase3_slices(root)}
+
+    for slug in sorted(discovered - documented):
+        issues.append(f"discovered slug missing artifact-diff marker: {slug}")
+    for slug in sorted(documented - discovered):
+        issues.append(f"artifact-diff documents unsupported Phase 3 slug: {slug}")
     return issues
 
 
@@ -96,8 +148,23 @@ def run_self_test() -> int:
             path.write_text("python3 scripts/zigux/run-phase3-checks.py --slug abi\n", encoding="utf-8")
         assert [entry.slug for entry in discover_phase3_slices(root)] == ["abi"]
         assert audit_doc_sync(root) == []
-        (root / "Documentation/zigux/artifact-diff.md").write_text("stale\n", encoding="utf-8")
-        assert audit_doc_sync(root) == ["missing artifact-diff marker: python3 scripts/zigux/run-phase3-checks.py --slug abi"]
+        assert audit_artifact_diff_reality(root) == []
+
+        extra_dir = root / "zigux/tests/fixtures/phase3_bitmap_cpumask"
+        extra_dir.mkdir(parents=True, exist_ok=True)
+        (extra_dir / "expected.json").write_text("{}", encoding="utf-8")
+        assert [entry.slug for entry in discover_phase3_slices(root)] == ["abi"]
+
+        artifact = root / "Documentation/zigux/artifact-diff.md"
+        artifact.write_text(
+            "python3 scripts/zigux/run-phase3-checks.py --slug abi\n"
+            "python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask\n",
+            encoding="utf-8",
+        )
+        assert audit_doc_sync(root) == []
+        assert audit_artifact_diff_reality(root) == [
+            "artifact-diff documents unsupported Phase 3 slug: bitmap-cpumask"
+        ]
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
@@ -106,6 +173,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Focused Phase 3 catalog helper.")
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--audit-doc-sync", action="store_true")
+    parser.add_argument("--audit-artifact-diff-reality", action="store_true")
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
@@ -124,6 +192,16 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE3_DOC_SYNC_AUDIT=pass")
+        return 0
+
+    if args.audit_artifact_diff_reality:
+        issues = audit_artifact_diff_reality()
+        if issues:
+            print("PHASE3_ARTIFACT_DIFF_REALITY=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+        print("PHASE3_ARTIFACT_DIFF_REALITY=pass")
         return 0
 
     parser.print_help()
