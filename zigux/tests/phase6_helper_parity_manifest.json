@@ -83,9 +83,11 @@
   "exact_checks": [
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "make -C zigux phase6-base64-c-parity",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-bsearch-test",
+    "make -C zigux phase6-checksum-c-parity",
     "make -C zigux phase6-hexdump-test",
     "make -C zigux phase6-perf",
     "make -C zigux phase6-base64-perf",
