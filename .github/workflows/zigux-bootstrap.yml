@@ -449,7 +449,6 @@ jobs:
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           fi
-          fi
 
   phase2-cross:
     if: ${{ needs['phase2-cross-scope'].outputs.should_run == 'true' }}
