@@ -36,9 +36,41 @@ def main() -> int:
     args = parser.parse_args()
 
     required = [
-        TOOLCHAIN_PIN_SCOPE_CHECKER,
-        TESTS_README_ALIGNMENT_CHECKER,
-        KCONFIG_README_ALIGNMENT_CHECKER,
+        ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
+        ROOT / "Documentation" / "zigux" / "README.md",
+        ROOT / "Documentation" / "zigux" / "phase2-closure.md",
+        ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
+        ROOT / "Documentation" / "zigux" / "review-checklist.md",
+        ROOT / "scripts" / "zigux" / "README.md",
+        ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
+        ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
+        ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
+        ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
+        ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
+        ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
+        ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
+        ROOT / "scripts" / "zigux" / "fixdep.zig",
+        ROOT / "scripts" / "zigux" / "genksyms.zig",
+        ROOT / "scripts" / "zigux" / "genksyms_crc.zig",
+        ROOT / "scripts" / "zigux" / "install-zig.py",
+        ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+        ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
+        ROOT / "scripts" / "zigux" / "mk_elfconfig.zig",
+        ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
+        ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
+        ROOT / "zigux" / "Makefile",
+        ROOT / "zigux" / "tests" / "README.md",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ]
     missing = require_files(required)
     if missing:
@@ -52,7 +84,7 @@ def main() -> int:
 
     if args.self_test:
         print("PHASE2_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_VALIDATION_SELF_TEST_CHECKER_COUNT=3")
+        print(f"PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT={len(required)}")
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER)
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER)
         return 0
