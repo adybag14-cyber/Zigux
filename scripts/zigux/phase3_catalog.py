@@ -43,6 +43,14 @@ def _slice_family_from_fixture_dir(path: Path) -> str | None:
     return name[len("phase3_") :]
 
 
+def _dump_family_from_path(path: Path) -> str | None:
+    stem = path.stem
+    if not stem.startswith("phase3_") or not stem.endswith("_dump"):
+        return None
+    family = stem[len("phase3_") : -len("_dump")]
+    return family or None
+
+
 def _build_slice(root: Path, family: str) -> Phase3Slice | None:
     slug = family.replace("_", "-")
     doc_path = root / f"Documentation/zigux/phase3-{slug}-slice.md"
@@ -82,6 +90,29 @@ def discover_phase3_slices(root: Path = ROOT) -> list[Phase3Slice]:
     return entries
 
 
+def discover_phase3_dump_families(root: Path = ROOT) -> set[str]:
+    families: set[str] = set()
+    for dump_path in sorted((root / "zigux/tests").glob("phase3_*_dump.zig")):
+        family = _dump_family_from_path(dump_path)
+        if family is not None:
+            families.add(family)
+    return families
+
+
+def audit_dump_surface_reality(root: Path = ROOT) -> list[str]:
+    issues: list[str] = []
+    discovered_families = {
+        family
+        for entry in discover_phase3_slices(root)
+        if (family := _dump_family_from_path(entry.dump_path)) is not None
+    }
+    for family in sorted(discover_phase3_dump_families(root) - discovered_families):
+        issues.append(
+            f"phase3 dump lacks full slice packet: zigux/tests/phase3_{family}_dump.zig"
+        )
+    return issues
+
+
 def audit_doc_sync(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     required = [
@@ -103,6 +134,8 @@ def audit_doc_sync(root: Path = ROOT) -> list[str]:
             marker = f"python3 scripts/zigux/run-phase3-checks.py --slug {entry.slug}"
             if marker not in text:
                 issues.append(f"missing artifact-diff marker: {marker}")
+
+    issues.extend(audit_dump_surface_reality(root))
     return issues
 
 
@@ -154,6 +187,16 @@ def run_self_test() -> int:
         extra_dir.mkdir(parents=True, exist_ok=True)
         (extra_dir / "expected.json").write_text("{}", encoding="utf-8")
         assert [entry.slug for entry in discover_phase3_slices(root)] == ["abi"]
+
+        stray_dump = root / "zigux/tests/phase3_bitmap_cpumask_dump.zig"
+        stray_dump.write_text("// stray\n", encoding="utf-8")
+        expected_dump_issue = (
+            "phase3 dump lacks full slice packet: "
+            "zigux/tests/phase3_bitmap_cpumask_dump.zig"
+        )
+        assert audit_dump_surface_reality(root) == [expected_dump_issue]
+        assert audit_doc_sync(root) == [expected_dump_issue]
+        stray_dump.unlink()
 
         artifact = root / "Documentation/zigux/artifact-diff.md"
         artifact.write_text(
