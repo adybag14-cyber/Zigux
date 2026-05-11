@@ -96,6 +96,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "- name: Check Phase 4 artifact-diff determinism directly",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "- name: Check Phase 4 gate evidence directly",
+    "run: python3 scripts/zigux/check-phase4-gate-evidence.py",
     "- name: Run Phase 4 diff tests directly",
     "run: zig build test --build-file zigux/tests/phase4_build.zig",
 ]
@@ -108,6 +110,7 @@ REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: python3 scripts/zigux/check-artifact-diff-contract.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "run: python3 scripts/zigux/check-phase4-gate-evidence.py",
     "run: zig build test --build-file zigux/tests/phase4_build.zig",
 ]
 
@@ -209,6 +212,8 @@ SELFTEST_WORKFLOW = """jobs:
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
       - name: Check Phase 4 artifact-diff determinism directly
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+      - name: Check Phase 4 gate evidence directly
+        run: python3 scripts/zigux/check-phase4-gate-evidence.py
       - name: Run Phase 4 diff tests directly
         run: zig build test --build-file zigux/tests/phase4_build.zig
 """
@@ -568,6 +573,33 @@ def run_selftest() -> None:
         else:
             raise SystemExit(
                 ".github/workflows/zigux-bootstrap.yml missing run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
+        missing_gate_evidence_workflow_route = workflow.read_text(encoding="utf-8").replace(
+            "        run: python3 scripts/zigux/check-phase4-gate-evidence.py\n",
+            "",
+            1,
+        )
+        workflow.write_text(missing_gate_evidence_workflow_route, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "run: python3 scripts/zigux/check-phase4-gate-evidence.py" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                ".github/workflows/zigux-bootstrap.yml missing run: python3 scripts/zigux/check-phase4-gate-evidence.py "
                 "did not fail the Phase 4 workflow-route self-test"
             )
 
