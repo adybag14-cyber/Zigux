@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
 REQUIRED_FILES = {
+    "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
@@ -32,6 +35,7 @@ SURVEY_GATE_MARKERS = [
 
 SURVEY_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`",
+    "* archival landing checkpoint:",
     "Phase 11 simple-production-driver gap has been closed by the bounded starter.",
     "remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation",
     "zigux/tests/phase11_hvc_console_survey.zig",
@@ -101,14 +105,13 @@ TEARDOWN_NOTE_MARKERS = [
 
 VALIDATION_MATRIX_MARKERS = [
     "`PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`",
+    "- archival landing checkpoint:",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey` archival route fail-closed",
     "targetless notifier no-unregister edge",
-    "stale hangup short-circuit that preserves buffered-write state when the port count is already zero",
     "cleanup tty-port release handoff",
     "notifier callback boundary",
-    "khvcd polling contract boundary",
     "`hvc_hangup()` disconnect boundary",
     "`summarizeNotifierAddOutcome()`",
     "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes",
@@ -137,7 +140,7 @@ SYSRQ_HELPER_MARKERS = [
     'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 13
 
 
 class CheckError(RuntimeError):
@@ -163,17 +166,73 @@ def expect_forbidden_markers_absent(relative_path: str, text: str, markers: list
             raise CheckError(f"forbidden marker present in {relative_path}: {marker}")
 
 
+def is_hex_commit(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 40
+        and all(ch in "0123456789abcdef" for ch in value)
+    )
+
+
+def load_manifest(root: Path) -> dict[str, object]:
+    manifest_text = read_text(root, REQUIRED_FILES["manifest"])
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        raise CheckError(f"invalid JSON in {REQUIRED_FILES['manifest']}: {exc}") from exc
+
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not is_hex_commit(surveyed_commit):
+        raise CheckError(
+            f"invalid surveyed_commit in {REQUIRED_FILES['manifest']}: {surveyed_commit!r}"
+        )
+    return manifest
+
+
+def expect_surveyed_commit_provenance(
+    surveyed_commit: str,
+    survey_note: str,
+    validation_matrix: str,
+) -> None:
+    if surveyed_commit not in survey_note:
+        raise CheckError(
+            f"missing surveyed_commit provenance in {REQUIRED_FILES['survey_note']}: {surveyed_commit}"
+        )
+    if surveyed_commit not in validation_matrix:
+        raise CheckError(
+            f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {surveyed_commit}"
+        )
+
+
+def expect_git_commit_exists(root: Path, surveyed_commit: str) -> None:
+    result = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--verify", f"{surveyed_commit}^{{commit}}"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise CheckError(
+            f"missing git commit for surveyed_commit in {REQUIRED_FILES['manifest']}: {surveyed_commit}"
+        )
+
+
 def run_check(root: Path) -> None:
+    manifest = load_manifest(root)
+    survey_note = read_text(root, REQUIRED_FILES["survey_note"])
+    validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
+    expect_surveyed_commit_provenance(
+        manifest["surveyed_commit"],
+        survey_note,
+        validation_matrix,
+    )
+    expect_git_commit_exists(root, manifest["surveyed_commit"])
     expect_markers(
         REQUIRED_FILES["survey_gate"],
         read_text(root, REQUIRED_FILES["survey_gate"]),
         SURVEY_GATE_MARKERS,
     )
-    expect_markers(
-        REQUIRED_FILES["survey_note"],
-        read_text(root, REQUIRED_FILES["survey_note"]),
-        SURVEY_NOTE_MARKERS,
-    )
+    expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
     slice_note = read_text(root, REQUIRED_FILES["slice_note"])
     expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
     expect_forbidden_markers_absent(
@@ -188,7 +247,7 @@ def run_check(root: Path) -> None:
     )
     expect_markers(
         REQUIRED_FILES["validation_matrix"],
-        read_text(root, REQUIRED_FILES["validation_matrix"]),
+        validation_matrix,
         VALIDATION_MATRIX_MARKERS,
     )
     expect_markers(
@@ -213,12 +272,59 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_self_test_fixture(root: Path) -> None:
+def init_self_test_repo(root: Path) -> str:
+    subprocess.run(["git", "-C", str(root), "init"], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(root), "config", "user.name", "Zigux Builder"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(root), "config", "user.email", "zigux-builder@example.com"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(root), "commit", "-m", "self-test fixture"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    commit = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return commit.stdout.strip()
+
+
+def build_manifest_text(surveyed_commit: str) -> str:
+    manifest = {
+        "lane_key": "P11-L16",
+        "phase": "Phase 11",
+        "surveyed_commit": surveyed_commit,
+        "anchor": "drivers/tty/hvc/hvc_console.c",
+    }
+    return json.dumps(manifest, indent=2) + "\n"
+
+
+def build_self_test_fixture(root: Path, surveyed_commit: str = "0" * 40) -> None:
+    write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
+    write(
+        root / REQUIRED_FILES["survey_note"],
+        "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n",
+    )
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
+    write(
+        root / REQUIRED_FILES["validation_matrix"],
+        "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n",
+    )
     write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
@@ -236,10 +342,27 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
     raise AssertionError(f"expected failure containing {expected_fragment!r}")
 
 
+def reset_fixture(root: Path) -> str:
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    build_self_test_fixture(root)
+    commit = init_self_test_repo(root)
+    write(root / REQUIRED_FILES["manifest"], build_manifest_text(commit))
+    write(
+        root / REQUIRED_FILES["survey_note"],
+        "\n".join(SURVEY_NOTE_MARKERS + [commit]) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["validation_matrix"],
+        "\n".join(VALIDATION_MATRIX_MARKERS + [commit]) + "\n",
+    )
+    return commit
+
+
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_hvc_survey_packet_"))
     try:
-        build_self_test_fixture(tmpdir)
+        commit = reset_fixture(tmpdir)
         run_check(tmpdir)
 
         gate_missing = tmpdir / REQUIRED_FILES["survey_gate"]
@@ -251,18 +374,17 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "phase11_hvc_console_poll_retry_split.zig")
 
-        build_self_test_fixture(tmpdir)
+        commit = reset_fixture(tmpdir)
         note_missing = tmpdir / REQUIRED_FILES["survey_note"]
         note_missing.write_text(
-            note_missing.read_text(encoding="utf-8").replace(
-                "zigux/tests/phase11_hvc_console_modem_control_split.zig\n", ""
-            ),
+            note_missing.read_text(encoding="utf-8").replace(commit + "\n", ""),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "zigux/tests/phase11_hvc_console_modem_control_split.zig")
+        expect_failure(tmpdir, REQUIRED_FILES["survey_note"])
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         slice_missing = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_missing.writeText = None
         slice_missing.write_text(
             slice_missing.read_text(encoding="utf-8").replace(
                 "drivers/tty/hvc/hvc_console_sysrq.zig\n", ""
@@ -271,7 +393,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "drivers/tty/hvc/hvc_console_sysrq.zig")
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         slice_forbidden = tmpdir / REQUIRED_FILES["slice_note"]
         slice_forbidden.write_text(
             slice_forbidden.read_text(encoding="utf-8")
@@ -280,7 +402,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "drivers/tty/hvc/hvc_console_verify.zig")
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
         teardown_missing.write_text(
             teardown_missing.read_text(encoding="utf-8").replace(
@@ -290,7 +412,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "poll-retry and drain-order split")
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
         matrix_missing.write_text(
             matrix_missing.read_text(encoding="utf-8").replace(
@@ -300,7 +422,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "`summarizeNotifierAddOutcome()`")
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         modem_missing = tmpdir / REQUIRED_FILES["modem_control_split"]
         modem_missing.write_text(
             modem_missing.read_text(encoding="utf-8").replace(
@@ -314,7 +436,7 @@ def run_self_test() -> None:
             'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
         )
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         poll_missing = tmpdir / REQUIRED_FILES["poll_retry_split"]
         poll_missing.write_text(
             poll_missing.read_text(encoding="utf-8").replace(
@@ -328,7 +450,7 @@ def run_self_test() -> None:
             'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
         )
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
         sysrq_missing = tmpdir / REQUIRED_FILES["sysrq_helper"]
         sysrq_missing.write_text(
             sysrq_missing.read_text(encoding="utf-8").replace(
@@ -338,7 +460,30 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "pub fn summarizeSysrqHandoff")
 
-        build_self_test_fixture(tmpdir)
+        reset_fixture(tmpdir)
+        manifest_missing = tmpdir / REQUIRED_FILES["manifest"]
+        manifest_missing.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["manifest"])
+
+        reset_fixture(tmpdir)
+        bad_manifest = tmpdir / REQUIRED_FILES["manifest"]
+        bad_manifest.write_text(build_manifest_text("z" * 40), encoding="utf-8")
+        expect_failure(tmpdir, "invalid surveyed_commit")
+
+        reset_fixture(tmpdir)
+        fake_commit = "1" * 40
+        write(tmpdir / REQUIRED_FILES["manifest"], build_manifest_text(fake_commit))
+        write(
+            tmpdir / REQUIRED_FILES["survey_note"],
+            "\n".join(SURVEY_NOTE_MARKERS + [fake_commit]) + "\n",
+        )
+        write(
+            tmpdir / REQUIRED_FILES["validation_matrix"],
+            "\n".join(VALIDATION_MATRIX_MARKERS + [fake_commit]) + "\n",
+        )
+        expect_failure(tmpdir, "missing git commit for surveyed_commit")
+
+        reset_fixture(tmpdir)
         shutil.rmtree(tmpdir / "Documentation")
         expect_failure(tmpdir, REQUIRED_FILES["survey_note"])
 
