@@ -131,6 +131,18 @@ Before landing a Phase 5 change, confirm:
 
 ## Focused Sample Cues
 
+### `bytestream_fifo`
+
+Review the landed bytestream FIFO packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
+
+Keep the exact queue-order drain contract, non-destructive `snapshotInto()` cue, short-drain `"hel"` plus queued `"lo"` helper boundary, the explicit `StorageBacking.embedded_fixed_buffer` fixed-buffer ring cue, the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`, the `visibleSpanSummary()` split cue, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit.
+
+### `kobject_example`
+
+Review the landed kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig`.
+
+Keep sample-owned `runPreRegistrationBoundaryReplay()` explicit for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary, `runRegisteredBoundaryReplay()` explicit for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward, `runInputValidationReplay()` explicit for the shared `baz`/`bar` dispatch plus parse-failure visibility while the sample stays registered, `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit for the lifecycle packet, `runTeardownReplay()` explicit for the registered teardown reset plus post-`exit()` show-or-store rejection packet, the unnamed attribute-group shape, and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit.
+
 ### `trace_events_sample`
 
 Review the landed trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
