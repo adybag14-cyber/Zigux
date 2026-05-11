@@ -1,0 +1,103 @@
+# Phase 7 Argv Split Slice
+
+This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/argv_split.c`.
+
+## Status
+
+* `PHASE7_STATUS=parked`
+* `PHASE7_SLICE=argv-split-runtime-leaf`
+* `PHASE7_LANE_KEY=P7-Y07`
+* scope: first low-risk argument-vector parsing and teardown helpers only
+* lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
+* product boundary:
+  * `Documentation/zigux/README.md`
+  * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `samples/zigux/README.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/validate-phase7.py`
+  * `scripts/zigux/check-phase7-make-wrapper.py`
+  * `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+  * `scripts/zigux/check-phase7-argv-split-packet.py`
+  * `scripts/zigux/check-phase7-build-wiring.py`
+  * `lib/argv_split.zig`
+  * `zigux/tests/README.md`
+  * `zigux/tests/phase7_argv_split.zig`
+  * `zigux/tests/phase7_argv_split_survey.zig`
+  * `zigux/tests/phase7_argv_split_manifest.json`
+  * `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+  * `zigux/tests/phase7_build.zig`
+  * `zigux/Makefile`
+  * `.github/workflows/zigux-bootstrap.yml`
+
+## Why this slice exists
+
+Phase 7 explicitly calls out `lib/argv_split.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
+
+This current slice keeps the work bounded to runtime-safe argument-vector helpers that:
+
+* do not widen into shell, process, or runtime-loader behavior
+* stay reviewable through deterministic Zig tests and one dedicated packet checker
+* keep null-terminated pointer-vector access through `cArgv()` explicit for C-style callers without turning the slice into a Phase 5 sample lane
+
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
+
+## Gates
+
+1. keep the dedicated argv-split survey gate reviewable
+
+* `zigux/tests/phase7_argv_split_survey.zig`
+
+2. keep the committed packet checker explicit
+
+* `python3 scripts/zigux/check-phase7-argv-split-packet.py`
+
+3. keep the machine-readable review record explicit
+
+* `zigux/tests/phase7_argv_split_manifest.json`
+
+4. keep the focused parity fixtures explicit
+
+* `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+
+5. keep the shared validator-first packet explicit
+
+* `python3 scripts/zigux/validate-phase7.py`
+* `python3 scripts/zigux/check-phase7-make-wrapper.py`
+* `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+* `python3 scripts/zigux/check-phase7-build-wiring.py`
+* `make -C zigux phase7-validate`
+
+6. keep the shared Phase 7 helper gate explicit
+
+* `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+* `make -C zigux phase7`
+
+## Current parity surface
+
+The current landed slice covers the bounded `argv_split` review packet under `lib/argv_split.zig`, the dedicated `zigux/tests/phase7_argv_split.zig` helper replay, the dedicated `zigux/tests/phase7_argv_split_survey.zig` survey gate, the committed `zigux/tests/phase7_argv_split_manifest.json` record, and the focused `zigux/tests/fixtures/phase7_argv_split_vectors.zig` fixture module.
+
+The current tests keep these packet edges explicit:
+
+* null-terminated pointer-vector access through `cArgv()`
+* focused parity fixtures through `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+* blank-input reuse of the empty exported argv view
+* blank-input reuse of the empty storage sentinel without allocator space
+* safe and repeatable sentinel teardown through `argvFree()`
+* the dedicated packet checker, the shared build replay, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together instead of drifting into separate ad hoc reminders
+
+## Non-goals
+
+This slice still does not yet claim:
+
+* broader shell-quoting or command-line policy beyond the bounded helper packet
+* a new `samples/zigux/` argv reference sample
+* expansion into process startup, runtime-loader handoff, or later driver-facing ownership paths
+
+## Next bounded step
+
+Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
+If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, blank-input sentinel, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
+
+## Footer
