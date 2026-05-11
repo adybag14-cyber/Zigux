@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
@@ -42,7 +43,13 @@ MANIFEST_TEXT_MARKERS = [
     '"tranche": "virtio-lab-bundle"',
     '"test_count":',
     '"scripts/zigux/check-phase10-harness-coverage.py"',
+    '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
     '"zigux/tests/phase10_build.zig"',
+]
+
+EXACT_CHECK_MARKERS = [
+    "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
+    "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
 ]
 
 
@@ -87,6 +94,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 for path in [
                     "zigux/tests/phase10_build.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
+                    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
                 ]:
                     if path not in evidence:
                         missing.append(
@@ -94,12 +102,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                             + path
                         )
 
+    exact_checks = manifest.get("exact_checks")
+    if not isinstance(exact_checks, list):
+        missing.append("manifest:exact_checks")
+    else:
+        for marker in EXACT_CHECK_MARKERS:
+            if marker not in exact_checks:
+                missing.append(f"manifest:exact_checks:{marker}")
+
     return [], missing
 
 
 def write_fixture(root: Path) -> None:
     text_files = {
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -113,9 +130,11 @@ def write_fixture(root: Path) -> None:
                         "evidence": [
                             "zigux/tests/phase10_build.zig",
                             "scripts/zigux/check-phase10-harness-coverage.py",
+                            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
                         ]
                     }
                 },
+                "exact_checks": EXACT_CHECK_MARKERS,
             },
             indent=2,
         )
@@ -199,26 +218,39 @@ def run_self_test() -> int:
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
-            "zigux/tests/phase10_build.zig"
+            "zigux/tests/phase10_build.zig",
+            "scripts/zigux/check-phase10-harness-coverage.py",
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "manifest_checker_evidence",
             root,
-            "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:scripts/zigux/check-phase10-harness-coverage.py",
+            "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
         )
         write_fixture(root)
 
-        checker_path = root / "scripts/zigux/check-phase10-harness-coverage.py"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_exact_checks",
+            root,
+            "manifest:exact_checks:python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        )
+        write_fixture(root)
+
+        checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         checker_path.unlink()
         expect_missing_file(
             "checker_file",
             root,
-            "scripts/zigux/check-phase10-harness-coverage.py",
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -245,5 +277,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS)}"
 )
