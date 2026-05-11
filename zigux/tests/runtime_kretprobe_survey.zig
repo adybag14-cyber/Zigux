@@ -127,6 +127,9 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_kretprobe_survey.zig\")");
     try expectContains(phase9_build, ".name = \"phase9-runtime-kretprobe-survey-tests\"");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_survey_tests.step);");
+    try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_contract_tests.step);");
+    try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_facade_tests.step);");
+    try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);");
 
     try expectContains(
         runtime_loader_allocator_init_flow,
