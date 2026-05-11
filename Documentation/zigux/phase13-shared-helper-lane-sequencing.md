@@ -5,7 +5,7 @@ This note keeps the active Phase 13 shared-subsystems packet split into bounded 
 ## Scope
 
 Use this note when a Phase 13 change touches any part of the shipped shared-helper release packet:
-- `fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json`
+- `fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json`, with any direct `zigux/tests/phase13_libfs*.zig` companions kept anchored to repo reality instead of assumed current-`master` evidence
 - `lib/devres.c` through `Documentation/zigux/phase13-devres-survey.md`, with any direct devres companion files kept anchored to repo reality instead of assumed current-master evidence
 - `security/landlock/ruleset.c` through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `security/landlock/syscalls.c` through `Documentation/zigux/phase13-landlock-syscalls-governance.md`
@@ -26,7 +26,7 @@ Adjacent notifier evidence stays in scope for release-surface truthfulness, but 
 ## Owner Split
 
 Keep the current owner map explicit:
-- `libfs` owns `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`
+- `libfs` owns `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, and `zigux/tests/phase13_libfs_manifest.json`; if direct companions such as `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_addressability.zig`, or `zigux/tests/phase13_libfs_reviewability.zig` cannot be materialized on current `master`, keep that absence recorded as repo reality instead of listing those paths here as shipped helper-parity evidence
 - `devres` helper parity owns `Documentation/zigux/phase13-devres-slice.md` and `Documentation/zigux/phase13-devres-survey.md`; if direct companions such as `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, or `zigux/tests/phase13_devres_manifest.json` cannot be materialized on current `master`, keep that absence recorded as repo reality instead of listing those paths here as shipped helper-parity evidence
 - `devres` packet truthfulness owns the docs-side packet wording and any direct checker or boundary-evidence companion that current `master` materializes; if `scripts/zigux/check-phase13-devres-packet.py` or `zigux/tests/phase13_devres_boundary_evidence.zig` are absent, treat that as a repo-reality blocker rather than as shipped current-master evidence
 - `landlock/ruleset` owns `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
@@ -43,19 +43,18 @@ When a real Phase 13 change lands, keep these shared surfaces aligned:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
-- `zigux/tests/phase13_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Treat `make -C zigux phase13-validate` as the stable shared replay handle. If `scripts/zigux/validate-phase13-release.py` cannot be materialized on current `master`, record that direct path as repo reality instead of listing it here as shipped evidence.
+Treat `make -C zigux phase13-validate` as the stable shared replay handle. If `scripts/zigux/validate-phase13-release.py`, `zigux/tests/phase13_build.zig`, or the direct `zig build test --build-file zigux/tests/phase13_build.zig --summary all` route cannot be materialized on current `master`, record those direct paths as repo reality instead of listing them here as shipped evidence.
 
 ## Sequencing Rules
 
 Use this note to keep the bounded work order honest:
 1. Prefer one helper lane at a time instead of batching `libfs`, `devres`, `landlock`, and notifier evidence into one mixed change.
 2. Treat adjacent notifier evidence as release-surface support for the shared packet, not as an extra shared replay step.
-3. Keep the validator-first route explicit through `make -C zigux phase13-validate`, then `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, then `make -C zigux phase13`; if `scripts/zigux/validate-phase13-release.py` is restored later, pair it with that stable make route instead of presenting the direct script as independently shipped evidence before readback confirms it.
+3. Keep the validator-first route explicit through `make -C zigux phase13-validate`, then `make -C zigux phase13`; if a direct `zigux/tests/phase13_build.zig` build route or `scripts/zigux/validate-phase13-release.py` can be materialized later, pair it with that stable make route instead of presenting the direct path as independently shipped evidence before readback confirms it.
 4. If a broad reminder surface changes, keep the owner split visible instead of replacing it with a generic "Phase 13 helper packet" summary.
 5. Do not imply a closed Phase 13 tranche or a fifth helper anchor while the packet still depends on bounded adjacent notifier evidence.
 
