@@ -49,6 +49,15 @@ When contributor-facing wording changes, keep these broad surfaces aligned:
 Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.
 If a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path cannot be materialized on current `master`, record that gap as repo reality instead of presenting the missing script as independently shipped reviewer evidence.
 
+## Current Repo Reality
+
+As of `2026-05-11`, current `master` still does not materialize these direct Phase 13 companions:
+- `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
+
+When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
+
 ## Workflow
 
 1. Confirm the change stays inside one bounded Phase 13 lane.
@@ -67,6 +76,7 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
 - Does the wording avoid presenting a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path as independently shipped reviewer evidence when that exact file cannot be materialized on current `master`?
+- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `scripts/zigux/check-phase13-devres-packet.py` paths framed as repo-reality gaps instead of shipped evidence?
 - Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig`?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
 
