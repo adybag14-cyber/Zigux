@@ -97,7 +97,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
-- next future target: stay in maintenance mode unless a named reopen trigger or the deep-core blocker posture changes; if another bounded same-lane follow-up becomes necessary first, inspect `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together, starting with whether the shared Phase 15 tests-root reminder still needs the full `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet equally explicit
+- next future target: stay in maintenance mode unless a named reopen trigger or the deep-core blocker posture changes; if another bounded same-lane follow-up becomes necessary first, inspect `Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together, starting with whether the broad docs-root Phase 15 reminder still undercounts the current `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet.
 
 ## Recorded Gaps
 
@@ -113,9 +113,9 @@ The current lane state is:
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-review-packet-field-sync`
-- open `phase15-tests-readme-validator-route-sync`
+- open `phase15-docs-root-validator-route-sync`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, and now records the one remaining broader tests-root reminder follow-up that may still need attention before the lane can honestly stay in pure maintenance mode, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, and now records the one remaining broader docs-root reminder follow-up that may still need attention before the lane can honestly stay in pure maintenance mode, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -136,4 +136,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Unless a named reopen trigger or the deep-core blocker posture changes first, inspect `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together and, only if the shared Phase 15 tests-root reminder still undercounts the current validator-first packet, publish the smallest sync that keeps `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit.
+Unless a named reopen trigger or the deep-core blocker posture changes first, inspect `Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together and, only if the broad docs-root Phase 15 reminder still undercounts the current validator-first packet, publish the smallest sync that keeps `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit.
