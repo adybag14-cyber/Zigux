@@ -217,6 +217,21 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    "Documentation/zigux/phase7-cmdline-slice.md": [
+        ("Documentation/zigux/review-checklist.md", 2),
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 2),
+    ],
+    "Documentation/zigux/phase7-argv-split-slice.md": [
+        ("Documentation/zigux/review-checklist.md", 2),
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 2),
+    ],
+    "Documentation/zigux/phase7-rbtree-slice.md": [
+        ("Documentation/zigux/review-checklist.md", 2),
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 2),
+    ],
+}
+
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase7.py": "# fixture\n",
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
@@ -252,15 +267,33 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+def collect_exact_count_markers(root: Path) -> list[str]:
+    drift: list[str] = []
+    for rel, exact_counts in EXACT_COUNT_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker, expected_count in exact_counts:
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                drift.append(f"{rel}: exact_count:{marker}:{actual_count}!={expected_count}")
+    return drift
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
-    return [], collect_missing_markers(root)
+    return [], collect_missing_markers(root) + collect_exact_count_markers(root)
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
+    fixture_text = {}
+    for rel, markers in REQUIRED_MARKERS.items():
+        lines = list(markers)
+        for marker, expected_count in EXACT_COUNT_MARKERS.get(rel, []):
+            extra_count = expected_count - lines.count(marker)
+            if extra_count > 0:
+                lines.extend([marker] * extra_count)
+        fixture_text[rel] = "\n".join(lines) + "\n"
     fixture_text.update(FIXTURE_OVERRIDES)
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
@@ -377,6 +410,27 @@ def run_self_test() -> None:
         ("build_rbtree_survey_cwd", "zigux/tests/phase7_build.zig", "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", "run_rbtree_survey_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path(\"../..\"));"),
     ]
 
+    exact_count_cases = [
+        (
+            "cmdline_slice_duplicate_review_checklist_marker",
+            "Documentation/zigux/phase7-cmdline-slice.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-cmdline-slice.md: exact_count:Documentation/zigux/review-checklist.md:3!=2",
+        ),
+        (
+            "argv_split_slice_duplicate_review_checklist_marker",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-argv-split-slice.md: exact_count:Documentation/zigux/review-checklist.md:3!=2",
+        ),
+        (
+            "rbtree_slice_duplicate_review_checklist_marker",
+            "Documentation/zigux/phase7-rbtree-slice.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-rbtree-slice.md: exact_count:Documentation/zigux/review-checklist.md:3!=2",
+        ),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
@@ -392,7 +446,12 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases)
+        for case, rel, marker, expected in exact_count_cases:
+            mutate_file(tmp_root, rel, marker, marker + "\n" + marker, case)
+            expect_missing_marker(case, tmp_root, expected)
+            write_fixture_root(tmp_root)
+
+    case_count = len(missing_file_cases) + len(marker_cases) + len(exact_count_cases)
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -425,7 +484,10 @@ def main() -> int:
 
     print("PHASE7_VALIDATION=pass")
     print(f"PHASE7_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(
+        "PHASE7_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}"
+    )
     return 0
 
 
