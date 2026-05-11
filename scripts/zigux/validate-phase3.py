@@ -134,6 +134,29 @@ README_MARKERS = (
     "make -C zigux phase3",
 )
 
+LOW_LEVEL_WRAPPER_SOURCE_MARKERS = {
+    LOW_LEVEL_TEST_PATH: (
+        "atomic.load(u32, &value, .seq_cst)",
+        "atomic.store(u32, &value, 8, .seq_cst)",
+        "atomic.exchange(u32, &value, 13, .seq_cst)",
+        "atomic.fetchAdd(u32, &value, 4, .seq_cst)",
+        "atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst)",
+        "barrier.acquire();",
+        "barrier.release();",
+        "barrier.full();",
+        "mmio.range(base, 24, 4)",
+        "mmio.read16(base, 2)",
+        "mmio.read32(base, @sizeOf(u32))",
+        "mmio.write16(base, 2, 0xbeef)",
+        "mmio.write32(base, @sizeOf(u32), 0xfeedbeef)",
+        "mmio.rangeInteropPolicy(base, 16, 4, mmio_policy)",
+        "mmio.read32InteropPolicy(base, 4, mmio_policy)",
+        "mmio.write32InteropPolicy(base, 4, 0xfeed_beef, mmio_policy)",
+        "abi.InteropPolicy{",
+        "@intFromEnum(abi.UnsafeScope.volatile_mmio)",
+    ),
+}
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -151,7 +174,9 @@ def _record_duplicate(
     )
 
 
-def _validate_duplicate_declarations(text: str, matchers: tuple[tuple[str, re.Pattern[str]], ...]) -> list[str]:
+def _validate_duplicate_declarations(
+    text: str, matchers: tuple[tuple[str, re.Pattern[str]], ...]
+) -> list[str]:
     issues: list[str] = []
     for label, pattern in matchers:
         seen: dict[str, int] = {}
@@ -222,6 +247,21 @@ def validate_manifest(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_source_markers(
+    repo_root: Path, required_markers: dict[Path, tuple[str, ...]]
+) -> list[str]:
+    issues: list[str] = []
+    for rel_path, markers in required_markers.items():
+        source_path = repo_root / rel_path
+        if not source_path.is_file():
+            continue
+        source_text = _read(source_path)
+        for marker in markers:
+            if marker not in source_text:
+                issues.append(f"missing source marker: {rel_path.as_posix()} :: {marker}")
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REPO_FILES:
@@ -243,6 +283,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(f"missing scripts README marker: {marker}")
 
     issues.extend(validate_manifest(repo_root))
+    issues.extend(validate_source_markers(repo_root, LOW_LEVEL_WRAPPER_SOURCE_MARKERS))
     issues.extend(validate_abi_surface_sanity(repo_root))
     return issues
 
@@ -261,6 +302,32 @@ def _manifest_payload(files: list[str], file_count: int | None = None) -> str:
         "files": files,
     }
     return json.dumps(payload, indent=2) + "\n"
+
+
+def _low_level_wrapper_stub() -> str:
+    return """const abi = @import("abi_bindings");
+test "phase3 low-level wrappers stub markers" {
+    _ = atomic.load(u32, &value, .seq_cst);
+    atomic.store(u32, &value, 8, .seq_cst);
+    _ = atomic.exchange(u32, &value, 13, .seq_cst);
+    _ = atomic.fetchAdd(u32, &value, 4, .seq_cst);
+    _ = atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst);
+    barrier.acquire();
+    barrier.release();
+    barrier.full();
+    _ = mmio.range(base, 24, 4);
+    _ = mmio.read16(base, 2);
+    _ = mmio.read32(base, @sizeOf(u32));
+    mmio.write16(base, 2, 0xbeef);
+    mmio.write32(base, @sizeOf(u32), 0xfeedbeef);
+    const mmio_policy = abi.InteropPolicy{
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+    };
+    _ = mmio.rangeInteropPolicy(base, 16, 4, mmio_policy);
+    _ = mmio.read32InteropPolicy(base, 4, mmio_policy);
+    try mmio.write32InteropPolicy(base, 4, 0xfeed_beef, mmio_policy);
+}
+"""
 
 
 def _populate_repo(root: Path) -> None:
@@ -288,6 +355,7 @@ def _populate_repo(root: Path) -> None:
     )
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+    _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
 
 
 def run_self_test() -> int:
@@ -335,6 +403,18 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / LOW_LEVEL_TEST_PATH, "# restored\n")
+        issues = validate_repo(root)
+        expected_low_level_marker_missing = (
+            "missing source marker: "
+            f"{LOW_LEVEL_TEST_PATH.as_posix()} :: atomic.load(u32, &value, .seq_cst)"
+        )
+        if expected_low_level_marker_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing low-level wrapper marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
         (root / MMIO_HELPER_PATH).unlink()
         issues = validate_repo(root)
         expected_mmio_missing = f"missing repo file: {MMIO_HELPER_PATH.as_posix()}"
