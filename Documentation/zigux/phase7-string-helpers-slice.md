@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
-- `PHASE7_LANE_KEY=P7-Y03`
+- `PHASE7_LANE_KEY=P7-L04`
 - scope: first low-risk runtime-safe string helper batch only
 - lane state: helper, dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, and make-wrapper slice landed; parked unless a new `lib/string_helpers.c` parity issue or renewed Phase 5-versus-Phase 7 boundary drift appears
 - product boundary:
