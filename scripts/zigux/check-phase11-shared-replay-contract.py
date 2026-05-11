@@ -24,6 +24,7 @@ MARKERS = {
         "* no shared `make -C zigux phase11-validate` target on `master`",
         "The dedicated archival HVC evidence still stays explicit beside that shared route:",
         "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "* `zigux/tests/phase11_hvc_cleanup.zig`",
         "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
         "* `scripts/zigux/check-phase11-header-boundary-packet.py`",
         "* `zigux/tests/phase11_uapi_header_parity_survey.zig`",
@@ -48,7 +49,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class CheckError(RuntimeError):
@@ -105,6 +106,7 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][7]),
             (FILES["note"], MARKERS["note"][8]),
+            (FILES["note"], MARKERS["note"][9]),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
             (FILES["closure_note"], MARKERS["closure_note"][7]),
