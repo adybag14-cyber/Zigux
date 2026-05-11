@@ -384,7 +384,6 @@ def run_self_test() -> None:
 
         reset_fixture(tmpdir)
         slice_missing = tmpdir / REQUIRED_FILES["slice_note"]
-        slice_missing.writeText = None
         slice_missing.write_text(
             slice_missing.read_text(encoding="utf-8").replace(
                 "drivers/tty/hvc/hvc_console_sysrq.zig\n", ""
