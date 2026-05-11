@@ -15,7 +15,7 @@
     "review_process_present": true,
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
-    "docs_index_handoff_pointer_present": true,
+    "docs_index_handoff_pointer_present": false,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
