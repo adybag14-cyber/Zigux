@@ -70,6 +70,17 @@ REQUIRED_MAKE_MARKERS = [
     "phase4: phase4-validate phase4-test",
 ]
 
+REQUIRED_PHASE4_VALIDATE_COMMANDS = [
+    "scripts/zigux/validate-phase4.py --self-test",
+    "scripts/zigux/validate-phase4.py",
+    "scripts/zigux/artifact_diff.py --self-test",
+    "scripts/zigux/check-artifact-diff-contract.py",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-workflow-route-counts.py",
+]
+
 REQUIRED_WORKFLOW_MARKERS = [
     "- name: Validate Phase 4 diff gates",
     "run: make -C zigux phase4-validate",
@@ -268,6 +279,24 @@ def ensure_absent_markers(label: str, text: str, markers: list[str]) -> None:
         raise SystemExit(f"{label} contains forbidden Phase 4 markers:\n{joined}")
 
 
+def target_body(makefile_text: str, target: str) -> str:
+    lines = makefile_text.splitlines()
+    inside_target = False
+    body_lines: list[str] = []
+    target_prefix = f"{target}:"
+    for line in lines:
+        if inside_target:
+            if line.startswith("\t"):
+                body_lines.append(line)
+                continue
+            break
+        if line.startswith(target_prefix):
+            inside_target = True
+    if not inside_target:
+        raise SystemExit(f"zigux/Makefile is missing expected Phase 4 target body:\n  - {target}")
+    return "\n".join(body_lines)
+
+
 def declared_targets(makefile_text: str) -> set[str]:
     targets: set[str] = set()
     for line in makefile_text.splitlines():
@@ -305,6 +334,14 @@ def ensure_expected_targets(makefile_text: str) -> None:
         raise SystemExit(f"zigux/Makefile is missing expected Phase 4 targets:\n{joined}")
 
 
+def ensure_target_commands(makefile_text: str, target: str, commands: list[str]) -> None:
+    body = target_body(makefile_text, target)
+    missing = [command for command in commands if command not in body]
+    if missing:
+        joined = "\n".join(f"  - {command}" for command in missing)
+        raise SystemExit(f"zigux/Makefile target {target} is missing required Phase 4 commands:\n{joined}")
+
+
 def check(
     makefile_path: Path,
     workflow_path: Path,
@@ -325,6 +362,7 @@ def check(
     read_text(perf_survey_path)
     ensure_expected_targets(makefile_text)
     ensure_markers("zigux/Makefile", makefile_text, REQUIRED_MAKE_MARKERS)
+    ensure_target_commands(makefile_text, "phase4-validate", REQUIRED_PHASE4_VALIDATE_COMMANDS)
     ensure_markers(".github/workflows/zigux-bootstrap.yml", workflow_text, REQUIRED_WORKFLOW_MARKERS)
     ensure_marker_order(
         ".github/workflows/zigux-bootstrap.yml",
@@ -448,6 +486,33 @@ def run_selftest() -> None:
         else:
             raise SystemExit(
                 "zigux/Makefile missing scripts/zigux/validate-phase4.py --self-test "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
+        missing_artifact_diff_contract_command = makefile.read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+            "",
+            1,
+        )
+        makefile.write_text(missing_artifact_diff_contract_command, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "scripts/zigux/check-artifact-diff-contract.py" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/Makefile missing scripts/zigux/check-artifact-diff-contract.py "
                 "did not fail the Phase 4 workflow-route self-test"
             )
 
