@@ -43,11 +43,13 @@ lane remains below starter implementation.
 
 ## Next Bounded Evidence Step
 
-Keep this dedicated parked survey packet adjacent to the shared Phase 4 validation
-matrix, gate-evidence note, build surface, and Linux-style wrapper until a later
-bounded Phase 4 lane intentionally chooses one of these follow-through steps:
-- promote the same note, manifest, and replay command into a stricter shared validator
-  packet
+Keep this parked packet adjacent to the shared gate-evidence note, the shared Phase 4
+exact-readback packet, the validation matrix, the dedicated local `zig build
+phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper,
+and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until
+a later bounded Phase 4 lane intentionally chooses one of these follow-through steps:
+- promote the same note, manifest, and both replay commands into a stricter shared
+  validator packet
 - or land the actual Zig starter with an updated rollback-readiness contract
 
 Until then, this note should stay truthful about the absent Zig starter boundary.
