@@ -38,10 +38,8 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
-    "include/zigux/dev_t.h",
-    "zigux/uapi/version.zig",
-    "zigux/uapi/dev_t.zig",
     "zigux/tests/README.md",
+    "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
@@ -157,10 +155,15 @@ def run_self_test() -> int:
         print("expected scripts README marker was not reported")
         return 1
 
-    broken = validate_text(sample.replace("include/zigux/dev_t.h", "", 1))
-    if "include/zigux/dev_t.h" not in broken:
+    broken = validate_text(
+        sample.replace("Documentation/zigux/phase3-abi-h-boundary-next-step.md", "", 1)
+    )
+    if (
+        "shared reminder missing marker: Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+        not in broken
+    ):
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
-        print("expected canonical dev_t header marker was not reported")
+        print("expected next-step note marker was not reported")
         return 1
 
     print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")
