@@ -30,11 +30,11 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 ### Skbuff
   * manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
   * survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-  * lane key: `P14-Y03`
-  * surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`
-  * ready-next gap: none currently recorded
+  * lane key: `P14-L12`
+  * surveyed commit: `f65e3d897847bf205198e5c47a41782085620579`
+  * ready-next gap: `phase14-skbuff-direct-xmit-identity-drop-followup`
   * blocked gap: `phase14-skbuff-live-ownership-blocker`
-  * retained-in-C boundary: live skb lifetime, dataref and header-write ownership, destructor ordering, qdisc-facing publication, checksum-state ownership, and segmentation behavior still remain in C even though the repo now carries a review-only boundary map through the exported `skb_segment()` tail-publication contract around `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`, and no smaller review-only skbuff follow-up remains before the blocked live-ownership boundary.
+  * retained-in-C boundary: live skb lifetime, dataref and header-write ownership, destructor ordering, qdisc-facing publication, checksum-state ownership, and segmentation behavior still remain in C even though the repo now carries a review-only boundary map through the exported `skb_segment()` tail-publication contract around `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`, and the next smaller review-only skbuff follow-up now stays in the `__dev_direct_xmit()` identity-drop path around `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path before the blocked live-ownership boundary.
 ### RCU tree
   * manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
   * survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
