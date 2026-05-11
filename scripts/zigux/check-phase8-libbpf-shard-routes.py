@@ -22,11 +22,10 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-validate",
     ],
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
-        "default-branch tree read surface no longer exposes the older",
-        "`tools/lib/subcmd/`",
-        "`tools/lib/symbol/`",
-        "`tools/lib/bpf/zigux_segments/`",
-        "`zigux/tests/phase8_*`",
+        "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
+        "`zigux/tests/phase8_cpu_mask.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
         "Keep follow-up inside the shared wording lane",
     ],
@@ -114,11 +113,11 @@ def run_self_test() -> None:
     ]
     marker_cases = [
         (
-            "lane_note_absent_subcmd_anchor",
+            "lane_note_manifest_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "`tools/lib/subcmd/`",
-            "`tools/lib/subcommand/`",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `tools/lib/subcmd/`",
+            "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
+            "the current tree exposes `tools/lib/bpf/zigux_segments/verify.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
         ),
         (
             "lane_note_shared_wording_heading",
