@@ -128,6 +128,32 @@ Before landing a Phase 5 change, confirm:
 * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
+### `kobject_example`
+
+Keep the shared contributor map for the landed kobject packet directly readable too:
+
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `zigux/tests/phase5_kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
+* `zigux/tests/phase5_kobject_example_survey.zig`
+
+When a shared guidance edit touches the Phase 5 kobject packet, keep these cues explicit:
+
+* sample-owned `runPreRegistrationBoundaryReplay()` for the initialized-but-not-registered zero-active-attributes boundary
+* sample-owned `runRegisteredBoundaryReplay()` for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
+* sample-owned `runInputValidationReplay()` for the shared `baz` or `bar` dispatch plus parse-failure visibility while the sample stays registered
+* `ownershipSummary()` plus sample-owned `runOwnershipReplay()` for the lifecycle packet
+* sample-owned `runTeardownReplay()` for the registered teardown reset plus post-`exit()` show-or-store rejection packet
+* the unnamed attribute-group shape
+* the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split
+
+Keep the shared non-goal boundary explicit as well:
+
+* sysfs file creation parity
+* `kernel_kobj` integration
+* uevents
+* loadable module registration
+
 ## Non-goals
 
 This shared Phase 5 guide does not claim:
