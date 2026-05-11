@@ -36,6 +36,11 @@ REQUIRED_MARKERS = {
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_build.zig",
+        "make -C zigux phase7-string-helpers-survey",
+        "make -C zigux phase7-string-helpers-sample-boundary",
+        "make -C zigux phase7-cmdline-survey",
+        "make -C zigux phase7-argv-split-survey",
+        "make -C zigux phase7-rbtree-survey",
         "make -C zigux phase7-test",
     ],
     "zigux/tests/README.md": [
@@ -217,6 +222,41 @@ def run_self_test() -> None:
             "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests",
         ),
         (
+            "scripts_readme_string_helpers_survey_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase7-string-helpers-survey",
+            "",
+            "scripts/zigux/README.md: make -C zigux phase7-string-helpers-survey",
+        ),
+        (
+            "scripts_readme_string_helpers_sample_boundary_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase7-string-helpers-sample-boundary",
+            "",
+            "scripts/zigux/README.md: make -C zigux phase7-string-helpers-sample-boundary",
+        ),
+        (
+            "scripts_readme_cmdline_survey_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase7-cmdline-survey",
+            "",
+            "scripts/zigux/README.md: make -C zigux phase7-cmdline-survey",
+        ),
+        (
+            "scripts_readme_argv_split_survey_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase7-argv-split-survey",
+            "",
+            "scripts/zigux/README.md: make -C zigux phase7-argv-split-survey",
+        ),
+        (
+            "scripts_readme_rbtree_survey_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase7-rbtree-survey",
+            "",
+            "scripts/zigux/README.md: make -C zigux phase7-rbtree-survey",
+        ),
+        (
             "makefile_string_helpers_survey_route",
             "zigux/Makefile",
             "phase7-string-helpers-survey:",
@@ -224,11 +264,32 @@ def run_self_test() -> None:
             "zigux/Makefile: phase7-string-helpers-survey:",
         ),
         (
+            "makefile_string_helpers_sample_boundary_route",
+            "zigux/Makefile",
+            "phase7-string-helpers-sample-boundary:",
+            "",
+            "zigux/Makefile: phase7-string-helpers-sample-boundary:",
+        ),
+        (
+            "makefile_cmdline_survey_route",
+            "zigux/Makefile",
+            "phase7-cmdline-survey:",
+            "",
+            "zigux/Makefile: phase7-cmdline-survey:",
+        ),
+        (
             "makefile_argv_split_survey_route",
             "zigux/Makefile",
             "phase7-argv-split-survey:",
             "",
             "zigux/Makefile: phase7-argv-split-survey:",
+        ),
+        (
+            "makefile_rbtree_survey_route",
+            "zigux/Makefile",
+            "phase7-rbtree-survey:",
+            "",
+            "zigux/Makefile: phase7-rbtree-survey:",
         ),
     ]
 
