@@ -207,6 +207,10 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch lower-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
         'test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
         'test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget"',
+        'test "phase 6 bsearch upper-bound helpers accept runtime-selected c abi comparator pointers"',
+        'test "phase 6 bsearch upper-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
+        'test "phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
+        'test "phase 6 bsearch upper-bound c abi record member_size replay stays inside a binary-search budget"',
     ],
     "zigux/tests/phase6_bsearch_c_abi_budget.zig": [
         'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
@@ -435,6 +439,7 @@ def run_self_test() -> None:
         assert_failure(root, "zigux/tests/README.md", "zigux/tests/phase6_bsearch_c_abi_budget.zig", "zigux/tests/phase6_bsearch_c_abi_budget-missing.zig")
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
+        assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "test \"phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges\"", "test \"phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges missing\"")
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_bsearch_c_abi_budget.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
