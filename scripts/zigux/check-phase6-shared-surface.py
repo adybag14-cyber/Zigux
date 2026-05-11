@@ -103,6 +103,8 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
         "- `Documentation/zigux/phase6-checksum-slice.md`",
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
+        "make -C zigux phase6-perf",
+        "the aggregate helper-local perf replay",
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase6-bsearch-slice.md",
