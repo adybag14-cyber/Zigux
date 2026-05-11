@@ -74,6 +74,8 @@ EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias "
     "behavior review-visible on current master"
 )
+EXPECTED_RBTREE_BENCH_ITERATIONS = 4000
+EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM = 3380000
 
 REQUIRED_FILES = [
     *EXPECTED_HELPERS,
@@ -314,6 +316,39 @@ def collect_fixture_sanity(fixture: object) -> list[str]:
     return missing
 
 
+def collect_bench_expectation_markers(expectations: object) -> list[str]:
+    if not isinstance(expectations, dict):
+        return ["phase1_bench_expectations:json_object"]
+
+    missing: list[str] = []
+    if expectations.get("status") != "pass":
+        missing.append("phase1_bench_expectations:status")
+
+    iterations = expectations.get("iterations")
+    if not isinstance(iterations, dict):
+        missing.append("phase1_bench_expectations:iterations")
+    elif iterations.get("PHASE1_BENCH_RBTREE_ITERATIONS") != EXPECTED_RBTREE_BENCH_ITERATIONS:
+        missing.append(
+            f"phase1_bench_expectations:rbtree_iterations={EXPECTED_RBTREE_BENCH_ITERATIONS}"
+        )
+
+    checksums = expectations.get("checksums")
+    if not isinstance(checksums, list):
+        missing.append("phase1_bench_expectations:checksums")
+    elif "PHASE1_BENCH_RBTREE_CHECKSUM" not in checksums:
+        missing.append("phase1_bench_expectations:rbtree_checksum_listed")
+
+    exact_checksums = expectations.get("exact_checksums")
+    if not isinstance(exact_checksums, dict):
+        missing.append("phase1_bench_expectations:exact_checksums")
+    elif exact_checksums.get("PHASE1_BENCH_RBTREE_CHECKSUM") != EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM:
+        missing.append(
+            f"phase1_bench_expectations:rbtree_exact_checksum={EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM}"
+        )
+
+    return missing
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     docs_readme = load_text(root / "Documentation/zigux/README.md")
     tests_readme = load_text(root / "zigux/tests/README.md")
@@ -321,10 +356,15 @@ def collect_missing_markers(root: Path) -> list[str]:
     helpers_text = load_text(root / "zigux/tests/phase1_helpers.zig")
     manifest, manifest_errors = load_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", "phase1_manifest")
     fixture, fixture_errors = load_json(root / "zigux/tests/fixtures/phase1_helpers.json", "phase1_fixture")
+    bench_expectations, bench_expectation_errors = load_json(
+        root / "zigux/tests/fixtures/phase1_bench_expectations.json",
+        "phase1_bench_expectations",
+    )
 
     missing: list[str] = []
     missing.extend(manifest_errors)
     missing.extend(fixture_errors)
+    missing.extend(bench_expectation_errors)
     missing.extend(collect_required_markers(docs_readme, "docs_root_phase1_packet", DOC_MARKERS["docs_root_phase1_packet"]))
     missing.extend(collect_required_markers(tests_readme, "tests_root_phase1_packet", DOC_MARKERS["tests_root_phase1_packet"]))
     missing.extend(collect_required_markers(review_checklist, "review_checklist_phase1_packet", DOC_MARKERS["review_checklist_phase1_packet"]))
@@ -343,6 +383,8 @@ def collect_missing_markers(root: Path) -> list[str]:
         missing.extend(collect_manifest_and_source_markers(root, manifest))
     if fixture is not None:
         missing.extend(collect_fixture_sanity(fixture))
+    if bench_expectations is not None:
+        missing.extend(collect_bench_expectation_markers(bench_expectations))
     return missing
 
 
@@ -400,6 +442,19 @@ def make_fixture_root(root: Path) -> None:
     (root / "zigux/tests/phase1_helpers.zig").write_text(helpers_body, encoding="utf-8")
     (root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(json.dumps(EXPECTED_FIXTURE, separators=(",", ":")) + "\n", encoding="utf-8")
+    (root / "zigux/tests/fixtures/phase1_bench_expectations.json").write_text(
+        json.dumps(
+            {
+                "status": "pass",
+                "iterations": {"PHASE1_BENCH_RBTREE_ITERATIONS": EXPECTED_RBTREE_BENCH_ITERATIONS},
+                "checksums": ["PHASE1_BENCH_RBTREE_CHECKSUM"],
+                "exact_checksums": {"PHASE1_BENCH_RBTREE_CHECKSUM": EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM},
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def run_self_test() -> None:
@@ -439,10 +494,11 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest:lane_sequencing" in collect_missing_markers(root)
         case_count += 1
+        make_fixture_root(root)
 
         manifest = json.loads(load_text(manifest_path))
         manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("phase1_helper_replay_anchor")
-        manifest_path.writeText(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
@@ -451,6 +507,21 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["review_packet_summary"] = "stale bitmap summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
+        bench = json.loads(load_text(bench_path))
+        bench["exact_checksums"].pop("PHASE1_BENCH_RBTREE_CHECKSUM")
+        bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_bench_expectations:rbtree_exact_checksum=3380000" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bench = json.loads(load_text(bench_path))
+        bench["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"] = 1
+        bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_bench_expectations:rbtree_iterations=4000" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
@@ -491,7 +562,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS)}"
+        f"{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 4}"
     )
     return 0
 
