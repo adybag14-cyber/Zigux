@@ -12,10 +12,15 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     "zigux/Makefile",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/README.md",
+]
+
+DOCS_ROOT_MARKERS = [
+    "while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -84,6 +89,7 @@ def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> 
 
 def collect_missing_markers(root: Path) -> list[str]:
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
+    docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
@@ -93,6 +99,7 @@ def collect_missing_markers(root: Path) -> list[str]:
 
     missing: list[str] = []
     missing.extend(collect_stripped_line_markers(makefile, "makefile", MAKEFILE_MARKERS))
+    missing.extend(collect_exact_count_markers(docs_root, "docs_root", DOCS_ROOT_MARKERS))
     missing.extend(collect_exact_count_markers(scripts_readme, "scripts_readme", SCRIPTS_README_MARKERS))
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
@@ -114,6 +121,10 @@ def make_fixture_root(root: Path) -> None:
 
     (root / "zigux" / "Makefile").write_text(
         "\n".join(MAKEFILE_MARKERS) + "\n",
+        encoding="utf-8",
+    )
+    (root / "Documentation" / "zigux" / "README.md").write_text(
+        "\n".join(DOCS_ROOT_MARKERS) + "\n",
         encoding="utf-8",
     )
     (root / "scripts" / "zigux" / "README.md").write_text(
@@ -157,6 +168,17 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == []
         assert collect_missing_markers(tmp_root) == []
         self_test_case_count += 1
+
+        docs_root_path = tmp_root / "Documentation" / "zigux" / "README.md"
+        docs_root_text = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text("", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert (
+            "docs_root:while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
+            in missing
+        )
+        self_test_case_count += 1
+        docs_root_path.write_text(docs_root_text, encoding="utf-8")
 
         scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
         scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
@@ -274,7 +296,7 @@ def main() -> int:
     print(f"PHASE1_INSTALLER_COMPANION_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_INSTALLER_COMPANION_REQUIRED_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(SCRIPTS_README_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
