@@ -96,13 +96,17 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_argv_split.zig": [
         "phase 7 argvSplit matches focused parity fixtures",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_argv_split_manifest.json",
         "phase7-argv-split-packet-checker",
         "PHASE7_LANE_KEY=",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
 }
 
@@ -194,11 +198,39 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         ),
         (
+            "helper_deinit_clears_marker",
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit deinit clears exported storage and argv views",
+            "",
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit clears exported storage and argv views",
+        ),
+        (
+            "helper_alloc_failure_marker",
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+            "",
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+        ),
+        (
             "survey_checker_marker",
             "zigux/tests/phase7_argv_split_survey.zig",
             "scripts/zigux/check-phase7-argv-split-packet.py",
             "",
             "zigux/tests/phase7_argv_split_survey.zig: scripts/zigux/check-phase7-argv-split-packet.py",
+        ),
+        (
+            "survey_deinit_clears_marker",
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "phase 7 argvSplit deinit clears exported storage and argv views",
+            "",
+            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit deinit clears exported storage and argv views",
+        ),
+        (
+            "survey_alloc_failure_marker",
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+            "",
+            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         ),
         (
             "build_survey_cwd_marker",
