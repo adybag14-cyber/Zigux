@@ -19,6 +19,7 @@ FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
     "Documentation/zigux/phase14-core-boundary-traceability.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     "Documentation/zigux/phase14-skbuff-bridge-survey.md",
@@ -108,6 +109,17 @@ RELEASE_MARKERS = [
     "phase14_workqueue_reviewability.zig",
 ]
 
+RELEASE_BOUNDARY_MARKERS = [
+    "PHASE14_RELEASE_BOUNDARY=present",
+    "PHASE14_SHARED_REPLAY_PRESENT=yes",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "make -C zigux phase14-validate",
+    "make -C zigux phase14-smoke",
+    "make -C zigux phase14-test",
+    "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+    "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+]
+
 SKBUFF_SURVEY_MARKERS = [
     "`PHASE14_LANE_KEY=P14-L11`",
     "`phase14-skbuff-live-ownership-blocker`",
@@ -145,7 +157,7 @@ REQUIRED_SKBUFF_DECISION_CHECKLIST = {
 }
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?",
+    "if the change touches the shared Phase 14 smoke packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14-test`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` still agree on the same study-only stay-in-C posture, with `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` kept explicit as the two boundary-study-only anchors and `kernel/rcu/tree.c` plus `net/core/skbuff.c` kept explicit as the two freeze-in-C-governed anchors, without implying an active deep-core port claim?",
 ]
 
 BUILD_MARKERS = [
@@ -408,6 +420,22 @@ def run_self_test() -> int:
         print("SELF_TEST_MARKERS_END")
         return 1
 
+    good_release_boundary = "\n".join(RELEASE_BOUNDARY_MARKERS) + "\n"
+    missing_release_boundary_markers = [
+        marker
+        for marker in RELEASE_BOUNDARY_MARKERS
+        if marker
+        not in good_release_boundary.replace("make -C zigux phase14-test", "", 1)
+    ]
+    if missing_release_boundary_markers != ["make -C zigux phase14-test"]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_release_boundary_marker_gap")
+        print("SELF_TEST_MARKERS_START")
+        for item in missing_release_boundary_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     forbidden_smoke_dependency_build = "\n".join(
         [
             "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
@@ -457,6 +485,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_MISSING_DOCS_ROOT_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_ROUTE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py")
     print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test")
+    print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_ROUTE_MARKER=make -C zigux phase14-test")
     print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
     print("PHASE14_SELF_TEST_FORBIDDEN_REVIEWABILITY_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     return 0
@@ -473,6 +502,7 @@ def run_validation() -> int:
         return 1
 
     survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+    release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
     skbuff_survey_text = text("Documentation/zigux/phase14-skbuff-bridge-survey.md")
     missing: list[str] = []
     json_decode_errors: list[str] = []
@@ -482,6 +512,7 @@ def run_validation() -> int:
         ("make", make_text, MAKE_MARKERS),
         ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
         ("survey", survey_text, RELEASE_MARKERS),
+        ("release_boundary", release_boundary_text, RELEASE_BOUNDARY_MARKERS),
         ("skbuff_survey", skbuff_survey_text, SKBUFF_SURVEY_MARKERS),
         ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
         ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
@@ -533,6 +564,7 @@ def run_validation() -> int:
                 "zigux/tests/README.md",
                 "Documentation/zigux/README.md",
                 "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+                "Documentation/zigux/phase14-release-boundary-survey.md",
                 "Documentation/zigux/phase14-core-boundary-traceability.md",
                 "Documentation/zigux/review-checklist.md",
                 "Documentation/zigux/freeze-map.md",
@@ -724,7 +756,7 @@ def run_validation() -> int:
     print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE14_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
     )
     print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
