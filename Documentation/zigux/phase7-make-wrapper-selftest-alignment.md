@@ -25,6 +25,18 @@ same checker family:
 - `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 
+The same parked packet also depends on the dedicated survey, sample-boundary,
+and direct summarized test routes staying explicit beside that shared validator
+surface:
+
+- `make -C zigux phase7-string-helpers-survey`
+- `make -C zigux phase7-string-helpers-sample-boundary`
+- `make -C zigux phase7-cmdline-survey`
+- `make -C zigux phase7-argv-split-survey`
+- `make -C zigux phase7-rbtree-survey`
+- `make -C zigux phase7-test`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
 `Documentation/zigux/phase7-cmdline-slice.md`,
@@ -53,6 +65,8 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
 not drift back toward per-slice ad hoc checks.
 
-`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface.
+`make -C zigux phase7-validate`, the dedicated survey and sample-boundary
+replays, `make -C zigux phase7-test`, and `make -C zigux phase7` remain the
+Linux-style review routes for this shared control surface.
 
 this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`; it only keeps the already-landed shared control surface truthful.
