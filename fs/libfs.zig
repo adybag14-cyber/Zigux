@@ -12,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_positive_entry_classification: bool,
     provides_directory_emptiness_planning: bool,
     provides_lookup_planning: bool,
+    provides_transaction_release_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -49,6 +50,14 @@ pub const LookupPlan = struct {
     installs_negative_dentry: bool,
 };
 
+pub const TransactionReleasePlan = struct {
+    anchor: []const u8,
+    private_data_present: bool,
+    frees_page_backed_private_data: bool,
+    clears_private_data: bool,
+    returns_zero: bool,
+};
+
 pub const LibfsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -57,6 +66,7 @@ pub const LibfsHelperLab = struct {
             .provides_positive_entry_classification = true,
             .provides_directory_emptiness_planning = true,
             .provides_lookup_planning = true,
+            .provides_transaction_release_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -104,6 +114,16 @@ pub const LibfsHelperLab = struct {
             .installs_negative_dentry = addressable,
         };
     }
+
+    pub fn simpleTransactionReleasePlan(private_data_present: bool) TransactionReleasePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .private_data_present = private_data_present,
+            .frees_page_backed_private_data = private_data_present,
+            .clears_private_data = private_data_present,
+            .returns_zero = true,
+        };
+    }
 };
 
 test "libfs helper descriptor stays anchored to fs/libfs.c" {
@@ -114,6 +134,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_positive_entry_classification);
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
     try std.testing.expect(descriptor.provides_lookup_planning);
+    try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 }
@@ -165,4 +186,23 @@ test "simple_lookup plan rejects oversized names without claiming live dcache mu
     try std.testing.expectEqual(LookupMode.name_too_long, plan.mode);
     try std.testing.expect(!plan.addressable);
     try std.testing.expect(!plan.installs_negative_dentry);
+}
+
+test "transaction release planner frees page-backed private data and returns zero" {
+    const plan = LibfsHelperLab.simpleTransactionReleasePlan(true);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expect(plan.private_data_present);
+    try std.testing.expect(plan.frees_page_backed_private_data);
+    try std.testing.expect(plan.clears_private_data);
+    try std.testing.expect(plan.returns_zero);
+}
+
+test "transaction release planner keeps the no-private-data path explicit" {
+    const plan = LibfsHelperLab.simpleTransactionReleasePlan(false);
+
+    try std.testing.expect(!plan.private_data_present);
+    try std.testing.expect(!plan.frees_page_backed_private_data);
+    try std.testing.expect(!plan.clears_private_data);
+    try std.testing.expect(plan.returns_zero);
 }
