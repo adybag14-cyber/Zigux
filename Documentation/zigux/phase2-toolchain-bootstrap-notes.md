@@ -11,24 +11,6 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`
 - shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - shared cross selftest-alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
-- shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
-- shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`
-- shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`
-- shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`
-- shared genksyms CRC parity gate: `python3 scripts/zigux/check-genksyms-crc-diff.py`
-- shared mk_elfconfig parity self-test: `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
-- shared mk_elfconfig parity gate: `python3 scripts/zigux/check-mk-elfconfig-diff.py`
-- direct mk_elfconfig Zig replay: `zig test scripts/zigux/mk_elfconfig.zig`
-- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
-- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
-- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`
-- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
-- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
-- direct artifact-tools manifest: `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
-- direct genksyms CRC Zig replay: `zig test scripts/zigux/genksyms_crc.zig`
-- direct kconfig bridge Zig replay: `zig test scripts/zigux/kconfig/conf_bridge.zig`
-- direct confdata bridge Zig replay: `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 - guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
@@ -39,6 +21,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - Linux-style kconfig route: `make -C zigux phase2-kconfig`
 - Linux-style cross route: `make -C zigux phase2-cross`
 - Linux-style tranche route: `make -C zigux phase2`
+- the broader fixdep, genksyms, artifact-tools, kconfig bridge, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of presenting non-existent standalone checker scripts as live current-`master` evidence in this dedicated pin-scope note
 
 ## Pin Scope
 
@@ -59,9 +42,8 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep this dedicated bootstrap note aligned with `zigux/tests/fixtures/phase2_cross_targets.json`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` so the bounded three-target compile matrix stays reviewable from the same Phase 2 note instead of being implied only by sibling reminder surfaces
 - the shared tests README alignment self-test and gate keep this dedicated bootstrap note aligned with `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay surface instead of leaving this note coupled to the broader Phase 2 packet by implication alone
-- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `artifact_tools` (`genksyms_crc` plus `mk_elfconfig`), `kconfig`, and `confdata` packet links it pins, `.github/workflows/zigux-bootstrap.yml`, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator
-- the dedicated fixdep gate checker keeps the bounded fixdep workflow gate paired with the direct `zig test scripts/zigux/fixdep.zig` replay and the shared tools route
-- the direct fixdep parity checker keeps the direct fixdep parity surface reviewable beside the same artifact packet and Linux-style tool replay
+- the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note
+- the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route
 - the shared and closure validators above are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
 - the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist
 - the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note
