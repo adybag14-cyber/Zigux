@@ -17,6 +17,9 @@ PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER = (
 PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
 )
+PHASE2_TOOL_MANIFEST_PACKET_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+)
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TESTS_README_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
@@ -42,10 +45,12 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (PHASE2_CROSS_CHECKER,),
     (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
     (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER,),
+    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),
+    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,),
     (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test"),
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 16
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18
 
 
 def build_validation_commands() -> list[list[str]]:
@@ -92,6 +97,8 @@ def collect_command_inventory_issues() -> list[str]:
         "scripts/zigux/check-phase2-cross.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+        "scripts/zigux/check-phase2-tool-manifest-packets.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     }
@@ -138,6 +145,7 @@ def main() -> int:
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
         ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
@@ -147,7 +155,9 @@ def main() -> int:
         ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
         ROOT / "zigux" / "Makefile",
         ROOT / "zigux" / "tests" / "README.md",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
         ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ]
     missing = require_files(required)
     if missing:
