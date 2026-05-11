@@ -42,6 +42,7 @@ The current `verify.zig` shard is a reviewability-only packet.
 
 - treat this note as a bounded owner map for the verify shard, not as proof of direct procfs reads, bpffs opens, token creation, online-CPU routing, skeleton population, object loading, or BTF relocation work
 - keep the verify shard aligned with the same shared packet that already owns `zigux/tests/phase12_libbpf_reviewability.zig`, the deterministic snapshot fixtures, the shared build-only checker, the smoke-first replay order, and the Linux-style `phase12` replay route
+- keep the degraded-workflow checker pair and the attached-toolchain Make fallback explicit beside that same smoke-first order so this note does not drift into implying a focused libbpf-only fallback route
 - preserve the split between the deterministic five-path helper packet, the compile-together verify shard, the bridge-local helper destination, and the later object-model and loader-risk buckets instead of collapsing them back into one vague `libbpf` bucket
 
 ## Non-goals
@@ -58,11 +59,15 @@ This note does not claim:
 
 ## Gates
 
-1. `python3 scripts/zigux/check-build-only-phase12-surface.py`
-2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-3. `make -C zigux phase12-smoke`
-4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-5. `make -C zigux phase12`
+1. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+2. `python3 scripts/zigux/check-build-only-phase12-surface.py`
+3. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+4. `make -C zigux phase12-smoke`
+5. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+6. `make -C zigux phase12`
+7. If `zig` is unavailable on `PATH`, reuse the same smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
+- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 ## Next Bounded Step
 
