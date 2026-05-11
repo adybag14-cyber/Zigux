@@ -32,6 +32,8 @@ PHASE12_RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencin
 PHASE12_RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 PHASE12_RELEASE_CLOSURE_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
 PHASE12_RELEASE_COORDINATION_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
+PHASE12_COMPLEX_DRIVER_LANE_PATH = "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH = "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
@@ -46,11 +48,11 @@ REQUIRED_PHASE12_PATHS = [
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_RELEASE_SEQUENCING_PATH,
-    "Documentation/zigux/phase12-release-closure-checklist.md",
+    PHASE12_RELEASE_CLOSURE_PATH,
     PHASE12_RELEASE_READINESS_PATH,
-    "Documentation/zigux/phase12-release-coordination-matrix.md",
-    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
-    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+    PHASE12_RELEASE_COORDINATION_PATH,
+    PHASE12_COMPLEX_DRIVER_LANE_PATH,
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     PHASE12_RAW_GITHUB_COVERAGE_PATH,
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
@@ -139,6 +141,18 @@ PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER = (
     "The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` "
     "and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, "
     "while `virtio_net` and `libbpf` remain shared-tree-only anchors."
+)
+PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER = (
+    "Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening driver-local behavior."
+)
+PHASE12_COMPLEX_DRIVER_LANE_NEXT_STEP_MARKER = (
+    "If this lane reopens soon, rerun `python3 scripts/zigux/check-build-only-phase12-surface.py`, then reread `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the same smoke-first Phase 12 packet, the same checker pair, and the same two-versus-two fallback split."
+)
+PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER = (
+    "The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet."
+)
+PHASE12_LIBBPF_HEAVY_CONSUMER_MANIFEST_ONLY_MARKER = (
+    "Keep the deterministic tracked-helper snapshot and reviewability wording explicit so the release-facing libbpf packet does not collapse back to manifest-only prose."
 )
 PHASE12_LIBBPF_SURVEY_FALLBACK_MARKER = (
     "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact."
@@ -237,7 +251,6 @@ REQUIRED_PHASE12_RELEASE_READINESS_EXACT_COUNTS = {
     PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER: 1,
 }
 
-
 PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER = (
     "It is not a closure claim, and it is not itself a shipped replay surface."
 )
@@ -279,6 +292,26 @@ REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS = [
 REQUIRED_PHASE12_RELEASE_COORDINATION_EXACT_COUNTS = {
     PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER: 1,
     PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER: 1,
+}
+
+REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_MARKERS = [
+    PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER,
+    PHASE12_COMPLEX_DRIVER_LANE_NEXT_STEP_MARKER,
+]
+
+REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_EXACT_COUNTS = {
+    PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER: 1,
+    PHASE12_COMPLEX_DRIVER_LANE_NEXT_STEP_MARKER: 1,
+}
+
+REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_MARKERS = [
+    PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER,
+    PHASE12_LIBBPF_HEAVY_CONSUMER_MANIFEST_ONLY_MARKER,
+]
+
+REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_EXACT_COUNTS = {
+    PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER: 1,
+    PHASE12_LIBBPF_HEAVY_CONSUMER_MANIFEST_ONLY_MARKER: 1,
 }
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -435,6 +468,8 @@ def validate(root: Path) -> list[str]:
     phase12_release_readiness = read_text(root, PHASE12_RELEASE_READINESS_PATH)
     phase12_release_closure = read_text(root, PHASE12_RELEASE_CLOSURE_PATH)
     phase12_release_coordination = read_text(root, PHASE12_RELEASE_COORDINATION_PATH)
+    phase12_complex_driver_lane = read_text(root, PHASE12_COMPLEX_DRIVER_LANE_PATH)
+    phase12_libbpf_heavy_consumer_lane = read_text(root, PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -498,6 +533,30 @@ def validate(root: Path) -> list[str]:
         phase12_release_coordination,
         REQUIRED_PHASE12_RELEASE_COORDINATION_EXACT_COUNTS,
     )
+    ensure_contains(
+        failures,
+        "phase12_complex_driver_lane",
+        phase12_complex_driver_lane,
+        REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_complex_driver_lane",
+        phase12_complex_driver_lane,
+        REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_EXACT_COUNTS,
+    )
+    ensure_contains(
+        failures,
+        "phase12_libbpf_heavy_consumer_lane",
+        phase12_libbpf_heavy_consumer_lane,
+        REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_libbpf_heavy_consumer_lane",
+        phase12_libbpf_heavy_consumer_lane,
+        REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_EXACT_COUNTS,
+    )
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
@@ -546,6 +605,16 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_marker_doc(
             "Documentation/zigux/phase12-release-coordination-matrix",
             REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS,
+        )
+    if rel_path == PHASE12_COMPLEX_DRIVER_LANE_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-complex-driver-lane-sequencing",
+            REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_MARKERS,
+        )
+    if rel_path == PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing",
+            REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_MARKERS,
         )
     if rel_path == PHASE12_LIBBPF_SURVEY_PATH:
         return minimal_marker_doc("Documentation/zigux/phase12-libbpf-segment-survey", REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
@@ -674,6 +743,8 @@ def run_self_test() -> int:
         phase12_release_readiness_path = base / PHASE12_RELEASE_READINESS_PATH
         phase12_release_closure_path = base / PHASE12_RELEASE_CLOSURE_PATH
         phase12_release_coordination_path = base / PHASE12_RELEASE_COORDINATION_PATH
+        phase12_complex_driver_lane_path = base / PHASE12_COMPLEX_DRIVER_LANE_PATH
+        phase12_libbpf_heavy_consumer_lane_path = base / PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH
         tests_readme_path = base / TESTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
@@ -806,6 +877,22 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        phase12_complex_driver_lane = phase12_complex_driver_lane_path.read_text(encoding="utf-8")
+        phase12_complex_driver_lane_path.write_text(
+            phase12_complex_driver_lane.replace(PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_complex_driver_lane:{PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_libbpf_heavy_consumer_lane = phase12_libbpf_heavy_consumer_lane_path.read_text(encoding="utf-8")
+        phase12_libbpf_heavy_consumer_lane_path.write_text(
+            phase12_libbpf_heavy_consumer_lane.replace(PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_libbpf_heavy_consumer_lane:{PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER}")
+
+        write_fixture_tree(base)
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(tests_readme + PHASE12_REMOVED_SURFACE_MARKER.rstrip(".") + "\n", encoding="utf-8")
         expect_failure(
@@ -832,9 +919,9 @@ def run_self_test() -> int:
         expect_failure(base, f"unexpected_file:{FORBIDDEN_PHASE12_PATHS[-1]}")
 
         write_fixture_tree(base)
-        missing_path = base / Path("Documentation/zigux/phase12-raw-github-coverage-survey.md")
+        missing_path = base / Path(PHASE12_RAW_GITHUB_COVERAGE_PATH)
         missing_path.unlink()
-        expect_failure(base, "missing_file:Documentation/zigux/phase12-raw-github-coverage-survey.md")
+        expect_failure(base, f"missing_file:{PHASE12_RAW_GITHUB_COVERAGE_PATH}")
 
         write_fixture_tree(base)
         missing_path = base / Path("zigux/tests/phase12_libbpf_manifest.json")
@@ -897,7 +984,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=32")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -935,7 +1022,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_PHASE12_RELEASE_SEQUENCING_MARKERS) + len(REQUIRED_PHASE12_RELEASE_READINESS_MARKERS) + len(REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS) + len(REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_PHASE12_RELEASE_SEQUENCING_MARKERS) + len(REQUIRED_PHASE12_RELEASE_READINESS_MARKERS) + len(REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS) + len(REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS) + len(REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
     )
     return 0
 
