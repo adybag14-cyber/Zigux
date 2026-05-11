@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
@@ -29,6 +30,13 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
+        "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
@@ -117,9 +125,19 @@ def run_self_test() -> None:
             [],
             ["zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"],
         )
+        write_fixture_root(tmp_root)
+
+        checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        checklist_text = checklist_path.read_text(encoding="utf-8")
+        missing_checklist_marker = "zigux/tests/fixtures/phase7_argv_split_vectors.zig"
+        checklist_path.write_text(checklist_text.replace(missing_checklist_marker, "", 1), encoding="utf-8")
+        assert validate(tmp_root) == (
+            [],
+            ["Documentation/zigux/review-checklist.md: zigux/tests/fixtures/phase7_argv_split_vectors.zig"],
+        )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=3")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=4")
 
 
 def main() -> int:
