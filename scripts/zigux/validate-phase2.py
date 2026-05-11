@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TESTS_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 KCONFIG_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
+FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
+FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
 PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass"
@@ -42,9 +44,11 @@ def main() -> int:
         ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
         ROOT / "Documentation" / "zigux" / "review-checklist.md",
         ROOT / "scripts" / "zigux" / "README.md",
+        ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
+        ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
         ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
         ROOT / "scripts" / "zigux" / "install-zig.py",
         ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
@@ -76,6 +80,10 @@ def main() -> int:
         [sys.executable, str(KCONFIG_README_ALIGNMENT_CHECKER)],
         [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER), "--self-test"],
         [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
+        [sys.executable, str(FIXDEP_GATE_CHECKER), "--self-test"],
+        [sys.executable, str(FIXDEP_GATE_CHECKER)],
+        [sys.executable, str(FIXDEP_DIFF_CHECKER), "--self-test"],
+        [sys.executable, str(FIXDEP_DIFF_CHECKER)],
     ]
     for command in commands:
         if run(command) != 0:
@@ -84,7 +92,7 @@ def main() -> int:
             return 1
 
     print("PHASE2_VALIDATION=pass")
-    print("PHASE2_VALIDATION_COMMAND_COUNT=6")
+    print("PHASE2_VALIDATION_COMMAND_COUNT=10")
     return 0
 
 
