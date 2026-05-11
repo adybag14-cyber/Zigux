@@ -86,7 +86,9 @@ REQUIRED_README_SNIPPETS = (
 # Broader Phase 2 replay surfaces currently live in docs/tests/make routes instead.
 REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"),
+    Path("scripts/zigux/check-phase2-tests-readme-alignment.py"),
     Path("scripts/zigux/check-phase2-cross.py"),
+    Path("scripts/zigux/check-phase2-cross-selftest-alignment.py"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
@@ -303,6 +305,16 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase2_toolchain_pin_scope_path, "# stub\n")
 
+        missing_phase2_tests_readme_alignment_path = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
+        (root / missing_phase2_tests_readme_alignment_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase2_tests_readme_alignment_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 2 tests-readme-alignment repo file was not reported")
+            return 1
+        _write(root / missing_phase2_tests_readme_alignment_path, "# stub\n")
+
         missing_phase2_cross_path = Path("scripts/zigux/check-phase2-cross.py")
         (root / missing_phase2_cross_path).unlink()
         broken = validate_repo_files(root)
@@ -312,6 +324,16 @@ def run_self_test() -> int:
             print("expected missing Phase 2 cross repo file was not reported")
             return 1
         _write(root / missing_phase2_cross_path, "# stub\n")
+
+        missing_phase2_cross_selftest_alignment_path = Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")
+        (root / missing_phase2_cross_selftest_alignment_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase2_cross_selftest_alignment_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 2 cross-selftest-alignment repo file was not reported")
+            return 1
+        _write(root / missing_phase2_cross_selftest_alignment_path, "# stub\n")
 
         missing_phase3_path = Path("scripts/zigux/phase3_catalog.py")
         (root / missing_phase3_path).unlink()
