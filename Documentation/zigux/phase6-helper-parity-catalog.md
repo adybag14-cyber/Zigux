@@ -14,6 +14,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ## Packet Rows
 
 ### base64
+- roadmap anchor: `lib/base64.c`
 - helper: `lib/base64.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
 - focused helper replay: `zigux/tests/phase6_base64.zig`
@@ -25,6 +26,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
 
 ### bsearch
+- roadmap anchor: `lib/bsearch.c`
 - helper: `lib/bsearch.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
@@ -35,6 +37,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
 
 ### checksum
+- roadmap anchor: `lib/checksum.c`
 - helper: `lib/checksum.zig`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
@@ -46,6 +49,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
 
 ### hexdump
+- roadmap anchor: `lib/hexdump.c`
 - helper: `lib/hexdump.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
