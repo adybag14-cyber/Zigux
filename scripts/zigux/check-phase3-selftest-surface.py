@@ -38,6 +38,7 @@ SCRIPTS_README_MARKERS = (
 )
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 MAKEFILE_MARKERS = (
@@ -185,6 +186,25 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected constant-parity marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        driver_path = root / SELFTEST_DRIVER_PATH
+        driver_path.write_text(
+            _read(driver_path).replace(
+                'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            'missing selftest driver marker: Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")'
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected missing low-level-wrapper selftest marker was not reported")
             return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
