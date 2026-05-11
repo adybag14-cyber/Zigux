@@ -306,6 +306,11 @@ CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_bitmap_partial_xor_review_count",
+        "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
+        1,
+    ),
+    (
         "closure_bitmap_scnprintf_truncation_review_count",
         "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
         1,
@@ -717,6 +722,7 @@ def run_self_test() -> None:
         marker_labels = [
             "closure_bitmap_first_word_boundary_review_count",
             "closure_bitmap_final_partial_word_review_count",
+            "closure_bitmap_partial_xor_review_count",
             "closure_bitmap_scnprintf_truncation_review_count",
             "closure_bitmap_zero_bit_noop_review_count",
             "closure_bitmap_linux_alias_review_count",
