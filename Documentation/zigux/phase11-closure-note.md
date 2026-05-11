@@ -16,6 +16,7 @@ The current shared closure packet is the reminder-and-replay surface that still 
 * `Documentation/zigux/phase11-shared-replay-contract.md`
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 * `zigux/tests/phase11_build.zig`
 * `make -C zigux phase11`
 
@@ -39,6 +40,7 @@ The adjacent driver-local or packet-local Phase 11 surfaces remain present besid
 * there is no shared `make -C zigux phase11-validate` target on `master`
 * there is no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the dedicated archival HVC route remains separate so the shared packet does not overclaim notifier, khvcd, sysrq, or host-backed execution coverage
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py` keeps the broader reminder surfaces aligned with this smaller shared closure packet
 
 ## What This Closure Note Does Not Claim
 
