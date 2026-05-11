@@ -288,6 +288,8 @@ REQUIRED_TESTS_README_MARKERS = [
     "keep the shared Phase 12 complex-driver packet explicit in the tests root too:",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
     "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "`zigux/tests/phase12_libbpf_manifest.json`",
+    f"`{PHASE12_LIBBPF_VERIFY_PATH}`",
     "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
     "`make -C zigux phase12-smoke`",
     PHASE12_REMOVED_SURFACE_MARKER.rstrip("."),
@@ -658,6 +660,7 @@ def run_self_test() -> int:
         scripts_readme_path = base / SCRIPTS_README_PATH
         docs_readme_path = base / DOCS_README_PATH
         review_checklist_path = base / REVIEW_CHECKLIST_PATH
+        tests_readme_path = base / TESTS_README_PATH
         phase12_release_sequencing_path = base / PHASE12_RELEASE_SEQUENCING_PATH
         phase12_release_readiness_path = base / PHASE12_RELEASE_READINESS_PATH
         phase12_release_closure_path = base / PHASE12_RELEASE_CLOSURE_PATH
@@ -688,6 +691,13 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"review_checklist:{PHASE12_REVIEW_CHECKLIST_MARKER}")
+
+        write_fixture_tree(base)
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(f"`{PHASE12_LIBBPF_VERIFY_PATH}`", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"tests_readme:`{PHASE12_LIBBPF_VERIFY_PATH}`")
 
         write_fixture_tree(base)
         phase12_release_sequencing_path.write_text(
@@ -772,7 +782,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build:smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
