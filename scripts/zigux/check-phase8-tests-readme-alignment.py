@@ -46,6 +46,11 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_cpu_mask_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-cpu-mask-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
@@ -141,7 +146,10 @@ def run_self_test() -> int:
 
         mutations = (
             (TESTS_README_PATH, "`scripts/zigux/check-phase8-tests-readme-alignment.py`"),
-            (TESTS_README_PATH, "`make -C zigux phase8-cpu-mask-test`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_kallsyms_only_build.zig`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_cpu_mask_only_build.zig`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_libbpf_segments_only_build.zig`"),
             (SCRIPTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
