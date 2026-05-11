@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
 MAKE_MARKERS = [
@@ -62,6 +63,25 @@ MANIFEST_MARKERS = [
     '"scripts/zigux/check-phase10-harness-coverage.py"',
 ]
 
+LEDGER_EXACT_ONCE_MARKERS = [
+    "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/check-phase10-core-packet.py",
+    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/validate-phase10.py",
+    "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_EXACT_CHECK_6=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10-validate",
+    "PHASE10_LEDGER_EXACT_CHECK_8=make -C zigux phase10-test",
+    "PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10",
+]
+
+LEDGER_EXACT_ONCE_ERROR = (
+    "PHASE10_CLOSURE_VALIDATION_LEDGER_EXACT_CHECKS=fail\n"
+    "PHASE10_CLOSURE_LEDGER_EXACT_ONCE_MISMATCH_START\n"
+    "{details}\n"
+    "PHASE10_CLOSURE_LEDGER_EXACT_ONCE_MISMATCH_END"
+)
+
 COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
@@ -93,6 +113,16 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
     return missing
+
+
+def collect_ledger_exact_once_mismatches(root: Path) -> list[str]:
+    ledger_text = read_text(root, "zigux-alpha/PHASE10_CLOSURE_LEDGER.md")
+    mismatches: list[str] = []
+    for marker in LEDGER_EXACT_ONCE_MARKERS:
+        count = ledger_text.count(marker)
+        if count != 1:
+            mismatches.append(f"{marker}:count={count}")
+    return mismatches
 
 
 def run_command(root: Path, cmd: list[str]) -> int:
@@ -131,6 +161,7 @@ def write_fixture(root: Path) -> None:
         ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
+        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_EXACT_ONCE_MARKERS) + "\n",
     }
     for rel_path, content in files.items():
         path = root / rel_path
@@ -145,11 +176,13 @@ def run_self_test() -> int:
 
         missing_files = collect_missing_files(root)
         missing_markers = collect_missing_markers(root)
-        if missing_files or missing_markers:
+        ledger_mismatches = collect_ledger_exact_once_mismatches(root)
+        if missing_files or missing_markers or ledger_mismatches:
             raise SystemExit(
                 "phase10-closure-self-test:baseline_failed:"
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
-                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
+                f"ledger={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
             )
         failed_commands = run_required_commands(root)
         if failed_commands:
@@ -200,6 +233,23 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
         write_fixture(root)
 
+        ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
+                "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        ledger_mismatches = collect_ledger_exact_once_mismatches(root)
+        if "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py:count=0" not in ledger_mismatches:
+            raise SystemExit(
+                "phase10-closure-self-test:missing_ledger_exact_once_mismatch_not_detected:"
+                f"actual={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
+            )
+        write_fixture(root)
+
         checker = root / "scripts/zigux/check-phase10-harness-coverage.py"
         checker.write_text(
             "#!/usr/bin/env python3\n"
@@ -236,7 +286,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -266,6 +316,11 @@ def main() -> int:
         print("MISSING_PHASE10_CLOSURE_MARKERS_END")
         return 1
 
+    ledger_mismatches = collect_ledger_exact_once_mismatches(ROOT)
+    if ledger_mismatches:
+        print(LEDGER_EXACT_ONCE_ERROR.format(details="\n".join(ledger_mismatches)))
+        return 1
+
     failed_commands = run_required_commands(ROOT)
     if failed_commands:
         print("PHASE10_CLOSURE_VALIDATION=fail")
@@ -279,7 +334,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS) + len(LEDGER_EXACT_ONCE_MARKERS)}"
     )
     print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
     return 0
