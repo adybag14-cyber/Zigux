@@ -106,9 +106,9 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`make -C zigux phase13-validate`",
-        "current `master` materializes a small `security/landlock/syscalls.zig` helper starter",
-        "pure reviewable planning for `landlock_restrict_self()` only",
-        "without direct companion packet files, helper-local add-rule planning, or any claim of live syscall enforcement",
+        "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
+        "the release-side `fop_ruleset_release()` ownership drop",
+        "the combined `ruleset_fops` wrapper contract",
     ],
     "Documentation/zigux/phase13-notifier-list-survey.md": [
         "# Phase 13 Notifier List Survey",
@@ -174,7 +174,7 @@ EXACT_COUNTS = {
         "the current eight-test shared-helper release packet": 1,
     },
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": {
-        "current `master` materializes a small `security/landlock/syscalls.zig` helper starter": 1,
+        "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.": 1,
     },
     "scripts/zigux/README.md": {
         "eight-test shared helper replay": 1,
@@ -350,7 +350,7 @@ def run_self_test() -> int:
                     marker
                     for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]
                     if marker
-                    != "current `master` materializes a small `security/landlock/syscalls.zig` helper starter"
+                    != "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
                 ],
                 {},
             ),
@@ -358,10 +358,10 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:current `master` materializes a small `security/landlock/syscalls.zig` helper starter",
-                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:current `master` materializes a small `security/landlock/syscalls.zig` helper starter:expected=1:actual=0",
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
+                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.:expected=1:actual=0",
             ],
-            "missing_syscalls_absent_phrase_failed",
+            "missing_syscalls_anchor_phrase_failed",
         )
         write_text(
             root,
