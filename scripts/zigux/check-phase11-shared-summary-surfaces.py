@@ -11,6 +11,7 @@ FILES = {
     "review_checklist": "Documentation/zigux/review-checklist.md",
     "scripts_root": "scripts/zigux/README.md",
     "tests_root": "zigux/tests/README.md",
+    "tests_companion": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
 }
 
 MARKERS = {
@@ -46,9 +47,17 @@ MARKERS = {
         "`make -C zigux phase11`",
         "five shipped Phase 11 checker scripts on `master`",
     ],
+    "tests_companion": [
+        "# Phase 10, 11, and 13 Tests-Root Review Companion",
+        "## Phase 11 tests-root packet",
+        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "the dedicated archival `hvc_console` teardown note plus survey-gate split packet and sysrq-helper boundary",
+    ],
 }
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 
 class CheckError(RuntimeError):
@@ -104,6 +113,7 @@ def run_self_test() -> None:
             (FILES["review_checklist"], MARKERS["review_checklist"][3]),
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][2]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
