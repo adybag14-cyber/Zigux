@@ -18,6 +18,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
+HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 
 BASE64_CASES = [
     {
@@ -73,9 +74,37 @@ CHECKSUM_CASES = [
     },
 ]
 
+HEXDUMP_CASES = [
+    {
+        "label": "16B-plain-g1",
+        "reps": 40000,
+        "max_slowdown_pct": 175,
+        "required_fragments": ['.label = "16B-plain-g1"', ".reps = 40_000", ".max_slowdown_pct = 175"],
+    },
+    {
+        "label": "32B-ascii-g2",
+        "reps": 10000,
+        "max_slowdown_pct": 550,
+        "required_fragments": ['.label = "32B-ascii-g2"', ".reps = 10_000", ".max_slowdown_pct = 550"],
+    },
+    {
+        "label": "16B-ascii-g4",
+        "reps": 20000,
+        "max_slowdown_pct": 550,
+        "required_fragments": ['.label = "16B-ascii-g4"', ".reps = 20_000", ".max_slowdown_pct = 550"],
+    },
+    {
+        "label": "16B-ascii-g8",
+        "reps": 20000,
+        "max_slowdown_pct": 600,
+        "required_fragments": ['.label = "16B-ascii-g8"', ".reps = 20_000", ".max_slowdown_pct = 600"],
+    },
+]
+
 SURVEY_SNIPPETS = [
     "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
     "* checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` still pins two perf cases, `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases",
+    "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
 
@@ -98,6 +127,16 @@ def ensure_text_markers(path: Path, markers: list[str], repo_root: Path) -> None
     for marker in markers:
         if marker not in content:
             raise ValidationError(f"missing expected Phase 6 marker in {path}: {marker}")
+
+
+def ensure_case_fragments(path: Path, cases: list[dict[str, object]], repo_root: Path) -> None:
+    content = read_text(repo_root / path)
+    for case in cases:
+        for fragment in case["required_fragments"]:
+            if fragment not in content:
+                raise ValidationError(
+                    f"missing expected Phase 6 marker in {path} for {case['label']}: {fragment}"
+                )
 
 
 def validate_manifest(repo_root: Path) -> None:
@@ -152,6 +191,26 @@ def validate_manifest(repo_root: Path) -> None:
     ]:
         raise ValidationError(f"unexpected checksum cases in {MANIFEST_PATH}")
 
+    hexdump = perf_thresholds.get("hexdump")
+    if not isinstance(hexdump, dict):
+        raise ValidationError(f"missing perf_thresholds.hexdump in {MANIFEST_PATH}")
+    if hexdump.get("replay") != "zigux/tests/phase6_hexdump_perf.zig":
+        raise ValidationError(f"unexpected hexdump replay in {MANIFEST_PATH}")
+    if hexdump.get("fixture") != HEXDUMP_VECTORS_PATH.as_posix():
+        raise ValidationError(f"unexpected hexdump fixture in {MANIFEST_PATH}")
+    if hexdump.get("measurement_mode") != "relative_slowdown":
+        raise ValidationError(f"unexpected hexdump measurement_mode in {MANIFEST_PATH}")
+    hexdump_cases = hexdump.get("cases")
+    if hexdump_cases != [
+        {
+            "label": case["label"],
+            "reps": case["reps"],
+            "max_slowdown_pct": case["max_slowdown_pct"],
+        }
+        for case in HEXDUMP_CASES
+    ]:
+        raise ValidationError(f"unexpected hexdump cases in {MANIFEST_PATH}")
+
     exact_checks = manifest.get("exact_checks")
     if not isinstance(exact_checks, list):
         raise ValidationError(f"missing exact_checks in {MANIFEST_PATH}")
@@ -169,6 +228,7 @@ def run_checks(repo_root: Path) -> None:
     ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
     ensure_text_markers(CHECKSUM_PERF_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
     ensure_text_markers(CHECKSUM_VECTORS_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
+    ensure_case_fragments(HEXDUMP_VECTORS_PATH, HEXDUMP_CASES, repo_root)
 
 
 def write(path: Path, content: str) -> None:
@@ -232,6 +292,19 @@ def scaffold_repo(root: Path) -> None:
                     for case in CHECKSUM_CASES
                 ],
             },
+            "hexdump": {
+                "replay": "zigux/tests/phase6_hexdump_perf.zig",
+                "fixture": HEXDUMP_VECTORS_PATH.as_posix(),
+                "measurement_mode": "relative_slowdown",
+                "cases": [
+                    {
+                        "label": case["label"],
+                        "reps": case["reps"],
+                        "max_slowdown_pct": case["max_slowdown_pct"],
+                    }
+                    for case in HEXDUMP_CASES
+                ],
+            },
         },
         "exact_checks": [
             "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
@@ -243,6 +316,14 @@ def scaffold_repo(root: Path) -> None:
     write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
     write(root / CHECKSUM_PERF_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
     write(root / CHECKSUM_VECTORS_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
+    write(
+        root / HEXDUMP_VECTORS_PATH,
+        "\n".join(
+            f'.{{ .label = "{case["label"]}", .reps = {case["reps"]:_}, .max_slowdown_pct = {case["max_slowdown_pct"]}, }},'
+            for case in HEXDUMP_CASES
+        )
+        + "\n",
+    )
 
 
 def assert_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -296,9 +377,15 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
-            CHECKSUM_VECTORS_PATH,
-            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 150, },',
-            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 175, },',
+            SURVEY_PATH,
+            "16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
+            "16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 650`",
+        )
+        assert_failure(
+            root,
+            HEXDUMP_VECTORS_PATH,
+            '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 600, },',
+            '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 650, },',
         )
     print("self-test passed")
 
@@ -312,7 +399,10 @@ def main() -> int:
         run_self_test()
         return 0
     run_checks(Path(args.repo_root).resolve())
-    print("Phase 6 perf-threshold markers look aligned.")
+    print(
+        "Phase 6 perf-threshold markers look aligned:"
+        f" base64={len(BASE64_CASES)} checksum={len(CHECKSUM_CASES)} hexdump={len(HEXDUMP_CASES)}"
+    )
     return 0
 
 
