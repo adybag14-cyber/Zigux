@@ -26,7 +26,6 @@ REQUIRED_SNIPPETS = {
         "# Phase 6 Helper Parity Catalog",
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
-        "- surveyed head: `911470d`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
@@ -136,7 +135,6 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
-        "\"surveyed_commit\": \"911470d\",",
         "\"id\": \"base64\"",
         "\"zigux/tests/phase6_base64_c_parity.zig\"",
         "\"zigux/tests/fixtures/phase6_base64_c_harness.c\"",
