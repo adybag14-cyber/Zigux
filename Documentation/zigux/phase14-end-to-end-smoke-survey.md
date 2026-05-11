@@ -114,4 +114,4 @@ This shared smoke slice does not claim:
 
 ## Next bounded step
 
-Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts. If it does, refresh this packet instead of widening into new deep-core or bridge implementation work.
+Keep this shared smoke lane open for one remaining review-surface truthfulness repair: `Documentation/zigux/review-checklist.md` still omits `scripts/zigux/check-phase14-docs-root-smoke-summary.py` from the shared Phase 14 prompt even though the docs root, scripts root, manifest, validator packet, and this survey all treat that checker as shipped packet evidence. Once that checklist reminder is made explicit and the paired validator marker is tightened to fail closed on the same four-checker packet, park this lane again unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.
