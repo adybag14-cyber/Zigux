@@ -1,15 +1,28 @@
 {
+  "status": "parity_scorecard_slice_landed",
+  "lane_key": "P15-L01",
+  "slice": "freeze-map-parity-scorecard-baseline",
+  "provenance_mode": "dated_master_readback",
   "surveyed_commit": "current-master-readback-2026-05-11",
+  "posture": {
+    "architecture_council_status_change_approval_recorded": false,
+    "scorecard_role": "blocked_posture_accounting_not_port_readiness"
+  },
   "metrics": {
     "active_freeze_in_c_anchor_count": 4,
     "blocked_status_change_anchor_count": 4,
-    "phase14_coupled_blocker_anchor_count": 2
+    "phase14_coupled_blocker_anchor_count": 2,
+    "anchors_still_blocked_on_prior_phase_bridge_evidence": 2,
+    "study_only_anchors_tracked_outside_scorecard": 2,
+    "architecture_council_status_change_approval_count": 0
   },
   "anchors": [
     {
       "path": "kernel/sched/core.c",
       "lane_owner": "Architecture Council",
       "rollback_owner": "Architecture Council + PMO / Release Management",
+      "current_status_bucket": "freeze_in_c",
+      "current_blocker": "blocked_no_bounded_scheduler_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
         "linked_evidence": [
@@ -20,12 +33,15 @@
         "benchmark_notes_status": "pending_until_bounded_scheduler_seam_exists",
         "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
         "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"
-      }
+      },
+      "next_honest_posture": "keep the anchor frozen until a bounded scheduler seam exists and a reopen trigger is recorded"
     },
     {
       "path": "mm/page_alloc.c",
       "lane_owner": "Architecture Council",
       "rollback_owner": "Architecture Council + Validation and Perf Team",
+      "current_status_bucket": "freeze_in_c",
+      "current_blocker": "blocked_no_bounded_allocator_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
         "linked_evidence": [
@@ -36,12 +52,15 @@
         "benchmark_notes_status": "pending_until_bounded_allocator_seam_exists",
         "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
         "latest_blocker_disposition": "blocked_no_bounded_allocator_seam"
-      }
+      },
+      "next_honest_posture": "keep the anchor frozen until a bounded allocator seam exists and a reopen trigger is recorded"
     },
     {
       "path": "kernel/rcu/tree.c",
       "lane_owner": "ABI and Runtime Team",
       "rollback_owner": "Architecture Council + ABI and Runtime Team",
+      "current_status_bucket": "freeze_in_c",
+      "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
         "linked_evidence": [
@@ -52,12 +71,15 @@
         "benchmark_notes_status": "pending_until_rcu_followup_is_narrower_than_freeze_boundary",
         "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
         "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
-      }
+      },
+      "next_honest_posture": "keep the anchor frozen until a narrower-than-freeze RCU follow-up exists and a reopen trigger is recorded"
     },
     {
       "path": "net/core/skbuff.c",
       "lane_owner": "Shared Subsystems Pod",
       "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+      "current_status_bucket": "freeze_in_c",
+      "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
         "linked_evidence": [
@@ -68,7 +90,8 @@
         "benchmark_notes_status": "pending_until_skbuff_followup_is_narrower_than_lifetime_boundary",
         "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
         "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"
-      }
+      },
+      "next_honest_posture": "keep the anchor frozen until a narrower-than-lifetime skbuff follow-up exists and a reopen trigger is recorded"
     }
   ]
 }
