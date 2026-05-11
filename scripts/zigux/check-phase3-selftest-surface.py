@@ -22,6 +22,7 @@ README_MARKERS = (
 README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 README_PHASE3_PREFIX = "Phase 3 notes - "
@@ -42,6 +43,7 @@ TESTS_README_MARKER_COUNTS = {
     "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 TESTS_README_PHASE3_REMINDER_PREFIX = (
@@ -58,6 +60,7 @@ SCRIPTS_README_MARKERS = (
 SCRIPTS_README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 SCRIPTS_README_PHASE3_PREFIX = "Phase 3 flow - "
@@ -383,6 +386,25 @@ def run_self_test() -> int:
         _populate_repo(root)
         broken_path.write_text(
             _read(broken_path).replace(
+                "Documentation/zigux/phase3-validator-support-surface.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: Documentation/zigux/phase3-validator-support-surface.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support note drift in tests README was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
                 "zigux/uapi/dev_t.zig",
                 "",
                 1,
@@ -421,6 +443,27 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-validator-support-surface.md",
+                README_PHASE3_NEXT_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-validator-support-surface.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: Documentation/zigux/phase3-validator-support-surface.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support note drift in docs README was not reported")
+            return 1
+
+        _populate_repo(root)
         scripts_path = root / SCRIPTS_README_PATH
         scripts_path.write_text(
             _read(scripts_path).replace(
@@ -438,6 +481,27 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected scripts README section-scoped drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "Documentation/zigux/phase3-validator-support-surface.md",
+                SCRIPTS_README_PHASE3_NEXT_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-validator-support-surface.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: Documentation/zigux/phase3-validator-support-surface.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support note drift in scripts README was not reported")
             return 1
 
         _populate_repo(root)
