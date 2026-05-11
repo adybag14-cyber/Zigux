@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import tempfile
 from pathlib import Path
 
@@ -13,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 16
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -35,6 +36,8 @@ SELF_TEST_CASES = [
     "perf_baseline_owner_drift",
     "perf_baseline_shared_promotion_status_drift",
     "test_fsmount_gap_packet_presence_drift",
+    "test_fsmount_threshold_posture_drift",
+    "test_fsmount_owner_drift",
     "missing_note_file",
 ]
 SELF_TEST_CASES_LINE = (
@@ -94,6 +97,8 @@ REQUIRED_SELF_TEST_CASE_MARKERS = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "test_fsmount_threshold_posture_drift",
+    "test_fsmount_owner_drift",
     "missing_note_file",
 ]
 
@@ -119,6 +124,50 @@ BLOB_TARGETS = {
     "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA": "Documentation/zigux/review-checklist.md",
 }
 
+TEST_FSMOUNT_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
+TEST_FSMOUNT_MANIFEST_REL = Path("zigux/tests/phase4_test_fsmount_manifest.json")
+TEST_FSMOUNT_SURVEY_REL = Path("zigux/tests/phase4_test_fsmount_survey.zig")
+
+TEST_FSMOUNT_NOTE_MARKERS = [
+    "PHASE4_TEST_FSMOUNT_STATUS=parked_gap_packet_landed",
+    "PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c",
+    "PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs",
+    "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+    "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team",
+    "PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team",
+    "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
+    "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.",
+    "reviewability-only no-perf-threshold posture",
+]
+
+TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
+    "lane_key": "P4-L19",
+    "phase": "Phase 4",
+    "c_anchor": "samples/vfs/test-fsmount.c",
+    "current_linux_replay": "make M=samples/vfs",
+    "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-test-fsmount-survey",
+    "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+    "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
+    "threshold_posture": "reviewability_only_no_perf_threshold",
+    "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
+    "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
+}
+
+TEST_FSMOUNT_SURVEY_MARKERS = [
+    'test "phase4 test_fsmount survey keeps the parked gap packet explicit" {',
+    'test "phase4 test_fsmount survey keeps threshold posture explicit" {',
+    'test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {',
+    'test "phase4 test_fsmount survey keeps the bounded next step explicit" {',
+    '\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-survey\"',
+    '\"threshold_posture\": \"reviewability_only_no_perf_threshold\"',
+    '\"owner\": \"Validation and Perf Team\"',
+]
+
 
 def git_blob_sha1(payload: bytes) -> str:
     header = f"blob {len(payload)}\0".encode("utf-8")
@@ -137,6 +186,37 @@ def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(f"missing marker: {old}")
     return text.replace(old, new, 1)
+
+
+def validate_test_fsmount_packet(root: Path) -> list[str]:
+    failures: list[str] = []
+    note_path = root / TEST_FSMOUNT_NOTE_REL
+    manifest_path = root / TEST_FSMOUNT_MANIFEST_REL
+    survey_path = root / TEST_FSMOUNT_SURVEY_REL
+    for path in (note_path, manifest_path, survey_path):
+        if not path.exists():
+            failures.append(f"file:{path.relative_to(root).as_posix()}")
+    if failures:
+        return failures
+
+    note = read_text(note_path)
+    manifest = json.loads(read_text(manifest_path))
+    survey = read_text(survey_path)
+
+    for marker in TEST_FSMOUNT_NOTE_MARKERS:
+        if marker not in note:
+            failures.append(f"test_fsmount_note:{marker}")
+
+    for key, expected in TEST_FSMOUNT_MANIFEST_EXPECTATIONS.items():
+        actual = manifest.get(key)
+        if actual != expected:
+            failures.append(f"test_fsmount_manifest:{key}:{actual}:{expected}")
+
+    for marker in TEST_FSMOUNT_SURVEY_MARKERS:
+        if marker not in survey:
+            failures.append(f"test_fsmount_survey:{marker}")
+
+    return failures
 
 
 def validate_root(root: Path) -> list[str]:
@@ -174,6 +254,7 @@ def validate_root(root: Path) -> list[str]:
         if marker not in text:
             failures.append(f"blob_pin_mismatch:{key}:{digest}")
 
+    failures.extend(validate_test_fsmount_packet(root))
     return failures
 
 
@@ -227,6 +308,62 @@ def write_fixture_tree(root: Path) -> None:
         ]
     )
     write_text(root / GATE_EVIDENCE_REL, gate_evidence + "\n")
+
+    write_text(
+        root / TEST_FSMOUNT_NOTE_REL,
+        """# Phase 4 test_fsmount Gap Survey
+
+## Status
+- `PHASE4_TEST_FSMOUNT_STATUS=parked_gap_packet_landed`
+- `PHASE4_TEST_FSMOUNT_LANE_KEY=P4-L19`
+- `PHASE4_TEST_FSMOUNT_PHASE=Phase 4`
+- `PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c`
+- `PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs`
+- `PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
+- `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`
+- `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
+- `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
+- `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
+- `PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold`
+
+Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
+
+That packet keeps the current C anchor, replay path, owner, rollback owner, dedicated
+local survey routes, and the current reviewability-only no-perf-threshold posture
+measurable while the shared Phase 4 rollback-readiness lane remains below starter
+implementation.
+""",
+    )
+
+    write_text(
+        root / TEST_FSMOUNT_MANIFEST_REL,
+        json.dumps(TEST_FSMOUNT_MANIFEST_EXPECTATIONS, indent=2) + "\n",
+    )
+
+    write_text(
+        root / TEST_FSMOUNT_SURVEY_REL,
+        """const std = @import("std");
+
+test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
+    _ = std.testing.allocator;
+    _ = "\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"";
+    _ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
+}
+
+test "phase4 test_fsmount survey keeps threshold posture explicit" {
+    _ = std.testing.allocator;
+    _ = "\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"";
+}
+
+test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
+    _ = std.testing.allocator;
+}
+
+test "phase4 test_fsmount survey keeps the bounded next step explicit" {
+    _ = std.testing.allocator;
+}
+""",
+    )
 
 
 def expect_failure(
@@ -611,6 +748,52 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        test_fsmount_note_path = root / TEST_FSMOUNT_NOTE_REL
+        original_test_fsmount_note = read_text(test_fsmount_note_path)
+        test_fsmount_note_path.write_text(
+            replace_once(
+                original_test_fsmount_note,
+                "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
+                "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=shared_ci_perf_promoted",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount threshold posture drift",
+            exact_failure=(
+                "test_fsmount_note:PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE="
+                "reviewability_only_no_perf_threshold"
+            ),
+        ):
+            return 1
+        case_count += 1
+        test_fsmount_note_path.write_text(original_test_fsmount_note, encoding="utf-8")
+
+        test_fsmount_manifest_path = root / TEST_FSMOUNT_MANIFEST_REL
+        original_test_fsmount_manifest = json.loads(
+            read_text(test_fsmount_manifest_path)
+        )
+        drifted_manifest = dict(original_test_fsmount_manifest)
+        drifted_manifest["owner"] = "Tooling and Validation Team"
+        test_fsmount_manifest_path.write_text(
+            json.dumps(drifted_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount owner drift",
+            prefix_failure="test_fsmount_manifest:owner:",
+        ):
+            return 1
+        case_count += 1
+        test_fsmount_manifest_path.write_text(
+            json.dumps(original_test_fsmount_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
         gate_evidence_path.unlink()
         if not expect_failure(
