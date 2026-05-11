@@ -311,6 +311,14 @@ CLOSURE_MARKERS = [
     ("closure_bench_check_gate", "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py"),
     ("closure_closure_gate", "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py"),
     (
+        "closure_bitmap_final_partial_word_review",
+        "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
+    ),
+    (
+        "closure_bitmap_linux_alias_review",
+        "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface",
+    ),
+    (
         "closure_rbtree_review_packet",
         "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
     ),
@@ -555,6 +563,24 @@ def run_self_test() -> None:
         docs_root_path.write_text(docs_root.replace(target, "", 1), encoding="utf-8")
         missing = collect_missing_markers(root)
         assert "docs_root_phase1_owner_map_note:expected=1:actual=0" in missing
+        case_count += 1
+        make_fixture_root(root)
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure = closure_path.read_text(encoding="utf-8")
+        target = "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it\n"
+        closure_path.write_text(closure.replace(target, "", 1), encoding="utf-8")
+        missing = collect_missing_markers(root)
+        assert "closure_bitmap_final_partial_word_review:expected=1:actual=0" in missing
+        case_count += 1
+        make_fixture_root(root)
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure = closure_path.read_text(encoding="utf-8")
+        target = "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface\n"
+        closure_path.write_text(closure.replace(target, "", 1), encoding="utf-8")
+        missing = collect_missing_markers(root)
+        assert "closure_bitmap_linux_alias_review:expected=1:actual=0" in missing
         case_count += 1
         make_fixture_root(root)
 
