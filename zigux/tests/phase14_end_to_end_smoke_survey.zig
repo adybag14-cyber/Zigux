@@ -294,6 +294,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_workqueue_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "Documentation/zigux/phase14-release-boundary-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "attached-toolchain fallback examples for this note's shared replay routes only:") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test") != null);
