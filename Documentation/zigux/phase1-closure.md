@@ -146,6 +146,18 @@ The committed `inclusive_boundary_next`, `inclusive_boundary_zero`, and `inclusi
 
 - `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local tail-word inclusive boundary proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. This helper-local test is the bounded proof that same-word next scans in the final partial tail word still keep the last live in-range bit reachable when the caller starts exactly on that inclusive tail boundary instead of skipping forward to `nbits`.
+
+- `PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_REVIEW=helper-local tail-word inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans in the final partial tail word keep the last in-range bit reachable from an inclusive start`
+
+The shared Phase 1 replay still only consumes the committed `inclusive_boundary_*` head-word fields directly, so the direct helper-local tail-word inclusive-boundary test remains the owning review-visible anchor for the final partial-word boundary path.
+
+- `PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay still only consumes the committed inclusive_boundary_* head-word fields directly, so the direct helper-local tail-word inclusive-boundary test remains the owning review-visible anchor for the final partial-word boundary path`
+
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local zero-bit-window proof explicit through:
 
 - `tools/lib/find_bit.zig`
