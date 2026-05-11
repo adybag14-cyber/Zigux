@@ -11,87 +11,29 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 FILES = {
     "note": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
-    "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
-    "docs_readme": "Documentation/zigux/README.md",
-    "scripts_readme": "scripts/zigux/README.md",
-    "tests_readme": "zigux/tests/README.md",
-    "review_checklist": "Documentation/zigux/review-checklist.md",
 }
 
 MARKERS = {
     "note": [
         "# Phase 11 Shared Replay Contract",
-        "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`.",
-        "The live DesignWare watchdog packet inside that shared route also stays explicit through `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`.",
-        "That bounded DesignWare packet keeps the registration-order scaffold, teardown and failure-mode parity split, and dedicated watchdog replay visible beside the shared route without claiming live platform registration, clock ownership, reset ownership, IRQ handling, or MMIO-backed validation.",
-        "* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "* `zigux/tests/phase11_hvc_console_manifest.json`",
-        "* `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "* `make -C zigux phase11-hvc-survey`",
-        "These paths keep the bounded HVC manifest-backed survey, modem-control split, poll-retry split, sysrq-handoff helper, and dedicated survey route reviewable beside the shared route without promoting missing driver-starter, cleanup replay, compile-local verify-helper, tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed cleanup into the current shared contract.",
-        "The landed `scripts/zigux/check-phase11-build-inventory.py` plus `zigux/tests/fixtures/phase11_build_inventory.json` now keep the shared split and adjunct replay inventory explicit on `master` without widening this packet into a shared `validate-phase11.py` stack.",
+        "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_drift_recorded`",
+        "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        "* there is no shared `zigux/tests/phase11_build.zig` on current `master`",
+        "* there is no shared `make -C zigux phase11-hvc-survey` route in this tree",
+        "Prefer one shared note or checker at a time until the surviving closure surfaces stop naming missing build routes, missing replay files, or missing helper files.",
     ],
     "closure_note": [
         "# Phase 11 Closure Note",
-        "* `PHASE11_CLOSURE_STATUS=shared_packet_parked`",
+        "* `PHASE11_CLOSURE_STATUS=shared_packet_drift_recorded`",
         "* `Documentation/zigux/phase11-shared-replay-contract.md`",
-        "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
-        "* `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
-        "* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; current `master` still keeps this lane parked on the first platform-registration follow-through even though that bounded replay packet is already landed and reviewable",
-        "* HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "* `make -C zigux phase11-hvc-survey`",
-        "The landed `scripts/zigux/check-phase11-build-inventory.py` plus `zigux/tests/fixtures/phase11_build_inventory.json` keep the shared split and adjunct replay inventory explicit beside that parked closure packet.",
-    ],
-    "lane_note": [
-        "# Phase 11 Driver Lane Sequencing",
-        "Keep the current lane split explicit:",
-        "- bcm2835 lane `P11-L03` owns",
-        "- gpio lane `P11-L06` owns",
-        "- DesignWare lane `P11-L05` owns",
-        "- HVC lane `P11-L16` owns",
-        "- header-boundary lane `P11-L18` owns",
-        "rather than missing `hvc_console` starter, cleanup, manifest, or verify-helper files.",
-        "The shared sequencing lane also keeps `scripts/zigux/check-phase11-build-inventory.py` and `zigux/tests/fixtures/phase11_build_inventory.json` with the shared packet because that generated inventory records the shared split and adjunct replay surfaces without changing driver-local ownership.",
-    ],
-    "docs_readme": [
-        "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`",
-        "`Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    ],
-    "scripts_readme": [
-        "Phase 11 flow - `Documentation/zigux/README.md`",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "`drivers/watchdog/dw_wdt_verify.zig`",
-        "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
-        "`drivers/tty/hvc/hvc_console_sysrq.zig` helper path",
-    ],
-    "tests_readme": [
-        "keep the shared Phase 11 simple-driver packet explicit in the tests root too:",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
-        "`zigux/tests/phase11_hvc_console_manifest.json`",
-        "`make -C zigux phase11-hvc-survey`",
-    ],
-    "review_checklist": [
-        "if the change touches the shared Phase 11 simple-driver packet",
-        "`Documentation/zigux/phase11-shared-replay-contract.md`",
-        "`Documentation/zigux/phase11-closure-note.md`",
-        "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "`drivers/watchdog/dw_wdt_verify.zig`",
-        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-failure-matrix.py`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "* there is no shared `zigux/tests/phase11_build.zig` on current `master`",
+        "The next honest shared-lane follow-through is to repair one drifted survivor note at a time, starting with `Documentation/zigux/phase11-driver-lane-sequencing.md` or `Documentation/zigux/phase11-hvc-console-survey.md`, so each note stops naming missing build routes and missing helper files.",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 4
 
 
 class CheckError(RuntimeError):
@@ -146,12 +88,8 @@ def run_self_test() -> None:
         cases = [
             (FILES["note"], MARKERS["note"][3]),
             (FILES["note"], MARKERS["note"][4]),
-            (FILES["closure_note"], MARKERS["closure_note"][5]),
-            (FILES["lane_note"], MARKERS["lane_note"][4]),
-            (FILES["docs_readme"], MARKERS["docs_readme"][2]),
-            (FILES["scripts_readme"], MARKERS["scripts_readme"][3]),
-            (FILES["tests_readme"], MARKERS["tests_readme"][2]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][5]),
+            (FILES["closure_note"], MARKERS["closure_note"][4]),
+            (FILES["closure_note"], MARKERS["closure_note"][6]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
