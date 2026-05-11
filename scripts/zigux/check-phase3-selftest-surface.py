@@ -30,6 +30,9 @@ TESTS_README_MARKERS = (
 )
 TESTS_README_MARKER_COUNTS = {
     "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "zigux/uapi/dev_t.zig": 1,
 }
 SCRIPTS_README_MARKERS = (
     "check-phase3-selftest-surface.py",
@@ -186,6 +189,62 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected constant-parity marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "Documentation/zigux/phase3-abi-header-family-survey.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README marker count drift: Documentation/zigux/phase3-abi-header-family-survey.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README marker count drift: Documentation/zigux/phase3-abi-h-boundary-next-step.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected abi.h next-step marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "zigux/uapi/dev_t.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README marker count drift: zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected dev_t marker count drift was not reported")
             return 1
 
         _populate_repo(root)
