@@ -40,6 +40,7 @@ FILE_PATH_HANDLE_BRIDGE_ZIG_PATH = "tools/lib/bpf/zigux_segments/file_path_handl
 FILE_PATH_HANDLE_BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
+LIBBPF_SEGMENTS_MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
@@ -74,6 +75,7 @@ REQUIRED_FILES = [
     FILE_PATH_HANDLE_BRIDGE_TEST_PATH,
     FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH,
     PHASE8_BUILD_PATH,
+    LIBBPF_SEGMENTS_MANIFEST_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
     MAKEFILE_PATH,
@@ -245,6 +247,11 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
         "`make -C zigux phase8-test`",
+        "planTokenPreparation()",
+        "no direct procfs reads",
+        "no actual bpffs opens or `bpf_obj_get()` reopen calls",
+        "no fd duplication or `F_DUPFD_CLOEXEC` handling",
+        "no token materialization or handle transfer",
     ],
     FILE_PATH_HANDLE_BRIDGE_ZIG_PATH: [
         "mapReuseObservationFromFdinfo",
@@ -256,6 +263,10 @@ REQUIRED_MARKERS = {
         'test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {',
         'test "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility" {',
         'test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit" {',
+        'test "phase 8 file-path-handle bridge keeps token acquisition ownership planning explicit" {',
+        'try expectContains(note, "no actual bpffs opens or `bpf_obj_get()` reopen calls");',
+        'try expectContains(note, "no token materialization or handle transfer");',
+        'try expectContains(survey, "fd close or ownership semantics");',
     ],
     FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH: [
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -266,6 +277,11 @@ REQUIRED_MARKERS = {
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "phase8_file_path_handle_bridge.zig",
         "phase8-file-path-handle-bridge-tests",
+    ],
+    LIBBPF_SEGMENTS_MANIFEST_PATH: [
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
     ],
     CPU_MASK_SLICE_PATH: [
         "PHASE8_SLICE=libbpf-cpu-mask-starter",
@@ -302,6 +318,7 @@ FIXTURE_OVERRIDES = {
     FILE_PATH_HANDLE_BRIDGE_TEST_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_TEST_PATH]) + "\n",
     FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH]) + "\n",
     PHASE8_BUILD_PATH: "\n".join(REQUIRED_MARKERS[PHASE8_BUILD_PATH]) + "\n",
+    LIBBPF_SEGMENTS_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENTS_MANIFEST_PATH]) + "\n",
     EXEC_CMD_ZIG_PATH: "// fixture\n",
     HELP_ZIG_PATH: "// fixture\n",
     KALLSYMS_ZIG_PATH: "// fixture\n",
@@ -393,6 +410,7 @@ def run_self_test() -> None:
         ("missing_file_path_handle_bridge_test", FILE_PATH_HANDLE_BRIDGE_TEST_PATH),
         ("missing_file_path_handle_bridge_only_build", FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH),
         ("missing_phase8_shared_build", PHASE8_BUILD_PATH),
+        ("missing_libbpf_segments_manifest", LIBBPF_SEGMENTS_MANIFEST_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
@@ -534,6 +552,13 @@ def run_self_test() -> None:
             f"{FILE_PATH_HANDLE_BRIDGE_SLICE_PATH}: `make -C zigux phase8-test`",
         ),
         (
+            "bridge_slice_resource_boundary_marker",
+            FILE_PATH_HANDLE_BRIDGE_SLICE_PATH,
+            "no actual bpffs opens or `bpf_obj_get()` reopen calls",
+            "no actual bpffs opens",
+            f"{FILE_PATH_HANDLE_BRIDGE_SLICE_PATH}: no actual bpffs opens or `bpf_obj_get()` reopen calls",
+        ),
+        (
             "bridge_source_token_planning_marker",
             FILE_PATH_HANDLE_BRIDGE_ZIG_PATH,
             "planTokenPreparation",
@@ -548,6 +573,13 @@ def run_self_test() -> None:
             f'{FILE_PATH_HANDLE_BRIDGE_TEST_PATH}: test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {{',
         ),
         (
+            "bridge_test_ownership_marker",
+            FILE_PATH_HANDLE_BRIDGE_TEST_PATH,
+            'test "phase 8 file-path-handle bridge keeps token acquisition ownership planning explicit" {',
+            'test "phase 8 file-path-handle bridge ownership planning drifted" {',
+            f'{FILE_PATH_HANDLE_BRIDGE_TEST_PATH}: test "phase 8 file-path-handle bridge keeps token acquisition ownership planning explicit" {{',
+        ),
+        (
             "bridge_only_build_target_marker",
             FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH,
             "phase8-file-path-handle-bridge-tests",
@@ -560,6 +592,13 @@ def run_self_test() -> None:
             "phase8-file-path-handle-bridge-tests",
             "phase8-file-path-bridge-tests",
             f"{PHASE8_BUILD_PATH}: phase8-file-path-handle-bridge-tests",
+        ),
+        (
+            "manifest_deferred_boundary_marker",
+            LIBBPF_SEGMENTS_MANIFEST_PATH,
+            '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
+            '"slug": "file-path-and-handle-bridge", "status": "starter_landed"',
+            f'{LIBBPF_SEGMENTS_MANIFEST_PATH}: "slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
         ),
         (
             "review_checklist_help_checker_marker",
