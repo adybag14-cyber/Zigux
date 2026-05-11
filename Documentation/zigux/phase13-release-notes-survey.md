@@ -39,6 +39,8 @@ Broad summaries should also keep the shipped devres packet-truthfulness guard ex
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
+Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.
+
 Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_libfs.zig`
