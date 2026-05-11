@@ -20,7 +20,9 @@ REQUIRED_FILES = {
     "shared_contract": "Documentation/zigux/phase11-shared-replay-contract.md",
     "scripts_readme": "scripts/zigux/README.md",
     "docs_readme": "Documentation/zigux/README.md",
+    "driver_tests": "zigux/tests/phase11_dw_wdt.zig",
     "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
+    "survey_gate": "zigux/tests/phase11_dw_wdt_survey.zig",
     "verify_replay": "drivers/watchdog/dw_wdt_verify.zig",
 }
 
@@ -81,7 +83,7 @@ EXPECTED_GAP_STATUSES = {
     "phase11-dw-wdt-live-platform-pm": "blocked_on_driver_scaffold",
 }
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -187,7 +189,9 @@ def run_check(root: Path) -> None:
         DOCS_README_MARKERS,
     )
     # Existence checks for the executable artifacts that the packet names directly.
+    read_text(root, REQUIRED_FILES["driver_tests"])
     read_text(root, REQUIRED_FILES["registration_scaffold"])
+    read_text(root, REQUIRED_FILES["survey_gate"])
     read_text(root, REQUIRED_FILES["verify_replay"])
 
 
@@ -250,7 +254,9 @@ def build_self_test_fixture(root: Path) -> None:
         root / REQUIRED_FILES["docs_readme"],
         "\n".join(DOCS_README_MARKERS) + "\n",
     )
+    write(root / REQUIRED_FILES["driver_tests"], "watchdog_register_device\n")
     write(root / REQUIRED_FILES["registration_scaffold"], "platform_set_drvdata\n")
+    write(root / REQUIRED_FILES["survey_gate"], "teardown-parity replay\n")
     write(root / REQUIRED_FILES["verify_replay"], "missing-drvdata-platform-handoff\n")
 
 
@@ -331,11 +337,22 @@ def run_self_test() -> None:
         docs_readme_path = tmpdir / REQUIRED_FILES["docs_readme"]
         docs_readme_path.write_text(
             docs_readme_path.read_text(encoding="utf-8").replace(
-                "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`\n", ""
+                "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`\n",
+                "",
             ),
             encoding="utf-8",
         )
         expect_failure(tmpdir, "phase11-dw-wdt-validation-matrix.md")
+
+        build_self_test_fixture(tmpdir)
+        driver_tests_path = tmpdir / REQUIRED_FILES["driver_tests"]
+        driver_tests_path.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["driver_tests"])
+
+        build_self_test_fixture(tmpdir)
+        survey_gate_path = tmpdir / REQUIRED_FILES["survey_gate"]
+        survey_gate_path.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["survey_gate"])
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "drivers", ignore_errors=True)
