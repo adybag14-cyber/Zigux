@@ -51,6 +51,7 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_survey.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 * `make -C zigux phase11-hvc-survey`
 
 The shared header-boundary evidence also stays explicit beside that shared route:
