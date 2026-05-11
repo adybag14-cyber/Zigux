@@ -11,6 +11,13 @@ from tempfile import TemporaryDirectory
 
 README_PATH = Path("scripts/zigux/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
+PHASE3_VALIDATE_TARGET = "phase3-validate"
+PHASE3_POLICY_UNSAFE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+)
 PHASE4_VALIDATE_TARGET = "phase4-validate"
 PHASE4_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
@@ -39,6 +46,7 @@ REQUIRED_MARKERS = (
     "check-phase3-catalog-selftest.py",
     "validate-phase3-policy-unsafe-survey.py",
     "check-phase3-policy-byte-guards.py",
+    "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
     "validate-phase3-validator-support-surface.py",
@@ -85,6 +93,9 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
@@ -147,15 +158,33 @@ def validate_makefile(repo_root: Path) -> list[str]:
     except FileNotFoundError:
         return [f"missing repo file: {MAKEFILE_REL.as_posix()}"]
 
+    issues: list[str] = []
+
+    phase3_commands = _extract_make_target_commands(makefile_text, PHASE3_VALIDATE_TARGET)
+    if phase3_commands is None:
+        issues.append(f"missing_makefile_target:{PHASE3_VALIDATE_TARGET}")
+    else:
+        issues.extend(
+            f"missing_makefile_command:{PHASE3_VALIDATE_TARGET}:{command}"
+            for command in PHASE3_POLICY_UNSAFE_COMMANDS
+            if command not in phase3_commands
+        )
+        ordered_phase3_policy_unsafe_commands = tuple(
+            command for command in phase3_commands if command in PHASE3_POLICY_UNSAFE_COMMANDS
+        )
+        if ordered_phase3_policy_unsafe_commands != PHASE3_POLICY_UNSAFE_COMMANDS:
+            issues.append(f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:policy_unsafe_support")
+
     commands = _extract_make_target_commands(makefile_text, PHASE4_VALIDATE_TARGET)
     if commands is None:
-        return [f"missing_makefile_target:{PHASE4_VALIDATE_TARGET}"]
+        issues.append(f"missing_makefile_target:{PHASE4_VALIDATE_TARGET}")
+        return issues
 
-    issues = [
+    issues.extend(
         f"missing_makefile_command:{PHASE4_VALIDATE_TARGET}:{command}"
         for command in PHASE4_VALIDATE_COMMANDS
         if command not in commands
-    ]
+    )
     if tuple(commands) != PHASE4_VALIDATE_COMMANDS:
         issues.append(f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}")
     return issues
@@ -173,8 +202,12 @@ def _populate_repo_files(root: Path) -> None:
 
 
 def _baseline_makefile() -> str:
-    body = "\n".join(f"\t{command}" for command in PHASE4_VALIDATE_COMMANDS)
-    return f"{PHASE4_VALIDATE_TARGET}:\n{body}\n"
+    phase3_body = "\n".join(f"\t{command}" for command in PHASE3_POLICY_UNSAFE_COMMANDS)
+    phase4_body = "\n".join(f"\t{command}" for command in PHASE4_VALIDATE_COMMANDS)
+    return (
+        f"{PHASE3_VALIDATE_TARGET}:\n{phase3_body}\n\n"
+        f"{PHASE4_VALIDATE_TARGET}:\n{phase4_body}\n"
+    )
 
 
 def run_self_test() -> int:
@@ -316,6 +349,47 @@ def run_self_test() -> int:
         if f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}" not in broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected Phase 4 makefile command order drift was not reported")
+            return 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase3-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 focused-replay makefile command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:policy_unsafe_support" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 3 policy-unsafe makefile command order drift was not reported")
+            return 1
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase3-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 mmio-consumer self-test makefile command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:policy_unsafe_support" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 3 policy-unsafe makefile command order drift was not reported")
             return 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
