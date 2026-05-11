@@ -106,7 +106,7 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `make -C zigux phase13`
 
 Contributor reminder:
-- keep the validator-first release route explicit through `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- keep the validator-first eight-test release route explicit through `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13` while treating direct helper-local tests-root gaps as repo reality until current-`master` readback proves them again
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
 - keep direct helper-local tests-root paths framed as repo reality until current-`master` readback proves them; this slot could not materialize `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_ruleset*.zig`, `zigux/tests/phase13_landlock_syscalls*.zig`, or `scripts/zigux/check-phase13-devres-packet.py`
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
