@@ -95,6 +95,8 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
+  - `make -C zigux phase15-validate`
+  - `make -C zigux phase15-test`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
@@ -119,7 +121,7 @@ The current lane state is:
 
 That remaining docs-root undercount is companion-lane shared-summary work tracked through `Documentation/zigux/phase15-governance-lane-sequencing.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`; this review-process packet should reopen only if that drift changes the process fields or approval posture it owns.
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, records the dated-readback provenance refresh that avoids a quickly stale exact-head count, and routes the one remaining broader docs-root reminder undercount through the shared-summary companion lane so this review-process packet only reopens if that drift changes its own required fields, decision buckets, reopen-trigger catalog, or no-approval posture.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, records the dated-readback provenance refresh that avoids a quickly stale exact-head count, keeps the validator-first and dedicated test replay routes explicit in the note itself, and routes the one remaining broader docs-root reminder undercount through the shared-summary companion lane so this review-process packet only reopens if that drift changes its own required fields, decision buckets, reopen-trigger catalog, or no-approval posture.
 
 ## Non-goals
 
@@ -132,10 +134,16 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the validator-first route
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 test target
+- `make -C zigux phase15-test`
+
+3. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+4. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
