@@ -206,7 +206,8 @@
         "replace_char_cstr_bytes",
         "memchr_inv_index",
         "memchr_inv_none"
-      ]
+      ],
+      "memchr_inv_zero_prefix_alignment_anchor": "test \"memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment\""
     }
   }
 }
