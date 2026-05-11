@@ -50,6 +50,28 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test"),
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
 )
+PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
+    {
+        "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+        "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py --self-test",
+        "scripts/zigux/check-fixdep-diff.py",
+        "scripts/zigux/check-phase2-cross.py --self-test",
+        "scripts/zigux/check-phase2-cross.py",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+        "scripts/zigux/check-phase2-tool-manifest-packets.py",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    }
+)
 PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
@@ -78,78 +100,154 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
 )
+PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 6
 
 
-def build_validation_commands() -> list[list[str]]:
-    return [[sys.executable, str(spec[0]), *spec[1:]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
+def build_validation_commands(
+    command_specs: tuple[tuple[Path, str], ...] | tuple[tuple[Path], ...] = PHASE2_VALIDATION_COMMAND_SPECS,
+) -> list[list[str]]:
+    return [[sys.executable, str(spec[0]), *spec[1:]] for spec in command_specs]
 
 
-def build_required_paths() -> list[Path]:
-    return [ROOT / rel_path for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS]
+def build_required_paths(
+    required_relative_paths: tuple[str, ...] = PHASE2_REQUIRED_RELATIVE_PATHS,
+) -> list[Path]:
+    return [ROOT / rel_path for rel_path in required_relative_paths]
 
 
-def collect_command_inventory_issues() -> list[str]:
+def command_tail_from_parts(parts: tuple[Path | str, ...]) -> str:
+    tail_parts: list[str] = []
+    for part in parts:
+        path = Path(part)
+        if path.is_absolute():
+            try:
+                tail_parts.append(str(path.relative_to(ROOT)))
+                continue
+            except ValueError:
+                pass
+        tail_parts.append(str(part))
+    return " ".join(tail_parts)
+
+
+def collect_command_inventory_issues(
+    command_specs: tuple[tuple[Path, str], ...] | tuple[tuple[Path], ...] = PHASE2_VALIDATION_COMMAND_SPECS,
+    *,
+    expected_count: int = PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT,
+    expected_tails: frozenset[str] = PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS,
+) -> list[str]:
     issues: list[str] = []
-    commands = build_validation_commands()
-    if len(commands) != PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT:
+    commands = build_validation_commands(command_specs)
+    if len(commands) != expected_count:
         issues.append(
             "phase2_validation_commands:count="
-            f"{len(commands)}:expected={PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}"
+            f"{len(commands)}:expected={expected_count}"
         )
 
-    tails = []
-    for command in commands:
-        tail_parts: list[str] = []
-        for part in command[1:]:
-            path = Path(part)
-            if path.is_absolute():
-                try:
-                    tail_parts.append(str(path.relative_to(ROOT)))
-                    continue
-                except ValueError:
-                    pass
-            tail_parts.append(part)
-        tails.append(" ".join(tail_parts))
+    tails = [command_tail_from_parts(tuple(command[1:])) for command in commands]
     if len(set(tails)) != len(tails):
         issues.append("phase2_validation_commands:duplicate_command_tail")
 
-    expected_tails = {
-        "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-        "scripts/zigux/check-phase2-tests-readme-alignment.py",
-        "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-        "scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-        "scripts/zigux/check-phase2-fixdep-gate.py",
-        "scripts/zigux/check-fixdep-diff.py --self-test",
-        "scripts/zigux/check-fixdep-diff.py",
-        "scripts/zigux/check-phase2-cross.py --self-test",
-        "scripts/zigux/check-phase2-cross.py",
-        "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-        "scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
-        "scripts/zigux/check-phase2-tool-manifest-packets.py",
-        "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    }
     for tail in sorted(expected_tails):
         if tail not in tails:
             issues.append(f"phase2_validation_commands:missing:{tail}")
+    for tail in sorted(set(tails) - expected_tails):
+        issues.append(f"phase2_validation_commands:unexpected:{tail}")
     return issues
 
 
-def collect_required_file_inventory_issues() -> list[str]:
+def collect_required_file_inventory_issues(
+    required_relative_paths: tuple[str, ...] = PHASE2_REQUIRED_RELATIVE_PATHS,
+    *,
+    expected_count: int = PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT,
+    expected_tails: frozenset[str] = PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS,
+) -> list[str]:
     issues: list[str] = []
-    count = len(PHASE2_REQUIRED_RELATIVE_PATHS)
-    if count != PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT:
+    count = len(required_relative_paths)
+    if count != expected_count:
         issues.append(
             "phase2_validation_required_files:count="
-            f"{count}:expected={PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT}"
+            f"{count}:expected={expected_count}"
         )
-    if len(set(PHASE2_REQUIRED_RELATIVE_PATHS)) != count:
+    if len(set(required_relative_paths)) != count:
         issues.append("phase2_validation_required_files:duplicate_relative_path")
+    for tail in sorted(expected_tails):
+        if tail not in required_relative_paths:
+            issues.append(f"phase2_validation_required_files:missing:{tail}")
+    for tail in sorted(set(required_relative_paths) - expected_tails):
+        issues.append(f"phase2_validation_required_files:unexpected:{tail}")
+    return issues
+
+
+def run_self_test() -> list[str]:
+    checks = [
+        (
+            "command_inventory_ok",
+            collect_command_inventory_issues(),
+            [],
+        ),
+        (
+            "command_inventory_missing_tests_gate",
+            collect_command_inventory_issues(
+                tuple(spec for spec in PHASE2_VALIDATION_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
+            ),
+            [
+                "phase2_validation_commands:count=17:expected=18",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_duplicate_toolchain_scope_gate",
+            collect_command_inventory_issues(
+                PHASE2_VALIDATION_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
+            ),
+            [
+                "phase2_validation_commands:count=19:expected=18",
+                "phase2_validation_commands:duplicate_command_tail",
+            ],
+        ),
+        (
+            "required_file_inventory_ok",
+            collect_required_file_inventory_issues(),
+            [],
+        ),
+        (
+            "required_file_inventory_missing_workflow_marker",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != ".github/workflows/zigux-bootstrap.yml"
+                )
+                + ("scripts/zigux/extra-phase2-checker.py",)
+            ),
+            [
+                "phase2_validation_required_files:missing:.github/workflows/zigux-bootstrap.yml",
+                "phase2_validation_required_files:unexpected:scripts/zigux/extra-phase2-checker.py",
+            ],
+        ),
+        (
+            "required_file_inventory_duplicate_makefile_entry",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "zigux/tests/fixtures/phase2_tool_manifest.json"
+                )
+                + ("zigux/Makefile",)
+            ),
+            [
+                "phase2_validation_required_files:duplicate_relative_path",
+                "phase2_validation_required_files:missing:zigux/tests/fixtures/phase2_tool_manifest.json",
+            ],
+        ),
+    ]
+
+    issues: list[str] = []
+    for name, actual, expected in checks:
+        if actual != expected:
+            issues.append(f"phase2_validation_self_test:{name}:actual={actual}:expected={expected}")
     return issues
 
 
@@ -187,6 +285,12 @@ def main() -> int:
         return 1
 
     if args.self_test:
+        self_test_issues = run_self_test()
+        if self_test_issues:
+            print("PHASE2_VALIDATION_SELF_TEST=fail")
+            for issue in self_test_issues:
+                print(issue)
+            return 1
         print("PHASE2_VALIDATION_SELF_TEST=pass")
         print(
             "PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT="
@@ -195,6 +299,10 @@ def main() -> int:
         print(
             "PHASE2_VALIDATION_SELF_TEST_COMMAND_COUNT="
             f"{PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}"
+        )
+        print(
+            "PHASE2_VALIDATION_SELF_TEST_CASE_COUNT="
+            f"{PHASE2_VALIDATION_SELF_TEST_CASE_COUNT}"
         )
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER)
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER)
