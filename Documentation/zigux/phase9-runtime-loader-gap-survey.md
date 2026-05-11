@@ -57,7 +57,7 @@ The same checklist packet also needs to keep the freeze-map coupling explicit so
 
 The shared substrate plan is part of the same delivery packet now. `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps the shared loader-stage vocabulary and the atomic64, bitmap, and kretprobe handoff alignment explicit so the shared request surface does not silently drift away from the sample-side loaders that already feed it.
 
-The runtime-loader packet also now carries a dedicated commit-alignment guard. `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` keeps the manifest, this survey note, and the substrate-plan note pinned to the same inspected commit and the same pinned-commit sentence before the broader Phase 9 validator or shared replay route can pass.
+The runtime-loader packet also now carries a dedicated commit-alignment guard. `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` keeps the manifest, this survey note, and the substrate-plan note pinned to the same inspected commit and the same pinned-commit sentence before the broader Phase 9 validator or shared replay route can pass. The bootstrap workflow now runs that checker through its own self-test plus direct live replay before the wider `make -C zigux phase9-validate` bundle, so surveyed-commit drift fails at the narrowest same-family gate instead of surfacing only inside the broader validator packet.
 
 ## Delivery ownership map
 
