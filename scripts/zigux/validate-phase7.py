@@ -56,7 +56,7 @@ REQUIRED_MARKERS = {
         "Validate Phase 7 runtime helper gates",
         "make -C zigux phase7-validate",
         "Run Phase 7 runtime helper tests",
-        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+        "make -C zigux phase7-test",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -313,6 +313,7 @@ def run_self_test() -> None:
         ("scripts_readme_argv_split_survey_marker", "scripts/zigux/README.md", "zigux/tests/phase7_argv_split_survey.zig", "", "scripts/zigux/README.md: zigux/tests/phase7_argv_split_survey.zig"),
         ("scripts_readme_argv_split_manifest_marker", "scripts/zigux/README.md", "zigux/tests/phase7_argv_split_manifest.json", "", "scripts/zigux/README.md: zigux/tests/phase7_argv_split_manifest.json"),
         ("workflow_phase7_validate_step", ".github/workflows/zigux-bootstrap.yml", "Validate Phase 7 runtime helper gates", "", ".github/workflows/zigux-bootstrap.yml: Validate Phase 7 runtime helper gates"),
+        ("workflow_phase7_test_route", ".github/workflows/zigux-bootstrap.yml", "make -C zigux phase7-test", "", ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-test"),
         ("makefile_validator_self_test_hook", "zigux/Makefile", "scripts/zigux/validate-phase7.py --self-test", "", "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test"),
         ("makefile_make_wrapper_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-make-wrapper.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test"),
         ("makefile_make_wrapper_hook", "zigux/Makefile", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py", "", "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py"),
