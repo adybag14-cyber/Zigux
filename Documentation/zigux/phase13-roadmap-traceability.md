@@ -36,8 +36,16 @@ If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifes
 
 Keep the current `landlock/ruleset` mapping explicit through:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `zigux/tests/phase13_build.zig`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 
-If direct companions such as `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
+Current `master` still materializes that dedicated ownership note plus the slice note, survey note, manifest, direct test, checker, and shared replay route for the `landlock/ruleset` lane. If any of those companions stop materializing on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `landlock/ruleset` packet still covers access-mask accounting, the matching-rule-versus-no-match `insert_rule()` planning split, tree-search outcome planning, and explicit no-match tree-link mode reviewability without claiming live rb-tree mutation, `rb_replace_node()`, object ownership, hierarchy lifetime, deferred frees, or full Landlock enforcement.
 The dedicated ownership note should stay visible here as roadmap-to-repo evidence, and any still-missing slice, survey, manifest, or direct test companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
