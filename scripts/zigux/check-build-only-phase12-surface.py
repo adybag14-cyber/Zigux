@@ -157,6 +157,9 @@ PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER = (
 PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER = (
     "rule: keep this two-versus-two split explicit in PMO release wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless new dedicated files actually land"
 )
+PHASE12_RELEASE_COORDINATION_VERIFY_SHARD_MARKER = (
+    "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`"
+)
 PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER = (
     "There is still no shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`, so release-planning notes should keep naming only the shipped smoke-first packet and the build-only checker."
 )
@@ -251,6 +254,7 @@ REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS = [
 ]
 REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS = [
     PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER,
+    PHASE12_RELEASE_COORDINATION_VERIFY_SHARD_MARKER,
     PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER,
 ]
 REQUIRED_PHASE12_COMPLEX_DRIVER_LANE_MARKERS = [
@@ -362,6 +366,7 @@ EXACT_COUNT_MAPS = {
     },
     "phase12_release_coordination": {
         PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER: 1,
+        PHASE12_RELEASE_COORDINATION_VERIFY_SHARD_MARKER: 1,
         PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER: 1,
     },
     "phase12_complex_driver_lane": {
@@ -697,10 +702,10 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         phase12_release_coordination_path.write_text(
-            phase12_release_coordination_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER, "", 1),
+            phase12_release_coordination_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_COORDINATION_VERIFY_SHARD_MARKER, "", 1),
             encoding="utf-8",
         )
-        expect_failure(base, f"phase12_release_coordination:{PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER}")
+        expect_failure(base, f"phase12_release_coordination:{PHASE12_RELEASE_COORDINATION_VERIFY_SHARD_MARKER}")
 
         write_fixture_tree(base)
         phase12_complex_driver_lane_path.write_text(
