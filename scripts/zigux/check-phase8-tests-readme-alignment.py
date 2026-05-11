@@ -26,7 +26,7 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     SEQUENCING_PATH: (
-        "### 4. Shared packet wording lane: docs or validator sequencing only",
+        "### 4. Shared wording lane",
         "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "make -C zigux phase8-cpu-mask-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
