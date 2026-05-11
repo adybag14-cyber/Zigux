@@ -29,7 +29,9 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_freeze_map_manifest.json",
     "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
@@ -110,7 +112,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_OWNER_alignment.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate.zig",
 ]
@@ -258,6 +260,8 @@ def _seed_fixture_tree(root: Path) -> None:
     ):
         _write(root, rel, "// stub\n")
     for rel in (
+        "zigux/tests/phase15_freeze_map_manifest.json",
+        "zigux/tests/phase15_parity_scorecard.json",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_handoff_next_steps_manifest.json",
         "zigux/tests/phase15_readiness_gate_manifest.json",
