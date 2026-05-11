@@ -59,6 +59,7 @@ SMOKE_SURVEY_MARKERS = [
     "phase14_workqueue_reviewability.zig",
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
+    "make -C zigux phase14-test",
     "make -C zigux phase14",
 ]
 
@@ -223,6 +224,7 @@ def good_smoke_survey_text() -> str:
             "- `phase14_workqueue_reviewability.zig`",
             "- `make -C zigux phase14-validate`",
             "- `make -C zigux phase14-smoke`",
+            "- `make -C zigux phase14-test`",
             "- `make -C zigux phase14`",
         ]
     ) + "\n"
@@ -343,6 +345,19 @@ def run_self_test() -> int:
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
 
         write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke_survey_text().replace("- `make -C zigux phase14-test`\n", "", 1),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: make -C zigux phase14-test"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected missing smoke-survey test-route failure", file=sys.stderr)
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+
+        write_text(
             root / MAKEFILE_PATH,
             good_makefile_text().replace(
                 f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test\n",
@@ -412,7 +427,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
