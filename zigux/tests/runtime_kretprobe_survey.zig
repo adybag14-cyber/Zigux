@@ -163,6 +163,14 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         runtime_loader_allocator_init_flow,
         "\"runtime_kretprobe\", \"samples/kprobes/kretprobe_example.c\", \"zigux_runtime_kretprobe_init\", \"zigux_runtime_kretprobe_exit\", .kernel_heap",
     );
+    try expectContains(
+        runtime_loader_allocator_init_flow,
+        "test \"phase 9 runtime loader allocator/init-flow replay keeps initialized prepared snapshots stable even if later live state would look exited\"",
+    );
+    try expectContains(
+        runtime_loader_allocator_init_flow,
+        "test \"phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited\"",
+    );
 
     try expectContains(
         runtime_kretprobe_loader,
