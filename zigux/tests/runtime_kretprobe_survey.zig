@@ -190,6 +190,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects prepared shared allocator and init-flow drift before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader surfaces shared request drift before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects shared-load-plan snapshot drift\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader rejects non-prepared shared requests before any live registration claim\"",
     );
     try expectContains(
@@ -203,6 +215,14 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         runtime_kretprobe_loader,
         "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);",
     );
     try expectContains(
         runtime_kretprobe_sample,
