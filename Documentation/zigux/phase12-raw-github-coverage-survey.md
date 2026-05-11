@@ -23,7 +23,7 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
 - rule: keep this two-versus-two split explicit in shared PMO wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless dedicated files actually land
 
 ## Review Use
-- reread this note beside `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, and `Documentation/zigux/phase12-libbpf-verify-shard-note.md` whenever fallback wording changes
+- reread this note beside `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever fallback wording changes
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening fallback claims or release wording
 - keep the current smoke-first replay order explicit through `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 
@@ -37,4 +37,4 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
 - Treat this file as a compact fallback reminder only; the concrete survey, slice, manifest, smoke-route, and reviewability details remain in the shipped Phase 12 packet itself.
 
 ## Next Bounded Step
-If the fallback split changes later, update this note together with the release-order, closure, readiness, coordination, driver anti-overlap, libbpf anti-overlap, and verify-shard companions so the shared Phase 12 packet keeps one truthful public-read story.
+If the fallback split changes later, update this note together with the release-order, closure, readiness, coordination, driver anti-overlap, libbpf anti-overlap, verify-shard, scripts-root, and tests-root companions so the shared Phase 12 packet keeps one truthful public-read story.
