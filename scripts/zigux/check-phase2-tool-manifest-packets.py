@@ -199,15 +199,20 @@ KCONFIG_CONFDATA_MANIFEST_EXPECTED = {
     ],
 }
 
+PHASE2_CLOSURE_DOC_RELATIVE_PATH = "Documentation/zigux/phase2-closure.md"
+PHASE2_CLOSURE_PACKET_SECTION = "## Closure Packet"
+PHASE2_REVIEW_NOTES_SECTION = "## Review Notes"
+PHASE2_CLOSURE_PACKET_MARKERS = [
+    "shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
+    "shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+]
+PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS = [
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit",
+]
+
 REQUIRED_FILES = {
-    "Documentation/zigux/phase2-closure.md": [
-        "shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
-        "shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
-        "zigux/tests/fixtures/phase2_tool_manifest.json",
-        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
-        "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
-        "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
-    ],
     "scripts/zigux/README.md": [
         "check-phase2-tool-manifest-packets.py --self-test",
         "check-phase2-tool-manifest-packets.py",
@@ -257,8 +262,61 @@ def validate_expected_object(
     return issues
 
 
+def extract_markdown_section(text: str, heading: str) -> str | None:
+    lines = text.splitlines()
+    in_section = False
+    collected: list[str] = []
+    for line in lines:
+        if in_section and line.startswith("## "):
+            break
+        if in_section:
+            collected.append(line)
+            continue
+        if line == heading:
+            in_section = True
+    if not in_section:
+        return None
+    return "\n".join(collected).strip()
+
+
+def validate_markdown_section_markers(
+    *, text: str, heading: str, markers: list[str], label: str
+) -> list[str]:
+    section = extract_markdown_section(text, heading)
+    if section is None:
+        return [f"missing_section:{label}:{heading}"]
+
+    issues: list[str] = []
+    for marker in markers:
+        if marker not in section:
+            issues.append(f"missing_marker:{label}:{marker}")
+    return issues
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
+    closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+    if not closure_doc.is_file():
+        issues.append(f"missing_file:{PHASE2_CLOSURE_DOC_RELATIVE_PATH}")
+    else:
+        closure_text = closure_doc.read_text(encoding="utf-8")
+        issues.extend(
+            validate_markdown_section_markers(
+                text=closure_text,
+                heading=PHASE2_CLOSURE_PACKET_SECTION,
+                markers=PHASE2_CLOSURE_PACKET_MARKERS,
+                label=f"{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:closure_packet",
+            )
+        )
+        issues.extend(
+            validate_markdown_section_markers(
+                text=closure_text,
+                heading=PHASE2_REVIEW_NOTES_SECTION,
+                markers=PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS,
+                label=f"{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:review_notes",
+            )
+        )
+
     for rel_path, markers in REQUIRED_FILES.items():
         path = root / rel_path
         if not path.is_file():
@@ -316,7 +374,18 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     docs = {
-        "Documentation/zigux/phase2-closure.md": "\n".join(REQUIRED_FILES["Documentation/zigux/phase2-closure.md"]) + "\n",
+        PHASE2_CLOSURE_DOC_RELATIVE_PATH: "\n".join(
+            [
+                "# Phase 2 Closure",
+                "",
+                PHASE2_CLOSURE_PACKET_SECTION,
+                *[f"- {marker}" for marker in PHASE2_CLOSURE_PACKET_MARKERS],
+                "",
+                PHASE2_REVIEW_NOTES_SECTION,
+                *[f"- {marker}" for marker in PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS],
+                "",
+            ]
+        ),
         "scripts/zigux/README.md": "\n".join(REQUIRED_FILES["scripts/zigux/README.md"]) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REQUIRED_FILES["Documentation/zigux/review-checklist.md"]) + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_FILES["zigux/tests/README.md"]) + "\n",
@@ -402,6 +471,41 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "missing_marker:Documentation/zigux/review-checklist.md:scripts/zigux/check-phase2-tool-manifest-packets.py"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        closure_doc.write_text(
+            closure_doc.read_text(encoding="utf-8").replace(
+                "- shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`\n",
+                "",
+                1,
+            )
+            + "\n- shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:Documentation/zigux/phase2-closure.md:closure_packet:shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        closure_doc.write_text(
+            closure_doc.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:Documentation/zigux/phase2-closure.md:review_notes:`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit"
             in issues
         )
         case_count += 1
