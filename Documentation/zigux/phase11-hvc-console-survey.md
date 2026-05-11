@@ -16,20 +16,21 @@ The current bounded HVC archival packet on `master` is:
 
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
+* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 
-The survey note exists to keep those surfaces readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
+The survey note exists to keep those surfaces and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
 ## What Landed
 
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
 
-The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
+The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey, the paired teardown checkpoint, and the validation matrix without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
 
 The bounded starter and its archival replay now keep these focused cues explicit:
 
