@@ -30,6 +30,8 @@ REQUIRED_SNIPPETS = {
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
+        "- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays",
+        "- exact corpus evidence: `zigux/tests/phase6_bsearch.zig` still anchors 15-element ascending and descending equality replays with five representative hit-or-miss probes each across typed and raw lookup paths, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig` still sweep dynamic lengths `0...32` plus packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` comparison budget",
         "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
         "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-validate`",
@@ -436,6 +438,7 @@ def run_self_test() -> None:
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_bsearch_c_abi_budget.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
+        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays", "- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors_missing.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays")
     print("self-test passed")
 
 
