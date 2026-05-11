@@ -64,9 +64,8 @@ REQUIRED_TRACE_EVENTS_MANIFEST_MARKERS = (
 )
 
 REQUIRED_PHASE9_BUILD_MARKERS = (
-    "runtime_loader_gap_survey.zig",
     "runtime_trace_events_survey.zig",
-    "runtime_trace_events_loader.zig",
+    "phase9-runtime-trace-events-loader-tests",
 )
 
 REQUIRED_SAMPLE_MARKERS = {
@@ -148,7 +147,7 @@ tracepoint registration parity
         "Documentation/zigux/freeze-map.md": "kernel/workqueue.c\nkernel/trace/ring_buffer.c\nStudy / Boundary Only\n",
         "zigux/kernel/runtime_loader.zig": "command_name requires_runtime_substrate provides_selftest_hook allocator_handoff\n",
         "zigux/tests/runtime_trace_events_manifest.json": "runtime-trace-events-substrate-handoff samples/zigux/runtime_trace_events_loader.zig kernel/trace/ring_buffer.c\n",
-        "zigux/tests/phase9_build.zig": "runtime_loader_gap_survey.zig runtime_trace_events_survey.zig runtime_trace_events_loader.zig\n",
+        "zigux/tests/phase9_build.zig": "runtime_trace_events_survey.zig phase9-runtime-trace-events-loader-tests\n",
         "samples/zigux/runtime_atomic64_loader.zig": "requires_runtime_substrate released_without_substrate\n",
         "samples/zigux/runtime_bitmap_loader.zig": "requires_runtime_substrate released_without_substrate\n",
         "samples/zigux/runtime_kretprobe_loader.zig": "register_kretprobe unregister_kretprobe\n",
