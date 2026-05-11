@@ -63,7 +63,7 @@ REQUIRED_FILES = tuple(FILE_MARKERS)
 
 
 def count_occurrences(text: str, marker: str) -> int:
-    return text.count(marker)
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
 def collect_issues(root: Path) -> list[str]:
@@ -116,7 +116,7 @@ def run_self_test() -> int:
         workflow_text = workflow_path.read_text(encoding='utf-8')
         workflow_path.write_text(remove_marker_once(workflow_text, WORKFLOW_MARKERS[0]), encoding='utf-8')
         issues = collect_issues(root)
-        assert any('missing_marker:.github/workflows/zigux-bootstrap.yml:' in issue for issue in issues)
+        assert any(issue.startswith('missing_marker:.github/workflows/zigux-bootstrap.yml:') for issue in issues)
         case_count += 1
 
         build_valid_root(root)
@@ -137,7 +137,7 @@ def run_self_test() -> int:
         makefile_text = makefile_path.read_text(encoding='utf-8')
         makefile_path.write_text(remove_marker_once(makefile_text, MAKEFILE_MARKERS[1]), encoding='utf-8')
         issues = collect_issues(root)
-        assert any('missing_marker:zigux/Makefile:' in issue for issue in issues)
+        assert any(issue.startswith('exact_count:zigux/Makefile:') for issue in issues)
         case_count += 1
 
         build_valid_root(root)
@@ -145,7 +145,7 @@ def run_self_test() -> int:
         closure_text = closure_path.read_text(encoding='utf-8')
         closure_path.write_text(remove_marker_once(closure_text, CLOSURE_MARKERS[2]), encoding='utf-8')
         issues = collect_issues(root)
-        assert any('missing_marker:Documentation/zigux/phase2-closure.md:' in issue for issue in issues)
+        assert any(issue.startswith('missing_marker:Documentation/zigux/phase2-closure.md:') for issue in issues)
         case_count += 1
 
         build_valid_root(root)
@@ -153,7 +153,7 @@ def run_self_test() -> int:
         bridge_text = bridge_path.read_text(encoding='utf-8')
         bridge_path.write_text(remove_marker_once(bridge_text, BRIDGE_CHECKER_MARKERS[1]), encoding='utf-8')
         issues = collect_issues(root)
-        assert any('missing_marker:scripts/zigux/check-genksyms-bridge.py:' in issue for issue in issues)
+        assert any(issue.startswith('missing_marker:scripts/zigux/check-genksyms-bridge.py:') for issue in issues)
         case_count += 1
 
         build_valid_root(root)
