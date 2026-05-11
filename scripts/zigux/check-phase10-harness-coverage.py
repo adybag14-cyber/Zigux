@@ -51,6 +51,7 @@ MANIFEST_TEXT_MARKERS = [
     '"scripts/zigux/check-phase10-harness-coverage.py"',
     '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
     '"zigux/tests/phase10_build.zig"',
+    '"zigux/tests/phase10_virtio_ring_reset_reuse.zig"',
 ]
 
 EXACT_CHECK_MARKERS = [
@@ -163,6 +164,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             else:
                 for path in [
                     "zigux/tests/phase10_build.zig",
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
                     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
                 ]:
@@ -224,6 +226,7 @@ def write_fixture(root: Path) -> None:
                     "lab_only_driver_validation": {
                         "evidence": [
                             "zigux/tests/phase10_build.zig",
+                            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                             "scripts/zigux/check-phase10-harness-coverage.py",
                             "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
                         ]
@@ -475,6 +478,7 @@ def run_self_test() -> int:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
             "zigux/tests/phase10_build.zig",
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "scripts/zigux/check-phase10-harness-coverage.py",
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -482,6 +486,20 @@ def run_self_test() -> int:
             "manifest_checker_evidence",
             root,
             "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            "zigux/tests/phase10_build.zig",
+            "scripts/zigux/check-phase10-harness-coverage.py",
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_ring_reset_reuse_evidence",
+            root,
+            "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         )
         write_fixture(root)
 
@@ -544,7 +562,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
