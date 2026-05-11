@@ -41,8 +41,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqualStrings("event-sample", module.summary().main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("event-sample-fn", module.summary().function_thread_label orelse return error.ExpectedFunctionPayload);
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
     try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqual(@as(?[]const u8, null), module.summary().last_unregister_label);
 
@@ -55,7 +55,7 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 2), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 2), replay.total_events);
     try std.testing.expectEqual(@as(i32, 9), replay.last_fn_count);
-    try std.testing.expectEqual(@as(usize, 2), replay.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), replay.registration_depth);
     try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_reg", replay.last_register_label orelse return error.ExpectedFunctionPayload);
@@ -63,9 +63,6 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
 
-    try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
-    try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
     try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
