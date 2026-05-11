@@ -14,32 +14,34 @@ The current Phase 13 packet stays centered on four roadmap-owned helper families
 - `security/landlock/ruleset.c`
 - `security/landlock/syscalls.c`
 
-Broad summaries should keep the validator-first eight-test shared-helper replay visible through:
+Broad summaries should keep the active shared-helper release handle visible through:
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/validate-phase13-release.py`
-- `zigux/tests/phase13_build.zig`
-- `zigux/tests/phase13_libfs.zig`
-- `zigux/tests/phase13_devres.zig`
-- `zigux/tests/phase13_devres_reviewability.zig`
-- `zigux/tests/phase13_devres_dma_coherent.zig`
-- `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `zigux/tests/phase13_landlock_ruleset.zig`
-- `zigux/tests/phase13_landlock_syscalls.zig`
-- `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+
+When current `master` cannot materialize direct helper-packet companions such as:
+- `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
+
+broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
 Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 
-Broad summaries should also keep the bounded `devres` dma/scatterlist release evidence visible through:
-- `zigux/tests/phase13_devres_manifest.json`
-- `zigux/tests/phase13_devres_reviewability.zig`
-- `zigux/tests/phase13_devres_dma_coherent.zig`
-- `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `scripts/zigux/check-phase13-devres-packet.py`
+Broad summaries should also keep the direct devres repo-reality reminder visible through:
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 
 Broad summaries should also keep the adjacent notifier evidence packet visible through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -57,9 +59,9 @@ Broad summaries should also keep the adjacent notifier evidence packet visible t
 
 Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
-- the validator-first release path is the eight-test shared-helper replay in `zigux/tests/phase13_build.zig`
+- the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- direct missing companions should stay recorded as repo-reality gaps until current `master` can materialize them again
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig` and `zigux/tests/phase13_libfs_addressability.zig` stay adjacent direct evidence rather than extra shared replay steps
-- `devres` dma/scatterlist evidence stays inside the active helper packet rather than reading like a separate replay lane
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
