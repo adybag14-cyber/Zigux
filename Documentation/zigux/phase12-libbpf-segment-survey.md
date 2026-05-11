@@ -5,7 +5,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 ## Status
 - `PHASE12_STATUS=parked`
 - `PHASE12_SLICE=libbpf-segment-survey`
-- scope: Phase 12 survey manifest, dedicated survey gate, shared build wiring, the shipped build-only Phase 12 surface checker, the PMO closure companion, the compact release-coordination matrix that now travels with the active release-order packet, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
+- scope: Phase 12 survey manifest, shared reviewability gate, shared build wiring, the shipped build-only Phase 12 surface checker, the PMO closure companion, the compact release-coordination matrix that now travels with the active release-order packet, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
 - product boundary:
 - `scripts/zigux/check-build-only-phase12-surface.py`
 - `zigux/tests/phase12_libbpf_manifest.json`
@@ -19,8 +19,6 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
 - rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship.
-
-If `zig` is absent from `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=` instead of inventing a libbpf-only fallback entrypoint.
 
 ## Why this slice exists
 
@@ -42,7 +40,7 @@ The highest-value honest step in this lane is therefore a survey checkpoint that
 - `perf_buffer_poll.zig` for bounded wait-result normalization, ready-buffer bookkeeping, and per-buffer slot access that still stops short of epoll wiring, mmap-backed ring ownership, online-CPU routing, or callback delivery
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
 - the current Phase 12 build-only packet now re-checks the landed helper-first foundations directly through `zigux/tests/phase12_libbpf_reviewability.zig`, the deterministic tracked-helper snapshot fixture `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, the ordered-helper reproducibility evidence pair `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` and `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, the shared `zigux/tests/phase12_build.zig` route, `make -C zigux phase12`, and `scripts/zigux/check-build-only-phase12-surface.py`, which together keep the manifest-backed helper set reviewable, keep the five shipped helper paths explicit in a deterministic tracked-helper snapshot fixture, prove that the current ordered helper list stays replayable as committed evidence instead of being inferred only from prose, cross-check the older `tools/lib/bpf/zigux_segments/manifest.json` catalog so the modern survey lane does not drift away from the original helper segmentation, and avoid implying a dedicated libbpf-only replay, packet checker, or shared validator route that current `master` does not ship.
-- the reversible-delivery posture for this note is now the same as the rest of the shared Phase 12 packet: keep the shared-tree fallback explicit, rerun the build-only checker, the smoke-first preflight pair, and the shared build and make route after note edits, and only widen beyond survey truthfulness if live repo evidence lands a new shipped replay surface first.
+- the reversible-delivery posture for this note is now the same as the rest of the shared Phase 12 packet: keep the shared-tree fallback explicit, rerun the build-only checker pair, the smoke-first preflight pair, and the shared build and make route after note edits, and only widen beyond survey truthfulness if live repo evidence lands a new shipped replay surface first.
 - use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO closure companion when judging whether this shared-tree libbpf survey packet is close enough to describe the active Phase 12 tranche as release-closed, so the heavy-helper consumer note stays aligned with the same release-order packet that already governs the active driver-facing surveys and fallback notes.
 - keep `Documentation/zigux/phase12-release-coordination-matrix.md` visible beside that same PMO closure companion when judging this shared-tree libbpf packet, so the compact lane-owner split, fallback split, and smoke-set summary remain explicit instead of being inferred only from the longer sequencing and fallback notes.
 - the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall: current `master` now materializes the helper-only fdinfo map-info and map-reuse compatibility packet inside the shared `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` destination, while the deterministic Phase 12 tracked-helper snapshot still stays narrower than that shared bridge file and the heavier shared file-path-and-handle bridge remains its own deferred bucket.
@@ -85,19 +83,21 @@ This survey slice does not claim:
 - syscall-backed libbpf runtime behavior
 
 ## Gates
-1. run the shared build-only Phase 12 surface checker
+1. run the shared build-only Phase 12 surface checker self-test
+- `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+2. run the shared build-only Phase 12 surface checker
 - `python3 scripts/zigux/check-build-only-phase12-surface.py`
-2. run the focused smoke preflight direct build route
+3. run the focused smoke preflight direct build route
 - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-3. run the focused smoke preflight Makefile route
+4. run the focused smoke preflight Makefile route
 - `make -C zigux phase12-smoke`
-4. run the shared Phase 12 build replay
+5. run the shared Phase 12 build replay
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-5. run the Linux-style entrypoint last
+6. run the Linux-style entrypoint last
 - `make -C zigux phase12`
-6. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new libbpf-specific or Phase 12 entrypoint.
-- `make -C zigux phase12-smoke ZIG=`
-- `make -C zigux phase12 ZIG=`
+7. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a new libbpf-specific or Phase 12 entrypoint.
+- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase12 ZIG=<attached-zig-path>`
 - This is an environment override for the existing replay packet, not a validator-first, libbpf-only, or `phase12-validate` route.
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this shared-tree libbpf survey packet is close enough to describe the active Phase 12 tranche as release-closed.
