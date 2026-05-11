@@ -457,20 +457,11 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
 
     var written: usize = 0;
     var first = true;
-    var current = find_bit.findFirstBit(bitmap, nbits);
-    if (current == nbits) {
-        return 0;
-    }
+    var range_bottom = find_bit.findFirstBit(bitmap, nbits);
 
-    var range_bottom = current;
-
-    while (current < nbits) {
-        var range_top = current;
-        current = find_bit.findNextBit(bitmap, nbits, current + 1);
-        if (current < nbits and current <= range_top + 1) {
-            range_top = current;
-            continue;
-        }
+    while (range_bottom < nbits) {
+        const next_zero = find_bit.findNextZeroBit(bitmap, nbits, range_bottom + 1);
+        const range_top = if (next_zero == nbits) nbits - 1 else next_zero - 1;
 
         if (!first) {
             appendSlice(buffer, &written, ",");
@@ -483,7 +474,11 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
             appendUnsigned(buffer, &written, range_top);
         }
 
-        range_bottom = current;
+        if (next_zero == nbits) {
+            break;
+        }
+
+        range_bottom = find_bit.findNextBit(bitmap, nbits, next_zero + 1);
     }
 
     if (buffer.len != 0 and written < buffer.len) {
@@ -672,17 +667,19 @@ test "bitmap scnprintf collapses contiguous ranges" {
 }
 
 test "bitmap scnprintf collapses contiguous ranges across word boundaries" {
-    const start = bits_per_long - 2;
-    const len_bits = 5;
-    const nbits = bits_per_long + 4;
-    var map = [_]Word{ 0, 0 };
+    const start = bits_per_long - 1;
+    const len_bits = bits_per_long + 3;
+    const later_bit = bits_per_long * 2 + 5;
+    const nbits = later_bit + 1;
+    var map = [_]Word{ 0, 0, 0 };
     setRange(&map, start, len_bits);
+    setRange(&map, later_bit, 1);
 
-    var buffer: [32]u8 = undefined;
+    var buffer: [64]u8 = undefined;
     const written = scnprintf(&map, nbits, &buffer);
 
-    var expected_buffer: [32]u8 = undefined;
-    const expected = try std.fmt.bufPrint(&expected_buffer, "{d}-{d}", .{ start, start + len_bits - 1 });
+    var expected_buffer: [64]u8 = undefined;
+    const expected = try std.fmt.bufPrint(&expected_buffer, "{d}-{d},{d}", .{ start, start + len_bits - 1, later_bit });
     try std.testing.expectEqualStrings(expected, buffer[0..written]);
 }
 
