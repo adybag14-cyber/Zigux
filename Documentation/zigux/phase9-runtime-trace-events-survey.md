@@ -32,6 +32,8 @@ Current `master` also still keeps the paired review-note and shared-owner surfac
 
 That means the honest current packet is a reviewable family-local starter plus the adjacent shared loader-facing reminder packet. The trace-events sample, loader scaffold, direct module and diff tests, dedicated survey gate, manifest-backed ownership packet, and paired notes are all visible on current `master`; what remains blocked is the broader runtime-substrate step that would eventually turn that review packet into live runtime tracepoint-registration parity.
 
+The directly coupled module-slice note already keeps `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `zigux/Makefile` explicit as adjacent reminder surfaces. Inside this pilot packet, that means the trace-events family owns only the focused `phase9-runtime-trace-events-tests` step in `zigux/tests/phase9_build.zig`; the broader sequencing note and the shared runtime-loader routes stay outside the trace-events-owned boundary.
+
 ## Bounded truthfulness rules
 
 Keep this trace-events packet honest in the same way as the shared Phase 9 owner map.
