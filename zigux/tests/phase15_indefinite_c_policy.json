@@ -34,6 +34,8 @@
         "current status bucket",
         "requested decision bucket",
         "decision record ID",
+        "named owner",
+        "required approver set",
         "rollback owner",
         "validation gate summary",
         "benchmark-notes status",
