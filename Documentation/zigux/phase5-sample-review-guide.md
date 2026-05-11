@@ -56,6 +56,8 @@ The same inspection did not verify shipped current-`master` files for the planne
 * `make -C zigux phase5-test`
 * `make -C zigux phase5`
 
+The same direct-path readback also showed that sibling shared summaries in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe those missing sample and shared-build surfaces as if they had already landed. Treat those sibling summaries as stale same-lane follow-up targets rather than as evidence that the four-sample packet is present on current `master`.
+
 Keep Phase 5 guidance honest about that gap. Do not describe those sample, test, or wrapper surfaces as already shipped until the files themselves land on `master`.
 
 ## Review posture
