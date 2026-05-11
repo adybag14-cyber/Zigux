@@ -55,7 +55,9 @@ The earlier `find_bit` edge bench gap is now closed on current `master` too. `zi
 
 The earlier shared closure-note gap is closed on current `master` too. `Documentation/zigux/phase1-closure.md` already keeps `Documentation/zigux/phase1-host-helper-lane-sequencing.md` inside its shared review packet, matching the docs root, scripts root, tests root, and review checklist reminder surfaces.
 
-That means the next honest same-lane follow-up is no longer another saved validator patch, bench-body repair, or closure-note reminder sync. Future host-tools follow-up should come only from the next freshly observed same-packet truthfulness or exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
+That means the next honest same-lane follow-up is no longer another saved validator patch, bench-body repair, or closure-note reminder sync. Fresh repo-first inspection now points at the shared Phase 1 validator packet instead: the next bounded same-lane step is the smallest exact-check drift still visible around the live `find_bit` review-anchor packet in `scripts/zigux/validate-phase1.py`, not another helper-semantics change.
+
+Future host-tools follow-up should come only from the next freshly observed same-packet truthfulness or exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
 ## Anti-Overlap Rules
 
@@ -76,6 +78,7 @@ Leave this lane parked unless fresh repo-first inspection finds another equally 
 
 - `Documentation/zigux/phase1-closure.md`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/phase1_bench.zig`
 - one existing direct helper-local anchor in `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, or `tools/lib/string.zig`
