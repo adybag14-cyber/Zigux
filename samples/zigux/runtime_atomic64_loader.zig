@@ -156,12 +156,10 @@ pub const RuntimeAtomic64Loader = struct {
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
-        _ = try runtime_loader.prepareRequest(shared_request.plan);
-
-        const prepared_plan = self.cached_plan orelse error.MissingLoadPlan;
-        if (!keepsSharedLoadPlanSnapshotExplicit(prepared_plan, shared_request.plan)) {
-            return error.SharedLoadPlanDrift;
+        if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
+            return error.PreparedPlanDrift;
         }
+        _ = try runtime_loader.prepareRequest(shared_request.plan);
 
         const plan = try self.requestRuntimeLoad();
         const shared_plan = try shared_request.requestRuntimeLoad();
@@ -736,15 +734,17 @@ test "runtime atomic64 loader rejects prepared shared allocator and init-flow dr
         allocator_request.plan,
     ));
     allocator_request.plan.allocator_handoff = .arena;
-    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(prepared_allocator_plan, allocator_request.plan));
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
+    try std.testing.expectError(error.PreparedPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
     try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        allocator_request,
-        .prepared,
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.prepared_plan,
+        prepared_allocator_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
         allocator_request.plan,
+        prepared_allocator_plan,
     ));
 
     var init_flow_loader = RuntimeAtomic64Loader{};
@@ -761,13 +761,16 @@ test "runtime atomic64 loader rejects prepared shared allocator and init-flow dr
     init_flow_request.plan.init_flow.selftest_runs = 0;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(prepared_init_flow_plan, init_flow_request.plan));
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
+    try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
     try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        init_flow_request,
-        .prepared,
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.prepared_plan,
+        prepared_init_flow_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
         init_flow_request.plan,
+        prepared_init_flow_plan,
     ));
 }
 
