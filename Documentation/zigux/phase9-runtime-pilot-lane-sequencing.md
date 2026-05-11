@@ -119,7 +119,7 @@ When a shared Phase 9 review surface is touched, it must follow these rules.
 Use this split to avoid overlap.
 
 - `P9-L14`: checker-local reminder wording around `check-phase9-build-only-surface.py` and the nearby shared reminder packet
-- `P9-L16`: this sequencing note plus one-file follow-through in docs-root, scripts-root, tests-root, or the shared review checklist when the live loader packet shape changes
+- `P9-L04`: shared Kconfig/export non-owner reminder drift in this sequencing note plus one-file follow-through in docs-root, scripts-root, tests-root, or the shared review checklist when the live loader packet shape changes
 - `P9-L01`: only broad cross-family reminder truthfulness that cannot be narrowed into the checker-local or sequencing lanes
 - adjacent pilot-family lanes: family-local sample, module, survey, manifest, or diff upkeep when those files actually exist on `master`
 - shared loader implementation or checker work: only after a separate bounded lane proves those shared surfaces themselves have a real same-packet gap
@@ -128,9 +128,9 @@ If a nearby lane is working inside a surviving family-local packet, this lane sh
 
 ## Current Pilot-Family Owner Map
 
-Current `master` already exposes four active pilot-family packets through the family-local survey notes, and those lane labels should stay authoritative for pilot-local follow-through.
+Current `master` already exposes the pilot-family packet notes plus the shared loader packet, and only the lane labels that still match current lane memory should be treated as authoritative for follow-up.
 
-- `P9-L04`: `Documentation/zigux/phase9-runtime-atomic64-survey.md` owns the runtime atomic64 family-local survey packet. Pilot-local survey, manifest, module, diff, loader-scaffold, and adjacent module-slice linkage repairs stay in that family instead of reopening shared reminder wording.
+- `P9-L04`: this is not an atomic64 family-local owner in the current lane map. Current lane memory uses `P9-L04` for shared Kconfig/export non-owner reminder drift, so this sequencing note should keep that label reserved for the Phase 2 `conf_bridge`/`confdata_bridge` and Phase 3 `exports.c`/`export_shim` reminder packet instead of reassigning it to a pilot-family survey.
 - `P9-L08`: `Documentation/zigux/phase9-runtime-bitmap-survey.md` owns the runtime bitmap survey packet. Family-local sample, top-bit companion, survey, manifest, diff, and loader-scaffold upkeep stays bitmap-local unless a shared reminder surface itself drifts.
 - `P9-L10`: `Documentation/zigux/phase9-runtime-trace-events-survey.md` and `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` own the trace-events packet. Packet-local survey, manifest, module-slice, survey-gate, and adjacent sequencing or `zigux/Makefile` reminder references stay trace-events-local when the shared reminder files themselves remain truthful.
 - `P9-L13`: `Documentation/zigux/phase9-runtime-kretprobe-survey.md` and `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md` own the runtime kretprobe family-local packet. Sample, module, loader-plan, survey, manifest, diff, and direct review-note upkeep stays in that family unless the shared reminder packet itself changes.
