@@ -55,6 +55,8 @@ MANIFEST_TEXT_MARKERS = [
 EXACT_CHECK_MARKERS = [
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py --self-test",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -389,13 +391,19 @@ def run_self_test() -> int:
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["exact_checks"] = [
-            "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test"
+            "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
+            "python3 scripts/zigux/check-phase10-harness-coverage.py --self-test",
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
-            "manifest_exact_checks",
+            "manifest_exact_checks_direct_core",
             root,
             "manifest:exact_checks:python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        )
+        expect_missing_marker(
+            "manifest_exact_checks_harness",
+            root,
+            "manifest:exact_checks:python3 scripts/zigux/check-phase10-harness-coverage.py",
         )
         write_fixture(root)
 
@@ -425,7 +433,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
