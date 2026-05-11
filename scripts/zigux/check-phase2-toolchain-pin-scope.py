@@ -40,8 +40,8 @@ README_MARKERS = [
 
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "pinned Zig toolchain",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
@@ -94,7 +94,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
 
 MAKEFILE_MARKERS = [
     "phase2-toolchain:",
-    "phase2-validate: phase2-toolchain",
+    "phase2-validate: phase2-tools phase2-kconfig",
     "phase2-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -135,7 +135,7 @@ EXACT_SURFACE_COUNTS = {
         "x86_64-linux bootstrap host target": 1,
     },
     "docs_root_readme": {
-        "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": 1,
         "pinned Zig toolchain": 1,
         "make -C zigux phase2-validate": 1,
     },
@@ -362,7 +362,7 @@ def run_self_test() -> int:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-            "phase2-validate: phase2-toolchain",
+            "phase2-validate: phase2-tools phase2-kconfig",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
         ]
     )
@@ -395,7 +395,7 @@ def run_self_test() -> int:
         [
             "phase2-toolchain:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
-            "phase2-validate: phase2-toolchain",
+            "phase2-validate: phase2-tools phase2-kconfig",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
