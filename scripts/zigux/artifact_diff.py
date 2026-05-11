@@ -94,35 +94,9 @@ def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
 
 
 def emit_result(matched: bool, details: dict[str, object]) -> int:
-    if not matched:
-        print('ARTIFACT_DIFF=fail')
-        if 'mode' in details:
-            print(f"MODE={details['mode']}")
-        if 'expected' in details:
-            print(f"EXPECTED={details['expected']}")
-        if 'actual' in details:
-            print(f"ACTUAL={details['actual']}")
-        if 'expected_exists' in details:
-            print(f"EXPECTED_EXISTS={details['expected_exists']}")
-        if 'actual_exists' in details:
-            print(f"ACTUAL_EXISTS={details['actual_exists']}")
-        if 'expected_json_error' in details:
-            print(f"EXPECTED_JSON_ERROR={details['expected_json_error']}")
-        if 'actual_json_error' in details:
-            print(f"ACTUAL_JSON_ERROR={details['actual_json_error']}")
-        if 'expected_sha256' in details:
-            print(f"EXPECTED_SHA256={details['expected_sha256']}")
-        if 'actual_sha256' in details:
-            print(f"ACTUAL_SHA256={details['actual_sha256']}")
-        return 1
-
-    print('ARTIFACT_DIFF=pass')
-    print(f"MODE={details['mode']}")
-    print(f"EXPECTED={details['expected']}")
-    print(f"ACTUAL={details['actual']}")
-    if 'expected_sha256' in details:
-        print(f"SHA256={details['expected_sha256']}")
-    return 0
+    for line in render_result_lines(matched, details):
+        print(line)
+    return 0 if matched else 1
 
 
 def capture_emit_result(matched: bool, details: dict[str, object]) -> tuple[int, list[str]]:
