@@ -121,7 +121,7 @@
       "surface": "zigux/tests/phase9_build.zig",
       "role": "shared_build_bundle",
       "owner": "P9-L11",
-      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating the family-local trace-events packet that this lane-local review surface describes."
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the family-local `phase9-runtime-trace-events-tests` route that this lane-local review surface describes; `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `zigux/Makefile` remain adjacent reminder surfaces, and the broader shared loader routes stay outside this family-local ownership packet."
     }
   ],
   "gaps": [
