@@ -145,6 +145,19 @@ pub const DescriptorPreflightSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const TimeoutPropertyCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    timeout_property_name: []const u8,
+    timeout_property_required: bool,
+    descriptor_lookup_precedes_timeout_property: bool,
+    timeout_property_precedes_always_running_read: bool,
+    timeout_property_precedes_registration_handoff: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -340,6 +353,21 @@ pub const GpioWatchdogLab = struct {
             .lookup_precedes_margin_validation = true,
             .lookup_precedes_always_running_read = true,
             .lookup_precedes_registration_handoff = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
+    pub fn timeoutPropertyCheckpointSummary(self: *const Self) TimeoutPropertyCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .timeout_property_name = "hw_margin_ms",
+            .timeout_property_required = true,
+            .descriptor_lookup_precedes_timeout_property = true,
+            .timeout_property_precedes_always_running_read = true,
+            .timeout_property_precedes_registration_handoff = true,
             .blocked_on_live_gpio_lookup = true,
             .blocked_on_platform_registration = true,
         };
