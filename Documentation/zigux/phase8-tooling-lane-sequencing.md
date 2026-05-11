@@ -63,6 +63,8 @@ Allowed surfaces:
 
 Current wording-lane caution:
 - do not let older absent-file assumptions overrule current tree evidence
+- current 2026-05-11 raw readback for `Documentation/zigux/phase8-pin-path-slice.md` and `zigux/tests/phase8_pin_path.zig` returns `404` even though older shared reminder surfaces still name those paths, so treat those references as stale until the files are readable again on the public default branch
+- current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while trimming stale Phase 8 inventory
 - when this lane reopens, re-read the shared reminder surfaces against the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
 
@@ -74,4 +76,4 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md` and `scripts/zigux/README.md`: current 2026-05-11 tree and file readback already showed those two broader reminder surfaces still advertising older Phase 8 note inventory beyond the live docs tree, while this run did not confirm the same drift in `Documentation/zigux/review-checklist.md`. Keep the next reopen scoped to one of those broader summary surfaces before widening anywhere else.
+The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md` only: current 2026-05-11 raw and file readback shows that the scripts-root summary still omits the live `scripts/zigux/check-phase8-exec-cmd-packet.py` checker while still carrying older Phase 8 inventory that points at `Documentation/zigux/phase8-pin-path-slice.md`, even though readable public fallback for that note and the paired `zigux/tests/phase8_pin_path.zig` path returned `404` in this run. Keep the next reopen scoped to that one scripts-root summary surface first; only widen to `Documentation/zigux/README.md` or `zigux/tests/README.md` if the same stale pin-path inventory still survives after the scripts-root correction.
