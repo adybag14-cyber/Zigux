@@ -59,6 +59,12 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
 )
+REQUIRED_REVIEW_BOUNDARY_MARKERS = (
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "closed together when either note drifts",
+)
 REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -89,12 +95,18 @@ def validate_text(text: str) -> list[str]:
         return missing
 
     current_packet = text.split("## Current packet", 1)[1].split("## Review boundary", 1)[0]
+    review_boundary = text.split("## Review boundary", 1)[1].split("## Non-goals", 1)[0]
     shared_reminder = text.split("## Shared reminder", 1)[1]
 
     missing.extend(
         f"current packet missing marker: {marker}"
         for marker in REQUIRED_CURRENT_PACKET_MARKERS
         if marker not in current_packet
+    )
+    missing.extend(
+        f"review boundary missing marker: {marker}"
+        for marker in REQUIRED_REVIEW_BOUNDARY_MARKERS
+        if marker not in review_boundary
     )
     missing.extend(
         f"shared reminder missing marker: {marker}"
@@ -107,7 +119,7 @@ def validate_text(text: str) -> list[str]:
 def run_self_test() -> int:
     sample = "\n".join(REQUIRED_MARKERS)
     sample += "\n## Current packet\n" + "\n".join(REQUIRED_CURRENT_PACKET_MARKERS)
-    sample += "\n## Review boundary\nshipped helper entrypoints on current `master`\n"
+    sample += "\n## Review boundary\n" + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKERS)
     sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
     missing = validate_text(sample)
     if missing:
@@ -137,6 +149,48 @@ def run_self_test() -> int:
     if f"shared reminder missing marker: {shared_reminder_next_step_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared reminder next-step marker was not reported")
+        return 1
+
+    review_boundary_next_step_marker = (
+        "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+    )
+    before, separator, after = sample.partition("## Review boundary\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review boundary section separator was not found")
+        return 1
+    review_boundary, separator, tail = after.partition("\n## Shared reminder\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder section separator was not found")
+        return 1
+    review_boundary_broken = review_boundary.replace(
+        review_boundary_next_step_marker + "\n", "", 1
+    )
+    broken = validate_text(
+        before + "## Review boundary\n" + review_boundary_broken + "\n## Shared reminder\n" + tail
+    )
+    if (
+        f"review boundary missing marker: {review_boundary_next_step_marker}"
+        not in broken
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review boundary next-step marker was not reported")
+        return 1
+
+    review_boundary_closed_marker = "closed together when either note drifts"
+    review_boundary_broken = review_boundary.replace(
+        review_boundary_closed_marker + "\n", "", 1
+    )
+    broken = validate_text(
+        before + "## Review boundary\n" + review_boundary_broken + "\n## Shared reminder\n" + tail
+    )
+    if (
+        f"review boundary missing marker: {review_boundary_closed_marker}"
+        not in broken
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review boundary fail-closed marker was not reported")
         return 1
 
     header_family_note_marker = "Documentation/zigux/phase3-abi-header-family-survey.md"
