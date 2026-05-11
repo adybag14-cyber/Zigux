@@ -21,9 +21,13 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
 ]
@@ -36,6 +40,15 @@ MAKE_MARKERS = [
     "phase10-test:",
     "$(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all",
     "phase10: phase10-validate phase10-test",
+]
+
+BUILD_MARKERS = [
+    "phase10_virtio_input_probe_preflight_module",
+    "phase10_virtio_input_queue_callback_preflight_module",
+    "phase10_virtio_input_verify_module",
+    '"phase10-virtio-input-probe-preflight-tests"',
+    '"phase10-virtio-input-queue-callback-preflight-tests"',
+    '"phase10-virtio-input-verify-tests"',
 ]
 
 WORKFLOW_MARKERS = [
@@ -54,6 +67,9 @@ SCRIPT_README_MARKERS = [
     "phase10-virtio-input-survey.md",
     "blocked registration-lifecycle contract",
     "queue-callback preflight helper is landed",
+    "drivers/virtio/virtio_input_verify.zig",
+    "phase10_virtio_input_probe_preflight.zig",
+    "phase10_virtio_input_queue_callback_preflight.zig",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -68,6 +84,8 @@ TESTS_README_MARKERS = [
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+    "phase10_virtio_input_probe_preflight.zig",
+    "phase10_virtio_input_queue_callback_preflight.zig",
 ]
 
 FORBIDDEN_TESTS_README_MARKERS = [
@@ -83,6 +101,9 @@ DOC_README_MARKERS = [
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
 ]
 
 FORBIDDEN_DOC_README_MARKERS = [
@@ -102,6 +123,7 @@ SURVEY_MARKERS = [
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
 ]
 
 MODULE_SLICE_MARKERS = [
@@ -121,12 +143,38 @@ HELPER_MARKERS = [
     "pub fn reset(self: *Self) void {",
 ]
 
+VERIFY_MARKERS = [
+    'test "virtio input wrapper-facing queue preflight advances in bounded order" {',
+    'test "virtio input wrapper-facing probe preflight stops before registration lifecycle claims" {',
+    'test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {',
+]
+
+PROBE_PREFLIGHT_HELPER_MARKERS = [
+    "pub const ProbePreflightBlocker = enum {",
+    "registration_preflight_ready: bool,",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) ProbePreflightSummary {",
+]
+
 TEST_MARKERS = [
     'test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {',
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {',
     'test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
+]
+
+PROBE_PREFLIGHT_TEST_MARKERS = [
+    'test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
+    'test "phase10 virtio input probe preflight reports the next bounded blocker before handoff" {',
+    "summary.registration_preflight_ready",
+    "summary.ready_for_probe_handoff",
+]
+
+QUEUE_CALLBACK_PREFLIGHT_TEST_MARKERS = [
+    'test "phase10 virtio input queue callback preflight reports queue and ready blockers and resets cleanly" {',
+    "QueueCallbackPreflightBlocker.event_queue_unconfigured",
+    "QueueCallbackPreflightBlocker.device_not_ready",
+    "ready_for_queue_callbacks",
 ]
 
 SURVEY_TEST_MARKERS = [
@@ -174,6 +222,7 @@ if missing_files:
 missing: list[str] = []
 for name, source, markers in [
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
+    ("build_file", text("zigux/tests/phase10_build.zig"), BUILD_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("script_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
     ("tests_readme", text("zigux/tests/README.md"), TESTS_README_MARKERS),
@@ -182,7 +231,23 @@ for name, source, markers in [
     ("survey_doc", text("Documentation/zigux/phase10-virtio-input-survey.md"), SURVEY_MARKERS),
     ("module_slice", text("Documentation/zigux/phase10-virtio-input-module-slice.md"), MODULE_SLICE_MARKERS),
     ("helper", text("drivers/virtio/virtio_input.zig"), HELPER_MARKERS),
+    ("verify", text("drivers/virtio/virtio_input_verify.zig"), VERIFY_MARKERS),
+    (
+        "probe_preflight_helper",
+        text("drivers/virtio/virtio_input_probe_preflight.zig"),
+        PROBE_PREFLIGHT_HELPER_MARKERS,
+    ),
     ("tests", text("zigux/tests/phase10_virtio_input.zig"), TEST_MARKERS),
+    (
+        "probe_preflight_test",
+        text("zigux/tests/phase10_virtio_input_probe_preflight.zig"),
+        PROBE_PREFLIGHT_TEST_MARKERS,
+    ),
+    (
+        "queue_callback_preflight_test",
+        text("zigux/tests/phase10_virtio_input_queue_callback_preflight.zig"),
+        QUEUE_CALLBACK_PREFLIGHT_TEST_MARKERS,
+    ),
     ("survey_test", text("zigux/tests/phase10_virtio_input_survey.zig"), SURVEY_TEST_MARKERS),
 ]:
     for marker in markers:
@@ -321,5 +386,5 @@ print("PHASE10_VALIDATION=pass")
 print(f"PHASE10_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(FORBIDDEN_DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(HELPER_MARKERS) + len(TEST_MARKERS) + len(SURVEY_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(BUILD_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(FORBIDDEN_DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(HELPER_MARKERS) + len(VERIFY_MARKERS) + len(PROBE_PREFLIGHT_HELPER_MARKERS) + len(TEST_MARKERS) + len(PROBE_PREFLIGHT_TEST_MARKERS) + len(QUEUE_CALLBACK_PREFLIGHT_TEST_MARKERS) + len(SURVEY_TEST_MARKERS)}"
 )
