@@ -59,15 +59,15 @@ That means the shared Phase 9 reviewability packet should keep the loader-facing
 Current `master` now exposes one concrete shared-governance result for this sequencing lane.
 
 - direct current-`master` file readback confirms the shared loader-facing family instead of the older missing-family blocker wording
-- direct current-`master` readback also shows `Documentation/zigux/README.md` still omits this sequencing note from its broad Phase 9 summary even though this note now owns the exact shared-loader inventory, convenience-target names, and blocker posture
+- direct current-`master` readback now also confirms `Documentation/zigux/README.md` already carries this sequencing note inside its broad Phase 9 shared reminder packet, so docs-root follow-through is no longer the next truthful same-lane step
 - the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 - `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
 - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references
 - this sequencing note should therefore stay the owner of the exact shared-loader inventory, convenience-target names, and blocker posture for the surrounding shared reminder packet
-- future same-lane follow-through should narrow only a shared reminder surface that drifts away from that confirmed packet, one file at a time
+- future same-lane follow-through should narrow only a shared reminder surface that still drifts away from that confirmed packet, one file at a time
 
-Because this note is the shared owner map rather than a pilot-family packet, the next safe Phase 9 follow-through is now a one-file shared reminder truthfulness repair starting with the docs-root Phase 9 summary and then moving only to the next stale shared reminder surface that current-`master` readback still leaves behind.
+Because this note is the shared owner map rather than a pilot-family packet, the next safe Phase 9 follow-through is now the next one-file shared reminder truthfulness repair that current `master` still needs after this owner-map refresh, starting with whichever remaining checklist, scripts-root, or tests-root surface actually drifts from the confirmed packet.
 
 ## Governance rule for this lane
 
@@ -134,9 +134,9 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 
 ## Recommended next-step order
 
-1. Re-read shared reminder surfaces against the live shared loader-facing family plus the four pilot-family survey packets whenever the Phase 9 owner map is in doubt.
+1. Re-read the shared reminder surfaces against the live shared loader-facing family plus the four pilot-family survey packets whenever the Phase 9 owner map is in doubt.
 2. If one shared reminder surface falls behind the confirmed loader-facing packet or relists blocker posture that this sequencing note no longer supports, repair that surface one file at a time instead of widening into pilot behavior or checker growth.
-3. If multiple shared reminder surfaces drift at once, fix `Documentation/zigux/README.md` first, `scripts/zigux/README.md` second, and `zigux/tests/README.md` third before touching pilot-local notes.
+3. If multiple shared reminder surfaces drift at once, fix the still-stale one with the smallest verified truthfulness gap first instead of replaying an older default order after a shared surface has already caught up on `master`.
 4. If the shared loader-facing family changes or a direct shared-loader proof lands, refresh this sequencing note first so later shared reminder passes inherit the right owner map.
 5. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
 
