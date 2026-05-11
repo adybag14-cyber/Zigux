@@ -247,6 +247,9 @@ PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER = (
 PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER = (
     "There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, or `make -C zigux phase12-validate` route on `master`."
 )
+PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER = (
+    "That reread must keep the attached-toolchain override explicit as part of the shipped smoke-first order whenever `zig` is unavailable on `PATH`."
+)
 PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER = (
     "rule: keep this two-versus-two split explicit in PMO release wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless new dedicated files actually land"
 )
@@ -258,12 +261,14 @@ REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS = [
     PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER,
     PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER,
     PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER,
+    PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER,
 ]
 
 REQUIRED_PHASE12_RELEASE_CLOSURE_EXACT_COUNTS = {
     PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER: 1,
     PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER: 1,
     PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER: 1,
+    PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER: 1,
 }
 
 REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS = [
@@ -771,6 +776,14 @@ def run_self_test() -> int:
         expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER}")
 
         write_fixture_tree(base)
+        phase12_release_closure = phase12_release_closure_path.read_text(encoding="utf-8")
+        phase12_release_closure_path.write_text(
+            phase12_release_closure.replace(PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER}")
+
+        write_fixture_tree(base)
         phase12_release_coordination = phase12_release_coordination_path.read_text(encoding="utf-8")
         phase12_release_coordination_path.write_text(
             phase12_release_coordination.replace(PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER, "", 1),
@@ -884,7 +897,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=29")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
