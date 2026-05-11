@@ -49,6 +49,20 @@ test "phase 9 runtime loader gap survey keeps the shared request surface explici
     try expectContains(note, "the current fallback path for the pre-execution packet");
 }
 
+test "phase 9 runtime loader gap survey keeps bitmap shared-request snapshots explicit" {
+    const allocator = std.testing.allocator;
+    const bitmap_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_bitmap_loader.zig", 128 * 1024);
+    defer allocator.free(bitmap_loader);
+
+    try expectContains(bitmap_loader, "keepsSharedLoadPlanSnapshotExplicit");
+    try expectContains(bitmap_loader, "runtime bitmap loader rejects shared-load-plan snapshot drift");
+    try expectContains(bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(bitmap_loader, "runtime_loader.RequestState.waiting_on_runtime_substrate");
+    try expectContains(bitmap_loader, "runtime_loader.RequestState.released_without_substrate");
+    try expectContains(bitmap_loader, "releaseSharedWithoutSubstrate");
+}
+
 test "phase 9 runtime loader gap survey keeps the blocked trace-events boundary visible" {
     const allocator = std.testing.allocator;
     const trace_manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_trace_events_manifest.json", 128 * 1024);
