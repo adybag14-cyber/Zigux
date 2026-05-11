@@ -467,6 +467,8 @@ jobs:
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           fi
 
+          fi
+
   phase2-cross:
     if: needs.phase2_cross_scope.outputs.should_run == 'true'
     needs: [bootstrap, phase2_cross_scope]
