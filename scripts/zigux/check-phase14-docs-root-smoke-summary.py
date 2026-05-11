@@ -318,6 +318,26 @@ def run_self_test() -> int:
             return 1
         write_text(root / MAKEFILE_PATH, good_makefile_text())
 
+        write_text(
+            root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH.as_posix()}: \tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing sibling makefile self-test route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MAKEFILE_PATH, good_makefile_text())
+
         write_text(root / MANIFEST_PATH, "{\n")
         if not any(
             error.startswith(f"invalid json in {MANIFEST_PATH.as_posix()}:")
@@ -351,7 +371,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
