@@ -76,6 +76,8 @@ EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
 )
 EXPECTED_RBTREE_BENCH_ITERATIONS = 4000
 EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM = 3380000
+EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS = 20000
+EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM = 23340000
 
 REQUIRED_FILES = [
     *EXPECTED_HELPERS,
@@ -328,24 +330,37 @@ def collect_bench_expectation_markers(expectations: object) -> list[str]:
     iterations = expectations.get("iterations")
     if not isinstance(iterations, dict):
         missing.append("phase1_bench_expectations:iterations")
-    elif iterations.get("PHASE1_BENCH_RBTREE_ITERATIONS") != EXPECTED_RBTREE_BENCH_ITERATIONS:
-        missing.append(
-            f"phase1_bench_expectations:rbtree_iterations={EXPECTED_RBTREE_BENCH_ITERATIONS}"
-        )
+    else:
+        if iterations.get("PHASE1_BENCH_RBTREE_ITERATIONS") != EXPECTED_RBTREE_BENCH_ITERATIONS:
+            missing.append(
+                f"phase1_bench_expectations:rbtree_iterations={EXPECTED_RBTREE_BENCH_ITERATIONS}"
+            )
+        if iterations.get("PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS") != EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS:
+            missing.append(
+                f"phase1_bench_expectations:find_bit_edge_iterations={EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS}"
+            )
 
     checksums = expectations.get("checksums")
     if not isinstance(checksums, list):
         missing.append("phase1_bench_expectations:checksums")
-    elif "PHASE1_BENCH_RBTREE_CHECKSUM" not in checksums:
-        missing.append("phase1_bench_expectations:rbtree_checksum_listed")
+    else:
+        if "PHASE1_BENCH_RBTREE_CHECKSUM" not in checksums:
+            missing.append("phase1_bench_expectations:rbtree_checksum_listed")
+        if "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM" not in checksums:
+            missing.append("phase1_bench_expectations:find_bit_edge_checksum_listed")
 
     exact_checksums = expectations.get("exact_checksums")
     if not isinstance(exact_checksums, dict):
         missing.append("phase1_bench_expectations:exact_checksums")
-    elif exact_checksums.get("PHASE1_BENCH_RBTREE_CHECKSUM") != EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM:
-        missing.append(
-            f"phase1_bench_expectations:rbtree_exact_checksum={EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM}"
-        )
+    else:
+        if exact_checksums.get("PHASE1_BENCH_RBTREE_CHECKSUM") != EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM:
+            missing.append(
+                f"phase1_bench_expectations:rbtree_exact_checksum={EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM}"
+            )
+        if exact_checksums.get("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM") != EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM:
+            missing.append(
+                f"phase1_bench_expectations:find_bit_edge_exact_checksum={EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM}"
+            )
 
     return missing
 
@@ -447,9 +462,18 @@ def make_fixture_root(root: Path) -> None:
         json.dumps(
             {
                 "status": "pass",
-                "iterations": {"PHASE1_BENCH_RBTREE_ITERATIONS": EXPECTED_RBTREE_BENCH_ITERATIONS},
-                "checksums": ["PHASE1_BENCH_RBTREE_CHECKSUM"],
-                "exact_checksums": {"PHASE1_BENCH_RBTREE_CHECKSUM": EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM},
+                "iterations": {
+                    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS,
+                    "PHASE1_BENCH_RBTREE_ITERATIONS": EXPECTED_RBTREE_BENCH_ITERATIONS,
+                },
+                "checksums": [
+                    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+                    "PHASE1_BENCH_RBTREE_CHECKSUM",
+                ],
+                "exact_checksums": {
+                    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM,
+                    "PHASE1_BENCH_RBTREE_CHECKSUM": EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM,
+                },
             },
             indent=2,
         )
@@ -520,9 +544,32 @@ def run_self_test() -> None:
         case_count += 1
 
         bench = json.loads(load_text(bench_path))
+        bench["exact_checksums"].pop("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM")
+        bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_bench_expectations:find_bit_edge_exact_checksum=23340000" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bench = json.loads(load_text(bench_path))
         bench["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"] = 1
         bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
         assert "phase1_bench_expectations:rbtree_iterations=4000" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bench = json.loads(load_text(bench_path))
+        bench["iterations"]["PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS"] = 1
+        bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_bench_expectations:find_bit_edge_iterations=20000" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bench = json.loads(load_text(bench_path))
+        bench["checksums"] = [
+            item for item in bench["checksums"] if item != "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"
+        ]
+        bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_bench_expectations:find_bit_edge_checksum_listed" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
