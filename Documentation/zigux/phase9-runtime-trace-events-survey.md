@@ -10,27 +10,27 @@ Phase 9 is the runtime pilot tranche.
 - required Zigux features: first loadable Zigux runtime modules, selftest hooks, and runtime module lifecycle parity
 - recommended Zigux destinations: `zigux/tests/runtime_*` and `samples/zigux/runtime_*`
 
-This packet is still review-first rather than loadable-runtime-complete. The goal of the current note is to describe exactly what current `master` still proves without implying that the runtime substrate blocker or the family-local trace-events starter packet is already restored.
+This packet is still review-first rather than loadable-runtime-complete. The goal of the current note is to describe exactly what current `master` still proves without implying that the runtime substrate blocker is already cleared.
 
 ## Current review surface
 
-Current `master` still keeps the trace-events family visible through a small Phase 9 reminder packet:
-
-- `Documentation/zigux/phase9-runtime-trace-events-survey.md`
-- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
-- `zigux/tests/runtime_trace_events_manifest.json`
-- `zigux/tests/phase9_build.zig`
-
-Those surfaces keep the trace-events lane visible inside the broader Phase 9 build and owner-map packet, and the manifest-backed ownership packet is still readable on current `master`, but direct current-`master` readback still fails for the family-local trace-events implementation and test surfaces that a fuller starter packet would need:
+Current `master` now keeps the family-local trace-events packet visible again:
 
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
 - `zigux/tests/runtime_trace_events_module.zig`
 - `zigux/tests/runtime_trace_events_diff.zig`
 - `zigux/tests/runtime_trace_events_survey.zig`
+- `zigux/tests/runtime_trace_events_manifest.json`
 
-That means the honest current packet is narrower than older reminder wording suggested. Current `master` still carries the trace-events survey note, module-slice note, sequencing note, manifest-backed ownership packet, and shared Phase 9 build boundary, but it does not currently expose the family-local trace-events starter sample, loader scaffold, dedicated survey gate, or direct module and diff test packet.
+Current `master` also still keeps the paired review-note and shared-owner surfaces visible:
+
+- `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+- `zigux/tests/phase9_build.zig`
+
+That means the honest current packet is a reviewable family-local starter plus the adjacent shared loader-facing reminder packet. The trace-events sample, loader scaffold, direct module and diff tests, dedicated survey gate, manifest-backed ownership packet, and paired notes are all visible on current `master`; what remains blocked is the broader runtime-substrate step that would eventually turn that review packet into live runtime tracepoint-registration parity.
 
 ## Bounded truthfulness rules
 
@@ -43,12 +43,10 @@ Keep this trace-events packet honest in the same way as the shared Phase 9 owner
 
 ## Active blocker posture
 
-The immediate same-family blocker on current `master` is the still-partial family-local trace-events packet.
+The immediate same-family blocker on current `master` is no longer a missing trace-events packet. The family-local sample, loader, direct module and diff tests, dedicated survey gate, manifest, and paired review notes are visible again.
 
-The survey note, module-slice note, sequencing note, manifest-backed ownership packet, and shared `zigux/tests/phase9_build.zig` surface keep the lane reviewable, but the sample, loader, direct module and diff tests, and dedicated survey gate listed above are not currently readable on `master`.
-
-Even after those family-local surfaces are restored, the broader Phase 9 runtime substrate remains a separate blocked step before any honest claim of live runtime tracepoint registration lifecycle parity.
+The remaining blocker is the broader Phase 9 runtime substrate. Until that shared substrate lands, the trace-events packet should stay described as reviewable evidence rather than as completed live runtime tracepoint registration lifecycle parity.
 
 ## Recommended next step
 
-The next same-family follow-through should stay small and literal: restore one missing family-local trace-events evidence surface on current `master`, starting with `zigux/tests/runtime_trace_events_survey.zig` or `samples/zigux/runtime_trace_events_loader.zig`, and then rebuild outward from that packet one bounded file at a time without widening into unrelated runtime-pilot churn.
+The next same-family follow-through should stay small and literal: keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet and the shared loader-facing reminder packet, and leave any broader runtime-substrate step to the separate shared Phase 9 lanes.
