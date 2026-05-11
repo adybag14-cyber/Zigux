@@ -23,6 +23,12 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - rule: keep this two-versus-two split explicit in shared PMO wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless dedicated files actually land
 
+## Exact Coverage Evidence
+- exact coverage evidence checked on `2026-05-11`: the commit-pinned fallback artifacts are currently present on `master` as `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` at blob `4ce9b0d2ea78fe62f11b2d33e5ae151571e543fb` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` at blob `4ed48ba555e2507eda195d5d5c3450e0cee85840`
+- exact coverage evidence checked on `2026-05-11`: the shared-tree-only anchors are currently present on `master` as `Documentation/zigux/phase12-virtio-net-survey.md` at blob `b82600360e0384feefa4219a25a1256957ec61e6` and `Documentation/zigux/phase12-libbpf-segment-survey.md` at blob `f527f9b8508e2fd1aff9d48022aa145ccf4762d2`
+- exact coverage evidence checked on `2026-05-11`: the shared raw-read anchors remain `scripts/zigux/check-build-only-phase12-surface.py` at blob `9f591164b7e6427da68fa344169b4ba6ece67c8f` plus `zigux/tests/phase12_build.zig`, whose raw GitHub fallback read still exposes the shipped `smoke` and `test` steps even when a degraded contents read for that path no longer gives the normal file body
+- exact absence evidence checked on `2026-05-11`: current `master` still does not ship `scripts/zigux/validate-phase12.py`, which keeps the shared fallback packet aligned with the existing no-validator-first Phase 12 boundary
+
 ## Review Use
 - reread this note beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever fallback wording changes
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening fallback claims or release wording
