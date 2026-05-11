@@ -40,6 +40,7 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/phase3_check_lib.py --self-test",
+    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --check",
     "python3 scripts/zigux/run-phase3-checks.py --self-test",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
@@ -53,6 +54,7 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
     "zigux/uapi/dev_t.zig",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
 )
 REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/README.md",
@@ -143,6 +145,17 @@ def run_self_test() -> int:
     if f"current packet missing marker: {mmio_consumer_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected mmio consumer current packet marker was not reported")
+        return 1
+
+    wrapper_selftest_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"
+    broken = validate_text(sample.replace(wrapper_selftest_marker, "", 1))
+    if not any(wrapper_selftest_marker in entry for entry in broken):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected wrapper self-test marker was not reported")
+        return 1
+    if f"current packet missing marker: {wrapper_selftest_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected wrapper self-test current packet marker was not reported")
         return 1
 
     shared_reminder_marker = "zigux/uapi/dev_t.zig"
