@@ -114,6 +114,11 @@ VALIDATION_MATRIX_MARKERS = [
     "notifier callback boundary",
     "`hvc_hangup()` disconnect boundary",
     "`summarizeNotifierAddOutcome()`",
+    "`hvc_hangup()` disconnect evidence stays explicit through the survey gate, the teardown note, and this matrix",
+    "tty-resize cancellation",
+    "stale-count short-circuit behavior",
+    "buffered-write clearing",
+    "notifier_hangup boundary",
     "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes",
     "host-free khvcd, notifier, remove, or cleanup handoff",
 ]
@@ -140,7 +145,7 @@ SYSRQ_HELPER_MARKERS = [
     'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
 ]
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 14
 
 
 class CheckError(RuntimeError):
@@ -415,11 +420,11 @@ def run_self_test() -> None:
         matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
         matrix_missing.write_text(
             matrix_missing.read_text(encoding="utf-8").replace(
-                "`summarizeNotifierAddOutcome()`\n", ""
+                "notifier_hangup boundary\n", ""
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "`summarizeNotifierAddOutcome()`")
+        expect_failure(tmpdir, "notifier_hangup boundary")
 
         reset_fixture(tmpdir)
         modem_missing = tmpdir / REQUIRED_FILES["modem_control_split"]
