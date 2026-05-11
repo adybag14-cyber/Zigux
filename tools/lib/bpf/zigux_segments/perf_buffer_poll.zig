@@ -18,6 +18,7 @@ pub const PollReturnDisposition = enum {
     timed_out,
     interrupted,
     wait_failed,
+    buffer_state_failed,
     processing_failed,
 };
 
@@ -335,17 +336,22 @@ pub fn resolvePollExecutionResultFromWaitResult(
             };
         },
         .ready_events => |ready_events| {
-            if (execution.poll.outcome != .ready) {
-                return PollError.WaitResultDisagreesWithExecutionOutcome;
-            }
             if (execution.poll.observed_ready_events != ready_events) {
                 return PollError.WaitResultDisagreesWithReadyEventCount;
             }
 
-            return .{
-                .execution = execution,
-                .return_value = execution.first_process_error orelse wait_result,
-                .disposition = if (execution.first_process_error == null) .ready_count else .processing_failed,
+            return switch (execution.poll.outcome) {
+                .ready => .{
+                    .execution = execution,
+                    .return_value = execution.first_process_error orelse wait_result,
+                    .disposition = if (execution.first_process_error == null) .ready_count else .processing_failed,
+                },
+                .failed => .{
+                    .execution = execution,
+                    .return_value = execution.poll.first_error.?,
+                    .disposition = .buffer_state_failed,
+                },
+                .timeout, .interrupted => PollError.WaitResultDisagreesWithExecutionOutcome,
             };
         },
     };
@@ -549,6 +555,21 @@ test "resolvePollExecutionResultFromWaitResult keeps the final ready-count retur
     ));
     try std.testing.expectEqual(PollReturnDisposition.processing_failed, processing_failure.disposition);
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
+}
+
+test "summarizePollExecutionResultFromWaitResult keeps buffer-state failures explicit when ready events surface only error buffers" {
+    const result = try summarizePollExecutionResultFromWaitResult(
+        5,
+        2,
+        &.{
+            .{ .error_code = -22 },
+            .{ .error_code = -32 },
+        },
+        &.{},
+    );
+    try std.testing.expectEqual(PollOutcome.failed, result.execution.poll.outcome);
+    try std.testing.expectEqual(PollReturnDisposition.buffer_state_failed, result.disposition);
+    try std.testing.expectEqual(@as(i32, -22), result.return_value);
 }
 
 test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {
