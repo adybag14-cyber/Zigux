@@ -29,6 +29,8 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
     "direct genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
     "direct genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
+    "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
+    "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "the dedicated Phase 2 `genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
     "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `11-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
 ]
@@ -495,6 +497,22 @@ def run_self_test_checks() -> list[str]:
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
             ],
         ),
+        (
+            "closure_missing_kconfig_selftest_alignment_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`"
+            ],
+        ),
     ]
 
     issues: list[str] = []
@@ -582,7 +600,7 @@ def main() -> int:
             )
         )
 
-    if args.self_test:
+    if args.self-test:
         issues.extend(run_self_test_checks())
         if issues:
             print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=fail")
@@ -590,7 +608,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=8")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=9")
         return 0
 
     if issues:
