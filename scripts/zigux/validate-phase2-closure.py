@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 CHECK_PHASE2_KCONFIG_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
@@ -58,6 +59,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
 }
 
 PHASE2_VALIDATION_COMMAND_SPECS = (
+    (VALIDATE_PHASE2,),
     (CHECK_PHASE2_TESTS_README_ALIGNMENT,),
     (CHECK_PHASE2_KCONFIG_README_ALIGNMENT,),
     (CHECK_PHASE2_TOOL_MANIFEST_PACKETS,),
@@ -353,6 +355,20 @@ def validate_exact_workflow_runs(workflow_text: str) -> list[str]:
     return issues
 
 
+def command_tail(command: list[str]) -> str:
+    tail_parts: list[str] = []
+    for part in command[1:]:
+        path = Path(part)
+        if path.is_absolute():
+            try:
+                tail_parts.append(str(path.relative_to(ROOT)))
+                continue
+            except ValueError:
+                pass
+        tail_parts.append(part)
+    return " ".join(tail_parts)
+
+
 def build_validation_commands() -> list[list[str]]:
     return [[sys.executable, str(spec[0]), *spec[1:]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
 
@@ -438,6 +454,31 @@ def validate_manifest(
 
 def run_self_test_checks() -> list[str]:
     checks = [
+        (
+            "validation_commands_include_shared_validator",
+            validate_required_markers(
+                "\n".join(command_tail(command) for command in build_validation_commands()),
+                ["scripts/zigux/validate-phase2.py"],
+                "phase2_validation_commands",
+            ),
+            [],
+        ),
+        (
+            "validation_commands_missing_shared_validator",
+            validate_required_markers(
+                "\n".join(
+                    [
+                        "scripts/zigux/check-phase2-tests-readme-alignment.py",
+                        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                        "scripts/zigux/check-phase2-tool-manifest-packets.py",
+                        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                    ]
+                ),
+                ["scripts/zigux/validate-phase2.py"],
+                "phase2_validation_commands",
+            ),
+            ["phase2_validation_commands:missing:scripts/zigux/validate-phase2.py"],
+        ),
         (
             "conf_cases_ok",
             validate_case_list({"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]}, key="conf_cases", expected_cases=EXPECTED_CONF_CASES)[1],
@@ -664,6 +705,7 @@ def main() -> int:
     args = parser.parse_args()
 
     required = [
+        VALIDATE_PHASE2,
         CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
         CHECK_PHASE2_TESTS_README_ALIGNMENT,
         CHECK_PHASE2_KCONFIG_README_ALIGNMENT,
@@ -692,7 +734,7 @@ def main() -> int:
     issues.extend(validate_exact_workflow_runs(PHASE2_WORKFLOW.read_text(encoding="utf-8")))
     issues.extend(
         validate_required_markers(
-            (ROOT / "scripts" / "zigux" / "validate-phase2.py").read_text(encoding="utf-8"),
+            VALIDATE_PHASE2.read_text(encoding="utf-8"),
             PHASE2_VALIDATOR_MARKERS,
             "phase2_validator",
         )
@@ -746,7 +788,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=16")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=18")
         return 0
 
     if issues:
