@@ -128,6 +128,12 @@ READINESS_SURVEY_MARKERS = [
     "shared replay route stays explicit through `zigux/tests/phase15_build.zig`",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15-test",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase15.py",
+    "zigux/Makefile",
+    "no-approval-yet maintenance-mode blocker posture",
     "the remaining blocker is still `phase15-deep-core-status-change-blocker`",
     "Later repo movement still requires a fresh bounded provenance refresh",
 ]
@@ -309,6 +315,22 @@ def run_self_test() -> int:
             [],
             [f"readiness_survey:{missing_readiness_marker}"],
             "readiness_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_readiness_scope_marker = "Documentation/zigux/review-checklist.md"
+        _write(
+            root,
+            readiness_rel,
+            readiness_text.replace(missing_readiness_scope_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_readiness_scope_marker}"],
+            "readiness_scope_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
