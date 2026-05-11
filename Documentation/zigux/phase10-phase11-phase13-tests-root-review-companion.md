@@ -82,6 +82,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-shared-summary-surfaces.py`
@@ -100,15 +101,14 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
-- `zigux/tests/phase11_hvc_console.zig`
-- `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_verify.zig`
-- `drivers/tty/hvc/hvc_console_verify.zig`
 - `drivers/tty/hvc/hvc_console_sysrq.zig`
 - `zigux/Makefile`
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
@@ -116,7 +116,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `make -C zigux phase11-hvc-survey`
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated `hvc_console` teardown, verify, and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
+- Do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated archival `hvc_console` teardown note plus survey-gate split packet and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
 
 ## Phase 13 tests-root packet
 
