@@ -15,9 +15,9 @@ The current teardown-facing HVC packet on `master` is:
 
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `zigux/tests/phase11_hvc_console_survey.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
-* `drivers/tty/hvc/hvc_console_verify.zig`
+* `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
@@ -34,8 +34,10 @@ The current host-free teardown replay keeps these handoffs explicit:
 * `hvc_remove()` slot-release and handoff ordering
 * notifier-facing teardown edges beside `summarizeNotifierAddOutcome()`
 * bounded sysrq-handling support through `drivers/tty/hvc/hvc_console_sysrq.zig` without claiming live sysrq execution
+* poll-retry and drain-order split
+* modem-control fallback split
 
-The landed survey-backed packet also keeps the close-path failure-mode cues explicit around tty detachment, HUPCL-gated modem-line shutdown, notifier ownership, resize-work cancellation, wait-until-sent intent, buffered-write clearing, stale-count short-circuit behavior, and keep-IRQ-until-hangup teardown boundaries.
+The landed survey-backed packet also keeps the close-path failure-mode cues explicit around tty detachment, HUPCL-gated modem-line shutdown, notifier ownership, resize-work cancellation, wait-until-sent intent, buffered-write clearing, stale hangup short-circuit behavior, and keep-IRQ-until-hangup teardown boundaries.
 
 ## Bounded Meaning
 
