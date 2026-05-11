@@ -18,6 +18,7 @@ FILES = [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-core-boundary-traceability.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     "Documentation/zigux/phase14-skbuff-bridge-survey.md",
     "Documentation/zigux/phase14-ring-buffer-survey.md",
@@ -96,6 +97,7 @@ RELEASE_MARKERS = [
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "Documentation/zigux/phase14-core-boundary-traceability.md",
     "phase14_workqueue_bridge_manifest.json",
     "phase14_skbuff_bridge_manifest.json",
     "phase14_ring_buffer_manifest.json",
@@ -527,6 +529,7 @@ def run_validation() -> int:
                 "zigux/tests/phase14_build.zig",
                 "zigux/tests/phase14_workqueue_reviewability.zig",
                 "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+                "Documentation/zigux/phase14-core-boundary-traceability.md",
                 "Documentation/zigux/review-checklist.md",
                 "Documentation/zigux/freeze-map.md",
             ]:
