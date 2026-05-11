@@ -13,6 +13,8 @@ TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
 ATOMIC_REL = Path("zigux/helpers/atomic.zig")
 BARRIER_REL = Path("zigux/helpers/barrier.zig")
 MMIO_REL = Path("zigux/helpers/mmio.zig")
+ALLOCATOR_POLICY_REL = Path("zigux/helpers/allocator_policy.zig")
+PANIC_POLICY_REL = Path("zigux/helpers/panic_policy.zig")
 NARROW_REL = Path("zigux/unsafe/narrow.zig")
 ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
@@ -27,6 +29,10 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
+    "PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig",
+    "PHASE3_ALLOCATOR_POLICY_SCOPE=interop-policy-mode-decoding-caller-provided-gating-and-global-fallback-gating",
+    "PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig",
+    "PHASE3_PANIC_POLICY_SCOPE=interop-policy-mode-decoding-action-selection-and-returnability-gating",
     "PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig",
     "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
@@ -39,6 +45,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "raw-pointer bridge scope gates in `zigux/unsafe/narrow.zig` and the focused test route",
     "non-`seq_cst` ordering coverage and signed atomic edges in the focused test route",
     "barrier-locality and handoff replays",
+    "allocator policy mode decoding, caller-provided gating, and fallback gating in the focused test route",
+    "panic policy mode decoding, action selection, and returnability gating in the focused test route",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -47,12 +55,16 @@ REQUIRED_BUILD_SNIPPETS = (
     '.root_source_file = b.path("../helpers/atomic.zig")',
     '.root_source_file = b.path("../helpers/barrier.zig")',
     '.root_source_file = b.path("../helpers/mmio.zig")',
+    '.root_source_file = b.path("../helpers/allocator_policy.zig")',
+    '.root_source_file = b.path("../helpers/panic_policy.zig")',
     '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
     'root_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("atomic_helpers", atomic_helpers_module);',
     'root_module.addImport("barrier_helpers", barrier_helpers_module);',
     'root_module.addImport("mmio_helpers", mmio_helpers_module);',
     'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
+    'root_module.addImport("panic_policy_helpers", panic_policy_helpers_module);',
     '"phase3-low-level-wrappers-test"',
 )
 
@@ -62,11 +74,16 @@ REQUIRED_TEST_SNIPPETS = (
     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable"',
     'test "phase3 low-level wrappers keep barrier locality reviewable"',
     'test "phase3 low-level wrappers keep barrier handoff reviewable"',
+    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable"',
     'mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);',
     'mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
+    'allocator_policy.modeFromInteropPolicy(caller_abort_policy)',
+    'allocator_policy.permitsGlobalFallbackInteropPolicy(arena_warn_policy)',
+    'panic_policy.actionForInteropPolicy(heap_bug_policy)',
+    'panic_policy.canReturnInteropPolicy(arena_warn_policy)',
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -81,6 +98,20 @@ REQUIRED_BARRIER_SNIPPETS = (
     'pub fn acquireRelease() void {',
     'test "phase3 barrier wrappers keep barrier locality reviewable"',
     'test "phase3 barrier wrappers keep barrier handoff reviewable"',
+)
+
+REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
+    'pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {',
+    'pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {',
+    'pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {',
+    'pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {',
+)
+
+REQUIRED_PANIC_POLICY_SNIPPETS = (
+    'pub const Action = enum {',
+    'pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {',
+    'pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {',
+    'pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {',
 )
 
 REQUIRED_NARROW_SNIPPETS = (
@@ -127,6 +158,8 @@ def validate(root: Path) -> list[str]:
     atomic = _read(root, ATOMIC_REL, issues)
     barrier = _read(root, BARRIER_REL, issues)
     _read(root, MMIO_REL, issues)
+    allocator_policy = _read(root, ALLOCATOR_POLICY_REL, issues)
+    panic_policy = _read(root, PANIC_POLICY_REL, issues)
     narrow = _read(root, NARROW_REL, issues)
 
     if survey:
@@ -140,6 +173,20 @@ def validate(root: Path) -> list[str]:
         _require(atomic, REQUIRED_ATOMIC_SNIPPETS, "missing_atomic_snippet", issues)
     if barrier:
         _require(barrier, REQUIRED_BARRIER_SNIPPETS, "missing_barrier_snippet", issues)
+    if allocator_policy:
+        _require(
+            allocator_policy,
+            REQUIRED_ALLOCATOR_POLICY_SNIPPETS,
+            "missing_allocator_policy_snippet",
+            issues,
+        )
+    if panic_policy:
+        _require(
+            panic_policy,
+            REQUIRED_PANIC_POLICY_SNIPPETS,
+            "missing_panic_policy_snippet",
+            issues,
+        )
     if narrow:
         _require(narrow, REQUIRED_NARROW_SNIPPETS, "missing_narrow_snippet", issues)
 
@@ -167,6 +214,8 @@ def run_self_test() -> int:
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
         _write(root, MMIO_REL, "mmio\n")
+        _write(root, ALLOCATOR_POLICY_REL, "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n")
+        _write(root, PANIC_POLICY_REL, "\n".join(REQUIRED_PANIC_POLICY_SNIPPETS) + "\n")
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         grouped_markers: dict[Path, list[str]] = {}
         for rel, marker in REFERENCE_MARKERS:
@@ -186,6 +235,17 @@ def run_self_test() -> int:
         if not any(issue.startswith("missing_survey_marker:") for issue in issues):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing survey marker failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(root, TEST_REL, "missing helper checks\n")
+        issues = validate(root)
+        if not any(
+            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable"'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing allocator/panic helper replay failure")
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
