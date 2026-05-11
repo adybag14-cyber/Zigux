@@ -39,7 +39,7 @@ MARKERS = {
         "* `Documentation/zigux/phase11-shared-replay-contract.md`",
         "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
         "* `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
-        "* DesignWare watchdog planning lane: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; current `master` still keeps this lane parked on the first platform-registration follow-through even though that bounded replay packet is already landed and reviewable",
         "* HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "* `make -C zigux phase11-hvc-survey`",
     ],
