@@ -157,9 +157,11 @@ REQUIRED_SNIPPETS = {
         "\"equality_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test\",",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py\",",
+        "\"make -C zigux phase6-base64-c-parity\",",
         "\"make -C zigux phase6-validate\",",
         "\"make -C zigux phase6\",",
         "\"make -C zigux phase6-bsearch-test\",",
+        "\"make -C zigux phase6-checksum-c-parity\",",
         "\"make -C zigux phase6-hexdump-test\",",
         "\"make -C zigux phase6-perf\",",
         "\"make -C zigux phase6-base64-perf\",",
@@ -363,7 +365,7 @@ def scaffold_repo(root: Path) -> None:
                 "shared_gates": ["Documentation/zigux/phase6-helper-parity-catalog.md", "Documentation/zigux/phase6-perf-gate-survey.md", "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md", "scripts/zigux/check-phase6-shared-surface.py", "zigux/Makefile"],
                 "perf_posture": {"relative_slowdown_helpers": ["base64", "checksum", "hexdump"], "comparison_budget_helpers": ["bsearch"], "timing_sanity_only_helpers": []},
                 "perf_thresholds": {"bsearch": {"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1", "equality_budget_formula": "std.math.log2_int_ceil(len) + 1"}},
-                "exact_checks": ["python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-base64-c-parity.py", "make -C zigux phase6-validate", "make -C zigux phase6", "make -C zigux phase6-bsearch-test", "make -C zigux phase6-hexdump-test", "make -C zigux phase6-perf", "make -C zigux phase6-base64-perf", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-hexdump-perf", "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-checksum-c-parity.py"],
+                "exact_checks": ["python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-base64-c-parity.py", "make -C zigux phase6-base64-c-parity", "make -C zigux phase6-validate", "make -C zigux phase6", "make -C zigux phase6-bsearch-test", "make -C zigux phase6-checksum-c-parity", "make -C zigux phase6-hexdump-test", "make -C zigux phase6-perf", "make -C zigux phase6-base64-perf", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-hexdump-perf", "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-checksum-c-parity.py"],
                 "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
                 "determinism_evidence": {"base64": {"c_parity_cases": 24}, "checksum": {"c_parity_cases": 41}, "generated_fixture_artifacts_committed": False},
             }
@@ -418,6 +420,8 @@ def run_self_test() -> None:
         removed_path.unlink()
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `911470d`", "- surveyed head: `deadbeef`")
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "911470d",', '"surveyed_commit": "",')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"make -C zigux phase6-base64-c-parity",', '"make -C zigux phase6-base64-c-parity-missing",')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"make -C zigux phase6-checksum-c-parity",', '"make -C zigux phase6-checksum-c-parity-missing",')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
