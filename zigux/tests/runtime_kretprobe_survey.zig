@@ -14,6 +14,7 @@ const LifecycleBoundarySummary = struct {
     failed_exit_state_retained_until_drain: bool,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
+    shared_loader_lane: []const u8,
     live_registration_parity: []const u8,
     prepared_snapshot_owned_by_loader_request: bool = false,
 };
@@ -103,6 +104,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try std.testing.expectEqualStrings(
         "zigux/kernel/runtime_loader.zig",
         manifest.lifecycle_boundary_summary.shared_request_surface,
+    );
+    try std.testing.expectEqualStrings(
+        "P9-L11",
+        manifest.lifecycle_boundary_summary.shared_loader_lane,
     );
     try std.testing.expectEqualStrings(
         "blocked_on_runtime_substrate",
