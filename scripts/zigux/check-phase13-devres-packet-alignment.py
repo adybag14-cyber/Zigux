@@ -13,6 +13,7 @@ SURVEY_PATH = "Documentation/zigux/phase13-devres-survey.md"
 REPLAY_PATH = "zigux/tests/phase13_devres.zig"
 
 STALE_SLICE_MARKER = "PHASE13_SLICE=devres-dma-scatterlist-boundary-survey"
+SURVEYED_COMMIT_PREFIX = "reviewed against live `master` `"
 
 MANIFEST_TO_SURVEY_MARKERS = {
     '"id": "phase13-devres-arch-phys-wc-token-planner"': "devm_arch_phys_wc_add()",
@@ -64,8 +65,11 @@ def validate(root: Path) -> list[str]:
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
         errors.append("manifest:surveyed_commit_missing")
-    elif not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
-        errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
+    else:
+        if not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
+            errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
+        if f"{SURVEYED_COMMIT_PREFIX}{surveyed_commit}`" not in survey_text:
+            errors.append(f"survey:surveyed_commit_mismatch:{surveyed_commit}")
 
     if STALE_SLICE_MARKER in survey_text:
         errors.append("survey:stale_slice_label")
@@ -104,6 +108,7 @@ def seed_fixture_tree(root: Path) -> None:
             [
                 "# Phase 13 devres Survey",
                 "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                 "- `devm_arch_phys_wc_add()` remains helper-first",
                 "- keep the helper-only DMA/scatterlist boundary explicit",
             ]
@@ -144,6 +149,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
                 "survey:stale_slice_label",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
@@ -181,6 +187,7 @@ def run_self_test() -> int:
                 [
                     "# Phase 13 devres Survey",
                     "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                    "- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`",
                     "- helper-first boundary summary only",
                 ]
             )
@@ -189,10 +196,32 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
             ],
             "survey_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(
+                [
+                    "# Phase 13 devres Survey",
+                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                    "- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`",
+                    "- `devm_arch_phys_wc_add()` remains helper-first",
+                    "- keep the helper-only DMA/scatterlist boundary explicit",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22"],
+            "survey_commit_mismatch_failed",
         )
         case_count += 1
 
