@@ -75,7 +75,7 @@ In practice, the approved Phase 5 in-memory FIFO idiom is a side-by-side behavio
 
 The repo now carries that first bounded sample in `samples/zigux/bytestream_fifo.zig`.
 
-The sample intentionally stays small:
+The sample intentionally stays bounded in scope:
 
 * it models only bounded in-memory FIFO state with a fixed 32-byte ring buffer
 * it keeps `StorageBacking.embedded_fixed_buffer` explicit, making the roadmap-backed idiom a fixed in-memory ring rather than an allocation-backed or substrate-dependent queue claim
