@@ -9,22 +9,30 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 COMMAND_GAP_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
+MAKEFILE_PATH = "zigux/Makefile"
+TESTS_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
+PERF_BUFFER_POLL_CHECKER_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
 
 REQUIRED_FILES = [
-    ".github/workflows/zigux-bootstrap.yml",
+    WORKFLOW_PATH,
     COMMAND_GAP_SURVEY_PATH,
-    "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-    "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/README.md",
+    SEQUENCING_PATH,
+    REVIEW_CHECKLIST_PATH,
+    SCRIPTS_README_PATH,
     "scripts/zigux/validate-phase8.py",
-    "scripts/zigux/check-phase8-libbpf-segment-gate.py",
-    "scripts/zigux/check-phase8-libbpf-shard-routes.py",
-    "zigux/Makefile",
-    "zigux/tests/README.md",
+    TESTS_ALIGNMENT_CHECKER_PATH,
+    PERF_BUFFER_POLL_CHECKER_PATH,
+    MAKEFILE_PATH,
+    TESTS_README_PATH,
 ]
 
 REQUIRED_MARKERS = {
-    ".github/workflows/zigux-bootstrap.yml": [
+    WORKFLOW_PATH: [
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
     ],
@@ -36,43 +44,61 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "python3 scripts/zigux/validate-phase8.py",
         "make -C zigux phase8-validate",
-        "tools/lib/subcmd/exec-cmd.zig",
-        "tools/lib/subcmd/help.zig",
+        "Current `master` does not currently expose:",
     ],
-    "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
+    SEQUENCING_PATH: [
+        "PHASE8_STATUS=parked",
+        "PHASE8_SEQUENCE=tooling-lane-anti-overlap",
         "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
-        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
-        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8",
-    ],
-    "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/validate-phase8.py",
-        "make -C zigux phase8-libbpf-segments-test",
+        "zigux/tests/README.md",
+        "zigux/Makefile",
+        "### 4. Shared wording lane",
+        "The next honest reopen cue still starts at the docs-root Phase 8 summary in `Documentation/zigux/README.md`",
     ],
-    "scripts/zigux/README.md": [
-        "scripts/zigux/validate-phase8.py",
-        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
-        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
-        "make -C zigux phase8-validate",
-        "make -C zigux phase8-libbpf-segments-test",
+    REVIEW_CHECKLIST_PATH: [
+        "if the change touches the shared parked Phase 8 libbpf packet",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`scripts/zigux/validate-phase8.py`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-cpu-mask-test`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
     ],
-    "zigux/Makefile": [
+    SCRIPTS_README_PATH: [
+        "`scripts/zigux/validate-phase8.py`",
+        "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-validate`",
+        "`make -C zigux phase8-cpu-mask-test`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+    ],
+    TESTS_README_PATH: [
+        "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-cpu-mask-test`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+    ],
+    MAKEFILE_PATH: [
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
+        "phase8-cpu-mask-test:",
+        "phase8-file-path-handle-bridge-test:",
         "phase8-libbpf-segments-test:",
+        "phase8-perf-buffer-poll-test:",
         "phase8: phase8-validate",
-    ],
-    "zigux/tests/README.md": [
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8",
     ],
 }
 
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase8.py": "# fixture\n",
-    "scripts/zigux/check-phase8-libbpf-segment-gate.py": "# fixture\n",
-    "scripts/zigux/check-phase8-libbpf-shard-routes.py": "# fixture\n",
+    TESTS_ALIGNMENT_CHECKER_PATH: "# fixture\n",
+    PERF_BUFFER_POLL_CHECKER_PATH: "# fixture\n",
 }
 
 
@@ -129,54 +155,61 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
-        ("missing_segment_gate", "scripts/zigux/check-phase8-libbpf-segment-gate.py"),
-        ("missing_shard_routes", "scripts/zigux/check-phase8-libbpf-shard-routes.py"),
+        ("missing_tests_alignment_checker", TESTS_ALIGNMENT_CHECKER_PATH),
+        ("missing_perf_buffer_poll_checker", PERF_BUFFER_POLL_CHECKER_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
-        ("missing_lane_note", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
-        ("missing_makefile", "zigux/Makefile"),
+        ("missing_lane_note", SEQUENCING_PATH),
+        ("missing_makefile", MAKEFILE_PATH),
     ]
     marker_cases = [
         (
-            "scripts_readme_validator_marker",
-            "scripts/zigux/README.md",
-            "scripts/zigux/validate-phase8.py",
-            "scripts/zigux/validate-phase8-lane.py",
-            "scripts/zigux/README.md: scripts/zigux/validate-phase8.py",
+            "workflow_phase8_validate_marker",
+            WORKFLOW_PATH,
+            "make -C zigux phase8-validate",
+            "make -C zigux phase8-verify",
+            f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "lane_note_command_gap_marker",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
-            "Documentation/zigux/phase8-command-gap-survey.md",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
-        ),
-        (
-            "command_gap_scope_marker",
+            "command_gap_validation_marker",
             COMMAND_GAP_SURVEY_PATH,
-            "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
-            "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-gap",
-            f"{COMMAND_GAP_SURVEY_PATH}: PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
+            "python3 scripts/zigux/validate-phase8.py",
+            "python3 scripts/zigux/validate-phase8-lane.py",
+            f"{COMMAND_GAP_SURVEY_PATH}: python3 scripts/zigux/validate-phase8.py",
         ),
         (
-            "review_checklist_validator_marker",
-            "Documentation/zigux/review-checklist.md",
-            "scripts/zigux/validate-phase8.py",
-            "scripts/zigux/validate-phase8-lane.py",
-            "Documentation/zigux/review-checklist.md: scripts/zigux/validate-phase8.py",
+            "sequencing_shared_wording_lane_marker",
+            SEQUENCING_PATH,
+            "### 4. Shared wording lane",
+            "### 4. Shared lane",
+            f"{SEQUENCING_PATH}: ### 4. Shared wording lane",
         ),
         (
-            "tests_readme_segments_route",
-            "zigux/tests/README.md",
-            "make -C zigux phase8-libbpf-segments-test",
-            "make -C zigux phase8-libbpf-segment-test",
-            "zigux/tests/README.md: make -C zigux phase8-libbpf-segments-test",
+            "review_checklist_perf_checker_marker",
+            REVIEW_CHECKLIST_PATH,
+            "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+            "`scripts/zigux/check-phase8-perf-poll-gate.py`",
+            f"{REVIEW_CHECKLIST_PATH}: `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         ),
         (
-            "makefile_phase8_validate_hook",
-            "zigux/Makefile",
-            "scripts/zigux/validate-phase8.py",
-            "scripts/zigux/validate-phase8-lane.py",
-            "zigux/Makefile: scripts/zigux/validate-phase8.py",
+            "scripts_readme_tests_alignment_marker",
+            SCRIPTS_README_PATH,
+            "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+            "`scripts/zigux/check-phase8-tests-alignment.py`",
+            f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        ),
+        (
+            "tests_readme_perf_route_marker",
+            TESTS_README_PATH,
+            "`make -C zigux phase8-perf-buffer-poll-test`",
+            "`make -C zigux phase8-perf-buffer-test`",
+            f"{TESTS_README_PATH}: `make -C zigux phase8-perf-buffer-poll-test`",
+        ),
+        (
+            "makefile_cpu_mask_route",
+            MAKEFILE_PATH,
+            "phase8-cpu-mask-test:",
+            "phase8-cpu-mask-route:",
+            f"{MAKEFILE_PATH}: phase8-cpu-mask-test:",
         ),
     ]
 
