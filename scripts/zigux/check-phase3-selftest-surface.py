@@ -11,6 +11,7 @@ import tempfile
 README_PATH = Path("Documentation/zigux/README.md")
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
@@ -40,6 +41,26 @@ NOTE_POLICY_MARKERS = (
     "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
     "export/UAPI packet actually grows",
 )
+HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/README.md": 1,
+    "Documentation/zigux/review-checklist.md": 1,
+    "scripts/zigux/README.md": 1,
+    "zigux/tests/README.md": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/abi.zig": 1,
+    "zigux/tests/phase3_abi_dump.zig": 1,
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
+    "zigux/tests/fixtures/phase3_abi/expected.json": 1,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
+    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
+    "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail": 1,
+    "should stay anchored in this dedicated survey and the paired next-step note": 1,
+}
+HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX = "## Shared reminder"
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
@@ -117,11 +138,11 @@ def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) 
     return issues
 
 
-def _extract_section(text: str, start_prefix: str, next_prefix: str) -> str | None:
+def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> str | None:
     if start_prefix not in text:
         return None
     section = text.split(start_prefix, 1)[1]
-    if next_prefix in section:
+    if next_prefix is not None and next_prefix in section:
         section = section.split(next_prefix, 1)[0]
     return section
 
@@ -129,7 +150,7 @@ def _extract_section(text: str, start_prefix: str, next_prefix: str) -> str | No
 def _check_section_marker_counts(
     path: Path,
     start_prefix: str,
-    next_prefix: str,
+    next_prefix: str | None,
     marker_counts: dict[str, int],
     label: str,
 ) -> list[str]:
@@ -162,6 +183,16 @@ def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
     )
 
 
+def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
+    return _check_section_marker_counts(
+        path,
+        HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+        None,
+        HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS,
+        "header-family survey shared reminder",
+    )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     docs_readme = repo_root / README_PATH
@@ -186,6 +217,9 @@ def validate_repo(repo_root: Path) -> list[str]:
             NOTE_POLICY_MARKERS,
             "abi.h next-step note",
         )
+    )
+    issues.extend(
+        _check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH)
     )
     tests_readme = repo_root / TESTS_README_PATH
     issues.extend(
@@ -247,6 +281,20 @@ def _populate_repo(root: Path) -> None:
     )
     _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
     _write(root / NOTE_PATH, "\n".join(NOTE_POLICY_MARKERS) + "\n")
+    _write(
+        root / SURVEY_PATH,
+        "\n".join(
+            (
+                "## Current packet",
+                "current packet marker",
+                "## Review boundary",
+                "review boundary marker",
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+                *HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS.keys(),
+            )
+        )
+        + "\n",
+    )
     _write(
         root / TESTS_README_PATH,
         "\n".join(
@@ -337,6 +385,52 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected abi.h next-step note policy drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path = root / SURVEY_PATH
+        survey_path.write_text(
+            _read(survey_path).replace(
+                "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family starter-companion reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+                "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+                + "\n"
+                + HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX
+                + "\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "Documentation/zigux/phase3-export-uapi-boundary-survey.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped header-family survey drift was not reported")
             return 1
 
         _populate_repo(root)
