@@ -30,6 +30,8 @@ REQUIRED_NOTE_MARKERS = (
     "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
     "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
     "The dedicated archival HVC evidence on current `master` is also kept explicit beside that shared route through the bounded survey, teardown, and failure-mode packet:",
+    "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
     "* there is no shared `make -C zigux phase11-validate` target on `master`",
 )
 
@@ -209,6 +211,8 @@ def run_self_test() -> int:
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[1]),
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[5]),
             ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[9]),
+            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[12]),
+            ("phase11-note", NOTE_PATH, REQUIRED_NOTE_MARKERS[13]),
             ("phase11-closure-note", CLOSURE_NOTE_PATH, REQUIRED_CLOSURE_NOTE_MARKERS[2]),
             ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[4]),
             ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[5]),
