@@ -36,7 +36,7 @@ This survey does not claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Start with the smallest directly coupled libbpf survey follow-through that matches the current readable tree exactly.
+Start with the smallest directly coupled libbpf survey follow-through that matches the current readable tree exactly, and keep `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with this survey note so the broader helper-plus-build packet fails closed when these live markers drift again.
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
