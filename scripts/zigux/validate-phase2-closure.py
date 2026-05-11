@@ -14,6 +14,10 @@ CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-to
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 CHECK_PHASE2_KCONFIG_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
 CHECK_PHASE2_TOOL_MANIFEST_PACKETS = ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
+PHASE2_ARTIFACT_TOOLS_MANIFEST = (
+    ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
+)
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_MAKEFILE = ROOT / "zigux" / "Makefile"
 PHASE2_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -738,6 +742,8 @@ def main() -> int:
         CHECK_PHASE2_TESTS_README_ALIGNMENT,
         CHECK_PHASE2_KCONFIG_README_ALIGNMENT,
         CHECK_PHASE2_TOOL_MANIFEST_PACKETS,
+        PHASE2_TOOL_MANIFEST,
+        PHASE2_ARTIFACT_TOOLS_MANIFEST,
         PHASE2_CLOSURE_DOC,
         PHASE2_MAKEFILE,
         PHASE2_WORKFLOW,
