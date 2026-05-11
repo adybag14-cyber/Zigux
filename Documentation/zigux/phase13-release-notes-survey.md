@@ -29,7 +29,6 @@ When current `master` cannot materialize direct helper-packet companions such as
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `scripts/zigux/check-phase13-devres-packet.py`
 
 broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
@@ -42,6 +41,7 @@ Broad summaries should also keep the direct devres repo-reality reminder visible
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/check-phase13-devres-packet-alignment.py`
 
 Broad summaries should also keep the adjacent notifier evidence packet visible through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
