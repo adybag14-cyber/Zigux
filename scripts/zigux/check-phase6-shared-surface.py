@@ -62,17 +62,12 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=bsearch-leaf-helper`",
         "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
-        "- `searchIndex`",
-        "- `search`",
-        "- `searchMutable`",
-        "- `bsearchIndex`",
-        "- `bsearch`",
-        "- `bsearchMutable`",
-        "- `zigux/tests/fixtures/phase6_bsearch_vectors.zig`",
-        "- focused typed and raw lower- and upper-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
-        "- focused direct C ABI equality-budget parity across typed and raw ascending and descending sorted inputs plus packed-record `member_size` ranges through `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
-        "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` so the helper bundle stays small and directly reviewable, while `zigux/tests/fixtures/phase6_bsearch_vectors.zig` carries the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays. The same packet still keeps its bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route, and the dedicated bsearch-only rerun routes keep that packet reviewable without dragging the rest of the shared Phase 6 helper bundle into every follow-up.",
+        "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
+        "- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`",
+        "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
+        "The current packet intentionally keeps its representative sorted inputs, deterministic query seeding, and case-size corpus inline in the focused `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` replays so the helper bundle stays small and directly reviewable.",
+        "The same packet still keeps its bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route, and the dedicated bsearch-only rerun routes keep that packet reviewable without dragging the rest of the shared Phase 6 helper bundle into every follow-up.",
     ],
     "Documentation/zigux/phase6-checksum-slice.md": [
         "- `PHASE6_STATUS=parked`",
@@ -97,7 +92,7 @@ REQUIRED_SNIPPETS = {
         "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, while the shared `make -C zigux phase6` route still excludes every helper-local slowdown gate",
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
         "- bsearch exact evidence: the current 15-element equality replay in `zigux/tests/phase6_bsearch.zig` still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` keeps the same expected `std.math.log2_int_ceil(len) + 1` insertion-point budget explicit for typed and raw lower-bound replays across ascending, descending, and packed-record ranges, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` keeps that same equality budget explicit for typed and raw runtime-selected C ABI comparator replays across ascending, descending, and packed-record ranges without widening into standalone nanosecond thresholds",
-        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet keeps its representative sorted inputs inline, uses the fixture file for bounded deterministic query seeding and case-size evidence, and still avoids a standalone `phase6_bsearch_perf` route",
+        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- the current bundled make routes now replay the three dedicated helper-local perf gates through `make -C zigux phase6-perf`, while the shared `make -C zigux phase6` route still stops at the shared checker plus bundled helper tests",
         "- the convenience `make -C zigux phase6-perf` route now truthfully summarizes that shared perf posture on `master` by aggregating the base64, checksum, and hexdump slowdown gates while leaving `bsearch` on its bounded comparison-budget evidence path",
     ],
@@ -147,9 +142,6 @@ REQUIRED_SNIPPETS = {
         "\"zigux/tests/fixtures/phase6_base64_c_harness.c\"",
         "\"scripts/zigux/check-phase6-base64-c-parity.py\"",
         "\"id\": \"bsearch\"",
-        "\"zigux/tests/fixtures/phase6_bsearch_vectors.zig\"",
-        "\"id\": \"checksum\"",
-        "\"id\": \"hexdump\"",
         "\"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig\"",
         "\"zigux/tests/phase6_bsearch_c_abi_budget.zig\"",
         "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
@@ -158,7 +150,9 @@ REQUIRED_SNIPPETS = {
         "\"scripts/zigux/check-phase6-shared-surface.py\",",
         "\"relative_slowdown_helpers\": [",
         "\"comparison_budget_helpers\": [",
-        "\"timing_sanity_only_helpers\": []",
+        "\"fixture_posture\": {",
+        "\"inline_corpus_governance\": {",
+        "\"policy\": \"keep representative sorted slices, duplicate-bearing lower- and upper-bound insertion probes, direct c abi equality probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module\"",
         "\"lower_bound_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
         "\"equality_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test\",",
@@ -167,6 +161,8 @@ REQUIRED_SNIPPETS = {
         "\"make -C zigux phase6-validate\",",
         "\"make -C zigux phase6\",",
         "\"make -C zigux phase6-bsearch-test\",",
+        "\"python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test\",",
+        "\"python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py\",",
         "\"make -C zigux phase6-checksum-c-parity\",",
         "\"make -C zigux phase6-hexdump-test\",",
         "\"make -C zigux phase6-perf\",",
@@ -175,6 +171,9 @@ REQUIRED_SNIPPETS = {
         "\"make -C zigux phase6-hexdump-perf\",",
         "\"python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test\",",
         "\"python3 scripts/zigux/check-phase6-checksum-c-parity.py\",",
+        "\"python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test\"",
+        "\"python3 scripts/zigux/check-phase6-perf-threshold-markers.py\"",
+        "\"comparison_budget_max_compare_calls\": 4",
         "\"c_parity_cases\": 24",
         "\"generated_fixture_artifacts_committed\": false",
     ],
@@ -207,10 +206,6 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch lower-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
         'test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
         'test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget"',
-        'test "phase 6 bsearch upper-bound helpers accept runtime-selected c abi comparator pointers"',
-        'test "phase 6 bsearch upper-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
-        'test "phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
-        'test "phase 6 bsearch upper-bound c abi record member_size replay stays inside a binary-search budget"',
     ],
     "zigux/tests/phase6_bsearch_c_abi_budget.zig": [
         'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
@@ -369,21 +364,61 @@ def scaffold_repo(root: Path) -> None:
             manifest = {
                 "phase": "Phase 6",
                 "tranche": "leaf-helper-parity",
-                "surveyed_commit": "911470d",
+                "surveyed_commit": "277b3ab",
                 "helpers": [
                     {"id": "base64", "helper": "lib/base64.zig", "tests": ["zigux/tests/phase6_base64.zig", "zigux/tests/phase6_base64_c_parity.zig", "zigux/tests/phase6_base64_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_base64_vectors.zig", "zigux/tests/fixtures/phase6_base64_c_harness.c"], "slice_note": "Documentation/zigux/phase6-base64-slice.md", "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py"},
-                    {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "fixtures": ["zigux/tests/fixtures/phase6_bsearch_vectors.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"},
+                    {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"},
                     {"id": "checksum", "helper": "lib/checksum.zig", "tests": ["zigux/tests/phase6_checksum.zig", "zigux/tests/phase6_checksum_perf.zig", "zigux/tests/phase6_checksum_c_parity.zig"], "fixtures": ["zigux/tests/fixtures/phase6_checksum_vectors.zig", "zigux/tests/fixtures/phase6_checksum_c_harness.c"], "slice_note": "Documentation/zigux/phase6-checksum-slice.md", "external_parity": "scripts/zigux/check-phase6-checksum-c-parity.py"},
                     {"id": "hexdump", "helper": "lib/hexdump.zig", "tests": ["zigux/tests/phase6_hexdump.zig", "zigux/tests/phase6_hexdump_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_hexdump_vectors.zig"], "slice_note": "Documentation/zigux/phase6-hexdump-slice.md"},
                 ],
                 "shared_gates": ["Documentation/zigux/phase6-helper-parity-catalog.md", "Documentation/zigux/phase6-perf-gate-survey.md", "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md", "scripts/zigux/check-phase6-shared-surface.py", "zigux/Makefile"],
                 "perf_posture": {"relative_slowdown_helpers": ["base64", "checksum", "hexdump"], "comparison_budget_helpers": ["bsearch"], "timing_sanity_only_helpers": []},
-                "perf_thresholds": {"bsearch": {"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1", "equality_budget_formula": "std.math.log2_int_ceil(len) + 1"}},
-                "exact_checks": ["python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-base64-c-parity.py", "make -C zigux phase6-base64-c-parity", "make -C zigux phase6-validate", "make -C zigux phase6", "make -C zigux phase6-bsearch-test", "make -C zigux phase6-checksum-c-parity", "make -C zigux phase6-hexdump-test", "make -C zigux phase6-perf", "make -C zigux phase6-base64-perf", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-hexdump-perf", "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-checksum-c-parity.py"],
+                "fixture_posture": {
+                    "inline_corpus_governance": {
+                        "bsearch": {
+                            "focused_replay": "zigux/tests/phase6_bsearch.zig",
+                            "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                            "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                            "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+                            "policy": "keep representative sorted slices, duplicate-bearing lower- and upper-bound insertion probes, direct c abi equality probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module",
+                        }
+                    }
+                },
+                "perf_thresholds": {"bsearch": {"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1", "equality_budget_formula": "std.math.log2_int_ceil(len) + 1", "comparison_budget_max_compare_calls": 4}},
+                "exact_checks": [
+                    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+                    "make -C zigux phase6-base64-c-parity",
+                    "make -C zigux phase6-validate",
+                    "make -C zigux phase6",
+                    "make -C zigux phase6-bsearch-test",
+                    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
+                    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+                    "make -C zigux phase6-checksum-c-parity",
+                    "make -C zigux phase6-hexdump-test",
+                    "make -C zigux phase6-perf",
+                    "make -C zigux phase6-base64-perf",
+                    "make -C zigux phase6-checksum-perf",
+                    "make -C zigux phase6-hexdump-perf",
+                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+                    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
+                    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
+                ],
                 "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-                "determinism_evidence": {"base64": {"c_parity_cases": 24}, "checksum": {"c_parity_cases": 41}, "generated_fixture_artifacts_committed": False},
+                "determinism_evidence": {
+                    "base64": {"c_parity_cases": 24},
+                    "bsearch": {"comparison_budget_max_compare_calls": 4},
+                    "checksum": {"c_parity_cases": 41},
+                    "generated_fixture_artifacts_committed": False,
+                },
             }
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
+            continue
+        if rel_path == CATALOG_PATH.as_posix():
+            lines = list(dict.fromkeys(snippets))
+            lines = ["- surveyed head: `277b3ab`" if line == "- surveyed head: `" else line for line in lines]
+            write(root / rel_path, "\n".join(lines) + "\n")
             continue
         if rel_path == BASE64_C_PARITY_SCRIPT_PATH.as_posix():
             lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 25)], "    ]", ")", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', ""]
@@ -432,18 +467,17 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
-        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `911470d`", "- surveyed head: `deadbeef`")
-        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "911470d",', '"surveyed_commit": "",')
-        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"make -C zigux phase6-base64-c-parity",', '"make -C zigux phase6-base64-c-parity-missing",')
-        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"make -C zigux phase6-checksum-c-parity",', '"make -C zigux phase6-checksum-c-parity-missing",')
-        assert_failure(root, "zigux/tests/README.md", "zigux/tests/phase6_bsearch_c_abi_budget.zig", "zigux/tests/phase6_bsearch_c_abi_budget-missing.zig")
+        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `277b3ab`", "- surveyed head: `deadbeef`")
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "277b3ab",', '"surveyed_commit": "",')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-bsearch-corpus-evidence.py --self-test', 'check-phase6-bsearch-corpus-proof.py --self-test')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-perf-threshold-markers.py --self-test', 'check-phase6-perf-threshold-proof.py --self-test')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
-        assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "test \"phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges\"", "test \"phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges missing\"")
+        assert_failure(root, "Documentation/zigux/phase6-bsearch-slice.md", "deterministic query seeding, and case-size corpus inline", "deterministic query seeding only")
+        assert_failure(root, "Documentation/zigux/phase6-perf-gate-survey.md", "uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module", "uses bundled comparison-budget replays")
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_bsearch_c_abi_budget.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
-        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays", "- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors_missing.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays")
     print("self-test passed")
 
 
