@@ -32,6 +32,7 @@ MARKERS = {
     "scripts_root": [
         "Phase 11 flow -",
         "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
         "`zigux/tests/phase11_build.zig`",
         "`make -C zigux phase11`",
         "`make -C zigux phase11-hvc-survey`",
@@ -101,7 +102,7 @@ def run_self_test() -> None:
         cases = [
             (FILES["docs_root"], MARKERS["docs_root"][1]),
             (FILES["review_checklist"], MARKERS["review_checklist"][3]),
-            (FILES["scripts_root"], MARKERS["scripts_root"][4]),
+            (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
         ]
 
