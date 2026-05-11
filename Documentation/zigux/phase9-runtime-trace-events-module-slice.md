@@ -41,7 +41,7 @@ This module-slice note owns the narrow trace-events family statement that sits b
 
 1. Keep the Phase 9 trace-events family tied to `samples/trace_events/trace-events-sample.c` and the runtime-pilot roadmap only.
 2. Keep the shared loader packet separate from family-local implementation claims. The shared loader files prove reviewable handoff behavior, not completed tracepoint-registration parity.
-3. Keep the real blocker explicit: the family-local packet is reviewable on current `master`, but the live runtime substrate is still missing.
+3. Keep the real blocker explicit: the family-local packet is reviewable on current `master`, but runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate.
 4. Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.
 5. Keep earlier-phase references in their own lanes: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
 
@@ -51,7 +51,7 @@ The honest current review posture is:
 
 - the family-local trace-events sample, loader, module, diff, survey, and manifest packet is visible on current `master`
 - the shared Phase 9 loader-facing packet is also shipped and reviewable
-- the packet still remains review-first because the live runtime-substrate handoff is not complete
+- the packet still remains review-first because runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate
 - the remaining same-lane work should keep the packet-local notes and manifest aligned with the shipped family-local trace-events proof instead of drifting back to missing-file reminder wording
 
 ## Next bounded step
