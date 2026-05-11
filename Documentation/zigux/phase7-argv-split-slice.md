@@ -45,7 +45,7 @@ This current slice keeps the work bounded to runtime-safe argument-vector helper
 * keep strict non-goal behavior where quote characters stay inside the returned tokens
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
-Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, the committed manifest packet, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
+Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
@@ -80,7 +80,7 @@ Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;
 
 ## Current parity surface
 
-The current landed slice covers the bounded `argv_split` review packet under `lib/argv_split.zig`, the dedicated `zigux/tests/phase7_argv_split.zig` helper replay, the dedicated `zigux/tests/phase7_argv_split_survey.zig` survey gate, the committed manifest record, and the focused `zigux/tests/fixtures/phase7_argv_split_vectors.zig` fixture module.
+The current landed slice covers the bounded `argv_split` review packet under `lib/argv_split.zig`, the dedicated `zigux/tests/phase7_argv_split.zig` helper replay, the dedicated `zigux/tests/phase7_argv_split_survey.zig` survey gate, the committed `zigux/tests/phase7_argv_split_manifest.json` manifest record, and the focused `zigux/tests/fixtures/phase7_argv_split_vectors.zig` fixture module.
 
 The current tests keep these packet edges explicit:
 
