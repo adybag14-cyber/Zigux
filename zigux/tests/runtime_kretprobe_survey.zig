@@ -78,6 +78,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         96 * 1024,
     );
     defer std.testing.allocator.free(runtime_kretprobe_loader);
+    const runtime_kretprobe_sample = try readRepoFileAlloc(
+        std.testing.allocator,
+        "samples/zigux/runtime_kretprobe.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_kretprobe_sample);
+    const runtime_kretprobe_diff = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_kretprobe_diff.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_kretprobe_diff);
 
     const runtime_kretprobe_module = try readRepoFileAlloc(
         std.testing.allocator,
@@ -175,6 +187,30 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         runtime_kretprobe_loader,
         "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "test \"kretprobe sample preserves initialized-stage failed-exit state until the active probe drains before selftest\"",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "test \"kretprobe sample preserves failed-exit state until the active probe drains after selftest\"",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectError(error.OutstandingProbeInstance, module.exit());",
+    );
+    try expectContains(
+        runtime_kretprobe_diff,
+        "test \"runtime kretprobe diff gate keeps maxactive pressure and nmissed explicit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_diff,
+        "test \"runtime kretprobe diff gate keeps overlapping entry stamps distinct under concurrent load\"",
+    );
+    try expectContains(
+        runtime_kretprobe_diff,
+        "try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);",
     );
 
     try expectContains(
