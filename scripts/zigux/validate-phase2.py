@@ -7,27 +7,20 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
 FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
-GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
-GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
-KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
-KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py"
-KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
+PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+)
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
-TESTS_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
-KCONFIG_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
-KCONFIG_BRIDGE_REQUIRED_FILES = [
-    ROOT / "scripts" / "kconfig" / "conf.c",
-    ROOT / "scripts" / "kconfig" / "confdata.c",
-    ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "duplicate_assignments.config",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "duplicate_assignments_expected.json",
-]
+TESTS_README_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+)
+KCONFIG_README_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
+)
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
 PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass"
@@ -36,24 +29,16 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (TESTS_README_ALIGNMENT_CHECKER,),
     (KCONFIG_README_ALIGNMENT_CHECKER, "--self-test"),
     (KCONFIG_README_ALIGNMENT_CHECKER,),
-    (KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
-    (KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER,),
-    (KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER, "--self-test"),
-    (KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER,),
-    (KCONFIG_BRIDGE_CHECKER, "--self-test"),
-    (KCONFIG_BRIDGE_CHECKER,),
     (FIXDEP_GATE_CHECKER, "--self-test"),
     (FIXDEP_GATE_CHECKER,),
     (FIXDEP_DIFF_CHECKER, "--self-test"),
     (FIXDEP_DIFF_CHECKER,),
-    (GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
-    (GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_CHECKER,),
-    (GENKSYMS_BRIDGE_CHECKER, "--self-test"),
-    (GENKSYMS_BRIDGE_CHECKER,),
+    (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
+    (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER,),
     (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test"),
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 20
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 12
 
 
 def build_validation_commands() -> list[list[str]]:
@@ -88,10 +73,10 @@ def collect_command_inventory_issues() -> list[str]:
     expected_tails = {
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
-        "scripts/zigux/check-phase2-kconfig-route-contract.py --self-test",
-        "scripts/zigux/check-phase2-kconfig-route-contract.py",
-        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
-        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     }
@@ -118,7 +103,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate the current live Phase 2 deterministic gate packet on current master."
     )
-    parser.add_argument("--self-test", action="store_true", help="Check that the live Phase 2 validator packet is present.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Check that the live Phase 2 validator packet is present.",
+    )
     args = parser.parse_args()
 
     required = [
@@ -128,23 +117,21 @@ def main() -> int:
         ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
         ROOT / "Documentation" / "zigux" / "review-checklist.md",
         ROOT / "scripts" / "zigux" / "README.md",
+        ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
-        ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
-        ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
         ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
+        ROOT / "scripts" / "zigux" / "fixdep.zig",
         ROOT / "scripts" / "zigux" / "install-zig.py",
         ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
         ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
-        *KCONFIG_BRIDGE_REQUIRED_FILES,
         ROOT / "zigux" / "Makefile",
         ROOT / "zigux" / "tests" / "README.md",
+        ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
     ]
     missing = require_files(required)
     if missing:
@@ -167,7 +154,10 @@ def main() -> int:
     if args.self_test:
         print("PHASE2_VALIDATION_SELF_TEST=pass")
         print(f"PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT={len(required)}")
-        print(f"PHASE2_VALIDATION_SELF_TEST_COMMAND_COUNT={PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}")
+        print(
+            "PHASE2_VALIDATION_SELF_TEST_COMMAND_COUNT="
+            f"{PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}"
+        )
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER)
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER)
         return 0
