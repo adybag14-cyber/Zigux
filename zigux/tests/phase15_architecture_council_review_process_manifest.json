@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "because the saved Phase 15 scripts-root checker hardening is now landed on current `master`, reread `Documentation/zigux/review-checklist.md` together with `scripts/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `zigux/Makefile`, and if the shared Phase 15 checklist bullet still leaves `scripts/zigux/check-phase15-scripts-readme-alignment.py` or `make -C zigux phase15-test` implicit, publish only that one shared-summary truthfulness repair before any blocker-posture discussion"
+    "next_step": "because the saved Phase 15 shared-checklist repair is already landed on current `master`, stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if another same-lane reminder truthfulness follow-up is still needed before then, reread `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together and publish only the smallest tests-root sync that keeps the full `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet equally explicit"
   },
   "gaps": [
     {
@@ -140,6 +140,13 @@
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The shared checklist and freeze map already required the approver-set, rollback-threshold, and indefinite-C-policy fields, so the review-process note and its manifest needed a bounded sync to keep the Architecture Council packet truthful."
+    },
+    {
+      "id": "phase15-tests-readme-validator-route-sync",
+      "status": "open",
+      "kind": "governance",
+      "zigux_destination": "zigux/tests/README.md",
+      "why_now": "The broader Phase 15 tests-root reminder may still undercount the shipped validator-first route even though the dedicated shared-checklist follow-up is now landed on current master."
     }
   ]
 }
