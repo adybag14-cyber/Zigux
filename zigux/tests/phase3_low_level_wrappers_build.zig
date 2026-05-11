@@ -34,6 +34,20 @@ pub fn build(b: *std.Build) void {
     mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);
     mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
+    const allocator_policy_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);
+
+    const panic_policy_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);
+
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_low_level_wrappers.zig"),
         .target = target,
@@ -44,6 +58,8 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("barrier_helpers", barrier_helpers_module);
     root_module.addImport("mmio_helpers", mmio_helpers_module);
     root_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);
+    root_module.addImport("panic_policy_helpers", panic_policy_helpers_module);
 
     const tests = b.addTest(.{
         .name = "phase3-low-level-wrappers-test",
