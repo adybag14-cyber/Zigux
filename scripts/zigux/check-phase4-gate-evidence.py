@@ -14,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 16
-EXPECTED_SELF_TEST_CASE_COUNT = 26
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -29,6 +29,7 @@ SELF_TEST_CASES = [
     "shared_validator_reruns_gate_evidence_self_test_drift",
     "shared_validator_expected_target_count_drift",
     "shared_validator_expected_self_test_case_count_drift",
+    "runtime_atomic64_survey_packet_presence_drift",
     "bitmap_diff_survey_replay_marker_drift",
     "kprobe_gap_packet_presence_drift",
     "kprobe_owner_drift",
@@ -60,6 +61,7 @@ REQUIRED_STATUS_MARKERS = [
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=",
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=",
+    "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
@@ -78,6 +80,7 @@ EXACT_STATUS_LINES = [
         "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
         f"{EXPECTED_SELF_TEST_CASE_COUNT}"
     ),
+    "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
@@ -101,6 +104,7 @@ REQUIRED_SELF_TEST_CASE_MARKERS = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "runtime_atomic64_survey_packet_presence_drift",
     "kprobe_owner_drift",
     "kprobe_validation_entrypoint_drift",
     "kprobe_next_step_drift",
@@ -370,6 +374,7 @@ def write_fixture_tree(root: Path) -> None:
                 "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
                 f"{EXPECTED_SELF_TEST_CASE_COUNT}`"
             ),
+            "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
@@ -377,12 +382,12 @@ def write_fixture_tree(root: Path) -> None:
             "## Exact Readback Evidence",
             "- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.",
             "- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet while shared CI perf coverage stays out of scope.",
-            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.",
+            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.",
             "- the parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now also stays under the dedicated exact-readback checker so the current C anchor, direct validation entrypoint, local survey wrapper, owner, rollback owner, and absent-starter boundary fail closed together.",
             "",
             "## Current Conclusion",
             "- shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
-            "- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.",
+            "- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
         ]
     )
     write_text(root / GATE_EVIDENCE_REL, gate_evidence + "\n")
@@ -733,6 +738,26 @@ def run_self_test() -> int:
                 "status_exact_count:"
                 "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
                 f"{EXPECTED_SELF_TEST_CASE_COUNT}:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
+                "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "runtime atomic64 survey packet presence drift",
+            exact_failure=(
+                "status_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true:0"
             ),
         ):
             return 1
