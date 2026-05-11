@@ -55,7 +55,7 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 One bounded shared-reminder truthfulness blocker is still visible on current `master`.
 
-The compact Phase 10 tests-root companion and the lane-sequencing owner map now keep `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit as landed ring evidence, but the broader shared reminder packet still does not fail closed on that exact replay path. `scripts/zigux/check-phase10-harness-coverage.py` currently enforces the exact ring drained-reset reuse markers only inside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, while the broader `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` surfaces still under-describe or omit the direct replay path even though they already describe the same shared Phase 10 packet.
+The compact Phase 10 tests-root companion and the lane-sequencing owner map now keep `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit as landed ring evidence, but the broader docs-root and scripts-root summaries still summarize the ring packet without naming that exact replay path. `Documentation/zigux/README.md` and `scripts/zigux/README.md` both keep the shared closure route, ring verifier surface, and manifest-backed packet explicit, yet neither broader summary currently calls out `zigux/tests/phase10_virtio_ring_reset_reuse.zig` the way the compact companion and lane-sequencing note already do.
 
 ## Parked Boundary
 
@@ -70,5 +70,5 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder surface packet at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. update `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` so the broad shared Phase 10 packet keeps `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside the existing ring verify and shared closure-manifest reminders
-3. harden `scripts/zigux/check-phase10-harness-coverage.py` so those broader shared surfaces fail closed if the exact ring drained-reset reuse replay path drifts again
+2. update `Documentation/zigux/README.md` and `scripts/zigux/README.md` so the broad shared Phase 10 packet keeps `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside the existing ring verify and shared closure-manifest reminders
+3. after those two broad summaries are aligned, reread `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase10-harness-coverage.py` together so the wider shared surfaces can fail closed on the same exact ring drained-reset reuse replay path if it drifts again
