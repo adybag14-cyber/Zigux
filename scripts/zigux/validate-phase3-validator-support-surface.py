@@ -41,6 +41,15 @@ REQUIRED_MARKERS = (
     "make -C zigux phase3",
     "shipped helper entrypoints on current `master`",
 )
+REQUIRED_CURRENT_PACKET_MARKERS = (
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "zigux/uapi/dev_t.zig",
+)
+REQUIRED_SHARED_REMINDER_MARKERS = (
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "zigux/uapi/dev_t.zig",
+)
 
 
 def load_text(path: Path) -> str:
@@ -51,11 +60,38 @@ def load_text(path: Path) -> str:
 
 
 def validate_text(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_MARKERS if marker not in text]
+    missing = [marker for marker in REQUIRED_MARKERS if marker not in text]
+    if "## Current packet" not in text:
+        missing.append("missing current packet section")
+        return missing
+    if "## Review boundary" not in text:
+        missing.append("missing review boundary section")
+        return missing
+    if "## Shared reminder" not in text:
+        missing.append("missing shared reminder section")
+        return missing
+
+    current_packet = text.split("## Current packet", 1)[1].split("## Review boundary", 1)[0]
+    shared_reminder = text.split("## Shared reminder", 1)[1]
+
+    missing.extend(
+        f"current packet missing marker: {marker}"
+        for marker in REQUIRED_CURRENT_PACKET_MARKERS
+        if marker not in current_packet
+    )
+    missing.extend(
+        f"shared reminder missing marker: {marker}"
+        for marker in REQUIRED_SHARED_REMINDER_MARKERS
+        if marker not in shared_reminder
+    )
+    return missing
 
 
 def run_self_test() -> int:
     sample = "\n".join(REQUIRED_MARKERS)
+    sample += "\n## Current packet\n" + "\n".join(REQUIRED_CURRENT_PACKET_MARKERS)
+    sample += "\n## Review boundary\nshipped helper entrypoints on current `master`\n"
+    sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
     missing = validate_text(sample)
     if missing:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
@@ -69,46 +105,18 @@ def run_self_test() -> int:
         print("expected missing marker was not reported")
         return 1
 
-    catalog_selftest_marker = "python3 scripts/zigux/phase3_catalog.py --self-test"
-    broken = validate_text(sample.replace(catalog_selftest_marker, "", 1))
-    if catalog_selftest_marker not in broken:
+    current_packet_marker = "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+    broken = validate_text(sample.replace(current_packet_marker, "", 1))
+    if f"current packet missing marker: {current_packet_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected phase3_catalog self-test marker was not reported")
+        print("expected current packet marker was not reported")
         return 1
 
-    helper_selftest_marker = "python3 scripts/zigux/phase3_check_lib.py --self-test"
-    broken = validate_text(sample.replace(helper_selftest_marker, "", 1))
-    if helper_selftest_marker not in broken:
+    shared_reminder_marker = "zigux/uapi/dev_t.zig"
+    broken = validate_text(sample.rsplit(shared_reminder_marker, 1)[0])
+    if f"shared reminder missing marker: {shared_reminder_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected phase3_check_lib self-test marker was not reported")
-        return 1
-
-    wrapper_check_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --check"
-    broken = validate_text(sample.replace(wrapper_check_marker, "", 1))
-    if wrapper_check_marker not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected wrapper check marker was not reported")
-        return 1
-
-    runner_selftest_marker = "python3 scripts/zigux/run-phase3-checks.py --self-test"
-    broken = validate_text(sample.replace(runner_selftest_marker, "", 1))
-    if runner_selftest_marker not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected runner self-test marker was not reported")
-        return 1
-
-    low_level_note_marker = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
-    broken = validate_text(sample.replace(low_level_note_marker, "", 1))
-    if low_level_note_marker not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected low-level-wrapper note marker was not reported")
-        return 1
-
-    header_governance_marker = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
-    broken = validate_text(sample.replace(header_governance_marker, "", 1))
-    if header_governance_marker not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected header-governance note marker was not reported")
+        print("expected shared reminder marker was not reported")
         return 1
 
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
