@@ -28,7 +28,7 @@ PHASE2_GENKSYMS_REQUIRED_SOURCE_MARKERS = [
     "shared genksyms bridge selftest-alignment gate: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
     "direct genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
     "direct genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
-    "the dedicated Phase 2 `genksyms` bridge packet remains the live `27-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
+    "the dedicated Phase 2 `genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
 ]
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
