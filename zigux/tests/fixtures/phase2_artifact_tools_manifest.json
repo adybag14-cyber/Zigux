@@ -1,0 +1,19 @@
+{
+  "packet": "phase2_artifact_tools_manifest",
+  "phase": "phase2",
+  "status": "current_master_packet",
+  "shared_checker": "scripts/zigux/check-phase2-tool-manifest-packets.py",
+  "shared_routes": [
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "make -C zigux phase2-validate"
+  ],
+  "docs": [
+    "Documentation/zigux/phase2-closure.md",
+    "zigux/tests/README.md"
+  ],
+  "artifact_tools": [
+    "genksyms_crc",
+    "mk_elfconfig"
+  ]
+}
