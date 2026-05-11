@@ -29,9 +29,7 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
-    "zigux/tests/phase15_freeze_map_manifest.json",
     "zigux/tests/phase15_parity_scorecard.zig",
-    "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
@@ -72,17 +70,7 @@ DOCS_README_MARKERS = [
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
-    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-    "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "scripts/zigux/README.md",
-    "scripts/zigux/validate-phase15.py",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "zigux/tests/README.md",
     "zigux/tests/phase15_build.zig",
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
     "make -C zigux phase15",
     "no Architecture Council approval is recorded yet",
     "named reopen trigger",
@@ -209,7 +197,7 @@ def _baseline_docs_readme() -> str:
     return "\n".join(
         (
             "# Zigux Documentation",
-            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `Documentation/zigux/phase15-handoff-next-steps-survey.md` - `Documentation/zigux/phase15-readiness-gate-survey.md` - `Documentation/zigux/phase15-governance-lane-sequencing.md` - `scripts/zigux/README.md` - `scripts/zigux/validate-phase15.py` - `scripts/zigux/check-phase15-scripts-readme-alignment.py` - `scripts/zigux/check-phase15-review-process-handoff.py` - `zigux/tests/README.md` - `zigux/tests/phase15_build.zig` - `make -C zigux phase15-validate` - `make -C zigux phase15-test` - `make -C zigux phase15` now keep the parked Phase 15 governance packet reviewable through the shared validator-first and replay routes instead of implying any Architecture Council approval for a freeze-map status change.",
+            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `zigux/tests/phase15_build.zig` and `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, and stay-in-C governance packet reviewable through one shared Phase 15 lane instead of widening into ad hoc deep-core status claims.",
             "- the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.",
             "",
         )
@@ -260,8 +248,6 @@ def _seed_fixture_tree(root: Path) -> None:
     ):
         _write(root, rel, "// stub\n")
     for rel in (
-        "zigux/tests/phase15_freeze_map_manifest.json",
-        "zigux/tests/phase15_parity_scorecard.json",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_handoff_next_steps_manifest.json",
         "zigux/tests/phase15_readiness_gate_manifest.json",
@@ -294,7 +280,7 @@ def run_self_test() -> int:
 
         docs_rel = "Documentation/zigux/README.md"
         docs_text = _read(root, docs_rel)
-        missing_docs_marker = "make -C zigux phase15-validate"
+        missing_docs_marker = "make -C zigux phase15"
         _write(root, docs_rel, docs_text.replace(missing_docs_marker, "", 1))
         _assert_result(*validate(root), [], [f"docs_readme:{missing_docs_marker}"], "docs_marker")
         _seed_fixture_tree(root)
