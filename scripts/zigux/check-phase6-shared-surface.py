@@ -18,6 +18,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BASE64_C_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 CHECKSUM_C_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-checksum-c-parity.py")
+PERF_THRESHOLD_SCRIPT_PATH = Path("scripts/zigux/check-phase6-perf-threshold-markers.py")
 CATALOG_SURVEYED_HEAD_PREFIX = "- surveyed head: `"
 
 
@@ -124,6 +125,13 @@ REQUIRED_SNIPPETS = {
     "scripts/zigux/check-phase6-base64-c-parity.py": [
         "EXPECTED_SORTED_LINES = sorted(",
         "print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")",
+    ],
+    "scripts/zigux/check-phase6-perf-threshold-markers.py": [
+        '"""Fail-closed checks for the current Phase 6 exact perf-threshold packet."""',
+        'SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")',
+        'BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")',
+        'CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")',
+        'HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")',
     ],
     "zigux/tests/README.md": [
         "  * `zigux/tests/phase6_base64_perf.zig`",
@@ -428,6 +436,10 @@ def scaffold_repo(root: Path) -> None:
             lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 42)], "    ]", ")", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', ""]
             write(root / rel_path, "\n".join(lines))
             continue
+        if rel_path == PERF_THRESHOLD_SCRIPT_PATH.as_posix():
+            lines = list(dict.fromkeys(snippets))
+            write(root / rel_path, "\n".join(lines) + "\n")
+            continue
         lines = list(dict.fromkeys(snippets))
         for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []):
             lines.extend([marker] * expected)
@@ -473,6 +485,7 @@ def run_self_test() -> None:
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-perf-threshold-markers.py --self-test', 'check-phase6-perf-threshold-proof.py --self-test')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
+        assert_failure(root, "scripts/zigux/check-phase6-perf-threshold-markers.py", 'SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")', 'SURVEY_PATH = Path("Documentation/zigux/phase6-perf-threshold-survey.md")')
         assert_failure(root, "Documentation/zigux/phase6-bsearch-slice.md", "deterministic query seeding, and case-size corpus inline", "deterministic query seeding only")
         assert_failure(root, "Documentation/zigux/phase6-perf-gate-survey.md", "uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module", "uses bundled comparison-budget replays")
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
