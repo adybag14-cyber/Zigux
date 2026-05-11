@@ -18,16 +18,16 @@ It keeps the release-planning work segmented so the active shared packet stays t
 - driver-local NVMe reopen companion: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
 
 ## Lane Scope
-- Stay inside the shipped docs-root, checklist, scripts-root, tests-root, workflow, and Makefile reminder packet. Treat `zigux/tests/phase12_build.zig` as a shared-route target only when current-`master` readback actually ships it again.
-- Keep the current driver-local evidence explicit through the published `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` packet.
+- Stay inside the shipped docs-root, checklist, scripts-root, tests-root, workflow, and Makefile reminder packet. Treat `zigux/tests/phase12_build.zig` as the live shared-route anchor for the current smoke-first Phase 12 packet on `master`, not as a hypothetical reland target.
+- Keep the current driver-local evidence explicit through the published `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net_survey.zig`, `drivers/net/virtio_net.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` packet.
 - Treat local or unpublished `Documentation/zigux/phase12-nvme-pci-*.md`, `zigux/tests/phase12_nvme_pci*.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` work as lane-local `nvme_pci` evidence until it lands on `master`; do not borrow those files as proof that the shared complex-driver packet has already widened.
-- Treat absent `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, and `zigux/tests/phase12_build.zig` surfaces as explicit anti-overlap boundaries for the parked `virtio_net` family, not as invitations to reopen queueing or recovery claims in this shared note.
+- Treat absent `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_net_syntax_lab.zig` surfaces as explicit anti-overlap boundaries for the parked direct `virtio_net` replay family, while keeping `zigux/tests/phase12_build.zig` named only as the shipped `virtio_scsi` smoke-first route rather than proof that `virtio_net` already has a direct shared replay.
 - Treat the active shared replay order as fixed unless new shipped routes land first:
   1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
   2. `make -C zigux phase12-smoke`
   3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   4. `make -C zigux phase12`
-- If current `master` still lacks `zigux/tests/phase12_build.zig`, keep those commands documented as the reland target order only. Do not treat them as proof that any one driver-local family is already runnable.
+- Because current `master` does ship `zigux/tests/phase12_build.zig`, keep those commands documented as the live shared smoke-first route for the shipped `virtio_scsi` packet only. Do not treat them as proof that any one driver-local family, especially the parked `virtio_net` survey packet or unpublished `nvme_pci` work, is already runnable through its own direct replay.
 - If `zig` is unavailable on `PATH`, reuse that same smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a validator-first, driver-only, or other unshipped fallback route.
 - Keep the degraded-workflow checker pair explicit beside that same order too:
   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
