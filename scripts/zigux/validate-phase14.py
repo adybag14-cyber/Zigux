@@ -322,6 +322,21 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_reviewability_dependency_parse_result")
         return 1
 
+    good_scripts_readme = "\n".join(SCRIPT_README_MARKERS) + "\n"
+    missing_scripts_readme_markers = [
+        marker
+        for marker in SCRIPT_README_MARKERS
+        if marker not in good_scripts_readme.replace("`make -C zigux phase14-smoke`", "", 1)
+    ]
+    if missing_scripts_readme_markers != ["`make -C zigux phase14-smoke`"]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_scripts_readme_marker_gap")
+        print("SELF_TEST_MARKERS_START")
+        for item in missing_scripts_readme_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     good_phase14_make = "\n".join(["phase14-validate:", *MAKE_EXACT_LINES]) + "\n"
     exact_line_missing: list[str] = []
     require_exact_line_once(
@@ -434,6 +449,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
+    print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
     print("PHASE14_SELF_TEST_MISSING_DOCS_ROOT_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_ROUTE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py")
     print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test")
