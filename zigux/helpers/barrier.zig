@@ -12,13 +12,13 @@ pub fn acquire() void {
 }
 
 pub fn release() void {
-    @atomicStore(u8, &fence_word, fence_word, .release);
+    @atomicStore(u8, &fence_word, 0, .release);
 }
 
 pub fn full() void {
-    _ = @atomicRmw(u8, &fence_word, .Xchg, fence_word, .seq_cst);
+    _ = @atomicRmw(u8, &fence_word, .Xchg, 0, .seq_cst);
 }
 
 pub fn acquireRelease() void {
-    _ = @atomicRmw(u8, &fence_word, .Xchg, fence_word, .acq_rel);
+    _ = @atomicRmw(u8, &fence_word, .Xchg, 0, .acq_rel);
 }
