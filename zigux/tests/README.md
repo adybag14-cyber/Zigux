@@ -185,7 +185,6 @@ Key entrypoints
   * `zigux/tests/phase12_libbpf_segments.zig`
   * `zigux/tests/phase12_libbpf_reviewability.zig`
   * `zigux/tests/phase12_libbpf_manifest.json`
-  * `tools/lib/bpf/zigux_segments/verify.zig`
   * `tools/lib/bpf/zigux_segments/manifest.json`
   * `Documentation/zigux/phase12-libbpf-segment-survey.md`
   * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
