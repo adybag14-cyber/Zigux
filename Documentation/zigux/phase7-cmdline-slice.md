@@ -107,7 +107,7 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked for behavior, fixtures, and shared reminder wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, and `scripts/zigux/validate-phase7.py` already fail-closes on those reminder markers as well as the manifest file itself.
-The next honest same-lane follow-up is narrower still: reopen only if fresh repo inspection finds a new cmdline-local parity, survey, manifest, fixture, or shared reminder drift inside the parked `next_arg()`, `get_option()`, `get_options()`, `memparse()`, and `parse_option_str()` packet, instead of steering future runs back into already-closed validator hardening.
+Keep the helper slice parked for behavior, fixtures, and shared reminder wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, while `scripts/zigux/validate-phase7.py` currently fail-closes on the manifest file itself plus the narrower shared Phase 7 marker set it already counts.
+The next honest same-lane follow-up is narrower still: reopen only if fresh repo inspection finds a new cmdline-local parity, survey, manifest, fixture, or shared reminder drift inside the parked `next_arg()`, `get_option()`, `get_options()`, `memparse()`, and `parse_option_str()` packet; if that future drift is reminder-surface-only, treat any validator expansion as a separate bounded follow-up instead of implying that work has already landed.
 
 ## Footer
