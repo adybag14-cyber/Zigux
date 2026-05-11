@@ -16,6 +16,8 @@ REQUIRED_SURFACES = (
 )
 
 REQUIRED_CONTEXT = (
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
     "`zigux/tests/phase10_virtio_core.zig`",
     "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
@@ -97,6 +99,8 @@ def run_self_test() -> int:
         "`scripts/zigux/check-phase10-input-packet.py`, "
         "`scripts/zigux/check-phase10-mmio-packet.py`, "
         "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`, "
+        "`scripts/zigux/check-phase10-harness-coverage.py`, "
+        "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, "
         "`zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, "
         "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, "
         "`zigux/tests/phase10_virtio_core.zig`, "
@@ -157,6 +161,19 @@ def run_self_test() -> int:
     else:
         raise AssertionError("expected missing closure manifest failure")
 
+    missing_core_surfaces_checker = good.replace(
+        "`scripts/zigux/check-phase10-harness-coverage.py`, "
+        "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, ",
+        "`scripts/zigux/check-phase10-harness-coverage.py`, ",
+        1,
+    )
+    try:
+        check_text(missing_core_surfaces_checker)
+    except SystemExit as exc:
+        assert "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`" in str(exc)
+    else:
+        raise AssertionError("expected missing direct checker failure")
+
     duplicate_surface = good.replace(
         "`drivers/virtio/virtio.zig`",
         "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio.zig`",
@@ -183,7 +200,7 @@ def run_self_test() -> int:
         raise AssertionError("expected summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
