@@ -2,11 +2,43 @@
 from __future__ import annotations
 
 import argparse
-import tempfile
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 
 from phase3_catalog import discover_phase3_slices
 from phase3_check_lib import run_phase3_check
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def command_plan_for_slug(slug: str) -> tuple[tuple[str, ...], ...]:
+    if slug == "abi":
+        return (
+            (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+            ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+        )
+    return ()
+
+
+def run_command_plan(
+    commands: tuple[tuple[str, ...], ...],
+    root: Path,
+    runner=subprocess.run,
+) -> int:
+    for command in commands:
+        result = runner(list(command), cwd=root, check=False)
+        if result.returncode != 0:
+            return result.returncode
+    return 0
+
+
+def run_slice_entry(entry, root: Path = ROOT) -> int:
+    command_plan = command_plan_for_slug(entry.slug)
+    if command_plan:
+        return run_command_plan(command_plan, root)
+    return run_phase3_check(entry.slug, description=entry.description)
 
 
 def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
@@ -51,16 +83,49 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected missing slug failure")
 
+        abi_plan = command_plan_for_slug("abi")
+        assert abi_plan == (
+            (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+            ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+        )
+        assert command_plan_for_slug("bitmap-cpumask") == ()
+
+        observed_calls: list[tuple[tuple[str, ...], Path, bool]] = []
+
+        def fake_runner_ok(command, cwd, check):
+            observed_calls.append((tuple(command), cwd, check))
+            return type("Result", (), {"returncode": 0})()
+
+        assert run_command_plan(abi_plan, tmp_dir, runner=fake_runner_ok) == 0
+        assert observed_calls == [
+            ((sys.executable, "scripts/zigux/check-phase3-abi.py"), tmp_dir, False),
+            (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), tmp_dir, False),
+        ]
+
+        observed_calls.clear()
+
+        def fake_runner_fail_second(command, cwd, check):
+            observed_calls.append((tuple(command), cwd, check))
+            returncode = 7 if len(observed_calls) == 2 else 0
+            return type("Result", (), {"returncode": returncode})()
+
+        assert run_command_plan(abi_plan, tmp_dir, runner=fake_runner_fail_second) == 7
+        assert observed_calls == [
+            ((sys.executable, "scripts/zigux/check-phase3-abi.py"), tmp_dir, False),
+            (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), tmp_dir, False),
+        ]
+
         calls: list[str] = []
-        def fake_runner(entry) -> int:
+
+        def fake_entry_runner(entry) -> int:
             calls.append(entry.slug)
             return 1 if entry.slug == "beta" else 0
 
-        failures = execute_slices(entries, fail_fast=False, runner=fake_runner)
+        failures = execute_slices(entries, fail_fast=False, runner=fake_entry_runner)
         assert failures == ["beta"]
         assert calls == ["alpha", "beta", "gamma"]
         calls.clear()
-        failures = execute_slices(entries, fail_fast=True, runner=fake_runner)
+        failures = execute_slices(entries, fail_fast=True, runner=fake_entry_runner)
         assert failures == ["beta"]
         assert calls == ["alpha", "beta"]
     print("PHASE3_RUNNER_SELF_TEST=pass")
@@ -89,7 +154,7 @@ def main() -> int:
     failures = execute_slices(
         slices,
         fail_fast=args.fail_fast,
-        runner=lambda entry: run_phase3_check(entry.slug, description=entry.description),
+        runner=lambda entry: run_slice_entry(entry),
     )
     if failures:
         print("PHASE3_RUN_STATUS=fail")
