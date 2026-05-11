@@ -48,6 +48,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
 }
 
 EXPECTED_CONF_CASES = (
@@ -481,6 +483,8 @@ def run_self_test_checks() -> list[str]:
             "workflow_tests_readme_selftest_missing",
             validate_exact_workflow_runs(
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
             ),
             [
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=0:expected=1"
@@ -492,9 +496,35 @@ def run_self_test_checks() -> list[str]:
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
             ),
             [
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
+            ],
+        ),
+        (
+            "workflow_kconfig_selftest_missing",
+            validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test:count=0:expected=1"
+            ],
+        ),
+        (
+            "workflow_kconfig_gate_duplicate",
+            validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py:count=2:expected=1"
             ],
         ),
         (
@@ -608,7 +638,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=9")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=11")
         return 0
 
     if issues:
