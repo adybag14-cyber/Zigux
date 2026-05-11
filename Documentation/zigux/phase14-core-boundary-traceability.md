@@ -48,13 +48,14 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 The four anchor packets above are also carried together by the Phase 14 shared smoke packet:
   * manifest: `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   * survey note: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  * shared packet checkers: `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   * validator entrypoint: `make -C zigux phase14-validate`
   * focused smoke shard: `make -C zigux phase14-smoke`
   * focused smoke build replay: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   * shared full replay: `make -C zigux phase14-test`
   * direct shared replay: `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   * convenience target: `make -C zigux phase14`
-That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, and the same validator, smoke, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
+That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, and the same validator, checker-backed smoke contract, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
 ## What this lane does not claim
 
   * `kernel/workqueue.zig`
