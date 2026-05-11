@@ -74,4 +74,4 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`: after this owner-map repair, those broader reminder surfaces are the nearest places where older Phase 8 packet wording could still lag behind the live test tree and the current libbpf manifest.
+The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md` and `scripts/zigux/README.md`: current 2026-05-11 tree and file readback already showed those two broader reminder surfaces still advertising older Phase 8 note inventory beyond the live docs tree, while this run did not confirm the same drift in `Documentation/zigux/review-checklist.md`. Keep the next reopen scoped to one of those broader summary surfaces before widening anywhere else.
