@@ -1,0 +1,28 @@
+{
+  "packet": "phase2_tool_manifest",
+  "phase": "phase2",
+  "status": "current_master_packet",
+  "shared_checker": "scripts/zigux/check-phase2-tool-manifest-packets.py",
+  "shared_routes": [
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "make -C zigux phase2-validate"
+  ],
+  "docs": [
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/README.md"
+  ],
+  "packet_manifests": [
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+    "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
+  ],
+  "families": [
+    "fixdep",
+    "genksyms_bridge",
+    "kconfig_bridge",
+    "confdata_bridge"
+  ]
+}
