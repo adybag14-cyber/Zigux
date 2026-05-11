@@ -50,7 +50,7 @@ MARKERS = {
         "Keep the current lane split explicit:",
         "- bcm2835 lane `P11-L03` owns",
         "- gpio lane `P11-L06` owns",
-        "- DesignWare lane `P11-L11` is currently a docs-only planning lane on `master`",
+        "- DesignWare lane `P11-L05` owns",
         "- HVC lane `P11-L16` owns",
         "- header-boundary lane `P11-L18` owns",
         "rather than missing `hvc_console` starter, cleanup, manifest, or verify-helper files.",
