@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import re
 import tempfile
@@ -11,11 +12,16 @@ import tempfile
 
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
+ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*:")
 ZIG_EXTERN_STRUCT_RE = re.compile(
     r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*extern struct\b"
+)
+
+REQUIRED_MANIFEST_FILES = (
+    Path("zigux/uapi/dev_t.zig"),
 )
 
 REPO_FILES = (
@@ -33,10 +39,11 @@ REPO_FILES = (
     ABI_BINDINGS_PATH,
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/uapi/version.zig"),
+    Path("zigux/uapi/dev_t.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
-    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
+    ABI_MANIFEST_PATH,
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
@@ -113,6 +120,7 @@ README_MARKERS = (
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
@@ -179,6 +187,35 @@ def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_manifest(repo_root: Path) -> list[str]:
+    manifest_path = repo_root / ABI_MANIFEST_PATH
+    if not manifest_path.is_file():
+        return []
+
+    issues: list[str] = []
+    try:
+        manifest = json.loads(_read(manifest_path))
+    except json.JSONDecodeError as exc:
+        return [f"invalid phase3 ABI manifest JSON: {exc.msg}"]
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return ["invalid phase3 ABI manifest files list"]
+
+    file_count = manifest.get("file_count")
+    if isinstance(file_count, int) and file_count != len(files):
+        issues.append(
+            f"phase3 ABI manifest file_count drift: expected {len(files)}, found {file_count}"
+        )
+
+    file_entries = {entry for entry in files if isinstance(entry, str)}
+    for rel_path in REQUIRED_MANIFEST_FILES:
+        if rel_path.as_posix() not in file_entries:
+            issues.append(f"missing phase3 ABI manifest entry: {rel_path.as_posix()}")
+
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REPO_FILES:
@@ -199,6 +236,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in readme_text:
                 issues.append(f"missing scripts README marker: {marker}")
 
+    issues.extend(validate_manifest(repo_root))
     issues.extend(validate_abi_surface_sanity(repo_root))
     return issues
 
@@ -206,6 +244,17 @@ def validate_repo(repo_root: Path) -> list[str]:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def _manifest_payload(files: list[str], file_count: int | None = None) -> str:
+    payload = {
+        "phase": "Phase 3",
+        "status": "active",
+        "slice": "abi-substrate-skeleton",
+        "file_count": len(files) if file_count is None else file_count,
+        "files": files,
+    }
+    return json.dumps(payload, indent=2) + "\n"
 
 
 def _populate_repo(root: Path) -> None:
@@ -226,6 +275,10 @@ def _populate_repo(root: Path) -> None:
         "pub const ZiguxLayout = extern struct {\n"
         "    value: i32,\n"
         "};\n",
+    )
+    _write(
+        root / ABI_MANIFEST_PATH,
+        _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]),
     )
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
@@ -265,8 +318,30 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        manifest_rel = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
         _write(root / phase3_abi_rel, "# restored\n")
+        _write(root / ABI_MANIFEST_PATH, _manifest_payload([]))
+        issues = validate_repo(root)
+        expected_manifest_entry_missing = "missing phase3 ABI manifest entry: zigux/uapi/dev_t.zig"
+        if expected_manifest_entry_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 ABI manifest entry was not reported")
+            return 1
+        case_count += 1
+
+        _write(
+            root / ABI_MANIFEST_PATH,
+            _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES], file_count=2),
+        )
+        issues = validate_repo(root)
+        expected_manifest_count_drift = "phase3 ABI manifest file_count drift: expected 1, found 2"
+        if expected_manifest_count_drift not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected phase3 ABI manifest file_count drift was not reported")
+            return 1
+        case_count += 1
+
+        manifest_rel = ABI_MANIFEST_PATH
+        _write(root / ABI_MANIFEST_PATH, _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]))
         (root / manifest_rel).unlink()
         issues = validate_repo(root)
         expected_manifest_missing = f"missing repo file: {manifest_rel.as_posix()}"
@@ -277,7 +352,7 @@ def run_self_test() -> int:
         case_count += 1
 
         next_step_rel = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
-        _write(root / manifest_rel, "# restored\n")
+        _write(root / manifest_rel, _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]))
         (root / next_step_rel).unlink()
         issues = validate_repo(root)
         expected_next_step_missing = f"missing repo file: {next_step_rel.as_posix()}"
