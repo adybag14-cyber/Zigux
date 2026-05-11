@@ -24,7 +24,7 @@ REQUIRED_FILES = [
 DOCS_ROOT_MARKERS = [
     (
         "docs_root_phase1_installer_packet",
-        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across scripts, tests, closure notes, and workflow wiring alone.",
+        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
         1,
     ),
 ]
@@ -32,7 +32,7 @@ DOCS_ROOT_MARKERS = [
 SCRIPTS_README_MARKERS = [
     (
         "scripts_readme_phase1_installer_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
         1,
     ),
 ]
@@ -57,11 +57,9 @@ REVIEW_CHECKLIST_MARKERS = [
 CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
-    "- `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`",
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
-    "- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`",
 ]
 
 CLOSURE_EXACT_MARKERS = [
@@ -294,7 +292,6 @@ def run_self_test() -> int:
             "phase1_closure_installer_packet:- explicit opt-in to Node 24 action execution on GitHub-hosted runners:expected>=1:actual=0",
             "phase1_closure_installer_packet:- no known dependency on the deprecated Node 20 runtime:expected>=1:actual=0",
             "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0",
-            "phase1_closure_installer_packet:- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`:expected>=1:actual=0",
         )
 
         build_self_test_root(root)
