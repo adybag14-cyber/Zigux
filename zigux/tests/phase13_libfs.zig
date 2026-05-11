@@ -32,6 +32,37 @@ test "simple empty planning records truncation at lane bound" {
     try std.testing.expect(plan.truncated);
 }
 
+test "simple lookup planning keeps the negative-dentry install boundary explicit" {
+    const addressable = libfs.LibfsHelperLab.planSimpleLookup(libfs.name_max);
+    const oversized = libfs.LibfsHelperLab.planSimpleLookup(libfs.name_max + 1);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", addressable.anchor);
+    try std.testing.expectEqual(libfs.LookupMode.negative_dentry_install, addressable.mode);
+    try std.testing.expect(addressable.addressable);
+    try std.testing.expect(addressable.installs_negative_dentry);
+
+    try std.testing.expectEqual(libfs.LookupMode.name_too_long, oversized.mode);
+    try std.testing.expect(!oversized.addressable);
+    try std.testing.expect(!oversized.installs_negative_dentry);
+}
+
+test "offset seek planning keeps the bounded window and sentinel paths explicit" {
+    const window_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_first + 4, .set);
+    const sentinel_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_end_of_directory, .set);
+    const invalid_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, -1, .set);
+
+    try std.testing.expectEqual(libfs.OffsetSeekStatus.ok, window_plan.status);
+    try std.testing.expect(window_plan.points_at_real_entry_window);
+    try std.testing.expect(!window_plan.points_at_end_of_directory);
+
+    try std.testing.expectEqual(libfs.OffsetSeekStatus.ok, sentinel_plan.status);
+    try std.testing.expect(!sentinel_plan.points_at_real_entry_window);
+    try std.testing.expect(sentinel_plan.points_at_end_of_directory);
+
+    try std.testing.expectEqual(libfs.OffsetSeekStatus.negative_offset, invalid_plan.status);
+    try std.testing.expectEqual(@as(?i64, null), invalid_plan.resolved_offset);
+}
+
 test "transaction release planning frees staged private data when present" {
     const plan = libfs.LibfsHelperLab.simpleTransactionReleasePlan(true);
 
