@@ -55,6 +55,13 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
 }
 
+PHASE2_VALIDATION_COMMAND_SPECS = (
+    (CHECK_PHASE2_TESTS_README_ALIGNMENT,),
+    (CHECK_PHASE2_KCONFIG_README_ALIGNMENT,),
+    (CHECK_PHASE2_TOOL_MANIFEST_PACKETS,),
+    (CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,),
+)
+
 EXPECTED_CONF_CASES = (
     {
         "name": "oldaskconfig",
@@ -331,6 +338,10 @@ def validate_exact_workflow_runs(workflow_text: str) -> list[str]:
         if count != expected:
             issues.append(f"workflow:exact_count:{command}:count={count}:expected={expected}")
     return issues
+
+
+def build_validation_commands() -> list[list[str]]:
+    return [[sys.executable, str(spec[0]), *spec[1:]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
 
 
 def load_json_object(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -667,11 +678,7 @@ def main() -> int:
             print(issue)
         return 1
 
-    commands = [
-        [sys.executable, str(CHECK_PHASE2_TESTS_README_ALIGNMENT)],
-        [sys.executable, str(CHECK_PHASE2_KCONFIG_README_ALIGNMENT)],
-        [sys.executable, str(CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE)],
-    ]
+    commands = build_validation_commands()
     for command in commands:
         if run(command) != 0:
             print("PHASE2_CLOSURE_VALIDATION=fail")
@@ -679,7 +686,7 @@ def main() -> int:
             return 1
 
     print("PHASE2_CLOSURE_VALIDATION=pass")
-    print("PHASE2_CLOSURE_VALIDATION_COMMAND_COUNT=3")
+    print(f"PHASE2_CLOSURE_VALIDATION_COMMAND_COUNT={len(commands)}")
     return 0
 
 
