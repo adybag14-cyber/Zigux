@@ -173,6 +173,19 @@ static void run_bitmap_section(void)
 	bitmap_set(single_bit_map, 9, 1);
 	size_t terminator_only_len = bitmap_scnprintf(single_bit_map, 32, terminator_only, sizeof(terminator_only));
 	size_t zero_length_len = bitmap_scnprintf(single_bit_map, 32, zero_length, 0);
+	unsigned long alloc_nbits = BITS_PER_LONG + 5;
+	unsigned long *allocated = bitmap_alloc(alloc_nbits);
+	unsigned long *zero_allocated = bitmap_zalloc(alloc_nbits);
+	unsigned long alloc_words = allocated ? BITS_TO_LONGS(alloc_nbits) : 0;
+	unsigned long zalloc_words = zero_allocated ? BITS_TO_LONGS(alloc_nbits) : 0;
+	unsigned long zalloc_values[2] = {0, 0};
+
+	if (zero_allocated) {
+		for (size_t i = 0; i < zalloc_words && i < 2; i++)
+			zalloc_values[i] = zero_allocated[i];
+	}
+	bitmap_free(allocated);
+	bitmap_free(zero_allocated);
 	bitmap_clear(map, 1, 3);
 	bitmap_clear(map, 7, 1);
 	bitmap_clear(map, 10, 2);
@@ -188,6 +201,9 @@ static void run_bitmap_section(void)
 	printf("\"terminator_only_scnprintf_len\":%zu,", terminator_only_len);
 	printf("\"terminator_only_nul\":%u,", (unsigned int)(unsigned char)terminator_only[0]);
 	printf("\"zero_length_scnprintf_len\":%zu,", zero_length_len);
+	printf("\"alloc_words\":%lu,", alloc_words);
+	printf("\"zalloc_words\":%lu,", zalloc_words);
+	printf("\"zalloc_values\":"); emit_word_array(zalloc_values, zalloc_words); printf(",");
 	printf("\"and_result\":%s,", and_result ? "true" : "false");
 	printf("\"and_values\":"); emit_word_array(and_values, 2); printf(",");
 	printf("\"andnot_result\":%s,", andnot_result ? "true" : "false");
