@@ -76,7 +76,7 @@ Contributor reminder:
 
 ## Phase 13 contributor packet
 
-Keep the shared-subsystems packet explicit through the verified broad surfaces, validator-first route, and adjacent evidence anchors:
+Keep the shared-subsystems packet explicit through the verified docs-root, validator-first, and adjacent notifier surfaces:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
@@ -84,23 +84,15 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces, 
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
-- `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_libfs_addressability.zig`
-- `zigux/tests/phase13_libfs_reviewability.zig`
-- `zigux/tests/phase13_devres_reviewability.zig`
-- `zigux/tests/phase13_devres_dma_coherent.zig`
-- `zigux/tests/phase13_devres_boundary_evidence.zig`
-- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
@@ -114,10 +106,9 @@ Keep the shared-subsystems packet explicit through the verified broad surfaces, 
 - `make -C zigux phase13`
 
 Contributor reminder:
-- keep the validator-first eight-test release route explicit
+- keep the validator-first release route explicit through `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
-- keep the bounded `devres` dma/scatterlist evidence explicit through its manifest-backed reviewability, coherent-DMA, and boundary-evidence shards
-- keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h`
+- keep direct helper-local tests-root paths framed as repo reality until current-`master` readback proves them; this slot could not materialize `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_ruleset*.zig`, `zigux/tests/phase13_landlock_syscalls*.zig`, or `scripts/zigux/check-phase13-devres-packet.py`
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
 - refresh this note only with surfaces verified on current `master`, not with hoped-for follow-up notes
 
