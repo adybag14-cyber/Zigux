@@ -166,6 +166,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
 
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader bridges the shared request lifecycle without widening registration claims\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity\"",
     );
     try expectContains(
