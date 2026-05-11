@@ -340,7 +340,18 @@ pub const DevresHelperLab = struct {
         }
 
         const effective_type = resolveIoremapType(resource, input.requested_type);
-        const size = try resourceSize(resource);
+        const size = resourceSize(resource) catch |err| switch (err) {
+            error.InvalidRange => return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .invalid_resource,
+                    .error_code = .invalid,
+                    .effective_type = effective_type,
+                    .requests_region = false,
+                    .releases_region_on_remap_failure = false,
+                },
+            },
+        };
 
         if (input.fail_pretty_name_allocation) {
             return .{
@@ -419,7 +430,21 @@ pub const DevresHelperLab = struct {
         }
 
         const resource = input.resources[input.index];
-        const translated_size = try resourceSize(resource);
+        const translated_size = resourceSize(resource) catch |err| switch (err) {
+            error.InvalidRange => return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .address_translation,
+                    .error_code = .invalid,
+                    .index = input.index,
+                    .reported_size = null,
+                    .effective_type = input.requested_type,
+                    .requests_region = false,
+                    .releases_region_on_remap_failure = false,
+                    .resource_stage = null,
+                },
+            },
+        };
         const reported_size = if (input.report_size) translated_size else null;
 
         const mapped_or_err = try planManagedIoremapResource(allocator, .{
@@ -517,3 +542,55 @@ pub const DevresHelperLab = struct {
         };
     }
 };
+
+test "managed ioremap resource maps invalid range into structured invalid_resource failure" {
+    const allocator = std.testing.allocator;
+    const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
+        .device_name = "eth0",
+        .resource = .{
+            .start = 0x2000,
+            .end = 0x1fff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .err => |failure| {
+            try std.testing.expectEqual(ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(false, failure.requests_region);
+            try std.testing.expectEqual(false, failure.releases_region_on_remap_failure);
+        },
+        .mapped => return error.UnexpectedSuccess,
+    }
+}
+
+test "device tree iomap invalid range stays in address translation stage" {
+    const allocator = std.testing.allocator;
+    const resources = [_]Resource{.{
+        .start = 0x3000,
+        .end = 0x2fff,
+        .is_memory = true,
+        .nonposted = false,
+        .name = "mmio",
+    }};
+
+    const outcome = try DevresHelperLab.planDeviceTreeIomap(allocator, .{
+        .device_name = "uart0",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .err => |failure| {
+            try std.testing.expectEqual(DeviceTreeIomapStage.address_translation, failure.stage);
+            try std.testing.expectEqual(ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(@as(?u64, null), failure.reported_size);
+            try std.testing.expectEqual(@as(?ErrorStage, null), failure.resource_stage);
+        },
+        .mapped => return error.UnexpectedSuccess,
+    }
+}
