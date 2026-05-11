@@ -105,8 +105,8 @@ REQUIRED_FILES = [
 
 DOC_MARKERS = {
     "docs_root_phase1_packet": [
-        "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py`",
-        "keep the closure, the shared owner-map note, the installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root",
+        "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`",
+        "keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
     ],
     "tests_root_phase1_packet": [
         "keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
@@ -562,7 +562,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 4}"
+        f'{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 4}'
     )
     return 0
 
