@@ -13,37 +13,33 @@ from pathlib import Path
 SCRIPT_PATH = "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+CONTRIBUTOR_GUIDE_PATH = "Documentation/zigux/phase13-contributor-workflow-guide.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 LANE_NOTE_PATH = "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
 TRACEABILITY_PATH = "Documentation/zigux/phase13-roadmap-traceability.md"
 OWNERSHIP_PATH = "Documentation/zigux/phase13-landlock-ruleset-ownership.md"
-SLICE_PATH = "Documentation/zigux/phase13-landlock-ruleset-slice.md"
-SURVEY_PATH = "Documentation/zigux/phase13-landlock-ruleset-survey.md"
-MANIFEST_PATH = "zigux/tests/phase13_landlock_ruleset_manifest.json"
-TEST_PATH = "zigux/tests/phase13_landlock_ruleset.zig"
-BUILD_PATH = "zigux/tests/phase13_build.zig"
+VALIDATOR_PATH = "scripts/zigux/validate-phase13-release.py"
 MAKEFILE_PATH = "zigux/Makefile"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
     DOCS_README_PATH,
     REVIEW_CHECKLIST_PATH,
+    CONTRIBUTOR_GUIDE_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     LANE_NOTE_PATH,
     TRACEABILITY_PATH,
     OWNERSHIP_PATH,
-    SLICE_PATH,
-    SURVEY_PATH,
-    MANIFEST_PATH,
-    TEST_PATH,
-    BUILD_PATH,
+    VALIDATOR_PATH,
     MAKEFILE_PATH,
 )
 
 REQUIRED_DOCS_README_MARKERS = (
     "Phase 13 notes - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
+    "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`scripts/zigux/validate-phase13-release.py`",
     "`make -C zigux phase13-validate`",
@@ -52,46 +48,68 @@ REQUIRED_DOCS_README_MARKERS = (
 REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 13 release packet",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-    "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
-    "`zigux/tests/phase13_landlock_ruleset.zig`",
+    "`scripts/zigux/validate-phase13-release.py`",
+)
+
+REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
+    "Use this guide when a change touches the active Phase 13 shared-helper packet",
+    "## Current Repo Reality",
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+    "`make -C zigux phase13-validate`",
 )
 
 REQUIRED_SCRIPTS_README_MARKERS = (
     "- `check-phase13-landlock-ruleset-packet.py`",
     "Phase 13 flow -",
-    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`make -C zigux phase13-validate`",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
-    "Phase 13 flow - keep the shared Phase 13 contributor-workflow packet explicit in the tests root too:",
+    "keep the shared Phase 13 contributor-workflow packet explicit in the tests root too:",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-    "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
-    "`zigux/tests/phase13_landlock_ruleset.zig`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "`make -C zigux phase13-validate`",
 )
 
 REQUIRED_LANE_NOTE_MARKERS = (
     "# Phase 13 Shared Helper Lane Sequencing",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-    "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
-    "`zigux/tests/phase13_landlock_ruleset.zig`",
+    "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+    "repo reality",
+    "`make -C zigux phase13-validate`",
 )
 
 REQUIRED_TRACEABILITY_MARKERS = (
     "# Phase 13 Roadmap Traceability",
     "`landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.",
-    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+    "repo-reality gaps rather than presenting them here as shipped repo evidence.",
+    "`make -C zigux phase13-validate`",
 )
 
 REQUIRED_OWNERSHIP_MARKERS = (
     "# Phase 13 Landlock Ruleset Ownership Note",
     "`Documentation/zigux/review-checklist.md`",
-    "`zigux/tests/phase13_landlock_ruleset.zig`",
+    "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`make -C zigux phase13-validate`",
+    "repo-reality gaps",
+)
+
+REQUIRED_VALIDATOR_MARKERS = (
+    "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+    "the current eight-test shared-helper release packet",
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
@@ -115,11 +133,13 @@ def validate(root: Path) -> list[str]:
     checks = (
         ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS),
         ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS),
+        ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
         ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS),
         ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS),
         ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS),
         ("ownership", OWNERSHIP_PATH, REQUIRED_OWNERSHIP_MARKERS),
+        ("validator", VALIDATOR_PATH, REQUIRED_VALIDATOR_MARKERS),
         ("makefile", MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS),
     )
     for label, rel_path, markers in checks:
@@ -157,18 +177,23 @@ def make_fixture_root(root: Path) -> None:
     )
     write_text(
         root,
+        CONTRIBUTOR_GUIDE_PATH,
+        "\n".join(REQUIRED_CONTRIBUTOR_GUIDE_MARKERS) + "\n",
+    )
+    write_text(
+        root,
         SCRIPTS_README_PATH,
         "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n",
     )
     write_text(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(root, LANE_NOTE_PATH, "\n".join(REQUIRED_LANE_NOTE_MARKERS) + "\n")
-    write_text(root, TRACEABILITY_PATH, "\n".join(REQUIRED_TRACEABILITY_MARKERS) + "\n")
+    write_text(
+        root,
+        TRACEABILITY_PATH,
+        "\n".join(REQUIRED_TRACEABILITY_MARKERS) + "\n",
+    )
     write_text(root, OWNERSHIP_PATH, "\n".join(REQUIRED_OWNERSHIP_MARKERS) + "\n")
-    write_text(root, SLICE_PATH, "# placeholder\n")
-    write_text(root, SURVEY_PATH, "# placeholder\n")
-    write_text(root, MANIFEST_PATH, "{}\n")
-    write_text(root, TEST_PATH, "// placeholder\n")
-    write_text(root, BUILD_PATH, "// placeholder\n")
+    write_text(root, VALIDATOR_PATH, "\n".join(REQUIRED_VALIDATOR_MARKERS) + "\n")
     write_text(root, MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
 
@@ -197,11 +222,13 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[2]),
+            ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[3]),
+            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[4]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
-            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[2]),
-            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[2]),
-            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[2]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[3]),
+            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[1]),
+            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
+            ("validator", VALIDATOR_PATH, REQUIRED_VALIDATOR_MARKERS[3]),
         )
         for label, rel_path, needle in mutations:
             case_root = Path(tmp) / f"{label}_{cases}"
