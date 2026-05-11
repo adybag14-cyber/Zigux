@@ -303,7 +303,7 @@ test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
     try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
-    try expectMarker(validate_phase4_source, "PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK");
+    try expectMarker(validate_phase4_source, "run_phase4_runtime_atomic64_packet_check");
     try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
 }
 
