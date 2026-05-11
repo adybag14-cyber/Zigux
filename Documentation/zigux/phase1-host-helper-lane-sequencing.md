@@ -63,9 +63,11 @@ Fresh repo-first reread also shows the older compact Phase 1 string memparse fol
 
 Fresh repo-first inspection now also shows the installer companion checker is part of the live Phase 1 validation route on current `master`. `zigux/Makefile` reruns `scripts/zigux/check-phase1-installer-companion-checks.py` and its self-test, the scripts helper index lists the checker directly, and the checker keeps `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` aligned around that companion packet.
 
-At the same time, the next same-lane truthfulness gap has shifted onto the shared reminder surfaces for that live companion packet. `Documentation/zigux/README.md`, the Phase 1 flow paragraph in `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and the focused companion-check note in `zigux/tests/README.md` still center only `install-zig.py` and `check-phase1-installer-review-surfaces.py`, even though `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `scripts/zigux/check-phase1-installer-companion-checks.py` already ship the separate installer companion self-test and live checker route.
+At the same time, fresh repo-first inspection now narrows the remaining same-lane truthfulness gap inside that live companion packet. The smallest exact current-`master` mismatch is the focused companion-check note in `zigux/tests/README.md`: it still names only `install-zig.py --self-test` and `check-phase1-installer-review-surfaces.py --self-test`, even though `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `scripts/zigux/check-phase1-installer-companion-checks.py` already ship the separate `check-phase1-installer-companion-checks.py --self-test` replay and its paired live checker route.
 
-That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, and the later string memparse closure-summary sync are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and now leaves the next host-tools follow-up parked on the shared Phase 1 installer companion reminder drift instead of replaying any already-landed bitmap, `find_bit`, or memparse sync.
+Broader shared reminder undercounts still remain in `Documentation/zigux/README.md`, the Phase 1 flow paragraph in `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md`, but those larger reminder surfaces should stay parked until the tighter tests-root note plus checker-local exact marker land first.
+
+That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, and the later string memparse closure-summary sync are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and now leaves the next host-tools follow-up parked on the tests-root installer companion note plus its paired checker-local marker before any broader docs-root, scripts-root, or checklist reminder widening.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, installer-companion, or helper-local anchor surfaces.
 
@@ -85,6 +87,7 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
 - Do not reopen the already-landed `validate-phase1-closure.py` expected-manifest sync for the `find_bit` tail-word inclusive-boundary packet.
 - Do not reopen the already-landed `PHASE1_STRING_MEMPARSE_REVIEW=` closure-summary sync unless a fresh repo-first reread finds a new exact wording drift across the closure note, validator, direct string anchors, or shared manifest.
+- Do not widen from the next tests-root installer companion note repair into the broader docs-root, scripts-root, or review-checklist reminder packet in the same slot.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, installer-companion, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
@@ -94,18 +97,20 @@ Keep the next host-tools-alpha slot inside one freshly observed same-lane truthf
 
 Start with these already-shipped shared and direct Phase 1 packet surfaces:
 
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase1-installer-companion-checks.py`
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
-- `zigux/tests/README.md`
-- `scripts/zigux/check-phase1-installer-companion-checks.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-The next run should reread those Phase 1 reminder, checker, workflow, closure, and manifest surfaces together and choose only the next exact current-`master` mismatch that still remains after the already-landed tests-root, validator, closure-validator, memparse-summary, and bitmap-closure syncs.
+The next run should first reread `zigux/tests/README.md` together with `scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, then land only the exact tests-root reminder repair that makes the focused companion-check note name the shipped installer companion self-test and live checker route.
+
+Only after that tighter tests-root note and checker pair are closed should a later same-lane slot widen to the broader docs-root, scripts-root, or review-checklist reminder undercount if it still remains on current `master`.
 
 If no new same-lane drift is visible on that reread, keep Phase 1 follow-up parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, installer companion packet drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
