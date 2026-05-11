@@ -6,8 +6,13 @@ import json
 import tempfile
 from pathlib import Path
 
+
+def derive_repo_root(script_path: Path) -> Path:
+    return script_path.parents[2] if len(script_path.parents) >= 3 else script_path.parent
+
+
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[1] if len(SELF_PATH.parents) >= 2 else SELF_PATH.parent
+ROOT = derive_repo_root(SELF_PATH)
 
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_ARTIFACT_TOOLS_MANIFEST = (
@@ -343,6 +348,11 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert validate_root(root) == []
+        case_count += 1
+
+        synthetic_repo = root / "synthetic-repo"
+        synthetic_script = synthetic_repo / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+        assert derive_repo_root(synthetic_script) == synthetic_repo
         case_count += 1
 
         build_self_test_root(root)
