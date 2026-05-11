@@ -38,10 +38,14 @@ This current slice keeps the work bounded to runtime-safe argument-vector helper
 
 * do not widen into shell, process, or runtime-loader behavior
 * stay reviewable through deterministic Zig tests and one dedicated packet checker
-* keep null-terminated pointer-vector access through `cArgv()` explicit for C-style callers without turning the slice into a Phase 5 sample lane
+* keep the exported C-style pointer view via `cArgv()` explicit for callers that need a null-terminated argv vector without turning the slice into a Phase 5 sample lane
+* keep first-NUL C-string bounds on both counting and splitting
+* keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path
+* keep copied-buffer ownership so later source mutation does not affect split results
+* keep strict non-goal behavior where quote characters stay inside the returned tokens
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
-Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
+Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, the committed manifest packet, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
@@ -76,18 +80,28 @@ Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;
 
 ## Current parity surface
 
-The current landed slice covers the bounded `argv_split` review packet under `lib/argv_split.zig`, the dedicated `zigux/tests/phase7_argv_split.zig` helper replay, the dedicated `zigux/tests/phase7_argv_split_survey.zig` survey gate, the committed `zigux/tests/phase7_argv_split_manifest.json` record, and the focused `zigux/tests/fixtures/phase7_argv_split_vectors.zig` fixture module.
+The current landed slice covers the bounded `argv_split` review packet under `lib/argv_split.zig`, the dedicated `zigux/tests/phase7_argv_split.zig` helper replay, the dedicated `zigux/tests/phase7_argv_split_survey.zig` survey gate, the committed manifest record, and the focused `zigux/tests/fixtures/phase7_argv_split_vectors.zig` fixture module.
 
 The current tests keep these packet edges explicit:
 
 * null-terminated pointer-vector access through `cArgv()`
 * focused parity fixtures through `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+* copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
+* separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
 * blank-input reuse of the empty exported argv view
 * blank-input reuse of the empty storage sentinel without allocator space
+* blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
 * explicit `ArgvSplitResult.deinit()` clearing of exported storage, argv, and null-terminated sentinel views
+* exported storage and argv views resetting back to the canonical empty sentinels after teardown
 * safe and repeatable sentinel teardown through `argvFree()`
 * explicit `argvFree()` ownership mirroring that keeps the `argv_free` teardown contract reviewable for C-style callers
 * the dedicated packet checker, the shared build replay, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together instead of drifting into separate ad hoc reminders
+
+The helper entrypoints remain explicit:
+
+- `argvSplitWithArgc()`
+- `cArgv()`
+- `argvFree()` plus `deinit()`
 
 ## Non-goals
 
