@@ -24,9 +24,13 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
   3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   4. `make -C zigux phase12`
 - If `zig` is unavailable on `PATH`, reuse that same order only through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
+- Keep the degraded-workflow checker pair explicit beside that same order too:
+  - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+  - `python3 scripts/zigux/check-build-only-phase12-surface.py`
 
 ## Anti-Overlap Rules
 - Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening helper-local behavior.
+- Keep the shared fallback split explicit here too: only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.
 - Keep the deterministic tracked-helper snapshot and reviewability wording explicit so the release-facing libbpf packet does not collapse back to manifest-only prose.
 - Leave driver-local replay and survey evolution to the separate complex-driver companion and the concrete `nvme_pci`, `virtio_net`, or `virtio_scsi` packet that changes.
 - The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.
@@ -37,4 +41,4 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper queueing and transport anchors, so this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
-If this lane reopens soon, prefer the next one-file shared wording or review-surface sync that keeps `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned with the current smoke-first Phase 12 packet before widening helper-local or loader-facing claims.
+If this lane reopens soon, prefer the next one-file shared wording or review-surface sync that keeps `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned with the current smoke-first Phase 12 packet, the same checker pair, and the same two-versus-two fallback split before widening helper-local or loader-facing claims.
