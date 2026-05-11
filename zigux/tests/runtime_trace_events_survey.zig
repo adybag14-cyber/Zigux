@@ -286,6 +286,9 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
             saw_shared_build_bundle = true;
             try std.testing.expectEqualStrings("shared_build_bundle", entry.role);
             try std.testing.expectEqualStrings("P9-L11", entry.owner);
+            try expectContains(entry.boundary, "`phase9-runtime-trace-events-tests`");
+            try expectContains(entry.boundary, "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md");
+            try expectContains(entry.boundary, "zigux/Makefile");
         }
     }
 
@@ -302,6 +305,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try std.testing.expect(manifest.gaps[0].why_now.len > 0);
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
+    try expectContains(
+        survey_note,
+        "The directly coupled module-slice note already keeps `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `zigux/Makefile` explicit as adjacent reminder surfaces.",
+    );
+    try expectContains(
+        survey_note,
+        "the trace-events family owns only the focused `phase9-runtime-trace-events-tests` step in `zigux/tests/phase9_build.zig`",
+    );
     try expectContains(survey_note, "The remaining blocker is the broader Phase 9 runtime substrate.");
     try expectContains(
         survey_note,
