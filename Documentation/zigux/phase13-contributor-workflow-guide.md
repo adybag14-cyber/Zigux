@@ -47,11 +47,10 @@ If a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-
 
 ## Current Repo Reality
 
-As of `2026-05-11`, current `master` materializes the bounded `libfs` foothold through `fs/libfs.zig` and `zigux/tests/phase13_libfs.zig`, but it still does not materialize these direct Phase 13 companions:
+As of `2026-05-11`, current `master` materializes the bounded `libfs` foothold through `fs/libfs.zig` and `zigux/tests/phase13_libfs.zig`, and it also materializes the direct `zigux/tests/phase13_devres.zig` replay plus `scripts/zigux/check-phase13-devres-packet-alignment.py`, but it still does not materialize these direct Phase 13 companions:
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
-- `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
@@ -83,7 +82,7 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
 - Does the wording avoid presenting a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path as independently shipped reviewer evidence when that exact file cannot be materialized on current `master`?
-- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` paths framed as repo-reality gaps instead of shipped evidence while leaving the shipped `zigux/tests/phase13_libfs.zig` foothold and the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard explicit?
+- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` paths framed as repo-reality gaps instead of shipped evidence while leaving the shipped `zigux/tests/phase13_libfs.zig` foothold, the shipped `zigux/tests/phase13_devres.zig` replay, and the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard explicit?
 - Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13` while leaving the direct notifier/list companions framed as adjacent repo-reality gaps until current `master` materializes them?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
 
