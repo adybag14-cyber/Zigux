@@ -4,12 +4,59 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    for (haystack) |entry| {
+        if (std.mem.eql(u8, entry, needle)) return;
+    }
+    return error.TestExpectedEqual;
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    review_surfaces: []const []const u8,
+    covered_helpers: []const []const u8,
+    ownership_focus: []const []const u8,
+};
+
 test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" {
     const allocator = std.testing.allocator;
+
+    const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
+    defer allocator.free(manifest_json);
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
+
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/Makefile");
+
+    try expectStringSliceContains(manifest.covered_helpers, "getOption");
+    try expectStringSliceContains(manifest.covered_helpers, "getOptions");
+    try expectStringSliceContains(manifest.covered_helpers, "memparse");
+    try expectStringSliceContains(manifest.covered_helpers, "parseOptionStr");
+    try expectStringSliceContains(manifest.covered_helpers, "nextArg");
+
+    try expectStringSliceContains(manifest.ownership_focus, "nextArg caller-owned buffer slices");
+    try expectStringSliceContains(manifest.ownership_focus, "nextArg empty-input borrowed-slice reuse");
+    try expectStringSliceContains(manifest.ownership_focus, "nextArg leading-whitespace sentinel token");
+    try expectStringSliceContains(manifest.ownership_focus, "validator-first shared Phase 7 replay route");
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-cmdline-slice.md");
     defer allocator.free(slice_note);
@@ -17,16 +64,15 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "lib/cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_cmdline_manifest.json");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
     try expectContains(slice_note, "runtime-safe parsing helpers that:");
     try expectContains(slice_note, "- do not allocate");
+    try expectContains(slice_note, "empty-input handling keeps `param` and `rest` borrowed from the caller slice");
+    try expectContains(slice_note, "leading-whitespace handling keeps the Linux-style empty sentinel token");
     try expectContains(
         slice_note,
-        "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination",
-    );
-    try expectContains(
-        slice_note,
-        "the dedicated survey gate keeps the roadmap anchor, focused helper replay, and shared `phase7_build.zig` compile-check path aligned around the same parked cmdline packet",
+        "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination",
     );
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
@@ -52,7 +98,15 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(helper_impl);
     try expectContains(
         helper_impl,
+        "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"",
+    );
+    try expectContains(
+        helper_impl,
         "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"",
+    );
+    try expectContains(
+        helper_impl,
+        "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"",
     );
 
     const next_arg_fixture = try readRepoFile(
@@ -60,5 +114,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
     );
     defer allocator.free(next_arg_fixture);
-    try expectContains(next_arg_fixture, ".name = \"mixed trailing whitespace is trimmed from rest\",");
+    try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
+    try expectContains(next_arg_fixture, ".name = \"unterminated quoted value consumes the token tail\",");
+    try expectContains(next_arg_fixture, ".name = \"trailing spaces after key=value trim to empty rest\",");
 }
