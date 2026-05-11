@@ -92,3 +92,28 @@ test "phase 9 runtime loader gap survey keeps phase 8 argv and environment contr
     try expectContains(note, "`tools/lib/subcmd/help.zig` owns the live Phase 8 terminal-cue surfaces");
     try expectContains(note, "the shared request contract now records an optional shared `command_name` field, but no broader shared runtime command or environment control surface yet records argv policy or environment-derived activation cues");
 }
+
+test "phase 9 runtime loader gap survey keeps module metadata and depmod boundaries explicit" {
+    const allocator = std.testing.allocator;
+    const manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_loader_gap_manifest.json", 128 * 1024);
+    defer allocator.free(manifest);
+
+    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
+    defer allocator.free(note);
+
+    const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
+    defer allocator.free(runtime_loader);
+
+    try expectContains(manifest, "\"module_metadata_depmod_boundaries\"");
+    try expectContains(manifest, "\"surface\": \".modinfo\"");
+    try expectContains(manifest, "\"surface\": \"MODULE_ALIAS()\"");
+    try expectContains(manifest, "\"surface\": \"modules.alias\"");
+    try expectContains(manifest, "\"surface\": \"scripts/depmod.sh\"");
+    try expectContains(note, "the shared loader-gap manifest also keeps the blocked module-metadata and depmod-publication boundary explicit: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` stay named only as blocked boundary surfaces until a real depmod bridge exists");
+    try expectContains(note, "no path here claims `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, or `scripts/depmod.sh` parity while the depmod bridge remains absent");
+    try expectContains(note, "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` remain blocked boundary references in `zigux/tests/runtime_loader_gap_manifest.json` until a real depmod bridge exists");
+    try expectNotContains(runtime_loader, ".modinfo");
+    try expectNotContains(runtime_loader, "MODULE_ALIAS()");
+    try expectNotContains(runtime_loader, "modules.alias");
+    try expectNotContains(runtime_loader, "scripts/depmod.sh");
+}
