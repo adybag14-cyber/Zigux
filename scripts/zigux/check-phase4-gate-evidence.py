@@ -200,7 +200,7 @@ TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
     "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
     "threshold_posture": "reviewability_only_no_perf_threshold",
     "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
-    "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
+    "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
 }
 
 TEST_FSMOUNT_SURVEY_MARKERS = [
