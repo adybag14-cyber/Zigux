@@ -109,7 +109,7 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
       "role": "shared_owner_map",
-      "owner": "P9-L16",
+      "owner": "P9-L11",
       "boundary": "Owns the shared Phase 9 loader-facing reminder packet separately from this runtime bitmap family-local packet."
     },
     {
