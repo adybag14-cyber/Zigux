@@ -310,6 +310,16 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         case_count += 1
 
+        for rel_path, markers in FILE_MARKERS.items():
+            build_self_test_root(root)
+            path = root / rel_path
+            original = path.read_text(encoding="utf-8")
+            marker = next((candidate for candidate in markers if original.count(candidate) == 1), markers[0])
+            path.write_text(remove_marker_once(original, marker), encoding="utf-8")
+            issues = validate_root(root)
+            assert f"{rel_path}:missing:{marker}" in issues
+            case_count += 1
+
         for rel_path, checks in EXACT_COUNT_CHECKS.items():
             for marker, expected in checks.items():
                 build_self_test_root(root)
@@ -355,6 +365,7 @@ def run_self_test() -> int:
 
     expected_case_count = (
         1
+        + len(FILE_MARKERS)
         + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values())
         + 2 * sum(len(checks) for checks in LINE_EXACT_COUNT_CHECKS.values())
         + len(MISSING_FILE_CASES)
