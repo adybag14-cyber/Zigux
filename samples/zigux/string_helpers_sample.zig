@@ -39,6 +39,7 @@ pub const ReplaySummary = struct {
     unescaped_text: RenderedText,
     exact_unescape_text: RenderedText,
     escaped_text: RenderedText,
+    bounded_escape_text: RenderedText,
     selected_escape_text: RenderedText,
     appended_escape_text: RenderedText,
     checked_focus: []const SampleFocus,
@@ -116,6 +117,14 @@ pub const StringHelpersSample = struct {
             null,
         );
 
+        var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };
+        bounded_escape_text.len = string_helpers.stringEscapeMem(
+            "\n",
+            bounded_escape_text.bytes[0..5],
+            string_helpers.ESCAPE_HEX,
+            null,
+        );
+
         var selected_escape_text = RenderedText{};
         selected_escape_text.len = string_helpers.stringEscapeMem(
             "A\n\tZ",
@@ -145,6 +154,7 @@ pub const StringHelpersSample = struct {
             .unescaped_text = unescaped_text,
             .exact_unescape_text = exact_unescape_text,
             .escaped_text = escaped_text,
+            .bounded_escape_text = bounded_escape_text,
             .selected_escape_text = selected_escape_text,
             .appended_escape_text = appended_escape_text,
             .checked_focus = &.{
@@ -193,6 +203,8 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
     try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
     try std.testing.expectEqualSlices(u8, "\\x0a", replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqual(@as(usize, 4), replay.bounded_escape_text.len);
+    try std.testing.expectEqualSlices(u8, "\\x0a?", replay.bounded_escape_text.bytes[0..5]);
     try std.testing.expectEqualSlices(u8, "A\\n\tZ", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
     try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
