@@ -213,6 +213,8 @@ For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-windo
 
 That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and review-visible whenever the helper or its paired replay changes. Those two fields are the bounded proof that caller-selected bit windows remain masked instead of silently leaking tail bits beyond `nbits`.
 
+On current `master`, that shared replay remains intentionally narrow: `zigux/tests/phase1_helpers.zig` consumes the committed `partial_xor_nbits = 4` and `partial_xor_masked_values = [14]` single-word packet from `zigux/tests/fixtures/phase1_helpers.json`, so reviewers should not read this shared XOR contract as a broader multiword-tail clamp guarantee.
+
 - `PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits`
 
 The helper-local bitmap predicate tail-mask proof must also stay explicit through:
