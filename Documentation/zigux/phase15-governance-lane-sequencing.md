@@ -33,9 +33,12 @@ The current shared governance packet already includes the documented exception p
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase15.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
@@ -49,6 +52,11 @@ The current shared governance packet already includes the documented exception p
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_build.zig`
+- `.github/workflows/zigux-bootstrap.yml`
+- `zigux/Makefile`
+- `make -C zigux phase15-validate`
+- `make -C zigux phase15-test`
+- `make -C zigux phase15`
 
 Focused blocker-evidence packet:
 
@@ -56,7 +64,7 @@ Focused blocker-evidence packet:
 - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
-Because those companion manifest, Zig, and replay surfaces are already landed, this sequencing note does not need to re-enumerate every Phase 15 owner-map, readiness, handoff-manifest, or blocker-evidence replay inside the shared summaries. Instead, keep shared summaries compact while packet-local replay inventories stay in the sequencing note, and keep the parked governance packet explicit without implying any freeze-map status change approval.
+Because those companion manifest, Zig, shared-summary, and replay surfaces are already landed, this sequencing note does not need to re-enumerate every Phase 15 owner-map, readiness, handoff-manifest, or blocker-evidence replay inside the shared summaries. Instead, keep shared summaries compact while packet-local replay inventories stay in the sequencing note, and keep the parked governance packet explicit without implying any freeze-map status change approval.
 
 ## Sequencing Rules
 
