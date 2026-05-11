@@ -13,6 +13,8 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/check-phase3-abi-dump-gate.py`
 - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
 - `scripts/zigux/check-phase3-policy-byte-guards.py`
+- `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
+- `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
