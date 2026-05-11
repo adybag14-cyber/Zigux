@@ -30,6 +30,7 @@ MAKE_MARKERS = [
 CLOSURE_DOC_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "shared reminder-surface drift",
@@ -38,6 +39,7 @@ CLOSURE_DOC_MARKERS = [
 LANE_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
@@ -141,19 +143,28 @@ def run_self_test() -> int:
         write_fixture(root)
 
         closure = root / "Documentation/zigux/phase10-closure-evidence.md"
-        closure.write_text(closure.read_text(encoding="utf-8").replace("shared reminder-surface drift\n", "", 1), encoding="utf-8")
+        closure.write_text(
+            closure.read_text(encoding="utf-8").replace("shared reminder-surface drift\n", "", 1),
+            encoding="utf-8",
+        )
         if "closure:shared reminder-surface drift" not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_closure_marker_not_detected")
         write_fixture(root)
 
         lane = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
-        lane.write_text(lane.read_text(encoding="utf-8").replace("make -C zigux phase10-validate\n", "", 1), encoding="utf-8")
-        if "lane:make -C zigux phase10-validate" not in collect_missing_markers(root):
+        lane.write_text(
+            lane.read_text(encoding="utf-8").replace("scripts/zigux/validate-phase10-closure.py\n", "", 1),
+            encoding="utf-8",
+        )
+        if "lane:scripts/zigux/validate-phase10-closure.py" not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_lane_marker_not_detected")
         write_fixture(root)
 
         manifest = root / "zigux/tests/phase10_closure_manifest.json"
-        manifest.write_text(manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1), encoding="utf-8")
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1),
+            encoding="utf-8",
+        )
         if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
         write_fixture(root)
