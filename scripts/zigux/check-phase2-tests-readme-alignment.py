@@ -111,6 +111,11 @@ FILE_MARKERS = {
         SCRIPTS_PHASE2_KCONFIG_SENTENCE,
     ],
     "zigux/tests/README.md": [
+        "Documentation/zigux/README.md",
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+        "Documentation/zigux/phase2-closure.md",
+        "Documentation/zigux/review-checklist.md",
+        "scripts/zigux/README.md",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
