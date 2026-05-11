@@ -413,18 +413,37 @@ FORBIDDEN_RUNTIME_LOADER_CONTROL_MARKERS = [
     ".argv_policy =",
     "activation_env:",
     ".activation_env =",
-    "exec_path_env:",
-    ".exec_path_env =",
     '"PERF_EXEC_PATH"',
     '"PATH"',
     '"LINES"',
     '"COLUMNS"',
+    "loader_plan_state:",
+    ".loader_plan_state =",
+    "registration_summary:",
+    ".registration_summary =",
+    "module_install_root:",
+    ".module_install_root =",
+    "modules_order_path:",
+    ".modules_order_path =",
+    "modules_builtin_path:",
+    ".modules_builtin_path =",
+    "depmod_script:",
+    ".depmod_script =",
+    "depmod_manifest:",
+    ".depmod_manifest =",
+    "depmod_aliases:",
+    ".depmod_aliases =",
+    '"kernel/workqueue.c"',
+    '"kernel/trace/ring_buffer.c"',
 ]
-
-REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {marker: 1 for marker in REQUIRED_PHASE9_BUILD_MARKERS}
 
 FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
+    "scripts/zigux/check-phase9-validation-flow.py",
+    "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
+    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "zigux/tests/runtime_loader_gap_manifest.json",
+    "zigux/tests/runtime_loader_gap_survey.zig",
     "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "zigux/tests/runtime_module_metadata_manifest.json",
     "zigux/tests/runtime_module_metadata_survey.zig",
@@ -434,16 +453,32 @@ FORBIDDEN_FILES = [
 FORBIDDEN_MAKEFILE_MARKERS = [
     "PHONY += phase9-validate",
     "phase9-validate:",
+    "scripts/zigux/validate-phase9.py",
+    "check-phase9-validation-flow.py",
+    "check-phase9-runtime-loader-commit-alignment.py",
 ]
+
+REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
+    '"phase9-runtime-loader-shared-tests",': 1,
+    '"phase9-runtime-bitmap-top-bit-tests",': 1,
+    '.root_source_file = b.path("../kernel/runtime_loader_contract.zig"),': 1,
+    '.root_source_file = b.path("../kernel/runtime_loader.zig"),': 1,
+    '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),': 1,
+    '.root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),': 1,
+    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),': 1,
+    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),': 1,
+    '.root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),': 1,
+    '.root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),': 1,
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-def write_text(path: Path, text: str) -> None:
+def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(content, encoding="utf-8")
 
 
 def ensure_contains(failures: list[str], label: str, text: str, markers: list[str]) -> None:
@@ -906,6 +941,21 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
         runtime_loader_contract_path.write_text(
+            runtime_loader_contract.replace(
+                'try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            'runtime_loader_contract:try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
+        )
+
+        write_fixture_tree(base)
+        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
+        runtime_loader_contract_path.write_text(
             runtime_loader_contract + "command_name:\n",
             encoding="utf-8",
         )
@@ -962,7 +1012,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=32")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
