@@ -88,6 +88,9 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "dedicated handoff packet itself drifts") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared build wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "parity-scorecard blocker edits") != null);
@@ -143,6 +146,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "tests-root Phase 15 guards") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "The dedicated parked maintenance notes remain `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "route that repair to `shared-summaries` first") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
