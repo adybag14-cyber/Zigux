@@ -147,6 +147,8 @@ Review the landed bytestream FIFO packet through `Documentation/zigux/phase5-kfi
 
 Keep `StorageBacking.embedded_fixed_buffer`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `available()`, `usesWrappedStorageWindow()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit together as one bounded non-runtime packet.
 
+Keep the `reviewContract().focus` order explicit too: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`.
+
 ### `kobject_example`
 
 Review the landed kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig`, and the shared `zigux/tests/phase5_build.zig` replay route.
