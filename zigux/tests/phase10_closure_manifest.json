@@ -59,6 +59,7 @@
         "zigux/tests/phase10_build.zig",
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_driver_id.zig",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "drivers/virtio/virtio_verify.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
