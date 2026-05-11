@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
 ]
@@ -63,7 +64,9 @@ MANIFEST_MARKERS = [
 
 COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
+    ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
+    ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
 ]
 
 
@@ -117,6 +120,14 @@ def write_fixture(root: Path) -> None:
             "    print('PHASE10_HARNESS_COVERAGE_SELF_TEST=pass')\n"
             "    raise SystemExit(0)\n"
             "print('PHASE10_HARNESS_COVERAGE=pass')\n"
+        ),
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "print('PHASE10_TESTS_README_CORE_SURFACES_CHECK=pass')\n"
         ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
@@ -182,7 +193,7 @@ def run_self_test() -> int:
 
         manifest = root / "zigux/tests/phase10_closure_manifest.json"
         manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace('\"scripts/zigux/check-phase10-harness-coverage.py\"\n', "", 1),
+            manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1),
             encoding="utf-8",
         )
         if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
@@ -205,9 +216,27 @@ def run_self_test() -> int:
                 "phase10-closure-self-test:failed_command_not_detected:"
                 f"actual={','.join(failed_commands) if failed_commands else 'none'}"
             )
+        write_fixture(root)
+
+        tests_readme_checker = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
+        tests_readme_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        failed_commands = run_required_commands(root)
+        if failed_commands != ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"]:
+            raise SystemExit(
+                "phase10-closure-self-test:tests_readme_checker_failure_not_detected:"
+                f"actual={','.join(failed_commands) if failed_commands else 'none'}"
+            )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
