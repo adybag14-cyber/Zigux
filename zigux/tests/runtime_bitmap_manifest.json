@@ -1,0 +1,32 @@
+{
+  "lane_key": "P9-L08",
+  "phase": "Phase 9",
+  "anchor": "lib/test_bitmap.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "roadmap_gap_summary": {
+    "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+    "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
+    "missing_capability": "shared runtime substrate that can turn the bounded bitmap loader scaffold into a real loadable module path",
+    "blocked_deliverable": "loadable Phase 9 runtime bitmap pilot module parity",
+    "next_gate": "keep the loader scaffold, top-bit companion contract, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan"
+  },
+  "gaps": [
+    {
+      "id": "runtime-bitmap-loader-scaffold",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
+      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, focused lifecycle counters, and release-without-substrate handoff reviewable without implying live runtime registration parity."
+    },
+    {
+      "id": "runtime-bitmap-live-loader-binding",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The roadmap's loadable runtime bitmap lifecycle parity still depend on shared runtime substrate pieces before any honest claim of live bitmap module binding."
+    }
+  ]
+}
