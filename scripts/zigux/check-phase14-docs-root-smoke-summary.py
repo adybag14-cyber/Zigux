@@ -67,10 +67,21 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "PHASE14_ANCHOR_PACKET_COUNT=4",
 ]
 
-MAKEFILE_EXACT_COUNT_MARKERS = [
-    CHECKER_PATH,
-    RELEASE_BOUNDARY_CHECKER_PATH,
+MAKEFILE_MARKERS = [
     "scripts/zigux/validate-phase14.py",
+    CHECKER_PATH,
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    RELEASE_BOUNDARY_CHECKER_PATH,
+]
+
+MAKEFILE_EXACT_COUNT_MARKERS = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
 ]
 
 MANIFEST_REQUIRED_SURFACES = [
@@ -109,6 +120,18 @@ def require_exact_count(errors: list[str], rel_path: str, text: str, markers: li
             )
 
 
+def require_exact_line_count(
+    errors: list[str], rel_path: str, text: str, markers: list[str]
+) -> None:
+    lines = text.splitlines()
+    for marker in markers:
+        count = sum(1 for line in lines if line == marker)
+        if count != 1:
+            errors.append(
+                f"marker count drift in {rel_path}: {marker} (expected 1, found {count})"
+            )
+
+
 def check_manifest(errors: list[str], root: Path) -> None:
     path = root / MANIFEST_PATH
     if not path.exists():
@@ -138,6 +161,8 @@ def check_text_file(
     rel_path: Path,
     markers: list[str],
     exact_count_markers: list[str],
+    *,
+    exact_line_match: bool = False,
 ) -> None:
     path = root / rel_path
     if not path.exists():
@@ -145,7 +170,10 @@ def check_text_file(
         return
     text = read_text(path)
     require_present(errors, rel_path.as_posix(), text, markers)
-    require_exact_count(errors, rel_path.as_posix(), text, exact_count_markers)
+    if exact_line_match:
+        require_exact_line_count(errors, rel_path.as_posix(), text, exact_count_markers)
+    else:
+        require_exact_count(errors, rel_path.as_posix(), text, exact_count_markers)
 
 
 def check(root: Path) -> list[str]:
@@ -170,8 +198,9 @@ def check(root: Path) -> list[str]:
         errors,
         root,
         MAKEFILE_PATH,
+        MAKEFILE_MARKERS,
         MAKEFILE_EXACT_COUNT_MARKERS,
-        MAKEFILE_EXACT_COUNT_MARKERS,
+        exact_line_match=True,
     )
     check_manifest(errors, root)
     return errors
@@ -202,10 +231,13 @@ def good_makefile_text() -> str:
     return "\n".join(
         [
             "phase14-validate:",
-            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
-            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
         ]
     ) + "\n"
 
@@ -272,13 +304,17 @@ def run_self_test() -> int:
         write_text(
             root / MAKEFILE_PATH,
             good_makefile_text().replace(
-                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}\n",
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test\n",
                 "",
                 1,
             ),
         )
-        if not any(f"marker count drift in {MAKEFILE_PATH.as_posix()}: {CHECKER_PATH}" in error for error in check(root)):
-            print("self-test expected missing makefile checker route failure", file=sys.stderr)
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH.as_posix()}: \tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected missing makefile self-test route failure", file=sys.stderr)
             return 1
         write_text(root / MAKEFILE_PATH, good_makefile_text())
 
