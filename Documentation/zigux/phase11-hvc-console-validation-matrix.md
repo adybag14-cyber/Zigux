@@ -7,6 +7,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 - `PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`
 - lane: `P11-L16`
 - reviewed against live `master`
+- archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 - scope: keep the current archived HVC packet honest about what is already reviewable, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `zigux/tests/phase11_hvc_console_survey.zig`
@@ -60,7 +61,7 @@ Without this matrix, the archival packet names the right follow-through but does
 ## Review Rules
 
 - treat this lane as an archival survey, teardown, and helper-boundary packet while live notifier registration, callback execution, tty-driver registration, and host-backed I/O stay out of scope
-- treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the landing checkpoint for the archived packet, not as a rolling promise about runtime parity
+- treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the landing checkpoint for the archived packet at `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`, not as a rolling promise about runtime parity
 - keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, cleanup, remove, tty-registration, sysrq, or notifier handoff story changes
 - keep `scripts/zigux/check-phase11-hvc-survey-packet.py`, `make -C zigux phase11-hvc-survey`, and the survey-backed packet aligned whenever the archival HVC split changes so the lane stays reviewable and the dedicated route keeps failing closed
 - do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
