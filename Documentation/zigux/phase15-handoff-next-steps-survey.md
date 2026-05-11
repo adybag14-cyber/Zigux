@@ -58,6 +58,13 @@ The dedicated handoff packet should treat the shipped docs-root review-process, 
 
 This packet is still a parked governance packet only. It does not record a deep-core status-change approval, and it should continue to treat freeze-map anchors as blocked until the parity scorecard and stay-in-C evidence say otherwise.
 
+## Adjacent Lane Boundaries
+
+- `shared-summaries` owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`; this handoff lane may point back to those summaries but should not consume their compact reminder repair.
+- `review-process` owns `Documentation/zigux/phase15-architecture-council-review-process.md` plus its manifest-backed review packet fields; this handoff lane should not rewrite approver buckets or review-field wording.
+- `parity-scorecard` owns `Documentation/zigux/phase15-parity-scorecard.md` plus `zigux/tests/phase15_parity_scorecard.zig`; this handoff lane should not consume blocker-evidence or aggregate-metric repairs.
+- `readiness-gate` owns `Documentation/zigux/phase15-readiness-gate-survey.md` plus `scripts/zigux/validate-phase15.py`; this handoff lane should not broaden the validator-first maintenance claim beyond what those surfaces already ship.
+
 ## Named Reopen Triggers
 
 - `evidence_packet_stale_or_contradictory`: reopen this lane only when the dedicated handoff note, manifest, or Zig guard stops matching the current governance packet.
@@ -67,5 +74,5 @@ This packet is still a parked governance packet only. It does not record a deep-
 ## Next Steps
 
 - Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.
-- The shared-summary repair named by the previous handoff step is now landed: `zigux/tests/README.md` keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` explicit beside the checker routes, so the next honest same-lane follow-up is to re-read those shared summaries only if repo reality drifts again.
+- If the compact docs-root Phase 15 reminder still understates the parked maintenance notes, route that repair to `shared-summaries` first and reopen this lane only if the dedicated handoff packet itself drifts.
 - Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully.
