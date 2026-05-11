@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/check-fixdep-diff.py",
@@ -35,6 +36,18 @@ CLOSURE_MARKERS = [
     "zig test scripts/zigux/fixdep.zig",
 ]
 
+ARTIFACT_DIFF_MARKERS = [
+    "`zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve escaped separators the same way as the C tool.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt` anchors the escaped-colon dependency-token path so `fixdep.zig` must unescape `\\:` to the same on-disk dependency name that the C tool reads and emits.",
+    "`zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.",
+    "`zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` plus `sample_comment_only_expected.stderr.txt` anchor the bounded comment-only depfile failure path while keeping the saved command line deterministic.",
+    "`zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` plus `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency open error and its exit-code contract while keeping stdout stable.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_hash_comment_chain_expected.txt` anchors the rustc-style escaped `#` dependency path, the continued comment line, and the concatenated second-target tail inside the shared packet.",
+    "`zigux/tests/fixtures/fixdep/cases.json` keeps the current seven-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path.",
+    "`scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.",
+]
+
 VALIDATE_PHASE2_MARKERS = [
     'ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"',
     '[sys.executable, str(FIXDEP_GATE_CHECKER), "--self-test"]',
@@ -58,6 +71,7 @@ EXPECTED_CASE_NAMES = [
 ]
 
 FILE_MARKERS = {
+    "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": TOOLCHAIN_NOTE_MARKERS,
     "Documentation/zigux/phase2-closure.md": CLOSURE_MARKERS,
     "scripts/zigux/validate-phase2.py": VALIDATE_PHASE2_MARKERS,
@@ -234,6 +248,16 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert validate_root(root) == []
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "Documentation/zigux/artifact-diff.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(ARTIFACT_DIFF_MARKERS[7], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"Documentation/zigux/artifact-diff.md:{ARTIFACT_DIFF_MARKERS[7]}" in issues
         case_count += 1
 
         build_self_test_root(root)
