@@ -75,8 +75,9 @@ The exact checks now exercised through `zigux/tests/phase5_build.zig` and the di
 
 ## Latest verification snapshot
 
-Fresh focused review-surface replay on 2026-05-08 kept the shipped trace-events packet repo-local and explicit after this guidance refresh.
+Fresh focused review-surface replay on 2026-05-11 kept the shipped trace-events packet repo-local and explicit after the callback-focus closure remained landed on current `master`.
 
+- connector-backed current-`master` note readback on 2026-05-11 confirmed that the older blocked callback-focus handoff stayed superseded: `samples/zigux/trace_events_sample.zig` still includes `checked_focus` on `CallbackBoundarySummary` and threads `reviewContract().focus` through `runCallbackBoundaryReplay()`, while the paired manifest, survey gate, and this survey note remain aligned on that same public callback-boundary packet
 - `zig fmt --check zigux/tests/phase5_trace_events_sample_survey.zig` passed for the survey-gate half of this note packet
 - connector-backed current-`master` note readback confirmed the contributor-note wording now matches that focused survey gate instead of claiming a Markdown `zig fmt` route that the shipped toolchain does not support
 - `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig` passed a compile-only recheck of the manifest-backed survey gate for this note packet
