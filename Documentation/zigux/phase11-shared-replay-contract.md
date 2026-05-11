@@ -24,24 +24,18 @@ The active shared Phase 11 packet is the docs-root, closure-note, owner-map, che
 * `Documentation/zigux/phase11-closure-note.md`
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/README.md`
-* `scripts/zigux/check-phase11-build-inventory.py`
-* `scripts/zigux/check-phase11-layout-assert-surface.py`
-* `scripts/zigux/check-phase11-hvc-validation-flow.py`
-* `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-header-boundary-packet.py`
-* `scripts/zigux/validate-phase11.py`
 * `zigux/tests/README.md`
-* `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/tests/phase11_build.zig`
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
-* `make -C zigux phase11-validate`
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `make -C zigux phase11`
-* `make -C zigux phase11-hvc-survey`
 
-These shared docs, the shared pre-replay checker stack, the shared build-inventory fixture, the workflow-backed routes, the bundle validator, the shared contract checker, the shared closure note, the shared driver-lane owner map, and the dedicated `phase11-hvc-survey` replay route prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
+These shared docs, the workflow-backed routes, the shared contract checker, the shared header-boundary checker, the shared closure note, and the shared driver-lane owner map prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
+There is no shared `validate-phase11.py` in the current shared packet on `master`.
+There is no shared `make -C zigux phase11-validate` target on `master`.
 
 The live gpio watchdog evidence inside that shared route stays explicit through `Documentation/zigux/phase11-gpio-wdt-module-slice.md`.
 The dedicated gpio watchdog archival packet beside that slice also stays explicit through `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`.
@@ -59,14 +53,30 @@ The shared replay surface keeps the simple-driver tranche visible together, but 
 * gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
 * bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 * DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`
-* HVC archival packet: `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey`
+
+The dedicated archival HVC evidence still stays explicit beside that shared route:
+
+* `Documentation/zigux/phase11-hvc-console-slice.md`
+* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+* `Documentation/zigux/phase11-hvc-console-survey.md`
+* `zigux/tests/phase11_hvc_console_manifest.json`
+* `zigux/tests/phase11_hvc_console.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
+* `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
+* `zigux/tests/phase11_hvc_console_survey.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
+* `drivers/tty/hvc/hvc_console_sysrq.zig`
+* `scripts/zigux/check-phase11-hvc-survey-packet.py`
+* `make -C zigux phase11-hvc-survey`
 
 These paths keep the bounded HVC manifest-backed survey, direct driver replay, cleanup handoff, compile-local verify helper, modem-control, poll-retry, and sysrq-handoff packet reviewable beside the shared route without promoting tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed cleanup into the current shared contract.
 That driver-local execution follow-through still belongs to the owning Phase 11 HVC lane rather than this shared replay contract.
 
 ## What This Contract Does Not Claim
 
-* no broader shared validator stack beyond the landed `check-phase11-build-inventory.py`, `check-phase11-layout-assert-surface.py`, `check-phase11-hvc-validation-flow.py`, `check-phase11-hvc-cleanup-alignment.py`, `check-phase11-shared-replay-contract.py`, `check-phase11-header-boundary-packet.py`, and `validate-phase11.py` packet
+* no broader shared validator stack beyond the landed `scripts/zigux/check-phase11-shared-replay-contract.py` and `scripts/zigux/check-phase11-header-boundary-packet.py` packet for this shared replay note
 * no driver-local next-step widening beyond the active shared replay packet
 * no tty registration, notifier execution, sysrq execution, khvcd execution, host-backed cleanup, live platform registration, live clock or reset ownership, live IRQ registration, or hardware-backed watchdog validation beyond the landed bcm2835, gpio, and DesignWare packets plus the landed HVC archival replay surfaces
 
