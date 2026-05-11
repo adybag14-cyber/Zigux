@@ -13,19 +13,20 @@
 ## Purpose
 
 This parked Phase 8 gap note keeps the roadmap-backed command and environment
-control surface reviewable without pretending that the direct Zigux packet already
-ships on current `master`.
+control surface reviewable without pretending that the current Zigux packet has
+closed direct process-launch, live environment-read, or terminal-probing parity.
 
 The note is intentionally narrow:
 - keep the roadmap anchors explicit
-- keep the missing current-tree command and help packet explicit
+- keep the parked current-tree command and help packet explicit
 - keep the shared Phase 8 lane note and validation entrypoint explicit
 - keep the next bounded follow-through step explicit until later Phase 8 work lands
-  concrete tool-tree or test-tree anchors
+  a smaller truthfulness or replay update inside the same command packet
 
 ## Current Measurable Status
 
-Current `master` does not currently expose:
+Current public default-branch tree readback shows the parked command and help
+packet still exposes:
 - `Documentation/zigux/phase8-exec-cmd-slice.md`
 - `Documentation/zigux/phase8-help-slice.md`
 - `tools/lib/subcmd/exec-cmd.zig`
@@ -35,15 +36,19 @@ Current `master` does not currently expose:
 - `zigux/tests/phase8_help.zig`
 - `zigux/tests/phase8_help_only_build.zig`
 
-The bounded evidence packet instead remains:
+The bounded evidence packet for that parked command surface remains:
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
 - `Documentation/zigux/phase8-tooling-lane-sequencing.md`
 - `python3 scripts/zigux/validate-phase8.py`
 - `make -C zigux phase8-validate`
 
+Authenticated contents reads for some Phase 8 files are inconsistent from this
+environment, so current public default-branch tree evidence and readable blob
+content should win over older absent-file assumptions.
+
 That packet keeps the roadmap-backed command and environment plumbing gap explicit
-without claiming direct process-launch parity, live environment reads, terminal
-probing, or shipped `tools/lib/subcmd/*.zig` delivery on current `master`.
+without claiming direct `execvp()` parity, direct process-launch ownership, live
+OS environment reads, or direct terminal probing on current `master`.
 
 ## Roadmap Gap
 
@@ -51,14 +56,17 @@ The product roadmap still names Phase 8 as the first tooling-expansion tranche f
 - `tools/lib/subcmd/exec-cmd.c`
 - `tools/lib/subcmd/help.c`
 
-Current `master` only preserves the shared Phase 8 review surfaces around this area.
-Until concrete command-lane files return to the tree, this note should remain the
-truthful bridge between the roadmap target and the current default-branch evidence.
+Current `master` now preserves parked command-lane and help-lane review surfaces
+around this area, but the same packet still stops short of full process-launch,
+environment-plumbing, and terminal-probing parity. This note should therefore
+remain the truthful bridge between the roadmap target and the bounded current-tree
+evidence rather than reverting to older missing-file wording.
 
 ## Next Bounded Step
 
-If a later Phase 8 lane lands any of the missing command-lane or help-lane files,
-update this note together with `Documentation/zigux/phase8-tooling-lane-sequencing.md`
-before widening broader Phase 8 summaries. Until then, keep this survey parked and
-keep follow-up inside the missing control-surface note rather than rebuilding the
-older command packet by implication alone.
+If a later Phase 8 lane changes any of the parked command-lane or help-lane files,
+re-read this note together with `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
+`python3 scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `scripts/zigux/README.md`,
+`zigux/Makefile`, and the current Phase 8 test tree before widening broader Phase 8 summaries.
+Until then, keep this survey parked and keep follow-up inside one bounded command-packet
+truthfulness or replay step rather than rebuilding the older missing-control-surface claim.
