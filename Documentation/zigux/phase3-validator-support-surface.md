@@ -30,6 +30,8 @@ Phase 3 ABI and runtime tranche.
 - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
+- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
+- `zigux/uapi/dev_t.zig`
 - `zigux/Makefile`
 - `python3 scripts/zigux/phase3_catalog.py --self-test`
 - `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`
@@ -66,6 +68,9 @@ Phase 3 ABI and runtime tranche.
 
 Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
-`Documentation/zigux/review-checklist.md`, and
+`Documentation/zigux/review-checklist.md`,
+`Documentation/zigux/phase3-abi-header-family-survey.md`,
+`Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
+`zigux/uapi/dev_t.zig`, and
 `scripts/zigux/validate-phase3-validator-support-surface.py` so the shipped
 support helpers do not get restated as missing historical-only entrypoints.
