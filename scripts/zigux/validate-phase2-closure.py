@@ -42,6 +42,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "scripts/zigux/validate-phase2.py": 1,
     "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
@@ -49,6 +50,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 }
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
+    "run: python3 scripts/zigux/validate-phase2.py": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
@@ -496,6 +498,7 @@ def run_self_test_checks() -> list[str]:
         (
             "workflow_tests_readme_selftest_missing",
             validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
@@ -507,6 +510,7 @@ def run_self_test_checks() -> list[str]:
         (
             "workflow_tests_readme_gate_duplicate",
             validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
@@ -520,6 +524,7 @@ def run_self_test_checks() -> list[str]:
         (
             "workflow_kconfig_selftest_missing",
             validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
@@ -531,6 +536,7 @@ def run_self_test_checks() -> list[str]:
         (
             "workflow_kconfig_gate_duplicate",
             validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
@@ -540,6 +546,33 @@ def run_self_test_checks() -> list[str]:
             [
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py:count=2:expected=1"
             ],
+        ),
+        (
+            "makefile_phase2_validation_missing",
+            validate_exact_makefile_runs(
+                "\n".join(
+                    [
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                    ]
+                )
+            ),
+            ["makefile:exact_count:scripts/zigux/validate-phase2.py:count=0:expected=1"],
+        ),
+        (
+            "workflow_phase2_validation_missing",
+            validate_exact_workflow_runs(
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+            ),
+            ["workflow:exact_count:run: python3 scripts/zigux/validate-phase2.py:count=0:expected=1"],
         ),
         (
             "closure_missing_tool_manifest_gate_marker",
@@ -669,7 +702,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=12")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=14")
         return 0
 
     if issues:
