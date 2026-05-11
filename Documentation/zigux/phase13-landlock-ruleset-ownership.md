@@ -20,11 +20,11 @@ When contributors touch the ruleset helper packet, this owner note should stay a
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `zigux/tests/phase13_landlock_ruleset.zig`
-- `zigux/tests/phase13_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+
+If direct companions such as `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps and keep reviewer guidance anchored to the shipped docs-root and make-route surfaces above instead of presenting those direct paths as independently shipped evidence.
 
 The intent is simple: keep the ruleset packet reviewable as one bounded Phase 13 helper surface without implying that syscall policy, notifier evidence, or broader release-packet ownership has moved into the ruleset note.
 
@@ -33,7 +33,7 @@ The intent is simple: keep the ruleset packet reviewable as one bounded Phase 13
 Use this note to keep these boundaries explicit:
 - ruleset-helper contract and review prompts belong with the ruleset slice, survey, and this ownership note
 - syscall behavior, reviewability, and governance belong with the syscall slice, syscall survey, and syscall-governance note
-- shared packet routing belongs with `zigux/tests/phase13_build.zig`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- shared packet routing belongs with the shipped docs-root and make-route surfaces above; if `zigux/tests/phase13_build.zig` is absent, keep that direct build path recorded as repo reality rather than as shipped evidence
 - broader Phase 13 contributor sequencing belongs with `Documentation/zigux/phase13-contributor-workflow-guide.md` and the shared docs-root summaries
 
 ## Review Prompts
@@ -43,3 +43,4 @@ If a change updates the Phase 13 Landlock ruleset packet, verify that:
 - the shared Phase 13 reviewer packet keeps the ruleset note explicit wherever it names the adjacent ruleset survey and syscall-governance note together
 - no new wording here implies extra shared replay steps beyond the current Phase 13 build-and-make route
 - syscall-governance edits are recorded in the syscall-governance note instead of being duplicated here
+- any still-missing direct ruleset companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
