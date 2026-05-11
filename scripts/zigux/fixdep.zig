@@ -1114,3 +1114,49 @@ test "runFixdep keeps the savedcmd prelude before no-target parse errors" {
         capture.list.items,
     );
 }
+
+test "dep parsing keeps partial stdout before missing dependency read errors" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn flush(_: *@This()) !void {}
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try std.testing.expectError(
+        error.ReadDependencyFile,
+        processor.parseDepFile(&capture, "missing_dep.o: source.rmeta missing\\#dep.h\n", "missing_dep.o"),
+    );
+    try std.testing.expectEqualStrings(
+        "source_missing_dep.o := source.rmeta\n\n" ++
+            "deps_missing_dep.o := \\\n" ++
+            "  missing#dep.h \\\n",
+        capture.list.items,
+    );
+    try std.testing.expectEqualStrings("missing#dep.h", processor.last_file_error_path);
+    try std.testing.expectEqual(error.FileNotFound, processor.last_file_error.?);
+    try std.testing.expectEqual(DependencyFileFailure.open, processor.last_file_error_kind);
+}
