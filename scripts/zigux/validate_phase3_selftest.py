@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 from pathlib import Path
 import subprocess
 import sys
@@ -97,6 +99,39 @@ def run_self_test() -> int:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing script was not reported")
             return 1
+
+        (root / first_path).write_text(
+            "#!/usr/bin/env python3\n"
+            "raise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        failing_path = SELFTEST_COMMANDS[1][0]
+        (root / failing_path).write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "print('intentional stdout breadcrumb')\n"
+            "print('intentional stderr breadcrumb', file=sys.stderr)\n"
+            "raise SystemExit(9)\n",
+            encoding="utf-8",
+        )
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            result = run_packet(root)
+        if result == 0:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected non-zero self-test command to fail the packet")
+            return 1
+        output = buffer.getvalue()
+        for marker in (
+            "PHASE3_VALIDATE_SELFTEST=fail",
+            "self-test failed: scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+            "intentional stdout breadcrumb",
+            "intentional stderr breadcrumb",
+        ):
+            if marker not in output:
+                print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+                print(f"expected failing self-test output marker was not reported: {marker}")
+                return 1
 
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     return 0
