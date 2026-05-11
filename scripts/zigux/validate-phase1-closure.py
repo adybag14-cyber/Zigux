@@ -139,6 +139,8 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
         "test \"rbtree matchIterator walks the duplicate range in order\"",
         "test \"rbtree addCached returns the inserted node only when it becomes leftmost\"",
         "test \"rbtree findAddCached keeps cached leftmost stable while inserting misses\"",
+        "test \"rbtree cached root keeps the leftmost pointer in sync\"",
+        "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
         "test \"rbtree replaceNodeCached keeps non-leftmost leftmost unchanged\"",
         "test \"rbtree eraseCached returns null for a singleton cached tree\"",
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
@@ -168,11 +170,13 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
       "cached_root_followup_anchors": [
         "test \"rbtree addCached returns the inserted node only when it becomes leftmost\"",
         "test \"rbtree findAddCached keeps cached leftmost stable while inserting misses\"",
+        "test \"rbtree cached root keeps the leftmost pointer in sync\"",
+        "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
         "test \"rbtree replaceNodeCached keeps non-leftmost leftmost unchanged\"",
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
-      "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
+      "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
@@ -688,6 +692,19 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(root)
         assert "manifest:lane_sequencing" in missing
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_followup_anchors"] = [
+            item
+            for item in manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_followup_anchors"]
+            if item != "test \"rbtree cached root keeps the leftmost pointer in sync\""
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(root)
+        assert "manifest:review_anchor:tools/lib/rbtree.zig" in missing
         case_count += 1
         make_fixture_root(root)
 
