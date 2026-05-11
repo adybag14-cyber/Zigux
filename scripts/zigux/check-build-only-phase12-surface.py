@@ -33,7 +33,9 @@ PHASE12_RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-
 PHASE12_RELEASE_CLOSURE_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
 PHASE12_RELEASE_COORDINATION_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
+PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH = "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+PHASE12_LIBBPF_VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 
 REQUIRED_PHASE12_PATHS = [
     DOCS_README_PATH,
@@ -58,6 +60,7 @@ REQUIRED_PHASE12_PATHS = [
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     PHASE12_LIBBPF_SURVEY_PATH,
+    PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
     "drivers/nvme/host/pci_verify.zig",
     PHASE12_BUILD_PATH,
     "zigux/tests/phase12_nvme_pci.zig",
@@ -77,6 +80,7 @@ REQUIRED_PHASE12_PATHS = [
     "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
     "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json",
     "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
+    PHASE12_LIBBPF_VERIFY_PATH,
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 
@@ -826,6 +830,16 @@ def run_self_test() -> int:
         expect_failure(base, "missing_file:zigux/tests/phase12_libbpf_snapshot_determinism.zig")
 
         write_fixture_tree(base)
+        missing_path = base / Path(PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH)
+        missing_path.unlink()
+        expect_failure(base, f"missing_file:{PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH}")
+
+        write_fixture_tree(base)
+        missing_path = base / Path(PHASE12_LIBBPF_VERIFY_PATH)
+        missing_path.unlink()
+        expect_failure(base, f"missing_file:{PHASE12_LIBBPF_VERIFY_PATH}")
+
+        write_fixture_tree(base)
         phase12_build = phase12_build_path.read_text(encoding="utf-8")
         phase12_build_path.write_text(
             phase12_build.replace('smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);\n', "", 1),
@@ -861,7 +875,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=26")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
