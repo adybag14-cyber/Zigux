@@ -15,6 +15,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 TESTS_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
 PERF_BUFFER_POLL_CHECKER_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
@@ -26,6 +27,7 @@ HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
+KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
@@ -36,7 +38,7 @@ REQUIRED_FILES = [
     SEQUENCING_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
-    "scripts/zigux/validate-phase8.py",
+    VALIDATOR_PATH,
     TESTS_ALIGNMENT_CHECKER_PATH,
     HELP_KALLSYMS_PACKET_CHECKER_PATH,
     PERF_BUFFER_POLL_CHECKER_PATH,
@@ -48,6 +50,7 @@ REQUIRED_FILES = [
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
     KALLSYMS_TEST_PATH,
+    KALLSYMS_ONLY_BUILD_PATH,
     CPU_MASK_SLICE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
@@ -84,9 +87,11 @@ REQUIRED_MARKERS = {
     ],
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared parked Phase 8 libbpf packet",
+        "if the change touches the shared Phase 8 help-and-kallsyms packet",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`scripts/zigux/validate-phase8.py`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
@@ -121,6 +126,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`zigux/tests/phase8_kallsyms.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`make -C zigux phase8-help-test`",
@@ -134,6 +140,8 @@ REQUIRED_MARKERS = {
     MAKEFILE_PATH: [
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-help-kallsyms-packet.py",
         "phase8-help-test:",
         "phase8-help-kallsyms-test:",
         "phase8-kallsyms-test:",
@@ -163,7 +171,7 @@ REQUIRED_MARKERS = {
 }
 
 FIXTURE_OVERRIDES = {
-    "scripts/zigux/validate-phase8.py": "# fixture\n",
+    VALIDATOR_PATH: "# fixture\n",
     TESTS_ALIGNMENT_CHECKER_PATH: "# fixture\n",
     HELP_KALLSYMS_PACKET_CHECKER_PATH: "# fixture\n",
     PERF_BUFFER_POLL_CHECKER_PATH: "# fixture\n",
@@ -175,6 +183,7 @@ FIXTURE_OVERRIDES = {
     HELP_ONLY_BUILD_PATH: "// fixture\n",
     HELP_KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     KALLSYMS_TEST_PATH: "// fixture\n",
+    KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
     LIBBPF_SHARD_ROUTES_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SHARD_ROUTES_PATH]) + "\n",
 }
@@ -232,7 +241,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 def run_self_test() -> None:
     missing_file_cases = [
-        ("missing_validator", "scripts/zigux/validate-phase8.py"),
+        ("missing_validator", VALIDATOR_PATH),
         ("missing_tests_alignment_checker", TESTS_ALIGNMENT_CHECKER_PATH),
         ("missing_help_kallsyms_packet_checker", HELP_KALLSYMS_PACKET_CHECKER_PATH),
         ("missing_perf_buffer_poll_checker", PERF_BUFFER_POLL_CHECKER_PATH),
@@ -244,6 +253,7 @@ def run_self_test() -> None:
         ("missing_help_only_build", HELP_ONLY_BUILD_PATH),
         ("missing_help_kallsyms_only_build", HELP_KALLSYMS_ONLY_BUILD_PATH),
         ("missing_kallsyms_test", KALLSYMS_TEST_PATH),
+        ("missing_kallsyms_only_build", KALLSYMS_ONLY_BUILD_PATH),
         ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
@@ -295,6 +305,13 @@ def run_self_test() -> None:
             f"{REVIEW_CHECKLIST_PATH}: `make -C zigux phase8-help-kallsyms-test`",
         ),
         (
+            "review_checklist_kallsyms_only_build_marker",
+            REVIEW_CHECKLIST_PATH,
+            "`zigux/tests/phase8_kallsyms_only_build.zig`",
+            "`zigux/tests/phase8_kallsyms_review_build.zig`",
+            f"{REVIEW_CHECKLIST_PATH}: `zigux/tests/phase8_kallsyms_only_build.zig`",
+        ),
+        (
             "scripts_readme_help_checker_marker",
             SCRIPTS_README_PATH,
             "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
@@ -316,11 +333,25 @@ def run_self_test() -> None:
             f"{TESTS_README_PATH}: `zigux/tests/phase8_help_kallsyms_only_build.zig`",
         ),
         (
+            "tests_readme_kallsyms_only_build_marker",
+            TESTS_README_PATH,
+            "`zigux/tests/phase8_kallsyms_only_build.zig`",
+            "`zigux/tests/phase8_kallsyms_review_build.zig`",
+            f"{TESTS_README_PATH}: `zigux/tests/phase8_kallsyms_only_build.zig`",
+        ),
+        (
             "tests_readme_help_checker_marker",
             TESTS_README_PATH,
             "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
             "`scripts/zigux/check-phase8-help-kallsyms.py`",
             f"{TESTS_README_PATH}: `scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+        ),
+        (
+            "makefile_help_checker_self_test_marker",
+            MAKEFILE_PATH,
+            "scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
+            "scripts/zigux/check-phase8-help-kallsyms-surface.py --self-test",
+            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
         ),
         (
             "makefile_help_route",
