@@ -19,14 +19,14 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 
 The live repo still benefits from keeping `exec-cmd` parked as a helper-first, output-stable deferred-exec planning packet: it makes the path-choice, environment-shaping, and argv-shape contracts reviewable without widening into process-launch side effects or unrelated `help.c` behavior.
 
-That same parked command-boundary packet also sits inside the shared Phase 8 validator-first route, so reviewers can recheck the command slice through `make -C zigux phase8-validate` before widening back out to the broader tooling bundle.
+Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.
 
 ## Gates
 1. Run the focused Zig module tests: `zig test tools/lib/subcmd/exec-cmd.zig`
-2. Run the focused exec-cmd replay: `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
-3. Run the shared validator route: `make -C zigux phase8-validate`
-4. Run the bundled Phase 8 tooling gate: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-5. Run the focused convenience target: `make -C zigux phase8-exec-cmd-test`
+2. Run the shared validator route: `make -C zigux phase8-validate`
+3. Run the focused exec-cmd replay: `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
+4. Run the focused convenience target: `make -C zigux phase8-exec-cmd-test`
+5. Run the bundled Phase 8 tooling gate: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Current Parity Surface
 The current parked deferred-exec packet covers:
@@ -37,27 +37,29 @@ The current parked deferred-exec packet covers:
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
 - a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus a stat-backed `sameLocation()` and `choosePwdCwdFromFilesystem()` pair that mirror the C helper's logical-`PWD` acceptance rule without widening into broader process or environment side effects
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later deferred `execv_cmd()`-style handoff planning, plus a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists
-- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet without claiming any direct process-launch behavior
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`
 
-The current tests check:
+The current tests keep these bounded edges explicit:
+- helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge and the rooted `argv[0]` slash-avoidance edge
 - path fallback precedence stays stable
 - relative search-path entries become absolute against the current working directory input
 - empty inherited `PATH` values preserve the C helper's trailing-colon shape instead of silently falling back to default search roots
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
-- `choosePwdCwd()` still supports caller-provided same-location proofs while the shared logical-`PWD` replay proves that a symlinked alias to the same directory is accepted by the filesystem-backed helper path
+- the shared logical-`PWD` replay keeps the logical-`PWD` alias acceptance proof explicit while the filesystem-backed helper path accepts a symlinked alias to the same directory
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure deferred `execv` and `execl` handoff helpers keep the parked argv packet reviewable before any direct `execv_cmd()` or `execvp()` ownership exists
-- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
-- the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof, and `make -C zigux phase8-exec-cmd-test` exposes that replay as a one-command route
-- the shared `make -C zigux phase8-validate` route keeps this parked command-boundary slice aligned with the live Phase 8 validator-first packet before the broader tooling replay runs
+- the `collectExeclArgs()` overflow and missing-null guards stay reviewable before any direct varargs launch path exists
+- the focused Phase 8 replay stays on the integrated deferred-exec packet and keeps the live C helper anchors, checklist hook, and validator route aligned before the broader tooling replay runs
+- `make -C zigux phase8-exec-cmd-test` exposes that focused replay as a one-command route
 
 ## Non-Goals
 This slice does not claim:
 - direct `execvp()` parity, `execv_cmd()` ownership, or process-launch behavior
+- any ownership of `execl_cmd()` or the direct varargs launch path
 - direct OS environment reads or writes
 - deferred queue ownership or scheduler-facing transport
-- the later `kernel/workqueue.c` Phase 14 boundary-study target
+- `kernel/workqueue.c` in the later Phase 14 boundary-study tranche
 - the terminal/help listing surface from `tools/lib/subcmd/help.c`
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
