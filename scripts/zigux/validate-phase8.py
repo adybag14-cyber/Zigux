@@ -17,6 +17,8 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 TESTS_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 PERF_BUFFER_POLL_CHECKER_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
+LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
+LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
 REQUIRED_FILES = [
     WORKFLOW_PATH,
@@ -27,6 +29,8 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase8.py",
     TESTS_ALIGNMENT_CHECKER_PATH,
     PERF_BUFFER_POLL_CHECKER_PATH,
+    LIBBPF_SEGMENT_GATE_PATH,
+    LIBBPF_SHARD_ROUTES_PATH,
     MAKEFILE_PATH,
     TESTS_README_PATH,
 ]
@@ -53,8 +57,10 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase8.py",
         "zigux/tests/README.md",
         "zigux/Makefile",
+        "### 1. Command lane",
         "### 4. Shared wording lane",
-        "The next honest reopen cue still starts at the docs-root Phase 8 summary in `Documentation/zigux/README.md`",
+        "current repo-reality caution: the default-branch content surface still returns not-found for the older `Documentation/zigux/phase8-*-slice.md`, `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, and `zigux/tests/phase8_*` packet that some shared summaries still name",
+        "The next honest reopen cue now starts at `scripts/zigux/README.md`",
     ],
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared parked Phase 8 libbpf packet",
@@ -70,6 +76,10 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase8.py`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`make -C zigux phase8-validate`",
         "`make -C zigux phase8-cpu-mask-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
@@ -93,12 +103,24 @@ REQUIRED_MARKERS = {
         "phase8-perf-buffer-poll-test:",
         "phase8: phase8-validate",
     ],
+    LIBBPF_SEGMENT_GATE_PATH: [
+        "PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass",
+        "PHASE8_LIBBPF_SEGMENT_GATE=pass",
+        "parked_wording_packet",
+    ],
+    LIBBPF_SHARD_ROUTES_PATH: [
+        "PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST=pass",
+        "PHASE8_LIBBPF_SHARD_ROUTES=pass",
+        "### 4. Shared wording lane",
+    ],
 }
 
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase8.py": "# fixture\n",
     TESTS_ALIGNMENT_CHECKER_PATH: "# fixture\n",
     PERF_BUFFER_POLL_CHECKER_PATH: "# fixture\n",
+    LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
+    LIBBPF_SHARD_ROUTES_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SHARD_ROUTES_PATH]) + "\n",
 }
 
 
@@ -157,6 +179,8 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_tests_alignment_checker", TESTS_ALIGNMENT_CHECKER_PATH),
         ("missing_perf_buffer_poll_checker", PERF_BUFFER_POLL_CHECKER_PATH),
+        ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
+        ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
         ("missing_lane_note", SEQUENCING_PATH),
         ("missing_makefile", MAKEFILE_PATH),
@@ -184,6 +208,13 @@ def run_self_test() -> None:
             f"{SEQUENCING_PATH}: ### 4. Shared wording lane",
         ),
         (
+            "sequencing_command_gap_marker",
+            SEQUENCING_PATH,
+            "### 1. Command lane",
+            "### 1. Command packet",
+            f"{SEQUENCING_PATH}: ### 1. Command lane",
+        ),
+        (
             "review_checklist_perf_checker_marker",
             REVIEW_CHECKLIST_PATH,
             "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
@@ -191,11 +222,18 @@ def run_self_test() -> None:
             f"{REVIEW_CHECKLIST_PATH}: `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         ),
         (
-            "scripts_readme_tests_alignment_marker",
+            "scripts_readme_libbpf_segment_gate_marker",
             SCRIPTS_README_PATH,
-            "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
-            "`scripts/zigux/check-phase8-tests-alignment.py`",
-            f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-tests-readme-alignment.py`",
+            "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+            "`scripts/zigux/check-phase8-libbpf-gate.py`",
+            f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+        ),
+        (
+            "scripts_readme_libbpf_shard_routes_marker",
+            SCRIPTS_README_PATH,
+            "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+            "`scripts/zigux/check-phase8-libbpf-routes.py`",
+            f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-libbpf-shard-routes.py`",
         ),
         (
             "tests_readme_perf_route_marker",
@@ -210,6 +248,20 @@ def run_self_test() -> None:
             "phase8-cpu-mask-test:",
             "phase8-cpu-mask-route:",
             f"{MAKEFILE_PATH}: phase8-cpu-mask-test:",
+        ),
+        (
+            "libbpf_segment_gate_mode_marker",
+            LIBBPF_SEGMENT_GATE_PATH,
+            "parked_wording_packet",
+            "legacy_only_packet",
+            f"{LIBBPF_SEGMENT_GATE_PATH}: parked_wording_packet",
+        ),
+        (
+            "libbpf_shard_routes_heading_marker",
+            LIBBPF_SHARD_ROUTES_PATH,
+            "### 4. Shared wording lane",
+            "### 4. Shared wording packet",
+            f"{LIBBPF_SHARD_ROUTES_PATH}: ### 4. Shared wording lane",
         ),
     ]
 
