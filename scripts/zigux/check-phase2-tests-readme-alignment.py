@@ -15,13 +15,16 @@ FALLBACK_REMINDER = (
     "routes when `ZIG` is unset"
 )
 SCRIPTS_PHASE2_LIVE_SENTENCE = (
-    "`check-zig-toolchain.py`, `install-zig.py`, `check-phase2-tests-readme-alignment.py`, "
-    "and `check-phase2-kconfig-readme-alignment.py` are the live scripts-root Phase 2 helpers on "
-    "current `master`; the broader `phase2-toolchain`, `phase2-validate`, `phase2-tools`, "
-    "`phase2-kconfig`, `phase2-cross`, and `phase2` route inventory should stay documented through "
-    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, "
-    "`zigux/tests/README.md`, and `zigux/Makefile` until the missing dedicated validator, manifest, "
-    "cross-target, pin-scope, and bridge scripts return to the tree."
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, "
+    "`validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, "
+    "`check-phase2-tests-readme-alignment.py`, and `check-phase2-kconfig-readme-alignment.py` "
+    "are the live shared scripts-root Phase 2 helpers on current `master`; the broader "
+    "`phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, "
+    "and `phase2` route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, "
+    "and bridge checker packet should stay documented through "
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
+    "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
+    "instead of being implied as missing current-`master` surfaces."
 )
 SCRIPTS_PHASE2_ALIGNMENT_SENTENCE = (
     "Phase 2 flow - `check-phase2-tests-readme-alignment.py` keeps `zigux/tests/README.md`, "
@@ -30,12 +33,14 @@ SCRIPTS_PHASE2_ALIGNMENT_SENTENCE = (
     "plus `make -C zigux phase2` replay surface aligned around the same bounded toolchain packet."
 )
 SCRIPTS_PHASE2_KCONFIG_SENTENCE = (
-    "`check-phase2-kconfig-readme-alignment.py --self-test` and `check-phase2-kconfig-readme-alignment.py` "
-    "keep this scripts index honest by requiring the live Phase 2 summary to name "
-    "`check-phase2-tests-readme-alignment.py`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
-    "`Documentation/zigux/phase2-closure.md`, `zigux/Makefile`, and the Linux-style `phase2-kconfig` route "
-    "without implying that the older dedicated kconfig bridge checker stack is still present under "
-    "`scripts/zigux/` on current `master`."
+    "`check-phase2-kconfig-readme-alignment.py --self-test` and "
+    "`check-phase2-kconfig-readme-alignment.py` keep this scripts index honest by requiring the "
+    "live Phase 2 summary to name `check-phase2-tests-readme-alignment.py`, "
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
+    "`Documentation/zigux/phase2-closure.md`, `zigux/Makefile`, and the Linux-style "
+    "`phase2-kconfig` route while keeping the dedicated kconfig bridge checker packet "
+    "documented through the shared Phase 2 reminder surface instead of implying that stack is "
+    "missing on current `master`."
 )
 
 REQUIRED_FILES = [
