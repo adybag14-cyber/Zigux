@@ -11,6 +11,7 @@
 - `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
 
 ## Purpose
 
@@ -40,6 +41,10 @@ The bounded evidence packet instead remains:
 That packet keeps the current C anchor, replay path, owner, rollback owner, and
 dedicated local survey routes measurable while the shared Phase 4 rollback-readiness
 lane remains below starter implementation.
+
+The same packet now also keeps its reversible-delivery evidence string pinned in the
+paired manifest so the absent-starter boundary does not fall back to note prose
+alone.
 
 ## Next Bounded Evidence Step
 
