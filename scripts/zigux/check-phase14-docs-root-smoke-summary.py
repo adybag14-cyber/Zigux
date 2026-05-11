@@ -294,6 +294,26 @@ def run_self_test() -> int:
 
         write_text(
             root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: zigux/tests/phase14_end_to_end_smoke_manifest.json"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root smoke-manifest marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
             good_docs_root_text().replace("- `make -C zigux phase14-test`\n", "", 1),
         )
         if not any(
@@ -392,7 +412,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
