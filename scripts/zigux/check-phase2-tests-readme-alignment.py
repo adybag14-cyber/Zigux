@@ -57,6 +57,8 @@ FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+        "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
         "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
         "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
