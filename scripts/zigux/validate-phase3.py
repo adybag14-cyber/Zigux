@@ -30,6 +30,8 @@ REQUIRED_MANIFEST_FILES = (
 )
 
 REPO_FILES = (
+    Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/review-checklist.md"),
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
@@ -51,6 +53,7 @@ REPO_FILES = (
     MMIO_HELPER_PATH,
     LOW_LEVEL_TEST_PATH,
     TEST_BUILD_PATH,
+    Path("zigux/tests/README.md"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     ABI_MANIFEST_PATH,
@@ -77,6 +80,7 @@ REPO_FILES = (
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/README.md"),
     Path("zigux/Makefile"),
+    Path(".github/workflows/zigux-bootstrap.yml"),
 )
 
 MAKE_MARKERS = (
@@ -395,8 +399,43 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        phase3_abi_rel = Path("zigux/tests/phase3_abi.zig")
+        review_checklist_rel = Path("Documentation/zigux/review-checklist.md")
         _write(root / missing_rel, "# restored\n")
+        (root / review_checklist_rel).unlink()
+        issues = validate_repo(root)
+        expected_review_checklist_missing = (
+            f"missing repo file: {review_checklist_rel.as_posix()}"
+        )
+        if expected_review_checklist_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing review checklist was not reported")
+            return 1
+        case_count += 1
+
+        tests_readme_rel = Path("zigux/tests/README.md")
+        _write(root / review_checklist_rel, "# restored\n")
+        (root / tests_readme_rel).unlink()
+        issues = validate_repo(root)
+        expected_tests_readme_missing = f"missing repo file: {tests_readme_rel.as_posix()}"
+        if expected_tests_readme_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing tests README was not reported")
+            return 1
+        case_count += 1
+
+        workflow_rel = Path(".github/workflows/zigux-bootstrap.yml")
+        _write(root / tests_readme_rel, "# restored\n")
+        (root / workflow_rel).unlink()
+        issues = validate_repo(root)
+        expected_workflow_missing = f"missing repo file: {workflow_rel.as_posix()}"
+        if expected_workflow_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing workflow was not reported")
+            return 1
+        case_count += 1
+
+        phase3_abi_rel = Path("zigux/tests/phase3_abi.zig")
+        _write(root / workflow_rel, "# restored\n")
         (root / phase3_abi_rel).unlink()
         issues = validate_repo(root)
         expected_phase3_abi_missing = f"missing repo file: {phase3_abi_rel.as_posix()}"
@@ -625,7 +664,7 @@ def run_self_test() -> int:
         )
         if expected_mmio_consumer_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing typed-policy mmio consumer self-test make marker was not reported")
+            print("expected typed-policy mmio consumer self-test make marker was not reported")
             return 1
         case_count += 1
 
