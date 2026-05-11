@@ -16,30 +16,31 @@ That plan only stays reviewable if the repo's public survey surfaces truthfully 
 
 ## Current public-tree readback
 Public default-branch exact readback on 2026-05-11 showed:
-- `Documentation/zigux/` still exposes the shared sequencing and bridge-boundary notes at `phase8-tooling-lane-sequencing.md` and `phase8-userspace-kernel-bridge-boundary-survey.md`.
-- the same public readback also exposes the bounded bridge slice note at `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, so the Phase 8 docs packet is no longer limited to only the two shared reminder surfaces.
-- the manifest-backed bridge packet keeps the roadmap boundary explicit: `fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, while the broader `file-path-and-handle-bridge` resource boundary still stays deferred.
-- the shared Phase 8 owner-map note still keeps the roadmap posture clear: any same-family follow-up must stay smaller than direct procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, fd ownership semantics, or the separate deferred `perf-buffer-online-cpu-routing` packet.
+- `Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.
+- `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet through `phase8_cpu_mask.zig`, `phase8_logging.zig`, `phase8_pin_path.zig`, `phase8_bpf_type_names.zig`, `phase8_file_path_handle_bridge.zig`, `phase8_perf_buffer_poll.zig`, `phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/verify.zig`.
+- targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`, so the helper-first packet is still publicly visible beyond the narrower bridge-only wording.
+- the manifest-backed bridge packet still keeps the roadmap boundary explicit: `fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, while the broader `file-path-and-handle-bridge` resource boundary stays deferred.
+- authenticated contents reads remain inconsistent for some paired Phase 8 docs and tests paths from this environment, so exact readable blob content and public tree evidence should outweigh older absent-file assumptions when choosing the next bounded step.
 
 ## Current bounded gap
 The real current gap is still reviewability truthfulness, not a helper-behavior claim.
 
-Older shared reminder surfaces can still make the public docs packet look thinner than it really is, while the live bridge packet has already split into two landed helper-first bridge segments plus one still-deferred resource-boundary segment. This survey should keep that landed-versus-deferred boundary explicit so nearby scheduled runs do not collapse the helper packet into the heavier resource bridge.
+The survey's bridge-only wording now undercounts the live Phase 8 libbpf packet on `master`: current docs-root, scripts-root, helper-source, and shared build readback all still describe a broader helper-first and verify-facing shard bundle than this note used to admit. This survey should keep that wider landed packet explicit without collapsing back into the heavier deferred bridge or routing work.
 
 ## Non-goals
 This survey does not claim:
-- restored `tools/lib/bpf/zigux_segments/*.zig` behavior coverage by itself
-- restored Phase 8 tests-tree shard coverage by itself
+- restored direct behavior verification for every paired Phase 8 libbpf test shard by itself
 - direct `perf_event_open()` setup, epoll wiring, mmap-backed ring ownership, or online-CPU routing parity
 - direct procfs reads, live bpffs opens, token creation, `bpf_obj_get()` reopen flow, or fd ownership parity for the deferred resource-boundary packet
 - any reopen of the shared command or symbol packets
+- any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Start with the smallest shared-surface truthfulness repair that matches the current public packet exactly.
+Start with the smallest directly coupled libbpf survey follow-through that matches the current readable tree exactly.
 
 Preferred order:
-1. `Documentation/zigux/README.md`
-2. `scripts/zigux/README.md`
-3. only then consider any packet-local Phase 8 libbpf slice-note or tests-root follow-through that current-tree readback really justifies
+1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
+2. only then trim or widen any shared reminder surface that still disagrees with the live helper-plus-build packet
+3. keep follow-up smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, or broader timeout-sensitive routing behavior
 
-Keep follow-up inside the libbpf segment survey family until the public reminder packet explicitly matches the live bridge split: the helper-first bridge packet is landed, but the broader file-path-and-handle resource boundary remains parked.
+Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.
