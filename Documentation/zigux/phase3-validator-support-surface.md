@@ -56,8 +56,10 @@ Phase 3 ABI and runtime tranche.
   and `run-phase3-checks.py` as shipped helper entrypoints on current `master`,
   not as historical-only references
 - keep `Documentation/zigux/phase3-validator-support-surface.md` paired with
-  `scripts/zigux/validate-phase3-validator-support-surface.py` so the shipped
-  validator-support inventory fails closed when this note drifts
+  `scripts/zigux/validate-phase3-validator-support-surface.py` and
+  `Documentation/zigux/phase3-abi-h-boundary-next-step.md` so the shipped
+  validator-support inventory and the broad next-step reminder policy fail
+  closed together when either note drifts
 - keep `make -C zigux phase3-selftest` as a focused companion route that
   complements but does not duplicate the default `make -C zigux phase3-validate`
   packet
