@@ -48,12 +48,13 @@ constant-parity packet should keep this survey explicit beside
 `Documentation/zigux/phase3-linux-zigux-header-governance.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
-`scripts/zigux/README.md`, `include/zigux/dev_t.h`,
-`zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
-`zigux/tests/README.md`, `zigux/bindings/abi.zig`,
-`zigux/tests/phase3_abi_dump.zig`,
+`scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/uapi/dev_t.zig`,
+`zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
 `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
 `zigux/tests/fixtures/phase3_abi/expected.json`,
 `scripts/zigux/validate-phase3-export-uapi-survey.py`,
 `scripts/zigux/validate-phase3-abi-bindings-syntax.py`, and
-`scripts/zigux/survey-phase3-abi-constant-parity.py`.
+`scripts/zigux/survey-phase3-abi-constant-parity.py`; the narrower
+`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail
+should stay anchored in this dedicated survey and the paired next-step note
+instead of being treated as a required broad-summary repeat everywhere.
