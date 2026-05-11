@@ -9,22 +9,22 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=21a570d4905b1f6397131839bc1857b786aa2f83`
 - `PHASE4_VALIDATOR_BLOB_SHA=abe089ee72dbb13fa5d7de9c2b4ac8915b9a9658`
 - `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=922b2db15fd7c39cf527ccfc8ac0f776145dbe9e`
-- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=e5a0c55b6cdaf124e2e305bbc844c4ae067cf284`
+- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=790818abb44031a030d97f36dcf0ad1fdac01df5`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=fabeb85868d4e5f82e82999199cb3b746b15009e`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=480081306fa696f805ad664c460715a072e9a16b`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-- `PHASE4_MAKEFILE_BLOB_SHA=2f46eb0f74567c0d709a399ee9a33b1717e50e6d`
+- `PHASE4_MAKEFILE_BLOB_SHA=db47469e8141604e02d471066957334cee4afb82`
 - `PHASE4_WORKFLOW_BLOB_SHA=ebf25de6e0f8a2e04a190897a0e241696d41e189`
-- `PHASE4_DOC_README_BLOB_SHA=098a3d409668b7be7c879b0bf38f9f6fd15938fc`
+- `PHASE4_DOC_README_BLOB_SHA=b7e14aa40ea2e050493199aa60b8ff71e078b44c`
 - `PHASE4_SCRIPT_README_BLOB_SHA=18d24feadf6558145607a044ba853f3663d7b85e`
-- `PHASE4_TESTS_README_BLOB_SHA=f0c5a079cf25c10a54342c341d5cd77f1a539599`
+- `PHASE4_TESTS_README_BLOB_SHA=b919920c582f271b43021a3f613d9447dc1ff12f`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=2e2b586a41ad473cd96e7fd5528a35ebcbf8feae`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=dd1e2da578cd1a55c4ac28692aed8d8afa7aa671`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=c5e9cd9f3997184274044c66b163a954037ed3ca`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=768ab7f646c5fc93514d25da938fbf90dc95c8bd`
-- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=245c0676e68436292c68ea134d2c0ad954e3d41d`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=036b7ae2833d0d6e3569ffd401fc326e908bb6ef`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=23`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,missing_note_file`
@@ -39,7 +39,7 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
 
 ## Exact Readback Evidence
-- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and the newer dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` checker now agree on the currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`, while `zigux/tests/README.md` still lists the dedicated local perf-baseline survey files without yet keeping the matching direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and Linux-style `make -C zigux phase4-perf-baseline-survey` replay routes explicit in its key-entrypoint packet.
+- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` checker now agree on the currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`, including the dedicated local-only perf-baseline survey files plus the matching direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and Linux-style `make -C zigux phase4-perf-baseline-survey` replay routes.
 - `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.
 - The current bounded atomic64 rollback gate now has an exact check inventory in this note: two arithmetic checks (`v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing` and `negative-one arithmetic path keeps decrement-style updates visible`), three exchange checks (`v0 to v1 keeps the original counter visible as the exchange return value`, `v1 to v2 keeps wide negative and positive 64-bit values distinct`, and `high-bit starter from atomic64_test.c still round-trips through exchange`), two `cmpxchg` checks (success and mismatch), two `add_unless` checks (blocked and changed), three bitwise checks (`and`, `or`, and `xor`), the selftest-family ordering replay, empty-batch rejection for `runThresholdReplay(0)`, and deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with final counters `130322557735600377` and `130322557735600376` plus checksums `3626254113632800175` and `9210681150676220922`.
@@ -61,4 +61,4 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope, with `median_elapsed_ns <= 8192` for atomic64 and `median_elapsed_ns <= 12288` for bitmap across seven monotonic samples.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
-- the docs-root, scripts-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, while the tests-root packet still needs that dedicated perf-baseline replay-route undercount refreshed even though the broader gate-evidence status schema still needs a later dedicated refresh.
+- the docs-root, scripts-root, tests-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, and the dedicated local-only perf-baseline survey wrappers are explicit across that shared Phase 4 review packet again even though the broader gate-evidence status schema still needs a later dedicated refresh.
