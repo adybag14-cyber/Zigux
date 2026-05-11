@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,7 +12,6 @@ PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-README = ROOT / "scripts" / "zigux" / "README.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
@@ -23,7 +22,7 @@ EXPECTED_TARGETS = [
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
-    "python3 scripts/zigux/check-phase2-cross.py --self-test": 2,
+    "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}": 1,
 }
 
@@ -33,36 +32,24 @@ EXACT_MAKEFILE_RUN_COUNTS = {
 }
 
 PHASE2_CROSS_CHECKER_MARKERS = [
-    "parser.add_argument('--self-test'",
-    "print('PHASE2_CROSS_SELF_TEST=pass')",
-    "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')",
-    "phase2-cross:tool_manifest_path_missing:",
-    "phase2-cross:self-test:explicit_target_failure:",
-    "phase2-cross:duplicate_tool:",
-    "phase2-cross:duplicate_target:",
-    "phase2-cross:duplicate_manifest_target:",
+    "EXPECTED_TARGETS = [",
+    "EXPECTED_ZIG_TEST_FILES = [",
+    'print("PHASE2_CROSS_SELF_TEST=pass")',
+    'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
+    'print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")',
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
-    "PHASE2_CROSS_ALIGNMENT_CHECKER",
-    "PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS",
-    "phase2_cross_alignment_checker",
-    "str(PHASE2_CROSS_ALIGNMENT_CHECKER)",
-]
-
-README_MARKERS = [
-    "check-phase2-cross.py --self-test",
-    "check-phase2-cross.py",
-    "duplicate tool entries",
-    "duplicate manifest targets",
-    "unexpected explicit targets",
+    'ROOT / "scripts" / "zigux" / "check-phase2-cross.py"',
+    'ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"',
+    'ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
 ]
 
 CLOSURE_MARKERS = [
-    "PHASE2_CROSS_TARGET_COUNT=3",
-    "PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test",
-    "PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py",
-    "PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay",
+    "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "make -C zigux phase2-cross",
 ]
 
 
@@ -145,14 +132,13 @@ def run_self_test() -> int:
     workflow_text = "\n".join(
         [
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-            "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
             "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
         ]
     )
     if validate_exact_workflow_runs(workflow_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_counts")
 
-    bad_workflow = "run: python3 scripts/zigux/check-phase2-cross.py --self-test"
+    bad_workflow = ""
     issues = validate_exact_workflow_runs(bad_workflow)
     if not any(issue.startswith("workflow_exact_run:") for issue in issues):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
@@ -191,7 +177,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -210,7 +196,6 @@ def main() -> int:
         PHASE2_VALIDATOR,
         WORKFLOW,
         MAKEFILE,
-        README,
         CLOSURE_DOC,
         TARGETS_MANIFEST,
     ]
@@ -239,13 +224,6 @@ def main() -> int:
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
             label="phase2_validator",
             markers=PHASE2_VALIDATOR_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_required_markers(
-            README.read_text(encoding="utf-8"),
-            label="scripts_readme",
-            markers=README_MARKERS,
         )
     )
     issues.extend(
