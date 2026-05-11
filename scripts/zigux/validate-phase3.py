@@ -257,7 +257,15 @@ def validate_manifest(repo_root: Path) -> list[str]:
             f"phase3 ABI manifest file_count drift: expected {len(files)}, found {file_count}"
         )
 
-    file_entries = {entry for entry in files if isinstance(entry, str)}
+    file_entries: set[str] = set()
+    for entry in files:
+        if not isinstance(entry, str):
+            issues.append(f"invalid phase3 ABI manifest file entry: {entry!r}")
+            continue
+        file_entries.add(entry)
+        if not (repo_root / entry).is_file():
+            issues.append(f"missing manifest-tracked repo file: {entry}")
+
     for rel_path in REQUIRED_MANIFEST_FILES:
         if rel_path.as_posix() not in file_entries:
             issues.append(f"missing phase3 ABI manifest entry: {rel_path.as_posix()}")
@@ -374,6 +382,28 @@ def _populate_repo(root: Path) -> None:
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
     _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
+    _write(root / "include/zigux/dev_t.h", "#define ZIGUX_DEV_T_BITS 32\n")
+    _write(root / "zigux/bindings/dev_t.zig", "pub const dev_t = u32;\n")
+    _write(root / "zigux/bindings/notifier_abi.zig", "pub const notifier_call = i32;\n")
+    _write(root / "zigux/helpers/layout_assert.zig", "pub fn layoutAssert() void {}\n")
+    _write(root / "zigux/helpers/panic_policy.zig", "pub fn panicPolicy() void {}\n")
+    _write(root / "zigux/helpers/allocator_policy.zig", "pub fn allocatorPolicy() void {}\n")
+    _write(
+        root / ABI_MANIFEST_PATH,
+        _manifest_payload(
+            [
+                rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES
+            ]
+            + [
+                "include/zigux/dev_t.h",
+                "zigux/bindings/dev_t.zig",
+                "zigux/bindings/notifier_abi.zig",
+                "zigux/helpers/layout_assert.zig",
+                "zigux/helpers/panic_policy.zig",
+                "zigux/helpers/allocator_policy.zig",
+            ]
+        ),
+    )
 
 
 def run_self_test() -> int:
@@ -515,6 +545,44 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        _write(
+            root / ABI_MANIFEST_PATH,
+            _manifest_payload(
+                [rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]
+                + ["zigux/helpers/panic_policy.zig"]
+            ),
+        )
+        (root / "zigux/helpers/panic_policy.zig").unlink()
+        issues = validate_repo(root)
+        expected_manifest_tracked_helper_missing = (
+            "missing manifest-tracked repo file: zigux/helpers/panic_policy.zig"
+        )
+        if expected_manifest_tracked_helper_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing manifest-tracked panic policy helper was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/helpers/panic_policy.zig", "pub fn panicPolicy() void {}\n")
+        _write(
+            root / ABI_MANIFEST_PATH,
+            _manifest_payload(
+                [rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]
+                + ["include/zigux/dev_t.h"]
+            ),
+        )
+        (root / "include/zigux/dev_t.h").unlink()
+        issues = validate_repo(root)
+        expected_manifest_tracked_header_missing = (
+            "missing manifest-tracked repo file: include/zigux/dev_t.h"
+        )
+        if expected_manifest_tracked_header_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing manifest-tracked dev_t header was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "include/zigux/dev_t.h", "#define ZIGUX_DEV_T_BITS 32\n")
         _write(root / ABI_MANIFEST_PATH, _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]))
         (root / manifest_rel).unlink()
         issues = validate_repo(root)
