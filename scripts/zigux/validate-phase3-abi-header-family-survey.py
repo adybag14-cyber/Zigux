@@ -108,6 +108,12 @@ def run_self_test() -> int:
         print("expected missing marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("zigux/bindings/abi.zig", "", 1))
+    if "zigux/bindings/abi.zig" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected current-packet bindings marker was not reported")
+        return 1
+
     broken = validate_text(sample.replace("zigux/tests/phase3_abi_dump.zig", "", 1))
     if "zigux/tests/phase3_abi_dump.zig" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
@@ -135,6 +141,13 @@ def run_self_test() -> int:
     if "shared reminder missing marker: zigux/uapi/dev_t.zig" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected shared reminder marker was not reported")
+        return 1
+
+    broken_sample = sample.rsplit("zigux/bindings/abi.zig", 1)
+    broken = validate_text("".join(broken_sample))
+    if "shared reminder missing marker: zigux/bindings/abi.zig" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected shared reminder bindings marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("Documentation/zigux/README.md", "", 1))
