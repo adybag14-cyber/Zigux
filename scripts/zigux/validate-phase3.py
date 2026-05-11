@@ -13,6 +13,8 @@ import tempfile
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+POLICY_UNSAFE_TEST_PATH = Path("zigux/tests/phase3_policy_unsafe.zig")
+POLICY_UNSAFE_BUILD_PATH = Path("zigux/tests/phase3_policy_unsafe_build.zig")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*:")
@@ -43,6 +45,8 @@ REPO_FILES = (
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
+    POLICY_UNSAFE_TEST_PATH,
+    POLICY_UNSAFE_BUILD_PATH,
     ABI_MANIFEST_PATH,
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
@@ -318,7 +322,33 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        policy_unsafe_rel = POLICY_UNSAFE_TEST_PATH
         _write(root / phase3_abi_rel, "# restored\n")
+        (root / policy_unsafe_rel).unlink()
+        issues = validate_repo(root)
+        expected_policy_unsafe_missing = (
+            f"missing repo file: {policy_unsafe_rel.as_posix()}"
+        )
+        if expected_policy_unsafe_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing policy/unsafe replay was not reported")
+            return 1
+        case_count += 1
+
+        policy_unsafe_build_rel = POLICY_UNSAFE_BUILD_PATH
+        _write(root / policy_unsafe_rel, "# restored\n")
+        (root / policy_unsafe_build_rel).unlink()
+        issues = validate_repo(root)
+        expected_policy_unsafe_build_missing = (
+            f"missing repo file: {policy_unsafe_build_rel.as_posix()}"
+        )
+        if expected_policy_unsafe_build_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing policy/unsafe build replay was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / policy_unsafe_build_rel, "# restored\n")
         _write(root / ABI_MANIFEST_PATH, _manifest_payload([]))
         issues = validate_repo(root)
         expected_manifest_entry_missing = "missing phase3 ABI manifest entry: zigux/uapi/dev_t.zig"
