@@ -166,6 +166,17 @@ EXACT_COUNT_CHECKS = {
     },
 }
 
+LINE_EXACT_COUNT_CHECKS = {
+    ".github/workflows/zigux-bootstrap.yml": {
+        "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+        "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+    },
+    "zigux/Makefile": {
+        "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+        "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+    },
+}
+
 MISSING_FILE_CASES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
@@ -194,6 +205,16 @@ def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str
     return issues
 
 
+def collect_line_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
+    issues: list[str] = []
+    lines = text.splitlines()
+    for marker, expected in checks.items():
+        count = sum(1 for line in lines if line == marker)
+        if count != expected:
+            issues.append(f"{prefix}:line_exact_count:{marker}:count={count}:expected={expected}")
+    return issues
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -207,6 +228,8 @@ def validate_root(root: Path) -> list[str]:
         issues.extend(collect_missing_markers(text, markers, prefix=rel_path))
         if rel_path in EXACT_COUNT_CHECKS:
             issues.extend(collect_exact_count_issues(text, EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
+        if rel_path in LINE_EXACT_COUNT_CHECKS:
+            issues.extend(collect_line_exact_count_issues(text, LINE_EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
     return issues
 
 
@@ -301,6 +324,24 @@ def run_self_test() -> int:
                 assert f"{rel_path}:exact_count:{marker}:count={expected + 1}:expected={expected}" in issues
                 case_count += 1
 
+        for rel_path, checks in LINE_EXACT_COUNT_CHECKS.items():
+            for marker, expected in checks.items():
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(remove_marker_once(original, marker), encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:line_exact_count:{marker}:count={expected - 1}:expected={expected}" in issues
+                case_count += 1
+
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(duplicate_marker(original, marker), encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:line_exact_count:{marker}:count={expected + 1}:expected={expected}" in issues
+                case_count += 1
+
         for rel_path in MISSING_FILE_CASES:
             build_self_test_root(root)
             (root / rel_path).unlink()
@@ -308,7 +349,12 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    expected_case_count = 1 + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values()) + len(MISSING_FILE_CASES)
+    expected_case_count = (
+        1
+        + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values())
+        + 2 * sum(len(checks) for checks in LINE_EXACT_COUNT_CHECKS.values())
+        + len(MISSING_FILE_CASES)
+    )
     assert case_count == expected_case_count
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
