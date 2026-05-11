@@ -193,6 +193,16 @@ That means `tail_clamped_first`, `tail_clamped_next`, `tail_zero_clamped_first`,
 
 The shared Phase 1 replay in `zigux/tests/phase1_helpers.zig` already consumes `tail_clamped_last` and `tail_clamped_empty_last` directly when it checks `findLastBit()`. Reviewers should keep those two last-bit fields aligned with the six existing first-, next-, zero-, and shared-bit tail-clamp fields whenever the helper or replay changes.
 
+The shared Phase 1 benchmark packet for `tools/lib/find_bit.zig` must also keep the current next-bit and edge-loop smoke contract explicit through:
+
+- `zigux/tests/fixtures/phase1_bench_expectations.json`
+- `zigux/tests/phase1_bench.zig`
+- `scripts/zigux/check-phase1-bench.py`
+
+That means `PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS`, `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS`, `PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM`, and `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` stay present and review-visible whenever the helper, the bench smoke, or the bench checker changes. This bounded benchmark packet is the closure-side proof that both the steady-state `findNextBit()` loop and the inclusive-boundary plus tail-window edge replay remain live inside the Phase 1 smoke bench instead of silently collapsing to dead code or a stale checksum contract.
+
+- `PHASE1_FIND_BIT_BENCH_REVIEW=the shared Phase 1 benchmark packet keeps the exact next-bit and edge-loop iteration and checksum contract explicit so the steady-state and edge-case find_bit smoke paths remain live and review-visible`
+
 ## Bitmap Review Rule
 
 For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-window XOR fixture contract explicit through:
