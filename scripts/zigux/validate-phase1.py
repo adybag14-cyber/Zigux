@@ -81,6 +81,18 @@ EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT = (
 EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
 )
+EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
+    "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
+)
+EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
+    "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
+)
+EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY = (
+    "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation"
+)
+EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY = (
+    "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership"
+)
 EXPECTED_RBTREE_BENCH_ITERATIONS = 4000
 EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM = 3380000
 EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS = 20000
@@ -293,6 +305,24 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
     if find_bit_review_anchors.get("review_packet_summary") != EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:review_packet_summary")
 
+    rbtree_review_anchors = review_anchors.get("tools/lib/rbtree.zig")
+    if not isinstance(rbtree_review_anchors, dict):
+        missing.append("phase1_manifest_review_anchor:shape=tools/lib/rbtree.zig")
+        rbtree_review_anchors = {}
+    if rbtree_review_anchors.get("review_packet_summary") != EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:review_packet_summary")
+
+    string_review_anchors = review_anchors.get("tools/lib/string.zig")
+    if not isinstance(string_review_anchors, dict):
+        missing.append("phase1_manifest_review_anchor:shape=tools/lib/string.zig")
+        string_review_anchors = {}
+    if string_review_anchors.get("prefix_suffix_review_summary") != EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:prefix_suffix_review_summary")
+    if string_review_anchors.get("memparse_review_summary") != EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:memparse_review_summary")
+    if string_review_anchors.get("shared_replace_char_cstr_review_summary") != EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary")
+
     fixture = json.loads(load_text(root / "zigux/tests/fixtures/phase1_helpers.json"))
     replay_text = load_text(root / "zigux/tests/phase1_helpers.zig")
     replay_body = extract_test_body(replay_text, "phase 1 helper ports match committed parity fixture")
@@ -455,10 +485,14 @@ def make_fixture_root(root: Path) -> None:
     manifest["review_anchors"]["tools/lib/string.zig"] = {
         "helper_test_anchors": ['test "strtobool accepts common Linux forms"'],
         "parity_fixture_keys": ["strtobool_invalid"],
+        "prefix_suffix_review_summary": EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY,
+        "memparse_review_summary": EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY,
+        "shared_replace_char_cstr_review_summary": EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY,
     }
     manifest["review_anchors"]["tools/lib/rbtree.zig"] = {
         "helper_test_anchors": ['test "rbtree inserts and traverses in sorted order"'],
         "parity_fixture_keys": ["find_found_key"],
+        "review_packet_summary": EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY,
     }
 
     for helper, anchors in manifest["review_anchors"].items():
@@ -574,6 +608,34 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["review_packet_summary"] = "stale find_bit summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "stale rbtree summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/string.zig"]["prefix_suffix_review_summary"] = "stale prefix summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/string.zig:prefix_suffix_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_summary"] = "stale memparse summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/string.zig:memparse_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/string.zig"]["shared_replace_char_cstr_review_summary"] = "stale shared replace summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
