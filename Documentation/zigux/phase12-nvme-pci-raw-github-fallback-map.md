@@ -5,7 +5,7 @@ This note is the commit-pinned public-read fallback companion for the shipped `n
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=nvme-pci-raw-github-fallback-map`
-- commit pin: `a1b9a70eb33a41cdefdece794fb381b66f286432`
+- commit pin: `9788a8a2c6ec63dba56936d6019d0dcfb3424815`
 - packet role: read-only fallback artifact for public inspection when normal repository reads are degraded
 - release companions: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`
 - fallback overview companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
@@ -13,7 +13,7 @@ This note is the commit-pinned public-read fallback companion for the shipped `n
 
 ## Commit-Pinned Paths
 Base raw URL prefix:
-`https://raw.githubusercontent.com/adybag14-cyber/Zigux/a1b9a70eb33a41cdefdece794fb381b66f286432/`
+`https://raw.githubusercontent.com/adybag14-cyber/Zigux/9788a8a2c6ec63dba56936d6019d0dcfb3424815/`
 
 - driver verification entrypoint: `drivers/nvme/host/pci_verify.zig`
 - slice note: `Documentation/zigux/phase12-nvme-pci-slice.md`
