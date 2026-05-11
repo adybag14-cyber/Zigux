@@ -11,6 +11,8 @@ FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
+KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
+KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TESTS_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 KCONFIG_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
@@ -49,10 +51,12 @@ def main() -> int:
         ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
         ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
         ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
+        ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
         ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
         ROOT / "scripts" / "zigux" / "install-zig.py",
         ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
@@ -82,6 +86,10 @@ def main() -> int:
         [sys.executable, str(TESTS_README_ALIGNMENT_CHECKER)],
         [sys.executable, str(KCONFIG_README_ALIGNMENT_CHECKER), "--self-test"],
         [sys.executable, str(KCONFIG_README_ALIGNMENT_CHECKER)],
+        [sys.executable, str(KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER), "--self-test"],
+        [sys.executable, str(KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER)],
+        [sys.executable, str(KCONFIG_BRIDGE_CHECKER), "--self-test"],
+        [sys.executable, str(KCONFIG_BRIDGE_CHECKER)],
         [sys.executable, str(FIXDEP_GATE_CHECKER), "--self-test"],
         [sys.executable, str(FIXDEP_GATE_CHECKER)],
         [sys.executable, str(FIXDEP_DIFF_CHECKER), "--self-test"],
@@ -100,7 +108,7 @@ def main() -> int:
             return 1
 
     print("PHASE2_VALIDATION=pass")
-    print("PHASE2_VALIDATION_COMMAND_COUNT=14")
+    print("PHASE2_VALIDATION_COMMAND_COUNT=18")
     return 0
 
 
