@@ -88,11 +88,11 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7",
     ],
     "scripts/zigux/validate-phase7.py": [
-        '"scripts/zigux/check-phase7-argv-split-packet.py"',
-        '"zigux/tests/phase7_argv_split.zig"',
-        '"zigux/tests/phase7_argv_split_survey.zig"',
-        '"zigux/tests/phase7_argv_split_manifest.json"',
-        '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"',
+        "\"scripts/zigux/check-phase7-argv-split-packet.py\"",
+        "\"zigux/tests/phase7_argv_split.zig\"",
+        "\"zigux/tests/phase7_argv_split_survey.zig\"",
+        "\"zigux/tests/phase7_argv_split_manifest.json\"",
+        "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"",
     ],
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase7-argv-split-packet.py",
@@ -112,10 +112,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_build.zig": [
         "phase7-argv-split-tests",
-        '"phase7_argv_split.zig"',
+        "\"phase7_argv_split.zig\"",
         "phase7-argv-split-survey-tests",
-        '"phase7_argv_split_survey.zig"',
-        'run_argv_split_survey_tests.setCwd(b.path("../.."));',
+        "\"phase7_argv_split_survey.zig\"",
+        "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "phase 7 argvSplit matches focused parity fixtures",
@@ -140,9 +140,12 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
+        "copied token-buffer ownership and later source-mutation isolation",
+        "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
         "argvFree on one live non-blank result does not disturb another caller-owned split result",
         "deinit on one live non-blank result does not disturb another caller-owned split result",
+        "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
     ],
 }
 
@@ -349,6 +352,20 @@ def run_self_test() -> None:
             "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         ),
         (
+            "manifest_copied_buffer_isolation_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "copied token-buffer ownership and later source-mutation isolation",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: copied token-buffer ownership and later source-mutation isolation",
+        ),
+        (
+            "manifest_owned_storage_reuse_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "owned-storage reuse keeps token pointers inside caller-managed storage",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: owned-storage reuse keeps token pointers inside caller-managed storage",
+        ),
+        (
             "manifest_distinct_callers_marker",
             "zigux/tests/phase7_argv_split_manifest.json",
             "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
@@ -370,11 +387,18 @@ def run_self_test() -> None:
             "zigux/tests/phase7_argv_split_manifest.json: deinit on one live non-blank result does not disturb another caller-owned split result",
         ),
         (
+            "manifest_blank_sentinel_stability_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+        ),
+        (
             "build_survey_cwd_marker",
             "zigux/tests/phase7_build.zig",
-            'run_argv_split_survey_tests.setCwd(b.path("../.."));',
-            'run_argv_split_survey_tests.setCwd(b.path("."));',
-            'zigux/tests/phase7_build.zig: run_argv_split_survey_tests.setCwd(b.path("../.."));',
+            "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
+            "run_argv_split_survey_tests.setCwd(b.path(\".\"));",
+            "zigux/tests/phase7_build.zig: run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
         ),
     ]
 
