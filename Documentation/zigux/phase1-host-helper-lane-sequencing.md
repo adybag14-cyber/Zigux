@@ -57,9 +57,9 @@ The earlier shared reminder gap is now fully closed on current `master`. `Docume
 
 The earlier shared Phase 1 validator packet gap is now closed on current `master` too. `scripts/zigux/validate-phase1.py` now exact-checks both the reviewer-facing `review_checklist_phase1_packet` reminder and the broader `tests_root_phase1_packet` marker with this lane note included.
 
-Fresh repo-first inspection also found one new same-lane parity-gate drift on current `master`: `scripts/zigux/validate-phase1-closure.py` still embeds an older `tools/lib/find_bit.zig` expected-manifest block that omits the already-landed tail-word inclusive-boundary helper anchor, its paired contract text, and the widened review-summary wording now present in `zigux/tests/fixtures/phase1_helper_manifest.json`.
+The queued Phase 1 closure-validator expected-manifest drift is already closed on current `master` too. `scripts/zigux/validate-phase1-closure.py` now carries the `tools/lib/find_bit.zig` tail-word inclusive-boundary anchor, its paired contract text, and the widened review-summary wording already present in `zigux/tests/fixtures/phase1_helper_manifest.json`.
 
-That means the older queued shared-reminder follow-up is no longer the next bounded step. Fresh repo-first inspection closes the earlier tests-root and validator omissions, and the next honest host-tools follow-up is now the one-file Phase 1 closure-validator expected-manifest sync instead of another already-landed shared reminder repair.
+That means the older shared-reminder follow-up and the queued closure-validator expected-manifest sync are no longer the next bounded steps. Fresh repo-first inspection closes the earlier tests-root, validator, and closure-validator omissions, so the next honest host-tools follow-up is another newly observed same-lane truthfulness or checker-local drift instead of replaying any of those already-landed repairs.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
@@ -77,6 +77,7 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed tests-root owner-map sync in `zigux/tests/README.md`.
 - Do not reopen the already-landed `tests_root_phase1_packet` validator sync in `scripts/zigux/validate-phase1.py`.
 - Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
+- Do not reopen the already-landed `validate-phase1-closure.py` expected-manifest sync for the `find_bit` tail-word inclusive-boundary packet.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
@@ -95,7 +96,7 @@ Start with these already-shipped shared Phase 1 packet surfaces:
 - `zigux/tests/README.md`
 - `scripts/zigux/validate-phase1.py`
 
-The next run should reread the embedded expected manifest in `scripts/zigux/validate-phase1-closure.py` against `zigux/tests/fixtures/phase1_helper_manifest.json` first, then cross-check the rest of that shared reminder packet against `zigux/tests/fixtures/phase1_bench_expectations.json` and the direct helper anchors under `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, and then take only the smallest still-open same-lane truthfulness or checker-local repair.
+The next run should reread the live closure validator, closure note, shared reminder packet, committed Phase 1 fixtures, and direct helper anchors together, starting with whether any exact-count closure marker or shared-packet wording drift has opened since the now-closed tests-root and expected-manifest syncs. If that reread stays clean, advance only to the smallest same-lane checker-local or review-surface mismatch that current `master` still leaves open.
 
 Until a fresh same-lane gap is observed, keep Phase 1 follow-up work on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
