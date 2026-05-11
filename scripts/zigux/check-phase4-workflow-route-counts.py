@@ -658,6 +658,39 @@ def run_selftest() -> None:
             )
 
         workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
+        out_of_order_workflow_routes = workflow.read_text(encoding="utf-8").replace(
+            "      - name: Self-test Phase 4 artifact-diff contract directly\n"
+            "        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test\n"
+            "      - name: Check Phase 4 artifact-diff contract directly\n"
+            "        run: python3 scripts/zigux/check-artifact-diff-contract.py\n",
+            "      - name: Check Phase 4 artifact-diff contract directly\n"
+            "        run: python3 scripts/zigux/check-artifact-diff-contract.py\n"
+            "      - name: Self-test Phase 4 artifact-diff contract directly\n"
+            "        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+            1,
+        )
+        workflow.write_text(out_of_order_workflow_routes, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "out-of-order Phase 4 workflow markers" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                ".github/workflows/zigux-bootstrap.yml with reordered artifact-diff workflow routes "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         missing_artifact_diff_determinism_self_test_workflow_route = workflow.read_text(encoding="utf-8").replace(
             "        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test\n",
             "",
