@@ -6,6 +6,8 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
+Treat `SyscallsHelperLab.descriptor()` in `security/landlock/syscalls.zig` as the helper-owned truth for the current packet boundary. The descriptor keeps the shipped helper explicit as a planning-only lab that still reports `touches_live_fd_table = false`, `touches_live_paths = false`, `touches_live_credentials = false`, and `touches_live_domains = false`, so this note must keep live file-descriptor ownership, live path mutation, live credential updates, and live syscall enforcement out of scope.
+
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` for the broader Phase 13 owner split and lane routing
@@ -37,6 +39,9 @@ Use this note to keep these boundaries explicit:
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - shared packet routing stays with the shipped validator-first and make-route surfaces above; if `zigux/tests/phase13_build.zig` or the direct syscall companions are absent, keep those paths recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
+- keep the shipped helper tied to descriptor-backed planning only, not to live syscall enforcement or to any claim that FD, path, credential, or domain ownership moved into Zigux
+
+Keep this packet parked unless a future lane can add another equally bounded planner.
 
 ## Review Prompts
 
@@ -46,3 +51,4 @@ If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing direct syscall companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
+- helper-owned wording still matches `SyscallsHelperLab.descriptor()` and its `touches_live_fd_table`, `touches_live_paths`, `touches_live_credentials`, and `touches_live_domains` boundary flags
