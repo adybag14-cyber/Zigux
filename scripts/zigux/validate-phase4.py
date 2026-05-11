@@ -194,6 +194,12 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     "phase4_bitmap_diff_survey.zig",
     "phase4_perf_baseline_manifest.json",
     "phase4_perf_baseline_survey.zig",
+    "phase4_test_fsmount_manifest.json",
+    "phase4_test_fsmount_survey.zig",
+    "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-test-fsmount-survey",
+    "reviewability_only_no_perf_threshold",
+    "samples/vfs/test-fsmount.c",
     "rollback owner",
     "Lab And CI Matrix",
     "local-only acceptable limits are approved today",
@@ -508,6 +514,12 @@ def _write_fixture_tree(root: Path) -> None:
         "phase4_bitmap_diff_survey.zig",
         "phase4_perf_baseline_manifest.json",
         "phase4_perf_baseline_survey.zig",
+        "phase4_test_fsmount_manifest.json",
+        "phase4_test_fsmount_survey.zig",
+        "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        "make -C zigux phase4-test-fsmount-survey",
+        "reviewability_only_no_perf_threshold",
+        "samples/vfs/test-fsmount.c",
         "rollback owner",
         "Lab And CI Matrix",
         "local-only acceptable limits are approved today",
@@ -605,6 +617,43 @@ def run_self_test() -> int:
         _write_fixture_tree(root)
         failures = validate_root(root)
         if failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+
+        matrix_path = root / "Documentation/zigux/phase4-validation-matrix.md"
+        original_matrix = matrix_path.read_text(encoding="utf-8")
+
+        matrix_path.write_text(
+            original_matrix.replace(
+                "make -C zigux phase4-test-fsmount-survey\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "phase4_matrix:make -C zigux phase4-test-fsmount-survey" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+
+        matrix_path.write_text(
+            original_matrix.replace(
+                "reviewability_only_no_perf_threshold",
+                "shared_ci_perf_promoted",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "phase4_matrix:reviewability_only_no_perf_threshold" not in failures:
             print("PHASE4_VALIDATOR_SELF_TEST=fail")
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
             for item in failures:
