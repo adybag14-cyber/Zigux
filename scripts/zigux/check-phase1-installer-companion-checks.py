@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
+    "zigux/Makefile",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -35,6 +36,11 @@ TESTS_README_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`",
+]
+
+MAKEFILE_MARKERS = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py",
 ]
 
 
@@ -77,6 +83,7 @@ def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> 
 
 
 def collect_missing_markers(root: Path) -> list[str]:
+    makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
@@ -85,6 +92,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     )
 
     missing: list[str] = []
+    missing.extend(collect_stripped_line_markers(makefile, "makefile", MAKEFILE_MARKERS))
     missing.extend(collect_exact_count_markers(scripts_readme, "scripts_readme", SCRIPTS_README_MARKERS))
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
@@ -104,6 +112,10 @@ def make_fixture_root(root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("", encoding="utf-8")
 
+    (root / "zigux" / "Makefile").write_text(
+        "\n".join(MAKEFILE_MARKERS) + "\n",
+        encoding="utf-8",
+    )
     (root / "scripts" / "zigux" / "README.md").write_text(
         "\n".join(SCRIPTS_README_MARKERS) + "\n",
         encoding="utf-8",
@@ -156,6 +168,24 @@ def run_self_test() -> None:
         )
         self_test_case_count += 1
         scripts_readme_path.write_text(scripts_readme_text, encoding="utf-8")
+
+        makefile_path = tmp_root / "zigux" / "Makefile"
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile_text.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert (
+            "makefile:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test:expected=1:actual=0"
+            in missing
+        )
+        self_test_case_count += 1
+        makefile_path.write_text(makefile_text, encoding="utf-8")
 
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8")
@@ -244,7 +274,7 @@ def main() -> int:
     print(f"PHASE1_INSTALLER_COMPANION_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_INSTALLER_COMPANION_REQUIRED_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(SCRIPTS_README_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
