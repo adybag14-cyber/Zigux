@@ -352,6 +352,9 @@ jobs:
       - name: Run Phase 9 runtime helper tests
         run: make -C zigux phase9
 
+      - name: Validate Phase 10 closure and shared review surfaces
+        run: make -C zigux phase10-validate
+
       - name: Run Phase 10 checker-backed virtio helper tests
         run: make -C zigux phase10-test
 
