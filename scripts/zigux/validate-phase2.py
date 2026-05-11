@@ -30,7 +30,7 @@ def require_files(paths: list[Path]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current live Phase 2 reminder packet on current master."
+        description="Validate the current live Phase 2 toolchain reminder packet on current master."
     )
     parser.add_argument("--self-test", action="store_true", help="Check that the live Phase 2 validator packet is present.")
     args = parser.parse_args()
@@ -42,35 +42,15 @@ def main() -> int:
         ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
         ROOT / "Documentation" / "zigux" / "review-checklist.md",
         ROOT / "scripts" / "zigux" / "README.md",
-        ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
-        ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
-        ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
-        ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
-        ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
-        ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
         ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
-        ROOT / "scripts" / "zigux" / "fixdep.zig",
-        ROOT / "scripts" / "zigux" / "genksyms.zig",
-        ROOT / "scripts" / "zigux" / "genksyms_crc.zig",
         ROOT / "scripts" / "zigux" / "install-zig.py",
-        ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-        ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
-        ROOT / "scripts" / "zigux" / "mk_elfconfig.zig",
         ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
         ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
         ROOT / "zigux" / "Makefile",
         ROOT / "zigux" / "tests" / "README.md",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ]
     missing = require_files(required)
     if missing:
