@@ -88,7 +88,9 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase13-release.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`Documentation/zigux/phase13-notifier-list-survey.md`",
-        "`zigux/helpers/notifier_chain_view.zig`",
+        "The adjacent notifier evidence packet is currently anchored through:",
+        "`make -C zigux phase13-validate`",
+        "adjacent repo-reality gaps instead of as independently shipped review evidence.",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "# Phase 13 Shared Helper Lane Sequencing",
@@ -193,6 +195,9 @@ EXACT_COUNTS = {
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    ],
+    "Documentation/zigux/phase13-contributor-workflow-guide.md": [
+        "The adjacent notifier evidence packet is tracked through:",
     ],
 }
 
@@ -423,6 +428,31 @@ def run_self_test() -> int:
                 "missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests",
             ],
             "missing_workflow_step_failed",
+        )
+        write_text(
+            root,
+            ".github/workflows/zigux-bootstrap.yml",
+            repeat_markers(
+                REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"],
+                EXACT_COUNTS[".github/workflows/zigux-bootstrap.yml"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"]
+            )
+            + "The adjacent notifier evidence packet is tracked through:\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "forbidden_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:The adjacent notifier evidence packet is tracked through:",
+            ],
+            "stale_contributor_notifier_phrase_failed",
         )
         case_count += 1
 
