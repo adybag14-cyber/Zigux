@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import shlex
@@ -14,6 +15,11 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
+FIND_BIT_REQUIRED_PARITY_KEYS = (
+    "last",
+    "tail_clamped_last",
+    "tail_clamped_empty_last",
+)
 
 SOURCE_RELS = [
     HARNESS_REL,
@@ -71,6 +77,23 @@ def collect_input_issues(root: Path, source_rels: list[Path] | None = None) -> l
         missing.append(f"duplicate_source:{rel.as_posix()}")
 
     return missing
+
+
+def collect_output_issues(actual: Path) -> list[str]:
+    try:
+        payload = json.loads(actual.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+
+    find_bit = payload.get("find_bit")
+    if not isinstance(find_bit, dict):
+        return ["missing:find_bit"]
+
+    issues: list[str] = []
+    for key in FIND_BIT_REQUIRED_PARITY_KEYS:
+        if key not in find_bit:
+            issues.append(f"missing:find_bit.{key}")
+    return issues
 
 
 def make_self_test_root(root: Path) -> None:
@@ -261,8 +284,32 @@ def run_self_test() -> None:
         duplicate_issues = collect_input_issues(tmp_root, duplicate_sources)
         assert "duplicate_source:tools/lib/string.c" in duplicate_issues
 
+        actual = tmp_root / "phase1_helpers.actual.json"
+        actual.write_text(
+            json.dumps(
+                {
+                    "find_bit": {
+                        "last": 1,
+                        "tail_clamped_last": 2,
+                        "tail_clamped_empty_last": 3,
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        assert collect_output_issues(actual) == []
+
+        actual.write_text('{"find_bit":{"last":1,"tail_clamped_last":2}}', encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:find_bit.tail_clamped_empty_last" in missing_output
+
+        actual.write_text('{"find_bit":', encoding="utf-8")
+        decode_issues = collect_output_issues(actual)
+        assert len(decode_issues) == 1
+        assert decode_issues[0].startswith("json_decode_error:")
+
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=12")
 
 
 def main() -> int:
@@ -296,6 +343,15 @@ def main() -> int:
         actual = tmp_dir / "phase1_helpers.actual.json"
 
         compile_and_run(tmp_dir, exe, actual, compiler, include_flags(shim_dir), source_paths(ROOT))
+
+        output_issues = collect_output_issues(actual)
+        if output_issues:
+            print("PHASE1_PARITY=fail")
+            print("PHASE1_PARITY_OUTPUT_ISSUES_START")
+            for issue in output_issues:
+                print(issue)
+            print("PHASE1_PARITY_OUTPUT_ISSUES_END")
+            return 1
 
         if args.refresh:
             fixture_path(ROOT).write_text(actual.read_text(encoding="utf-8"), encoding="utf-8")
