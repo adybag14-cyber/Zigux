@@ -295,6 +295,13 @@ REQUIRED_WORKFLOW_MARKERS = [
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
 ]
 
+FORBIDDEN_WORKFLOW_MARKERS = [
+    "Validate Phase 12 files",
+    "python3 scripts/zigux/validate-phase12.py",
+    "Run focused Phase 12 libbpf replay",
+    "Run Phase 12 cross-build replay",
+]
+
 REQUIRED_MAKEFILE_MARKERS = [
     "phase12-smoke:",
     "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
@@ -309,13 +316,6 @@ FORBIDDEN_MAKEFILE_MARKERS = [
     "phase12-validate:",
     "phase12-libbpf-test:",
     "phase12-cross:",
-]
-
-FORBIDDEN_WORKFLOW_MARKERS = [
-    "Validate Phase 12 files",
-    "python3 scripts/zigux/validate-phase12.py",
-    "Run focused Phase 12 libbpf replay",
-    "Run Phase 12 cross-build replay",
 ]
 
 REQUIRED_PHASE12_BUILD_MARKERS = [
@@ -736,10 +736,37 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         phase12_release_closure = phase12_release_closure_path.read_text(encoding="utf-8")
         phase12_release_closure_path.write_text(
+            phase12_release_closure.replace(PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_closure = phase12_release_closure_path.read_text(encoding="utf-8")
+        phase12_release_closure_path.write_text(
+            phase12_release_closure.replace(PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_closure = phase12_release_closure_path.read_text(encoding="utf-8")
+        phase12_release_closure_path.write_text(
             phase12_release_closure.replace(PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER, "", 1),
             encoding="utf-8",
         )
         expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_coordination = phase12_release_coordination_path.read_text(encoding="utf-8")
+        phase12_release_coordination_path.write_text(
+            phase12_release_coordination.replace(PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase12_release_coordination:{PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER}",
+        )
 
         write_fixture_tree(base)
         phase12_release_coordination = phase12_release_coordination_path.read_text(encoding="utf-8")
@@ -834,7 +861,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=23")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=26")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
