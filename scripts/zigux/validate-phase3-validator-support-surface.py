@@ -18,6 +18,8 @@ REQUIRED_MARKERS = (
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -28,8 +30,13 @@ REQUIRED_MARKERS = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/phase3_check_lib.py --self-test",
@@ -44,6 +51,8 @@ REQUIRED_MARKERS = (
 REQUIRED_CURRENT_PACKET_MARKERS = (
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
 )
 REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/README.md",
@@ -112,6 +121,28 @@ def run_self_test() -> int:
     if f"current packet missing marker: {current_packet_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected current packet marker was not reported")
+        return 1
+
+    focused_replay_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
+    broken = validate_text(sample.replace(focused_replay_marker, ""))
+    if not any(focused_replay_marker in entry for entry in broken):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected focused replay marker was not reported")
+        return 1
+    if f"current packet missing marker: {focused_replay_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected focused replay current packet marker was not reported")
+        return 1
+
+    mmio_consumer_marker = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
+    broken = validate_text(sample.replace(mmio_consumer_marker, ""))
+    if not any(mmio_consumer_marker in entry for entry in broken):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected mmio consumer marker was not reported")
+        return 1
+    if f"current packet missing marker: {mmio_consumer_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected mmio consumer current packet marker was not reported")
         return 1
 
     shared_reminder_marker = "zigux/uapi/dev_t.zig"
