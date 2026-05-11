@@ -28,6 +28,7 @@ FILES = [
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
 ]
@@ -45,9 +46,11 @@ MAKE_MARKERS = [
 BUILD_MARKERS = [
     "phase10_virtio_input_probe_preflight_module",
     "phase10_virtio_input_queue_callback_preflight_module",
+    "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_verify_module",
     '"phase10-virtio-input-probe-preflight-tests"',
     '"phase10-virtio-input-queue-callback-preflight-tests"',
+    '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-verify-tests"',
 ]
 
@@ -86,6 +89,7 @@ TESTS_README_MARKERS = [
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
     "phase10_virtio_input_probe_preflight.zig",
     "phase10_virtio_input_queue_callback_preflight.zig",
+    "phase10_virtio_input_status_drain.zig",
 ]
 
 FORBIDDEN_TESTS_README_MARKERS = [
