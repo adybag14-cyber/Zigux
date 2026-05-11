@@ -4,7 +4,7 @@ This guide keeps the roadmap-backed Phase 5 lane reviewable without overstating 
 
 ## Purpose
 
-Use this guide when a change touches Phase 5 contributor guidance, one of the approved Linux sample anchors, or one of the shipped `samples/zigux/` reference-sample ports.
+Use this guide when a change touches Phase 5 contributor guidance, one of the approved Linux sample anchors, or one of the intended `samples/zigux/` reference-sample ports.
 
 The roadmap-backed goal for Phase 5 is still narrow:
 
@@ -24,59 +24,50 @@ Phase 5 is still scoped by the four Linux sample anchors named in the roadmap:
 
 Treat those anchors as the approved Phase 5 destination set unless the roadmap changes.
 
-## Current repo reality on master
+## Current repo reality on `master`
 
-Fresh repo-first inspection for this guide shows that current `master` now ships the full four-sample non-runtime Phase 5 packet together with the shared contributor and replay surfaces that keep it reviewable.
-
-Verified current shared Phase 5 review surfaces on `master` are:
+Fresh repo-first inspection on 2026-05-11 confirmed that current `master` does carry the shared Phase 5 contributor surfaces below:
 
 * `Documentation/zigux/phase5-sample-review-guide.md`
-* `Documentation/zigux/phase5-kfifo-sample-survey.md`
-* `Documentation/zigux/phase5-kobject-sample-survey.md`
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
 * `Documentation/zigux/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
+* `zigux/Makefile`
+* `.github/workflows/zigux-bootstrap.yml`
+
+That same repo-first inspection did **not** confirm the concrete sample-and-test artifact packet that those shared docs currently describe as already landed. Direct contents reads for these claimed Phase 5 sample and test paths returned not found on current `master`:
+
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_sample.zig`
 * `zigux/tests/phase5_build.zig`
-* `zigux/Makefile`
 * `zigux/tests/phase5_bytestream_fifo.zig`
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
 * `zigux/tests/phase5_kobject_example.zig`
 * `zigux/tests/phase5_kobject_example_manifest.json`
-* `zigux/tests/phase5_kobject_example_survey.zig`
 * `zigux/tests/phase5_kretprobe_example.zig`
 * `zigux/tests/phase5_kretprobe_example_manifest.json`
-* `zigux/tests/phase5_kretprobe_example_survey.zig`
 * `zigux/tests/phase5_trace_events_sample.zig`
 * `zigux/tests/phase5_trace_events_sample_manifest.json`
-* `zigux/tests/phase5_trace_events_sample_survey.zig`
-* `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-* `make -C zigux phase5-test`
-* `make -C zigux phase5`
-* `.github/workflows/zigux-bootstrap.yml`
 
-The same inspection also confirmed later runtime-facing sample surfaces are present on `master`, including the `runtime_atomic64`, `runtime_bitmap`, `runtime_kretprobe`, and `runtime_trace_events` families under `samples/zigux/`.
+Because those concrete artifact paths are not presently readable from current `master`, do not describe the full four-sample packet as shipped evidence until the sample files, tests, manifests, and shared build entrypoint are restorable and directly visible again.
 
-Do not count those later runtime-facing sample and loader surfaces as extra Phase 5 evidence. They belong to the separate Phase 9 runtime pilot lane.
+The same inspection also confirmed that later runtime-facing guidance is still present in shared docs. Keep those later runtime-oriented sample families under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence.
 
 ## Review posture
 
-Because the four approved Phase 5 samples are already landed on current `master`, same-lane follow-through should stay inside one of these bounded categories:
+Until the concrete Phase 5 sample artifacts are directly visible again, same-lane follow-through should stay inside one of these bounded categories:
 
 * contributor-guidance truthfulness fixes
 * exact-readback repairs in shared review surfaces
-* one sample-local replay, manifest, or survey-note repair at a time
-* one shared README, checklist, or build-route sync at a time
+* one missing-path or shared-route inventory repair at a time
+* one concrete sample-restoration step at a time once the missing artifact packet can be re-established safely
 
-Do not reopen sample behavior broadly unless a fresh repo-first inspection shows a concrete sample-backed drift in the shipped packet.
+Do not reopen sample behavior broadly, and do not claim the four-sample packet is landed, unless a fresh repo-first inspection can directly read the sample files, their paired test or manifest artifacts, and the shared `phase5_build.zig` entrypoint on current `master`.
 
 ## Boundary reminders
 
@@ -87,11 +78,11 @@ Do not treat later runtime-oriented loader or pilot work as extra Phase 5 sample
 Keep these no-extra-sample reminders explicit too:
 
 * there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master`; keep string-helper reviewability under the Phase 7 helper packet
-* there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`; keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig` instead of counting cmdline as a fifth Phase 5 sample
+* there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`; keep cmdline reviewability under the Phase 7 helper packet
 * there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`; keep `argv_split` reviewability under the Phase 7 helper packet
 * there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`; keep `rbtree` reviewability under the Phase 7 helper packet
 * there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`; keep direct bitmap helper reviewability under the earlier helper and rollback packets while runtime bitmap work stays in the later runtime lane
-* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the bounded formatting idiom cue while standalone formatting-helper evidence stays under the closed Phase 1 and bounded Phase 7 helper packets
+* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep any formatting idiom guidance bounded to whatever directly readable Phase 5 evidence exists instead of implying a fifth formatting sample
 
 Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`, and do not pull the study-only `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` families into this lane.
 
@@ -100,10 +91,10 @@ Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors
 Before landing a Phase 5 change, confirm:
 
 * the roadmap anchor is one of the four approved Linux sample paths listed above
-* the change says clearly whether it touches shared contributor guidance or one specific landed sample packet
-* if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is actually present on current `master`
-* the four-sample shared replay packet stays aligned around `zigux/tests/phase5_build.zig`, `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`
-* the change keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
+* the change says clearly whether it touches shared contributor guidance or one specific sample-restoration packet
+* if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
+* if a shared doc claims a sample-local replay route, the corresponding sample file, paired tests, paired manifest, and build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone
+* the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
 ## Non-goals
