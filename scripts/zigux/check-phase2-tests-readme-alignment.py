@@ -113,6 +113,7 @@ FILE_MARKERS = {
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "python3 scripts/zigux/install-zig.py --self-test",
         "python3 scripts/zigux/check-zig-toolchain.py --self-test",
         "make -C zigux phase2-validate",
@@ -151,6 +152,7 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     },
     "zigux/Makefile": {
         "phase2-tools:": 1,
