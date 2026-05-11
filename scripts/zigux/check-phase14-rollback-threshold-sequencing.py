@@ -4,9 +4,9 @@
 Fail-closed checker for the current Phase 14 rollback-owner packet.
 
 This lane stays narrow on purpose: it verifies the shared smoke manifest,
-smoke note, review checklist, and local make route around the current
-study-only rollback posture on `master` without reopening older missing notes
-or anchor-local survey ownership.
+smoke note, release-boundary note, review checklist, and local make route
+around the current study-only rollback posture on `master` without reopening
+older missing notes or anchor-local survey ownership.
 """
 
 from __future__ import annotations
@@ -34,6 +34,11 @@ ANCHOR_MANIFEST_MARKERS = [
     "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
+]
+RELEASE_BOUNDARY_MARKERS = [
+    "- bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes",
+    "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus the Phase 15 readiness and handoff packet; `zigux/tests/phase14_rcu_tree_survey.zig` is the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
+    "- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the same shared smoke packet plus the Phase 15 freeze-in-C and readiness packet rather than an active Phase 14 delivery lane",
 ]
 SELF_TEST_ANCHOR_PACKETS = [
     {
@@ -70,6 +75,7 @@ MAKEFILE_EXACT_LINES = [
 ROOT = Path.cwd()
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 SMOKE_NOTE_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
@@ -106,7 +112,13 @@ def check(root: Path) -> list[str]:
     if MARKER not in source_text():
         errors.append("checker marker missing from checker source")
 
-    for rel in [MANIFEST_PATH, SMOKE_NOTE_PATH, CHECKLIST_PATH, MAKEFILE_PATH]:
+    for rel in [
+        MANIFEST_PATH,
+        SMOKE_NOTE_PATH,
+        RELEASE_BOUNDARY_PATH,
+        CHECKLIST_PATH,
+        MAKEFILE_PATH,
+    ]:
         if not (root / rel).exists():
             errors.append(f"missing file: {rel.as_posix()}")
     if errors:
@@ -173,6 +185,13 @@ def check(root: Path) -> list[str]:
             errors.append(
                 f"marker count drift in {SMOKE_NOTE_PATH.as_posix()}: {marker} "
                 f"(expected 1, found {count})"
+            )
+
+    release_boundary = read_text(root, RELEASE_BOUNDARY_PATH)
+    for marker in RELEASE_BOUNDARY_MARKERS:
+        if marker not in release_boundary:
+            errors.append(
+                f"missing marker in {RELEASE_BOUNDARY_PATH.as_posix()}: {marker}"
             )
 
     for packet in anchor_packets:
@@ -265,6 +284,16 @@ def current_smoke_note_text() -> str:
     return "\n".join(parts) + "\n"
 
 
+def current_release_boundary_text() -> str:
+    return "\n".join(
+        [
+            *RELEASE_BOUNDARY_MARKERS,
+            "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
+            "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
+        ]
+    ) + "\n"
+
+
 def current_checklist_text() -> str:
     return (
         "if the change touches the shared Phase 14 smoke packet\n"
@@ -296,6 +325,7 @@ def run_self_test() -> int:
 
         write(root, MANIFEST_PATH, current_manifest_text())
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+        write(root, RELEASE_BOUNDARY_PATH, current_release_boundary_text())
         write(root, CHECKLIST_PATH, current_checklist_text())
         write(root, MAKEFILE_PATH, current_makefile_text())
 
@@ -379,6 +409,19 @@ def run_self_test() -> int:
 
         write(
             root,
+            RELEASE_BOUNDARY_PATH,
+            current_release_boundary_text().replace(RELEASE_BOUNDARY_MARKERS[0] + "\n", "", 1),
+        )
+        if not any(
+            RELEASE_BOUNDARY_PATH.as_posix() in error and RELEASE_BOUNDARY_MARKERS[0] in error
+            for error in check(root)
+        ):
+            print("self-test expected release-boundary sequencing failure", file=sys.stderr)
+            return 1
+        write(root, RELEASE_BOUNDARY_PATH, current_release_boundary_text())
+
+        write(
+            root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
@@ -429,7 +472,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=9")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
