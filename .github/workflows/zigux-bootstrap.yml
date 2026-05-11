@@ -451,7 +451,7 @@ jobs:
           fi
 
   phase2-cross:
-    if: needs.phase2-cross-scope.outputs.should_run == 'true'
+    if: ${{ needs['phase2-cross-scope'].outputs.should_run == 'true' }}
     needs: [bootstrap, phase2-cross-scope]
     runs-on: ubuntu-latest
     strategy:
