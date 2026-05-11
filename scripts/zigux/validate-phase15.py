@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
-import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 FILES = [
     "scripts/zigux/validate-phase15.py",
@@ -138,6 +138,18 @@ READINESS_SURVEY_MARKERS = [
     "Later repo movement still requires a fresh bounded provenance refresh",
 ]
 
+READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
+READINESS_CHECKERS = [
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+]
+READINESS_BOOL_FIELDS = [
+    "phase15_validate_target_present",
+    "phase15_test_target_present",
+    "shared_ci_phase15_present",
+    "phase15_replay_green_on_current_master",
+]
+
 
 def _read(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -153,6 +165,22 @@ def _require_markers(name: str, source: str, markers: list[str], missing: list[s
     for marker in markers:
         if marker not in source:
             missing.append(f"{name}:{marker}")
+
+
+def _validate_readiness_manifest(root: Path, missing: list[str]) -> None:
+    manifest = json.loads(_read(root, READINESS_MANIFEST_REL))
+    repo_evidence = manifest.get("repo_evidence")
+    if not isinstance(repo_evidence, dict):
+        missing.append("readiness_manifest:repo_evidence")
+        return
+
+    for field in READINESS_BOOL_FIELDS:
+        if repo_evidence.get(field) is not True:
+            missing.append(f"readiness_manifest:{field}")
+
+    checkers = manifest.get("phase15_validate_checkers")
+    if checkers != READINESS_CHECKERS:
+        missing.append("readiness_manifest:phase15_validate_checkers")
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -198,6 +226,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         READINESS_SURVEY_MARKERS,
         missing_markers,
     )
+    _validate_readiness_manifest(root, missing_markers)
     return [], missing_markers
 
 
@@ -258,10 +287,26 @@ def _seed_fixture_tree(root: Path) -> None:
     for rel in (
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_handoff_next_steps_manifest.json",
-        "zigux/tests/phase15_readiness_gate_manifest.json",
         "zigux/tests/phase15_indefinite_c_policy.json",
     ):
         _write(root, rel, "{}\n")
+    _write(
+        root,
+        READINESS_MANIFEST_REL,
+        json.dumps(
+            {
+                "repo_evidence": {
+                    "phase15_validate_target_present": True,
+                    "phase15_test_target_present": True,
+                    "shared_ci_phase15_present": True,
+                    "phase15_replay_green_on_current_master": True,
+                },
+                "phase15_validate_checkers": READINESS_CHECKERS,
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def _assert_result(
@@ -343,6 +388,30 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
+        manifest_text["repo_evidence"]["phase15_validate_target_present"] = False
+        _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["readiness_manifest:phase15_validate_target_present"],
+            "manifest_validate_target_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
+        manifest_text["phase15_validate_checkers"] = [READINESS_CHECKERS[0]]
+        _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["readiness_manifest:phase15_validate_checkers"],
+            "manifest_checker_pair_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         missing_file = "zigux/tests/phase15_handoff_next_steps.zig"
         (root / missing_file).unlink()
         _assert_result(*validate(root), [missing_file], [], "missing_file")
@@ -393,6 +462,8 @@ def main() -> int:
             + len(TESTS_README_MARKERS)
             + len(REVIEW_CHECKLIST_MARKERS)
             + len(READINESS_SURVEY_MARKERS)
+            + len(READINESS_BOOL_FIELDS)
+            + len(READINESS_CHECKERS)
         )
     )
     print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
