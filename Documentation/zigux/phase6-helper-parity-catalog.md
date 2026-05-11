@@ -5,7 +5,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ## Status
 - `PHASE6_STATUS=parked`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
-- surveyed head: `277b3ab`
+- surveyed head: `663d05b`
 - shared sequencing note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`
 - shared perf note: `Documentation/zigux/phase6-perf-gate-survey.md`
 - shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`
