@@ -23,6 +23,10 @@ It keeps the release-planning work segmented so the active shared packet stays t
   2. `make -C zigux phase12-smoke`
   3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   4. `make -C zigux phase12`
+- If `zig` is unavailable on `PATH`, reuse that same smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a validator-first, driver-only, or other unshipped fallback route.
+- Keep the degraded-workflow checker pair explicit beside that same order too:
+  - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+  - `python3 scripts/zigux/check-build-only-phase12-surface.py`
 
 ## Anti-Overlap Rules
 - Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening driver-local behavior.
