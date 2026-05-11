@@ -3,8 +3,9 @@
 
 The checker stays intentionally narrow: it makes sure the current Linux-style
 Makefile routes, the bootstrap workflow, the authoritative Phase 4 perf-wrapper
-docs, and the dedicated local perf-baseline survey packet still line up with the
-bounded Phase 4 validation surfaces that the rollback lane documents.
+docs, the tests-root reminder, and the dedicated local perf-baseline survey
+packet still line up with the bounded Phase 4 validation surfaces that the
+rollback lane documents.
 """
 
 from __future__ import annotations
@@ -101,6 +102,13 @@ REQUIRED_GATE_EVIDENCE_MARKERS = [
     "make -C zigux phase4-perf-baseline-survey",
 ]
 
+REQUIRED_TESTS_README_MARKERS = [
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-perf-baseline-survey",
+]
+
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_perf_baseline_survey_tests.step);",
 ]
@@ -182,6 +190,13 @@ zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
 make -C zigux phase4-perf-baseline-survey
 """
 
+SELFTEST_TESTS_README = """# zigux/tests
+zigux/tests/phase4_perf_baseline_manifest.json
+zigux/tests/phase4_perf_baseline_survey.zig
+zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
+make -C zigux phase4-perf-baseline-survey
+"""
+
 
 def repo_root_from_script(script_path: Path) -> Path:
     return script_path.resolve().parents[2]
@@ -220,7 +235,7 @@ def declared_targets(makefile_text: str) -> set[str]:
 
 
 def required_file_count() -> int:
-    return 7
+    return 8
 
 
 def required_check_count() -> int:
@@ -231,6 +246,7 @@ def required_check_count() -> int:
         + len(REQUIRED_BUILD_MARKERS)
         + len(REQUIRED_MATRIX_MARKERS)
         + len(REQUIRED_GATE_EVIDENCE_MARKERS)
+        + len(REQUIRED_TESTS_README_MARKERS)
         + len(FORBIDDEN_BUILD_MARKERS)
     )
 
@@ -249,6 +265,7 @@ def check(
     build_path: Path,
     validation_matrix_path: Path,
     gate_evidence_path: Path,
+    tests_readme_path: Path,
     perf_manifest_path: Path,
     perf_survey_path: Path,
 ) -> None:
@@ -257,6 +274,7 @@ def check(
     build_text = read_text(build_path)
     validation_matrix_text = read_text(validation_matrix_path)
     gate_evidence_text = read_text(gate_evidence_path)
+    tests_readme_text = read_text(tests_readme_path)
     read_text(perf_manifest_path)
     read_text(perf_survey_path)
     ensure_expected_targets(makefile_text)
@@ -272,6 +290,11 @@ def check(
         "Documentation/zigux/phase4-gate-evidence.md",
         gate_evidence_text,
         REQUIRED_GATE_EVIDENCE_MARKERS,
+    )
+    ensure_markers(
+        "zigux/tests/README.md",
+        tests_readme_text,
+        REQUIRED_TESTS_README_MARKERS,
     )
     ensure_absent_markers("zigux/tests/phase4_build.zig", build_text, FORBIDDEN_BUILD_MARKERS)
 
@@ -296,6 +319,7 @@ def run_selftest() -> None:
         build = root / "zigux/tests/phase4_build.zig"
         validation_matrix = root / "Documentation/zigux/phase4-validation-matrix.md"
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        tests_readme = root / "zigux/tests/README.md"
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
         perf_survey = root / "zigux/tests/phase4_perf_baseline_survey.zig"
         makefile.parent.mkdir(parents=True, exist_ok=True)
@@ -308,6 +332,7 @@ def run_selftest() -> None:
         build.write_text(SELFTEST_BUILD, encoding="utf-8")
         validation_matrix.write_text(SELFTEST_MATRIX, encoding="utf-8")
         gate_evidence.write_text(SELFTEST_GATE_EVIDENCE, encoding="utf-8")
+        tests_readme.write_text(SELFTEST_TESTS_README, encoding="utf-8")
         perf_manifest.write_text("{}\n", encoding="utf-8")
         perf_survey.write_text('test "phase4 perf baseline selftest" {}\n', encoding="utf-8")
         check(
@@ -316,6 +341,7 @@ def run_selftest() -> None:
             build,
             validation_matrix,
             gate_evidence,
+            tests_readme,
             perf_manifest,
             perf_survey,
         )
@@ -338,6 +364,7 @@ def main(argv: list[str]) -> int:
         root / "zigux/tests/phase4_build.zig",
         root / "Documentation/zigux/phase4-validation-matrix.md",
         root / "Documentation/zigux/phase4-gate-evidence.md",
+        root / "zigux/tests/README.md",
         root / "zigux/tests/phase4_perf_baseline_manifest.json",
         root / "zigux/tests/phase4_perf_baseline_survey.zig",
     )
