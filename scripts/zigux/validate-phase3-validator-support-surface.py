@@ -53,6 +53,7 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
+    "zigux/bindings/abi.zig",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
@@ -64,6 +65,7 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
+    "zigux/bindings/abi.zig",
 )
 
 
@@ -143,6 +145,21 @@ def run_self_test() -> int:
     if f"current packet missing marker: {header_family_note_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected header-family current packet marker was not reported")
+        return 1
+
+    current_packet_bindings_marker = "zigux/bindings/abi.zig"
+    broken = validate_text(sample.replace(current_packet_bindings_marker, "", 1))
+    if f"current packet missing marker: {current_packet_bindings_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected bindings current packet marker was not reported")
+        return 1
+
+    shared_reminder_bindings_marker = "zigux/bindings/abi.zig"
+    before, separator, after = sample.rpartition(shared_reminder_bindings_marker)
+    broken = validate_text(before + after if separator else sample)
+    if f"shared reminder missing marker: {shared_reminder_bindings_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected bindings shared reminder marker was not reported")
         return 1
 
     focused_replay_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
