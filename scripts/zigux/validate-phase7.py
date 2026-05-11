@@ -170,7 +170,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
         "phase7-test:",
-        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_build.zig": [
@@ -348,6 +348,7 @@ def run_self_test() -> None:
         ("makefile_build_wiring_hook", "zigux/Makefile", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py", "", "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py"),
         ("makefile_argv_split_packet_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test"),
         ("makefile_parity_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test"),
+        ("makefile_phase7_test_summary_marker", "zigux/Makefile", "zig build test --build-file zigux/tests/phase7_build.zig --summary all", "zig build test --build-file zigux/tests/phase7_build.zig", "zigux/Makefile: zig build test --build-file zigux/tests/phase7_build.zig --summary all"),
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
         ("cmdline_survey_fixture_path", "zigux/tests/phase7_cmdline_survey.zig", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("cmdline_survey_fixture_import", "zigux/tests/phase7_cmdline_survey.zig", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_vectors_drift.zig\");", "zigux/tests/phase7_cmdline_survey.zig: const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");"),
