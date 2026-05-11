@@ -12,8 +12,10 @@
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
+- `scripts/zigux/check-phase6-perf-threshold-markers.py`
 - direct local C parity rerun route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
+- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
 - fixture-backed `add16` and `sub16` carry-helper review rows that keep ones-complement wrap and borrow behavior explicit on the exported 16-bit helper surface
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
