@@ -15,7 +15,7 @@
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_input_zig_present": true,
-    "preexisting_phase12_build_present": false,
+    "preexisting_phase12_build_present": true,
     "preexisting_phase12_virtio_net_survey_present": true,
     "preexisting_phase12_survey_note_present": true,
     "preexisting_virtio_net_zig_present": true,
@@ -30,37 +30,37 @@
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_landed_without_runnable_gate",
-      "current_surface": "`drivers/net/virtio_net.zig` now carries probe snapshot capture plus queue recovery summaries through `freezeForRecovery`, `restoreAfterRecovery`, `planQueueResume`, `planReceiveRefill`, and `planTransmitRecycle`, while `zigux/tests/phase12_virtio_net_survey.zig` freezes that narrower truth.",
-      "blocked_by": "Current master still lacks `zigux/tests/phase12_build.zig` plus the dedicated Phase 12 syntax-lab shard needed to run queueing claims through the shared smoke route."
+      "status": "starter_landed_without_direct_gate",
+      "current_surface": "`drivers/net/virtio_net.zig` now carries probe snapshot capture plus queue recovery summaries through `freezeForRecovery`, `restoreAfterRecovery`, `planQueueResume`, `planReceiveRefill`, and `planTransmitRecycle`, while `zigux/tests/phase12_virtio_net_survey.zig` freezes that narrower truth and the shared `zigux/tests/phase12_build.zig` route is back for the shipped `virtio_scsi` smoke packet.",
+      "blocked_by": "Current master still lacks `zigux/tests/phase12_virtio_net_syntax_lab.zig` and a direct `zigux/tests/phase12_virtio_net.zig` replay, so the live queueing claims still are not executable through a dedicated `virtio_net` smoke route."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "recovery_planning_surface_present_throughput_gate_missing",
       "current_surface": "The live Zig starter now records recovery generation, rebuild scope, mergeable-buffer refill needs, and transmit recycle ordering, so recovery planning is no longer documentary only, and the survey gate keeps that starter-present boundary executable.",
-      "blocked_by": "There is still no runnable throughput benchmark, no post-restore replay gate, and no direct Phase 12 build surface proving recovery or throughput parity on current master."
+      "blocked_by": "There is still no runnable throughput benchmark, no post-restore replay gate, and no direct Phase 12 `virtio_net` replay proving recovery or throughput parity on current master; the shared `phase12_build.zig` route still only covers the shipped `virtio_scsi` tranche."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "starter_landed_without_phase12_gate",
-      "current_surface": "The bounded driver-local starter is back on master, and the dedicated survey gate now records that narrower truth, but the full Phase 12 validation envelope has not been relanded beside it.",
-      "blocked_by": "Segmented rollout is still incomplete until the shared Phase 12 build file and direct syntax-lab shard are restored and wired to the current driver-local packet."
+      "status": "starter_landed_shared_route_present_direct_gate_missing",
+      "current_surface": "The bounded driver-local starter is back on master, the dedicated survey gate now records that narrower truth, and the shared `phase12_build.zig` route is present again for the shipped `virtio_scsi` smoke-first packet.",
+      "blocked_by": "Segmented rollout is still incomplete until the direct `virtio_net` syntax-lab shard and any honest matching direct replay are restored beside the current starter without overclaiming the shared build route."
     }
   },
   "gaps": [
     {
       "id": "phase12-build-gate",
-      "status": "missing_on_master",
+      "status": "shared_build_present_scsi_only",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The live driver-local Zig starter exists again, but there is still no shared Phase 12 build route to execute its bounded queue or recovery surface."
+      "why_now": "The shared Phase 12 build route is back on master, but it still wires only the shipped `virtio_scsi` smoke-first packet rather than a direct `virtio_net` validation shard."
     },
     {
       "id": "phase12-make-target",
-      "status": "drifted_without_build_file",
+      "status": "shared_build_present_direct_virtio_net_gate_missing",
       "kind": "validation",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "Current master still carries `phase12-smoke`, `phase12-test`, and `phase12` targets, but without `zigux/tests/phase12_build.zig` they do not prove a live virtio_net packet."
+      "why_now": "Current master still carries `phase12-smoke`, `phase12-test`, and `phase12` targets, and those shared routes now line up with `zigux/tests/phase12_build.zig` for the shipped `virtio_scsi` packet without yet proving a live direct `virtio_net` lane."
     },
     {
       "id": "phase12-virtio-core-foundation",
@@ -81,14 +81,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The queue and recovery starter is present, and the dedicated survey gate now exercises and freezes that current repo-truth boundary while keeping the missing syntax-lab shard and shared build file explicit."
+      "why_now": "The queue and recovery starter is present, and the dedicated survey gate now exercises and freezes that current repo-truth boundary while keeping the missing direct syntax-lab shard and direct replay explicit beside the shared `virtio_scsi` build route."
     },
     {
       "id": "phase12-virtio-net-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The survey note remains the truthful lane anchor, and it now records both the live driver-local queue and recovery starter and the dedicated survey gate beside it."
+      "why_now": "The survey note remains the truthful lane anchor, and it now records both the live driver-local queue and recovery starter and the dedicated survey gate beside the shared `virtio_scsi` smoke-first route."
     },
     {
       "id": "phase12-virtio-net-syntax-lab-gate",
