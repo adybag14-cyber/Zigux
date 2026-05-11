@@ -30,6 +30,8 @@ TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 PHASE12_RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 PHASE12_RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
+PHASE12_RELEASE_CLOSURE_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
+PHASE12_RELEASE_COORDINATION_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 PHASE12_LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 
@@ -199,6 +201,45 @@ REQUIRED_PHASE12_RELEASE_READINESS_EXACT_COUNTS = {
     PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER: 1,
 }
 
+
+PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER = (
+    "It is not a closure claim, and it is not itself a shipped replay surface."
+)
+PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER = (
+    "shared fallback overview note: `Documentation/zigux/phase12-raw-github-coverage-survey.md` keeps the mixed raw-read split explicit and must stay aligned with the two commit-pinned fallback artifacts without being treated as a third commit-pinned fallback artifact"
+)
+PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER = (
+    "There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, or `make -C zigux phase12-validate` route on `master`."
+)
+PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER = (
+    "rule: keep this two-versus-two split explicit in PMO release wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless new dedicated files actually land"
+)
+PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER = (
+    "There is still no shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`, so release-planning notes should keep naming only the shipped smoke-first packet and the build-only checker."
+)
+
+REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS = [
+    PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER,
+    PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER,
+    PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER,
+]
+
+REQUIRED_PHASE12_RELEASE_CLOSURE_EXACT_COUNTS = {
+    PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER: 1,
+    PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER: 1,
+    PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER: 1,
+}
+
+REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS = [
+    PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER,
+    PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER,
+]
+
+REQUIRED_PHASE12_RELEASE_COORDINATION_EXACT_COUNTS = {
+    PHASE12_RELEASE_COORDINATION_FALLBACK_MARKER: 1,
+    PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER: 1,
+}
+
 REQUIRED_TESTS_README_MARKERS = [
     "keep the shared Phase 12 complex-driver packet explicit in the tests root too:",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
@@ -350,6 +391,8 @@ def validate(root: Path) -> list[str]:
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     freeze_map = read_text(root, FREEZE_MAP_PATH)
     phase12_release_readiness = read_text(root, PHASE12_RELEASE_READINESS_PATH)
+    phase12_release_closure = read_text(root, PHASE12_RELEASE_CLOSURE_PATH)
+    phase12_release_coordination = read_text(root, PHASE12_RELEASE_COORDINATION_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -376,6 +419,30 @@ def validate(root: Path) -> list[str]:
         "phase12_release_readiness",
         phase12_release_readiness,
         REQUIRED_PHASE12_RELEASE_READINESS_EXACT_COUNTS,
+    )
+    ensure_contains(
+        failures,
+        "phase12_release_closure",
+        phase12_release_closure,
+        REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_release_closure",
+        phase12_release_closure,
+        REQUIRED_PHASE12_RELEASE_CLOSURE_EXACT_COUNTS,
+    )
+    ensure_contains(
+        failures,
+        "phase12_release_coordination",
+        phase12_release_coordination,
+        REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS,
+    )
+    ensure_exact_counts(
+        failures,
+        "phase12_release_coordination",
+        phase12_release_coordination,
+        REQUIRED_PHASE12_RELEASE_COORDINATION_EXACT_COUNTS,
     )
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
@@ -410,6 +477,16 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_marker_doc(
             "Documentation/zigux/phase12-release-readiness-survey",
             REQUIRED_PHASE12_RELEASE_READINESS_MARKERS,
+        )
+    if rel_path == PHASE12_RELEASE_CLOSURE_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-release-closure-checklist",
+            REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS,
+        )
+    if rel_path == PHASE12_RELEASE_COORDINATION_PATH:
+        return minimal_marker_doc(
+            "Documentation/zigux/phase12-release-coordination-matrix",
+            REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS,
         )
     if rel_path == PHASE12_LIBBPF_SURVEY_PATH:
         return minimal_marker_doc("Documentation/zigux/phase12-libbpf-segment-survey", REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS)
@@ -527,6 +604,8 @@ def run_self_test() -> int:
         review_checklist_path = base / REVIEW_CHECKLIST_PATH
         freeze_map_path = base / FREEZE_MAP_PATH
         phase12_release_readiness_path = base / PHASE12_RELEASE_READINESS_PATH
+        phase12_release_closure_path = base / PHASE12_RELEASE_CLOSURE_PATH
+        phase12_release_coordination_path = base / PHASE12_RELEASE_COORDINATION_PATH
         tests_readme_path = base / TESTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
@@ -568,6 +647,25 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"phase12_release_readiness:{PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_closure = phase12_release_closure_path.read_text(encoding="utf-8")
+        phase12_release_closure_path.write_text(
+            phase12_release_closure.replace(PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_coordination = phase12_release_coordination_path.read_text(encoding="utf-8")
+        phase12_release_coordination_path.write_text(
+            phase12_release_coordination.replace(PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase12_release_coordination:{PHASE12_RELEASE_COORDINATION_UNSHIPPED_ROUTE_MARKER}",
+        )
 
         write_fixture_tree(base)
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
@@ -626,7 +724,7 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         phase12_build = phase12_build_path.read_text(encoding="utf-8")
         phase12_build_path.write_text(
-            phase12_build.replace('.name = "phase12-libbpf-reviewability-tests"', '.name = "phase12-libbpf-reviewability-checks"', 1),
+            phase12_build.replace('.name = \"phase12-libbpf-reviewability-tests\"', '.name = \"phase12-libbpf-reviewability-checks\"', 1),
             encoding="utf-8",
         )
         expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
@@ -689,7 +787,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_PHASE12_RELEASE_READINESS_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_PHASE12_RELEASE_READINESS_MARKERS) + len(REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS) + len(REQUIRED_PHASE12_RELEASE_COORDINATION_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS) + len(REQUIRED_PHASE12_LIBBPF_SURVEY_MARKERS) + len(REQUIRED_PHASE12_RAW_GITHUB_COVERAGE_MARKERS)}"
     )
     return 0
 
