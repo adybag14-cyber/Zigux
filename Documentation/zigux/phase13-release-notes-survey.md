@@ -43,8 +43,15 @@ Broad summaries should also keep the direct devres repo-reality reminder visible
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 
-Broad summaries should also keep the adjacent notifier evidence packet visible through:
+Broad summaries should also keep the adjacent notifier evidence packet visible through the current materialized review surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
+
+When current `master` cannot materialize direct notifier companions such as:
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
@@ -52,7 +59,8 @@ Broad summaries should also keep the adjacent notifier evidence packet visible t
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `drivers/tty/hvc/hvc_console.h`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+
+broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
 ## Release-Surface Posture
 
