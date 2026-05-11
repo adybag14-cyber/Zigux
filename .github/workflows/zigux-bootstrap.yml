@@ -344,8 +344,11 @@ jobs:
       - name: Run Phase 6 hexdump perf gate
         run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
 
+      - name: Validate Phase 7 runtime helper gates
+        run: make -C zigux phase7-validate
+
       - name: Run Phase 7 runtime helper tests
-        run: make -C zigux phase7-test
+        run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
 
       - name: Validate Phase 8 tooling packet
         run: make -C zigux phase8-validate
