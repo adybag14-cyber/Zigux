@@ -6,11 +6,12 @@ This note is the commit-pinned public-read fallback companion for the shipped `v
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
 - commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`
+- commit-pin role: this is the last raw-read replay point explicitly rechecked through this catalog, not an implied claim that every newer unrelated `master` edit has already been reread here
 - packet role: read-only fallback artifact for public inspection when normal repository reads are degraded
 - survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`
 - release companions: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`
 - fallback overview companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
-- verifier and replay companions: `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`
+- verifier and replay companions: `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`
 
 ## Commit-Pinned Paths
 Base raw URL prefix:
@@ -40,6 +41,7 @@ Base raw URL prefix:
 - keep the same smoke-first release order explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 - keep the focused direct packet explicit too: the current smoke shard for this driver is `zigux/tests/phase12_virtio_scsi.zig` plus `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - keep the fallback split honest: this file is commit-pinned, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts
+- keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped smoke-first packet rather than treating them as extra commit-pinned artifacts
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening any PMO wording around this artifact
 
 ## Boundaries
