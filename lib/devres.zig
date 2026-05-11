@@ -623,6 +623,71 @@ test "phase13 devres uncached ioremap wrapper frees the release record on map fa
     try std.testing.expect(!result.should_unmap_on_detach);
 }
 
+test "phase13 devres wc ioremap wrapper preserves the managed lifetime path" {
+    const result = try DevresHelperLab.planManagedIoremapAcquireWc(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x4400,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x4400), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres wc ioremap wrapper frees the release record on map failure" {
+    const result = try DevresHelperLab.planManagedIoremapAcquireWc(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres iounmap plan warns on release pointer mismatch" {
+    const plan = DevresHelperLab.planManagedIounmap(0x5000, 0x5100);
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0x5000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0x5100), plan.candidate_address);
+    try std.testing.expect(!plan.release_matches);
+    try std.testing.expect(plan.warns_on_release_miss);
+}
+
+test "managed ioremap resource remap failure records nonposted unwind planning" {
+    const allocator = std.testing.allocator;
+    const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
+        .device_name = "eth0",
+        .resource = .{
+            .start = 0x2000,
+            .end = 0x20ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+        .remap_succeeds = false,
+    });
+
+    switch (outcome) {
+        .err => |failure| {
+            try std.testing.expectEqual(ErrorStage.remap, failure.stage);
+            try std.testing.expectEqual(ErrorCode.no_memory, failure.error_code);
+            try std.testing.expectEqual(IoremapType.np, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(failure.releases_region_on_remap_failure);
+        },
+        .mapped => return error.UnexpectedSuccess,
+    }
+}
+
 test "managed ioremap resource maps invalid range into structured invalid_resource failure" {
     const allocator = std.testing.allocator;
     const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
