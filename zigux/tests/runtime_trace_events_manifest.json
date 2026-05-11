@@ -9,57 +9,87 @@
   ],
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
-    "preexisting_runtime_trace_events_test_files": 0,
-    "preexisting_runtime_trace_events_sample_present": false,
-    "preexisting_runtime_trace_events_loader_present": false,
+    "preexisting_runtime_trace_events_test_files": 3,
+    "preexisting_runtime_trace_events_sample_present": true,
+    "preexisting_runtime_trace_events_loader_present": true,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true,
     "preexisting_runtime_trace_events_manifest_present": true
   },
   "lifecycle_boundary_summary": {
-    "family_local_trace_events_packet_present": false,
+    "family_local_trace_events_packet_present": true,
     "shared_loader_packet_present": true,
     "shared_request_surface": "zigux/kernel/runtime_loader.zig",
-    "family_local_registration_parity": "unreadable_on_current_master",
+    "family_local_registration_parity": "reviewable_on_current_master",
     "live_registration_parity": "blocked_on_runtime_substrate"
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
-    "landed_pilot_state": "shared_loader_review_packet_without_family_local_trace_events_starter",
-    "missing_capability": "restored family-local trace-events starter evidence on current master plus the broader shared runtime substrate that would eventually turn the bounded handoff plan into a real loadable module path",
-    "blocked_deliverable": "reviewable Phase 9 runtime trace-events pilot packet with family-local sample, loader, diff, module, and survey evidence",
-    "next_gate": "restore one family-local trace-events evidence surface on current master and keep the shared loader reminder separate until the runtime substrate exists"
+    "landed_pilot_state": "family_local_trace_events_review_packet_plus_shared_loader_handoff",
+    "missing_capability": "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
+    "blocked_deliverable": "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
+    "next_gate": "keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
   },
   "delivery_evidence_catalog": [
+    {
+      "id": "trace-events-sample",
+      "kind": "sample_starter",
+      "path": "samples/zigux/runtime_trace_events.zig",
+      "why_now": "The sample is visible again on current master and carries the bounded trace-events replay surface that the lane-local packet must describe truthfully."
+    },
+    {
+      "id": "trace-events-loader-scaffold",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_trace_events_loader.zig",
+      "why_now": "The sample-side loader scaffold is visible again on current master and keeps the shared runtime-loader handoff explicit without clearing the broader substrate blocker."
+    },
+    {
+      "id": "trace-events-module-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_module.zig",
+      "why_now": "The direct module gate is visible again on current master and keeps the bounded lifecycle and failed-exit packet machine-checkable."
+    },
+    {
+      "id": "trace-events-diff-gate",
+      "kind": "differential_validation",
+      "path": "zigux/tests/runtime_trace_events_diff.zig",
+      "why_now": "The focused diff gate is visible again on current master and keeps the diagnostics-summary replay packet explicit."
+    },
+    {
+      "id": "trace-events-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_survey.zig",
+      "why_now": "The dedicated survey gate is visible again on current master and remains the packet-local fail-closed check for note and manifest drift."
+    },
     {
       "id": "trace-events-manifest",
       "kind": "review_note",
       "path": "zigux/tests/runtime_trace_events_manifest.json",
-      "why_now": "The manifest is the packet-local source of truth for what current master still exposes after the family-local trace-events files disappeared again."
+      "why_now": "The manifest is the packet-local source of truth for the visible family-local trace-events review packet."
     },
     {
       "id": "trace-events-survey-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The survey note records the current narrower review surface and keeps the missing family-local packet explicit."
+      "why_now": "The survey note records the current reviewable family-local packet while keeping the shared runtime-substrate blocker explicit."
     },
     {
       "id": "trace-events-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "why_now": "The module-slice note keeps the same family-local absence and shared-loader boundary visible for reviewers."
+      "why_now": "The module-slice note keeps the same packet-local proof and shared-loader boundary visible for reviewers."
     },
     {
       "id": "trace-events-shared-owner-map",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
-      "why_now": "The shared owner-map note is still the adjacent reminder surface that should stay separate from packet-local trace-events claims."
+      "why_now": "The shared owner-map note remains the adjacent reminder surface that should stay separate from packet-local trace-events claims."
     },
     {
       "id": "trace-events-shared-build-boundary",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build file is still readable on current master, but until the family-local trace-events files return it should be treated as a reminder boundary rather than proof that the trace-events packet is fully restorable."
+      "why_now": "The shared Phase 9 build file is still readable on current master and now directly enumerates the family-local trace-events sample, loader, module, diff, and survey packet."
     }
   ],
   "ownership_map": [
@@ -67,19 +97,19 @@
       "surface": "zigux/tests/runtime_trace_events_manifest.json",
       "role": "packet_truth_manifest",
       "owner": "P9-L10",
-      "boundary": "Records what the trace-events family still exposes on current master without borrowing proof from missing family-local files."
+      "boundary": "Records the visible family-local trace-events packet on current master without borrowing proof from unrelated shared-loader lanes."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
       "role": "survey_note",
       "owner": "P9-L10",
-      "boundary": "Records the narrower current review packet and keeps the family-local absence explicit."
+      "boundary": "Records the reviewable family-local packet and keeps the shared runtime-substrate blocker explicit."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
       "owner": "P9-L10",
-      "boundary": "Tracks the same family-local absence and shared-loader adjacency without claiming direct starter evidence that is no longer readable."
+      "boundary": "Tracks the same packet-local proof and shared-loader adjacency without claiming completed runtime-substrate parity."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
@@ -91,65 +121,16 @@
       "surface": "zigux/tests/phase9_build.zig",
       "role": "shared_build_bundle",
       "owner": "P9-L11",
-      "boundary": "Remains the shared Phase 9 build boundary, but current master should not treat it as standalone proof that the missing family-local trace-events files are still present."
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating the family-local trace-events packet that this lane-local review surface describes."
     }
   ],
   "gaps": [
-    {
-      "id": "phase9-build-gate",
-      "status": "shared_reminder_only",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build file is still readable, but the trace-events family-local files it names are not currently readable on master."
-    },
-    {
-      "id": "runtime-trace-events-survey-gate",
-      "status": "missing_on_current_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/runtime_trace_events_survey.zig",
-      "why_now": "A dedicated survey gate would be the smallest family-local way to fail closed once the trace-events packet is rebuilt."
-    },
-    {
-      "id": "runtime-trace-events-sample-module",
-      "status": "missing_on_current_master",
-      "kind": "sample_starter",
-      "zigux_destination": "samples/zigux/runtime_trace_events.zig",
-      "why_now": "The Phase 9 roadmap still expects a family-local runtime trace-events starter, but current master no longer exposes that sample."
-    },
-    {
-      "id": "runtime-trace-events-selftest-hook",
-      "status": "missing_on_current_master",
-      "kind": "selftest_hook",
-      "zigux_destination": "samples/zigux/runtime_trace_events.zig",
-      "why_now": "The selftest hook belongs to the missing family-local trace-events starter packet and is not currently reviewable on master."
-    },
-    {
-      "id": "runtime-trace-events-module-tests",
-      "status": "missing_on_current_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "The dedicated module tests are part of the missing family-local packet and cannot currently prove lifecycle details on master."
-    },
-    {
-      "id": "runtime-trace-events-diff-gate",
-      "status": "missing_on_current_master",
-      "kind": "differential_validation",
-      "zigux_destination": "zigux/tests/runtime_trace_events_diff.zig",
-      "why_now": "The narrow differential gate is not currently readable, so the packet cannot honestly claim its earlier summary-backed replay proof is still present."
-    },
-    {
-      "id": "runtime-trace-events-loader-scaffold",
-      "status": "missing_on_current_master",
-      "kind": "runtime_loader_scaffold",
-      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The sample-side loader scaffold is not currently readable on master, so the packet must keep that absence explicit instead of implying a live handoff scaffold."
-    },
     {
       "id": "runtime-trace-events-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the currently readable reminder packet."
+      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet."
     }
   ]
 }
