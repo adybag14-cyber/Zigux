@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+    "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
@@ -28,6 +29,13 @@ REQUIRED_MARKERS = {
         "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
         "Keep follow-up inside the shared wording lane",
+    ],
+    "Documentation/zigux/phase8-libbpf-segment-survey.md": [
+        "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
+        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        "`tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "`fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/validate-phase8.py",
@@ -106,6 +114,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_lane_note", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
+        ("missing_segment_survey", "Documentation/zigux/phase8-libbpf-segment-survey.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
@@ -125,6 +134,20 @@ def run_self_test() -> None:
             "### 4. Shared wording lane",
             "### 4. Shared wording packet",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: ### 4. Shared wording lane",
+        ),
+        (
+            "segment_survey_build_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+            "`zigux/tests/phase8_build.zig` no longer wires the current libbpf helper-first shard packet",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        ),
+        (
+            "segment_survey_follow_through_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
+            "Keep follow-up inside the shared wording lane until the public survey packet and the current readable helper-plus-build evidence agree again.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
         ),
         (
             "scripts_readme_checker_anchor",
