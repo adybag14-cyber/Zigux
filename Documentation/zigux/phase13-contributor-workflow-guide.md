@@ -45,13 +45,17 @@ When contributor-facing wording changes, keep these broad surfaces aligned:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
+Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.
+If a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path cannot be materialized on current `master`, record that gap as repo reality instead of presenting the missing script as independently shipped reviewer evidence.
+
 ## Workflow
 
 1. Confirm the change stays inside one bounded Phase 13 lane.
 2. Keep the owner split visible instead of collapsing `libfs`, `devres`, `landlock`, and notifier evidence into one generic summary.
 3. If a broad reminder changes, reread the shared surfaces together before adding packet-local prose.
-4. Keep adjacent notifier evidence explicit whenever a contributor-facing summary mentions the shared Phase 13 packet.
-5. Record Phase 13 as still active and reviewable; do not imply closure or a frozen packet.
+4. Before naming a direct scripts-root checker as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing script as a blocker.
+5. Keep adjacent notifier evidence explicit whenever a contributor-facing summary mentions the shared Phase 13 packet.
+6. Record Phase 13 as still active and reviewable; do not imply closure or a frozen packet.
 
 ## Contributor Prompts
 
@@ -61,6 +65,7 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep the helper-owned Landlock syscalls governance boundary explicit through `Documentation/zigux/phase13-landlock-syscalls-governance.md` instead of folding that owner cue into generic ruleset, notifier, or release wording?
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
+- Does the wording avoid presenting a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path as independently shipped reviewer evidence when that exact file cannot be materialized on current `master`?
 - Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig`?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
 
