@@ -202,7 +202,7 @@ SELFTEST_WORKFLOW = """jobs:
         run: zig build test --build-file zigux/tests/phase4_build.zig
 """
 
-SELFTEST_BUILD = """const std = @import(\"std\"); pub fn build(b: *std.Build) void { const target = b.standardTargetOptions(.{}); const optimize = b.standardOptimizeOption(.{}); const perf_baseline_survey_module = b.createModule(.{ .root_source_file = b.path(\"phase4_perf_baseline_survey.zig\"), .target = target, .optimize = optimize, }); const perf_baseline_survey_tests = b.addTest(.{ .name = \"phase4-perf-baseline-survey-tests\", .root_module = perf_baseline_survey_module, }); const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests); const test_step = b.step(\"test\", \"Run Phase 4 differential validation tests\"); const perf_baseline_survey_step = b.step( \"phase4-perf-baseline-survey\", \"Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet\", ); perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step); }
+SELFTEST_BUILD = """const std = @import("std"); pub fn build(b: *std.Build) void { const target = b.standardTargetOptions(.{}); const optimize = b.standardOptimizeOption(.{}); const perf_baseline_survey_module = b.createModule(.{ .root_source_file = b.path("phase4_perf_baseline_survey.zig"), .target = target, .optimize = optimize, }); const perf_baseline_survey_tests = b.addTest(.{ .name = "phase4-perf-baseline-survey-tests", .root_module = perf_baseline_survey_module, }); const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests); const test_step = b.step("test", "Run Phase 4 differential validation tests"); const perf_baseline_survey_step = b.step( "phase4-perf-baseline-survey", "Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet", ); perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step); }
 """
 
 SELFTEST_MATRIX = """# Phase 4 Validation Matrix
@@ -448,6 +448,33 @@ def run_selftest() -> None:
         else:
             raise SystemExit(
                 "zigux/Makefile missing scripts/zigux/check-phase4-gate-evidence.py "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
+        missing_artifact_diff_determinism_self_test = makefile.read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test\n",
+            "",
+            1,
+        )
+        makefile.write_text(missing_artifact_diff_determinism_self_test, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/Makefile missing scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test "
                 "did not fail the Phase 4 workflow-route self-test"
             )
     emit_status(self_test=True)
