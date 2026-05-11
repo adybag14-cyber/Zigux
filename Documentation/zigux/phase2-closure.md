@@ -31,6 +31,10 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
 - shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+- shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
+- shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`
+- shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`
+- shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`
 - committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`
 - committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`
 - direct Zig replays: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/genksyms_crc.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, `zig test scripts/zigux/kconfig/confdata_bridge.zig`, and `zig test scripts/zigux/mk_elfconfig.zig`
