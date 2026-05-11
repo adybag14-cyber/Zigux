@@ -6,6 +6,7 @@ It stays inside the shared closure packet that is already landed and reviewable,
 ## Status
 
 * `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`
+* compatibility marker for the coupled header-boundary checker: `PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable`
 * scope: keep the active Phase 11 simple-driver shared packet honest while the roadmap still keeps broader teardown, failure-mode parity, and execution-facing follow-through inside the owning driver lanes
 
 ## Roadmap Anchor
@@ -32,8 +33,11 @@ The active shared Phase 11 packet is the docs-root, closure-note, owner-map, che
 * `.github/workflows/zigux-bootstrap.yml`
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `make -C zigux phase11`
+* `make -C zigux phase11-hvc-survey`
 
 These shared docs, the workflow-backed routes, the shared contract checker, the shared header-boundary checker, the shared closure note, and the shared driver-lane owner map prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
+There is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`.
+There is no broader multi-checker Phase 11 validator stack on `master`.
 There is no shared `validate-phase11.py` in the current shared packet on `master`.
 There is no shared `make -C zigux phase11-validate` target on `master`.
 
