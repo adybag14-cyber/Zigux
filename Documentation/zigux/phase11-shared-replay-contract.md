@@ -23,6 +23,7 @@ The active shared Phase 11 packet is currently reviewable through these shared s
 * `Documentation/zigux/phase11-closure-note.md`
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 * `zigux/tests/phase11_build.zig`
 * `make -C zigux phase11`
 
@@ -36,6 +37,7 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 * no shared `make -C zigux phase11-validate` target on `master`
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the shared packet uses the existing `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py` keeps the docs-root, scripts-root, tests-root, and checklist summaries aligned with that same live packet
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
