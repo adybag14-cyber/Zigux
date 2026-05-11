@@ -61,3 +61,48 @@ phase2-cross: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py
 
 phase2: phase2-validate phase2-cross
+
+phase3-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test
+
+phase3-selftest:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py
+
+phase3-abi:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig
+
+phase3-interop:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig
+
+phase3: phase3-validate phase3-abi phase3-interop
