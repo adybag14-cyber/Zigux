@@ -46,7 +46,9 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
     "zigux/uapi/dev_t.zig",
 )
 REQUIRED_SHARED_REMINDER_MARKERS = (
-    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
 )
@@ -99,8 +101,8 @@ def run_self_test() -> int:
         return 1
 
     unique_marker = "scripts/zigux/validate-phase3-validator-support-surface.py"
-    broken = validate_text(sample.replace(unique_marker, "", 1))
-    if unique_marker not in broken:
+    broken = validate_text(sample.replace(unique_marker, ""))
+    if not any(unique_marker in entry for entry in broken):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected missing marker was not reported")
         return 1
@@ -117,6 +119,13 @@ def run_self_test() -> int:
     if f"shared reminder missing marker: {shared_reminder_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared reminder marker was not reported")
+        return 1
+
+    scripts_readme_marker = "scripts/zigux/README.md"
+    broken = validate_text(sample.replace(scripts_readme_marker, "", 1))
+    if f"shared reminder missing marker: {scripts_readme_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected scripts README reminder marker was not reported")
         return 1
 
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
