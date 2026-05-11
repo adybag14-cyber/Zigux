@@ -77,6 +77,14 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: python3 scripts/zigux/validate-phase4.py --self-test",
     "- name: Validate Phase 4 diff packet directly",
     "run: python3 scripts/zigux/validate-phase4.py",
+    "- name: Self-test Phase 4 artifact-diff contract directly",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "- name: Check Phase 4 artifact-diff contract directly",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
+    "- name: Self-test Phase 4 artifact-diff determinism directly",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "- name: Check Phase 4 artifact-diff determinism directly",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "- name: Run Phase 4 diff tests directly",
     "run: zig build test --build-file zigux/tests/phase4_build.zig",
 ]
@@ -85,6 +93,10 @@ REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
     "run: python3 scripts/zigux/validate-phase4.py --self-test",
     "run: python3 scripts/zigux/validate-phase4.py",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "run: zig build test --build-file zigux/tests/phase4_build.zig",
 ]
 
@@ -176,6 +188,14 @@ SELFTEST_WORKFLOW = """jobs:
         run: python3 scripts/zigux/validate-phase4.py --self-test
       - name: Validate Phase 4 diff packet directly
         run: python3 scripts/zigux/validate-phase4.py
+      - name: Self-test Phase 4 artifact-diff contract directly
+        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
+      - name: Check Phase 4 artifact-diff contract directly
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
+      - name: Self-test Phase 4 artifact-diff determinism directly
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+      - name: Check Phase 4 artifact-diff determinism directly
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
       - name: Run Phase 4 diff tests directly
         run: zig build test --build-file zigux/tests/phase4_build.zig
 """
@@ -223,23 +243,18 @@ def ensure_markers(label: str, text: str, markers: list[str]) -> None:
         raise SystemExit(f"{label} is missing required Phase 4 markers:\n{joined}")
 
 
-def ensure_marker_order(label: str, text: str, markers: list[str]) -> None:
-    line_positions: list[int] = []
+def ensure_marker_order(label: str, text: str, ordered_markers: list[str]) -> None:
     lines = [line.strip() for line in text.splitlines()]
-    for marker in markers:
+    positions: list[int] = []
+    for marker in ordered_markers:
         try:
-            position = lines.index(marker)
+            positions.append(lines.index(marker))
         except ValueError as exc:
-            raise SystemExit(
-                f"{label} is missing required Phase 4 marker for order check:\n  - {marker}"
-            ) from exc
-        line_positions.append(position)
-    for idx in range(1, len(line_positions)):
-        if line_positions[idx] <= line_positions[idx - 1]:
-            ordered = "\n".join(f"  - {marker}" for marker in markers)
-            raise SystemExit(
-                f"{label} has out-of-order Phase 4 workflow markers; expected this sequence:\n{ordered}"
-            )
+            raise SystemExit(f"{label} is missing required Phase 4 order marker:\n  - {marker}") from exc
+    for idx in range(1, len(positions)):
+        if positions[idx] <= positions[idx - 1]:
+            joined = "\n".join(f"  - {marker}" for marker in ordered_markers)
+            raise SystemExit(f"{label} has out-of-order Phase 4 workflow markers:\n{joined}")
 
 
 def ensure_absent_markers(label: str, text: str, markers: list[str]) -> None:
