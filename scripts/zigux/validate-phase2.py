@@ -32,6 +32,8 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (TESTS_README_ALIGNMENT_CHECKER,),
     (KCONFIG_README_ALIGNMENT_CHECKER, "--self-test"),
     (KCONFIG_README_ALIGNMENT_CHECKER,),
+    (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
+    (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER,),
     (FIXDEP_GATE_CHECKER, "--self-test"),
     (FIXDEP_GATE_CHECKER,),
     (FIXDEP_DIFF_CHECKER, "--self-test"),
@@ -43,7 +45,7 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test"),
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 14
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 16
 
 
 def build_validation_commands() -> list[list[str]]:
@@ -80,6 +82,8 @@ def collect_command_inventory_issues() -> list[str]:
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-fixdep-gate.py --self-test",
         "scripts/zigux/check-phase2-fixdep-gate.py",
         "scripts/zigux/check-fixdep-diff.py --self-test",
