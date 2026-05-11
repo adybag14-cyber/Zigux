@@ -6,6 +6,7 @@ It stays inside the simple-drivers lane and records only the shipped starter, th
 ## Status
 
 * `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`
+* archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 * Phase 11 simple-production-driver gap has been closed by the bounded starter.
 * remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation
 
