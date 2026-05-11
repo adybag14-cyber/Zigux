@@ -88,11 +88,6 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
-- `zigux/tests/phase13_libfs_manifest.json`
-- `zigux/tests/phase13_devres_manifest.json`
-- `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
@@ -108,7 +103,7 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 Contributor reminder:
 - keep the validator-first eight-test release route explicit through `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13` while treating direct helper-local tests-root gaps as repo reality until current-`master` readback proves them again
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
-- keep direct helper-local tests-root paths framed as repo reality until current-`master` readback proves them; this slot could not materialize `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_ruleset*.zig`, `zigux/tests/phase13_landlock_syscalls*.zig`, or `scripts/zigux/check-phase13-devres-packet.py`
+- keep direct helper-local tests-root paths framed as repo reality until current-`master` readback proves them; this slot could not materialize `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_*.zig`, the direct Phase 13 manifest files under `zigux/tests/`, or `scripts/zigux/check-phase13-devres-packet.py`
 - treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor
 - refresh this note only with surfaces verified on current `master`, not with hoped-for follow-up notes
 
