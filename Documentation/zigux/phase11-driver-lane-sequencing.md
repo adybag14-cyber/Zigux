@@ -24,6 +24,8 @@ Keep the current owner map explicit:
 - header-boundary truthfulness owns `scripts/zigux/check-phase11-header-boundary-packet.py`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - HVC archival replay owns `scripts/zigux/check-phase11-hvc-survey-packet.py`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`
 
+The shared sequencing lane also keeps `scripts/zigux/check-phase11-build-inventory.py` and `zigux/tests/fixtures/phase11_build_inventory.json` with the shared packet because that generated inventory records the shared split and adjunct replay surfaces without changing driver-local ownership.
+
 ## Shared Packet Surfaces
 
 When a real Phase 11 change lands, keep these shared surfaces aligned:
@@ -35,6 +37,8 @@ When a real Phase 11 change lands, keep these shared surfaces aligned:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase11`
@@ -46,7 +50,7 @@ Use this note to keep the bounded work order honest:
 1. Prefer one Phase 11 lane at a time instead of batching bcm2835, gpio, DesignWare, HVC, and header-boundary reminders into one mixed change.
 2. Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the docs-root, scripts-root, tests-root, contract-checker, and make-route surfaces, while the driver-local evidence stays with the owning lane.
 3. Keep the shared sequencing lane honest: `P11-Y06` may repair only the shared packet truthfulness surfaces and must not absorb, rename, or edit driver-local bcm2835, gpio, DesignWare, HVC, or header-boundary evidence unless the matching owner lane is the one moving.
-4. Keep the current validator posture explicit: there is no shared `make -C zigux phase11-validate` target or shared `validate-phase11.py` on `master`, so reminder-surface edits should stay aligned with the landed checker packet and make-backed replay routes instead of implying a broader validator stack.
+4. Keep the current validator posture explicit: there is no shared `make -C zigux phase11-validate` target or shared `validate-phase11.py` on `master`, so reminder-surface edits should stay aligned with the landed shared contract checker, the landed build-inventory checker plus generated fixture, and the make-backed replay routes instead of implying a broader validator stack.
 5. Treat the header-boundary lane as shared public-surface evidence, not as a fifth driver port.
 6. Do not imply broader registration, notifier, sysrq, khvcd, live cleanup, poweroff, reset, or hardware-backed parity closure beyond the lane-local notes and replays already shipped on `master`.
 7. Keep the DesignWare lane honest: on current `master` the landed DesignWare packet is the validation matrix, survey note, teardown note, registration-scaffold replay, verify helper, dedicated packet checker, and shared Phase 11 replay route rather than a docs-only planning placeholder.
