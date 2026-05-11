@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
-
+from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
@@ -20,7 +19,7 @@ REQUIRED_FILES = [
 ]
 
 DOCS_ROOT_MARKERS = [
-    "while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+    "`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -50,9 +49,7 @@ MAKEFILE_MARKERS = [
 
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
-    if root_arg:
-        return Path(root_arg).resolve()
-    return ROOT
+    return Path(root_arg).resolve() if root_arg else ROOT
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -161,104 +158,99 @@ def make_fixture_root(root: Path) -> None:
 
 
 def run_self_test() -> None:
-    self_test_case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase1_installer_companion_") as tmp_dir_str:
-        tmp_root = Path(tmp_dir_str)
-        make_fixture_root(tmp_root)
-        assert collect_missing_files(tmp_root) == []
-        assert collect_missing_markers(tmp_root) == []
-        self_test_case_count += 1
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_installer_companion_") as tmp_dir:
+        root = Path(tmp_dir)
+        make_fixture_root(root)
+        assert collect_missing_files(root) == []
+        assert collect_missing_markers(root) == []
+        case_count += 1
 
-        docs_root_path = tmp_root / "Documentation" / "zigux" / "README.md"
-        docs_root_text = docs_root_path.read_text(encoding="utf-8")
-        docs_root_path.write_text("", encoding="utf-8")
-        missing = collect_missing_markers(tmp_root)
+        (root / "Documentation/zigux/README.md").write_text("", encoding="utf-8")
+        missing = collect_missing_markers(root)
         assert (
-            "docs_root:while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
+            "docs_root:`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
             in missing
         )
-        self_test_case_count += 1
-        docs_root_path.write_text(docs_root_text, encoding="utf-8")
+        case_count += 1
+        make_fixture_root(root)
 
-        scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
-        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text("", encoding="utf-8")
-        missing = collect_missing_markers(tmp_root)
-        assert (
-            "scripts_readme:- `check-phase1-installer-companion-checks.py`:expected=1:actual=0"
-            in missing
-        )
-        self_test_case_count += 1
-        scripts_readme_path.write_text(scripts_readme_text, encoding="utf-8")
+        (root / "scripts/zigux/README.md").write_text("", encoding="utf-8")
+        missing = collect_missing_markers(root)
+        assert "scripts_readme:- `check-phase1-installer-companion-checks.py`:expected=1:actual=0" in missing
+        case_count += 1
+        make_fixture_root(root)
 
-        makefile_path = tmp_root / "zigux" / "Makefile"
-        makefile_text = makefile_path.read_text(encoding="utf-8")
+        makefile_path = root / "zigux/Makefile"
         makefile_path.write_text(
-            makefile_text.replace(
+            makefile_path.read_text(encoding="utf-8").replace(
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        missing = collect_missing_markers(tmp_root)
+        missing = collect_missing_markers(root)
         assert (
             "makefile:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test:expected=1:actual=0"
             in missing
         )
-        self_test_case_count += 1
-        makefile_path.write_text(makefile_text, encoding="utf-8")
+        case_count += 1
+        make_fixture_root(root)
 
-        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
-            workflow_text.replace(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        missing = collect_missing_markers(tmp_root)
+        missing = collect_missing_markers(root)
         assert (
             "workflow:run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test:expected=1:actual=0"
             in missing
         )
-        self_test_case_count += 1
-        workflow_path.write_text(workflow_text, encoding="utf-8")
+        case_count += 1
+        make_fixture_root(root)
 
-        tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
-        tests_readme_path.write_text("", encoding="utf-8")
-        missing = collect_missing_markers(tmp_root)
+        (root / "zigux/tests/README.md").write_text("", encoding="utf-8")
+        missing = collect_missing_markers(root)
         assert (
             "tests_readme:keep `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces:expected=1:actual=0"
             in missing
         )
-        self_test_case_count += 1
-        tests_readme_path.write_text("\n".join(TESTS_README_MARKERS) + "\n", encoding="utf-8")
+        case_count += 1
+        make_fixture_root(root)
 
-        review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
-        review_checklist_text = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist_text.replace("`python3 scripts/zigux/install-zig.py --self-test`\n", "", 1),
+        review_path = root / "Documentation/zigux/review-checklist.md"
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                "`python3 scripts/zigux/install-zig.py --self-test`\n",
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
-        assert collect_missing_markers(tmp_root) == []
-        self_test_case_count += 1
-        review_checklist_path.write_text(
-            review_checklist_text.replace("`python3 scripts/zigux/install-zig.py --self-test`", ""),
+        assert collect_missing_markers(root) == []
+        case_count += 1
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                "`python3 scripts/zigux/install-zig.py --self-test`",
+                "",
+            ),
             encoding="utf-8",
         )
-        missing = collect_missing_markers(tmp_root)
+        missing = collect_missing_markers(root)
         assert (
             "review_checklist:`python3 scripts/zigux/install-zig.py --self-test`:expected_at_least=1:actual=0"
             in missing
         )
-        self_test_case_count += 1
-        review_checklist_path.write_text(review_checklist_text, encoding="utf-8")
+        case_count += 1
 
     print("PHASE1_INSTALLER_COMPANION_CHECKS_SELF_TEST=pass")
-    print(f"PHASE1_INSTALLER_COMPANION_CHECKS_SELF_TEST_CASE_COUNT={self_test_case_count}")
+    print(f"PHASE1_INSTALLER_COMPANION_CHECKS_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
