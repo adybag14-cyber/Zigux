@@ -45,7 +45,7 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - a directly readable packet-local ring manifest, `zigux/tests/phase10_virtio_ring_manifest.json`, that still records the landed queue-local helper evidence, the blocked risky-transport bridge, and the bounded ring-lane ownership posture beside the broader closure packet
 - a directly readable lane-sequencing note, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, that still records the current core, ring, input, and MMIO lane-owner split plus the shared packet surfaces and non-goals that keep the Phase 10 bundle parked below risky transport work
 - the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and this closure note, which keep the direct-core tests-root checker explicit on current `master`
-- the broader shared reminder packet in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and this closure note, which keeps the landed shared validation route and shared harness-coverage checker explicit on current `master`
+- the broader shared reminder packet in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and this closure note, which keeps the landed shared validation route, the shared harness-coverage checker, and the direct-core tests-root checker explicit on current `master`
 
 ## Current Truthfulness Blockers
 
