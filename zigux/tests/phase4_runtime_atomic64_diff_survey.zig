@@ -61,14 +61,14 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("abe089ee72dbb13fa5d7de9c2b4ac8915b9a9658", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("59ed869f275d5ed6b4e66922325122b9f5836f4f", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("7f855cce2b91c156d5c0373b3b0fa096eab0aeda", manifest.phase9_build_blob_sha);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
     try std.testing.expectEqualStrings("d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("f5c02f7964b2b9a5a6feb9093ed0869b8e1d62ae", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("0792aaf3ff40665105b994d9ccfd935821f94a3a", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
@@ -93,7 +93,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
 // runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
-// validator blob abe089ee72dbb13fa5d7de9c2b4ac8915b9a9658
+// validator blob 59ed869f275d5ed6b4e66922325122b9f5836f4f
 // phase4 matrix blob d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8
-// review checklist blob f5c02f7964b2b9a5a6feb9093ed0869b8e1d62ae
+// review checklist blob 0792aaf3ff40665105b994d9ccfd935821f94a3a
 // phase9 build blob 7f855cce2b91c156d5c0373b3b0fa096eab0aeda
