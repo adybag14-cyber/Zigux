@@ -19,18 +19,18 @@ Current `master` still keeps the trace-events family visible through a small Pha
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+- `zigux/tests/runtime_trace_events_manifest.json`
 - `zigux/tests/phase9_build.zig`
 
-Those surfaces keep the trace-events lane visible inside the broader Phase 9 build and owner-map packet, but direct current-`master` readback now still fails for the family-local trace-events implementation and test surfaces that a fuller starter packet would need:
+Those surfaces keep the trace-events lane visible inside the broader Phase 9 build and owner-map packet, and the manifest-backed ownership packet is still readable on current `master`, but direct current-`master` readback still fails for the family-local trace-events implementation and test surfaces that a fuller starter packet would need:
 
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
 - `zigux/tests/runtime_trace_events_module.zig`
 - `zigux/tests/runtime_trace_events_diff.zig`
 - `zigux/tests/runtime_trace_events_survey.zig`
-- `zigux/tests/runtime_trace_events_manifest.json`
 
-That means the honest current packet is narrower than older reminder wording suggested. Current `master` still carries the trace-events survey note, module-slice note, sequencing note, and shared Phase 9 build boundary, but it does not currently expose the family-local trace-events starter, loader scaffold, dedicated survey gate, or manifest-backed ownership packet.
+That means the honest current packet is narrower than older reminder wording suggested. Current `master` still carries the trace-events survey note, module-slice note, sequencing note, manifest-backed ownership packet, and shared Phase 9 build boundary, but it does not currently expose the family-local trace-events starter sample, loader scaffold, dedicated survey gate, or direct module and diff test packet.
 
 ## Bounded truthfulness rules
 
@@ -43,12 +43,12 @@ Keep this trace-events packet honest in the same way as the shared Phase 9 owner
 
 ## Active blocker posture
 
-The immediate same-family blocker on current `master` is the missing family-local trace-events packet.
+The immediate same-family blocker on current `master` is the still-partial family-local trace-events packet.
 
-The survey note, module-slice note, sequencing note, and shared `zigux/tests/phase9_build.zig` surface keep the lane reviewable, but the sample, loader, module, diff, dedicated survey gate, and manifest-backed ownership packet listed above are not currently readable on `master`.
+The survey note, module-slice note, sequencing note, manifest-backed ownership packet, and shared `zigux/tests/phase9_build.zig` surface keep the lane reviewable, but the sample, loader, direct module and diff tests, and dedicated survey gate listed above are not currently readable on `master`.
 
 Even after those family-local surfaces are restored, the broader Phase 9 runtime substrate remains a separate blocked step before any honest claim of live runtime tracepoint registration lifecycle parity.
 
 ## Recommended next step
 
-The next same-family follow-through should stay small and literal: restore one missing family-local trace-events evidence surface on current `master`, starting with `zigux/tests/runtime_trace_events_manifest.json` or `zigux/tests/runtime_trace_events_survey.zig`, and then rebuild outward from that packet one bounded file at a time without widening into unrelated runtime-pilot churn.
+The next same-family follow-through should stay small and literal: restore one missing family-local trace-events evidence surface on current `master`, starting with `zigux/tests/runtime_trace_events_survey.zig` or `samples/zigux/runtime_trace_events_loader.zig`, and then rebuild outward from that packet one bounded file at a time without widening into unrelated runtime-pilot churn.
