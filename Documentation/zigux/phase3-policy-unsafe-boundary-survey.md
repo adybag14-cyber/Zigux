@@ -85,6 +85,6 @@ Current same-family progress already includes three helper-local reserved-byte t
 
 ## Next Bounded Step
 
-- leave this lane parked unless one of the shared ABI packet files drifts again or a real dedicated policy/unsafe focused replay pair lands
+- leave this lane parked unless one of the shared ABI packet files drifts again or a real dedicated policy/unsafe-focused replay pair lands
 - keep the next same-lane change to one note, manifest, validator, or focused-test alignment step tied only to this packet
 - if a broader policy-and-unsafe helper family ever lands later, resurvey this note against the exact live files before claiming that surface here
