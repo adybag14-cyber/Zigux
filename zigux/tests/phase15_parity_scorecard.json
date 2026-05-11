@@ -20,8 +20,11 @@
     {
       "path": "kernel/sched/core.c",
       "lane_owner": "Architecture Council",
-      "rollback_owner": "Architecture Council + PMO / Release Management",
+      "phase": "Phase 15",
       "current_status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + PMO / Release Management",
+      "validation_gate_summary": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council + PMO / Release Management",
       "current_blocker": "blocked_no_bounded_scheduler_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
@@ -39,8 +42,11 @@
     {
       "path": "mm/page_alloc.c",
       "lane_owner": "Architecture Council",
-      "rollback_owner": "Architecture Council + Validation and Perf Team",
+      "phase": "Phase 15",
       "current_status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + Validation and Perf Team",
+      "validation_gate_summary": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council + Validation and Perf Team",
       "current_blocker": "blocked_no_bounded_allocator_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
@@ -58,8 +64,11 @@
     {
       "path": "kernel/rcu/tree.c",
       "lane_owner": "ABI and Runtime Team",
-      "rollback_owner": "Architecture Council + ABI and Runtime Team",
+      "phase": "Phase 15",
       "current_status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + ABI and Runtime Team",
+      "validation_gate_summary": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council + ABI and Runtime Team",
       "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
@@ -77,8 +86,11 @@
     {
       "path": "net/core/skbuff.c",
       "lane_owner": "Shared Subsystems Pod",
-      "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+      "phase": "Phase 15",
       "current_status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+      "validation_gate_summary": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council + Shared Subsystems Pod",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
       "evidence_archive": {
         "decision_record_path": "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
