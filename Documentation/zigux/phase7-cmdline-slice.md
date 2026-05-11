@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 * `PHASE7_STATUS=parked`
 * `PHASE7_SLICE=cmdline-runtime-leaf`
-* `PHASE7_LANE_KEY=P7-L09`
+* `PHASE7_LANE_KEY=P7-Y06`
 * scope: first low-risk runtime-safe parsing helpers only
 * lane state: helper, dedicated survey, committed manifest packet, shared build-wiring checker, shared validator, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, fixture, or shared review packet
 * product boundary:
