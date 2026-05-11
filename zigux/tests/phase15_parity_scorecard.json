@@ -1,0 +1,73 @@
+{
+  "surveyed_commit": "current-master-readback-2026-05-11",
+  "metrics": {
+    "active_freeze_in_c_anchor_count": 4,
+    "blocked_status_change_anchor_count": 4
+  },
+  "anchors": [
+    {
+      "path": "kernel/sched/core.c",
+      "lane_owner": "Architecture Council",
+      "rollback_owner": "Architecture Council + PMO / Release Management",
+      "evidence_archive": {
+        "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+        "linked_evidence": [
+          "Documentation/zigux/freeze-map.md",
+          "Documentation/zigux/phase15-freeze-map-governance.md",
+          "Documentation/zigux/phase15-architecture-council-review-process.md"
+        ],
+        "benchmark_notes_status": "pending_until_bounded_scheduler_seam_exists",
+        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"
+      }
+    },
+    {
+      "path": "mm/page_alloc.c",
+      "lane_owner": "Architecture Council",
+      "rollback_owner": "Architecture Council + Validation and Perf Team",
+      "evidence_archive": {
+        "decision_record_path": "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+        "linked_evidence": [
+          "Documentation/zigux/freeze-map.md",
+          "Documentation/zigux/phase15-freeze-map-governance.md",
+          "Documentation/zigux/phase15-architecture-council-review-process.md"
+        ],
+        "benchmark_notes_status": "pending_until_bounded_allocator_seam_exists",
+        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "latest_blocker_disposition": "blocked_no_bounded_allocator_seam"
+      }
+    },
+    {
+      "path": "kernel/rcu/tree.c",
+      "lane_owner": "ABI and Runtime Team",
+      "rollback_owner": "Architecture Council + ABI and Runtime Team",
+      "evidence_archive": {
+        "decision_record_path": "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+        "linked_evidence": [
+          "Documentation/zigux/freeze-map.md",
+          "Documentation/zigux/phase15-freeze-map-governance.md",
+          "Documentation/zigux/phase14-rcu-tree-survey.md"
+        ],
+        "benchmark_notes_status": "pending_until_rcu_followup_is_narrower_than_freeze_boundary",
+        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
+      }
+    },
+    {
+      "path": "net/core/skbuff.c",
+      "lane_owner": "Shared Subsystems Pod",
+      "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+      "evidence_archive": {
+        "decision_record_path": "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+        "linked_evidence": [
+          "Documentation/zigux/freeze-map.md",
+          "Documentation/zigux/phase15-freeze-map-governance.md",
+          "Documentation/zigux/phase14-skbuff-bridge-survey.md"
+        ],
+        "benchmark_notes_status": "pending_until_skbuff_followup_is_narrower_than_lifetime_boundary",
+        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"
+      }
+    }
+  ]
+}
