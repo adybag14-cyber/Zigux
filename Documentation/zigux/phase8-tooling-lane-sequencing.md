@@ -11,6 +11,7 @@ It is a coordination artifact, not a closure claim.
 - shared make validation route: `make -C zigux phase8-validate`
 - shared docs and reminder surfaces still present on current `master`: `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - current repo-reality caution: the default-branch tree read surface no longer exposes the older `Documentation/zigux/phase8-*-slice.md`, `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, or `zigux/tests/phase8_*` packet that some shared summaries still name
+- current shared-surface drift: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/Makefile` still name removed Phase 8 slice-note files, shard tests, or libbpf-segment members even though the default-branch tree read surface no longer exposes those packet anchors
 - freeze-map posture: this lane stays in repo-hosted tooling review surfaces only and does not reopen any deep-core freeze anchor
 
 ## Lane map
@@ -60,6 +61,7 @@ Allowed surfaces:
 
 Current wording-lane caution:
 - current `master` still carries only the shared reminder packet and this owner-map note for Phase 8 on the default-branch read surface
+- the shared reminder packet still overstates removed slice-note, shard-test, and libbpf-segment members on several reminder surfaces
 - treat missing slice-note, tests-root shard, and tool-tree filenames as removed or absent until the tree itself shows them again
 - when this lane reopens, use the default-branch tree plus the shared docs, validator, Makefile, and workflow surfaces as the first-pass truth sources
 
@@ -71,4 +73,4 @@ Current wording-lane caution:
 5. Validate through exact default-branch readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest reopen cue is the docs-root Phase 8 summary in `Documentation/zigux/README.md`: it still names removed slice-note files and tree-backed packet members instead of the current shared reminder surfaces and this owner-map note.
+The next honest reopen cue still starts at the docs-root Phase 8 summary in `Documentation/zigux/README.md`, then continues through `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/Makefile`: those shared reminder surfaces still name removed slice-note files, shard tests, and libbpf-segment members instead of the current shared reminder packet and this owner-map note.
