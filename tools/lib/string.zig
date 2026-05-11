@@ -136,9 +136,42 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
     return replaceChar(buf, old, new);
 }
 
+fn repeatByte(value: u8) usize {
+    var repeated: usize = 0;
+    var idx: usize = 0;
+    while (idx < @sizeOf(usize)) : (idx += 1) {
+        repeated = (repeated << 8) | @as(usize, value);
+    }
+    return repeated;
+}
+
+fn hasZeroByte(word: usize) bool {
+    const ones = repeatByte(0x01);
+    const high_bits = repeatByte(0x80);
+    return ((word -% ones) & ~word & high_bits) != 0;
+}
+
 pub fn memchrInv(buf: []const u8, value: u8) ?usize {
-    for (buf, 0..) |ch, idx| {
-        if (ch != value) {
+    const word_bytes = @sizeOf(usize);
+    var idx: usize = 0;
+
+    if (buf.len >= word_bytes * 2) {
+        const repeated = repeatByte(value);
+
+        while (idx + word_bytes <= buf.len) : (idx += word_bytes) {
+            const word_ptr: *align(1) const usize = @ptrCast(buf[idx .. idx + word_bytes].ptr);
+            if (hasZeroByte(word_ptr.* ^ repeated)) {
+                for (0..word_bytes) |byte_idx| {
+                    if (buf[idx + byte_idx] != value) {
+                        return idx + byte_idx;
+                    }
+                }
+            }
+        }
+    }
+
+    while (idx < buf.len) : (idx += 1) {
+        if (buf[idx] != value) {
             return idx;
         }
     }
