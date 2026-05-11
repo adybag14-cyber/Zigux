@@ -157,7 +157,7 @@ EXPECTED_CONF_CASES = (
         "kconfig": "Kconfig",
         "config": "out/help.config",
         "arch": "riscv64",
-        "silent": true,
+        "silent": True,
         "expected": "helpnewconfig_expected.json",
     },
     {
