@@ -155,14 +155,18 @@ def run_self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
+    default_repo_root = pathlib.Path(__file__).resolve().parent
+    if default_repo_root.name == "zigux" and default_repo_root.parent.name == "scripts":
+        default_repo_root = default_repo_root.parent.parent
+
     parser = argparse.ArgumentParser(
         description="Check Phase 8 help and kallsyms output-stability markers."
     )
     parser.add_argument(
         "--repo-root",
         type=pathlib.Path,
-        default=pathlib.Path(__file__).resolve().parents[1],
-        help="repository root to inspect (default: parent of scripts/zigux)",
+        default=default_repo_root,
+        help="repository root to inspect (default: repository root when run from scripts/zigux)",
     )
     parser.add_argument(
         "--self-test",
