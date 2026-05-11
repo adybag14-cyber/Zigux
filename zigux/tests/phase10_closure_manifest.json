@@ -286,6 +286,9 @@
     "zigux/tests/phase10_virtio_mmio_survey.zig"
   ],
   "exact_checks": [
+    "python3 scripts/zigux/validate-phase10.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "make -C zigux phase10-validate",
     "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/check-phase10-ring-packet.py",
     "python3 scripts/zigux/check-phase10-input-packet.py",
