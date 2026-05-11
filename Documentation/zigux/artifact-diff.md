@@ -137,6 +137,7 @@ Current Phase 4 use
 - owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`
 - rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`
 - fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired
+- rollback repair gate: `python3 scripts/zigux/check-artifact-diff-contract.py` and `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must both pass again before a repaired `scripts/zigux/artifact_diff.py` helper change can be treated as closed
 - deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below
 - deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet
 - review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable
