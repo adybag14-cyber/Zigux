@@ -6,7 +6,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 - `PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`
 - lane: `P11-L16`
-- reviewed against live `master` `16c6f699e6d4e6a0466d4e6a0466d4e6a0466d4e`
+- reviewed against live `master`
 - scope: keep the current archived HVC packet honest about what is already reviewable, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `zigux/tests/phase11_hvc_console_survey.zig`
@@ -25,7 +25,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 ## Why This Exists
 
-The bounded archival packet now keeps the final-close teardown summary, the `hvc_cleanup()` tty-port release handoff, the notifier-add open handoff, the khvcd polling-contract summary, the khvcd sleep-and-reschedule handoff, the `__hvc_poll` drain-order split, the `hvc_hangup()` disconnect summary, the `hvc_remove()` handoff summary, the targetless notifier no-unregister edge, and the sysrq helper boundary reviewable through the survey gate, manifest-backed survey note, teardown note, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
+The bounded archival packet now keeps the final-close teardown summary, the `hvc_cleanup()` tty-port release handoff, the notifier-add open handoff, the `hvc_remove()` handoff summary, the targetless notifier no-unregister edge, and the sysrq helper boundary reviewable through the survey gate, manifest-backed survey note, teardown note, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
 
 This matrix keeps one reviewable note that explains:
 
@@ -40,18 +40,16 @@ Without this matrix, the archival packet names the right follow-through but does
 
 | lane surface | current evidence | archival gate today | next bounded follow-up | out of scope for now |
 | --- | --- | --- | --- | --- |
-| archival survey gate | `zigux/tests/phase11_hvc_console_survey.zig` plus `zigux/tests/phase11_hvc_console_manifest.json` keep the archived packet, exported-helper signature proof, and the reviewable `hvc_cleanup` teardown handoff visible beside the survey note | `make -C zigux phase11-hvc-survey` archival route fail-closed through `scripts/zigux/check-phase11-hvc-survey-packet.py` and `.github/workflows/zigux-bootstrap.yml` | keep the same archival packet stable while the next same-lane repair stays inside a host-free khvcd, notifier, remove, or cleanup handoff | live tty registration, notifier callback execution, khvcd worker execution, and host-backed transport |
-| teardown summary boundary | `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps final-close teardown boundaries, cleanup tty-port release handoff, `hvc_hangup()` disconnect cleanup, and `hvc_remove()` slot-release ordering readable beside the archived packet | the archival survey gate, teardown note, and survey note stay coupled by the HVC packet checker so teardown wording drifts fail closed | keep the same teardown wording aligned while broader teardown ownership remains deferred | live tty core teardown, backend drain timing, and host-backed cleanup |
-| notifier callback boundary | the survey gate, survey note, and teardown note keep `summarizeNotifierAddOutcome()`, notifier ownership, targetless notifier no-unregister edge, and deferred callback execution explicit without claiming live notifier registration | the dedicated survey route and packet checker keep notifier-facing handoff wording stable while the lane stays archival | leave the notifier handoff parked unless another comparably small host-free notifier review truthfulness fix appears | live notifier registration, callback execution, and IRQ-backed callback handling |
-| khvcd polling contract boundary | `zigux/tests/phase11_hvc_console_poll_retry_split.zig` keeps polling fallback, partial-write progress, pending sysrq dispatch separation, stale hangup short-circuit that preserves buffered-write state when the port count is already zero, and poll-drain sequencing reviewable without claiming khvcd execution | the archival survey route keeps the khvcd polling contract boundary visible beside the survey note and teardown note | keep the poll-retry split aligned while the lane stays below worker execution | live khvcd thread scheduling, host-backed getchars or putchars execution, and wakeup timing |
-| `hvc_hangup()` disconnect boundary | the survey note, teardown note, and poll-retry split keep disconnect cleanup, buffered-write clearing, and teardown gating explicit without widening into runtime teardown ownership | the archival survey gate keeps the hangup packet reviewable beside the sysrq helper and the survey-backed teardown wording | leave this packet parked unless another comparably small host-free disconnect wording repair appears | live notifier callback execution, remove-time tty ownership races, and IRQ teardown |
+| archival survey gate | `zigux/tests/phase11_hvc_console_survey.zig` plus `zigux/tests/phase11_hvc_console_manifest.json` keep the archived packet, exported-helper signature proof, and the reviewable `hvc_cleanup` teardown handoff visible beside the survey note | `make -C zigux phase11-hvc-survey` archival route fail-closed through `scripts/zigux/check-phase11-hvc-survey-packet.py` and `.github/workflows/zigux-bootstrap.yml` | keep the same archival packet stable while the next same-lane repair stays inside a host-free notifier, remove, cleanup, or sysrq handoff | live tty registration, notifier callback execution, khvcd worker execution, and host-backed transport |
+| teardown summary boundary | `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps final-close teardown boundaries, cleanup tty-port release handoff, and `hvc_remove()` slot-release ordering readable beside the archived packet | the archival survey gate, teardown note, and survey note stay coupled by the HVC packet checker so teardown wording drifts fail closed | keep the same teardown wording aligned while broader teardown ownership remains deferred | live tty core teardown, backend drain timing, and host-backed cleanup |
+| notifier callback boundary | the survey gate, survey note, and teardown note keep `summarizeNotifierAddOutcome()`, notifier ownership, and the targetless notifier no-unregister edge explicit without claiming live notifier registration | the dedicated survey route and packet checker keep notifier-facing handoff wording stable while the lane stays archival | leave the notifier handoff parked unless another comparably small host-free notifier review truthfulness fix appears | live notifier registration, callback execution, and IRQ-backed callback handling |
+| sysrq helper boundary | `drivers/tty/hvc/hvc_console_sysrq.zig` plus the survey gate and survey note keep sysrq toggle handoff, no-dispatch fallback, and post-teardown unavailability explicit without claiming live sysrq dispatch | the archival survey gate and packet checker keep the helper-facing sysrq wording coupled to the bounded HVC packet | keep the helper packet aligned while the lane stays below live console dispatch and transport work | live sysrq dispatch, host-backed console delivery, and runtime keyboard-path integration |
 
 ## Failure-Mode Evidence
 
-- stale hangup short-circuit that preserves buffered-write state when the port count is already zero stays explicit in `zigux/tests/phase11_hvc_console_poll_retry_split.zig` so the archival packet does not silently borrow live disconnect behavior.
 - cleanup tty-port release handoff stays explicit through the survey gate, the teardown note, and the survey note so the archival packet preserves teardown and failure-mode parity without claiming live tty destruction.
-- notifier-add success, polling fallback, and teardown-facing notifier ownership remain visible through the archived survey surfaces without widening into notifier callback execution.
-- targetless notifier no-unregister edge, sysrq toggle handoff, and no-dispatch fallback stay explicit beside `drivers/tty/hvc/hvc_console_sysrq.zig` and the poll-retry split so the packet keeps bounded sysrq and notifier edges visible without claiming live dispatch.
+- notifier-add success and the targetless notifier no-unregister edge remain visible through the archived survey surfaces without widening into notifier callback execution.
+- sysrq toggle handoff, no-dispatch fallback, and post-teardown unavailability stay explicit beside `drivers/tty/hvc/hvc_console_sysrq.zig` so the packet keeps bounded sysrq edges visible without claiming live dispatch.
 
 ## Replay Posture
 
@@ -61,9 +59,9 @@ Without this matrix, the archival packet names the right follow-through but does
 
 ## Review Rules
 
-- treat this lane as an archival survey, teardown, and helper-boundary packet while live notifier registration, callback execution, and host-backed I/O stay out of scope
+- treat this lane as an archival survey, teardown, and helper-boundary packet while live notifier registration, callback execution, tty-driver registration, and host-backed I/O stay out of scope
 - treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the landing checkpoint for the archived packet, not as a rolling promise about runtime parity
-- keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes
+- keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, cleanup, remove, tty-registration, sysrq, or notifier handoff story changes
 - keep `scripts/zigux/check-phase11-hvc-survey-packet.py`, `make -C zigux phase11-hvc-survey`, and the survey-backed packet aligned whenever the archival HVC split changes so the lane stays reviewable and the dedicated route keeps failing closed
 - do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
-- keep the next same-lane repair inside a host-free khvcd, notifier, remove, or cleanup handoff before widening any execution-facing behavior
+- keep the next same-lane repair inside a host-free notifier, remove, cleanup, or sysrq handoff before widening any execution-facing behavior
