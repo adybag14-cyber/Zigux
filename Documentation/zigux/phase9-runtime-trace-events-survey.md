@@ -1,6 +1,6 @@
 # Phase 9 Runtime Trace-Events Survey
 
-This note restores one missing owner-facing review surface for the Phase 9 runtime pilot packet.
+This note keeps an owner-facing review surface for the Phase 9 runtime trace-events packet aligned with live `master`.
 
 ## Roadmap anchor
 
@@ -51,4 +51,4 @@ The trace-events packet is reviewable through the shared build, the family-local
 
 ## Recommended next step
 
-The next same-family follow-through should stay small and literal: restore the paired trace-events module-slice note or the missing family-local manifest-backed reminder surface, one file at a time, before widening into new runtime behavior claims.
+The next same-family follow-through should stay small and literal: inspect the paired trace-events module-slice note, the manifest-backed owner map, or the nearby shared reminder packet for the next one-file truthfulness drift before widening into new runtime behavior claims.
