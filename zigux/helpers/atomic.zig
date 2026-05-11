@@ -136,6 +136,14 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(u32, 0x0000_00ff), fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic));
     try std.testing.expectEqual(@as(u32, 0xffff_fff0), monotonic_nand_value);
 
+    var ordered_bits_value: u32 = 0b1011_0101;
+    try std.testing.expectEqual(@as(u32, 0b1011_0101), fetchAnd(u32, &ordered_bits_value, 0b1111_0000, .monotonic));
+    try std.testing.expectEqual(@as(u32, 0b1011_0000), ordered_bits_value);
+    try std.testing.expectEqual(@as(u32, 0b1011_0000), fetchOr(u32, &ordered_bits_value, 0b0000_1100, .release));
+    try std.testing.expectEqual(@as(u32, 0b1011_1100), ordered_bits_value);
+    try std.testing.expectEqual(@as(u32, 0b1011_1100), fetchXor(u32, &ordered_bits_value, 0b0011_0011, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 0b1000_1111), ordered_bits_value);
+
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
