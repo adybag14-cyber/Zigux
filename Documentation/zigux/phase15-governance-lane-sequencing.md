@@ -72,6 +72,7 @@ Because those companion manifest, Zig, shared-summary, and replay surfaces are a
 - do not reopen deep-core status-change discussion unless the blocker posture changes or a named reopen trigger fires
 - do not let shared README or checklist summaries claim broader Phase 15 replay coverage than the current tree actually ships
 - if a summary or checker drifts away from the current Phase 15 packet, narrow the next step to that one truthfulness repair before widening anywhere else
+- if the compact docs-root Phase 15 reminder omits the dedicated parked-maintenance notes, treat that as a `shared-summaries` repair only and do not let the readiness-gate, handoff-next-steps, or lane-sequencing lanes absorb that fix unless their own packet-local evidence changes too
 - if a new Phase 15 companion file lands, attach it to the smallest matching lane family instead of collapsing the whole governance packet into one generic maintenance note
 - keep the review-process, readiness, handoff, and freeze-map surfaces distinct so later follow-up can answer one bounded blocker at a time
 
@@ -79,13 +80,14 @@ Because those companion manifest, Zig, shared-summary, and replay surfaces are a
 
 - keep packet-local replay inventories here so nearby runs do not consume packet-local backlog from the wrong lane
 - shared summaries should point back here instead of duplicating the whole replay list
+- the current docs-root omission around `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` belongs to `shared-summaries`; adjacent lanes should reference this note instead of consuming that repair from the readiness, handoff, or sequencing packets
 - Do not use this lane to change any deep-core blocker disposition
 
 ## Next Bounded Step
 
 The next honest Architecture Council follow-up is maintenance only:
 
-- if one shared-summary truthfulness repair is still needed before a named reopen trigger or real deep-core blocker-posture change, inspect `Documentation/zigux/README.md` first because the broad docs-root Phase 15 reminder already carries `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15`, but it still omits the dedicated parked maintenance notes `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` from the compact docs-root Phase 15 reminder
+- if one shared-summary truthfulness repair is still needed before a named reopen trigger or real deep-core blocker-posture change, inspect `Documentation/zigux/README.md` first because the broad docs-root Phase 15 reminder already carries `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15`, but it still omits the dedicated parked maintenance notes `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` from the compact docs-root Phase 15 reminder; keep that repair scoped to the `shared-summaries` lane plus its direct checker surfaces instead of reopening packet-local readiness, handoff, or sequencing backlog
 - otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
 Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
