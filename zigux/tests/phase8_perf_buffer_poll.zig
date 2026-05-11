@@ -68,3 +68,26 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
     try std.testing.expectEqual(@as(?usize, 1), processing_failure.execution.first_process_error_index);
 }
+
+test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
+    const ready_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        12,
+        2,
+        &.{ .{ .ready = true }, .{ .ready = true } },
+        &.{ .{ .records_processed = 1 } },
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(0, ready_execution),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(3, ready_execution),
+    );
+
+    const failed_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(5, -5, &.{}, &.{});
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(-9, failed_execution),
+    );
+}
