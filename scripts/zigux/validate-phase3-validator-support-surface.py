@@ -29,6 +29,9 @@ REQUIRED_MARKERS = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    "python3 scripts/zigux/phase3_check_lib.py --self-test",
+    "python3 scripts/zigux/generate-phase3-check-wrappers.py --check",
+    "python3 scripts/zigux/run-phase3-checks.py --self-test",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3-selftest",
@@ -61,6 +64,27 @@ def run_self_test() -> int:
     if unique_marker not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected missing marker was not reported")
+        return 1
+
+    helper_selftest_marker = "python3 scripts/zigux/phase3_check_lib.py --self-test"
+    broken = validate_text(sample.replace(helper_selftest_marker, "", 1))
+    if helper_selftest_marker not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected phase3_check_lib self-test marker was not reported")
+        return 1
+
+    wrapper_check_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --check"
+    broken = validate_text(sample.replace(wrapper_check_marker, "", 1))
+    if wrapper_check_marker not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected wrapper check marker was not reported")
+        return 1
+
+    runner_selftest_marker = "python3 scripts/zigux/run-phase3-checks.py --self-test"
+    broken = validate_text(sample.replace(runner_selftest_marker, "", 1))
+    if runner_selftest_marker not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected runner self-test marker was not reported")
         return 1
 
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
