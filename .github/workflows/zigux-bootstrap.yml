@@ -340,6 +340,9 @@ jobs:
           make -C zigux phase8-file-path-handle-bridge-test
           make -C zigux phase8-perf-buffer-poll-test
 
+      - name: Run focused Phase 8 libbpf segment tests
+        run: make -C zigux phase8-libbpf-segments-test
+
       - name: Run Phase 8 tooling tests
         run: make -C zigux phase8-test
 
