@@ -13,6 +13,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
@@ -63,6 +64,7 @@ SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
 ]
 
 TESTS_README_MARKERS = [
@@ -70,6 +72,7 @@ TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`drivers/virtio/virtio.zig`",
     "`drivers/virtio/virtio_driver_id.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
 ]
 
 CLOSURE_NOTE_MARKERS = [
@@ -90,6 +93,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`zigux/tests/phase10_closure_manifest.json`",
     "`drivers/virtio/virtio.zig`",
     "`drivers/virtio/virtio_driver_id.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
 ]
@@ -97,6 +101,11 @@ REVIEW_CHECKLIST_MARKERS = [
 COMPANION_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "ring drained-reset reuse replay",
+]
+
+LANE_NOTE_MARKERS = [
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`make -C zigux phase10-validate`",
 ]
 
 
@@ -122,6 +131,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "companion",
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             COMPANION_MARKERS,
+        ),
+        (
+            "lane_note",
+            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+            LANE_NOTE_MARKERS,
         ),
         ("review_checklist", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
@@ -186,11 +200,12 @@ def write_fixture(root: Path) -> None:
             ]
         ),
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(
             [
                 "# Zigux Review Checklist",
                 "",
-                "If the change touches the shared Phase 10 packet, keep `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `zigux/tests/phase10_closure_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` aligned.",
+                "If the change touches the shared Phase 10 packet, keep `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `zigux/tests/phase10_closure_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` aligned.",
                 "",
             ]
         ),
@@ -345,6 +360,23 @@ def run_self_test() -> int:
         )
         companion_path.write_text(original_companion, encoding="utf-8")
 
+        lane_note_path = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+        original_lane_note = lane_note_path.read_text(encoding="utf-8")
+        lane_note_path.write_text(
+            original_lane_note.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "lane_note_ring_reset_reuse_entry",
+            root,
+            "lane_note:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        )
+        lane_note_path.write_text(original_lane_note, encoding="utf-8")
+
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -359,6 +391,21 @@ def run_self_test() -> int:
             "review_checklist_direct_core_checker",
             root,
             "review_checklist:`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_ring_reset_reuse_entry",
+            root,
+            "review_checklist:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
@@ -406,6 +453,21 @@ def run_self_test() -> int:
             "scripts_readme_core_checker",
             root,
             "scripts_readme:`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_ring_reset_reuse_entry",
+            root,
+            "scripts_readme:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
@@ -458,6 +520,21 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_ring_reset_reuse_entry",
+            root,
+            "tests_readme:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         checker_path.unlink()
         expect_missing_file(
@@ -467,7 +544,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -494,5 +571,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
