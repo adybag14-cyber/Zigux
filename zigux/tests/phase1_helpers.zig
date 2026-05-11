@@ -385,6 +385,11 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.string.strtobool_zero, try string.strtobool("0"));
     try std.testing.expectEqual(fixture.string.strtobool_off, try string.strtobool("of"));
     try std.testing.expectError(error.Invalid, string.strtobool("maybe"));
+    const strtobool_invalid = blk: {
+        _ = string.strtobool("maybe") catch |err| break :blk @as(i32, @intCast(@intFromError(err)));
+        break :blk @as(i32, 0);
+    };
+    try std.testing.expectEqual(fixture.string.strtobool_invalid, strtobool_invalid);
 
     var strlcpy_buffer = [_]u8{ 0, 0, 0, 0 };
     try std.testing.expectEqual(fixture.string.strlcpy_len, string.strlcpy(&strlcpy_buffer, "hello"));
