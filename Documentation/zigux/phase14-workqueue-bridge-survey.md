@@ -37,7 +37,7 @@ The highest-value honest step in this lane is therefore not to sketch a fake asy
 - the bridge now also audits `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so pending-bit ownership and refcount retry rules are reviewable before any wrapper claims live submission control.
 - the bridge now also audits `queue_delayed_work_on()`, `mod_delayed_work_on()`, `__queue_delayed_work()`, and `delayed_work_timer_fn()` so delayed enqueue aliases, timer-expiry handoff, and delayed requeue governance stay explicit while timer-base, CPU-affinity, and delayed-work requeue ownership remain in C.
 - the bridge now also records the `__flush_workqueue()` color cascade, `start_flush_work()` barrier insertion, `pwq_dec_nr_in_flight()` release path, and `rescuer_thread()` mayday recovery handoff so active-color progression, chained flusher ownership, rescue wakeups, and regular-worker restart behavior remain reviewable without pretending a wrapper owns them.
-- against the Phase 14 roadmap, the original workqueue boundary-map gap is now closed: Zigux has the required boundary map, a review-only concurrency audit, and explicit stay-in-C decisions. The remaining lane-local gap is narrower and still review-only: a shared checklist wording refresh should land before the later drain or cancel audit so reviewers see the same blocked-maintenance packet the survey and manifest already describe.
+- against the Phase 14 roadmap, the original workqueue boundary-map gap is now closed: Zigux has the required boundary map, a review-only concurrency audit, and explicit stay-in-C decisions. The remaining lane-local gap is narrower and still review-only: the next bounded step is the drain or cancel audit already named in the manifest and shared smoke packet, while the live execution blocker remains unchanged afterward.
 
 ## Recorded gaps
 
@@ -59,11 +59,10 @@ The current lane state is:
 - landed `phase14-workqueue-delayed-requeue-governance`
 - landed `phase14-workqueue-flush-drain-governance`
 - landed `phase14-workqueue-rescuer-mayday-governance`
-- reviewer-facing drift: `Documentation/zigux/review-checklist.md` still needs to describe this current blocked-maintenance packet instead of the older workqueue story
 - ready-next `phase14-workqueue-drain-cancel-followup`
 - blocked `phase14-workqueue-live-execution-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux has already closed the roadmap-level workqueue boundary-map gap with a real Phase 14 boundary map, explicit stay-in-C decisions, and review-only concurrency audits for submission, delayed-work, flush-color, and rescuer ownership. What remains open inside this lane is narrower: the shared checklist wording still lags the current packet, the drain or cancel audit is still pending right after that reviewer-facing repair, and Zigux still does not claim live worker-pool execution, scheduler-hook parity, hotplug rebinding, or a direct `kernel/workqueue.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux has already closed the roadmap-level workqueue boundary-map gap with a real Phase 14 boundary map, explicit stay-in-C decisions, and review-only concurrency audits for submission, delayed-work, flush-color, and rescuer ownership. What remains open inside this lane is narrower: the drain or cancel audit is next, and Zigux still does not claim live worker-pool execution, scheduler-hook parity, hotplug rebinding, or a direct `kernel/workqueue.c` rewrite.
 
 ## Non-goals
 
@@ -87,4 +86,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-First realign `Documentation/zigux/review-checklist.md` with this current blocked-maintenance packet so reviewers see the same delayed-work, flush-color, and stay-in-C boundaries the survey and manifest already carry. After that, stay in this same workqueue lane and audit `drain_workqueue()`, `__flush_work()`, and `__cancel_work_sync()` so the bridge records reflush looping, single-work barrier waiting, and cancellation completion boundaries before any wrapper claims draining or cancellation parity. The remaining blocker after those review-only steps is unchanged: Zigux still does not own live worker-pool execution, delayed-work requeue control, scheduler callbacks, rescuer behavior, CPU-hotplug migration, or unbound topology rebinding for `kernel/workqueue.c`.
+Stay in this same workqueue lane and audit `drain_workqueue()`, `__flush_work()`, and `__cancel_work_sync()` so the bridge records reflush looping, single-work barrier waiting, and cancellation completion boundaries before any wrapper claims draining or cancellation parity. The remaining blocker after that review-only step is unchanged: Zigux still does not own live worker-pool execution, delayed-work requeue control, scheduler callbacks, rescuer behavior, CPU-hotplug migration, or unbound topology rebinding for `kernel/workqueue.c`.
