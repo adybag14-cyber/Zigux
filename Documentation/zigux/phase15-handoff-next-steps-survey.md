@@ -17,6 +17,7 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - landed `phase15-build-handoff-replay-visible` keeps the dedicated handoff replay wired into the shared Phase 15 build packet instead of leaving it out of the parked governance route.
 - landed `phase15-named-reopen-trigger-catalog` keeps the parked queue explicit through named reopen triggers instead of generic follow-up prose.
 - landed `phase15-lane-family-handoff-owner-alignment` keeps the dedicated handoff packet aligned with the current `P15-L08` owner split instead of the older `P15-L07` continuity label.
+- landed `phase15-tests-readme-validator-route-reminder` keeps `zigux/tests/README.md` aligned with the shipped validator-first and replay routes instead of understating the parked governance packet from the tests root.
 
 ## Roadmap Versus Ledger
 
@@ -66,5 +67,5 @@ This packet is still a parked governance packet only. It does not record a deep-
 ## Next Steps
 
 - Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.
-- The next honest same-lane follow-up is now a shared-summary repair, not another make-route fix: reread `zigux/tests/README.md` against `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `scripts/zigux/check-phase15-review-process-handoff.py`, then land the smallest tests-root truthfulness update that keeps the parked Phase 15 governance packet explicit without widening into new approval claims.
+- The shared-summary repair named by the previous handoff step is now landed: `zigux/tests/README.md` keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` explicit beside the checker routes, so the next honest same-lane follow-up is to re-read those shared summaries only if repo reality drifts again.
 - Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully.
