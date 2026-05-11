@@ -62,6 +62,8 @@ FILE_MARKERS = {
         "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
         "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
@@ -114,10 +116,12 @@ FILE_MARKERS = {
     ],
     "zigux/Makefile": [
         "phase2-toolchain:",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "phase2-cross:",
-        "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+        "phase2: phase2-validate phase2-cross",
     ],
 }
 
