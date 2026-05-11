@@ -185,6 +185,26 @@ def run_self_test() -> int:
         print("expected current packet marker was not reported")
         return 1
 
+    current_packet_dev_t_marker = "zigux/uapi/dev_t.zig"
+    before, separator, after = sample.partition("## Current packet\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current packet section separator was not found")
+        return 1
+    current_packet, separator, tail = after.partition("\n## Review boundary\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review boundary section separator was not found")
+        return 1
+    current_packet_broken = current_packet.replace(current_packet_dev_t_marker, "", 1)
+    broken = validate_text(
+        before + "## Current packet\n" + current_packet_broken + "\n## Review boundary\n" + tail
+    )
+    if f"current packet missing marker: {current_packet_dev_t_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current packet dev_t marker was not reported")
+        return 1
+
     shared_reminder_next_step_marker = (
         "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
     )
@@ -303,6 +323,19 @@ def run_self_test() -> int:
     if f"shared reminder missing marker: {shared_reminder_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared reminder marker was not reported")
+        return 1
+
+    shared_reminder_validator_marker = (
+        "scripts/zigux/validate-phase3-validator-support-surface.py"
+    )
+    before, separator, after = sample.rpartition(shared_reminder_validator_marker)
+    broken = validate_text(before + after if separator else sample)
+    if (
+        f"shared reminder missing marker: {shared_reminder_validator_marker}"
+        not in broken
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder validator marker was not reported")
         return 1
 
     scripts_readme_marker = "scripts/zigux/README.md"
