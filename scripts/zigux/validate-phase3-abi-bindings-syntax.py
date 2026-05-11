@@ -9,6 +9,7 @@ import tempfile
 
 
 SLICE_NOTE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
+NEXT_STEP_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 README_PATH = Path("scripts/zigux/README.md")
 
 REQUIRED_FILES = (
@@ -63,8 +64,16 @@ SLICE_NOTE_MARKERS = (
     "make -C zigux phase3",
 )
 
+NEXT_STEP_NOTE_MARKERS = (
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "zigux/uapi/dev_t.zig",
+)
+
 README_MARKERS = (
     "validate-phase3-abi-bindings-syntax.py",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
@@ -81,6 +90,8 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     if not (repo_root / SLICE_NOTE_PATH).is_file():
         issues.append(f"missing repo file: {SLICE_NOTE_PATH.as_posix()}")
+    if not (repo_root / NEXT_STEP_NOTE_PATH).is_file():
+        issues.append(f"missing repo file: {NEXT_STEP_NOTE_PATH.as_posix()}")
     if not (repo_root / README_PATH).is_file():
         issues.append(f"missing repo file: {README_PATH.as_posix()}")
 
@@ -94,6 +105,13 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in SLICE_NOTE_MARKERS:
             if marker not in slice_note_text:
                 issues.append(f"missing slice marker: {marker}")
+
+    next_step_note_path = repo_root / NEXT_STEP_NOTE_PATH
+    if next_step_note_path.is_file():
+        next_step_note_text = _read(next_step_note_path)
+        for marker in NEXT_STEP_NOTE_MARKERS:
+            if marker not in next_step_note_text:
+                issues.append(f"missing next-step marker: {marker}")
 
     readme_path = repo_root / README_PATH
     if readme_path.is_file():
@@ -114,6 +132,7 @@ def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path, "# stub\n")
     _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+    _write(root / NEXT_STEP_NOTE_PATH, "\n".join(NEXT_STEP_NOTE_MARKERS) + "\n")
     _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
 
 
@@ -155,6 +174,23 @@ def run_self_test() -> int:
 
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
         _write(
+            root / NEXT_STEP_NOTE_PATH,
+            _read(root / NEXT_STEP_NOTE_PATH).replace(
+                "scripts/zigux/validate-phase3-abi-bindings-syntax.py\n", "", 1
+            ),
+        )
+        issues = validate_repo(root)
+        expected_next_step_marker = (
+            "missing next-step marker: scripts/zigux/validate-phase3-abi-bindings-syntax.py"
+        )
+        if expected_next_step_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing next-step marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / NEXT_STEP_NOTE_PATH, "\n".join(NEXT_STEP_NOTE_MARKERS) + "\n")
+        _write(
             root / SLICE_NOTE_PATH,
             _read(root / SLICE_NOTE_PATH).replace("PHASE3_CURRENT_INTEROP_GAP=\n", "", 1),
         )
@@ -170,12 +206,12 @@ def run_self_test() -> int:
         _write(
             root / README_PATH,
             _read(root / README_PATH).replace(
-                "validate-phase3-abi-bindings-syntax.py\n", "", 1
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md\n", "", 1
             ),
         )
         issues = validate_repo(root)
         expected_readme_marker = (
-            "missing scripts README marker: validate-phase3-abi-bindings-syntax.py"
+            "missing scripts README marker: Documentation/zigux/phase3-abi-h-boundary-next-step.md"
         )
         if expected_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
