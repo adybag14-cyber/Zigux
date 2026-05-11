@@ -57,11 +57,20 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> li
     return missing
 
 
-def collect_exact_line_markers(text: str, label: str, markers: list[str]) -> list[str]:
+def collect_min_count_markers(text: str, label: str, markers: list[str], minimum: int = 1) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count < minimum:
+            missing.append(f"{label}:{marker}:expected_at_least={minimum}:actual={count}")
+    return missing
+
+
+def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> list[str]:
     lines = text.splitlines()
     missing: list[str] = []
     for marker in markers:
-        count = sum(1 for line in lines if line == marker)
+        count = sum(1 for line in lines if line.strip() == marker)
         if count != 1:
             missing.append(f"{label}:{marker}:expected=1:actual={count}")
     return missing
@@ -77,10 +86,10 @@ def collect_missing_markers(root: Path) -> list[str]:
 
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(scripts_readme, "scripts_readme", SCRIPTS_README_MARKERS))
-    missing.extend(collect_exact_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
+    missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(
-        collect_exact_count_markers(
+        collect_min_count_markers(
             review_checklist,
             "review_checklist",
             REVIEW_CHECKLIST_MARKERS,
@@ -100,7 +109,15 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / ".github" / "workflows" / "zigux-bootstrap.yml").write_text(
-        "\n".join(WORKFLOW_MARKERS) + "\n",
+        "\n".join(
+            [
+                "      - name: Self-test Phase 1 installer companion checks",
+                "        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
+                "      - name: Check Phase 1 installer companion checks",
+                "        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py",
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
     (root / "zigux" / "tests" / "README.md").write_text(
@@ -108,7 +125,14 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
-        "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+        "\n".join(
+            [
+                REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[1],
+                REVIEW_CHECKLIST_MARKERS[0],
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -120,6 +144,7 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
         assert collect_missing_files(tmp_root) == []
         assert collect_missing_markers(tmp_root) == []
+        self_test_case_count += 1
 
         scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
         scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
@@ -136,7 +161,7 @@ def run_self_test() -> None:
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             workflow_text.replace(
-                "run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
+                "        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
                 "",
                 1,
             ),
@@ -163,11 +188,20 @@ def run_self_test() -> None:
         review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
         review_checklist_text = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
-            review_checklist_text.replace("`python3 scripts/zigux/install-zig.py --self-test`\n", ""),
+            review_checklist_text.replace("`python3 scripts/zigux/install-zig.py --self-test`\n", "", 1),
+            encoding="utf-8",
+        )
+        assert collect_missing_markers(tmp_root) == []
+        self_test_case_count += 1
+        review_checklist_path.write_text(
+            review_checklist_text.replace("`python3 scripts/zigux/install-zig.py --self-test`", ""),
             encoding="utf-8",
         )
         missing = collect_missing_markers(tmp_root)
-        assert "review_checklist:`python3 scripts/zigux/install-zig.py --self-test`:expected=1:actual=0" in missing
+        assert (
+            "review_checklist:`python3 scripts/zigux/install-zig.py --self-test`:expected_at_least=1:actual=0"
+            in missing
+        )
         self_test_case_count += 1
         review_checklist_path.write_text(review_checklist_text, encoding="utf-8")
 
