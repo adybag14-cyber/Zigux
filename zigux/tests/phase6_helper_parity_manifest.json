@@ -1,7 +1,7 @@
 {
   "phase": "Phase 6",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "277b3ab",
+  "surveyed_commit": "663d05b",
   "helpers": [
     {
       "id": "base64",
