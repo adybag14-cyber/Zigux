@@ -11,7 +11,8 @@
 - `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
-- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
+- `PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
 
 ## Purpose
 
@@ -24,6 +25,7 @@ The packet is intentionally narrow:
 - keep the current Linux replay command explicit
 - keep the dedicated local survey wrappers explicit
 - keep ownership and rollback ownership explicit
+- keep the current no-perf-threshold posture explicit while the starter remains absent
 - keep the next bounded evidence step explicit until a later Phase 4 lane intentionally
   widens the packet
 
@@ -38,9 +40,10 @@ The bounded evidence packet instead remains:
 - `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `make -C zigux phase4-test-fsmount-survey`
 
-That packet keeps the current C anchor, replay path, owner, rollback owner, and
-dedicated local survey routes measurable while the shared Phase 4 rollback-readiness
-lane remains below starter implementation.
+That packet keeps the current C anchor, replay path, owner, rollback owner, dedicated
+local survey routes, and the current reviewability-only no-perf-threshold posture
+measurable while the shared Phase 4 rollback-readiness lane remains below starter
+implementation.
 
 The same packet now also keeps its reversible-delivery evidence string pinned in the
 paired manifest so the absent-starter boundary does not fall back to note prose
@@ -57,4 +60,5 @@ a later bounded Phase 4 lane intentionally chooses one of these follow-through s
   validator packet
 - or land the actual Zig starter with an updated rollback-readiness contract
 
-Until then, this note should stay truthful about the absent Zig starter boundary.
+Until then, this note should stay truthful about the absent Zig starter boundary and
+its current reviewability-only threshold posture.
