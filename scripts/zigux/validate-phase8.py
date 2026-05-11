@@ -65,6 +65,7 @@ REQUIRED_MARKERS = {
     ],
     COMMAND_GAP_SURVEY_PATH: [
         "PHASE8_USERSPACE_KERNEL_BRIDGE_STATUS=parked_gap_packet_landed",
+        "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01",
         "PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing",
         "tools/lib/subcmd/exec-cmd.c",
         "tools/lib/subcmd/help.c",
@@ -269,6 +270,13 @@ def run_self_test() -> None:
             "make -C zigux phase8-validate",
             "make -C zigux phase8-verify",
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
+        ),
+        (
+            "command_gap_lane_key_marker",
+            COMMAND_GAP_SURVEY_PATH,
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01",
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L02",
+            f"{COMMAND_GAP_SURVEY_PATH}: PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01",
         ),
         (
             "command_gap_validation_marker",
