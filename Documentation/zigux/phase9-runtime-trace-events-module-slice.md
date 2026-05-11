@@ -25,7 +25,7 @@ Current `master` still exposes the shared Phase 9 loader-facing review packet:
 
 The shared allocator/init-flow replay still names this module-slice note as part of the trace-events delivery-evidence catalog, which makes the note an active reviewability surface rather than optional prose.
 
-Current `master` also keeps the family-local trace-events packet visible beside that shared loader evidence:
+Those surfaces keep the trace-events lane visible inside the broader Phase 9 build and owner-map packet, but direct current-`master` readback still fails for the family-local trace-events implementation and test surfaces that a fuller starter packet would need:
 
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
@@ -34,7 +34,7 @@ Current `master` also keeps the family-local trace-events packet visible beside 
 - `zigux/tests/runtime_trace_events_survey.zig`
 - `zigux/tests/runtime_trace_events_manifest.json`
 
-This note therefore does not claim that the trace-events pilot family is loadable-runtime complete on current `master`. It records that the family-local packet is shipped and reviewable while the live runtime-substrate handoff remains blocked.
+That means this module-slice note must stay narrower than older reminder wording suggested. The shared loader-facing packet is still shipped and reviewable, but the family-local trace-events starter, loader scaffold, dedicated survey gate, and manifest-backed ownership packet are not currently readable on `master`.
 
 ## What this slice owns
 
@@ -42,7 +42,7 @@ This module-slice note owns the narrow trace-events family statement that sits b
 
 1. Keep the Phase 9 trace-events family tied to `samples/trace_events/trace-events-sample.c` and the runtime-pilot roadmap only.
 2. Keep the shared loader packet separate from family-local implementation claims. The shared loader files prove reviewable handoff behavior, not completed tracepoint-registration parity.
-3. Keep the current blocker explicit: the live runtime substrate is still missing even though the family-local trace-events sample, loader, module, diff, survey gate, and manifest surfaces are now present on current `master`.
+3. Keep the current blocker explicit: the live runtime substrate is still missing, and the family-local trace-events starter packet remains unreadable on current `master`.
 4. Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.
 5. Keep earlier-phase references in their own lanes: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
 
@@ -51,10 +51,10 @@ This module-slice note owns the narrow trace-events family statement that sits b
 The honest current review posture is:
 
 - the shared Phase 9 loader-facing packet is shipped and reviewable
-- the trace-events family-local packet is also shipped and reviewable
+- the family-local trace-events packet is not currently readable on `master`
 - the packet still remains review-first because the live runtime-substrate handoff is not complete
-- the remaining same-lane work should narrow one survey, manifest, module-slice, or nearby reminder drift at a time instead of widening into unrelated runtime-pilot churn
+- the remaining same-lane work should restore one family-local trace-events evidence surface at a time instead of widening into unrelated runtime-pilot churn
 
 ## Next bounded step
 
-The next honest follow-through in the same `runtime-pilot` lane is to keep this shipped trace-events packet truthful one file at a time, starting with the next survey, manifest, module-slice, or adjacent reminder surface that drifts away from the live sample, loader, module, diff, and survey packet already on current `master`.
+The next honest follow-through in the same `runtime-pilot` lane is to restore one missing family-local trace-events evidence surface on current `master`, starting with `zigux/tests/runtime_trace_events_manifest.json` or `zigux/tests/runtime_trace_events_survey.zig`, and then rebuild outward one bounded file at a time without widening into unrelated runtime-pilot churn.
