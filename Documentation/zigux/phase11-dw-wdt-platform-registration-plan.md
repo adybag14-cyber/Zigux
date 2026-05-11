@@ -1,17 +1,12 @@
 # Phase 11 DesignWare Watchdog Platform Registration Plan
 
-This note records the first bounded follow-up after the current `dw_wdt` starter, preflight, registration-order scaffold, and verify-backed teardown packet.
+This note records the first bounded follow-up for the Phase 11 DesignWare watchdog lane on current `master`.
 
 ## Why this step belongs next
 
-The live Phase 11 DesignWare packet already makes these review surfaces explicit in bounded form:
+The live repository does not currently ship a `dw_wdt` test packet, manifest, or driver-local replay surface under `zigux/tests/` or `drivers/watchdog/`.
 
-- timeout and pretimeout bookkeeping in `drivers/watchdog/dw_wdt.zig`
-- platform-resource preflight and registration-order intent in the paired starter and scaffold packet
-- teardown and failure-mode parity through `drivers/watchdog/dw_wdt_verify.zig`
-- shared replay visibility through `zigux/tests/phase11_build.zig` and the Phase 11 validation matrix
-
-That leaves one honest simple-driver gap before any wider hardware-backed parity claim: attach the existing preflight and ordering evidence to the first real platform-backed registration scaffold.
+That makes one bounded next step honest and useful before any wider hardware-backed parity claim: attach the existing platform-registration intent to the first real, reviewable DesignWare scaffold packet instead of letting reminder surfaces imply that scaffold has already landed.
 
 ## Scope for the first platform-backed step
 
@@ -21,7 +16,7 @@ The preferred first packet is:
 
 1. model timer-clock acquisition and optional APB clock acquisition as explicit outcome-bearing steps
 2. model reset-control availability and reset-release intent as explicit outcome-bearing steps
-3. preserve the already-landed ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`
+3. preserve the intended ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`
 4. keep imported-running-state handoff reviewable when the timer starts hot
 
 ## Explicit non-goals
@@ -33,7 +28,7 @@ Do not widen this first scaffold into:
 - IRQ request or handler execution
 - suspend or resume behavior
 - debugfs support
-- devicetree TOP parsing beyond the already-landed preflight summary
+- devicetree TOP parsing beyond a bounded preflight summary
 - bcm2835 watchdog work or unrelated Phase 11 console work
 
 ## Validation target
@@ -46,11 +41,11 @@ The first scaffold packet should stay publishable with bounded proof only:
 
 ## Recommended file targets
 
-- `drivers/watchdog/dw_wdt.zig`
-- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-survey.md`
-- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `zigux/tests/README.md`
+
+Once the first real DesignWare scaffold lands, expand the packet deliberately into the owning test, manifest, survey, and driver-local surfaces rather than predeclaring them here.
 
 ## Handoff
 
