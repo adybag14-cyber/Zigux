@@ -179,6 +179,18 @@ jobs:
       - name: Validate Phase 4 diff packet directly
         run: python3 scripts/zigux/validate-phase4.py
 
+      - name: Self-test Phase 4 artifact-diff contract directly
+        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
+
+      - name: Check Phase 4 artifact-diff contract directly
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
+
+      - name: Self-test Phase 4 artifact-diff determinism directly
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+
+      - name: Check Phase 4 artifact-diff determinism directly
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
