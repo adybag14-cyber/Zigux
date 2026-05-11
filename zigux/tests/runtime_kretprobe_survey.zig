@@ -74,9 +74,16 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     const runtime_kretprobe_loader = try readRepoFileAlloc(
         std.testing.allocator,
         "samples/zigux/runtime_kretprobe_loader.zig",
-        64 * 1024,
+        96 * 1024,
     );
     defer std.testing.allocator.free(runtime_kretprobe_loader);
+
+    const runtime_kretprobe_module = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_kretprobe_module.zig",
+        160 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_kretprobe_module);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -163,5 +170,30 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         runtime_kretprobe_loader,
         "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);",
+    );
+
+    try expectContains(
+        runtime_kretprobe_module,
+        "test \"runtime kretprobe sample preserves summary state across failed exit until the active probe drains\"",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "test \"runtime kretprobe sample preserves selftest-ready failed-exit summary state until the active probe drains\"",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "test \"runtime kretprobe sample preserves maxactive-overflow summary state until the active probe drains\"",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "test \"runtime kretprobe sample preserves selftest-ready maxactive-overflow state until the active probe drains\"",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "try std.testing.expectError(error.OutstandingProbeInstance, module.exit());",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "try std.testing.expectError(error.MaxactiveExceeded, module.entryHandler(true, 420));",
     );
 }
