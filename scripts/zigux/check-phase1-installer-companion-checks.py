@@ -8,7 +8,7 @@ import tempfile
 
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[0]
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
