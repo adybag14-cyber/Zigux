@@ -25,7 +25,9 @@ REPO_FILES = (
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/unsafe/narrow.zig"),
+    Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
+    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
@@ -172,8 +174,30 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        next_step_rel = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+        phase3_abi_rel = Path("zigux/tests/phase3_abi.zig")
         _write(root / missing_rel, "# restored\n")
+        (root / phase3_abi_rel).unlink()
+        issues = validate_repo(root)
+        expected_phase3_abi_missing = f"missing repo file: {phase3_abi_rel.as_posix()}"
+        if expected_phase3_abi_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3_abi replay was not reported")
+            return 1
+        case_count += 1
+
+        manifest_rel = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+        _write(root / phase3_abi_rel, "# restored\n")
+        (root / manifest_rel).unlink()
+        issues = validate_repo(root)
+        expected_manifest_missing = f"missing repo file: {manifest_rel.as_posix()}"
+        if expected_manifest_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 ABI manifest was not reported")
+            return 1
+        case_count += 1
+
+        next_step_rel = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+        _write(root / manifest_rel, "# restored\n")
         (root / next_step_rel).unlink()
         issues = validate_repo(root)
         expected_next_step_missing = f"missing repo file: {next_step_rel.as_posix()}"
@@ -219,14 +243,14 @@ def run_self_test() -> int:
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
-                "$(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py\n",
+                "$(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test\n",
                 "",
                 1,
             ),
         )
         issues = validate_repo(root)
         expected_validator_marker = (
-            "missing make marker: $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py"
+            "missing make marker: $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test"
         )
         if expected_validator_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
