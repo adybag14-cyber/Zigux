@@ -131,12 +131,18 @@ TEST_MARKERS = [
 
 SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
-    'try std.testing.expectEqualStrings("P10-Y04", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
+    'try std.testing.expect(starter_landed_count >= 16);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
-    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-verify-replay")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-replay")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-status-drain-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
 
@@ -193,8 +199,8 @@ for name, source, markers in [
             missing.append(f"{name}:stale_marker:{marker}")
 
 manifest = load_manifest("zigux/tests/phase10_virtio_input_manifest.json")
-if manifest.get("lane_key") != "P10-Y04":
-    missing.append("manifest:lane_key=P10-Y04")
+if manifest.get("lane_key") != "P10-L13":
+    missing.append("manifest:lane_key=P10-L13")
 if manifest.get("phase") != "Phase 10":
     missing.append("manifest:phase=Phase 10")
 if manifest.get("anchor") != "drivers/virtio/virtio_input.c":
@@ -219,18 +225,23 @@ else:
         missing.append("manifest:preexisting_virtio_input_module_note_present")
 
 gaps = manifest.get("gaps")
-if not isinstance(gaps, list) or len(gaps) < 13:
+if not isinstance(gaps, list) or len(gaps) < 19:
     missing.append("manifest:gaps")
 else:
     expected_statuses = {
         "phase10-virtio-input-lab-helper": "starter_landed",
         "phase10-virtio-input-lab-gate": "starter_landed",
+        "phase10-virtio-input-verify-replay": "starter_landed",
+        "phase10-virtio-input-queue-callback-preflight-replay": "starter_landed",
         "phase10-virtio-input-survey-gate": "starter_landed",
         "phase10-virtio-input-capability-setup-helper": "starter_landed",
         "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
-        "phase10-virtio-input-teardown-observation-helper": "starter_landed",
+        "phase10-virtio-input-probe-preflight-helper": "starter_landed",
         "phase10-virtio-input-registration-preflight-helper": "starter_landed",
         "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
+        "phase10-virtio-input-status-drain-helper": "starter_landed",
+        "phase10-virtio-input-teardown-observation-helper": "starter_landed",
+        "phase10-virtio-input-wrapper-ownership-note": "starter_landed",
         "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
     }
     starter_count = 0
@@ -251,7 +262,7 @@ else:
         missing.append(f"manifest:ready_next_count={ready_count}")
     if blocked_count != 1:
         missing.append(f"manifest:blocked_count={blocked_count}")
-    if starter_count < 12:
+    if starter_count < 18:
         missing.append(f"manifest:starter_count={starter_count}")
 
     for gap_id, status in expected_statuses.items():
@@ -265,30 +276,38 @@ else:
     landed_preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
     if landed_preflight_gap is not None:
         why_now = str(landed_preflight_gap.get("why_now", ""))
-        if "multitouch slot-init intent" not in why_now:
-            missing.append("manifest:registration_preflight_gap:multitouch_slot_init_intent")
+        if "registration-preflight summary" not in why_now:
+            missing.append("manifest:registration_preflight_gap:registration_preflight_summary")
+        if "capability-setup" not in why_now:
+            missing.append("manifest:registration_preflight_gap:capability_setup")
+        if "multitouch-slot blockers" not in why_now:
+            missing.append("manifest:registration_preflight_gap:multitouch_slot_blockers")
         if "input_register_device()" not in why_now:
             missing.append("manifest:registration_preflight_gap:input_register_device()")
 
-    ready_gap = find_gap(manifest, "phase10-virtio-input-queue-callback-preflight-helper")
-    if ready_gap is not None:
-        why_now = str(ready_gap.get("why_now", ""))
-        if "registration intent is staged" not in why_now:
-            missing.append("manifest:ready_gap:registration_intent_is_staged")
-        if "event queue is filled" not in why_now:
-            missing.append("manifest:ready_gap:event_queue_is_filled")
-        if "status queue is configured" not in why_now:
-            missing.append("manifest:ready_gap:status_queue_is_configured")
-        if "device is ready" not in why_now:
-            missing.append("manifest:ready_gap:device_is_ready")
+    queue_callback_gap = find_gap(manifest, "phase10-virtio-input-queue-callback-preflight-helper")
+    if queue_callback_gap is not None:
+        why_now = str(queue_callback_gap.get("why_now", ""))
+        if "queue-callback preflight summary" not in why_now:
+            missing.append("manifest:queue_callback_gap:queue_callback_preflight_summary")
+        if "event and status queue configuration" not in why_now:
+            missing.append("manifest:queue_callback_gap:event_and_status_queue_configuration")
+        if "event-buffer fill state" not in why_now:
+            missing.append("manifest:queue_callback_gap:event_buffer_fill_state")
+        if "transport-backed callback handoff" not in why_now:
+            missing.append("manifest:queue_callback_gap:transport_backed_callback_handoff")
 
     blocked_gap = find_gap(manifest, "phase10-virtio-input-registration-lifecycle")
     if blocked_gap is not None:
         why_now = str(blocked_gap.get("why_now", ""))
+        if "input_register_device()" not in why_now:
+            missing.append("manifest:blocked_gap:input_register_device()")
         if "freeze or restore" not in why_now:
             missing.append("manifest:blocked_gap:freeze_or_restore")
-        if "transport-backed queue callbacks" not in why_now:
-            missing.append("manifest:blocked_gap:transport_callbacks")
+        if "probe-preflight" not in why_now:
+            missing.append("manifest:blocked_gap:probe_preflight")
+        if "status-drain helpers landed" not in why_now:
+            missing.append("manifest:blocked_gap:status_drain_helpers_landed")
 
 if missing:
     print("PHASE10_VALIDATION=fail")
