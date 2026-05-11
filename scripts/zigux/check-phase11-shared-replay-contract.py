@@ -104,6 +104,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
+    "the dedicated `hvc_console` teardown and verify boundary",
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
 )
 
@@ -215,6 +216,7 @@ def run_self_test() -> int:
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[10]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[9]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[5]),
+            ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[6]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
         for label, rel_path, needle in mutations:
