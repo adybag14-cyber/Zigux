@@ -187,8 +187,8 @@ PHASE12_COMPLEX_DRIVER_LANE_NEXT_STEP_MARKER = (
     "`Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, "
     "`Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, "
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, "
-    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the same smoke-first Phase 12 packet, "
-    "the same checker pair, and the same two-versus-two fallback split."
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` "
+    "against the same published-versus-parked-versus-unpublished split recorded here. Refresh only the narrowest one-file shared reminder that drifts next before widening any driver-local, DMA, queueing, throughput, or recovery claim."
 )
 PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER = (
     "The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet."
