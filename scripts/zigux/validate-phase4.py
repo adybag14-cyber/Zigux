@@ -67,6 +67,7 @@ REQUIRED_MAKE_MARKERS = [
 
 REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/validate-phase4.py --self-test",
+    "make -C zigux phase4-validate",
     "python3 scripts/zigux/validate-phase4.py",
     "python3 scripts/zigux/check-phase4-gate-evidence.py",
     "zig build test --build-file zigux/tests/phase4_build.zig",
@@ -395,6 +396,7 @@ def _write_fixture_tree(root: Path) -> None:
     ]) + "\n")
 
     _write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join([
+        "make -C zigux phase4-validate",
         "python3 scripts/zigux/validate-phase4.py --self-test",
         "python3 scripts/zigux/validate-phase4.py",
         "python3 scripts/zigux/check-phase4-gate-evidence.py",
