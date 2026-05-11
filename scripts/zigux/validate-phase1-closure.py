@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
@@ -328,13 +329,17 @@ DOCS_ROOT_MARKERS = [
     (
         "docs_root_phase1_packet",
         "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
-    )
+    ),
+    (
+        "docs_root_phase1_owner_map_note",
+        "`Documentation/zigux/phase1-host-helper-lane-sequencing.md` keeps the shared owner-map note visible beside that same docs-root packet.",
+    ),
 ]
 
 SCRIPTS_README_MARKERS = [
     (
         "scripts_readme_phase1_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
     ),
     (
         "scripts_readme_phase1_string_packet",
@@ -528,11 +533,27 @@ def run_self_test() -> None:
         assert collect_missing_markers(root) == []
         case_count += 1
 
+        lane_note_path = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
+        lane_note_path.unlink()
+        missing_files = collect_missing_files(root)
+        assert "Documentation/zigux/phase1-host-helper-lane-sequencing.md" in missing_files
+        case_count += 1
+        make_fixture_root(root)
+
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(workflow.replace(WORKFLOW_INSTALL_ZIG + "\n", "", 1), encoding="utf-8")
         missing = collect_missing_markers(root)
         assert "workflow_install_zig:expected=1:actual=0" in missing
+        case_count += 1
+        make_fixture_root(root)
+
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root = docs_root_path.read_text(encoding="utf-8")
+        target = "`Documentation/zigux/phase1-host-helper-lane-sequencing.md` keeps the shared owner-map note visible beside that same docs-root packet.\n"
+        docs_root_path.write_text(docs_root.replace(target, "", 1), encoding="utf-8")
+        missing = collect_missing_markers(root)
+        assert "docs_root_phase1_owner_map_note:expected=1:actual=0" in missing
         case_count += 1
         make_fixture_root(root)
 
