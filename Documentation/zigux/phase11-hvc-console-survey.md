@@ -14,10 +14,11 @@ It stays inside the simple-drivers lane and records only the shipped starter, th
 The current bounded HVC archival packet on `master` is:
 
 * `zigux/tests/phase11_hvc_console_survey.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
+* `zigux/tests/phase11_hvc_console_manifest.json`
+* `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
-* `drivers/tty/hvc/hvc_console_verify.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 
 The survey note exists to keep those surfaces readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
@@ -27,25 +28,26 @@ The survey note exists to keep those surfaces readable together without overstat
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
 
-The paired compile-local verifier in `drivers/tty/hvc/hvc_console_verify.zig` keeps the driver-local teardown and failure-mode packet reviewable beside that archived survey without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
+The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
 
 The bounded starter and its archival replay now keep these focused cues explicit:
 
 * final-close teardown summary
-* hvc_cleanup() tty-port release handoff summary
 * tiny notifier-add open handoff summary
-* cleanup-prerequisite failure replay
-* notifier-prerequisite and notifierless-open failure replays
-* targetless and no-dispatch sysrq or notifier deferral replays
 * khvcd worker-entry summary
 * khvcd sleep-and-reschedule handoff summary
 * `__hvc_poll` drain-order summary
 * `hvc_hangup()` disconnect summary
-* impossible hangup buffered-write guard
 * `hvc_remove()` handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`
 * exported-helper signature proof for the bounded helper-facing HVC surface
+* `tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent
+* `tiocmset` mask handling stays distinct even when `tiocmget` falls back
+* sysrq toggle handoff stays distinct from literal fallback on the primary console
+* pending sysrq dispatch stays separate from ordinary poll bytes
+* non-kernel `^O` input stays a literal byte without toggling sysrq state
+* sysrq handoff stays unavailable after teardown
 
 ## Bounded Meaning
 
