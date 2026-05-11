@@ -28,6 +28,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
 
