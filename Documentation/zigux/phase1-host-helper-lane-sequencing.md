@@ -57,7 +57,9 @@ The earlier shared reminder gap is now fully closed on current `master`. `Docume
 
 The earlier shared Phase 1 validator packet gap is now closed on current `master` too. `scripts/zigux/validate-phase1.py` now exact-checks both the reviewer-facing `review_checklist_phase1_packet` reminder and the broader `tests_root_phase1_packet` marker with this lane note included.
 
-That means the older queued shared-reminder follow-up is no longer the next bounded step. Fresh repo-first inspection closes the earlier tests-root and validator omissions, so future host-tools follow-up should advance only when a new same-lane review-surface, closure, fixture, benchmark, or helper-anchor drift is actually present on `master`.
+Fresh repo-first inspection also found one new same-lane parity-gate drift on current `master`: `scripts/zigux/validate-phase1-closure.py` still embeds an older `tools/lib/find_bit.zig` expected-manifest block that omits the already-landed tail-word inclusive-boundary helper anchor, its paired contract text, and the widened review-summary wording now present in `zigux/tests/fixtures/phase1_helper_manifest.json`.
+
+That means the older queued shared-reminder follow-up is no longer the next bounded step. Fresh repo-first inspection closes the earlier tests-root and validator omissions, and the next honest host-tools follow-up is now the one-file Phase 1 closure-validator expected-manifest sync instead of another already-landed shared reminder repair.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
@@ -84,6 +86,8 @@ Keep the next host-tools-alpha slot inside the next newly observed same-lane tru
 
 Start with these already-shipped shared Phase 1 packet surfaces:
 
+- `scripts/zigux/validate-phase1-closure.py`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
@@ -91,7 +95,7 @@ Start with these already-shipped shared Phase 1 packet surfaces:
 - `zigux/tests/README.md`
 - `scripts/zigux/validate-phase1.py`
 
-The next run should reread that shared reminder packet against `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and the direct helper anchors under `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, then take only the smallest still-open same-lane truthfulness or checker-local repair.
+The next run should reread the embedded expected manifest in `scripts/zigux/validate-phase1-closure.py` against `zigux/tests/fixtures/phase1_helper_manifest.json` first, then cross-check the rest of that shared reminder packet against `zigux/tests/fixtures/phase1_bench_expectations.json` and the direct helper anchors under `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, and then take only the smallest still-open same-lane truthfulness or checker-local repair.
 
 Until a fresh same-lane gap is observed, keep Phase 1 follow-up work on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
