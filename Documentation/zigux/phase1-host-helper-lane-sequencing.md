@@ -55,7 +55,9 @@ The earlier `find_bit` edge bench gap is now closed on current `master` too. `zi
 
 The earlier shared closure-note gap is closed on current `master` too. `Documentation/zigux/phase1-closure.md` already keeps `Documentation/zigux/phase1-host-helper-lane-sequencing.md` inside its shared review packet, matching the docs root, scripts root, tests root, and review checklist reminder surfaces.
 
-That means the next honest same-lane follow-up is no longer another saved validator patch, bench-body repair, or closure-note reminder sync. Fresh repo-first inspection now points at the shared Phase 1 validator packet instead: the next bounded same-lane step is the smallest exact-check drift still visible around the live `find_bit` review-anchor packet in `scripts/zigux/validate-phase1.py`, not another helper-semantics change.
+The earlier shared Phase 1 validator packet gap is closed on current `master` too. `scripts/zigux/validate-phase1.py` already exact-checks `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS`, keeps `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` inside the shared checksum listing, exact-checks the widened `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=23340000` contract, and exercises dedicated negative self-test cases for missing or drifted edge-bench expectations.
+
+That means this note should no longer send future runs back to the already-landed validator sync as the default next deliverable. Fresh repo-first inspection now leaves the lane parked until another same-packet truthfulness or exact-check gap appears across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
 Future host-tools follow-up should come only from the next freshly observed same-packet truthfulness or exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
@@ -69,6 +71,7 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed docs-root owner-map sync.
 - Do not reopen the already-landed `find_bit` edge bench sync.
 - Do not reopen the already-landed shared closure-note owner-map sync.
+- Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
