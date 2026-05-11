@@ -67,10 +67,10 @@ Phase 3 ABI and runtime tranche.
 ## Shared reminder
 
 Broad Phase 3 summaries that name the validator-support packet should keep this
-note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
-`Documentation/zigux/review-checklist.md`,
-`Documentation/zigux/phase3-abi-header-family-survey.md`,
-`Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
-`zigux/uapi/dev_t.zig`, and
-`scripts/zigux/validate-phase3-validator-support-surface.py` so the shipped
-support helpers do not get restated as missing historical-only entrypoints.
+note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`, and
+`scripts/zigux/validate-phase3-validator-support-surface.py`; adjacent
+header-family and checklist reminders can keep
+`Documentation/zigux/phase3-abi-h-boundary-next-step.md` and
+`zigux/uapi/dev_t.zig` explicit without restating this validator-support note
+so the shipped support helpers do not get restated as missing historical-only
+entrypoints.
