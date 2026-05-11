@@ -24,6 +24,7 @@ MARKERS = {
         "* no shared `make -C zigux phase11-validate` target on `master`",
         "The dedicated archival HVC evidence still stays explicit beside that shared route:",
         "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
         "* `scripts/zigux/check-phase11-header-boundary-packet.py`",
         "* `zigux/tests/phase11_uapi_header_parity_survey.zig`",
     ],
@@ -34,7 +35,7 @@ MARKERS = {
         "* `make -C zigux phase11`",
         "* there is no shared `validate-phase11.py`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
-        "* HVC archival continuity stays with `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `make -C zigux phase11-hvc-survey`",
+        "* HVC archival continuity stays with `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `make -C zigux phase11-hvc-survey`",
         "* shared header boundary continuity stays with `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`",
     ],
     "lane_note": [
@@ -47,7 +48,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 11
 
 
 class CheckError(RuntimeError):
@@ -103,12 +104,14 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][2]),
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][7]),
+            (FILES["note"], MARKERS["note"][8]),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
             (FILES["closure_note"], MARKERS["closure_note"][7]),
             (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
             (FILES["lane_note"], MARKERS["lane_note"][4]),
+            (FILES["lane_note"], MARKERS["lane_note"][5]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
