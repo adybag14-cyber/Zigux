@@ -11,8 +11,6 @@ active Phase 3 ABI and interop packet.
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
-- `zigux/tests/phase3_export_uapi.zig`
-- `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
