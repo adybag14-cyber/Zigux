@@ -76,7 +76,11 @@ HANDOFF_CHECKER_MARKERS = (
 
 REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 15 governance packet",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "make -C zigux phase15",
     "no-approval-yet posture",
 )
@@ -271,7 +275,7 @@ def _baseline_review_checklist() -> str:
     return "\n".join(
         (
             "# Checklist",
-            "- if the change touches the shared Phase 15 governance packet, do `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
+            "- if the change touches the shared Phase 15 governance packet, do `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
             "",
         )
     )
@@ -443,6 +447,20 @@ def run_self_test() -> int:
             "missing_handoff_marker_guard_failed",
         )
         _write(root / HANDOFF_CHECKER_REL, baseline_checker)
+        case_count += 1
+
+        review_checklist_path = root / REVIEW_CHECKLIST_REL
+        baseline_review_checklist = _read(review_checklist_path)
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_review_checklist.replace("`make -C zigux phase15-test`, ", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:make -C zigux phase15-test"],
+            "missing_phase15_test_review_checklist_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_review_checklist)
         case_count += 1
 
         manifest_path = root / MANIFEST_REL
