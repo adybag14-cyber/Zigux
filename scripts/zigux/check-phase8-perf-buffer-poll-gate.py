@@ -10,18 +10,28 @@ from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+SLICE_PATH = "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 MAKEFILE_PATH = "zigux/Makefile"
+PACKET_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+PACKET_BUILD_PATH = "zigux/tests/phase8_build.zig"
+PACKET_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
+PACKET_ONLY_BUILD_PATH = "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
     SEQUENCING_PATH,
+    SLICE_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     REVIEW_CHECKLIST_PATH,
     MAKEFILE_PATH,
+    PACKET_HELPER_PATH,
+    PACKET_BUILD_PATH,
+    PACKET_TEST_PATH,
+    PACKET_ONLY_BUILD_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -29,6 +39,14 @@ REQUIRED_MARKERS = {
         "Focused replay routes:",
         "make -C zigux phase8-perf-buffer-poll-test",
         "make -C zigux phase8-libbpf-segments-test",
+    ),
+    SLICE_PATH: (
+        "PHASE8_SLICE=libbpf-perf-buffer-poll",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        "zigux/tests/phase8_build.zig",
+        "make -C zigux phase8-perf-buffer-poll-test",
     ),
     SCRIPTS_README_PATH: (
         "Phase 8 flow",
@@ -95,6 +113,13 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, SCRIPT_PATH, script_text)
     for rel_path, markers in REQUIRED_MARKERS.items():
         write_text(root, rel_path, "\n".join(markers) + "\n")
+    for rel_path in (
+        PACKET_HELPER_PATH,
+        PACKET_BUILD_PATH,
+        PACKET_TEST_PATH,
+        PACKET_ONLY_BUILD_PATH,
+    ):
+        write_text(root, rel_path, "// fixture\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -126,6 +151,7 @@ def run_self_test() -> int:
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
+            (SLICE_PATH, "zigux/tests/phase8_perf_buffer_poll_only_build.zig"),
             (MAKEFILE_PATH, "phase8-perf-buffer-poll-test:"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
         )
@@ -135,14 +161,28 @@ def run_self_test() -> int:
             assert_missing_case(case_root, rel_path, marker)
             cases += 1
 
-        missing_file_root = Path(tmp) / f"case_{cases}"
-        shutil.copytree(baseline_root, missing_file_root)
-        (missing_file_root / SCRIPT_PATH).unlink()
-        missing_result = run_validator(missing_file_root)
-        missing_output = missing_result.stdout.strip() or missing_result.stderr.strip() or "no_output"
-        if missing_result.returncode == 0 or "can't open file" not in missing_output:
-            raise SystemExit(f"self-test-missing-file-mismatch:{missing_output}")
-        cases += 1
+        missing_files = (
+            SCRIPT_PATH,
+            PACKET_HELPER_PATH,
+            PACKET_BUILD_PATH,
+            PACKET_TEST_PATH,
+            PACKET_ONLY_BUILD_PATH,
+        )
+        for rel_path in missing_files:
+            case_root = Path(tmp) / f"case_{cases}"
+            shutil.copytree(baseline_root, case_root)
+            (case_root / rel_path).unlink()
+            result = run_validator(case_root)
+            expected = f"missing-file:{rel_path}"
+            output = result.stdout.strip() or result.stderr.strip() or "no_output"
+            if result.returncode == 0:
+                raise SystemExit(f"self-test-unexpected-pass:{rel_path}")
+            if rel_path == SCRIPT_PATH:
+                if "can't open file" not in output:
+                    raise SystemExit(f"self-test-mismatch:{expected}:{output}")
+            elif expected not in output:
+                raise SystemExit(f"self-test-mismatch:{expected}:{output}")
+            cases += 1
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
     print(f"PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT={cases}")
