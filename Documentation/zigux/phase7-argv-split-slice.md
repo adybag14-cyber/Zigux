@@ -88,11 +88,13 @@ The current tests keep these packet edges explicit:
 * focused parity fixtures through `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 * copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
 * separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
+* `argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result
 * blank-input reuse of the empty exported argv view
 * blank-input reuse of the empty storage sentinel without allocator space
-* blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
+* blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller
 * explicit `ArgvSplitResult.deinit()` clearing of exported storage, argv, and null-terminated sentinel views
 * exported storage and argv views resetting back to the canonical empty sentinels after teardown
+* allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns
 * safe and repeatable sentinel teardown through `argvFree()`
 * explicit `argvFree()` ownership mirroring that keeps the `argv_free` teardown contract reviewable for C-style callers
 * the dedicated packet checker, the shared build replay, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together instead of drifting into separate ad hoc reminders
