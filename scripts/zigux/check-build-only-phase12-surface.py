@@ -24,6 +24,7 @@ ROOT = infer_repo_root()
 
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
@@ -41,6 +42,7 @@ PHASE12_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
 REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
+    RELEASE_READINESS_SURVEY_PATH,
     RELEASE_SEQUENCING_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
@@ -75,6 +77,15 @@ TESTS_README_MARKERS = [
     "`make -C zigux phase12-smoke`",
     "`make -C zigux phase12`",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`",
+]
+
+RELEASE_READINESS_SURVEY_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "the parked verify-shard note still governs the shared libbpf packet",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
@@ -198,6 +209,12 @@ def validate(root: Path) -> list[str]:
     )
     ensure_contains(
         failures,
+        "release_readiness_survey",
+        read_text(root, RELEASE_READINESS_SURVEY_PATH),
+        RELEASE_READINESS_SURVEY_MARKERS,
+    )
+    ensure_contains(
+        failures,
         "release_sequencing",
         read_text(root, RELEASE_SEQUENCING_PATH),
         RELEASE_SEQUENCING_MARKERS,
@@ -238,6 +255,12 @@ def minimal_tests_readme() -> str:
     return "\n".join(["# zigux/tests", *TESTS_README_MARKERS, ""])
 
 
+def minimal_release_readiness_survey() -> str:
+    return "\n".join(
+        ["# Phase 12 Release Readiness Survey", *RELEASE_READINESS_SURVEY_MARKERS, ""]
+    )
+
+
 def minimal_release_sequencing() -> str:
     return "\n".join(["# Phase 12 Release Sequencing", *RELEASE_SEQUENCING_MARKERS, ""])
 
@@ -263,50 +286,50 @@ def minimal_makefile() -> str:
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const virtio_scsi_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/scsi/virtio_scsi.zig\"),
+        .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const contract_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
-    contract_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    contract_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const syntax_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_syntax_lab.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
         .target = target,
         .optimize = optimize,
     });
-    syntax_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    syntax_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const contract_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-tests\",
+        .name = "phase12-virtio-scsi-tests",
         .root_module = contract_root_module,
     });
     const run_contract_tests = b.addRunArtifact(contract_tests);
-    run_contract_tests.setCwd(b.path(\"../..\"));
+    run_contract_tests.setCwd(b.path("../.."));
 
     const syntax_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-syntax-lab-tests\",
+        .name = "phase12-virtio-scsi-syntax-lab-tests",
         .root_module = syntax_root_module,
     });
     const run_syntax_tests = b.addRunArtifact(syntax_tests);
-    run_syntax_tests.setCwd(b.path(\"../..\"));
+    run_syntax_tests.setCwd(b.path("../.."));
 
-    const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio-scsi syntax smoke\");
+    const smoke_step = b.step("smoke", "Run Phase 12 virtio-scsi syntax smoke");
     smoke_step.dependOn(&run_syntax_tests.step);
 
-    const test_step = b.step(\"test\", \"Run Phase 12 virtio-scsi tranche tests\");
+    const test_step = b.step("test", "Run Phase 12 virtio-scsi tranche tests");
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
 }
@@ -318,6 +341,8 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_scripts_readme()
     if rel_path == TESTS_README_PATH:
         return minimal_tests_readme()
+    if rel_path == RELEASE_READINESS_SURVEY_PATH:
+        return minimal_release_readiness_survey()
     if rel_path == RELEASE_SEQUENCING_PATH:
         return minimal_release_sequencing()
     if rel_path == RELEASE_COORDINATION_MATRIX_PATH:
@@ -357,6 +382,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         tests_readme_path = base / TESTS_README_PATH
+        release_readiness_survey_path = base / RELEASE_READINESS_SURVEY_PATH
         release_sequencing_path = base / RELEASE_SEQUENCING_PATH
         release_coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
         release_closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
@@ -373,6 +399,18 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"tests_readme:{TESTS_README_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        release_readiness_survey_path.write_text(
+            release_readiness_survey_path.read_text(encoding="utf-8").replace(
+                RELEASE_READINESS_SURVEY_MARKERS[3], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[3]}",
         )
 
         write_fixture_tree(base)
@@ -456,7 +494,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -498,6 +536,7 @@ def main() -> int:
         len(REQUIRED_FILES)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
+        + len(RELEASE_READINESS_SURVEY_MARKERS)
         + len(RELEASE_SEQUENCING_MARKERS)
         + len(RELEASE_COORDINATION_MATRIX_MARKERS)
         + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
