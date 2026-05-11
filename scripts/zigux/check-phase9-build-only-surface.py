@@ -673,6 +673,25 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace(PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}")
+
+        write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist + PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -843,7 +862,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=22")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
