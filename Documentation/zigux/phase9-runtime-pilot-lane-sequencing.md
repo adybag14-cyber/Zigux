@@ -67,6 +67,7 @@ That means the shared Phase 9 packet should keep the loader-facing family explic
 Current `master` no longer needs the older docs-root follow-through that earlier shared Phase 9 passes were tracking.
 
 - direct readback now shows `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already defer the exact shared owner map back to this sequencing note
+- the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - the remaining same-lane overlap risk is now inside this note itself: older pilot-family labels can still point future runs at stale owners even though the active packet-local follow-through has already moved
 - the current atomic64 follow-through is the manifest-backed survey-versus-module-slice packet tracked in `P9-L04`, with the shared loader-facing owner map staying adjacent through `P9-L11`
 - the current bitmap follow-through stays bitmap-local in `P9-L08`: the manifest, survey note, module-slice note, top-bit companion replay, and survey gate remain family-local, while `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and the shared loader packet stay adjacent through `P9-L11`
@@ -141,6 +142,7 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 3. If a different shared reminder surface starts reclaiming family-local survey, manifest, module-slice, or survey-gate work, repair that one file at a time instead of widening into pilot behavior or checker growth.
 4. If the shared loader-facing family changes or a direct shared-loader proof lands, refresh this sequencing note before later shared reminder passes inherit stale owner labels.
 5. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 
 ## Anti-overlap rule
 
