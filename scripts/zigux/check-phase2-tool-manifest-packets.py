@@ -203,6 +203,14 @@ REQUIRED_FILES = {
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     ],
+    "scripts/zigux/README.md": [
+        "check-phase2-tool-manifest-packets.py --self-test",
+        "check-phase2-tool-manifest-packets.py",
+        "zigux/tests/fixtures/phase2_tool_manifest.json",
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+        "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+    ],
     "Documentation/zigux/review-checklist.md": [
         "zigux/tests/fixtures/phase2_tool_manifest.json",
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
@@ -304,6 +312,7 @@ def write_text(path: Path, content: str) -> None:
 def build_self_test_root(root: Path) -> None:
     docs = {
         "Documentation/zigux/phase2-closure.md": "\n".join(REQUIRED_FILES["Documentation/zigux/phase2-closure.md"]) + "\n",
+        "scripts/zigux/README.md": "\n".join(REQUIRED_FILES["scripts/zigux/README.md"]) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REQUIRED_FILES["Documentation/zigux/review-checklist.md"]) + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_FILES["zigux/tests/README.md"]) + "\n",
     }
@@ -353,6 +362,23 @@ def run_self_test() -> int:
         assert "missing_file:confdata_manifest" in issues
         case_count += 1
 
+        build_self_test_root(root)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace(
+                "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:scripts/zigux/README.md:zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
+            in issues
+        )
+        case_count += 1
+
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -376,7 +402,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=7")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=8")
     return 0
 
 
