@@ -16,6 +16,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
   - `Documentation/zigux/phase10-virtio-core-survey.md`
   - `Documentation/zigux/phase10-virtio-core-slice.md`
   - `scripts/zigux/check-phase10-core-packet.py`
+  - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 
 ## Why this slice exists
 
@@ -23,7 +24,7 @@ The Phase 10 roadmap names `drivers/virtio/virtio.c` as the first virtio-core an
 
 Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path, and the shipped bounded status_show and features_show-style summaries were only implicit in the helper and tests. This survey restores the small manifest-backed governance packet so the core lane is machine-checkable again without widening into new helper behavior.
 
-This same packet is now the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The slice note already keeps the roadmap's dual-implementation boundary explicit too, so this survey packet must carry that same blocked bridge instead of naming only the later probe or remove step.
+This same packet is now the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The slice note already keeps the roadmap's dual-implementation boundary explicit too, so this survey packet must carry that same blocked bridge instead of naming only the later probe or remove step.
 
 ## Survey findings
 
@@ -33,7 +34,7 @@ This same packet is now the roadmap-facing `lab-only driver validation` evidence
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
 - the landed driver-id coverage helper now makes exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes explicit without widening into probe or bus registration
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`
-- the honest roadmap gap here is no longer missing lab-driver evidence: the manifest-backed survey note, survey gate, dedicated packet checker, direct core verify replay, shared build replay, and shared Linux-style Phase 10 routes already keep the bounded starter reviewable as `lab-only driver validation`
+- the honest roadmap gap here is no longer missing lab-driver evidence: the manifest-backed survey note, survey gate, dedicated packet checker, dedicated tests-root core-surfaces checker, direct core verify replay, shared build replay, and shared Linux-style Phase 10 routes already keep the bounded starter reviewable as `lab-only driver validation`
 - the remaining roadmap bridges to a true lab driver are still blocked outside this lane: dual implementations for risky transport-facing paths plus probe, full remove, and reset lifecycle state remain too risky to claim from the core helper alone
 
 ## Freeze Boundary
@@ -74,7 +75,7 @@ The restored survey manifest records:
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence through the survey packet, direct core verify replay, bounded status_show and features_show review surfaces, the driver-id coverage disposition helper, and shared build routes, the still-missing dual-implementation boundary for risky transport-facing paths remains explicit, and the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied.
+This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence through the survey packet, the dedicated tests-root core-surfaces checker, the direct core verify replay, bounded status_show and features_show review surfaces, the driver-id coverage disposition helper, and shared build routes, the still-missing dual-implementation boundary for risky transport-facing paths remains explicit, and the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied.
 
 ## Non-goals
 
