@@ -206,6 +206,7 @@ PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
     "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
     "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
+    "phase4_review_checklist_blob_sha": "Documentation/zigux/review-checklist.md",
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
