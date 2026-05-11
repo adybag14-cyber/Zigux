@@ -30,9 +30,9 @@ surfaces without promoting it into a separate shared replay count.
 
 `zigux/helpers/notifier_chain_view.zig` now also exposes the landed nonincreasing-priority signal through a direct helper-local convenience.
 
-`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet.
+`scripts/zigux/check-phase13-notifier-priority-signal.py` now fails closed on the landed nonincreasing-priority signal across the adjacent notifier packet.
 
-`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the focused notifier packet checker, and the landed nonincreasing-priority signal should stay explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig` whenever this adjacent notifier packet changes.
+`make -C zigux phase13-validate` still reruns the broader Phase 13 release validator plus the landed notifier priority-signal checker, and the nonincreasing-priority signal should stay explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `zigux/helpers/notifier_chain_view.zig` whenever this adjacent notifier packet changes.
 
 ## Adjacent Evidence On Current Master
 
@@ -45,7 +45,7 @@ surfaces without promoting it into a separate shared replay count.
 - `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `drivers/tty/hvc/hvc_console.h`
-- `scripts/zigux/check-phase13-notifier-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 
 The direct `zigux/tests/phase13_build.zig` route is not materialized on current `master`, so keep the shipped validator-first handles below explicit instead of treating that missing build file as independently shipped adjacent evidence.
