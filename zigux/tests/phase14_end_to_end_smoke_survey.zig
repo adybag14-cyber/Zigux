@@ -118,11 +118,13 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 14), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.shared_smoke_surfaces.len);
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/Makefile"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, ".github/workflows/zigux-bootstrap.yml"));
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
