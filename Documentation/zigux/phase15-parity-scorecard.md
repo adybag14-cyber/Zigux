@@ -18,6 +18,8 @@ The roadmap requires a parity scorecard so the mixed-language end state stays ex
 
 This scorecard does not claim that a deep-core anchor is ready for a direct Zigux port. It exists to keep the freeze map, the review-process note, and the indefinite-C policy aligned around the same blocked posture.
 
+The scorecard now also carries the same phase, status-bucket, required-approver-set, and validation-gate summary fields that the freeze-map governance packet expects from reviewable Phase 15 records, so the human-readable scorecard no longer underreports those core Architecture Council handoff fields.
+
 ## Aggregate Metrics
 
 - active freeze-in-C anchor count: `4`
@@ -30,8 +32,11 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 ### `kernel/sched/core.c`
 - lane owner: `Architecture Council`
-- rollback owner: `Architecture Council + PMO / Release Management`
+- phase: `Phase 15`
 - current status bucket: `freeze_in_c`
+- required approver set: `Architecture Council + PMO / Release Management`
+- validation gate summary: `Phase 15 parity scorecard plus Architecture Council reopen record`
+- rollback owner: `Architecture Council + PMO / Release Management`
 - current blocker: `blocked_no_bounded_scheduler_seam`
 - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -41,8 +46,11 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 ### `mm/page_alloc.c`
 - lane owner: `Architecture Council`
-- rollback owner: `Architecture Council + Validation and Perf Team`
+- phase: `Phase 15`
 - current status bucket: `freeze_in_c`
+- required approver set: `Architecture Council + Validation and Perf Team`
+- validation gate summary: `Phase 15 parity scorecard plus Architecture Council reopen record`
+- rollback owner: `Architecture Council + Validation and Perf Team`
 - current blocker: `blocked_no_bounded_allocator_seam`
 - decision record path: `Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -52,8 +60,11 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 ### `kernel/rcu/tree.c`
 - lane owner: `ABI and Runtime Team`
-- rollback owner: `Architecture Council + ABI and Runtime Team`
+- phase: `Phase 15`
 - current status bucket: `freeze_in_c`
+- required approver set: `Architecture Council + ABI and Runtime Team`
+- validation gate summary: `Phase 15 parity scorecard plus Architecture Council reopen record`
+- rollback owner: `Architecture Council + ABI and Runtime Team`
 - current blocker: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
 - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-rcu-tree-survey.md`
@@ -63,8 +74,11 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 ### `net/core/skbuff.c`
 - lane owner: `Shared Subsystems Pod`
-- rollback owner: `Architecture Council + Shared Subsystems Pod`
+- phase: `Phase 15`
 - current status bucket: `freeze_in_c`
+- required approver set: `Architecture Council + Shared Subsystems Pod`
+- validation gate summary: `Phase 15 parity scorecard plus Architecture Council reopen record`
+- rollback owner: `Architecture Council + Shared Subsystems Pod`
 - current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
 - decision record path: `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`
@@ -74,7 +88,7 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 ## Accounting Rules
 
-- every scorecard row must keep the lane owner, rollback owner, current blocker, evidence archive path, benchmark-notes status, and replay command explicit
+- every scorecard row must keep the lane owner, phase, current status bucket, required approver set, validation gate summary, rollback owner, current blocker, evidence archive path, benchmark-notes status, and replay command explicit
 - if the evidence becomes stale or contradictory, the scorecard must keep the anchor blocked until the review-process packet records a fresh dated readback or reopen trigger
 - if a future lane wants a status change, it must update this scorecard together with `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-architecture-council-review-process.md`
 - study-only anchors remain outside this scorecard until a lane asks for a status-bucket review
