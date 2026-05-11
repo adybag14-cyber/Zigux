@@ -263,7 +263,7 @@ def main() -> int:
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
-    if args.self-test:
+    if args.self_test:
         return run_self_test()
 
     entries = discover_phase3_slices()
