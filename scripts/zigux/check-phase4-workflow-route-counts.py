@@ -425,6 +425,33 @@ def run_selftest() -> None:
             )
 
         makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
+        missing_validator_self_test = makefile.read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test\n",
+            "",
+            1,
+        )
+        makefile.write_text(missing_validator_self_test, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "scripts/zigux/validate-phase4.py --self-test" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/Makefile missing scripts/zigux/validate-phase4.py --self-test "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
         missing_gate_evidence_command = makefile.read_text(encoding="utf-8").replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
             "",
