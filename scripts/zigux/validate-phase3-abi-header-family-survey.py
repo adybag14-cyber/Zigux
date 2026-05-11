@@ -34,6 +34,8 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
@@ -133,6 +135,18 @@ def run_self_test() -> int:
     if "shared reminder missing marker: zigux/uapi/dev_t.zig" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected shared reminder marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("Documentation/zigux/README.md", "", 1))
+    if "shared reminder missing marker: Documentation/zigux/README.md" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected docs README marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("Documentation/zigux/review-checklist.md", "", 1))
+    if "shared reminder missing marker: Documentation/zigux/review-checklist.md" not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected review checklist marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("scripts/zigux/README.md", "", 1))
