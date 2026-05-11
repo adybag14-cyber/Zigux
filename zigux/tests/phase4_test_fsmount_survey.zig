@@ -29,6 +29,12 @@ test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
     );
 }
 
+test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
+    try requireMarker(
+        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
+    );
+}
+
 test "phase4 test_fsmount survey keeps the bounded next step explicit" {
     try requireMarker(
         "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
