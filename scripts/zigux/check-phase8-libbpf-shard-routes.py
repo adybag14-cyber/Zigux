@@ -33,7 +33,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
-        "`tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "`fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
     ],
@@ -141,6 +141,13 @@ def run_self_test() -> None:
             "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
             "`zigux/tests/phase8_build.zig` no longer wires the current libbpf helper-first shard packet",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        ),
+        (
+            "segment_survey_pin_path_split_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+            "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         ),
         (
             "segment_survey_follow_through_anchor",
