@@ -7,11 +7,12 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_RELEASE_CLOSED=no`
-- scope: keep the active four-anchor Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim
+- scope: keep the active shared Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
 - sequencing companion: `Documentation/zigux/phase12-release-sequencing.md`
 - closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - coverage companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
