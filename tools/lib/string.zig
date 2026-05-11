@@ -221,6 +221,19 @@ pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
     return sysfsStreq(lhs, rhs);
 }
 
+pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {
+    for (haystack, 0..) |entry, idx| {
+        if (sysfsStreq(entry, needle)) {
+            return idx;
+        }
+    }
+    return null;
+}
+
+pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {
+    return sysfsMatchString(haystack, needle);
+}
+
 fn digitValue(ch: u8, base: u8) ?u8 {
     const value = std.fmt.charToDigit(ch, base) catch return null;
     return @intCast(value);
@@ -517,6 +530,32 @@ test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence" {
     try std.testing.expect(sysfs_streq("zigux\n", "zigux"));
     try std.testing.expect(sysfs_streq("zigux", "zigux\n"));
     try std.testing.expect(!sysfs_streq("zigux\nmore", "zigux"));
+}
+
+test "sysfsMatchString finds newline-aware matches and preserves first-match order" {
+    const haystack = [_][]const u8{
+        "disabled",
+        "auto\n",
+        "manual",
+        "auto",
+    };
+    try std.testing.expectEqual(@as(?usize, 1), sysfsMatchString(&haystack, "auto"));
+    try std.testing.expectEqual(@as(?usize, 1), sysfsMatchString(&haystack, "auto\n"));
+
+    const nul_terminated = [_]u8{ 'm', 'a', 'n', 'u', 'a', 'l', 0, 'x' };
+    try std.testing.expectEqual(@as(?usize, 2), sysfsMatchString(&haystack, &nul_terminated));
+    try std.testing.expectEqual(@as(?usize, null), sysfsMatchString(&haystack, "missing"));
+}
+
+test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists" {
+    const haystack = [_][]const u8{
+        "first",
+        "second\n",
+    };
+    const empty = [_][]const u8{};
+
+    try std.testing.expectEqual(@as(?usize, 1), sysfs_match_string(&haystack, "second"));
+    try std.testing.expectEqual(@as(?usize, null), sysfs_match_string(&empty, "second"));
 }
 
 test "memdup and memchrInv preserve byte content" {
