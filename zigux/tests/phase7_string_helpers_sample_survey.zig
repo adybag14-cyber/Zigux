@@ -186,8 +186,8 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(i32, 1), manifest.sample_replay_contract.matched_index);
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.sample_replay_contract.helper_call_markers.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.sample_replay_contract.test_assertions.len);
 
     var starter_landed_count: usize = 0;
     var saw_helper = false;
@@ -260,6 +260,12 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try expectExactCount(sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,", 1);
     try expectContains(sample_source, "exact_unescape_text.len = string_helpers.stringUnescape(");
     try expectExactCount(sample_source, "exact_unescape_text.len = string_helpers.stringUnescape(", 1);
+    try expectContains(sample_source, "var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };");
+    try expectExactCount(sample_source, "var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };", 1);
+    try expectContains(sample_source, "bounded_escape_text.len = string_helpers.stringEscapeMem(");
+    try expectExactCount(sample_source, "bounded_escape_text.len = string_helpers.stringEscapeMem(", 1);
+    try expectContains(sample_source, "bounded_escape_text.bytes[0..5],");
+    try expectExactCount(sample_source, "bounded_escape_text.bytes[0..5],", 1);
     try expectContains(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,");
     try expectExactCount(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,", 1);
 
@@ -424,6 +430,8 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
     try std.testing.expectEqual(newline_hex_escape.expected_len, replay.escaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_hex_escape.expected, replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqual(@as(usize, 4), replay.bounded_escape_text.len);
+    try std.testing.expectEqualSlices(u8, "\\x0a?", replay.bounded_escape_text.bytes[0..5]);
     try std.testing.expectEqual(selected_newline_escape.expected_len, replay.selected_escape_text.len);
     try std.testing.expectEqualSlices(u8, selected_newline_escape.expected, replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
     try std.testing.expectEqual(append_newline_hex_escape.expected_len, replay.appended_escape_text.len);
