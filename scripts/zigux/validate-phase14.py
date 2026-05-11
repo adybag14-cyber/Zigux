@@ -325,10 +325,33 @@ def run_self_test() -> int:
         print("SELF_TEST_MARKERS_END")
         return 1
 
+    forbidden_reviewability_smoke_dependency_build = "\n".join(
+        [
+            "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+            "smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
+        ]
+    )
+    forbidden_reviewability_smoke_markers = [
+        marker
+        for marker in FORBIDDEN_SMOKE_DEPENDENCIES
+        if marker in forbidden_reviewability_smoke_dependency_build
+    ]
+    if forbidden_reviewability_smoke_markers != [
+        "smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_reviewability_forbidden_smoke_dependency_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in forbidden_reviewability_smoke_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
+    print("PHASE14_SELF_TEST_FORBIDDEN_REVIEWABILITY_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     return 0
 
 
