@@ -61,6 +61,12 @@ MANIFEST_MARKERS = [
     '"phase": "Phase 10"',
     '"tranche": "virtio-lab-bundle"',
     '"scripts/zigux/check-phase10-harness-coverage.py"',
+    '"source": "manifest_derived"',
+    '"surveyed_commits": {',
+    '"core": "31e9763eea7964dad7085d1a24bc098b4af49789"',
+    '"ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"',
+    '"input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
+    '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"',
 ]
 
 LEDGER_EXACT_ONCE_MARKERS = [
@@ -236,6 +242,18 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
         write_fixture(root)
 
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace(
+                '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"\n',
+                '"mmio": "0000000000000000000000000000000000000000"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if 'manifest:"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"' not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:missing_manifest_commit_marker_not_detected")
+        write_fixture(root)
+
         ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         ledger.write_text(
             ledger.read_text(encoding="utf-8").replace(
@@ -289,7 +307,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
