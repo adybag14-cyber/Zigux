@@ -23,6 +23,8 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     "Documentation/zigux/README.md": [
         "zigux/tests/phase7_build.zig",
+        "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_cmdline_survey.zig",
         "make -C zigux phase7",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
@@ -123,6 +125,20 @@ def run_self_test() -> None:
         ("missing_phase7_build_file", "zigux/tests/phase7_build.zig"),
     ]
     marker_cases = [
+        (
+            "docs_readme_cmdline_test_marker",
+            "Documentation/zigux/README.md",
+            "zigux/tests/phase7_cmdline.zig",
+            "",
+            "Documentation/zigux/README.md: zigux/tests/phase7_cmdline.zig",
+        ),
+        (
+            "docs_readme_cmdline_survey_marker",
+            "Documentation/zigux/README.md",
+            "zigux/tests/phase7_cmdline_survey.zig",
+            "",
+            "Documentation/zigux/README.md: zigux/tests/phase7_cmdline_survey.zig",
+        ),
         (
             "tests_readme_argv_split_survey_marker",
             "zigux/tests/README.md",
