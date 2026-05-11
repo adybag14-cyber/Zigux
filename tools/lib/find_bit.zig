@@ -207,6 +207,44 @@ pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize
     return findNextZeroBit(addr, nbits, start);
 }
 
+pub fn getValue8(addr: []const Word, offset: usize) u8 {
+    std.debug.assert((offset & 7) == 0);
+
+    const idx = offset / bits_per_long;
+    const shift = offset & (bits_per_long - 1);
+    std.debug.assert(idx < addr.len);
+
+    var value = addr[idx] >> @intCast(shift);
+    if (shift > bits_per_long - 8 and idx + 1 < addr.len) {
+        value |= addr[idx + 1] << @intCast(bits_per_long - shift);
+    }
+
+    return @as(u8, @intCast(value & 0xff));
+}
+
+pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {
+    const next = findNextBit(addr, nbits, offset);
+    if (next == nbits) {
+        return nbits;
+    }
+
+    const clump_offset = next & ~@as(usize, 7);
+    clump.* = getValue8(addr, clump_offset);
+    return clump_offset;
+}
+
+pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {
+    return findNextClump8(clump, addr, nbits, offset);
+}
+
+pub fn findFirstClump8(clump: *u8, addr: []const Word, nbits: usize) usize {
+    return findNextClump8(clump, addr, nbits, 0);
+}
+
+pub fn find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {
+    return findFirstClump8(clump, addr, nbits);
+}
+
 pub fn findLastBit(addr: []const Word, nbits: usize) usize {
     assertBitmapLen(addr, nbits);
 
@@ -396,6 +434,57 @@ test "tail-word next set scans skip earlier in-range matches before clamping" {
     try std.testing.expectEqual(@as(usize, nbits), findNextBit(&tail_map, nbits, bits_per_long + 5));
 }
 
+test "clump8 scans align to the containing byte and return its value" {
+    const nbits = bits_per_long * 2;
+    var bitmap = [_]Word{ 0, 0 };
+    bitmap[0] |= @as(Word, 1) << 9;
+    bitmap[0] |= @as(Word, 1) << 14;
+    bitmap[1] |= @as(Word, 1) << 8;
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, 8), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0100_0010), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &bitmap, nbits, 10));
+    try std.testing.expectEqual(@as(u8, 0b0100_0010), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long + 8), findNextClump8(&clump, &bitmap, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
+}
+
+test "clump8 scans keep tail bytes reachable from partial final words" {
+    const nbits = bits_per_long + 5;
+    const bitmap = [_]Word{ 0, @as(Word, 1) << 3 };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+}
+
+test "clump8 scans leave the caller byte untouched when no set bit remains" {
+    const empty = [_]Word{0};
+    var clump: u8 = 0xaa;
+
+    try std.testing.expectEqual(@as(usize, 8), findFirstClump8(&clump, &empty, 8));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &empty, 8, 4));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+}
+
+test "getValue8 reads aligned bytes from bitmap words" {
+    const bitmap = [_]Word{
+        (@as(Word, 0x42) << 8) | (@as(Word, 0xa5) << 24),
+        @as(Word, 0x11) << 8,
+    };
+
+    try std.testing.expectEqual(@as(u8, 0x42), getValue8(&bitmap, 8));
+    try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, 24));
+    try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long + 8));
+}
+
 test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
     const boundary = bits_per_long - 1;
     const nbits = bits_per_long * 2;
@@ -515,4 +604,10 @@ test "Linux-style aliases mirror the primary find helpers" {
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), find_next_zero_bit(&zero_map, nbits, 5));
     try std.testing.expectEqual(findLastBit(&bitmap, nbits), find_last_bit(&bitmap, nbits));
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &[_]Word{@as(Word, 1)}, 8));
+    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
+    try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
+    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
