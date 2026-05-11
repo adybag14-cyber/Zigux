@@ -82,7 +82,7 @@ PHASE2_VALIDATOR_MARKERS = [
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     'CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [",
+    "PHASE2_REQUIRED_SOURCE_MARKERS = [",
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
