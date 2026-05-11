@@ -26,9 +26,6 @@
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
       ],
-      "fixtures": [
-        "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
-      ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"
     },
     {
@@ -79,8 +76,46 @@
   },
   "perf_thresholds": {
     "bsearch": {
+      "replay": "zigux/tests/phase6_bsearch.zig",
+      "measurement_mode": "comparison_budget",
+      "typed_lookup_budget": 4,
+      "raw_lookup_budget": 4,
+      "representative_typed_cases": 10,
+      "representative_raw_cases": 10,
+      "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+      "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+      "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
       "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
-      "equality_budget_formula": "std.math.log2_int_ceil(len) + 1"
+      "upper_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+      "equality_budget_formula": "std.math.log2_int_ceil(len) + 1",
+      "lower_bound_budget_surfaces": [
+        "typed ascending and descending insertion-point ranges",
+        "raw ascending and descending insertion-point ranges",
+        "packed-record member_size insertion-point ranges",
+        "alias-comparator empty and singleton insertion edges"
+      ],
+      "upper_bound_budget_surfaces": [
+        "typed ascending and descending insertion-point ranges",
+        "raw ascending and descending insertion-point ranges",
+        "packed-record member_size insertion-point ranges",
+        "alias-comparator empty and singleton insertion edges"
+      ],
+      "equality_budget_surfaces": [
+        "typed ascending and descending equality ranges through runtime-selected c abi comparator pointers",
+        "raw ascending and descending equality ranges through runtime-selected c abi comparator pointers",
+        "packed-record member_size equality ranges through runtime-selected raw c abi comparator pointers"
+      ]
+    }
+  },
+  "fixture_posture": {
+    "inline_corpus_governance": {
+      "bsearch": {
+        "focused_replay": "zigux/tests/phase6_bsearch.zig",
+        "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+        "policy": "keep representative sorted slices, duplicate-bearing lower- and upper-bound insertion probes, direct c abi equality probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module"
+      }
     }
   },
   "exact_checks": [
@@ -90,6 +125,8 @@
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-bsearch-test",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
     "make -C zigux phase6-checksum-c-parity",
     "make -C zigux phase6-hexdump-test",
     "make -C zigux phase6-perf",
@@ -110,6 +147,20 @@
       "perf_payload_cases": 1,
       "perf_replay_cases": 4,
       "c_parity_cases": 24
+    },
+    "bsearch": {
+      "inline_corpus": "15-element ascending and descending sorted integer slices plus sorted symbol and packed-record replays",
+      "representative_lookup_len": 15,
+      "comparison_budget_typed_cases": 10,
+      "comparison_budget_raw_cases": 10,
+      "comparison_budget_max_compare_calls": 4,
+      "lower_upper_dynamic_lengths": 33,
+      "lower_upper_max_probe_formula": "len == 0 ? 1 : 2 * len + 2",
+      "lower_upper_probe_count_formula": "len == 0 ? 2 : 2 * len + 3",
+      "lower_upper_record_member_size_replay": true,
+      "c_abi_equality_dynamic_lengths": 33,
+      "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
+      "c_abi_equality_record_member_size_replay": true
     },
     "checksum": {
       "c_parity_cases": 41
