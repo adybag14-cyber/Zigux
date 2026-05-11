@@ -801,6 +801,33 @@ def run_selftest() -> None:
 
         workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
+        missing_artifact_diff_contract_self_test = makefile.read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+            "",
+            1,
+        )
+        makefile.write_text(missing_artifact_diff_contract_self_test, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "scripts/zigux/check-artifact-diff-contract.py --self-test" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/Makefile missing scripts/zigux/check-artifact-diff-contract.py --self-test "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
         missing_artifact_diff_contract_command = makefile.read_text(encoding="utf-8").replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
             "",
