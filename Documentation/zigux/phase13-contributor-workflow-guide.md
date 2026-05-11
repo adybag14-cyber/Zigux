@@ -18,6 +18,7 @@ Keep the current Phase 13 packet bounded to the roadmap-owned helper families:
 Keep notifier evidence adjacent to that packet rather than treating it as a fifth helper anchor.
 The adjacent notifier evidence packet is tracked through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
