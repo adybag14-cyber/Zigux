@@ -2,7 +2,8 @@
   "surveyed_commit": "current-master-readback-2026-05-11",
   "metrics": {
     "active_freeze_in_c_anchor_count": 4,
-    "blocked_status_change_anchor_count": 4
+    "blocked_status_change_anchor_count": 4,
+    "phase14_coupled_blocker_anchor_count": 2
   },
   "anchors": [
     {
