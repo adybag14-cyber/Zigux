@@ -16,13 +16,19 @@ REQUIRED_MARKERS = (
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
-    "zigux/tests/phase3_export_uapi.zig",
-    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "zigux/Makefile",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
+)
+FORBIDDEN_CURRENT_PACKET_MARKERS = (
+    "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
 )
 REQUIRED_SHARED_REMINDER_MARKERS = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
@@ -60,6 +66,11 @@ def validate_text(text: str) -> list[str]:
     missing = [
         marker for marker in REQUIRED_MARKERS if marker not in current_packet
     ]
+    missing.extend(
+        f"current packet still claims removed replay marker: {marker}"
+        for marker in FORBIDDEN_CURRENT_PACKET_MARKERS
+        if marker in current_packet
+    )
     if "## Shared reminder" not in text:
         missing.append("missing shared reminder section")
         return missing
@@ -94,10 +105,26 @@ def run_self_test() -> int:
         print("expected missing marker was not reported")
         return 1
 
-    broken = validate_text(sample.replace("zigux/bindings/abi.zig", "", 1))
-    if "zigux/bindings/abi.zig" not in broken:
+    broken = validate_text(sample.replace("zigux/tests/phase3_abi_dump.zig", "", 1))
+    if "zigux/tests/phase3_abi_dump.zig" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
-        print("expected bindings marker was not reported")
+        print("expected dump marker was not reported")
+        return 1
+
+    broken = validate_text(
+        sample.replace(
+            "## Review boundary",
+            "zigux/tests/phase3_export_uapi.zig\n## Review boundary",
+            1,
+        )
+    )
+    forbidden = (
+        "current packet still claims removed replay marker: "
+        "zigux/tests/phase3_export_uapi.zig"
+    )
+    if forbidden not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected removed replay marker was not reported")
         return 1
 
     broken_sample = sample.rsplit("zigux/uapi/dev_t.zig", 1)
