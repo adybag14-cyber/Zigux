@@ -68,11 +68,13 @@ LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/check-phase10-core-packet.py",
     "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/validate-phase10.py",
     "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py",
-    "PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/validate-phase10-closure.py",
-    "PHASE10_LEDGER_EXACT_CHECK_6=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
-    "PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10-validate",
-    "PHASE10_LEDGER_EXACT_CHECK_8=make -C zigux phase10-test",
-    "PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10",
+    "PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
+    "PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "PHASE10_LEDGER_EXACT_CHECK_7=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_EXACT_CHECK_8=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10-validate",
+    "PHASE10_LEDGER_EXACT_CHECK_10=make -C zigux phase10-test",
+    "PHASE10_LEDGER_EXACT_CHECK_11=make -C zigux phase10",
 ]
 
 LEDGER_EXACT_ONCE_ERROR = (
@@ -236,14 +238,14 @@ def run_self_test() -> int:
         ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         ledger.write_text(
             ledger.read_text(encoding="utf-8").replace(
-                "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
-                "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
+                "PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py\n",
+                "PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py\n",
                 1,
             ),
             encoding="utf-8",
         )
         ledger_mismatches = collect_ledger_exact_once_mismatches(root)
-        if "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py:count=0" not in ledger_mismatches:
+        if "PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py:count=0" not in ledger_mismatches:
             raise SystemExit(
                 "phase10-closure-self-test:missing_ledger_exact_once_mismatch_not_detected:"
                 f"actual={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
