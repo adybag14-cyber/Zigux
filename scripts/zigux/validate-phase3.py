@@ -62,6 +62,8 @@ REPO_FILES = (
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
@@ -89,7 +91,12 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "$(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py",
     "$(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
+    "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test",
+    "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
     "$(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
     "$(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -112,6 +119,8 @@ README_MARKERS = (
     "check-phase3-catalog-selftest.py",
     "validate-phase3-policy-unsafe-survey.py",
     "check-phase3-policy-byte-guards.py",
+    "check-phase3-policy-unsafe-focused-replay.py",
+    "check-phase3-policy-unsafe-mmio-consumer.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
@@ -419,37 +428,104 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        low_level_survey_rel = Path(
+        low_level_note_rel = Path(
             "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
         )
         _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
-        (root / low_level_survey_rel).unlink()
+        (root / low_level_note_rel).unlink()
         issues = validate_repo(root)
-        expected_low_level_survey_missing = (
-            f"missing repo file: {low_level_survey_rel.as_posix()}"
+        expected_low_level_note_missing = (
+            f"missing repo file: {low_level_note_rel.as_posix()}"
         )
-        if expected_low_level_survey_missing not in issues:
+        if expected_low_level_note_missing not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing low-level wrapper survey note was not reported")
+            print("expected missing low-level wrapper note was not reported")
             return 1
         case_count += 1
 
-        low_level_validator_rel = Path(
-            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
-        )
-        _write(root / low_level_survey_rel, "# restored\n")
-        (root / low_level_validator_rel).unlink()
+        _write(root / low_level_note_rel, "# restored\n")
+        (root / MMIO_HELPER_PATH).unlink()
         issues = validate_repo(root)
-        expected_low_level_validator_missing = (
-            f"missing repo file: {low_level_validator_rel.as_posix()}"
-        )
-        if expected_low_level_validator_missing not in issues:
+        expected_mmio_missing = f"missing repo file: {MMIO_HELPER_PATH.as_posix()}"
+        if expected_mmio_missing not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing low-level wrapper survey checker was not reported")
+            print("expected missing mmio helper was not reported")
             return 1
         case_count += 1
 
-        _write(root / low_level_validator_rel, "# restored\n")
+        manifest_rel = ABI_MANIFEST_PATH
+        _write(root / MMIO_HELPER_PATH, "# restored\n")
+        _write(root / ABI_MANIFEST_PATH, _manifest_payload([]))
+        issues = validate_repo(root)
+        expected_manifest_entry_missing = "missing phase3 ABI manifest entry: zigux/uapi/dev_t.zig"
+        if expected_manifest_entry_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 ABI manifest entry was not reported")
+            return 1
+        case_count += 1
+
+        _write(
+            root / ABI_MANIFEST_PATH,
+            _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES], file_count=2),
+        )
+        issues = validate_repo(root)
+        expected_manifest_count_drift = "phase3 ABI manifest file_count drift: expected 1, found 2"
+        if expected_manifest_count_drift not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected phase3 ABI manifest file_count drift was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / ABI_MANIFEST_PATH, _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]))
+        (root / manifest_rel).unlink()
+        issues = validate_repo(root)
+        expected_manifest_missing = f"missing repo file: {manifest_rel.as_posix()}"
+        if expected_manifest_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 ABI manifest was not reported")
+            return 1
+        case_count += 1
+
+        next_step_rel = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+        _write(root / manifest_rel, _manifest_payload([rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]))
+        (root / next_step_rel).unlink()
+        issues = validate_repo(root)
+        expected_next_step_missing = f"missing repo file: {next_step_rel.as_posix()}"
+        if expected_next_step_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing next-step note was not reported")
+            return 1
+        case_count += 1
+
+        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
+        _write(root / next_step_rel, "# restored\n")
+        (root / validator_support_rel).unlink()
+        issues = validate_repo(root)
+        expected_validator_support_missing = (
+            f"missing repo file: {validator_support_rel.as_posix()}"
+        )
+        if expected_validator_support_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support note was not reported")
+            return 1
+        case_count += 1
+
+        support_validator_rel = Path(
+            "scripts/zigux/validate-phase3-validator-support-surface.py"
+        )
+        _write(root / validator_support_rel, "# restored\n")
+        (root / support_validator_rel).unlink()
+        issues = validate_repo(root)
+        expected_support_validator_missing = (
+            f"missing repo file: {support_validator_rel.as_posix()}"
+        )
+        if expected_support_validator_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support checker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / support_validator_rel, "# restored\n")
         _write(root / "zigux/Makefile", "phase3-validate:\n")
         issues = validate_repo(root)
         expected_marker = f"missing make marker: {MAKE_MARKERS[1]}"
@@ -499,23 +575,57 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        low_level_survey_rel = Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
+        _write(root / support_validator_rel, "# restored\n")
+        (root / low_level_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_low_level_survey_missing = (
+            f"missing repo file: {low_level_survey_rel.as_posix()}"
+        )
+        if expected_low_level_survey_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing low-level wrapper survey checker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / low_level_survey_rel, "# restored\n")
         _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
-                "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n",
+                "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test\n",
                 "",
                 1,
             ),
         )
         issues = validate_repo(root)
-        expected_low_level_marker = (
+        expected_focused_replay_selftest_marker = (
             "missing make marker: $(PYTHON) "
-            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
+            "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test"
         )
-        if expected_low_level_marker not in issues:
+        if expected_focused_replay_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing low-level-wrapper make marker was not reported")
+            print("expected missing focused policy replay self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_mmio_consumer_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test"
+        )
+        if expected_mmio_consumer_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing typed-policy mmio consumer self-test make marker was not reported")
             return 1
         case_count += 1
 
@@ -523,18 +633,18 @@ def run_self_test() -> int:
         _write(
             root / "scripts/zigux/README.md",
             _read(root / "scripts/zigux/README.md").replace(
-                "validate-phase3-validator-support-surface.py\n",
+                "validate-phase3-low-level-wrapper-survey.py\n",
                 "",
                 1,
             ),
         )
         issues = validate_repo(root)
         expected_support_readme_marker = (
-            "missing scripts README marker: validate-phase3-validator-support-surface.py"
+            "missing scripts README marker: validate-phase3-low-level-wrapper-survey.py"
         )
         if expected_support_readme_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing validator-support README marker was not reported")
+            print("expected missing low-level-wrapper README marker was not reported")
             return 1
         case_count += 1
 
@@ -554,25 +664,6 @@ def run_self_test() -> int:
         if expected_support_note_readme_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing validator-support note README marker was not reported")
-            return 1
-        case_count += 1
-
-        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
-        _write(
-            root / "scripts/zigux/README.md",
-            _read(root / "scripts/zigux/README.md").replace(
-                "validate-phase3-low-level-wrapper-survey.py\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_low_level_readme_marker = (
-            "missing scripts README marker: validate-phase3-low-level-wrapper-survey.py"
-        )
-        if expected_low_level_readme_marker not in issues:
-            print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing low-level-wrapper README marker was not reported")
             return 1
         case_count += 1
 
