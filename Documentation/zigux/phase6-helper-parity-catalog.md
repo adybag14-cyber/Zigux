@@ -21,6 +21,8 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`
 - fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - checker: `scripts/zigux/check-phase6-base64-c-parity.py`
+- direct local C parity rerun route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+- Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
 
 ### bsearch
 - helper: `lib/bsearch.zig`
@@ -52,6 +54,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle
 
 ## Shared Routes
+- `make -C zigux phase6-base64-c-parity`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-validate`
