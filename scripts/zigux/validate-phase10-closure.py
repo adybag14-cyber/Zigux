@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase10-closure.py",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
@@ -46,6 +47,14 @@ LANE_MARKERS = [
     "make -C zigux phase10",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "zigux/tests/phase10_closure_manifest.json",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
+
 MANIFEST_MARKERS = [
     '"phase": "Phase 10"',
     '"tranche": "virtio-lab-bundle"',
@@ -72,6 +81,7 @@ def collect_missing_markers(root: Path) -> list[str]:
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
         ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
+        ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
         ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_MARKERS),
     ]
     for label, rel_path, markers in checks:
@@ -99,6 +109,7 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS) + "\n",
+        "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": (
             "#!/usr/bin/env python3\n"
             "import sys\n"
@@ -160,9 +171,18 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:missing_lane_marker_not_detected")
         write_fixture(root)
 
+        review = root / "Documentation/zigux/review-checklist.md"
+        review.write_text(
+            review.read_text(encoding="utf-8").replace("zigux/tests/phase10_closure_manifest.json\n", "", 1),
+            encoding="utf-8",
+        )
+        if "review:zigux/tests/phase10_closure_manifest.json" not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:missing_review_marker_not_detected")
+        write_fixture(root)
+
         manifest = root / "zigux/tests/phase10_closure_manifest.json"
         manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1),
+            manifest.read_text(encoding="utf-8").replace('\"scripts/zigux/check-phase10-harness-coverage.py\"\n', "", 1),
             encoding="utf-8",
         )
         if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
@@ -187,7 +207,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -230,7 +250,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(MANIFEST_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}"
     )
     print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
     return 0
