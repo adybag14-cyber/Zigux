@@ -3,7 +3,7 @@
 This document records the bounded Phase 12 survey lane around `tools/lib/bpf/libbpf.c` and the existing `tools/lib/bpf/zigux_segments/` rollout.
 
 ## Status
-- `PHASE12_STATUS=parked`
+- `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
 - scope: Phase 12 survey manifest, shared reviewability gate, shared build wiring, the shipped build-only Phase 12 surface checker, the PMO closure companion, the compact release-coordination matrix that now travels with the active release-order packet, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
 - product boundary:
