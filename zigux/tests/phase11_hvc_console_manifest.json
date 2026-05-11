@@ -10,18 +10,25 @@
   ],
   "survey_summary": {
     "hvc_console_c_lines": 1042,
-    "preexisting_phase11_build_present": false,
+    "preexisting_phase11_build_present": true,
     "preexisting_phase11_watchdog_lanes": 3,
     "hvc_console_header_present": true,
     "hvc_console_zig_present": true,
     "hvc_console_sysrq_present": true,
-    "hvc_console_test_present": false,
+    "hvc_console_test_present": true,
     "hvc_console_modem_control_split_present": true,
     "hvc_console_poll_retry_split_present": true,
     "hvc_console_survey_gate_present": true,
     "hvc_console_survey_note_present": true
   },
   "gaps": [
+    {
+      "id": "phase11-build-gate",
+      "status": "starter_landed",
+      "kind": "shared-build-gate",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "Keep the shared Phase 11 build route explicit for the parked starter packet while the dedicated HVC archival replay still runs separately."
+    },
     {
       "id": "phase11-hvc-console-survey-gate",
       "status": "starter_landed",
@@ -105,6 +112,13 @@
       "kind": "signature-assert",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
       "why_now": "Keep struct hv_ops, C calling convention, get_chars, and dtr_rts explicit."
+    },
+    {
+      "id": "phase11-hvc-console-driver-tests",
+      "status": "starter_landed",
+      "kind": "driver-tests",
+      "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
+      "why_now": "Keep newline framing, teardown gating, final-close teardown sequencing, tty-registration handoff boundaries, notifier-add success, fallback, and failure cleanup boundaries, khvcd polling-contract wakeup, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, and hvc_cleanup tty-port release boundaries explicit."
     },
     {
       "id": "phase11-hvc-console-validation-matrix",
