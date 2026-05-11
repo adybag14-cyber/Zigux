@@ -40,7 +40,7 @@ The adjacent driver-local or packet-local Phase 11 surfaces remain present besid
 * there is no shared `make -C zigux phase11-validate` target on `master`
 * there is no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the dedicated archival HVC route remains separate so the shared packet does not overclaim notifier, khvcd, sysrq, or host-backed execution coverage
-* `scripts/zigux/check-phase11-shared-summary-surfaces.py` keeps the broader reminder surfaces aligned with this smaller shared closure packet
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the broader reminder surfaces when this smaller shared closure packet moves
 
 ## What This Closure Note Does Not Claim
 
