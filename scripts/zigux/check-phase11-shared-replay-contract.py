@@ -91,6 +91,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "the dedicated bcm2835 archival checker route",
     "the dedicated DesignWare packet checker",
     "the dedicated bcm2835, gpio, and DesignWare manifest-backed survey checkpoints",
+    "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
     "the dedicated gpio teardown companion",
     "the dedicated DesignWare teardown companion",
     "the dedicated `hvc_console` survey note, teardown note, and checker-backed `make -C zigux phase11-hvc-survey` replay",
@@ -210,7 +211,8 @@ def run_self_test() -> int:
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
-            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[7]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[10]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[11]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
         for label, rel_path, needle in mutations:
