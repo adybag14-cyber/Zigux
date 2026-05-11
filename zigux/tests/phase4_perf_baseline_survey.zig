@@ -8,6 +8,18 @@ fn requireMarker(marker: []const u8) !void {
     }
 }
 
+fn requireMarkerCount(marker: []const u8, expected_count: usize) !void {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, manifest_text, start, marker)) |index| {
+        count += 1;
+        start = index + marker.len;
+    }
+    if (count != expected_count) {
+        return error.UnexpectedManifestMarkerCount;
+    }
+}
+
 test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
     try requireMarker("\"lane_key\": \"P4-L20\"");
     try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
@@ -51,12 +63,18 @@ test "phase4 perf baseline survey keeps the bitmap companion and pending promoti
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
 }
 
-test "phase4 perf baseline survey keeps coordination owners, wrapper route, and bitmap limits explicit" {
+test "phase4 perf baseline survey keeps coordination owners, both wrapper routes, and bitmap limits explicit" {
     try requireMarker("\"coordination_owners\": [");
     try requireMarker("\"ABI and Runtime Team\"");
     try requireMarker("\"Shared Subsystems Pod\"");
-    try requireMarker("\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
-    try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
+    try requireMarkerCount(
+        "\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"",
+        2,
+    );
+    try requireMarker(
+        "\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"",
+    );
+    try requireMarker("\"shared_ci_perf_promotion_status\": \"pending\"");
     try requireMarker("\"acceptable_limit_max_elapsed_ns\": 12288");
     try requireMarker("\"checksum\": 5216946504564592253");
     try requireMarker("\"checksum\": 7942141539243507472");
