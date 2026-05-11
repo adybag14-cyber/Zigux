@@ -20,6 +20,8 @@ REQUIRED_FILES = {
     "modem_control_split": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "makefile": "zigux/Makefile",
+    "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
 SURVEY_GATE_MARKERS = [
@@ -145,7 +147,22 @@ SYSRQ_HELPER_MARKERS = [
     'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
 ]
 
-SELF_TEST_CASE_COUNT = 14
+MAKEFILE_MARKERS = [
+    "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
+    "phase11-hvc-survey:",
+    "phase11: phase11-contract phase11-test phase11-hvc-survey",
+]
+
+WORKFLOW_MARKERS = [
+    "- name: Run Phase 11 shared replay contract checker",
+    "run: make -C zigux phase11-contract",
+    "- name: Run Phase 11 watchdog and console tests",
+    "run: zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "- name: Run dedicated Phase 11 hvc survey replay",
+    "run: make -C zigux phase11-hvc-survey",
+]
+
+SELF_TEST_CASE_COUNT = 16
 
 
 class CheckError(RuntimeError):
@@ -270,6 +287,16 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["sysrq_helper"]),
         SYSRQ_HELPER_MARKERS,
     )
+    expect_markers(
+        REQUIRED_FILES["makefile"],
+        read_text(root, REQUIRED_FILES["makefile"]),
+        MAKEFILE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["workflow"],
+        read_text(root, REQUIRED_FILES["workflow"]),
+        WORKFLOW_MARKERS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -333,6 +360,8 @@ def build_self_test_fixture(root: Path, surveyed_commit: str = "0" * 40) -> None
     write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["workflow"], "\n".join(WORKFLOW_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -463,6 +492,26 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "pub fn summarizeSysrqHandoff")
+
+        reset_fixture(tmpdir)
+        makefile_missing = tmpdir / REQUIRED_FILES["makefile"]
+        makefile_missing.write_text(
+            makefile_missing.read_text(encoding="utf-8").replace(
+                "phase11-hvc-survey:\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase11-hvc-survey:")
+
+        reset_fixture(tmpdir)
+        workflow_missing = tmpdir / REQUIRED_FILES["workflow"]
+        workflow_missing.write_text(
+            workflow_missing.read_text(encoding="utf-8").replace(
+                "run: make -C zigux phase11-hvc-survey\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "run: make -C zigux phase11-hvc-survey")
 
         reset_fixture(tmpdir)
         manifest_missing = tmpdir / REQUIRED_FILES["manifest"]
