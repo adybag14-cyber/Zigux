@@ -25,6 +25,12 @@ ROOT = infer_repo_root()
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+RELEASE_COORDINATION_MATRIX_PATH = (
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+)
+RELEASE_CLOSURE_CHECKLIST_PATH = (
+    "Documentation/zigux/phase12-release-closure-checklist.md"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -36,6 +42,8 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     RELEASE_SEQUENCING_PATH,
+    RELEASE_COORDINATION_MATRIX_PATH,
+    RELEASE_CLOSURE_CHECKLIST_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -76,6 +84,20 @@ RELEASE_SEQUENCING_MARKERS = [
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
     "Current `master` already keeps the compact release-coordination matrix explicit",
+]
+
+RELEASE_COORDINATION_MATRIX_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packet and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs;",
+    "rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording",
+]
+
+RELEASE_CLOSURE_CHECKLIST_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "The bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill must remain described as lab-only reversible-delivery evidence rather than closure-ready runtime recovery.",
+    "Until then, release planning should name only the shipped smoke preflight routes, the shared build-and-make replay path, the narrow build-only contract checker, the shared fallback overview note, the shared libbpf anti-overlap companion, and the bounded storage rollback drill.",
 ]
 
 WORKFLOW_MARKERS = [
@@ -181,6 +203,18 @@ def validate(root: Path) -> list[str]:
         RELEASE_SEQUENCING_MARKERS,
     )
     ensure_contains(
+        failures,
+        "release_coordination_matrix",
+        read_text(root, RELEASE_COORDINATION_MATRIX_PATH),
+        RELEASE_COORDINATION_MATRIX_MARKERS,
+    )
+    ensure_contains(
+        failures,
+        "release_closure_checklist",
+        read_text(root, RELEASE_CLOSURE_CHECKLIST_PATH),
+        RELEASE_CLOSURE_CHECKLIST_MARKERS,
+    )
+    ensure_contains(
         failures, "workflow", read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS
     )
     ensure_contains(
@@ -206,6 +240,18 @@ def minimal_tests_readme() -> str:
 
 def minimal_release_sequencing() -> str:
     return "\n".join(["# Phase 12 Release Sequencing", *RELEASE_SEQUENCING_MARKERS, ""])
+
+
+def minimal_release_coordination_matrix() -> str:
+    return "\n".join(
+        ["# Phase 12 Release Coordination Matrix", *RELEASE_COORDINATION_MATRIX_MARKERS, ""]
+    )
+
+
+def minimal_release_closure_checklist() -> str:
+    return "\n".join(
+        ["# Phase 12 Release Closure Checklist", *RELEASE_CLOSURE_CHECKLIST_MARKERS, ""]
+    )
 
 
 def minimal_workflow() -> str:
@@ -274,6 +320,10 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_tests_readme()
     if rel_path == RELEASE_SEQUENCING_PATH:
         return minimal_release_sequencing()
+    if rel_path == RELEASE_COORDINATION_MATRIX_PATH:
+        return minimal_release_coordination_matrix()
+    if rel_path == RELEASE_CLOSURE_CHECKLIST_PATH:
+        return minimal_release_closure_checklist()
     if rel_path == WORKFLOW_PATH:
         return minimal_workflow()
     if rel_path == MAKEFILE_PATH:
@@ -308,6 +358,8 @@ def run_self_test() -> int:
 
         tests_readme_path = base / TESTS_README_PATH
         release_sequencing_path = base / RELEASE_SEQUENCING_PATH
+        release_coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
+        release_closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
@@ -333,6 +385,30 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[4]}",
+        )
+
+        write_fixture_tree(base)
+        release_coordination_matrix_path.write_text(
+            release_coordination_matrix_path.read_text(encoding="utf-8").replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        release_closure_checklist_path.write_text(
+            release_closure_checklist_path.read_text(encoding="utf-8").replace(
+                RELEASE_CLOSURE_CHECKLIST_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[2]}",
         )
 
         write_fixture_tree(base)
@@ -380,7 +456,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -423,6 +499,8 @@ def main() -> int:
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(RELEASE_SEQUENCING_MARKERS)
+        + len(RELEASE_COORDINATION_MATRIX_MARKERS)
+        + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(PHASE12_BUILD_MARKERS)
