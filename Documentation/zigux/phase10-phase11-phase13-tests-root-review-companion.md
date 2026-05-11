@@ -31,7 +31,6 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
-- `zigux/tests/phase10_virtio_driver_id.zig`
 - `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_verify.zig`
@@ -84,6 +83,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
@@ -115,7 +115,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `make -C zigux phase11-hvc-survey`
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, checker split, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated `hvc_console` teardown, verify, and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
+- Do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated `hvc_console` teardown, verify, and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
 
 ## Phase 13 tests-root packet
 
@@ -147,7 +147,7 @@ Tests-root reviewer prompt:
 
 Keep these reviewer questions explicit when `zigux/tests/README.md` or other shared contributor-facing workflow notes are refreshed:
 - Phase 10: do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still keep the bounded virtio core, ring, input, and MMIO packet aligned while preserving the shared validator-first route, the focused core reset-queue replay, ring drained-reset reuse replay, input preflight and status-drain replays, and MMIO verify replays, the closure-manifest boundary, the adjacent Phase 9 scaffold, and the Phase 14 study-only deep-core ownership cues?
-- Phase 11: do the docs-root notes, checker split, tests-root packet, and Linux-style make routes still keep the shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the dedicated bcm2835 archival packet, the DesignWare registration and teardown boundary, the HVC survey route, and the focused header-boundary survey aligned without implying removed validators or missing inventory fixtures?
+- Phase 11: do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still keep the shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the dedicated bcm2835 archival packet, the DesignWare registration and teardown boundary, the HVC survey route, and the focused header-boundary survey aligned without implying removed validators or missing inventory fixtures?
 - Phase 13: do the contributor workflow guide, shared-helper sequencing note, release-notes and roadmap-traceability notes, the helper-owned Landlock ownership and syscall-governance notes, the landlock ruleset packet checker, the adjacent notifier survey and priority-signal guard, the shared validator-first eight-test release packet, the shared contributor-surface sync note, the shared review checklist, the broader tests-root guide, and Linux-style make routes still keep the active contributor packet aligned while treating missing direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_*.zig`, the direct Phase 13 manifest files under `zigux/tests/`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` as repo-reality gaps rather than shipped evidence?
 
 ## Shared rule
