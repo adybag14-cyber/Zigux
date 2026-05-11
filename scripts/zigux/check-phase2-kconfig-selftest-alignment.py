@@ -21,17 +21,17 @@ VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 16",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 1,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 16": 1,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
-    "shared kconfig bridge self-test",
+    'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
     "16-case` conf bridge plus `11-case` confdata fixture replay",
 )
 
@@ -79,12 +79,10 @@ PHASE2_CLOSURE_DOC_MARKERS = (
 )
 
 PHASE2_BOOTSTRAP_NOTES_MARKERS = (
-    "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
-    "shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
-    "shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`",
-    "direct kconfig bridge Zig replay: `zig test scripts/zigux/kconfig/conf_bridge.zig`",
-    "direct confdata bridge Zig replay: `zig test scripts/zigux/kconfig/confdata_bridge.zig`",
+    "the broader fixdep, genksyms, artifact-tools, kconfig bridge, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of presenting non-existent standalone checker scripts as live current-`master` evidence in this dedicated pin-scope note",
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
+    "the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route",
+    "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = 20
@@ -236,7 +234,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 16",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18",
         ) in issues
         checks_run += 1
 
@@ -335,11 +333,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / PHASE2_BOOTSTRAP_NOTES
         path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), PHASE2_BOOTSTRAP_NOTES_MARKERS[4], ""),
+            replace_once(path.read_text(encoding="utf-8"), PHASE2_BOOTSTRAP_NOTES_MARKERS[1], ""),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", PHASE2_BOOTSTRAP_NOTES_MARKERS[4]) in issues
+        assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", PHASE2_BOOTSTRAP_NOTES_MARKERS[1]) in issues
         checks_run += 1
 
         for rel_path in (
