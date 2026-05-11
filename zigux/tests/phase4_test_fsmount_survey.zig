@@ -41,6 +41,6 @@ test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
 
 test "phase4 test_fsmount survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
+        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
     );
 }
