@@ -114,6 +114,9 @@ CURRENT_REPO_HANDOFF_MARKERS = (
 
 NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS = (
     "Documentation/zigux/README.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "zigux/tests/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase15.py",
@@ -323,10 +326,11 @@ def _seed_fixture_tree(root: Path) -> None:
                     "next_step": (
                         "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; "
                         "if one same-lane truthfulness repair is still needed before then, start with Documentation/zigux/README.md, "
-                        "because the broad docs-root Phase 15 reminder still omits zigux/tests/README.md, scripts/zigux/README.md, "
-                        "scripts/zigux/validate-phase15.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, "
-                        "scripts/zigux/check-phase15-review-process-handoff.py, make -C zigux phase15-validate, "
-                        "make -C zigux phase15-test, and make -C zigux phase15 from the current validator-first packet"
+                        "because the broad docs-root Phase 15 reminder still omits Documentation/zigux/phase15-readiness-gate-survey.md, "
+                        "Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, "
+                        "zigux/tests/README.md, scripts/zigux/README.md, scripts/zigux/validate-phase15.py, "
+                        "scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, "
+                        "make -C zigux phase15-validate, make -C zigux phase15-test, and make -C zigux phase15 from the current validator-first packet"
                     ),
                 },
             },
@@ -439,6 +443,21 @@ def run_self_test() -> int:
             validate(root),
             ["manifest_handoff_next_step:missing:Documentation/zigux/README.md"],
             "missing_docs_root_next_step_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest_data = json.loads(_read(root / MANIFEST_PATH))
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "Documentation/zigux/phase15-readiness-gate-survey.md, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-readiness-gate-survey.md"],
+            "missing_readiness_note_next_step_guard_failed",
         )
         _seed_fixture_tree(root)
         case_count += 1
