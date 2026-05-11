@@ -118,7 +118,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 17), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.shared_smoke_surfaces.len);
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
@@ -127,6 +127,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/Makefile"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, ".github/workflows/zigux-bootstrap.yml"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "Documentation/zigux/README.md"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
@@ -297,6 +298,22 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14") != null);
+
+    const release_boundary_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-release-boundary-survey.md",
+        allocator,
+        .limited(32 * 1024),
+    );
+    defer allocator.free(release_boundary_note);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "PHASE14_RELEASE_BOUNDARY=present") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "PHASE14_SHARED_REPLAY_PRESENT=yes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "Documentation/zigux/phase14-end-to-end-smoke-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "make -C zigux phase14-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "make -C zigux phase14-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "make -C zigux phase14-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "PHASE14_SHARED_SMOKE_GATE_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary_note, "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0") != null);
 
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
