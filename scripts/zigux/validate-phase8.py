@@ -35,6 +35,11 @@ HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
 CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
 LOGGING_SLICE_PATH = "Documentation/zigux/phase8-logging-slice.md"
+FILE_PATH_HANDLE_BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
+FILE_PATH_HANDLE_BRIDGE_ZIG_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+FILE_PATH_HANDLE_BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
+PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
@@ -64,6 +69,11 @@ REQUIRED_FILES = [
     KALLSYMS_TEST_PATH,
     CPU_MASK_SLICE_PATH,
     LOGGING_SLICE_PATH,
+    FILE_PATH_HANDLE_BRIDGE_SLICE_PATH,
+    FILE_PATH_HANDLE_BRIDGE_ZIG_PATH,
+    FILE_PATH_HANDLE_BRIDGE_TEST_PATH,
+    FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH,
+    PHASE8_BUILD_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
     MAKEFILE_PATH,
@@ -121,6 +131,11 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_build.zig`",
         "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
@@ -128,6 +143,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase8.py`",
@@ -141,10 +157,13 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`Documentation/zigux/phase8-logging-slice.md`",
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`zigux/tests/phase8_exec_cmd.zig`",
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`make -C zigux phase8-validate`",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-help-test`",
@@ -154,6 +173,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
     ],
     TESTS_README_PATH: [
         "`zigux/tests/phase8_exec_cmd.zig`",
@@ -166,6 +186,8 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`zigux/tests/phase8_kallsyms.zig`",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`make -C zigux phase8-help-test`",
@@ -175,6 +197,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
     ],
     MAKEFILE_PATH: [
         "phase8-validate:",
@@ -189,6 +212,7 @@ REQUIRED_MARKERS = {
         "phase8-file-path-handle-bridge-test:",
         "phase8-libbpf-segments-test:",
         "phase8-perf-buffer-poll-test:",
+        "phase8-test:",
         "phase8: phase8-validate",
     ],
     EXEC_CMD_PACKET_CHECKER_PATH: [
@@ -212,6 +236,36 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
         'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {',
+    ],
+    FILE_PATH_HANDLE_BRIDGE_SLICE_PATH: [
+        "PHASE8_SLICE=libbpf-file-path-handle-bridge",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
+        "`make -C zigux phase8-test`",
+    ],
+    FILE_PATH_HANDLE_BRIDGE_ZIG_PATH: [
+        "mapReuseObservationFromFdinfo",
+        "resolveReusePinnedMapAttempt",
+        "planTokenPreparation",
+    ],
+    FILE_PATH_HANDLE_BRIDGE_TEST_PATH: [
+        'test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {',
+        'test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {',
+        'test "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility" {',
+        'test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit" {',
+    ],
+    FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH: [
+        "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "phase8_file_path_handle_bridge.zig",
+        "phase8-file-path-handle-bridge-tests",
+    ],
+    PHASE8_BUILD_PATH: [
+        "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "phase8_file_path_handle_bridge.zig",
+        "phase8-file-path-handle-bridge-tests",
     ],
     CPU_MASK_SLICE_PATH: [
         "PHASE8_SLICE=libbpf-cpu-mask-starter",
@@ -243,6 +297,11 @@ FIXTURE_OVERRIDES = {
     HELP_SLICE_PATH: "# fixture\n",
     KALLSYMS_SLICE_PATH: "# fixture\n",
     LOGGING_SLICE_PATH: "# fixture\n",
+    FILE_PATH_HANDLE_BRIDGE_SLICE_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_SLICE_PATH]) + "\n",
+    FILE_PATH_HANDLE_BRIDGE_ZIG_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_ZIG_PATH]) + "\n",
+    FILE_PATH_HANDLE_BRIDGE_TEST_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_TEST_PATH]) + "\n",
+    FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH: "\n".join(REQUIRED_MARKERS[FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH]) + "\n",
+    PHASE8_BUILD_PATH: "\n".join(REQUIRED_MARKERS[PHASE8_BUILD_PATH]) + "\n",
     EXEC_CMD_ZIG_PATH: "// fixture\n",
     HELP_ZIG_PATH: "// fixture\n",
     KALLSYMS_ZIG_PATH: "// fixture\n",
@@ -329,6 +388,11 @@ def run_self_test() -> None:
         ("missing_kallsyms_test", KALLSYMS_TEST_PATH),
         ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
         ("missing_logging_slice_note", LOGGING_SLICE_PATH),
+        ("missing_file_path_handle_bridge_slice_note", FILE_PATH_HANDLE_BRIDGE_SLICE_PATH),
+        ("missing_file_path_handle_bridge_source", FILE_PATH_HANDLE_BRIDGE_ZIG_PATH),
+        ("missing_file_path_handle_bridge_test", FILE_PATH_HANDLE_BRIDGE_TEST_PATH),
+        ("missing_file_path_handle_bridge_only_build", FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH),
+        ("missing_phase8_shared_build", PHASE8_BUILD_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
@@ -393,11 +457,25 @@ def run_self_test() -> None:
             f"{REVIEW_CHECKLIST_PATH}: if the change touches the parked Phase 8 `exec-cmd` packet",
         ),
         (
+            "review_checklist_bridge_slice_marker",
+            REVIEW_CHECKLIST_PATH,
+            "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+            "`Documentation/zigux/phase8-file-path-bridge-slice.md`",
+            f"{REVIEW_CHECKLIST_PATH}: `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        ),
+        (
             "scripts_readme_exec_cmd_checker_marker",
             SCRIPTS_README_PATH,
             "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
             "`scripts/zigux/check-phase8-exec-cmd.py`",
             f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "scripts_readme_bridge_only_build_marker",
+            SCRIPTS_README_PATH,
+            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`zigux/tests/phase8_file_path_bridge_only_build.zig`",
+            f"{SCRIPTS_README_PATH}: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         ),
         (
             "scripts_readme_logging_slice_marker",
@@ -414,11 +492,25 @@ def run_self_test() -> None:
             f"{TESTS_README_PATH}: `make -C zigux phase8-exec-cmd-test`",
         ),
         (
+            "tests_readme_bridge_only_build_marker",
+            TESTS_README_PATH,
+            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`zigux/tests/phase8_file_path_bridge_only_build.zig`",
+            f"{TESTS_README_PATH}: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        ),
+        (
             "makefile_exec_cmd_route",
             MAKEFILE_PATH,
             "phase8-exec-cmd-test:",
             "phase8-exec-cmd-replay:",
             f"{MAKEFILE_PATH}: phase8-exec-cmd-test:",
+        ),
+        (
+            "makefile_phase8_test_route",
+            MAKEFILE_PATH,
+            "phase8-test:",
+            "phase8-shared-test:",
+            f"{MAKEFILE_PATH}: phase8-test:",
         ),
         (
             "exec_cmd_packet_checker_self_test_marker",
@@ -435,11 +527,39 @@ def run_self_test() -> None:
             f"{EXEC_CMD_SLICE_PATH}: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         ),
         (
-            "exec_cmd_test_docs_root_marker",
-            EXEC_CMD_TEST_PATH,
-            'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
-            'test "phase 8 exec-cmd docs root summary drifted" {',
-            f'{EXEC_CMD_TEST_PATH}: test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {{',
+            "bridge_slice_shared_route_marker",
+            FILE_PATH_HANDLE_BRIDGE_SLICE_PATH,
+            "`make -C zigux phase8-test`",
+            "`make -C zigux phase8-shared-test`",
+            f"{FILE_PATH_HANDLE_BRIDGE_SLICE_PATH}: `make -C zigux phase8-test`",
+        ),
+        (
+            "bridge_source_token_planning_marker",
+            FILE_PATH_HANDLE_BRIDGE_ZIG_PATH,
+            "planTokenPreparation",
+            "planTokenBridgePreparation",
+            f"{FILE_PATH_HANDLE_BRIDGE_ZIG_PATH}: planTokenPreparation",
+        ),
+        (
+            "bridge_test_shared_build_marker",
+            FILE_PATH_HANDLE_BRIDGE_TEST_PATH,
+            'test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {',
+            'test "phase 8 file-path handle bridge shared build drifted" {',
+            f'{FILE_PATH_HANDLE_BRIDGE_TEST_PATH}: test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {{',
+        ),
+        (
+            "bridge_only_build_target_marker",
+            FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH,
+            "phase8-file-path-handle-bridge-tests",
+            "phase8-file-path-bridge-tests",
+            f"{FILE_PATH_HANDLE_BRIDGE_ONLY_BUILD_PATH}: phase8-file-path-handle-bridge-tests",
+        ),
+        (
+            "phase8_build_bridge_target_marker",
+            PHASE8_BUILD_PATH,
+            "phase8-file-path-handle-bridge-tests",
+            "phase8-file-path-bridge-tests",
+            f"{PHASE8_BUILD_PATH}: phase8-file-path-handle-bridge-tests",
         ),
         (
             "review_checklist_help_checker_marker",
