@@ -27,7 +27,7 @@ Use this sequencing lane only for packet-wide routing, ownership, or anti-overla
 
 ## Helper-Owned Lanes
 
-### `P6-L04`, `P6-Y01`, and `P6-Y02` base64 packet
+### `P6-L03`, `P6-L04`, `P6-L06`, `P6-Y01`, and `P6-Y02` base64 packet
 
 Keep helper-local work under:
 
@@ -41,9 +41,9 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-base64-slice.md`
 - the `base64` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L04` as the base64 helper-or-fixture drift lane, `P6-Y01` as the base64 perf-boundary ownership lane, and `P6-Y02` as the base64 parked-survey or closure-correction lane when those same helper-local surfaces could plausibly overlap.
+Treat `P6-L03` as the bounded base64 verification lane, `P6-L04` as the base64 helper-or-fixture drift lane, `P6-L06` as the parked roadmap-aligned helper follow-up lane, `P6-Y01` as the base64 perf-boundary ownership lane, and `P6-Y02` as the base64 parked-survey or closure-correction lane when those same helper-local surfaces could plausibly overlap.
 
-### `P6-L09` bsearch packet
+### `P6-L09` and `P6-L10` bsearch packet
 
 Keep helper-local work under:
 
@@ -54,7 +54,9 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - the `bsearch` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-### `P6-Y06` and `P6-L16` checksum packet
+Treat `P6-L09` as the bounded bsearch verification lane and `P6-L10` as the bsearch helper-local truthfulness lane when the same helper packet could otherwise overlap itself.
+
+### `P6-Y06`, `P6-L13`, and `P6-L16` checksum packet
 
 Keep helper-local work under:
 - `lib/checksum.zig`
@@ -67,7 +69,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-checksum-slice.md`
 - the `checksum` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-Y06` as the checksum parked-survey or closure-correction lane and `P6-L16` as the checksum helper-or-fixture drift lane when both could plausibly touch the same helper packet.
+Treat `P6-Y06` and `P6-L13` as checksum parked-survey or closure-correction lanes and `P6-L16` as the checksum helper-or-fixture drift lane when those same helper-local surfaces could plausibly overlap.
 
 ### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet
 
@@ -92,4 +94,4 @@ Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6
 
 ## Current Bounded Next Step
 
-Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. When that happens, keep the follow-up shared-surface-only and route helper-local evidence repairs back to `P6-L04`, `P6-Y01`, or `P6-Y02`; `P6-L09`; `P6-Y06` or `P6-L16`; and `P6-L19`, `P6-Y07`, or `P6-Y08`.
+Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. When that happens, keep the follow-up shared-surface-only and route helper-local evidence repairs back to `P6-L03`, `P6-L04`, `P6-L06`, `P6-Y01`, or `P6-Y02`; `P6-L09` or `P6-L10`; `P6-Y06`, `P6-L13`, or `P6-L16`; and `P6-L19`, `P6-Y07`, or `P6-Y08`.
