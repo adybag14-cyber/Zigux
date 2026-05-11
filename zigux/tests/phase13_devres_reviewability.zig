@@ -81,9 +81,9 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("7a4454d0474106972cad7e164b79293bd54a40c6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("10369315cba5d146a7c6c4c6480ef9d279dc490f", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
@@ -116,7 +116,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(std.mem.indexOf(u8, devres_source, ".warns_on_release_miss = !release_matches") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_iounmap()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_iounmap()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "7a4454d0474106972cad7e164b79293bd54a40c6") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "10369315cba5d146a7c6c4c6480ef9d279dc490f") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dmam_alloc_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dma_map_sgtable()") != null);
