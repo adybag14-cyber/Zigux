@@ -23,12 +23,14 @@ REQUIRED_FILES = (
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
+    Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
     Path("scripts/zigux/check-phase3-abi.py"),
+    Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
@@ -45,11 +47,13 @@ SLICE_NOTE_MARKERS = (
     "zigux/kernel/export_shim.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -58,6 +62,7 @@ SLICE_NOTE_MARKERS = (
     "PHASE3_CURRENT_INTEROP_GAP_DETAIL=",
     "PHASE3_NEXT_SAFE_STEP=",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
+    "zig build phase3-dump --build-file zigux/tests/build.zig",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
 )
@@ -67,12 +72,14 @@ NEXT_STEP_NOTE_MARKERS = (
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
 )
 
 README_MARKERS = (
     "validate-phase3-abi-bindings-syntax.py",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
@@ -158,6 +165,15 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("zigux/uapi/dev_t.zig\n", "", 1))
+        issues = validate_repo(root)
+        expected_dev_t_marker = "missing slice marker: zigux/uapi/dev_t.zig"
+        if expected_dev_t_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing dev_t slice marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
         _write(root / NEXT_STEP_NOTE_PATH, _read(root / NEXT_STEP_NOTE_PATH).replace("scripts/zigux/validate-phase3-abi-bindings-syntax.py\n", "", 1))
         issues = validate_repo(root)
         expected_next_step_marker = "missing next-step marker: scripts/zigux/validate-phase3-abi-bindings-syntax.py"
@@ -176,12 +192,21 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(root / README_PATH, _read(root / README_PATH).replace("Documentation/zigux/phase3-abi-h-boundary-next-step.md\n", "", 1))
+        _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("scripts/zigux/check-phase3-abi-dump-gate.py\n", "", 1))
         issues = validate_repo(root)
-        expected_readme_marker = "missing scripts README marker: Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+        expected_dump_gate_marker = "missing slice marker: scripts/zigux/check-phase3-abi-dump-gate.py"
+        if expected_dump_gate_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing dump-gate marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(root / README_PATH, _read(root / README_PATH).replace("zigux/uapi/dev_t.zig\n", "", 1))
+        issues = validate_repo(root)
+        expected_readme_marker = "missing scripts README marker: zigux/uapi/dev_t.zig"
         if expected_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing README marker was not reported")
+            print("expected missing README dev_t marker was not reported")
             return 1
         case_count += 1
     print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")
