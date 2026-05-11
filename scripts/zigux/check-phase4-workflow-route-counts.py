@@ -137,46 +137,46 @@ FORBIDDEN_BUILD_MARKERS = [
 SELFTEST_MAKEFILE = """PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 
 phase4-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
 
 phase4-artifact-diff-contract:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 
 phase4-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase4_build.zig
 
 phase4-runtime-atomic64-diff:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig
 
 phase4-runtime-atomic64-diff-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-perf-baseline-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-diff:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-diff-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-live-helper-replay:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig
 
 phase4-test-fsmount-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-kprobe-example-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig
 
 phase4: phase4-validate phase4-test
 """
@@ -202,7 +202,7 @@ SELFTEST_WORKFLOW = """jobs:
         run: zig build test --build-file zigux/tests/phase4_build.zig
 """
 
-SELFTEST_BUILD = """const std = @import("std"); pub fn build(b: *std.Build) void { const target = b.standardTargetOptions(.{}); const optimize = b.standardOptimizeOption(.{}); const perf_baseline_survey_module = b.createModule(.{ .root_source_file = b.path("phase4_perf_baseline_survey.zig"), .target = target, .optimize = optimize, }); const perf_baseline_survey_tests = b.addTest(.{ .name = "phase4-perf-baseline-survey-tests", .root_module = perf_baseline_survey_module, }); const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests); const test_step = b.step("test", "Run Phase 4 differential validation tests"); const perf_baseline_survey_step = b.step( "phase4-perf-baseline-survey", "Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet", ); perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step); }
+SELFTEST_BUILD = """const std = @import(\"std\"); pub fn build(b: *std.Build) void { const target = b.standardTargetOptions(.{}); const optimize = b.standardOptimizeOption(.{}); const perf_baseline_survey_module = b.createModule(.{ .root_source_file = b.path(\"phase4_perf_baseline_survey.zig\"), .target = target, .optimize = optimize, }); const perf_baseline_survey_tests = b.addTest(.{ .name = \"phase4-perf-baseline-survey-tests\", .root_module = perf_baseline_survey_module, }); const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests); const test_step = b.step(\"test\", \"Run Phase 4 differential validation tests\"); const perf_baseline_survey_step = b.step( \"phase4-perf-baseline-survey\", \"Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet\", ); perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step); }
 """
 
 SELFTEST_MATRIX = """# Phase 4 Validation Matrix
@@ -421,6 +421,33 @@ def run_selftest() -> None:
         else:
             raise SystemExit(
                 "zigux/Makefile missing scripts/zigux/check-phase4-workflow-route-counts.py "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
+        missing_gate_evidence_command = makefile.read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
+            "",
+            1,
+        )
+        makefile.write_text(missing_gate_evidence_command, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "scripts/zigux/check-phase4-gate-evidence.py" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/Makefile missing scripts/zigux/check-phase4-gate-evidence.py "
                 "did not fail the Phase 4 workflow-route self-test"
             )
     emit_status(self_test=True)
