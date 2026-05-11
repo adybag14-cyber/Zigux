@@ -105,46 +105,91 @@ def write_fixture_root(tmp_root: Path) -> None:
 
 
 def run_self_test() -> None:
+    missing_file_cases = [
+        ("missing_build_wiring_checker", "scripts/zigux/check-phase7-build-wiring.py"),
+        ("missing_phase7_build_file", "zigux/tests/phase7_build.zig"),
+    ]
+    marker_cases = [
+        (
+            "tests_readme_argv_split_survey_marker",
+            "zigux/tests/README.md",
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "",
+            "zigux/tests/README.md: zigux/tests/phase7_argv_split_survey.zig",
+        ),
+        (
+            "build_string_helpers_survey_cwd",
+            "zigux/tests/phase7_build.zig",
+            "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));",
+            "",
+            "zigux/tests/phase7_build.zig: run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));",
+        ),
+        (
+            "build_cmdline_survey_gate",
+            "zigux/tests/phase7_build.zig",
+            "phase7-cmdline-survey-tests",
+            "",
+            "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests",
+        ),
+        (
+            "build_argv_split_survey_source",
+            "zigux/tests/phase7_build.zig",
+            "\"phase7_argv_split_survey.zig\"",
+            "\"phase7_argv_split_survey_drift.zig\"",
+            "zigux/tests/phase7_build.zig: \"phase7_argv_split_survey.zig\"",
+        ),
+        (
+            "build_argv_split_survey_cwd",
+            "zigux/tests/phase7_build.zig",
+            "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
+            "",
+            "zigux/tests/phase7_build.zig: run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
+        ),
+        (
+            "build_rbtree_survey_gate",
+            "zigux/tests/phase7_build.zig",
+            "phase7-rbtree-survey-tests",
+            "",
+            "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests",
+        ),
+        (
+            "makefile_string_helpers_survey_route",
+            "zigux/Makefile",
+            "phase7-string-helpers-survey:",
+            "",
+            "zigux/Makefile: phase7-string-helpers-survey:",
+        ),
+        (
+            "makefile_argv_split_survey_route",
+            "zigux/Makefile",
+            "phase7-argv-split-survey:",
+            "",
+            "zigux/Makefile: phase7-argv-split-survey:",
+        ),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        readme_path = tmp_root / "zigux/tests/README.md"
-        readme_text = readme_path.read_text(encoding="utf-8")
-        missing_readme_marker = "zigux/tests/phase7_argv_split_survey.zig"
-        readme_path.write_text(readme_text.replace(missing_readme_marker, "", 1), encoding="utf-8")
-        assert validate(tmp_root) == (
-            [],
-            ["zigux/tests/README.md: zigux/tests/phase7_argv_split_survey.zig"],
-        )
-        write_fixture_root(tmp_root)
+        for case, rel in missing_file_cases:
+            (tmp_root / rel).unlink()
+            assert validate(tmp_root) == ([rel], []), case
+            write_fixture_root(tmp_root)
 
-        build_path = tmp_root / "zigux/tests/phase7_build.zig"
-        build_text = build_path.read_text(encoding="utf-8")
-        missing_build_marker = "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));"
-        build_path.write_text(build_text.replace(missing_build_marker, "", 1), encoding="utf-8")
-        assert validate(tmp_root) == (
-            [],
-            ["zigux/tests/phase7_build.zig: run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));"],
-        )
-        write_fixture_root(tmp_root)
+        for case, rel, old, new, expected in marker_cases:
+            path = tmp_root / rel
+            text = path.read_text(encoding="utf-8")
+            updated = text.replace(old, new, 1)
+            assert updated != text, case
+            path.write_text(updated, encoding="utf-8")
+            assert validate(tmp_root) == ([], [expected]), case
+            write_fixture_root(tmp_root)
 
-        makefile_path = tmp_root / "zigux/Makefile"
-        makefile_text = makefile_path.read_text(encoding="utf-8")
-        missing_make_marker = "phase7-string-helpers-survey:"
-        makefile_path.write_text(makefile_text.replace(missing_make_marker, "", 1), encoding="utf-8")
-        assert validate(tmp_root) == (
-            [],
-            ["zigux/Makefile: phase7-string-helpers-survey:"],
-        )
-        write_fixture_root(tmp_root)
-
-        (tmp_root / "scripts/zigux/check-phase7-build-wiring.py").unlink()
-        assert validate(tmp_root) == (["scripts/zigux/check-phase7-build-wiring.py"], [])
-
+    case_count = len(missing_file_cases) + len(marker_cases)
     print("PHASE7_BUILD_WIRING=pass")
-    print("PHASE7_BUILD_WIRING_CASE_COUNT=4")
+    print(f"PHASE7_BUILD_WIRING_CASE_COUNT={case_count}")
 
 
 def main() -> int:
