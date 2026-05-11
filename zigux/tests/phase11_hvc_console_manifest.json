@@ -1,0 +1,138 @@
+{
+  "lane_key": "P11-L18",
+  "phase": "Phase 11",
+  "surveyed_commit": "16c6f699e6d4e6a0466d4e6a0466d4e6a0466d4e",
+  "anchor": "drivers/tty/hvc/hvc_console.c",
+  "roadmap_destinations": [
+    "drivers/tty/hvc/hvc_console.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig"
+  ],
+  "survey_summary": {
+    "hvc_console_c_lines": 1042,
+    "preexisting_phase11_build_present": true,
+    "preexisting_phase11_watchdog_lanes": 3,
+    "hvc_console_header_present": true,
+    "hvc_console_zig_present": true,
+    "hvc_console_sysrq_present": true,
+    "hvc_console_test_present": true,
+    "hvc_console_modem_control_split_present": true,
+    "hvc_console_poll_retry_split_present": true,
+    "hvc_console_survey_gate_present": true,
+    "hvc_console_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase11-build-gate",
+      "status": "starter_landed",
+      "kind": "shared-build-route",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "Keep the shared Phase 11 build gate explicit for the bounded HVC archival packet."
+    },
+    {
+      "id": "phase11-hvc-console-survey-gate",
+      "status": "starter_landed",
+      "kind": "archival-survey-gate",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "Keep the final-close teardown handoff, khvcd worker-entry, notifier-add open handoff, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, hvc_hangup disconnect, hvc_remove handoff helpers, and hvc_cleanup tty-port release handoff visible through one bounded survey gate."
+    },
+    {
+      "id": "phase11-hvc-console-survey-note",
+      "status": "starter_landed",
+      "kind": "survey-note",
+      "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
+      "why_now": "Keep the final-close teardown summary, khvcd worker-entry summary, tiny notifier-add open handoff summary, khvcd sleep-and-reschedule handoff summary, __hvc_poll drain-order summary, hvc_hangup disconnect summary, hvc_remove handoff summary, and hvc_cleanup tty-port release handoff summary aligned with the parked starter."
+    },
+    {
+      "id": "phase11-hvc-console-driver-starter",
+      "status": "starter_landed",
+      "kind": "driver-starter",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Keep CRLF framing, flush intent, final-close teardown summary, tty-registration handoff summary, tiny notifier-add open handoff summary, khvcd polling-contract summary, khvcd worker-entry summary, khvcd sleep-and-reschedule handoff summary, __hvc_poll drain-order summary, hvc_hangup disconnect summary, hvc_remove handoff summary, and hvc_cleanup tty-port release handoff summary honest."
+    },
+    {
+      "id": "phase11-hvc-console-close-teardown",
+      "status": "starter_landed",
+      "kind": "teardown-summary",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Record tty detachment, HUPCL-gated dtr_rts shutdown, notifier_del ownership, resize-work cancellation, tty_wait_until_sent intent, and port_initialized clearing."
+    },
+    {
+      "id": "phase11-hvc-console-notifier-add-handoff",
+      "status": "starter_landed",
+      "kind": "open-handoff",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Record notifier_add success, polling fallback, failed-open close cleanup, open-time IRQ request boundaries, and khvcd kick follow-through."
+    },
+    {
+      "id": "phase11-hvc-console-khvcd-sleep-handoff",
+      "status": "starter_landed",
+      "kind": "worker-sleep-handoff",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Keep pre-sleep kick check, interruptible-state recheck, and guard-tick timed sleep explicit."
+    },
+    {
+      "id": "phase11-hvc-console-hangup-disconnect",
+      "status": "starter_landed",
+      "kind": "hangup-disconnect",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Keep tty-resize cancellation, stale-count short-circuit, buffered-write clearing, and notifier_hangup boundary explicit."
+    },
+    {
+      "id": "phase11-hvc-console-remove-handoff",
+      "status": "starter_landed",
+      "kind": "remove-handoff",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Record console-lock slot clearing, vtermno and cons_ops release, tty_port_put ordering, tty_vhangup follow-through, tty_kref_put release, and keep-irq-until-hangup teardown boundaries."
+    },
+    {
+      "id": "phase11-hvc-console-header-parity",
+      "status": "starter_landed",
+      "kind": "header-boundary",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Keep MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, hv_ops, hvc_kick, and notifier-IRQ helper surface reviewable."
+    },
+    {
+      "id": "phase11-hvc-console-winsize-layout-assert",
+      "status": "starter_landed",
+      "kind": "layout-assert",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "Keep struct winsize, layout_assert, and offsets 0, 2, 4, and 6 explicit."
+    },
+    {
+      "id": "phase11-hvc-console-hv-ops-layout-assert",
+      "status": "starter_landed",
+      "kind": "layout-assert",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "Keep struct hv_ops, layout_assert, callback-table order, and offsets 0 through 64 explicit."
+    },
+    {
+      "id": "phase11-hvc-console-hv-ops-signature-assert",
+      "status": "starter_landed",
+      "kind": "signature-assert",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "Keep struct hv_ops, C calling convention, get_chars, and dtr_rts explicit."
+    },
+    {
+      "id": "phase11-hvc-console-driver-tests",
+      "status": "starter_landed",
+      "kind": "driver-tests",
+      "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
+      "why_now": "Keep newline framing, teardown gating, final-close teardown sequencing, tty-registration handoff boundaries, notifier-add success, fallback, and failure cleanup boundaries, khvcd polling-contract wakeup, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, and hvc_cleanup tty-port release boundaries reviewable."
+    },
+    {
+      "id": "phase11-hvc-console-validation-matrix",
+      "status": "starter_landed",
+      "kind": "validation-matrix",
+      "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+      "why_now": "Keep the shared Phase 11 starter replay explicit while the survey gate still runs separately, along with final-close teardown, tty-registration handoff, notifier-add open handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, hvc_hangup disconnect, hvc_remove handoff evidence, and hvc_cleanup tty-port release handoff."
+    },
+    {
+      "id": "phase11-hvc-console-tty-and-teardown-parity",
+      "status": "starter_landed",
+      "kind": "teardown-and-failure-parity",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "Keep final-close teardown, tty-registration handoff, notifier-add open handoff, close-wait ownership, open-time IRQ-request and polling-fallback boundaries, HUPCL and notifier-del shutdown boundaries, polling-driven wakeups, sleep-versus-timeout choices, tty wakeup sequencing, hangup-time disconnect boundaries, remove-time slot-release ordering, hvc_cleanup tty-port release summaries, and cleanup-time tty-port ownership explicit."
+    }
+  ]
+}
