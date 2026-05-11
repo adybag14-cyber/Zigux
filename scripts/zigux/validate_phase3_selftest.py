@@ -10,18 +10,29 @@ import sys
 import tempfile
 
 
-SELFTEST_SCRIPTS = (
-    Path("scripts/zigux/validate-phase3.py"),
-    Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
-    Path("scripts/zigux/check-phase3-selftest-surface.py"),
-    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
-    Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+SELFTEST_COMMANDS = (
+    (Path("scripts/zigux/validate-phase3.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-abi-dump-gate.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-catalog-selftest.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-policy-byte-guards.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ("--self-test",)),
+    (Path("scripts/zigux/survey-phase3-abi-constant-parity.py"), ("--self-test",)),
+    (Path("scripts/zigux/phase3_catalog.py"), ("--self-test",)),
+    (Path("scripts/zigux/phase3_check_lib.py"), ("--self-test",)),
+    (Path("scripts/zigux/generate-phase3-check-wrappers.py"), ("--self-test",)),
+    (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
 )
 
 
 def validate_script_list(repo_root: Path) -> list[str]:
     missing: list[str] = []
-    for rel_path in SELFTEST_SCRIPTS:
+    for rel_path, _args in SELFTEST_COMMANDS:
         if not (repo_root / rel_path).is_file():
             missing.append(f"missing selftest script: {rel_path.as_posix()}")
     return missing
@@ -34,9 +45,9 @@ def run_packet(repo_root: Path) -> int:
         print("\n".join(missing))
         return 1
 
-    for rel_path in SELFTEST_SCRIPTS:
+    for rel_path, args in SELFTEST_COMMANDS:
         result = subprocess.run(
-            [sys.executable, rel_path.as_posix(), "--self-test"],
+            [sys.executable, rel_path.as_posix(), *args],
             cwd=repo_root,
             check=False,
             capture_output=True,
@@ -44,7 +55,10 @@ def run_packet(repo_root: Path) -> int:
         )
         if result.returncode != 0:
             print("PHASE3_VALIDATE_SELFTEST=fail")
-            print(f"self-test failed: {rel_path.as_posix()}")
+            print(
+                "self-test failed: "
+                + " ".join([rel_path.as_posix(), *args])
+            )
             if result.stdout:
                 print(result.stdout.rstrip())
             if result.stderr:
@@ -58,13 +72,12 @@ def run_packet(repo_root: Path) -> int:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validate_selftest_") as temp_dir:
         root = Path(temp_dir)
-        for rel_path in SELFTEST_SCRIPTS:
+        for rel_path, _args in SELFTEST_COMMANDS:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
                 "#!/usr/bin/env python3\n"
-                "import sys\n"
-                "raise SystemExit(0 if '--self-test' in sys.argv else 1)\n",
+                "raise SystemExit(0)\n",
                 encoding="utf-8",
             )
 
@@ -73,9 +86,10 @@ def run_self_test() -> int:
             print("expected synthetic self-test script set to validate")
             return 1
 
-        (root / SELFTEST_SCRIPTS[0]).unlink()
+        first_path = SELFTEST_COMMANDS[0][0]
+        (root / first_path).unlink()
         missing = validate_script_list(root)
-        expected = f"missing selftest script: {SELFTEST_SCRIPTS[0].as_posix()}"
+        expected = f"missing selftest script: {first_path.as_posix()}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing script was not reported")
