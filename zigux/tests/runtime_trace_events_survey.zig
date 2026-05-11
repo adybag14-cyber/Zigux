@@ -295,9 +295,17 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
     try expectContains(survey_note, "The remaining blocker is the broader Phase 9 runtime substrate.");
+    try expectContains(
+        survey_note,
+        "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
+    );
     try expectContains(survey_note, "Do not invent a dedicated `validate-phase9.py` route");
     try expectContains(module_slice_note, "the broader runtime-substrate handoff remains a separate blocked step");
     try expectContains(module_slice_note, "the live runtime substrate is still missing");
+    try expectContains(
+        module_slice_note,
+        "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
+    );
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
 
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
