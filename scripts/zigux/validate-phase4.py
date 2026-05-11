@@ -208,6 +208,29 @@ PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
+REQUIRED_PHASE4_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS = [
+    "zigux/tests/atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_build.zig",
+    "scripts/zigux/validate-phase4.py",
+    "Documentation/zigux/phase4-gate-evidence.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase4-validation-matrix.md",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+]
+
+REQUIRED_PHASE4_RUNTIME_ATOMIC64_SURVEY_MARKERS = [
+    'test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {',
+    'test "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable" {',
+    'test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit" {',
+    "Documentation/zigux/phase4-gate-evidence.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase4-validation-matrix.md",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+]
+
 GENERIC_CHECKS = [
     ("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], None),
     ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", ["scripts/zigux/check-artifact-diff-contract.py", "--self-test"], "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),
@@ -319,6 +342,24 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
         count = survey_text.count(expected)
         if count != 1:
             failures.append(f"phase4_runtime_atomic64_packet:survey_sha_exact_count:{field}:{count}")
+    reversible_delivery_evidence = manifest.get("reversible_delivery_evidence")
+    if not isinstance(reversible_delivery_evidence, str) or not reversible_delivery_evidence.strip():
+        failures.append("phase4_runtime_atomic64_packet:missing_reversible_delivery_evidence")
+    else:
+        failures.extend(
+            _check_markers(
+                reversible_delivery_evidence,
+                REQUIRED_PHASE4_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS,
+                "phase4_runtime_atomic64_packet:reversible_delivery_evidence",
+            )
+        )
+    failures.extend(
+        _check_markers(
+            survey_text,
+            REQUIRED_PHASE4_RUNTIME_ATOMIC64_SURVEY_MARKERS,
+            "phase4_runtime_atomic64_packet:survey_marker",
+        )
+    )
     return failures
 
 
@@ -492,10 +533,31 @@ def _write_fixture_tree(root: Path) -> None:
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
         "phase9_build_blob_sha": phase9_build_sha,
+        "reversible_delivery_evidence": (
+            "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, "
+            "zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, "
+            "Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, "
+            "Documentation/zigux/phase4-validation-matrix.md, zigux/tests/phase4_perf_baseline_manifest.json, "
+            "and zigux/tests/phase4_perf_baseline_survey.zig aligned."
+        ),
     }
     _write(root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json", json.dumps(manifest, indent=2) + "\n")
     _write(root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig", "\n".join([
         'const std = @import("std");',
+        'test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {',
+        "    _ = std.testing.allocator;",
+        "}",
+        'test "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable" {',
+        "    _ = std.testing.allocator;",
+        "}",
+        'test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit" {',
+        "    _ = std.testing.allocator;",
+        "}",
+        "// Documentation/zigux/phase4-gate-evidence.md",
+        "// Documentation/zigux/review-checklist.md",
+        "// Documentation/zigux/phase4-validation-matrix.md",
+        "// zigux/tests/phase4_perf_baseline_manifest.json",
+        "// zigux/tests/phase4_perf_baseline_survey.zig",
         f"// {phase4_build_sha}",
         f"// {validator_sha}",
         f"// {matrix_sha}",
