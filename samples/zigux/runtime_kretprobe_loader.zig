@@ -349,12 +349,18 @@ test "runtime kretprobe loader surfaces shared request drift before any live reg
     var loader = RuntimeKretprobeLoader{};
     var shared_request = try loader.prepareSharedRequest(&module);
     const prepared_plan = loader.cached_plan orelse unreachable;
+    const prepared_shared_plan = shared_request.prepared_plan;
+    const prepared_request_plan = shared_request.plan;
     shared_request.plan.module_name = "runtime_kretprobe_drift";
 
     try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expectEqualStrings(prepared_plan.module_name, (loader.cached_plan orelse unreachable).module_name);
+    try std.testing.expectEqualStrings(prepared_plan.anchor, (loader.cached_plan orelse unreachable).anchor);
+    try std.testing.expectEqualStrings(prepared_shared_plan.module_name, shared_request.prepared_plan.module_name);
+    try std.testing.expectEqualStrings(prepared_request_plan.anchor, shared_request.plan.anchor);
+    try std.testing.expectEqualStrings("runtime_kretprobe_drift", shared_request.plan.module_name);
 }
 
 test "runtime kretprobe loader rejects shared-load-plan snapshot drift" {
