@@ -273,6 +273,16 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase4_path, "# stub\n")
 
+        missing_phase4_workflow_path = Path("scripts/zigux/check-phase4-workflow-route-counts.py")
+        (root / missing_phase4_workflow_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_workflow_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 workflow-route repo file was not reported")
+            return 1
+        _write(root / missing_phase4_workflow_path, "# stub\n")
+
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
             "",
