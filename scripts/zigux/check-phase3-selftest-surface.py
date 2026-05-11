@@ -28,6 +28,9 @@ TESTS_README_MARKERS = (
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "make -C zigux phase3-selftest",
 )
+TESTS_README_MARKER_COUNTS = {
+    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
+}
 SCRIPTS_README_MARKERS = (
     "check-phase3-selftest-surface.py",
     "validate_phase3_selftest.py",
@@ -62,6 +65,22 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
     ]
 
 
+def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) -> list[str]:
+    try:
+        text = _read(path)
+    except FileNotFoundError:
+        return [f"missing repo file: {path.as_posix()}"]
+
+    issues: list[str] = []
+    for marker, expected_count in marker_counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                f"{label} marker count drift: {marker} (expected {expected_count}, found {actual_count})"
+            )
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "docs README"))
@@ -70,8 +89,16 @@ def validate_repo(repo_root: Path) -> list[str]:
             repo_root / CHECKLIST_PATH, CHECKLIST_MARKERS, "review checklist"
         )
     )
+    tests_readme = repo_root / TESTS_README_PATH
     issues.extend(
-        _check_markers(repo_root / TESTS_README_PATH, TESTS_README_MARKERS, "tests README")
+        _check_markers(tests_readme, TESTS_README_MARKERS, "tests README")
+    )
+    issues.extend(
+        _check_marker_counts(
+            tests_readme,
+            TESTS_README_MARKER_COUNTS,
+            "tests README",
+        )
     )
     issues.extend(
         _check_markers(
@@ -99,7 +126,16 @@ def _write(path: Path, text: str) -> None:
 def _populate_repo(root: Path) -> None:
     _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
     _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
-    _write(root / TESTS_README_PATH, "\n".join(TESTS_README_MARKERS) + "\n")
+    _write(
+        root / TESTS_README_PATH,
+        "\n".join(
+            (
+                *TESTS_README_MARKERS,
+                *TESTS_README_MARKER_COUNTS.keys(),
+            )
+        )
+        + "\n",
+    )
     _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
     _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
@@ -130,6 +166,25 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected missing tests README marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/survey-phase3-abi-constant-parity.py",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README marker count drift: scripts/zigux/survey-phase3-abi-constant-parity.py "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected constant-parity marker count drift was not reported")
             return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
