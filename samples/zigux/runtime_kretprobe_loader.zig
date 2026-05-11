@@ -445,6 +445,62 @@ test "runtime kretprobe loader surfaces prepared shared selftest-hook drift befo
     ));
 }
 
+test "runtime kretprobe loader rejects prepared shared allocator and init-flow drift before any live registration claim" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var allocator_loader = RuntimeKretprobeLoader{};
+    var allocator_request = try allocator_loader.prepareSharedRequest(&module);
+    const prepared_allocator_plan = allocator_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        allocator_request,
+        .prepared,
+        allocator_request.plan,
+    ));
+    allocator_request.plan.allocator_handoff = .caller_provided;
+
+    try std.testing.expectError(error.PreparedPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.prepared_plan,
+        prepared_allocator_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.plan,
+        prepared_allocator_plan,
+    ));
+
+    var init_flow_loader = RuntimeKretprobeLoader{};
+    var init_flow_request = try init_flow_loader.prepareSharedRequest(&module);
+    const prepared_init_flow_plan = init_flow_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        init_flow_request,
+        .prepared,
+        init_flow_request.plan,
+    ));
+    init_flow_request.plan.init_flow.handoff_stage = .initialized;
+    init_flow_request.plan.init_flow.selftest_runs = 0;
+
+    try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.prepared_plan,
+        prepared_init_flow_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.plan,
+        prepared_init_flow_plan,
+    ));
+}
+
 test "runtime kretprobe loader surfaces shared request drift before any live registration claim" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
