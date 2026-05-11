@@ -50,6 +50,10 @@ BASE_CONTRACT_CASES = [
     case for case in EXPECTED_CONTRACT_CASES if case not in REPEAT_CONTRACT_CASES
 ]
 REQUIRED_REVIEW_NOTE_MARKERS = [
+    "- owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired",
+    "- review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable",
     "- deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below",
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
     "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` must prove malformed JSON fails without inventing digest or exists markers",
@@ -61,6 +65,7 @@ REQUIRED_REVIEW_NOTE_MARKERS = [
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "review_note_marker_round_trip",
+    "review_note_owner_marker_drift",
     "review_note_marker_drift",
     "helper_summary_round_trip",
     "contract_summary_round_trip",
@@ -317,8 +322,14 @@ def run_self_test() -> int:
     covered_cases.append("review_note_marker_round_trip")
 
     expect_assertion(
-        "review_note_marker_drift",
+        "review_note_owner_marker_drift",
         lambda: assert_review_note_markers("\n".join(REQUIRED_REVIEW_NOTE_MARKERS[1:])),
+    )
+    covered_cases.append("review_note_owner_marker_drift")
+
+    expect_assertion(
+        "review_note_marker_drift",
+        lambda: assert_review_note_markers("\n".join(REQUIRED_REVIEW_NOTE_MARKERS[:3] + REQUIRED_REVIEW_NOTE_MARKERS[4:])),
     )
     covered_cases.append("review_note_marker_drift")
 
