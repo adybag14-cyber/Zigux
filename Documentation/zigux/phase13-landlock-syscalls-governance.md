@@ -6,7 +6,7 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
-As of `2026-05-11`, current `master` materializes a small `security/landlock/syscalls.zig` helper starter. The shipped surface is still intentionally narrow: pure reviewable planners for `landlock_restrict_self()` and one bounded `landlock_add_rule()` wrapper step, without direct companion packet files or any claim of live syscall enforcement. Keep syscall wording tied to current-`master` readback instead of assuming that broader tests-root companions or deeper syscall parity have already shipped.
+As of `2026-05-11`, current `master` materializes a small `security/landlock/syscalls.zig` helper starter. The shipped surface is still intentionally narrow: pure reviewable planning for `landlock_restrict_self()` only, without direct companion packet files, helper-local add-rule planning, or any claim of live syscall enforcement. Keep syscall wording tied to current-`master` readback instead of assuming that broader tests-root companions or deeper syscall parity have already shipped.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
@@ -40,7 +40,7 @@ Use this note to keep these boundaries explicit:
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - shared packet routing stays with the shipped validator-first and make-route surfaces above; if the direct syscall companions are absent, keep those paths recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
-- the parked syscall lane stays bounded to governance wording and repo-reality gap tracking; it must not imply live credential mutation, ruleset lifecycle ownership, or broader syscall parity beyond the currently shipped restrict-self and add-rule planners
+- the parked syscall lane stays bounded to governance wording and repo-reality gap tracking; it must not imply live credential mutation, ruleset lifecycle ownership, or broader syscall parity beyond the currently shipped restrict-self planner
 
 Keep this packet parked unless a future lane can add another equally bounded planner.
 
