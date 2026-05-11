@@ -80,10 +80,32 @@ REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS = (
     "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
     "export/UAPI packet actually grows",
 )
+REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = (
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "make -C zigux phase3-validate",
+)
+REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS = (
+    *REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+)
 
 
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _extract_section(text: str, heading: str, next_heading: str) -> str | None:
+    if heading not in text:
+        return None
+    section = text.split(heading, 1)[1]
+    if next_heading in section:
+        section = section.split(next_heading, 1)[0]
+    return section
 
 
 def validate_text(text: str) -> list[str]:
@@ -121,11 +143,37 @@ def validate_text(text: str) -> list[str]:
 
 
 def validate_boundary_note_text(text: str) -> list[str]:
-    return [
-        f"boundary note policy missing marker: {marker}"
-        for marker in REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS
-        if marker not in text
-    ]
+    issues: list[str] = []
+
+    current_landed_surface = _extract_section(
+        text,
+        "## Current landed surface",
+        "## Next bounded step",
+    )
+    if current_landed_surface is None:
+        issues.append("boundary note missing section: ## Current landed surface")
+    else:
+        issues.extend(
+            f"boundary note current surface missing marker: {marker}"
+            for marker in REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS
+            if marker not in current_landed_surface
+        )
+
+    next_bounded_step = _extract_section(
+        text,
+        "## Next bounded step",
+        "## Non-goals",
+    )
+    if next_bounded_step is None:
+        issues.append("boundary note missing section: ## Next bounded step")
+    else:
+        issues.extend(
+            f"boundary note next-step missing marker: {marker}"
+            for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
+            if marker not in next_bounded_step
+        )
+
+    return issues
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -160,6 +208,15 @@ def _sample_text() -> str:
     sample += "\n## Review boundary\n" + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKERS)
     sample += "\n## Non-goals\n- stub\n"
     sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
+    return sample
+
+
+def _boundary_note_sample_text() -> str:
+    sample = "## Current landed surface\n"
+    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
+    sample += "\n## Next bounded step\n"
+    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS)
+    sample += "\n## Non-goals\n- stub\n"
     return sample
 
 
@@ -345,7 +402,7 @@ def run_self_test() -> int:
         print("expected scripts README reminder marker was not reported")
         return 1
 
-    boundary_sample = "\n".join(REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS) + "\n"
+    boundary_sample = _boundary_note_sample_text()
     if validate_boundary_note_text(boundary_sample):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected boundary-note policy sample to validate")
@@ -373,12 +430,64 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "boundary note policy missing marker: "
+            "boundary note next-step missing marker: "
             "and next-step notes while leaving the narrower `zigux/uapi/version.zig`"
         )
         if expected not in issues:
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
             print("expected boundary-note policy drift was not reported")
+            return 1
+
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+        boundary_path.write_text(
+            boundary_sample.replace(
+                "zigux/uapi/version.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note current surface missing marker: zigux/uapi/version.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note current-surface drift was not reported")
+            return 1
+
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+        before, separator, after = boundary_sample.partition("## Next bounded step\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note next-step section separator was not found")
+            return 1
+        next_step, separator, tail = after.partition("\n## Non-goals\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note non-goals separator was not found")
+            return 1
+        next_step = next_step.replace(
+            "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            "",
+            1,
+        )
+        boundary_path.write_text(
+            before
+            + "## Next bounded step\n"
+            + next_step
+            + "\n## Non-goals\n"
+            + tail
+            + "\nscripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note next-step missing marker: scripts/zigux/validate-phase3-abi-bindings-syntax.py"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note section-scoped drift was not reported")
             return 1
 
         boundary_path.unlink()
