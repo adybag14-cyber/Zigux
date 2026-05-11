@@ -63,6 +63,8 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-rbtree-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "samples/zigux/README.md",
         "zigux/tests/phase7_build.zig",
         "make -C zigux phase7",
     ],
@@ -273,6 +275,8 @@ def run_self_test() -> None:
     marker_cases = [
         ("parity_checker_self_test_flag", "scripts/zigux/check-phase7-rbtree-parity.py", "--self-test", "", "scripts/zigux/check-phase7-rbtree-parity.py: --self-test"),
         ("make_wrapper_checker_self_test_flag", "scripts/zigux/check-phase7-make-wrapper.py", "--self-test", "", "scripts/zigux/check-phase7-make-wrapper.py: --self-test"),
+        ("docs_readme_make_wrapper_selftest_alignment_marker", "Documentation/zigux/README.md", "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", "", "Documentation/zigux/README.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"),
+        ("docs_readme_samples_boundary_marker", "Documentation/zigux/README.md", "samples/zigux/README.md", "", "Documentation/zigux/README.md: samples/zigux/README.md"),
         ("samples_readme_boundary_marker", "samples/zigux/README.md", "treat any new `samples/zigux/*string*.zig` file as review-blocking", "", "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking"),
         ("scripts_readme_make_wrapper_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py"),
         ("scripts_readme_argv_split_packet_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py"),
