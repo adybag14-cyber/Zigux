@@ -33,6 +33,18 @@ pub const RootCached = struct {
     }
 };
 
+pub const MatchIterator = struct {
+    key: *const anyopaque,
+    cmp: CmpKeyFn,
+    current: ?*Node,
+
+    pub fn next(self: *MatchIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = nextMatch(self.key, node, self.cmp);
+        return node;
+    }
+};
+
 pub const LessFn = *const fn (*const Node, *const Node) bool;
 pub const CmpNodeFn = *const fn (*const Node, *const Node) i32;
 pub const CmpKeyFn = *const fn (*const anyopaque, *const Node) i32;
@@ -192,6 +204,10 @@ pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {
     insertColor(node, &root.root);
 }
 
+pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {
+    insertColorCached(node, root, leftmost);
+}
+
 pub fn add(node: *Node, root: *Root, less: LessFn) void {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -229,6 +245,10 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     return if (leftmost) node else null;
 }
 
+pub fn rb_add_cached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
+    return addCached(node, root, less);
+}
+
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -248,6 +268,33 @@ pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
     linkNode(node, parent, link);
     insertColor(node, root);
     return null;
+}
+
+pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+            leftmost = false;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return null;
+}
+
+pub fn rb_find_add_cached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    return findAddCached(node, root, cmp);
 }
 
 pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
@@ -292,6 +339,14 @@ pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node
         return null;
     }
     return candidate;
+}
+
+pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
+    return .{
+        .key = key,
+        .cmp = cmp,
+        .current = findFirst(key, root, cmp),
+    };
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -452,6 +507,10 @@ pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {
     return null;
 }
 
+pub fn rb_erase_cached(node: *Node, root: *RootCached) ?*Node {
+    return eraseCached(node, root);
+}
+
 pub fn eraseInit(node: *Node, root: *Root) void {
     erase(node, root);
     clearNode(node);
@@ -462,6 +521,10 @@ pub fn eraseInitCached(node: *Node, root: *RootCached) void {
     clearNode(node);
 }
 
+pub fn rb_erase_init_cached(node: *Node, root: *RootCached) void {
+    eraseInitCached(node, root);
+}
+
 pub fn first(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return minimum(node);
@@ -469,6 +532,10 @@ pub fn first(root: *const Root) ?*Node {
 
 pub fn firstCached(root: *const RootCached) ?*Node {
     return root.leftmost;
+}
+
+pub fn rb_first_cached(root: *const RootCached) ?*Node {
+    return firstCached(root);
 }
 
 pub fn last(root: *const Root) ?*Node {
@@ -542,6 +609,10 @@ pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
         root.leftmost = new;
     }
     replaceNode(victim, new, &root.root);
+}
+
+pub fn rb_replace_node_cached(victim: *Node, new: *Node, root: *RootCached) void {
+    replaceNodeCached(victim, new, root);
 }
 
 fn leftDeepestNode(node: *const Node) *Node {
@@ -869,6 +940,66 @@ test "rbtree nextMatch walks the duplicate range in order" {
     try std.testing.expect(nextMatch(&duplicate, cursor, cmp) == null);
 }
 
+test "rbtree matchIterator walks the duplicate range in order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const duplicate = @as(i32, 10);
+    var iter = matchIterator(&duplicate, &root, cmp);
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (iter.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
+
+    const missing = @as(i32, 17);
+    var missing_iter = matchIterator(&missing, &root, cmp);
+    try std.testing.expect(missing_iter.next() == null);
+}
+
 test "rbtree addCached returns the inserted node only when it becomes leftmost" {
     const Entry = struct {
         key: i32,
@@ -904,6 +1035,44 @@ test "rbtree addCached returns the inserted node only when it becomes leftmost" 
 
     try std.testing.expectEqual(@as(?*Node, null), addCached(&duplicate_entry.node, &root, less));
     try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree findAddCached keeps cached leftmost stable while inserting misses" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var leftmost = Entry{ .key = 5, .serial = 0 };
+    var root_entry = Entry{ .key = 10, .serial = 1 };
+    var larger_entry = Entry{ .key = 15, .serial = 2 };
+    var duplicate_entries = [_]Entry{.{ .key = 10, .serial = 3 }};
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&root_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&leftmost.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&larger_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
+
+    const duplicate = findAddCached(&duplicate_entries[0].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &root_entry.node), duplicate);
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
 
@@ -956,6 +1125,97 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     _ = addCached(&new_leftmost.node, &root, less);
     try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree cached-root Linux-style aliases mirror the primary helpers" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const firstKey = struct {
+        fn read(root: *const RootCached) ?i32 {
+            const node = firstCached(root) orelse return null;
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return entry.key;
+        }
+    }.read;
+
+    var primary_first = Entry{ .key = 10, .serial = 0 };
+    var alias_first = Entry{ .key = 10, .serial = 0 };
+    var primary_second = Entry{ .key = 5, .serial = 1 };
+    var alias_second = Entry{ .key = 5, .serial = 1 };
+    var primary_third = Entry{ .key = 15, .serial = 2 };
+    var alias_third = Entry{ .key = 15, .serial = 2 };
+    var primary_duplicate = Entry{ .key = 10, .serial = 3 };
+    var alias_duplicate = Entry{ .key = 10, .serial = 3 };
+    var primary_replacement = Entry{ .key = 10, .serial = 4 };
+    var alias_replacement = Entry{ .key = 10, .serial = 4 };
+
+    var primary_root = RootCached.init();
+    var alias_root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &primary_first.node), addCached(&primary_first.node, &primary_root, less));
+    try std.testing.expectEqual(@as(?*Node, &alias_first.node), rb_add_cached(&alias_first.node, &alias_root, less));
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&primary_second.node, &primary_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), rb_find_add_cached(&alias_second.node, &alias_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&primary_third.node, &primary_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), rb_find_add_cached(&alias_third.node, &alias_root, cmp));
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    const primary_existing = findAddCached(&primary_duplicate.node, &primary_root, cmp) orelse return error.TestUnexpectedResult;
+    const alias_existing = rb_find_add_cached(&alias_duplicate.node, &alias_root, cmp) orelse return error.TestUnexpectedResult;
+    const primary_existing_entry: *const Entry = @fieldParentPtr("node", primary_existing);
+    const alias_existing_entry: *const Entry = @fieldParentPtr("node", alias_existing);
+    try std.testing.expectEqual(primary_existing_entry.key, alias_existing_entry.key);
+    try std.testing.expectEqual(primary_existing_entry.serial, alias_existing_entry.serial);
+
+    try std.testing.expectEqual(eraseCached(&primary_second.node, &primary_root) != null, rb_erase_cached(&alias_second.node, &alias_root) != null);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    replaceNodeCached(&primary_first.node, &primary_replacement.node, &primary_root);
+    rb_replace_node_cached(&alias_first.node, &alias_replacement.node, &alias_root);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    eraseInitCached(&primary_replacement.node, &primary_root);
+    rb_erase_init_cached(&alias_replacement.node, &alias_root);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    var manual_root = RootCached.init();
+    var manual_entry = Entry{ .key = 1, .serial = 0 };
+    linkNode(&manual_entry.node, null, &manual_root.root.node);
+    insertColorCached(&manual_entry.node, &manual_root, true);
+
+    var manual_alias_root = RootCached.init();
+    var manual_alias_entry = Entry{ .key = 1, .serial = 0 };
+    linkNode(&manual_alias_entry.node, null, &manual_alias_root.root.node);
+    rb_insert_color_cached(&manual_alias_entry.node, &manual_alias_root, true);
+
+    try std.testing.expectEqual(firstKey(&manual_root), firstKey(&manual_alias_root));
 }
 
 test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
