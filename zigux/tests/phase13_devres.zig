@@ -553,8 +553,8 @@ test "phase13 devres rejects phys WC token planning when the release record cann
 }
 
 test "phase13 devres manifest records the current dma/scatterlist boundary packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L11\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"7a4454d0474106972cad7e164b79293bd54a40c6\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L05\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"10369315cba5d146a7c6c4c6480ef9d279dc490f\"");
     try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
