@@ -41,20 +41,14 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 ## Current Truthfulness Blocker
 
-The remaining blocker is no longer the absence of a shared harness-coverage checker, the direct-core tests-root sync, or the shared lane-sequencing note. All three are directly readable on current `master` through the authenticated contents bridge.
+The remaining blocker is no longer the absence of a shared harness-coverage checker, the direct-core tests-root sync, the shared lane-sequencing note, the scripts-root summary, the tests-root summary, or the review-checklist Phase 10 packet wording. All of those surfaces are directly readable on current `master` through the authenticated contents bridge and now agree that the shipped Phase 10 packet is checker-backed and build-backed rather than routed through a removed dedicated validator stack.
 
-The truthful blocker has narrowed to shared reminder-surface drift. Broad Phase 10 summaries still disagree about the live shared validation surface: some reminders still read as if `check-phase10-harness-coverage.py` is not present on current `master`, while representative packet-local direct reads still return `404 Not Found` for paths such as:
+The truthful blocker has narrowed to one docs-root reminder drift plus the separate packet-local authenticated-read limitation:
 
-- `Documentation/zigux/phase10-virtio-core-slice.md`
-- `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `drivers/virtio/virtio.zig`
-- `drivers/virtio/virtio_ring.zig`
-- `zigux/tests/phase10_virtio_core_manifest.json`
-- `zigux/tests/phase10_virtio_input_manifest.json`
-- `scripts/zigux/check-phase10-core-packet.py`
-- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
+- `Documentation/zigux/README.md` still advertises `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and `make -C zigux phase10-validate` as live Phase 10 review surfaces even though the directly verified shared packet on current `master` is the closure-manifest-backed checker packet routed through `scripts/zigux/check-phase10-harness-coverage.py`, the four packet checkers, `zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10`
+- representative packet-local direct reads still return `404 Not Found` for paths such as `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `scripts/zigux/check-phase10-core-packet.py`, and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 
-Because those representative packet-local reads still fail through the same authenticated repo interface that succeeds for the verified artifacts above, and because some shared summaries still understate the now-landed harness-coverage checker, the broad shared reminders remain partially out of sync from this runtime's point of view even though the closure manifest, the shared harness checker, the dedicated tests-root checker, and the lane-sequencing note clearly preserve the intended Phase 10 lane shape.
+Because those representative packet-local reads still fail through the same authenticated repo interface that succeeds for the verified artifacts above, the direct-read posture remains intentionally narrower than the full intended packet inventory. But among the broad shared reminder surfaces, the stale Phase 10 validator-stack wording is now isolated to `Documentation/zigux/README.md` from this runtime's point of view.
 
 ## Parked Boundary
 
@@ -68,5 +62,5 @@ The roadmap posture remains unchanged:
 
 The next truthful virtio-driver follow-through should stay inside one shared-surface repair at a time:
 
-1. reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` against the live `check-phase10-harness-coverage.py` plus `phase10-test` route and remove any wording that still says the shared harness checker is absent on current `master`
+1. repair only `Documentation/zigux/README.md` so its Phase 10 summary drops `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and `make -C zigux phase10-validate` and instead names the live closure-manifest-backed checker packet plus `make -C zigux phase10-test` and `make -C zigux phase10`
 2. keep any follow-up one shared reminder surface at a time so the lane stays parked on truthfulness repairs instead of reopening transport, IRQ, reset, queue-discovery, or lifecycle behavior
