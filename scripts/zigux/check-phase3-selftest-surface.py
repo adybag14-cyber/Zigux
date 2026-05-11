@@ -22,6 +22,9 @@ README_MARKERS = (
 CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "make -C zigux phase3-selftest",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "zigux/uapi/dev_t.zig",
 )
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
@@ -211,6 +214,23 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected missing tests README marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        checklist_path = root / CHECKLIST_PATH
+        checklist_path.write_text(
+            _read(checklist_path).replace(
+                "zigux/uapi/dev_t.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = "missing review checklist marker: zigux/uapi/dev_t.zig"
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected missing review checklist dev_t marker was not reported")
             return 1
 
         _populate_repo(root)
