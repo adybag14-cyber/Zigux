@@ -208,7 +208,8 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn registerFunctionThread(self: *Self) !void {
         try self.ensureMutable();
-        self.registration_depth += 1;
+        if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
+        self.registration_depth = 1;
         self.last_register_label = "foo_bar_reg";
     }
 
@@ -376,6 +377,17 @@ test "mixed replay keeps explicit event totals honest across direct and selftest
     try std.testing.expectEqual(@as(usize, 10), summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), summary.total_events);
+}
+
+test "trace-events sample rejects duplicate function-thread registration" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+
+    try module.registerFunctionThread();
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
 }
 
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {
