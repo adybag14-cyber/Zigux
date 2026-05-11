@@ -241,6 +241,10 @@ EXACT_OCCURRENCE_MARKERS = {
         ("try std.testing.expect(typed_c_compare_calls <= budget);", 4),
         ("try std.testing.expect(raw_c_compare_calls <= budget);", 6),
     ],
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig": [
+        ("try std.testing.expect(typed_c_compare_calls <= budget);", 2),
+        ("try std.testing.expect(raw_c_compare_calls <= budget);", 3),
+    ],
 }
 
 REMOVED_PATHS = [
@@ -430,6 +434,7 @@ def run_self_test() -> None:
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
+        assert_failure(root, "zigux/tests/phase6_bsearch_c_abi_budget.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
         assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
     print("self-test passed")
 
