@@ -37,6 +37,8 @@ These shared docs, the workflow-backed routes, the shared contract checker, the 
 The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.
 The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.
 The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
+The shipped shared header-boundary companion inside that same route stays explicit through `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, and `scripts/zigux/check-phase11-header-boundary-packet.py`.
+This shared public-header packet keeps the bounded `watchdog_info`, `winsize`, and exported `drivers/tty/hvc/hvc_console.h` helper declaration survey visible beside the watchdog and HVC driver-local packets without collapsing it back into the dedicated `hvc_console` archival note.
 
 ## Driver-Local Evidence That Stays Beside The Shared Route
 
