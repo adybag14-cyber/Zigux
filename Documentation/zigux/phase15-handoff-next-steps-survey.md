@@ -6,12 +6,13 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=handoff-next-steps-survey`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-10`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-11`
 - no Architecture Council approval is currently recorded for a freeze-map status change.
 - current review-process evidence is still limited to named `phase`, `current status bucket`, `required approver set`, `validation gate summary`, `parity scorecard link or blocker record`, and `indefinite-C policy link or non-applicability note` fields instead of a shipped status-change approval packet.
 - the current docs-root Phase 15 note packet now includes `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-readiness-gate-survey.md`.
 - the live tests-root Phase 15 guards remain the paired companion surfaces for blocker-evidence, lane-sequencing, replay coverage, and machine-checked handoff maintenance rather than the only place the review-process, parity-scorecard, and indefinite-C artifacts are exposed on `master`.
 - the current repo already keeps the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the Linux-style `make -C zigux phase15-validate` route, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the aggregate `make -C zigux phase15` route explicit.
+- the older `phase15-validate` make-route blocker is now closed on current `master`: `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `scripts/zigux/validate-phase15.py` now agree on the shared validator-first route instead of leaving the broad Phase 15 validator implicit in the Linux-style replay path.
 - landed `phase15-docs-root-handoff-pointer-visible` keeps the shared docs root pointed back at this dedicated handoff packet instead of understating the parked maintenance surface.
 - landed `phase15-build-handoff-replay-visible` keeps the dedicated handoff replay wired into the shared Phase 15 build packet instead of leaving it out of the parked governance route.
 - landed `phase15-named-reopen-trigger-catalog` keeps the parked queue explicit through named reopen triggers instead of generic follow-up prose.
@@ -35,6 +36,7 @@ The current handoff surface on `master` is still the shared governance packet ar
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -64,5 +66,5 @@ This packet is still a parked governance packet only. It does not record a deep-
 ## Next Steps
 
 - Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.
-- If it reopens, first reread `Documentation/zigux/review-checklist.md` together with `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/validate-phase15.py` to decide whether the dedicated `make -C zigux phase15-test` route now needs explicit shared review-checklist coverage before widening to any other Phase 15 governance surface.
-- Do not widen this lane into shared README summaries, shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully.
+- The next honest same-lane follow-up is now a shared-summary repair, not another make-route fix: reread `zigux/tests/README.md` against `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `scripts/zigux/check-phase15-review-process-handoff.py`, then land the smallest tests-root truthfulness update that keeps the parked Phase 15 governance packet explicit without widening into new approval claims.
+- Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully.
