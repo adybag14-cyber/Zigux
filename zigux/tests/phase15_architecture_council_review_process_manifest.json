@@ -153,7 +153,7 @@
       "status": "open",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The broad Phase 15 docs-root reminder still undercounts the current validator-first packet on current master because it omits `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and the two dedicated Phase 15 checker routes even though the tests-root, scripts-root, and shared Phase 15 validator already treat that packet as shipped. That remaining undercount belongs to the shared-summaries companion lane described in `Documentation/zigux/phase15-governance-lane-sequencing.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`; the review-process packet should reopen only if that drift changes its required review fields, decision buckets, reopen-trigger catalog, or no-freeze-map-approval posture."
+      "why_now": "The broad Phase 15 docs-root reminder still undercounts the current parked maintenance packet on current master because it omits `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` even though the shared-summaries companion lane, the dedicated handoff note, and the sequencing note already treat those parked maintenance records as shipped. That remaining undercount belongs to the shared-summaries companion lane described in `Documentation/zigux/phase15-governance-lane-sequencing.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`; the review-process packet should reopen only if that drift changes its required review fields, decision buckets, reopen-trigger catalog, or no-freeze-map-approval posture."
     }
   ]
 }
