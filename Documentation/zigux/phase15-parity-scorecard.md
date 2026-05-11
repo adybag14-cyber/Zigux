@@ -22,6 +22,7 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 - active freeze-in-C anchor count: `4`
 - blocked status-change anchor count: `4`
+- anchors still blocked on prior-phase bridge evidence: `2`
 - study-only anchors tracked outside this scorecard: `2`
 - Architecture Council approvals recorded for status change: `0`
 
