@@ -109,8 +109,11 @@ REQUIRED_SNIPPETS = {
         "scripts/zigux/check-phase6-shared-surface.py",
         "zigux/tests/phase6_bsearch.zig",
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "zigux/tests/phase6_bsearch_c_abi_budget.zig",
         "make -C zigux phase6-validate",
         "make -C zigux phase6",
+        "make -C zigux phase6-perf",
+        "while `bsearch` stays on its bounded comparison-budget evidence path",
     ],
     "scripts/zigux/README.md": [
         "- `check-phase6-shared-surface.py`",
