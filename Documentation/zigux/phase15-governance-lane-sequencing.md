@@ -35,25 +35,33 @@ The current shared governance packet already includes:
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_readiness_gate.zig`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
+- `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_build.zig`
 
-Current `master` does not yet ship every companion surface that some broad Phase 15 reminders already name. In particular, this review lane should keep the current packet honest about still-missing companion artifacts such as `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.
-
-Because those companions are still incomplete on the reviewed head, Phase 15 remains a truthfulness-and-boundary lane. It is not yet a complete shared replay packet, and it still does not authorize any freeze-map status change.
+Because those companion manifest, Zig, and replay surfaces are already landed, Phase 15 remains a truthfulness-and-boundary lane only in the narrower sense: follow-up should stay limited to shared-summary or checker drift, and it still does not authorize any freeze-map status change.
 
 ## Sequencing Rules
 
 - do not reopen deep-core status-change discussion unless the blocker posture changes or a named reopen trigger fires
 - do not let shared README or checklist summaries claim broader Phase 15 replay coverage than the current tree actually ships
-- if a summary references missing Phase 15 companion artifacts, narrow the next step to one truthfulness repair before widening anywhere else
+- if a summary or checker drifts away from the current Phase 15 packet, narrow the next step to that one truthfulness repair before widening anywhere else
 - if a new Phase 15 companion file lands, attach it to the smallest matching lane family instead of collapsing the whole governance packet into one generic maintenance note
 - keep the review-process, readiness, handoff, and freeze-map surfaces distinct so later follow-up can answer one bounded blocker at a time
 
 ## Next Bounded Step
 
-The next honest Architecture Council follow-up is one of two shapes only:
+The next honest Architecture Council follow-up is maintenance only:
 
-- add one missing companion governance artifact and keep its lane ownership explicit
-- repair one shared summary that overstates the current Phase 15 packet
+- repair one shared summary or checker that drifts away from the current Phase 15 packet
+- otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
-Until one of those smaller follow-ups lands, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
+Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
