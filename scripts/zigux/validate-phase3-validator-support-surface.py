@@ -50,8 +50,10 @@ REQUIRED_MARKERS = (
     "shipped helper entrypoints on current `master`",
 )
 REQUIRED_CURRENT_PACKET_MARKERS = (
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
@@ -125,6 +127,14 @@ def run_self_test() -> int:
         print("expected current packet marker was not reported")
         return 1
 
+    header_family_note_marker = "Documentation/zigux/phase3-abi-header-family-survey.md"
+    before, separator, after = sample.rpartition(header_family_note_marker)
+    broken = validate_text(before + after if separator else sample)
+    if f"current packet missing marker: {header_family_note_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected header-family current packet marker was not reported")
+        return 1
+
     focused_replay_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
     broken = validate_text(sample.replace(focused_replay_marker, ""))
     if not any(focused_replay_marker in entry for entry in broken):
@@ -145,6 +155,14 @@ def run_self_test() -> int:
     if f"current packet missing marker: {mmio_consumer_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected mmio consumer current packet marker was not reported")
+        return 1
+
+    header_family_validator_marker = "scripts/zigux/validate-phase3-abi-header-family-survey.py"
+    before, separator, after = sample.rpartition(header_family_validator_marker)
+    broken = validate_text(before + after if separator else sample)
+    if f"current packet missing marker: {header_family_validator_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected header-family validator current packet marker was not reported")
         return 1
 
     wrapper_selftest_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"
