@@ -57,6 +57,7 @@ README_SNIPPETS = (
 MAKEFILE_REQUIRED = (
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
+    "scripts/zigux/validate-phase15.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
@@ -222,6 +223,7 @@ def _baseline_makefile() -> str:
             "PHONY += phase15-validate phase15-test phase15",
             "",
             "phase15-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
@@ -387,6 +389,22 @@ def run_self_test() -> int:
 
         makefile_path = root / MAKEFILE_REL
         baseline_makefile = _read(makefile_path)
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["makefile:missing:scripts/zigux/validate-phase15.py"],
+            "missing_validate_route_marker_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
         _write(
             root / MAKEFILE_REL,
             baseline_makefile.replace("phase15: phase15-validate phase15-test", "phase15:", 1),
