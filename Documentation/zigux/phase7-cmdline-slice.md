@@ -107,7 +107,7 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked for behavior, fixtures, and shared reminder wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, while `scripts/zigux/validate-phase7.py` currently fail-closes on the manifest file itself plus the narrower shared Phase 7 marker set it already counts.
-The next honest same-lane follow-up is narrower still: reopen only if fresh repo inspection finds a new cmdline-local parity, survey, manifest, fixture, or shared reminder drift inside the parked `next_arg()`, `get_option()`, `get_options()`, `memparse()`, and `parse_option_str()` packet; if that future drift is reminder-surface-only, treat any validator expansion as a separate bounded follow-up instead of implying that work has already landed.
+Keep the helper slice parked for behavior, fixtures, and shared reminder wording except for one still-open helper-local replay gap: live `lib/cmdline.zig` readback already shows oversized integer inputs stay runtime-safe by wrapping through the same truncated `int` results that `lib/cmdline.c` exposes from `get_option()` and `get_options()`, but `zigux/tests/phase7_cmdline.zig` does not yet assert that contract directly.
+The next honest same-lane follow-up is therefore specific rather than generic: add one dedicated oversized-wrap replay for positive and negative `get_option()` inputs plus the paired `get_options()` wrapped-value and validation-count path, then refresh this slice note only if the published helper-local tests change what the parked packet can claim. If future drift is reminder-surface-only, treat any shared validator expansion as a separate bounded follow-up instead of implying that work has already landed.
 
 ## Footer
