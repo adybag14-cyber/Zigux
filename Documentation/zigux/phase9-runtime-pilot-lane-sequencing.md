@@ -63,8 +63,8 @@ Current `master` no longer needs the older docs-root follow-through that earlier
 - the remaining same-lane overlap risk is now inside this note itself: older pilot-family labels can still point future runs at stale owners even though the active packet-local follow-through has already moved
 - the current atomic64 follow-through is the manifest-backed survey-versus-module-slice packet tracked in `P9-L04`
 - the current bitmap follow-through stays bitmap-local in `P9-L08`: the manifest, module, diff, loader, top-bit companion, and survey packet all stay family-local there unless repo evidence explicitly splits them again
-- the current trace-events follow-through stays trace-events-local in `P9-L10`: the manifest, survey note, module-slice note, and survey gate stay family-local while the shared loader packet remains adjacent only
-- the current kretprobe follow-through is the manifest-backed loader-plan, survey-gate lifecycle, and tracing proof sync tracked in `P9-L13`, while the older `P9-L16` sample-proof lane is historical only unless repo evidence explicitly reassigns ownership
+- the current trace-events follow-through stays trace-events-local in `P9-L08`: the manifest, survey note, module-slice note, and survey gate stay family-local while the shared loader packet remains adjacent only
+- the current kretprobe follow-through is the manifest-backed loader-plan, survey-gate lifecycle, and tracing proof sync tracked in `P9-L10`, and the older shared-loader `P9-L13` label should not be reused as the family-local owner unless repo evidence explicitly reassigns ownership
 - the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces
 - `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
 - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references
@@ -120,8 +120,8 @@ Current `master` already exposes the pilot-family notes plus the shared loader p
 
 - `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet. Family-local manifest, survey, and directly coupled module-slice wording should stay here instead of being bounced back into the shared sequencing lane.
 - `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, top-bit companion, and directly coupled family-local packet. Keep bitmap-local proof inside that lane unless repo evidence explicitly splits it again.
-- `P9-L10`: owns the current runtime trace-events manifest, survey note, module-slice note, and survey-gate packet. Keep trace-events-local proof there while the shared loader-facing reminder packet remains adjacent only.
-- `P9-L13`: owns the current runtime kretprobe manifest-backed loader-plan, survey-gate lifecycle, and tracing proof follow-through. Treat `P9-L16` as a historical sample-proof lane only unless repo evidence explicitly moves ownership back.
+- `P9-L08`: owns the current runtime trace-events manifest, survey note, module-slice note, and survey-gate packet. Keep trace-events-local proof there while the shared loader-facing reminder packet remains adjacent only.
+- `P9-L10`: owns the current runtime kretprobe manifest-backed loader-plan, survey-gate lifecycle, and tracing proof follow-through. Keep kretprobe-local proof there while the older shared-loader `P9-L13` label remains historical only unless repo evidence explicitly moves ownership back.
 
 ## Pilot-Family Anti-overlap Rule
 
