@@ -9,59 +9,42 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
-    "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "scripts/zigux/README.md",
-    ".github/workflows/zigux-bootstrap.yml",
-    "zigux/tests/README.md",
+    "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
 ]
 
 REQUIRED_MARKERS = {
-    "Documentation/zigux/phase8-libbpf-segment-survey.md": [
-        "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all",
-        "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 8 tooling packet",
+        "make -C zigux phase8-validate",
     ],
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
-        "make -C zigux phase8-cpu-mask-test",
-        "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "make -C zigux phase8",
+        "default-branch tree read surface no longer exposes the older",
+        "`tools/lib/subcmd/`",
+        "`tools/lib/symbol/`",
+        "`tools/lib/bpf/zigux_segments/`",
+        "`zigux/tests/phase8_*`",
+        "### 4. Shared wording lane",
+        "Keep follow-up inside the shared wording lane",
     ],
     "scripts/zigux/README.md": [
-        "Phase 8 flow",
-        "make -C zigux phase8-help-test",
-        "make -C zigux phase8-help-kallsyms-test",
-        "make -C zigux phase8-kallsyms-test",
-        "make -C zigux phase8-cpu-mask-test",
-        "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "make -C zigux phase8",
+        "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "make -C zigux phase8-validate",
     ],
-    ".github/workflows/zigux-bootstrap.yml": [
-        "Run focused Phase 8 libbpf shard tests",
-        "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8-perf-buffer-poll-test",
-    ],
-    "zigux/tests/README.md": [
-        "make -C zigux phase8-cpu-mask-test",
-        "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "make -C zigux phase8",
+    "scripts/zigux/validate-phase8.py": [
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "zigux/Makefile",
+        "zigux/tests/README.md",
     ],
     "zigux/Makefile": [
-        "phase8-file-path-handle-bridge-test:",
-        "phase8-libbpf-segments-test:",
-        "phase8-perf-buffer-poll-test:",
-        "phase8: phase8-validate phase8-test phase8-cpu-mask-test",
+        "phase8-validate:",
+        "scripts/zigux/validate-phase8.py",
     ],
 }
 
@@ -123,59 +106,58 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 def run_self_test() -> None:
     missing_file_cases = [
-        ("missing_survey", "Documentation/zigux/phase8-libbpf-segment-survey.md"),
         ("missing_lane_note", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
+        ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
-        ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_makefile", "zigux/Makefile"),
     ]
     marker_cases = [
         (
-            "survey_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "make -C zigux phase8-libbpf-segments-test",
-            "make -C zigux phase8-libbpf-survey-test",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test",
-        ),
-        (
-            "lane_note_perf_route",
+            "lane_note_absent_subcmd_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "make -C zigux phase8-perf-buffer-poll-test",
-            "make -C zigux phase8-poll-test",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: make -C zigux phase8-perf-buffer-poll-test",
+            "`tools/lib/subcmd/`",
+            "`tools/lib/subcommand/`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `tools/lib/subcmd/`",
         ),
         (
-            "scripts_readme_segments_route",
+            "lane_note_shared_wording_heading",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "### 4. Shared wording lane",
+            "### 4. Shared wording packet",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: ### 4. Shared wording lane",
+        ),
+        (
+            "scripts_readme_checker_anchor",
             "scripts/zigux/README.md",
-            "make -C zigux phase8-libbpf-segments-test",
-            "make -C zigux phase8-libbpf-review-test",
-            "scripts/zigux/README.md: make -C zigux phase8-libbpf-segments-test",
+            "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+            "scripts/zigux/check-phase8-libbpf-routes.py",
+            "scripts/zigux/README.md: scripts/zigux/check-phase8-libbpf-shard-routes.py",
         ),
         (
-            "workflow_libbpf_step",
+            "validator_lane_note_anchor",
+            "scripts/zigux/validate-phase8.py",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "Documentation/zigux/phase8-tooling-sequencing.md",
+            "scripts/zigux/validate-phase8.py: Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        ),
+        (
+            "workflow_phase8_validate_route",
             ".github/workflows/zigux-bootstrap.yml",
-            "Run focused Phase 8 libbpf shard tests",
-            "Run focused Phase 8 libbpf tests",
-            ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 libbpf shard tests",
+            "make -C zigux phase8-validate",
+            "make -C zigux phase8",
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-validate",
         ),
         (
-            "tests_readme_bridge_route",
-            "zigux/tests/README.md",
-            "make -C zigux phase8-file-path-handle-bridge-test",
-            "make -C zigux phase8-handle-bridge-test",
-            "zigux/tests/README.md: make -C zigux phase8-file-path-handle-bridge-test",
-        ),
-        (
-            "makefile_phase8_route",
+            "makefile_phase8_validator_hook",
             "zigux/Makefile",
-            "phase8: phase8-validate phase8-test phase8-cpu-mask-test",
-            "phase8: phase8-validate phase8-test",
-            "zigux/Makefile: phase8: phase8-validate phase8-test phase8-cpu-mask-test",
+            "scripts/zigux/validate-phase8.py",
+            "scripts/zigux/validate-phase8-lane.py",
+            "zigux/Makefile: scripts/zigux/validate-phase8.py",
         ),
     ]
 
-    with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_routes_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_shard_routes_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
@@ -199,7 +181,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 8 libbpf shard route packet."
+        description="Validate the current parked Phase 8 libbpf wording and route packet."
     )
     parser.add_argument(
         "--self-test",
