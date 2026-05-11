@@ -12,6 +12,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
   * compact release-coordination matrix: `Documentation/zigux/phase12-release-coordination-matrix.md`
   * complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
   * shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+  * verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
   * shipped build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
   * workflow replay anchor: `.github/workflows/zigux-bootstrap.yml`
   * freeze-map boundary reminder: `Documentation/zigux/freeze-map.md` keeps `net/core/skbuff.c` frozen in C and keeps `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` in boundary-study-only status, so this Phase 12 closure companion must not round queueing, throughput, rollback, or recovery wording up into deep-core delivery claims
