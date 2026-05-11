@@ -797,6 +797,25 @@ test "bitmap copy helpers keep zero-sized destination views untouched" {
     try std.testing.expectEqual(@as(Word, 0x0f0f_0f0f_0f0f_0f0f), alias_extended_backing[0]);
 }
 
+test "bitmap copy and extend leaves words past the requested size untouched" {
+    const count = bits_per_long + 5;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0x0123_4567_89ab_cdef };
+    const sentinel = @as(Word, 0x55aa_55aa_55aa_55aa);
+
+    var extended_backing = [_]Word{ 0, 0, 0, sentinel };
+    copyAndExtend(extended_backing[0..], src[0..2], count, size);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), extended_backing[0]);
+    try std.testing.expectEqual(lastWordMask(count), extended_backing[1]);
+    try std.testing.expectEqual(@as(Word, 0), extended_backing[2]);
+    try std.testing.expectEqual(sentinel, extended_backing[3]);
+
+    var alias_extended_backing = [_]Word{ 1, 2, 3, sentinel };
+    bitmap_copy_and_extend(alias_extended_backing[0..], src[0..2], count, size);
+    try std.testing.expectEqualSlices(Word, extended_backing[0..3], alias_extended_backing[0..3]);
+    try std.testing.expectEqual(sentinel, alias_extended_backing[3]);
+}
+
 test "bitmap zero-bit helpers stay explicit no-ops" {
     var dst = [_]Word{0x55aa55aa55aa55aa};
     const src1 = [_]Word{0xffff0000ffff0000};
@@ -912,7 +931,7 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     try std.testing.expectEqual(andBits(&primary_dst, &lhs, &rhs, nbits), bitmap_and(&alias_dst, &lhs, &rhs, nbits));
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
-    try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), bitmap_andnot(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), bitmap_andnot(alias_dst[0..], lhs[0..], rhs[0..], nbits));
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     complement(&primary_dst, &lhs, nbits);
