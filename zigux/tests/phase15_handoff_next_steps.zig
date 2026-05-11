@@ -15,6 +15,12 @@ const RepoEvidence = struct {
     tests_root_validator_routes_explicit: bool,
 };
 
+const AdjacentLaneBoundary = struct {
+    lane_family: []const u8,
+    zigux_destination: []const u8,
+    why_out_of_scope: []const u8,
+};
+
 const Trigger = struct {
     id: []const u8,
     status: []const u8,
@@ -31,6 +37,7 @@ const Manifest = struct {
     roadmap_requirements: []const []const u8,
     bootstrap_ledger_anchor: []const u8,
     repo_evidence: RepoEvidence,
+    adjacent_lane_boundaries: []const AdjacentLaneBoundary,
     named_reopen_triggers: []const Trigger,
     pending_next_steps: []const []const u8,
 };
@@ -68,15 +75,20 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.named_reopen_trigger_catalog_present);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
     try std.testing.expect(manifest.repo_evidence.tests_root_validator_routes_explicit);
+    try std.testing.expectEqual(@as(usize, 4), manifest.adjacent_lane_boundaries.len);
+    try std.testing.expect(std.mem.eql(u8, "shared-summaries", manifest.adjacent_lane_boundaries[0].lane_family));
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "Compact docs-root") != null);
+    try std.testing.expect(std.mem.eql(u8, "review-process", manifest.adjacent_lane_boundaries[1].lane_family));
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[1].why_out_of_scope, "Review-field wording") != null);
+    try std.testing.expect(std.mem.eql(u8, "parity-scorecard", manifest.adjacent_lane_boundaries[2].lane_family));
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[2].why_out_of_scope, "aggregate-metric") != null);
+    try std.testing.expect(std.mem.eql(u8, "readiness-gate", manifest.adjacent_lane_boundaries[3].lane_family));
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[3].why_out_of_scope, "Validator-first maintenance posture") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.named_reopen_triggers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summary repair is now landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zigux/tests/README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "scripts/zigux/validate-phase15.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "make -C zigux phase15-validate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "make -C zigux phase15-test") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "dedicated handoff packet itself drifts") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared build wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "parity-scorecard blocker edits") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "readiness-validator ownership") != null);
@@ -108,10 +120,15 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-11") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Adjacent Lane Boundaries") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Named Reopen Triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "review-process") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parity-scorecard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "readiness-gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
@@ -126,5 +143,6 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "tests-root Phase 15 guards") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "route that repair to `shared-summaries` first") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
