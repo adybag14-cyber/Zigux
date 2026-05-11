@@ -53,16 +53,24 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`zigux/tests/phase13_build.zig`",
+        "Broad summaries should also keep the direct devres packet visible through:",
+        "`Documentation/zigux/phase13-devres-survey.md`",
+        "`zigux/tests/phase13_devres.zig`",
+        "`zigux/tests/phase13_devres_manifest.json`",
         "`zigux/tests/phase13_devres_reviewability.zig`",
+        "`zigux/tests/phase13_devres_dma_coherent.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
         "`scripts/zigux/check-phase13-devres-packet.py`",
         "repo-reality gaps rather than independently shipped current-`master` evidence.",
-        "Broad summaries should also keep the direct devres repo-reality reminder visible through:",
+        "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
+        "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "`zigux/tests/phase13_libfs_addressability.zig`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -162,9 +170,9 @@ REQUIRED_MARKERS = {
 EXACT_COUNTS = {
     "Documentation/zigux/phase13-release-notes-survey.md": {
         "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-        "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-        "Broad summaries should also keep the direct devres repo-reality reminder visible through:": 1,
+        "Broad summaries should also keep the direct devres packet visible through:": 1,
         "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+        "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
     },
     "Documentation/zigux/README.md": {
         "the current eight-test shared-helper release packet": 1,
@@ -180,6 +188,12 @@ EXACT_COUNTS = {
         "make -C zigux phase13-validate": 1,
         "make -C zigux phase13-test": 1,
     },
+}
+
+FORBIDDEN_MARKERS = {
+    "Documentation/zigux/phase13-release-notes-survey.md": [
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    ],
 }
 
 
@@ -226,6 +240,12 @@ def validate(root: Path) -> list[str]:
                 issues.append(
                     f"exact_count:{rel_path}:{marker}:expected={expected}:actual={actual}"
                 )
+
+    for rel_path, markers in FORBIDDEN_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker in text:
+                issues.append(f"forbidden_marker:{rel_path}:{marker}")
 
     return issues
 
@@ -276,9 +296,9 @@ def run_self_test() -> int:
                     != "Broad summaries should keep the active shared-helper release handle visible through:"
                 ],
                 {
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the direct devres repo-reality reminder visible through:": 1,
+                    "Broad summaries should also keep the direct devres packet visible through:": 1,
                     "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                 },
             ),
         )
@@ -308,22 +328,48 @@ def run_self_test() -> int:
                     marker
                     for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
                     if marker
-                    != "Broad summaries should also keep the direct devres repo-reality reminder visible through:"
+                    != "Broad summaries should also keep the direct devres packet visible through:"
                 ],
                 {
                     "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                     "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                 },
             ),
         )
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the direct devres repo-reality reminder visible through:",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the direct devres repo-reality reminder visible through::expected=1:actual=0",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the direct devres packet visible through:",
+                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the direct devres packet visible through::expected=1:actual=0",
             ],
-            "missing_direct_devres_repo_reality_phrase_failed",
+            "missing_direct_devres_packet_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            )
+            + "`scripts/zigux/check-phase13-devres-packet-alignment.py`\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "forbidden_marker:Documentation/zigux/phase13-release-notes-survey.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+            ],
+            "stale_devres_alignment_marker_failed",
         )
         write_text(
             root,
@@ -409,6 +455,7 @@ def main() -> int:
         len(REQUIRED_FILES)
         + sum(len(markers) for markers in REQUIRED_MARKERS.values())
         + sum(len(counts) for counts in EXACT_COUNTS.values())
+        + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
     )
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(f"PHASE13_RELEASE_VALIDATION_MARKER_COUNT={marker_total}")
