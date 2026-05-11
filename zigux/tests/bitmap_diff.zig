@@ -921,6 +921,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero rounds the 115-bit prefix up to two words");
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero reaches the empty 1024-bit extent");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
+    try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the first-word tail without dropping later filled words");
     try expectMarker(bitmap_diff_source, "test_copy exact word-aligned replay from a cleared destination");
@@ -929,6 +930,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy exact two-word replay clears the second-word tail before the filled tail resumes");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
+    try expectMarker(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
