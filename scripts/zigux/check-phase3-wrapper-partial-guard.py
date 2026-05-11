@@ -48,19 +48,33 @@ def load_wrapper_generator(scripts_dir: Path):
 
 
 def audit_wrapper_partial_shapes(scripts_dir: Path | None = None) -> int:
-    from phase3_catalog import DEFAULT_PATHS, discover_phase3_slices
+    from phase3_catalog import ROOT, discover_phase3_slices
 
+    current_script = Path(__file__).resolve()
+    repo_root = ROOT
     if scripts_dir is None:
-        scripts_dir = DEFAULT_PATHS.scripts_dir
+        scripts_dir = repo_root / "scripts/zigux"
+    else:
+        scripts_dir = scripts_dir.resolve()
+        repo_root = scripts_dir.parents[1]
+
     generator = load_wrapper_generator(scripts_dir)
-    entries = discover_phase3_slices()
-    expected_by_path = {entry.check_script: generator.render_entry_wrapper(entry) for entry in entries}
-    expected_variants = tuple(sorted(set(expected_by_path.values())))
+    expected_wrapper = generator.render_wrapper_stub()
+    entries = discover_phase3_slices(repo_root)
+    expected_by_path = {entry.check_script.resolve(): expected_wrapper for entry in entries}
+    expected_variants = (expected_wrapper,)
 
     findings: list[tuple[str, str]] = []
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
+        if path.resolve() == current_script:
+            continue
         current = path.read_text(encoding="utf-8")
-        category = classify_wrapper_text(path, current, expected_by_path.get(path), expected_variants)
+        category = classify_wrapper_text(
+            path,
+            current,
+            expected_by_path.get(path.resolve()),
+            expected_variants,
+        )
         if category is not None:
             findings.append((path.as_posix(), category))
 
