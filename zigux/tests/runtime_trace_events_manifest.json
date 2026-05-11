@@ -114,7 +114,7 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
       "role": "shared_owner_map",
-      "owner": "P9-L16",
+      "owner": "P9-L04",
       "boundary": "Owns the shared Phase 9 reminder packet and loader-facing inventory separately from this trace-events family-local packet."
     },
     {
