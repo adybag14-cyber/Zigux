@@ -93,6 +93,13 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def resolve_path(root: Path, path: Path) -> Path:
+    try:
+        return root / path.relative_to(ROOT)
+    except ValueError:
+        return root / path
+
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
@@ -107,15 +114,15 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    validator_text = read_text(root / PHASE2_VALIDATOR)
-    closure_validator_text = read_text(root / PHASE2_CLOSURE_VALIDATOR)
-    workflow_text = read_text(root / WORKFLOW)
-    makefile_text = read_text(root / MAKEFILE)
-    scripts_readme_text = read_text(root / SCRIPTS_README)
-    tests_readme_text = read_text(root / TESTS_README)
-    review_checklist_text = read_text(root / REVIEW_CHECKLIST)
-    closure_doc_text = read_text(root / PHASE2_CLOSURE_DOC)
-    bootstrap_notes_text = read_text(root / PHASE2_BOOTSTRAP_NOTES)
+    validator_text = read_text(resolve_path(root, PHASE2_VALIDATOR))
+    closure_validator_text = read_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR))
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
+    makefile_text = read_text(resolve_path(root, MAKEFILE))
+    scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
+    tests_readme_text = read_text(resolve_path(root, TESTS_README))
+    review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
+    closure_doc_text = read_text(resolve_path(root, PHASE2_CLOSURE_DOC))
+    bootstrap_notes_text = read_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES))
 
     issues.extend(collect_missing_markers(validator_text, VALIDATOR_MARKERS, "MISSING_VALIDATOR_MARKERS"))
     for marker, expected_count in VALIDATOR_EXACT_COUNTS.items():
@@ -177,15 +184,15 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(root / PHASE2_VALIDATOR, "\n".join(VALIDATOR_MARKERS) + "\n")
-    write_text(root / PHASE2_CLOSURE_VALIDATOR, "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
-    write_text(root / WORKFLOW, "\n".join(WORKFLOW_LINES) + "\n")
-    write_text(root / MAKEFILE, "\n".join(MAKEFILE_LINES) + "\n")
-    write_text(root / SCRIPTS_README, "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    write_text(root / TESTS_README, "\n".join(TESTS_README_MARKERS) + "\n")
-    write_text(root / REVIEW_CHECKLIST, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(root / PHASE2_CLOSURE_DOC, "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
-    write_text(root / PHASE2_BOOTSTRAP_NOTES, "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(VALIDATOR_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str) -> str:
@@ -213,14 +220,14 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_VALIDATOR
+        path = resolve_path(root, PHASE2_VALIDATOR)
         path.write_text(replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[0], ""), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_VALIDATOR
+        path = resolve_path(root, PHASE2_VALIDATOR)
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
@@ -237,7 +244,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_VALIDATOR
+        path = resolve_path(root, PHASE2_VALIDATOR)
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
@@ -254,7 +261,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_CLOSURE_VALIDATOR
+        path = resolve_path(root, PHASE2_CLOSURE_VALIDATOR)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), CLOSURE_VALIDATOR_MARKERS[0], ""),
             encoding="utf-8",
@@ -264,7 +271,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / WORKFLOW
+        path = resolve_path(root, WORKFLOW)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), WORKFLOW_LINES[2], "run: python3 other.py --self-test"),
             encoding="utf-8",
@@ -274,42 +281,42 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / WORKFLOW
+        path = resolve_path(root, WORKFLOW)
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[3]}:count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / MAKEFILE
+        path = resolve_path(root, MAKEFILE)
         path.write_text(replace_once(path.read_text(encoding="utf-8"), MAKEFILE_LINES[0], "phase2-kconfig:"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / MAKEFILE
+        path = resolve_path(root, MAKEFILE)
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[4]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[4]}:count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / SCRIPTS_README
+        path = resolve_path(root, SCRIPTS_README)
         path.write_text(replace_once(path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[2], ""), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[2]) in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / TESTS_README
+        path = resolve_path(root, TESTS_README)
         path.write_text(replace_once(path.read_text(encoding="utf-8"), TESTS_README_MARKERS[0], ""), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_TESTS_README_MARKERS", TESTS_README_MARKERS[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / REVIEW_CHECKLIST
+        path = resolve_path(root, REVIEW_CHECKLIST)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), REVIEW_CHECKLIST_MARKERS[1], ""),
             encoding="utf-8",
@@ -319,7 +326,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_CLOSURE_DOC
+        path = resolve_path(root, PHASE2_CLOSURE_DOC)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), PHASE2_CLOSURE_DOC_MARKERS[0], ""),
             encoding="utf-8",
@@ -329,7 +336,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = root / PHASE2_BOOTSTRAP_NOTES
+        path = resolve_path(root, PHASE2_BOOTSTRAP_NOTES)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), PHASE2_BOOTSTRAP_NOTES_MARKERS[1], ""),
             encoding="utf-8",
@@ -347,7 +354,7 @@ def run_self_test() -> int:
             TESTS_README,
         ):
             build_self_test_root(root)
-            (root / rel_path).unlink()
+            resolve_path(root, rel_path).unlink()
             try:
                 collect_issues(root)
             except SystemExit as exc:
