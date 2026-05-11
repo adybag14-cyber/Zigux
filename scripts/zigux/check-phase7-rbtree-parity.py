@@ -12,10 +12,14 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -37,9 +41,23 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase7-rbtree-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "lib/rbtree.zig",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_build.zig",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "lib/rbtree.zig",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "zigux/tests/fixtures/phase7_rbtree.json",
+        "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
@@ -49,22 +67,29 @@ REQUIRED_MARKERS = {
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;",
         "Documentation/zigux/phase7-rbtree-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "lib/rbtree.zig",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_build.zig",
     ],
     "scripts/zigux/README.md": [
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "make -C zigux phase7-validate",
         "make -C zigux phase7",
     ],
     "scripts/zigux/validate-phase7.py": [
-        "\"scripts/zigux/check-phase7-rbtree-parity.py\"",
-        "\"zigux/tests/phase7_rbtree.zig\"",
-        "\"zigux/tests/phase7_rbtree_survey.zig\"",
-        "\"zigux/tests/phase7_rbtree_manifest.json\"",
-        "\"zigux/tests/fixtures/phase7_rbtree.json\"",
-        "\"zigux/tests/fixtures/phase7_rbtree_c_harness.c\"",
+        '"scripts/zigux/check-phase7-rbtree-parity.py"',
+        '"zigux/tests/phase7_rbtree.zig"',
+        '"zigux/tests/phase7_rbtree_survey.zig"',
+        '"zigux/tests/phase7_rbtree_manifest.json"',
+        '"zigux/tests/fixtures/phase7_rbtree.json"',
+        '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
     ],
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -85,9 +110,9 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_build.zig": [
         "phase7-rbtree-tests",
-        "\"phase7_rbtree_survey.zig\"",
+        '"phase7_rbtree_survey.zig"',
         "phase7-rbtree-survey-tests",
-        "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
+        'run_rbtree_survey_tests.setCwd(b.path("../.."));',
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
@@ -161,6 +186,10 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_review_checklist", "Documentation/zigux/review-checklist.md"),
+        ("missing_alignment_note", "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"),
+        ("missing_make_wrapper_checker", "scripts/zigux/check-phase7-make-wrapper.py"),
+        ("missing_make_wrapper_alignment_checker", "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_manifest", "zigux/tests/phase7_rbtree_manifest.json"),
@@ -169,6 +198,27 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
+        (
+            "docs_readme_alignment_note_marker",
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "",
+            "Documentation/zigux/README.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        ),
+        (
+            "review_checklist_alignment_marker",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "",
+            "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        ),
+        (
+            "review_checklist_build_wiring_marker",
+            "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/check-phase7-build-wiring.py",
+            "",
+            "Documentation/zigux/review-checklist.md: scripts/zigux/check-phase7-build-wiring.py",
+        ),
         (
             "slice_checker_marker",
             "Documentation/zigux/phase7-rbtree-slice.md",
@@ -184,11 +234,11 @@ def run_self_test() -> None:
             "Documentation/zigux/phase7-rbtree-slice.md: this slice does not carry an open parity-fixture follow-up",
         ),
         (
-            "samples_checker_marker",
+            "samples_make_wrapper_alignment_marker",
             "samples/zigux/README.md",
-            "scripts/zigux/check-phase7-rbtree-parity.py",
+            "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
             "",
-            "samples/zigux/README.md: scripts/zigux/check-phase7-rbtree-parity.py",
+            "samples/zigux/README.md: scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         ),
         (
             "scripts_readme_checker_marker",
@@ -214,9 +264,9 @@ def run_self_test() -> None:
         (
             "build_survey_cwd_marker",
             "zigux/tests/phase7_build.zig",
-            "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
-            "run_rbtree_survey_tests.setCwd(b.path(\".\"));",
-            "zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
+            'run_rbtree_survey_tests.setCwd(b.path("../.."));',
+            'run_rbtree_survey_tests.setCwd(b.path("."));',
+            'zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path("../.."));',
         ),
     ]
 
