@@ -460,11 +460,9 @@ jobs:
             changed_files="$(git diff-tree --no-commit-id --name-only -r "$head")"
           fi
 
-          printf '%s
-' "$changed_files"
+          printf '%s\n' "$changed_files"
 
-          if printf '%s
-' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-zig-toolchain\.py|scripts/zigux/check-phase2-toolchain-pin-scope\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/zig-toolchain-policy\.json|scripts/zigux/fixdep\.zig|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
+          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-zig-toolchain\.py|scripts/zigux/check-phase2-toolchain-pin-scope\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/zig-toolchain-policy\.json|scripts/zigux/fixdep\.zig|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
