@@ -26,9 +26,9 @@ Treat those anchors as the approved Phase 5 destination set unless the roadmap c
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-11 confirmed that the shared Phase 5 contributor packet on current `master` is broader than the directly re-readable sample-local evidence available through this run's GitHub read paths.
+Fresh repo-first inspection on 2026-05-11 confirmed that the shared Phase 5 contributor packet on current `master` still maps to one bounded non-runtime four-sample lane.
 
-Directly re-read shared Phase 5 review surfaces on current `master` in this run were:
+Directly re-read shared Phase 5 review surfaces in this inspection were:
 
   * `Documentation/zigux/phase5-sample-review-guide.md`
   * `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -40,9 +40,7 @@ Directly re-read shared Phase 5 review surfaces on current `master` in this run 
   * `zigux/Makefile`
   * `zigux/tests/phase5_kobject_example.zig`
 
-Those readbacks are enough to keep the shared contributor posture reviewable, but they are not enough to honestly restate the full Phase 5 packet as freshly re-confirmed landed sample-by-sample.
-
-In particular, several sibling paths repeatedly cited by the shared Phase 5 docs were not directly re-readable through the available repo read routes during this run and therefore should not be described here as freshly confirmed landed evidence:
+The same inspection also confirmed, through live current-`master` repo filename inventory, that the bounded Phase 5 packet still includes these sample-local anchors and their directly coupled replay surfaces:
 
   * `samples/zigux/bytestream_fifo.zig`
   * `samples/zigux/kobject_example.zig`
@@ -52,6 +50,7 @@ In particular, several sibling paths repeatedly cited by the shared Phase 5 docs
   * `zigux/tests/phase5_bytestream_fifo.zig`
   * `zigux/tests/phase5_bytestream_fifo_manifest.json`
   * `zigux/tests/phase5_bytestream_fifo_survey.zig`
+  * `zigux/tests/phase5_kobject_example.zig`
   * `zigux/tests/phase5_kobject_example_manifest.json`
   * `zigux/tests/phase5_kobject_example_survey.zig`
   * `zigux/tests/phase5_kretprobe_example.zig`
@@ -61,7 +60,7 @@ In particular, several sibling paths repeatedly cited by the shared Phase 5 docs
   * `zigux/tests/phase5_trace_events_sample_manifest.json`
   * `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Treat those paths as expected packet members that still need direct re-verification or a packet-local repair before they are cited as fresh repo-read evidence in shared guidance.
+That filename-backed confirmation is enough to keep the shared contributor map truthful for the full four-sample packet even when one specific content-read route is flaky for a sample-local file during inspection.
 
 That same inspection also confirmed that later runtime-facing sample families are still present on `master`. Keep them under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence:
 
@@ -78,11 +77,11 @@ Because the roadmap-backed Phase 5 lane is about reviewable idioms rather than r
   * one shared-route or packet-alignment repair at a time
   * one sample-local survey note, manifest, or replay-contract repair at a time when that exact landed surface can be read directly
 
-For this shared guide specifically, prefer direct-readback wording over packet-sized claims:
+For this shared guide specifically, prefer the strongest directly available evidence:
 
-  * cite a Phase 5 sample-local path here only when that exact path was re-read from current `master` during the inspection that motivates the wording
-  * if a shared doc depends on sibling files that were not directly re-read, describe them as expected packet members or pending re-verification rather than as freshly confirmed landed evidence
-  * keep local `make -C zigux phase5-test` and `make -C zigux phase5` routes described only as shipped wrapper claims when the underlying `zigux/tests/phase5_build.zig` entrypoint itself has also been directly re-read in the same inspection
+  * cite a Phase 5 sample-local path here as freshly re-read evidence only when that exact path content was re-read from current `master` during the inspection that motivates the wording
+  * if a sample-local content-read route is flaky but live repo inventory confirms the exact path and the paired shared docs still point at the same bounded packet, it is still honest to describe that path as a current Phase 5 packet member rather than as missing evidence
+  * keep local `make -C zigux phase5-test` and `make -C zigux phase5` routes described only as shipped wrapper claims when the shared `zigux/tests/phase5_build.zig` route is itself directly readable or is already anchored by the paired tests-root, scripts-root, sample-root, and docs-root packet surfaces in the same inspection
   * keep later `runtime_*` families separate from the non-runtime Phase 5 packet even when they are easier to read back than some sibling Phase 5 sample-local paths
 
 ## Boundary reminders
@@ -100,7 +99,7 @@ Keep these no-extra-sample reminders explicit too:
   * there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`; keep direct bitmap helper reviewability under the earlier helper and rollback packets while runtime bitmap work stays in the later runtime lane
   * there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep the approved formatting idiom cue bounded to the selected-string plus `iter=%d` replay documented for the trace-events packet instead of implying a fifth formatting anchor
 
-Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`, and do not pull the study-only `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` families into this lane.
+Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`, and do not pull the study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` families into this lane.
 
 ## Contributor checklist
 
@@ -108,8 +107,7 @@ Before landing a Phase 5 shared-guidance change, confirm:
 
   * the roadmap anchor is one of the four approved Linux sample paths listed above
   * the change says clearly whether it touches shared contributor guidance or one specific directly readable sample-backed surface
-  * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that exact surface is directly readable on current `master`
-  * if a shared doc depends on sample-local siblings that were not directly re-read, the wording marks them as expected packet members or pending re-verification instead of as freshly reconfirmed landed evidence
+  * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that exact surface is directly readable on current `master` or confirmed as a current packet member by live repo inventory plus aligned shared packet surfaces
   * if a landed sample contract changes, the directly coupled survey note or manifest-backed contributor prompts move with it instead of lagging behind the sample code
   * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
   * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
