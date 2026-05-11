@@ -127,6 +127,16 @@ def run_self_test() -> int:
         print("expected current packet marker was not reported")
         return 1
 
+    shared_reminder_next_step_marker = (
+        "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+    )
+    before, separator, after = sample.rpartition(shared_reminder_next_step_marker)
+    broken = validate_text(before + after if separator else sample)
+    if f"shared reminder missing marker: {shared_reminder_next_step_marker}" not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder next-step marker was not reported")
+        return 1
+
     header_family_note_marker = "Documentation/zigux/phase3-abi-header-family-survey.md"
     before, separator, after = sample.rpartition(header_family_note_marker)
     broken = validate_text(before + after if separator else sample)
