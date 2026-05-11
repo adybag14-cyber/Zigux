@@ -44,6 +44,9 @@ REPO_FILES = (
     Path("include/linux/zigux.h"),
     ABI_HEADER_PATH,
     ABI_BINDINGS_PATH,
+    Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
@@ -475,7 +478,20 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        layout_assert_rel = Path("zigux/helpers/layout_assert.zig")
         _write(root / phase3_abi_rel, "# restored\n")
+        (root / layout_assert_rel).unlink()
+        issues = validate_repo(root)
+        expected_layout_assert_missing = (
+            f"missing repo file: {layout_assert_rel.as_posix()}"
+        )
+        if expected_layout_assert_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing layout-assert helper was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / layout_assert_rel, "pub fn layoutAssert() void {}\n")
         (root / LOW_LEVEL_TEST_PATH).unlink()
         issues = validate_repo(root)
         expected_low_level_test_missing = f"missing repo file: {LOW_LEVEL_TEST_PATH.as_posix()}"
@@ -522,8 +538,34 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        manifest_rel = ABI_MANIFEST_PATH
+        allocator_policy_rel = Path("zigux/helpers/allocator_policy.zig")
         _write(root / MMIO_HELPER_PATH, "# restored\n")
+        (root / allocator_policy_rel).unlink()
+        issues = validate_repo(root)
+        expected_allocator_policy_missing = (
+            f"missing repo file: {allocator_policy_rel.as_posix()}"
+        )
+        if expected_allocator_policy_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing allocator-policy helper was not reported")
+            return 1
+        case_count += 1
+
+        panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
+        _write(root / allocator_policy_rel, "pub fn allocatorPolicy() void {}\n")
+        (root / panic_policy_rel).unlink()
+        issues = validate_repo(root)
+        expected_panic_policy_missing = (
+            f"missing repo file: {panic_policy_rel.as_posix()}"
+        )
+        if expected_panic_policy_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing panic-policy helper was not reported")
+            return 1
+        case_count += 1
+
+        manifest_rel = ABI_MANIFEST_PATH
+        _write(root / panic_policy_rel, "pub fn panicPolicy() void {}\n")
         _write(root / ABI_MANIFEST_PATH, _manifest_payload([]))
         issues = validate_repo(root)
         expected_manifest_entry_missing = "missing phase3 ABI manifest entry: zigux/uapi/dev_t.zig"
