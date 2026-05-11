@@ -1,21 +1,23 @@
 # Phase 4 Gate Evidence
-This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.
+This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. Newer validator-local status lines still need a later full schema refresh when this lane intentionally widens.
 
 ## Status
-- `PHASE4_EVIDENCE_DATE=2026-05-10`
+- `PHASE4_EVIDENCE_DATE=2026-05-11`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=ee28bc6be404bd09343d21a6517f9e1bafc197e2`
-- `PHASE4_VALIDATOR_BLOB_SHA=0214a085c283a35aefefa25198bb822a79985e41`
+- `PHASE4_VALIDATOR_BLOB_SHA=f63e8a190c8854104ce520fafa480ec75819c83e`
+- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=c7f5f56af57103ebc981cac2b6501359acc92e78`
+- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c01c6fcf46c82083d204a3107963b420aee527ab`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=9fdc63919fc979ef12f15bae54ee94bdc80d14de`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=5272b8c9573fdabb733b66ce655842d9fdfa0cc5`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-- `PHASE4_MAKEFILE_BLOB_SHA=76b16b6cb915dec8760e7bd05b39d41801ec3d8f`
+- `PHASE4_MAKEFILE_BLOB_SHA=8d363c1818ff4f4aea2b7d5bb3fb9f7549c9bbd3`
 - `PHASE4_WORKFLOW_BLOB_SHA=d5d0dc8d25243c02a4b846541d7e5a79a7ef3073`
-- `PHASE4_DOC_README_BLOB_SHA=e16f1bfd51b28ae1812ae9b7006470e5f06eae17`
-- `PHASE4_SCRIPT_README_BLOB_SHA=05cfbe6fa45535b0be6914cb837717970e415bb4`
-- `PHASE4_TESTS_README_BLOB_SHA=a337df601037a31281dba303ba7663fd16848d1b`
+- `PHASE4_DOC_README_BLOB_SHA=7aad17e1cffdb176de82209b4d4cffa3175fddb3`
+- `PHASE4_SCRIPT_README_BLOB_SHA=530e864768b6e7d650d625e24a34f0744b071e71`
+- `PHASE4_TESTS_README_BLOB_SHA=b78742b1a2041b53154b3e9fabe0b65197844ded`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=013e38fce0f95e73f1d36eb527138b77f8067df8`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=fb32ec6a52c1f7c76912015404950a6561501719`
@@ -37,7 +39,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
 
 ## Exact Readback Evidence
-- `Documentation/zigux/artifact-diff.md` and `scripts/zigux/README.md` now point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`, while the broader docs-root and tests-root summaries should keep the dedicated artifact-diff determinism checker wording explicit when those same-lane notes move again.
+- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the newer dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` checker now agree on the currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.
 - `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.
 - The current bounded atomic64 rollback gate now has an exact check inventory in this note: two arithmetic checks (`v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing` and `negative-one arithmetic path keeps decrement-style updates visible`), three exchange checks (`v0 to v1 keeps the original counter visible as the exchange return value`, `v1 to v2 keeps wide negative and positive 64-bit values distinct`, and `high-bit starter from atomic64_test.c still round-trips through exchange`), two `cmpxchg` checks (success and mismatch), two `add_unless` checks (blocked and changed), three bitwise checks (`and`, `or`, and `xor`), the selftest-family ordering replay, empty-batch rejection for `runThresholdReplay(0)`, and deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with final counters `130322557735600377` and `130322557735600376` plus checksums `3626254113632800175` and `9210681150676220922`.
@@ -58,4 +60,4 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
-- The current exact-readback note now matches the live docs-root reminder, scripts-root summary, tests-root summary, workflow route inventory, dedicated `Documentation/zigux/artifact-diff.md` note, validation matrix, and review-checklist packet on `master`, so the broader checker-backed packet is aligned again on current `master`.
+- the currently shipped docs-root, scripts-root, tests-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, even though the broader gate-evidence status schema still needs a later dedicated refresh.
