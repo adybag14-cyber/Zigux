@@ -4,6 +4,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_ioremap_lifetime_planning: bool,
+    provides_ioremap_plain_wrapper_planning: bool,
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_iounmap_call_planning: bool,
@@ -222,6 +223,7 @@ pub const DevresHelperLab = struct {
             .name = "devres_helper_lab",
             .anchor = "lib/devres.c",
             .provides_ioremap_lifetime_planning = true,
+            .provides_ioremap_plain_wrapper_planning = true,
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_iounmap_call_planning = true,
@@ -260,6 +262,14 @@ pub const DevresHelperLab = struct {
             .release_record_freed = false,
             .should_unmap_on_detach = true,
         };
+    }
+
+    pub fn planManagedIoremapAcquirePlain(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = .plain,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
     }
 
     pub fn planManagedIoremapAcquireWc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
@@ -542,6 +552,35 @@ pub const DevresHelperLab = struct {
         };
     }
 };
+
+test "phase13 devres plain ioremap wrapper preserves the managed lifetime path" {
+    const result = try DevresHelperLab.planManagedIoremapAcquirePlain(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2200,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(ManagedIoremapKind.plain, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2200), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres plain ioremap wrapper frees the release record on map failure" {
+    const result = try DevresHelperLab.planManagedIoremapAcquirePlain(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(ManagedIoremapKind.plain, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
 
 test "managed ioremap resource maps invalid range into structured invalid_resource failure" {
     const allocator = std.testing.allocator;
