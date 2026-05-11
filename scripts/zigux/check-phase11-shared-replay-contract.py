@@ -32,6 +32,7 @@ MARKERS = {
         "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
         "* `make -C zigux phase11-hvc-survey`",
         "These paths keep the bounded HVC manifest-backed survey, modem-control split, poll-retry split, sysrq-handoff helper, and dedicated survey route reviewable beside the shared route without promoting missing driver-starter, cleanup replay, compile-local verify-helper, tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed cleanup into the current shared contract.",
+        "The landed `scripts/zigux/check-phase11-build-inventory.py` plus `zigux/tests/fixtures/phase11_build_inventory.json` now keep the shared split and adjunct replay inventory explicit on `master` without widening this packet into a shared `validate-phase11.py` stack.",
     ],
     "closure_note": [
         "# Phase 11 Closure Note",
@@ -42,6 +43,7 @@ MARKERS = {
         "* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; current `master` still keeps this lane parked on the first platform-registration follow-through even though that bounded replay packet is already landed and reviewable",
         "* HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "* `make -C zigux phase11-hvc-survey`",
+        "The landed `scripts/zigux/check-phase11-build-inventory.py` plus `zigux/tests/fixtures/phase11_build_inventory.json` keep the shared split and adjunct replay inventory explicit beside that parked closure packet.",
     ],
     "lane_note": [
         "# Phase 11 Driver Lane Sequencing",
@@ -52,6 +54,7 @@ MARKERS = {
         "- HVC lane `P11-L16` owns",
         "- header-boundary lane `P11-L18` owns",
         "rather than missing `hvc_console` starter, cleanup, manifest, or verify-helper files.",
+        "The shared sequencing lane also keeps `scripts/zigux/check-phase11-build-inventory.py` and `zigux/tests/fixtures/phase11_build_inventory.json` with the shared packet because that generated inventory records the shared split and adjunct replay surfaces without changing driver-local ownership.",
     ],
     "docs_readme": [
         "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`",
