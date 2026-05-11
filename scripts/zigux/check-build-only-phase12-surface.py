@@ -142,6 +142,11 @@ PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER = (
     "and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, "
     "while `virtio_net` and `libbpf` remain shared-tree-only anchors."
 )
+PHASE12_RELEASE_READINESS_RAW_READ_ANCHOR_MARKER = (
+    "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and "
+    "`scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, "
+    "so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts."
+)
 PHASE12_RELEASE_READINESS_VERIFY_SHARD_MARKER = (
     "Current `master` already keeps the compact release-coordination matrix explicit about the dedicated verify-shard companion, and the shared release-sequencing note now does the same, so the next honest same-lane follow-through is whichever remaining one-file shared reminder drifts next while keeping the smoke-first replay packet, the checker pair, the verify-shard companion, and the two-versus-two fallback split aligned without overstating closure."
 )
@@ -251,6 +256,7 @@ REQUIRED_PHASE12_RELEASE_SEQUENCING_MARKERS = [
 REQUIRED_PHASE12_RELEASE_READINESS_MARKERS = [
     PHASE12_RELEASE_READINESS_CHECKER_MARKER,
     PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER,
+    PHASE12_RELEASE_READINESS_RAW_READ_ANCHOR_MARKER,
     PHASE12_RELEASE_READINESS_VERIFY_SHARD_MARKER,
 ]
 REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS = [
@@ -367,6 +373,7 @@ EXACT_COUNT_MAPS = {
     "phase12_release_readiness": {
         PHASE12_RELEASE_READINESS_CHECKER_MARKER: 1,
         PHASE12_RELEASE_READINESS_FALLBACK_SPLIT_MARKER: 1,
+        PHASE12_RELEASE_READINESS_RAW_READ_ANCHOR_MARKER: 1,
         PHASE12_RELEASE_READINESS_VERIFY_SHARD_MARKER: 1,
     },
     "phase12_release_closure": {
@@ -715,6 +722,13 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         phase12_release_readiness_path.write_text(
+            phase12_release_readiness_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_READINESS_RAW_READ_ANCHOR_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_readiness:{PHASE12_RELEASE_READINESS_RAW_READ_ANCHOR_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_readiness_path.write_text(
             phase12_release_readiness_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_READINESS_VERIFY_SHARD_MARKER, "", 1),
             encoding="utf-8",
         )
@@ -782,7 +796,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build:smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
