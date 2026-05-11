@@ -155,7 +155,6 @@ required_workflow_markers = [
     'Check Phase 9 build-only surface',
     'python3 scripts/zigux/check-phase9-build-only-surface.py',
     'Run Phase 7 runtime helper tests',
-    'make -C zigux phase7-test',
     'Run Phase 8 tooling tests',
     'make -C zigux phase8-test',
     'Run Phase 9 runtime helper tests',
@@ -172,6 +171,10 @@ required_workflow_marker_aliases = [
     (
         'Run Phase 12 complex driver tests',
         'Run Phase 12 complex driver and libbpf tests',
+    ),
+    (
+        'make -C zigux phase7-test',
+        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',
     ),
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
