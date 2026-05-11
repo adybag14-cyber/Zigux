@@ -13,6 +13,7 @@ It keeps the release-planning work segmented so the active shared packet stays t
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
 - coordination companion: `Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 
 ## Lane Scope
