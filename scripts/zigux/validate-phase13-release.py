@@ -48,11 +48,18 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-notifier-list-survey.md`",
     ],
     "Documentation/zigux/phase13-release-notes-survey.md": [
-        "validator-first eight-test shared-helper replay",
+        "Broad summaries should keep the active shared-helper release handle visible through:",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
         "`scripts/zigux/validate-phase13-release.py`",
-        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`zigux/tests/phase13_build.zig`",
+        "`zigux/tests/phase13_devres_reviewability.zig`",
+        "`zigux/tests/phase13_devres_boundary_evidence.zig`",
+        "`scripts/zigux/check-phase13-devres-packet.py`",
+        "repo-reality gaps rather than independently shipped current-`master` evidence.",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
@@ -152,7 +159,8 @@ REQUIRED_MARKERS = {
 
 EXACT_COUNTS = {
     "Documentation/zigux/phase13-release-notes-survey.md": {
-        "validator-first eight-test shared-helper replay": 1,
+        "Broad summaries should keep the active shared-helper release handle visible through:": 1,
+        "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
         "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
     },
     "Documentation/zigux/README.md": {
@@ -261,9 +269,11 @@ def run_self_test() -> int:
                 [
                     marker
                     for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker != "validator-first eight-test shared-helper replay"
+                    if marker
+                    != "Broad summaries should keep the active shared-helper release handle visible through:"
                 ],
                 {
+                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                     "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
                 },
             ),
@@ -271,10 +281,10 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:validator-first eight-test shared-helper replay",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:validator-first eight-test shared-helper replay:expected=1:actual=0",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should keep the active shared-helper release handle visible through:",
+                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should keep the active shared-helper release handle visible through::expected=1:actual=0",
             ],
-            "missing_release_phrase_failed",
+            "missing_release_handle_phrase_failed",
         )
         write_text(
             root,
