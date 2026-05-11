@@ -35,6 +35,7 @@ HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
 KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
+LOGGING_SLICE_PATH = "Documentation/zigux/phase8-logging-slice.md"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
@@ -64,6 +65,7 @@ REQUIRED_FILES = [
     KALLSYMS_TEST_PATH,
     KALLSYMS_ONLY_BUILD_PATH,
     CPU_MASK_SLICE_PATH,
+    LOGGING_SLICE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
     MAKEFILE_PATH,
@@ -140,6 +142,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-exec-cmd-slice.md`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`Documentation/zigux/phase8-logging-slice.md`",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`zigux/tests/phase8_exec_cmd.zig`",
@@ -241,6 +244,7 @@ FIXTURE_OVERRIDES = {
     EXEC_CMD_SLICE_PATH: "\n".join(REQUIRED_MARKERS[EXEC_CMD_SLICE_PATH]) + "\n",
     HELP_SLICE_PATH: "# fixture\n",
     KALLSYMS_SLICE_PATH: "# fixture\n",
+    LOGGING_SLICE_PATH: "# fixture\n",
     EXEC_CMD_ZIG_PATH: "// fixture\n",
     HELP_ZIG_PATH: "// fixture\n",
     KALLSYMS_ZIG_PATH: "// fixture\n",
@@ -328,6 +332,7 @@ def run_self_test() -> None:
         ("missing_kallsyms_test", KALLSYMS_TEST_PATH),
         ("missing_kallsyms_only_build", KALLSYMS_ONLY_BUILD_PATH),
         ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
+        ("missing_logging_slice_note", LOGGING_SLICE_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
@@ -397,6 +402,13 @@ def run_self_test() -> None:
             "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
             "`scripts/zigux/check-phase8-exec-cmd.py`",
             f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "scripts_readme_logging_slice_marker",
+            SCRIPTS_README_PATH,
+            "`Documentation/zigux/phase8-logging-slice.md`",
+            "`Documentation/zigux/phase8-libbpf-logging-slice.md`",
+            f"{SCRIPTS_README_PATH}: `Documentation/zigux/phase8-logging-slice.md`",
         ),
         (
             "tests_readme_exec_cmd_route_marker",
