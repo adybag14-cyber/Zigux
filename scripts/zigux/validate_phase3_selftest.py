@@ -33,6 +33,11 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/generate-phase3-check-wrappers.py"), ("--self-test",)),
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
 )
+MAKEFILE_PATH = Path("zigux/Makefile")
+PHASE3_VALIDATE_TARGET = "phase3-validate"
+PHASE3_SELFTEST_DRIVER_COMMAND = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py"
+)
 
 
 def validate_script_list(repo_root: Path) -> list[str]:
@@ -43,8 +48,52 @@ def validate_script_list(repo_root: Path) -> list[str]:
     return missing
 
 
+def _extract_make_target_commands(text: str, target: str) -> list[str] | None:
+    target_header = f"{target}:"
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line != target_header:
+            continue
+        commands: list[str] = []
+        for body_line in lines[index + 1 :]:
+            if not body_line.startswith("\t"):
+                break
+            commands.append(body_line.strip())
+        return commands
+    return None
+
+
+def _selftest_make_command(rel_path: Path, args: tuple[str, ...]) -> str:
+    suffix = " ".join(args)
+    return f"cd $(ZIGUX_ROOT) && $(PYTHON) {rel_path.as_posix()} {suffix}".rstrip()
+
+
+def validate_makefile(repo_root: Path) -> list[str]:
+    makefile_path = repo_root / MAKEFILE_PATH
+    try:
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing repo file: {MAKEFILE_PATH.as_posix()}"]
+
+    commands = _extract_make_target_commands(makefile_text, PHASE3_VALIDATE_TARGET)
+    if commands is None:
+        return [f"missing make target: {PHASE3_VALIDATE_TARGET}"]
+
+    issues: list[str] = []
+    if PHASE3_SELFTEST_DRIVER_COMMAND not in commands:
+        issues.append(f"missing make command: {PHASE3_SELFTEST_DRIVER_COMMAND}")
+
+    for rel_path, args in SELFTEST_COMMANDS:
+        command = _selftest_make_command(rel_path, args)
+        if command not in commands:
+            issues.append(f"missing make command: {command}")
+
+    return issues
+
+
 def run_packet(repo_root: Path) -> int:
     missing = validate_script_list(repo_root)
+    missing.extend(validate_makefile(repo_root))
     if missing:
         print("PHASE3_VALIDATE_SELFTEST=fail")
         print("\n".join(missing))
@@ -86,9 +135,27 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
 
+        commands = [PHASE3_SELFTEST_DRIVER_COMMAND]
+        commands.extend(
+            _selftest_make_command(rel_path, args)
+            for rel_path, args in SELFTEST_COMMANDS
+        )
+        (root / MAKEFILE_PATH).parent.mkdir(parents=True, exist_ok=True)
+        (root / MAKEFILE_PATH).write_text(
+            PHASE3_VALIDATE_TARGET
+            + ":\n"
+            + "\n".join(f"\t{command}" for command in commands)
+            + "\n",
+            encoding="utf-8",
+        )
+
         if validate_script_list(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic self-test script set to validate")
+            return 1
+        if validate_makefile(root):
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic makefile self-test route to validate")
             return 1
 
         first_path = SELFTEST_COMMANDS[0][0]
@@ -103,6 +170,61 @@ def run_self_test() -> int:
         (root / first_path).write_text(
             "#!/usr/bin/env python3\n"
             "raise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            "\t"
+            + _selftest_make_command(SELFTEST_COMMANDS[-1][0], SELFTEST_COMMANDS[-1][1])
+            + "\n",
+            "",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = (
+            "missing make command: "
+            + _selftest_make_command(SELFTEST_COMMANDS[-1][0], SELFTEST_COMMANDS[-1][1])
+        )
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing makefile self-test command was not reported")
+            return 1
+
+        commands = [PHASE3_SELFTEST_DRIVER_COMMAND]
+        commands.extend(
+            _selftest_make_command(rel_path, args)
+            for rel_path, args in SELFTEST_COMMANDS
+        )
+        (root / MAKEFILE_PATH).write_text(
+            PHASE3_VALIDATE_TARGET
+            + ":\n"
+            + "\n".join(f"\t{command}" for command in commands)
+            + "\n",
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            "\t" + PHASE3_SELFTEST_DRIVER_COMMAND + "\n",
+            "",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing make command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing selftest driver makefile command was not reported")
+            return 1
+
+        commands = [PHASE3_SELFTEST_DRIVER_COMMAND]
+        commands.extend(
+            _selftest_make_command(rel_path, args)
+            for rel_path, args in SELFTEST_COMMANDS
+        )
+        (root / MAKEFILE_PATH).write_text(
+            PHASE3_VALIDATE_TARGET
+            + ":\n"
+            + "\n".join(f"\t{command}" for command in commands)
+            + "\n",
             encoding="utf-8",
         )
         failing_path = SELFTEST_COMMANDS[1][0]
