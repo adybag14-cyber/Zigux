@@ -107,8 +107,8 @@ def check_manifest(root: Path) -> None:
     except json.JSONDecodeError as exc:
         raise CheckError(f"invalid json in {REQUIRED_FILES['manifest']}: {exc}") from exc
 
-    if payload.get("lane_key") != "P11-L05":
-        raise CheckError("phase11_dw_wdt_manifest.json lost lane_key P11-L05")
+    if payload.get("lane_key") != "P11-L11":
+        raise CheckError("phase11_dw_wdt_manifest.json lost lane_key P11-L11")
     if payload.get("phase") != "Phase 11":
         raise CheckError("phase11_dw_wdt_manifest.json lost Phase 11 tag")
     if payload.get("anchor") != "drivers/watchdog/dw_wdt.c":
@@ -201,7 +201,7 @@ def build_self_test_fixture(root: Path) -> None:
         root / REQUIRED_FILES["manifest"],
         json.dumps(
             {
-                "lane_key": "P11-L05",
+                "lane_key": "P11-L11",
                 "phase": "Phase 11",
                 "surveyed_commit": "75f8336c4305beed127d7abfae37d3999b7cc57c",
                 "anchor": "drivers/watchdog/dw_wdt.c",
