@@ -63,6 +63,8 @@
         "partial_xor_nbits",
         "partial_xor_masked_values"
       ],
+      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
+      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
       "cross_word_scnprintf_anchor": "test \"bitmap scnprintf collapses contiguous ranges across word boundaries\"",
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
