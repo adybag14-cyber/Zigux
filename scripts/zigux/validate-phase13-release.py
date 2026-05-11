@@ -106,6 +106,9 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`make -C zigux phase13-validate`",
+        "current `master` does not materialize `security/landlock/syscalls.zig`",
+        "The shipped `security/landlock/` helper surface is still limited to `security/landlock/ruleset.zig`",
+        "governance-only release-surface note until a bounded helper-local planner actually lands",
     ],
     "Documentation/zigux/phase13-notifier-list-survey.md": [
         "# Phase 13 Notifier List Survey",
@@ -169,6 +172,9 @@ EXACT_COUNTS = {
     },
     "Documentation/zigux/README.md": {
         "the current eight-test shared-helper release packet": 1,
+    },
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md": {
+        "current `master` does not materialize `security/landlock/syscalls.zig`": 1,
     },
     "scripts/zigux/README.md": {
         "eight-test shared helper replay": 1,
@@ -332,6 +338,37 @@ def run_self_test() -> int:
             repeat_markers(
                 REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
                 EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]
+                    if marker
+                    != "current `master` does not materialize `security/landlock/syscalls.zig`"
+                ],
+                {},
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:current `master` does not materialize `security/landlock/syscalls.zig`",
+                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:current `master` does not materialize `security/landlock/syscalls.zig`:expected=1:actual=0",
+            ],
+            "missing_syscalls_absent_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
             ),
         )
         case_count += 1
