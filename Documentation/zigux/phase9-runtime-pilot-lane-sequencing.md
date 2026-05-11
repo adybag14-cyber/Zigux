@@ -58,6 +58,7 @@ Current `master` also keeps the four pilot-family review packets visible:
 - the paired `phase9-runtime-*-module-slice.md` notes
 - the dedicated `zigux/tests/runtime_*_survey.zig` gates
 - the bitmap-only `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay
+- the focused `make -C zigux phase9-runtime-atomic64-test`, `make -C zigux phase9-runtime-bitmap-top-bit-test`, `make -C zigux phase9-runtime-trace-events-test`, and `make -C zigux phase9-runtime-kretprobe-test` pilot-family replay routes
 
 That means the shared Phase 9 packet should keep the loader-facing family explicit as live review evidence while still keeping the loadable-runtime-substrate blocker explicit and keeping pilot-family follow-through inside the family lanes that now own it.
 
