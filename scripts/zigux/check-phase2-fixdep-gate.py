@@ -62,12 +62,15 @@ TESTS_README_MARKERS = [
 
 EXPECTED_CASE_NAMES = [
     "sample",
+    "sample_multi_target",
     "sample_escaped_space",
     "sample_escaped_colon",
-    "sample_multi_target",
+    "sample_concatenated",
     "sample_comment_only",
+    "sample_comment_only_stdout_full",
     "sample_missing_dep",
-    "sample_escaped_hash_comment_chain",
+    "sample_missing_dep_stdout_full",
+    "sample_output_write",
 ]
 
 FILE_MARKERS = {
@@ -168,14 +171,16 @@ def build_self_test_root(root: Path) -> None:
         "sample_escaped_colon_expected.txt",
         "sample_multi_target.d",
         "sample_multi_target_expected.txt",
+        "sample_concatenated.d",
+        "sample_concatenated_expected.txt",
         "sample_comment_only.d",
         "sample_comment_only_expected.txt",
         "sample_comment_only_expected.stderr.txt",
         "sample_missing_dep.d",
         "sample_missing_dep_expected.txt",
         "sample_missing_dep_expected.stderr.txt",
-        "sample_escaped_hash_comment_chain.d",
-        "sample_escaped_hash_comment_chain_expected.txt",
+        "sample_output_write_expected.txt",
+        "sample_output_write_expected.stderr.txt",
     ]:
         write_text(fixture_root / file_name, "fixture\n")
 
@@ -186,6 +191,14 @@ def build_self_test_root(root: Path) -> None:
             "target": "sample.o",
             "cmdline": "clang -c sample.c -o sample.o",
             "expected": "sample_expected.txt",
+            "expected_exit_code": 0,
+        },
+        {
+            "name": "sample_multi_target",
+            "depfile": "sample_multi_target.d",
+            "target": "module/sample2.o",
+            "cmdline": "clang -c sample2.c -o module/sample2.o",
+            "expected": "sample_multi_target_expected.txt",
             "expected_exit_code": 0,
         },
         {
@@ -205,11 +218,11 @@ def build_self_test_root(root: Path) -> None:
             "expected_exit_code": 0,
         },
         {
-            "name": "sample_multi_target",
-            "depfile": "sample_multi_target.d",
-            "target": "module/sample2.o",
-            "cmdline": "clang -c sample2.c -o module/sample2.o",
-            "expected": "sample_multi_target_expected.txt",
+            "name": "sample_concatenated",
+            "depfile": "sample_concatenated.d",
+            "target": "sample_concatenated.o",
+            "cmdline": "clang -c sample_concatenated_source.c -o sample_concatenated.o",
+            "expected": "sample_concatenated_expected.txt",
             "expected_exit_code": 0,
         },
         {
@@ -222,6 +235,16 @@ def build_self_test_root(root: Path) -> None:
             "expected_exit_code": 1,
         },
         {
+            "name": "sample_comment_only_stdout_full",
+            "depfile": "sample_comment_only.d",
+            "target": "sample_comment_only_stdout_full.o",
+            "cmdline": "clang -c sample.c -o sample_comment_only_stdout_full.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_comment_only_expected.stderr.txt",
+            "expected_exit_code": 1,
+            "stdout_mode": "dev_full",
+        },
+        {
             "name": "sample_missing_dep",
             "depfile": "sample_missing_dep.d",
             "target": "sample_missing_dep.o",
@@ -231,12 +254,24 @@ def build_self_test_root(root: Path) -> None:
             "expected_exit_code": 2,
         },
         {
-            "name": "sample_escaped_hash_comment_chain",
-            "depfile": "sample_escaped_hash_comment_chain.d",
-            "target": "sample_escaped_hash_comment_chain.o",
-            "cmdline": "clang -c sample.c -o sample_escaped_hash_comment_chain.o",
-            "expected": "sample_escaped_hash_comment_chain_expected.txt",
-            "expected_exit_code": 0,
+            "name": "sample_missing_dep_stdout_full",
+            "depfile": "sample_missing_dep.d",
+            "target": "sample_missing_dep_stdout_full.o",
+            "cmdline": "clang -c sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+            "expected_exit_code": 2,
+            "stdout_mode": "dev_full",
+        },
+        {
+            "name": "sample_output_write",
+            "depfile": "sample.d",
+            "target": "sample_output_write.o",
+            "cmdline": "clang -c sample.c -o sample_output_write.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_output_write_expected.stderr.txt",
+            "expected_exit_code": 1,
+            "stdout_mode": "dev_full",
         },
     ]
     write_text(fixture_root / "cases.json", json.dumps(cases))
