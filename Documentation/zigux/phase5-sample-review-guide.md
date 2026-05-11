@@ -124,6 +124,7 @@ Before landing a Phase 5 change, confirm:
 * if a shared doc claims a sample-local survey note is part of the shipped packet, that exact survey note path is directly readable instead of being inferred from a sibling sample or older wording
 * if a shared doc claims a sample-local replay route, the corresponding sample file, paired tests, paired manifest, and build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone
 * if a landed sample contract changes, the directly coupled survey note or manifest-backed contributor prompts move with it instead of lagging behind the sample code
+* if the change touches the landed `bytestream_fifo` packet, do the shared guide, survey note, and manifest-backed prompts still keep the explicit Linux-style transfer-count contract visible alongside the queue-order, preview, rollover, helper-boundary, and ownership-path cues that make the sample reviewable?
 * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
