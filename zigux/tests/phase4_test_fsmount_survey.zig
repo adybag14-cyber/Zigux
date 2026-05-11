@@ -29,9 +29,13 @@ test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
     );
 }
 
+test "phase4 test_fsmount survey keeps threshold posture explicit" {
+    try requireMarker("\"threshold_posture\": \"reviewability_only_no_perf_threshold\"");
+}
+
 test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
+        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
     );
 }
 
