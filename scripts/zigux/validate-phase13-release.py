@@ -125,6 +125,10 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
         "keep the validator-first eight-test release route explicit",
+        "framed as repo reality rather than shipped evidence when current `master` still cannot materialize",
+        "`scripts/zigux/check-phase13-notifier-packet.py`",
+        "`zigux/tests/phase13Devres_reviewability.zig`",
+        "treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "## Phase 13 tests-root packet",
@@ -415,6 +419,44 @@ def run_self_test() -> int:
                 "missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests",
             ],
             "missing_workflow_step_failed",
+        )
+        write_text(
+            root,
+            ".github/workflows/zigux-bootstrap.yml",
+            repeat_markers(
+                REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"],
+                EXACT_COUNTS[".github/workflows/zigux-bootstrap.yml"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]
+                    if marker
+                    != "treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path"
+                ],
+                {},
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path",
+            ],
+            "missing_devres_typo_guard_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"],
+                {},
+            ),
         )
         case_count += 1
 
