@@ -6,9 +6,11 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import sys
+import tempfile
 
 
 NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
+BOUNDARY_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -73,13 +75,15 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
 )
+REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS = (
+    "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
+    "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+    "export/UAPI packet actually grows",
+)
 
 
 def load_text(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"missing note: {path}") from exc
+    return path.read_text(encoding="utf-8")
 
 
 def validate_text(text: str) -> list[str]:
@@ -116,11 +120,51 @@ def validate_text(text: str) -> list[str]:
     return missing
 
 
-def run_self_test() -> int:
+def validate_boundary_note_text(text: str) -> list[str]:
+    return [
+        f"boundary note policy missing marker: {marker}"
+        for marker in REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS
+        if marker not in text
+    ]
+
+
+def validate_repo(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+
+    note_path = repo_root / NOTE_PATH
+    try:
+        note_text = load_text(note_path)
+    except FileNotFoundError:
+        return [f"missing note: {note_path.as_posix()}"]
+    issues.extend(validate_text(note_text))
+
+    boundary_note_path = repo_root / BOUNDARY_NOTE_PATH
+    try:
+        boundary_note_text = load_text(boundary_note_path)
+    except FileNotFoundError:
+        issues.append(f"missing boundary note: {boundary_note_path.as_posix()}")
+    else:
+        issues.extend(validate_boundary_note_text(boundary_note_text))
+
+    return issues
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def _sample_text() -> str:
     sample = "\n".join(REQUIRED_MARKERS)
     sample += "\n## Current packet\n" + "\n".join(REQUIRED_CURRENT_PACKET_MARKERS)
     sample += "\n## Review boundary\n" + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKERS)
+    sample += "\n## Non-goals\n- stub\n"
     sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
+    return sample
+
+
+def run_self_test() -> int:
+    sample = _sample_text()
     missing = validate_text(sample)
     if missing:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
@@ -159,16 +203,16 @@ def run_self_test() -> int:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected review boundary section separator was not found")
         return 1
-    review_boundary, separator, tail = after.partition("\n## Shared reminder\n")
+    review_boundary, separator, tail = after.partition("\n## Non-goals\n")
     if not separator:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder section separator was not found")
+        print("expected non-goals section separator was not found")
         return 1
     review_boundary_broken = review_boundary.replace(
-        review_boundary_next_step_marker + "\n", "", 1
+        review_boundary_next_step_marker, "", 1
     )
     broken = validate_text(
-        before + "## Review boundary\n" + review_boundary_broken + "\n## Shared reminder\n" + tail
+        before + "## Review boundary\n" + review_boundary_broken + "\n## Non-goals\n" + tail
     )
     if (
         f"review boundary missing marker: {review_boundary_next_step_marker}"
@@ -180,10 +224,10 @@ def run_self_test() -> int:
 
     review_boundary_closed_marker = "closed together when either note drifts"
     review_boundary_broken = review_boundary.replace(
-        review_boundary_closed_marker + "\n", "", 1
+        review_boundary_closed_marker, "", 1
     )
     broken = validate_text(
-        before + "## Review boundary\n" + review_boundary_broken + "\n## Shared reminder\n" + tail
+        before + "## Review boundary\n" + review_boundary_broken + "\n## Non-goals\n" + tail
     )
     if (
         f"review boundary missing marker: {review_boundary_closed_marker}"
@@ -268,6 +312,50 @@ def run_self_test() -> int:
         print("expected scripts README reminder marker was not reported")
         return 1
 
+    boundary_sample = "\n".join(REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS) + "\n"
+    if validate_boundary_note_text(boundary_sample):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note policy sample to validate")
+        return 1
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_support_") as temp_dir:
+        root = Path(temp_dir)
+        _write(root / NOTE_PATH, sample)
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+
+        issues = validate_repo(root)
+        if issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("\n".join(issues))
+            return 1
+
+        boundary_path = root / BOUNDARY_NOTE_PATH
+        boundary_path.write_text(
+            boundary_sample.replace(
+                "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note policy missing marker: "
+            "and next-step notes while leaving the narrower `zigux/uapi/version.zig`"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note policy drift was not reported")
+            return 1
+
+        boundary_path.unlink()
+        issues = validate_repo(root)
+        expected = f"missing boundary note: {(root / BOUNDARY_NOTE_PATH).as_posix()}"
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected missing boundary note was not reported")
+            return 1
+
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
     return 0
 
@@ -290,15 +378,13 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    note_path = args.repo_root / NOTE_PATH
-    text = load_text(note_path)
-    missing = validate_text(text)
-    if missing:
-        for marker in missing:
+    issues = validate_repo(args.repo_root)
+    if issues:
+        for marker in issues:
             print(f"missing marker: {marker}", file=sys.stderr)
         return 1
 
-    print(f"validated {note_path}")
+    print(f"validated {args.repo_root / NOTE_PATH}")
     return 0
 
 
