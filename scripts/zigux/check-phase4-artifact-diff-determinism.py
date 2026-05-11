@@ -36,6 +36,7 @@ EXPECTED_HELPER_SELF_TEST_CASES = [
 EXPECTED_CONTRACT_SELF_TEST_CASES = [
     "catalog_shape",
     "review_note_marker_round_trip",
+    "review_note_owner_marker_drift",
     "review_note_marker_drift",
     "helper_summary_round_trip",
     "contract_summary_round_trip",
@@ -91,6 +92,7 @@ EXPECTED_SELF_TEST_CASES = [
     "helper_summary_case_order_drift",
     "contract_self_test_round_trip",
     "contract_self_test_count_drift",
+    "contract_self_test_missing_owner_review_note_drift",
     "contract_self_test_case_order_drift",
     "contract_summary_round_trip",
     "contract_summary_case_count_drift",
@@ -267,12 +269,34 @@ def run_self_test() -> int:
     covered_cases.append("contract_self_test_round_trip")
 
     bad_contract_self_test_count = contract_self_test_lines.copy()
-    bad_contract_self_test_count[1] = "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=16"
+    bad_contract_self_test_count[1] = (
+        "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT="
+        f"{len(EXPECTED_CONTRACT_SELF_TEST_CASES) - 1}"
+    )
     expect_assertion(
         "contract_self_test_count_drift",
         lambda: assert_contract_self_test_summary(bad_contract_self_test_count),
     )
     covered_cases.append("contract_self_test_count_drift")
+
+    bad_contract_self_test_missing_owner = contract_self_test_lines.copy()
+    bad_contract_self_test_missing_owner[2] = (
+        "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=" + ",".join(
+            [
+                "catalog_shape",
+                "review_note_marker_round_trip",
+                "review_note_marker_drift",
+                *EXPECTED_CONTRACT_SELF_TEST_CASES[3:],
+            ]
+        )
+    )
+    expect_assertion(
+        "contract_self_test_missing_owner_review_note_drift",
+        lambda: assert_contract_self_test_summary(
+            bad_contract_self_test_missing_owner
+        ),
+    )
+    covered_cases.append("contract_self_test_missing_owner_review_note_drift")
 
     bad_contract_self_test_order = contract_self_test_lines.copy()
     bad_contract_self_test_order[2] = "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=" + ",".join(
