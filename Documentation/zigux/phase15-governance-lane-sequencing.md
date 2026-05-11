@@ -19,7 +19,7 @@ The current Phase 15 lane family is:
 - `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md` plus `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and keeps the required review-packet fields, decision buckets, and reopen-trigger catalog explicit
 - `readiness-gate`: owns `Documentation/zigux/phase15-readiness-gate-survey.md` plus `scripts/zigux/validate-phase15.py`, and keeps the validator-first maintenance posture explicit
 - `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`, and keeps the named reopen triggers plus the parked next-step record explicit
-- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and may only restate shipped governance evidence, the stay-in-C policy and blocker-evidence wording only, instead of implying approval or replay coverage that is not present on current `master`
+- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and may only restate shipped governance evidence, the stay-in-C policy and blocker-evidence wording only, instead of implying approval or replay coverage that is not present on current `master`; the one remaining parked drift in this family is that `zigux/tests/README.md` still does not keep `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes
 
 ## Current Repo Reality
 
@@ -77,7 +77,7 @@ Because those companion manifest, Zig, and replay surfaces are already landed, t
 
 The next honest Architecture Council follow-up is maintenance only:
 
-- repair one shared summary or checker that drifts away from the current Phase 15 packet
+- repair the shared `zigux/tests/README.md` reminder so it keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`
 - otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
 Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
