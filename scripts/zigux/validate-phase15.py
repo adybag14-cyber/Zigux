@@ -105,10 +105,13 @@ TESTS_README_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 15 governance packet",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_readiness_gate.zig",
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "make -C zigux phase15",
     "no-approval-yet posture",
 ]
