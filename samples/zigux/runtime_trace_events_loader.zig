@@ -737,25 +737,19 @@ test "runtime trace-events loader rejects non-idle registration state at the met
     try std.testing.expect(!recovered_plan.summary.registration_paths_checked);
 }
 
-test "runtime trace-events loader keeps selftest-ready nested registration drains explicit before shared handoff" {
+test "runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
     _ = try module.runSelftest();
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     _ = try module.emitFunctionIteration(9);
 
     try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
 
     var blocked_loader = RuntimeTraceEventsLoader{};
     try std.testing.expectError(error.OutstandingRegistrationForLoader, blocked_loader.prepare(&module));
-
-    try module.unregisterFunctionThread();
-    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
-
-    var partially_drained_loader = RuntimeTraceEventsLoader{};
-    try std.testing.expectError(error.OutstandingRegistrationForLoader, partially_drained_loader.prepareSharedRequest(&module));
 
     try module.unregisterFunctionThread();
 
