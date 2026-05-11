@@ -67,7 +67,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.review_process_present);
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
-    try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(!manifest.repo_evidence.docs_index_handoff_pointer_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.dedicated_handoff_guard_present);
@@ -147,6 +147,9 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "tests-root Phase 15 guards") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "The dedicated parked maintenance notes remain `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the compact docs-root Phase 15 reminder in `Documentation/zigux/README.md` stays intentionally limited") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summaries` first instead of being claimed as already landed here") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-handoff-pointer-visible") == null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "route that repair to `shared-summaries` first") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
