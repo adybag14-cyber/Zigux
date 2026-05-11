@@ -38,6 +38,7 @@ Phase 3 ABI and runtime tranche.
 - `python3 scripts/zigux/phase3_catalog.py --self-test`
 - `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`
 - `python3 scripts/zigux/phase3_check_lib.py --self-test`
+- `python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test`
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
 - `python3 scripts/zigux/run-phase3-checks.py --self-test`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
