@@ -22,9 +22,10 @@ MARKERS = {
     "note": [
         "# Phase 11 Shared Replay Contract",
         "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "The live DesignWare watchdog follow-through inside that shared route stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`.",
-        "* DesignWare watchdog planning lane: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "The dedicated archival HVC evidence on current `master` is also kept explicit beside that shared route through the bounded survey, teardown, and failure-mode packet:",
+        "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`.",
+        "The live DesignWare watchdog packet inside that shared route also stays explicit through `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`.",
+        "That bounded DesignWare packet keeps the registration-order scaffold, teardown and failure-mode parity split, and dedicated watchdog replay visible beside the shared route without claiming live platform registration, clock ownership, reset ownership, IRQ handling, or MMIO-backed validation.",
+        "* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`",
         "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "* `zigux/tests/phase11_hvc_console_manifest.json`",
         "* `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
@@ -57,18 +58,23 @@ MARKERS = {
     "docs_readme": [
         "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`",
         "`Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     ],
     "scripts_readme": [
         "Phase 11 flow - `Documentation/zigux/README.md`",
         "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "`drivers/watchdog/dw_wdt_verify.zig`",
         "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig` helper path",
     ],
     "tests_readme": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too:",
         "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
         "`make -C zigux phase11-hvc-survey`",
     ],
@@ -77,7 +83,8 @@ MARKERS = {
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`Documentation/zigux/phase11-closure-note.md`",
         "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
-        "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`drivers/watchdog/dw_wdt_verify.zig`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
@@ -136,14 +143,14 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         cases = [
-            (FILES["note"], MARKERS["note"][2]),
-            (FILES["note"], MARKERS["note"][12]),
+            (FILES["note"], MARKERS["note"][3]),
+            (FILES["note"], MARKERS["note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][5]),
             (FILES["lane_note"], MARKERS["lane_note"][4]),
-            (FILES["docs_readme"], MARKERS["docs_readme"][1]),
-            (FILES["tests_readme"], MARKERS["tests_readme"][4]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][4]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][6]),
+            (FILES["docs_readme"], MARKERS["docs_readme"][2]),
+            (FILES["scripts_readme"], MARKERS["scripts_readme"][3]),
+            (FILES["tests_readme"], MARKERS["tests_readme"][2]),
+            (FILES["review_checklist"], MARKERS["review_checklist"][5]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
