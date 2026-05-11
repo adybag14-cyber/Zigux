@@ -64,6 +64,17 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,),
 )
 
+PHASE2_VALIDATOR_MARKERS = [
+    'PHASE2_TOOL_MANIFEST_PACKET_CHECKER = (',
+    '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),',
+    '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,),',
+    '    "scripts/zigux/check-phase2-tool-manifest-packets.py",',
+    '    "zigux/tests/fixtures/phase2_tool_manifest.json",',
+    '    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
+]
+
 EXPECTED_CONF_CASES = (
     {
         "name": "oldaskconfig",
@@ -606,6 +617,32 @@ def run_self_test_checks() -> list[str]:
                 "phase2_closure:missing:shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`"
             ],
         ),
+        (
+            "phase2_validator_missing_tool_manifest_command",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_VALIDATOR_MARKERS
+                    if marker != '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'
+                ),
+                PHASE2_VALIDATOR_MARKERS,
+                "phase2_validator",
+            ),
+            ['phase2_validator:missing:    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'],
+        ),
+        (
+            "phase2_validator_missing_tool_manifest_fixture_inventory",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_VALIDATOR_MARKERS
+                    if marker != '    "zigux/tests/fixtures/phase2_tool_manifest.json",'
+                ),
+                PHASE2_VALIDATOR_MARKERS,
+                "phase2_validator",
+            ),
+            ['phase2_validator:missing:    "zigux/tests/fixtures/phase2_tool_manifest.json",'],
+        ),
     ]
 
     issues: list[str] = []
@@ -653,6 +690,13 @@ def main() -> int:
     issues.extend(validate_required_markers(closure_text, PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"))
     issues.extend(validate_exact_makefile_runs(PHASE2_MAKEFILE.read_text(encoding="utf-8")))
     issues.extend(validate_exact_workflow_runs(PHASE2_WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(
+        validate_required_markers(
+            (ROOT / "scripts" / "zigux" / "validate-phase2.py").read_text(encoding="utf-8"),
+            PHASE2_VALIDATOR_MARKERS,
+            "phase2_validator",
+        )
+    )
 
     cases_payload, cases_load_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
     issues.extend(cases_load_issues)
@@ -702,7 +746,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=14")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=16")
         return 0
 
     if issues:
