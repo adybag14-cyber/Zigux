@@ -49,13 +49,13 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - a representative packet-local core survey note, `Documentation/zigux/phase10-virtio-core-survey.md`, that remained directly readable through raw GitHub URL fallback and still records the parked `P10-L01` core-lane governance packet, the bounded helper evidence, the dedicated checker path, and the shared Phase 10 replay routes
 - a directly readable lane-sequencing note, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, that still records the current core, ring, input, and MMIO lane-owner split plus the shared packet surfaces and non-goals that keep the Phase 10 bundle parked below risky transport work
 - the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and this closure note, which keep the direct-core tests-root checker explicit on current `master`
-- the broader shared reminder packet in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and this closure note, which keeps the landed shared validation route, the shared harness-coverage checker, and the direct-core tests-root checker explicit on current `master`
+- the broader shared reminder packet in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and this closure note, which keeps the landed shared validation route, the shared harness-coverage checker, and the direct-core tests-root checker explicit on current `master`, while the compact companion and lane-sequencing note keep the exact `zigux/tests/phase10_virtio_ring_reset_reuse.zig` replay explicit as landed ring evidence
 
 ## Current Truthfulness Blockers
 
-No bounded shared-reminder truthfulness blocker is currently visible on current `master`.
+One bounded shared-reminder truthfulness blocker is still visible on current `master`.
 
-The broad Phase 10 checklist reminder in `Documentation/zigux/review-checklist.md` now names the shared closure note, closure manifest, checker packet, the direct core review pair `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig`, the bounded reset-queue replay, the direct driver-id replay, and the Linux-style make routes, matching the already-explicit tests-root, scripts-root, lane-sequencing, and compact review-companion packet.
+The compact Phase 10 tests-root companion and the lane-sequencing owner map now keep `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit as landed ring evidence, but the broader shared reminder packet still does not fail closed on that exact replay path. `scripts/zigux/check-phase10-harness-coverage.py` currently enforces the exact ring drained-reset reuse markers only inside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, while the broader `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` surfaces still under-describe or omit the direct replay path even though they already describe the same shared Phase 10 packet.
 
 ## Parked Boundary
 
@@ -67,7 +67,8 @@ The roadmap posture remains unchanged:
 
 ## Next Bounded Step
 
-The next truthful virtio-driver follow-through should stay inside one shared reminder surface at a time:
+The next truthful virtio-driver follow-through should stay inside one shared reminder surface packet at a time:
 
-1. leave this shared reminder packet parked unless `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase10.py`, or `zigux/tests/phase10_closure_manifest.json` moves again
-2. if one of those surfaces changes, reread the shared Phase 10 reminder packet first and land only the smallest same-packet truthfulness repair without widening into risky transport or closure-manifest scope
+1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
+2. update `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` so the broad shared Phase 10 packet keeps `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside the existing ring verify and shared closure-manifest reminders
+3. harden `scripts/zigux/check-phase10-harness-coverage.py` so those broader shared surfaces fail closed if the exact ring drained-reset reuse replay path drifts again
