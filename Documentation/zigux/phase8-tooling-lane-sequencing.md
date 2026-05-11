@@ -67,6 +67,7 @@ Current wording-lane caution:
 - current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while trimming stale Phase 8 inventory
 - when this lane reopens, re-read the shared reminder surfaces against the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
+- Keep follow-up inside the shared wording lane until the public survey packet and the current readable helper-plus-build evidence agree again.
 
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
