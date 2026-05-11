@@ -19,6 +19,7 @@ SMOKE_SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md
 MAKEFILE_PATH = Path("zigux/Makefile")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 
 DOCS_ROOT_MARKERS = [
@@ -51,6 +52,7 @@ DOCS_ROOT_EXACT_COUNT_MARKERS = [
 
 SMOKE_SURVEY_MARKERS = [
     CHECKER_PATH,
+    ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
@@ -65,6 +67,7 @@ SMOKE_SURVEY_MARKERS = [
 
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
+    ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "PHASE14_ANCHOR_PACKET_COUNT=4",
 ]
@@ -72,6 +75,7 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
 MAKEFILE_MARKERS = [
     "scripts/zigux/validate-phase14.py",
     CHECKER_PATH,
+    ROLLBACK_CHECKER_PATH,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     RELEASE_BOUNDARY_CHECKER_PATH,
 ]
@@ -81,16 +85,17 @@ MAKEFILE_EXACT_COUNT_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH}",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
 ]
 
 MANIFEST_REQUIRED_SURFACES = [
     CHECKER_PATH,
+    ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
-    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
 ]
 
 
@@ -216,6 +221,7 @@ def good_smoke_survey_text() -> str:
     return "\n".join(
         [
             f"- `{CHECKER_PATH}`",
+            f"- `{ROLLBACK_CHECKER_PATH}`",
             f"- `{RELEASE_BOUNDARY_CHECKER_PATH}`",
             "- `scripts/zigux/validate-phase14.py`",
             "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
@@ -238,7 +244,8 @@ def good_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH}",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
         ]
@@ -377,6 +384,26 @@ def run_self_test() -> int:
         write_text(
             root / MAKEFILE_PATH,
             good_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH.as_posix()}: \tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing rollback makefile self-test route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MAKEFILE_PATH, good_makefile_text())
+
+        write_text(
+            root / MAKEFILE_PATH,
+            good_makefile_text().replace(
                 f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test\n",
                 "",
                 1,
@@ -427,7 +454,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
