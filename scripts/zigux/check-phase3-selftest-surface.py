@@ -10,6 +10,7 @@ import tempfile
 
 README_PATH = Path("Documentation/zigux/README.md")
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
+NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
@@ -33,6 +34,11 @@ CHECKLIST_MARKERS = (
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
+)
+NOTE_POLICY_MARKERS = (
+    "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
+    "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+    "export/UAPI packet actually grows",
 )
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
@@ -174,6 +180,13 @@ def validate_repo(repo_root: Path) -> list[str]:
             repo_root / CHECKLIST_PATH, CHECKLIST_MARKERS, "review checklist"
         )
     )
+    issues.extend(
+        _check_markers(
+            repo_root / NOTE_PATH,
+            NOTE_POLICY_MARKERS,
+            "abi.h next-step note",
+        )
+    )
     tests_readme = repo_root / TESTS_README_PATH
     issues.extend(
         _check_markers(tests_readme, TESTS_README_MARKERS, "tests README")
@@ -233,6 +246,7 @@ def _populate_repo(root: Path) -> None:
         + "\n",
     )
     _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
+    _write(root / NOTE_PATH, "\n".join(NOTE_POLICY_MARKERS) + "\n")
     _write(
         root / TESTS_README_PATH,
         "\n".join(
@@ -303,6 +317,26 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected missing review checklist dev_t marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        note_path = root / NOTE_PATH
+        note_path.write_text(
+            _read(note_path).replace(
+                "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing abi.h next-step note marker: "
+            "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected abi.h next-step note policy drift was not reported")
             return 1
 
         _populate_repo(root)
