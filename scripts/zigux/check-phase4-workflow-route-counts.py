@@ -577,6 +577,33 @@ def run_selftest() -> None:
             )
 
         workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
+        missing_artifact_diff_contract_workflow_route = workflow.read_text(encoding="utf-8").replace(
+            "        run: python3 scripts/zigux/check-artifact-diff-contract.py\n",
+            "",
+            1,
+        )
+        workflow.write_text(missing_artifact_diff_contract_workflow_route, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "run: python3 scripts/zigux/check-artifact-diff-contract.py" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                ".github/workflows/zigux-bootstrap.yml missing run: python3 scripts/zigux/check-artifact-diff-contract.py "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         missing_gate_evidence_workflow_route = workflow.read_text(encoding="utf-8").replace(
             "        run: python3 scripts/zigux/check-phase4-gate-evidence.py\n",
             "",
