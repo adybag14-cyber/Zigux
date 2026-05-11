@@ -9,83 +9,44 @@ It is a coordination artifact, not a closure claim.
 - `PHASE8_SEQUENCE=tooling-lane-anti-overlap`
 - shared validator-first entrypoint: `python3 scripts/zigux/validate-phase8.py`
 - shared make validation route: `make -C zigux phase8-validate`
-- shared build replay entrypoint: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-- Linux-style replay entrypoint: `make -C zigux phase8`
-- shared wording and gate surfaces on current `master`: `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-libbpf-segment-gate.py`, `scripts/zigux/check-phase8-libbpf-shard-routes.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
-- freeze-map posture: this lane stays in repo-hosted tooling only and does not reopen any deep-core freeze anchor
+- shared docs and reminder surfaces still present on current `master`: `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
+- current repo-reality caution: the default-branch tree read surface no longer exposes the older `Documentation/zigux/phase8-*-slice.md`, `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, or `zigux/tests/phase8_*` packet that some shared summaries still name
+- freeze-map posture: this lane stays in repo-hosted tooling review surfaces only and does not reopen any deep-core freeze anchor
 
 ## Lane map
 
 ### 1. Command lane
-Use this lane only for the landed `tools/lib/subcmd/*.zig` packet when a fresh helper-local or route-local gap appears.
+Use this lane only if current `master` again ships concrete `tools/lib/subcmd/` Phase 8 anchors.
 
-Current parked packet:
-- `tools/lib/subcmd/exec-cmd.zig`
-- `tools/lib/subcmd/help.zig`
-- `zigux/tests/phase8_exec_cmd.zig`
-- `zigux/tests/phase8_exec_cmd_only_build.zig`
-- `zigux/tests/phase8_help.zig`
-- `zigux/tests/phase8_help_only_build.zig`
-- `zigux/tests/phase8_help_kallsyms_only_build.zig`
+Current repo reality:
+- the default-branch tree read surface does not currently expose `tools/lib/subcmd/`
+- the default-branch tree read surface does not currently expose the older `zigux/tests/phase8_exec_cmd*.zig` or `zigux/tests/phase8_help*.zig` companions
+- treat lingering command-lane references in shared summaries as stale wording, not live packet evidence
 
-Focused replay routes:
-- `make -C zigux phase8-exec-cmd-test`
-- `make -C zigux phase8-help-test`
-- `make -C zigux phase8-help-kallsyms-test`
-
-Do not reopen this lane for shared Phase 8 wording cleanup or libbpf helper drift.
+Do not reopen this lane until the tree again carries explicit command-lane files on `master`.
 
 ### 2. Symbol lane
-Use this lane only for the landed `tools/lib/symbol/kallsyms.zig` packet when a fresh symbol-local gap appears.
+Use this lane only if current `master` again ships concrete `tools/lib/symbol/` Phase 8 anchors.
 
-Current parked packet:
-- `tools/lib/symbol/kallsyms.zig`
-- `zigux/tests/phase8_kallsyms.zig`
-- `zigux/tests/phase8_help_kallsyms_only_build.zig`
+Current repo reality:
+- the default-branch tree read surface does not currently expose `tools/lib/symbol/`
+- the default-branch tree read surface does not currently expose the older `zigux/tests/phase8_kallsyms*.zig` companions
+- treat lingering symbol-lane references in shared summaries as stale wording, not live packet evidence
 
-Focused replay routes:
-- `make -C zigux phase8-kallsyms-test`
-- `make -C zigux phase8-help-kallsyms-test`
-
-Do not reopen this lane for libbpf shard routing or shared wording-only drift.
+Do not reopen this lane until the tree again carries explicit symbol-lane files on `master`.
 
 ### 3. Libbpf helper lane
-Use this lane for bounded work inside `tools/lib/bpf/zigux_segments/` and the paired Phase 8 libbpf shard tests.
+Use this lane only if current `master` again ships concrete `tools/lib/bpf/zigux_segments/` anchors or their paired focused Phase 8 shard tests.
 
-Current parked packet:
-- `tools/lib/bpf/zigux_segments/cpu_mask.zig`
-- `tools/lib/bpf/zigux_segments/logging.zig`
-- `tools/lib/bpf/zigux_segments/pin_path.zig`
-- `tools/lib/bpf/zigux_segments/type_names.zig`
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
-- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-- `tools/lib/bpf/zigux_segments/verify.zig`
-- `tools/lib/bpf/zigux_segments/manifest.json`
-- `zigux/tests/phase8_cpu_mask.zig`
-- `zigux/tests/phase8_cpu_mask_only_build.zig`
-- `zigux/tests/phase8_logging.zig`
-- `zigux/tests/phase8_pin_path.zig`
-- `zigux/tests/phase8_bpf_type_names.zig`
-- `zigux/tests/phase8_file_path_handle_bridge.zig`
-- `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
-- `zigux/tests/phase8_perf_buffer_poll.zig`
-- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
-- `zigux/tests/phase8_libbpf_segments.zig`
-- `zigux/tests/phase8_libbpf_segments_only_build.zig`
-- `zigux/tests/phase8_build.zig`
+Current repo reality:
+- the default-branch tree read surface does not currently expose `tools/lib/bpf/zigux_segments/`
+- the default-branch tree read surface does not currently expose the older `zigux/tests/phase8_*` libbpf shard packet
+- treat lingering libbpf-lane references in shared summaries as stale wording, not live packet evidence
 
-Focused replay routes:
-- `make -C zigux phase8-cpu-mask-test`
-- `make -C zigux phase8-file-path-handle-bridge-test`
-- `make -C zigux phase8-libbpf-segments-test`
-- `make -C zigux phase8-perf-buffer-poll-test`
-- `make -C zigux phase8-test`
-- `make -C zigux phase8`
-
-Keep this lane helper-first and output-stable. Do not widen it into loader work, direct procfs or bpffs ownership closure, or Phase 12 release planning.
+Do not reopen this lane until the tree again carries explicit libbpf helper files or shard tests on `master`.
 
 ### 4. Shared wording lane
-Use this lane only when the shared Phase 8 packet description drifts across docs, tests, validator, workflow, or Makefile wording.
+Use this lane for bounded truthfulness work across the shared Phase 8 reminder surfaces when repo reality drifts.
 
 Allowed surfaces:
 - `Documentation/zigux/README.md`
@@ -93,23 +54,21 @@ Allowed surfaces:
 - `Documentation/zigux/phase8-tooling-lane-sequencing.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase8.py`
-- `scripts/zigux/check-phase8-libbpf-segment-gate.py`
-- `scripts/zigux/check-phase8-libbpf-shard-routes.py`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
 Current wording-lane caution:
-- the live tree no longer carries the older Phase 8 slice-note files that some broad summaries still name
-- treat absent slice-note filenames as stale wording, not as current packet evidence
-- when this lane reopens, use `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the dedicated Phase 8 checkers as the first-pass truth surfaces for the parked packet
+- current `master` still carries only the shared reminder packet and this owner-map note for Phase 8 on the default-branch read surface
+- treat missing slice-note, tests-root shard, and tool-tree filenames as removed or absent until the tree itself shows them again
+- when this lane reopens, use the default-branch tree plus the shared docs, validator, Makefile, and workflow surfaces as the first-pass truth sources
 
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
-2. If the gap is helper-local, keep it inside the owning command, symbol, or libbpf lane.
-3. If the gap is wording-only, keep it inside the shared wording lane.
-4. Prefer the next one-file or tightly coupled same-lane repair over broader Phase 8 expansion.
-5. Validate through the narrowest honest shard route or direct readback available before treating the packet as parked again.
+2. Confirm repo reality through the default-branch tree or exact file readback before trusting older Phase 8 inventories.
+3. Keep follow-up inside the shared wording lane unless concrete command, symbol, or libbpf files reappear on `master`.
+4. Prefer the next one-file or tightly coupled same-lane truthfulness repair over broader Phase 8 expansion.
+5. Validate through exact default-branch readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest reopen cue is a shared wording-lane repair in `Documentation/zigux/README.md`: the docs-root Phase 8 summary still names removed slice-note files even though the live parked packet is now carried by the shared validator, tests-root packet, Makefile routes, workflow reminders, and this sequencing note.
+The next honest reopen cue is the docs-root Phase 8 summary in `Documentation/zigux/README.md`: it still names removed slice-note files and tree-backed packet members instead of the current shared reminder surfaces and this owner-map note.
