@@ -63,12 +63,16 @@ WORKFLOW_MARKERS = [
 
 DOCS_README_MARKERS = [
     "Phase 15 notes",
-    "only remaining blocked work is the deep-core status-change evidence",
-    "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-    "python3 scripts/zigux/validate-phase15.py",
-    "make -C zigux phase15-validate",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
+    "no Architecture Council approval is recorded yet",
+    "named reopen trigger",
+    "deep-core blocker-posture change",
 ]
 
 SCRIPTS_README_MARKERS = [
