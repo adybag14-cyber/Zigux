@@ -51,9 +51,9 @@ The older saved `scripts/zigux/validate-phase1.py` write-text handoff is already
 
 The docs-root Phase 1 summary still names this owner-map note, so the earlier `Documentation/zigux/README.md` truthfulness gap remains closed on current `master`.
 
-Fresh bench-packet rereads now show that the next smallest same-lane gap is the unlanded `find_bit` edge bench widening instead: current `zigux/tests/phase1_bench.zig` still stops short of the underscore alias and backward-edge `findLastBit()` replay paths that live `tools/lib/find_bit.zig` already keeps review-visible, and `zigux/tests/fixtures/phase1_bench_expectations.json` still pins the older exact edge checksum `12820000`.
+The earlier `find_bit` edge bench gap is now closed on current `master` too. `zigux/tests/phase1_bench.zig` now carries the underscore-alias and backward-edge `findLastBit()` replay calls inside `findBitEdgeBench()`, and `zigux/tests/fixtures/phase1_bench_expectations.json` already keeps the widened exact edge checksum at `23340000`.
 
-The closed PR history for `test(zigux): tighten Phase 1 find_bit edge bench gate` still matches that live gap. Recomputing the widened edge packet against current `tools/lib/find_bit.zig` behavior yields a per-iteration checksum of `1167`, so the exact Phase 1 edge-bench contract should become `23340000` at `20000` iterations when the underscore alias and tail-edge last-bit calls land beside the existing boundary, tail-clamp, and past-`nbits` probes.
+That means the next honest same-lane follow-up is no longer another bench-body repair. The next useful host-tools step should come from the smallest remaining same-packet truthfulness or exact-check drift across the shipped Phase 1 bench checker, closure note, manifest, or shared reminder surfaces rather than reopening helper behavior.
 
 ## Anti-Overlap Rules
 
@@ -63,19 +63,22 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed bitmap closure-marker repair.
 - Do not reopen the already-landed `validate-phase1.py` write-text typo repair.
 - Do not reopen the already-landed docs-root owner-map sync.
+- Do not reopen the already-landed `find_bit` edge bench sync.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to land the two-file `find_bit` edge bench-gate sync in:
+The next honest same-lane follow-up is to reread the shipped Phase 1 bench-review packet for the smallest remaining exactness or reminder drift across:
 
-- `zigux/tests/phase1_bench.zig`
+- `scripts/zigux/check-phase1-bench.py`
+- `Documentation/zigux/phase1-closure.md`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
+- `zigux/tests/phase1_bench.zig`
 
-That bounded change should add the underscore alias and backward-edge `findLastBit()` replay calls to `findBitEdgeBench()`, then refresh `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` from `12820000` to `23340000` without widening into helper semantics or broader Phase 1 surface churn.
+That bounded follow-up should stay inside one small Phase 1 bench-checker or review-surface truthfulness repair only if live `master` still undercounts the landed widened `find_bit` edge bench contract.
 
-Until that bench-gate sync lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+Until a new same-packet drift is confirmed, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
