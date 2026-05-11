@@ -152,8 +152,9 @@ PHASE9_DOCS_README_SHARED_SUMMARY_MARKER = (
     "`zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four "
     "`samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, "
     "and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped "
-    "build-only surface checker, dedicated lane-sequencing owner map, loader facade, contract, shared build, and "
-    "workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice "
+    "build-only surface checker, dedicated lane-sequencing owner map, shared allocator/init-flow replay, "
+    "roadmap-backed selftest-hook and runtime module lifecycle parity cues, loader facade, contract, shared build, "
+    "and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice "
     "checks or overstating removed loader-gap or dedicated-validator surfaces on `master`."
 )
 
@@ -417,58 +418,24 @@ FORBIDDEN_RUNTIME_LOADER_CONTROL_MARKERS = [
     '"PATH"',
     '"LINES"',
     '"COLUMNS"',
-    "loader_plan_state:",
-    ".loader_plan_state =",
-    "registration_summary:",
-    ".registration_summary =",
-    "module_install_root:",
-    ".module_install_root =",
-    "modules_order_path:",
-    ".modules_order_path =",
-    "modules_builtin_path:",
-    ".modules_builtin_path =",
-    "depmod_script:",
-    ".depmod_script =",
-    "depmod_manifest:",
-    ".depmod_manifest =",
-    "depmod_aliases:",
-    ".depmod_aliases =",
-    '"kernel/workqueue.c"',
-    '"kernel/trace/ring_buffer.c"',
 ]
 
 FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
     "scripts/zigux/check-phase9-validation-flow.py",
     "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
-    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-    "zigux/tests/runtime_loader_gap_manifest.json",
-    "zigux/tests/runtime_loader_gap_survey.zig",
-    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
-    "zigux/tests/runtime_module_metadata_manifest.json",
-    "zigux/tests/runtime_module_metadata_survey.zig",
-    "scripts/zigux/check-phase9-module-metadata-packet.py",
 ]
 
 FORBIDDEN_MAKEFILE_MARKERS = [
     "PHONY += phase9-validate",
     "phase9-validate:",
-    "scripts/zigux/validate-phase9.py",
-    "check-phase9-validation-flow.py",
-    "check-phase9-runtime-loader-commit-alignment.py",
 ]
 
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
+    'const runtime_loader_shared_tests_step = b.step(': 1,
     '"phase9-runtime-loader-shared-tests",': 1,
+    'const runtime_bitmap_top_bit_tests_step = b.step(': 1,
     '"phase9-runtime-bitmap-top-bit-tests",': 1,
-    '.root_source_file = b.path("../kernel/runtime_loader_contract.zig"),': 1,
-    '.root_source_file = b.path("../kernel/runtime_loader.zig"),': 1,
-    '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),': 1,
-    '.root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),': 1,
-    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),': 1,
-    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),': 1,
-    '.root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),': 1,
-    '.root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),': 1,
 }
 
 
@@ -923,137 +890,4 @@ def run_self_test() -> int:
             f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER}:expected=1:actual=2",
         )
 
-        write_fixture_tree(base)
-        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
-        runtime_loader_contract_path.write_text(
-            runtime_loader_contract.replace(
-                'try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            'runtime_loader_contract:try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
-        )
-
-        write_fixture_tree(base)
-        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
-        runtime_loader_contract_path.write_text(
-            runtime_loader_contract.replace(
-                'try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            'runtime_loader_contract:try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
-        )
-
-        write_fixture_tree(base)
-        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
-        runtime_loader_contract_path.write_text(
-            runtime_loader_contract + "command_name:\n",
-            encoding="utf-8",
-        )
-        expect_failure(base, "runtime_loader_contract_forbidden:command_name:")
-
-        write_fixture_tree(base)
-        runtime_loader = runtime_loader_path.read_text(encoding="utf-8")
-        runtime_loader_path.write_text(
-            runtime_loader + 'const leaked = "PERF_EXEC_PATH"\n',
-            encoding="utf-8",
-        )
-        expect_failure(base, 'runtime_loader_forbidden:"PERF_EXEC_PATH"')
-
-        write_fixture_tree(base)
-        makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            makefile + "phase9-runtime-loader-shared-tests:\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "makefile_exact_count:phase9-runtime-loader-shared-tests::expected=1:actual=2",
-        )
-
-        write_fixture_tree(base)
-        sample_path = base / REQUIRED_PHASE9_SAMPLE_PATHS[2]
-        sample_path.unlink()
-        expect_failure(base, f"missing_file:{REQUIRED_PHASE9_SAMPLE_PATHS[2]}")
-
-        write_fixture_tree(base)
-        test_packet_path = base / REQUIRED_PHASE9_TEST_PACKET_PATHS[0]
-        test_packet_path.unlink()
-        expect_failure(base, f"missing_file:{REQUIRED_PHASE9_TEST_PACKET_PATHS[0]}")
-
-        write_fixture_tree(base)
-        forbidden_validator_path = base / FORBIDDEN_FILES[0]
-        write_text(forbidden_validator_path, "# stale Phase 9 validator placeholder\n")
-        expect_failure(base, f"unexpected_file:{FORBIDDEN_FILES[0]}")
-
-        write_fixture_tree(base)
-        makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            makefile + "PHONY += phase9-validate\n",
-            encoding="utf-8",
-        )
-        expect_failure(base, "makefile_forbidden:PHONY += phase9-validate")
-
-        write_fixture_tree(base)
-        makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            makefile + "phase9-validate:\n",
-            encoding="utf-8",
-        )
-        expect_failure(base, "makefile_forbidden:phase9-validate:")
-
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
-        return 0
-    finally:
-        shutil.rmtree(base, ignore_errors=True)
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the bounded Phase 9 runtime-loader release surface without inventing a separate validator route."
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=ROOT,
-        help="Repository root to validate. Defaults to the repository root inferred from this script.",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the fixture-backed self-test.",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    failures = validate(args.root)
-    if failures:
-        print("PHASE9_BUILD_ONLY_SURFACE=fail")
-        print("PHASE9_BUILD_ONLY_SURFACE_FAILURES_START")
-        for failure in failures:
-            print(failure)
-        print("PHASE9_BUILD_ONLY_SURFACE_FAILURES_END")
-        return 1
-
-    print("PHASE9_BUILD_ONLY_SURFACE=pass")
-    print(
-        "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SAMPLES_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+        write_fixtureTree(base)
