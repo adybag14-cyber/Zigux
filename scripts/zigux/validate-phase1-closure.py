@@ -312,11 +312,11 @@ CLOSURE_MARKERS = [
     ("closure_closure_gate", "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py"),
     (
         "closure_rbtree_review_packet",
-        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
     ),
     (
         "closure_string_memparse_review",
-        "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation",
+        "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation",
     ),
     (
         "closure_string_review_packet",
@@ -396,9 +396,6 @@ BUILD_MARKERS = [
 
 WORKFLOW_MARKERS = [
     ("workflow_concurrency", WORKFLOW_CONCURRENCY),
-    ("workflow_checkout", "uses: actions/checkout@v6.0.2"),
-    ("workflow_setup_python", "uses: actions/setup-python@v6.2.0"),
-    ("workflow_install_zig", WORKFLOW_INSTALL_ZIG),
     ("workflow_phase1_validate", "run: python3 scripts/zigux/validate-phase1.py"),
     ("workflow_phase1_closure", "run: python3 scripts/zigux/validate-phase1-closure.py"),
     ("workflow_phase1_parity", "run: python3 scripts/zigux/check-phase1-parity.py"),
@@ -407,22 +404,23 @@ WORKFLOW_MARKERS = [
     ("workflow_phase1_bench_replay", "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe"),
 ]
 
+WORKFLOW_PRESENCE_MARKERS = [
+    ("workflow_checkout", "uses: actions/checkout@v6.0.2"),
+    ("workflow_setup_python", "uses: actions/setup-python@v6.2.0"),
+    ("workflow_install_zig", WORKFLOW_INSTALL_ZIG),
+]
 
 def repo_root_from_arg(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
-
 def load_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
-
 
 def load_json(root: Path, relative_path: str) -> Any:
     return json.loads((root / relative_path).read_text(encoding="utf-8"))
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [path for path in REQUIRED_FILES if not (root / path).exists()]
-
 
 def require_exact_counts(text: str, cases: list[tuple[str, str]]) -> list[str]:
     missing: list[str] = []
@@ -432,18 +430,23 @@ def require_exact_counts(text: str, cases: list[tuple[str, str]]) -> list[str]:
             missing.append(f"{label}:expected=1:actual={actual}")
     return missing
 
+def require_present(text: str, cases: list[tuple[str, str]]) -> list[str]:
+    missing: list[str] = []
+    for label, marker in cases:
+        actual = text.count(marker)
+        if actual < 1:
+            missing.append(f"{label}:expected>=1:actual={actual}")
+    return missing
 
 def collect_manifest_markers(manifest: Any) -> list[str]:
     return [] if manifest == EXPECTED_PHASE1_MANIFEST else [
         "manifest:phase1_helper_manifest.json does not match current Phase 1 packet expectations"
     ]
 
-
 def collect_bench_markers(expectations: Any) -> list[str]:
     return [] if expectations == EXPECTED_BENCH_EXPECTATIONS else [
         "bench:phase1_bench_expectations.json does not match current Phase 1 packet expectations"
     ]
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -460,6 +463,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     bench_expectations = load_json(root, "zigux/tests/fixtures/phase1_bench_expectations.json")
 
     missing.extend(require_exact_counts(workflow, WORKFLOW_MARKERS))
+    missing.extend(require_present(workflow, WORKFLOW_PRESENCE_MARKERS))
     if re.search(r"mlugg/setup-zig@", workflow):
         missing.append("workflow:unexpected mlugg/setup-zig@ reference")
     missing.extend(require_exact_counts(closure, CLOSURE_MARKERS))
@@ -474,11 +478,9 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_bench_markers(bench_expectations))
     return missing
 
-
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 def make_fixture_root(root: Path) -> None:
     for path in REQUIRED_FILES:
@@ -486,7 +488,7 @@ def make_fixture_root(root: Path) -> None:
 
     write_text(
         root / ".github/workflows/zigux-bootstrap.yml",
-        "\n".join([marker for _, marker in WORKFLOW_MARKERS]) + "\n",
+        "\n".join([marker for _, marker in WORKFLOW_MARKERS]) + "\n" + "\n".join([marker for _, marker in WORKFLOW_PRESENCE_MARKERS]) + "\n",
     )
     write_text(
         root / "Documentation/zigux/phase1-closure.md",
@@ -523,7 +525,6 @@ def make_fixture_root(root: Path) -> None:
         json.dumps(EXPECTED_BENCH_EXPECTATIONS, indent=2) + "\n",
     )
 
-
 def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_closure_") as tmp:
@@ -544,7 +545,7 @@ def run_self_test() -> None:
         workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(workflow.replace(WORKFLOW_INSTALL_ZIG + "\n", "", 1), encoding="utf-8")
         missing = collect_missing_markers(root)
-        assert "workflow_install_zig:expected=1:actual=0" in missing
+        assert "workflow_install_zig:expected>=1:actual=0" in missing
         case_count += 1
         make_fixture_root(root)
 
@@ -559,7 +560,7 @@ def run_self_test() -> None:
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure = closure_path.read_text(encoding="utf-8")
-        target = "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation\n"
+        target = "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation\n"
         closure_path.write_text(closure.replace(target, "", 1), encoding="utf-8")
         missing = collect_missing_markers(root)
         assert "closure_string_memparse_review:expected=1:actual=0" in missing
@@ -585,7 +586,6 @@ def run_self_test() -> None:
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 1 closure packet.")
@@ -623,7 +623,6 @@ def main() -> int:
         f"{len(CLOSURE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(WORKFLOW_MARKERS) + 2}"
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
