@@ -61,9 +61,11 @@ The queued Phase 1 closure-validator expected-manifest drift is already closed o
 
 Fresh repo-first reread also shows the older compact Phase 1 string memparse follow-through is no longer a live blocker on current `master`. `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` both keep `PHASE1_STRING_MEMPARSE_REVIEW=` explicit with the signed trailing-rest split, signed-overflow saturation, and suffix-after-saturation cues still visible beside the direct string anchors and the shared manifest wording.
 
-Fresh repo-first inspection now also shows the installer companion checker is part of the live Phase 1 validation route on current `master`. `zigux/Makefile` reruns `scripts/zigux/check-phase1-installer-companion-checks.py` and its self-test, the scripts helper index lists the checker directly, and the checker keeps `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` aligned around that companion packet. Future rereads should treat that installer companion surface as a better next same-lane reminder target than any already-landed bitmap or memparse sync.
+Fresh repo-first inspection now also shows the installer companion checker is part of the live Phase 1 validation route on current `master`. `zigux/Makefile` reruns `scripts/zigux/check-phase1-installer-companion-checks.py` and its self-test, the scripts helper index lists the checker directly, and the checker keeps `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` aligned around that companion packet.
 
-That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, and the later string memparse closure-summary sync are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and leaves future host-tools follow-up to start from the next newly observed same-lane exact-check drift instead of replaying any of those already-landed repairs.
+At the same time, the next same-lane truthfulness gap has shifted onto the shared reminder surfaces for that live companion packet. `Documentation/zigux/README.md`, the Phase 1 flow paragraph in `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and the focused companion-check note in `zigux/tests/README.md` still center only `install-zig.py` and `check-phase1-installer-review-surfaces.py`, even though `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `scripts/zigux/check-phase1-installer-companion-checks.py` already ship the separate installer companion self-test and live checker route.
+
+That means the older shared-reminder follow-up, the queued closure-validator expected-manifest sync, and the later string memparse closure-summary sync are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-validator, and closure-summary omissions, and now leaves the next host-tools follow-up parked on the shared Phase 1 installer companion reminder drift instead of replaying any already-landed bitmap, `find_bit`, or memparse sync.
 
 Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, installer-companion, or helper-local anchor surfaces.
 
@@ -92,17 +94,18 @@ Keep the next host-tools-alpha slot inside one freshly observed same-lane truthf
 
 Start with these already-shipped shared and direct Phase 1 packet surfaces:
 
-- `Documentation/zigux/phase1-closure.md`
-- `scripts/zigux/validate-phase1-closure.py`
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
 - `scripts/zigux/check-phase1-installer-companion-checks.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
-- `Documentation/zigux/review-checklist.md`
-- `zigux/tests/README.md`
+- `Documentation/zigux/phase1-closure.md`
+- `scripts/zigux/validate-phase1-closure.py`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-The next run should reread those Phase 1 closure, manifest, scripts-root, workflow, and shared-reminder surfaces together and choose only the next exact current-`master` mismatch that still remains after the already-landed tests-root, validator, closure-validator, memparse-summary, and bitmap-closure syncs.
+The next run should reread those Phase 1 reminder, checker, workflow, closure, and manifest surfaces together and choose only the next exact current-`master` mismatch that still remains after the already-landed tests-root, validator, closure-validator, memparse-summary, and bitmap-closure syncs.
 
 If no new same-lane drift is visible on that reread, keep Phase 1 follow-up parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, installer companion packet drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
