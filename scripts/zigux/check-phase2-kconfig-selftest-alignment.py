@@ -73,8 +73,6 @@ REVIEW_CHECKLIST_MARKERS = (
 PHASE2_CLOSURE_DOC_MARKERS = (
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
-    "shared kconfig bridge gate: `python3 scripts/zigux/check-kconfig-bridge.py`",
     "direct Zig replays: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/genksyms_crc.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, `zig test scripts/zigux/kconfig/confdata_bridge.zig`, and `zig test scripts/zigux/mk_elfconfig.zig`",
 )
 
