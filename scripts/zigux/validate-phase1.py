@@ -66,6 +66,14 @@ EXPECTED_FIXTURE = json.loads(
 
 EXPECTED_FIXTURE_TOP_LEVEL_KEYS = sorted(EXPECTED_FIXTURE.keys())
 EXPECTED_HELPERS = EXPECTED_MANIFEST["helpers"]
+EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
+EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
+    "shared Phase 1 fixture keys now own bitmap scnprintf output, tiny-buffer, and partial-window xor replay, "
+    "while helper-local anchors keep allocator sizing and zero-fill behavior, predicate tail-mask, first-word and "
+    "final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, "
+    "zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias "
+    "behavior review-visible on current master"
+)
 
 REQUIRED_FILES = [
     *EXPECTED_HELPERS,
@@ -253,6 +261,15 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
     if not isinstance(review_anchors, dict):
         return [*missing, "phase1_manifest:review_anchors"]
 
+    bitmap_review_anchors = review_anchors.get("tools/lib/bitmap.zig")
+    if not isinstance(bitmap_review_anchors, dict):
+        missing.append("phase1_manifest_review_anchor:shape=tools/lib/bitmap.zig")
+        bitmap_review_anchors = {}
+    if bitmap_review_anchors.get("phase1_helper_replay_anchor") != EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor")
+    if bitmap_review_anchors.get("review_packet_summary") != EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary")
+
     fixture = json.loads(load_text(root / "zigux/tests/fixtures/phase1_helpers.json"))
     replay_text = load_text(root / "zigux/tests/phase1_helpers.zig")
     replay_body = extract_test_body(replay_text, "phase 1 helper ports match committed parity fixture")
@@ -353,6 +370,8 @@ def make_fixture_root(root: Path) -> None:
     manifest["review_anchors"]["tools/lib/bitmap.zig"] = {
         "helper_test_anchors": ['test "bitmap range helpers honor exact first-word boundaries"'],
         "partial_xor_review_fields": ["partial_xor_nbits"],
+        "phase1_helper_replay_anchor": EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR,
+        "review_packet_summary": EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
     }
     manifest["review_anchors"]["tools/lib/string.zig"] = {
         "helper_test_anchors": ['test "strtobool accepts common Linux forms"'],
@@ -380,7 +399,7 @@ def make_fixture_root(root: Path) -> None:
     ) + "\n"
     (root / "zigux/tests/phase1_helpers.zig").write_text(helpers_body, encoding="utf-8")
     (root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(json.dumps(EXPECTED_FIXTURE, separators=(",", ":")) + "\n", encoding="utf-8")
+    (root / "zigux/tests/fixtures/phase1_helpers.json").writeText(json.dumps(EXPECTED_FIXTURE, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -419,6 +438,20 @@ def run_self_test() -> None:
         manifest["lane_sequencing"]["rule_summary"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest:lane_sequencing" in collect_missing_markers(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("phase1_helper_replay_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["review_packet_summary"] = "stale bitmap summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
         case_count += 1
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
