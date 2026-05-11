@@ -39,12 +39,21 @@ FILES = [
 MAKE_MARKERS = [
     "PHONY += phase14-validate phase14-smoke phase14-test phase14",
     "phase14-validate:",
-    "scripts/zigux/validate-phase14.py",
     "phase14-smoke:",
     "$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14-test:",
     "$(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14: phase14-validate phase14-smoke phase14-test",
+]
+
+MAKE_EXACT_LINES = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
 ]
 
 WORKFLOW_MARKERS = [
@@ -243,6 +252,14 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
     )
 
 
+def require_exact_line_once(missing: list[str], name: str, source: str, markers: list[str]) -> None:
+    lines = source.splitlines()
+    for marker in markers:
+        count = sum(1 for line in lines if line == marker)
+        if count != 1:
+            missing.append(f"{name}:exact_line:{marker}:count={count}")
+
+
 def run_self_test() -> int:
     errors: list[str] = []
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -305,6 +322,51 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_reviewability_dependency_parse_result")
         return 1
 
+    good_phase14_make = "\n".join(["phase14-validate:", *MAKE_EXACT_LINES]) + "\n"
+    exact_line_missing: list[str] = []
+    require_exact_line_once(
+        exact_line_missing,
+        "make",
+        good_phase14_make.replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
+            "",
+            1,
+        ),
+        MAKE_EXACT_LINES,
+    )
+    if exact_line_missing != [
+        "make:exact_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test:count=0"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_makefile_docs_root_selftest_gap_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in exact_line_missing:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
+    exact_line_missing = []
+    require_exact_line_once(
+        exact_line_missing,
+        "make",
+        good_phase14_make.replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test\n",
+            "",
+            1,
+        ),
+        MAKE_EXACT_LINES,
+    )
+    if exact_line_missing != [
+        "make:exact_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test:count=0"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_makefile_release_boundary_selftest_gap_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in exact_line_missing:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     forbidden_smoke_dependency_build = "\n".join(
         [
             "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
@@ -350,6 +412,8 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
+    print("PHASE14_SELF_TEST_MISSING_DOCS_ROOT_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test")
+    print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test")
     print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
     print("PHASE14_SELF_TEST_FORBIDDEN_REVIEWABILITY_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     return 0
@@ -369,9 +433,10 @@ def run_validation() -> int:
     skbuff_survey_text = text("Documentation/zigux/phase14-skbuff-bridge-survey.md")
     missing: list[str] = []
     json_decode_errors: list[str] = []
+    make_text = text("zigux/Makefile")
     for name, source, markers in [
         ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
-        ("make", text("zigux/Makefile"), MAKE_MARKERS),
+        ("make", make_text, MAKE_MARKERS),
         ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
         ("survey", survey_text, RELEASE_MARKERS),
         ("skbuff_survey", skbuff_survey_text, SKBUFF_SURVEY_MARKERS),
@@ -381,6 +446,7 @@ def run_validation() -> int:
         for marker in markers:
             if marker not in source:
                 missing.append(f"{name}:{marker}")
+    require_exact_line_once(missing, "make", make_text, MAKE_EXACT_LINES)
 
     freeze_map_text = text("Documentation/zigux/freeze-map.md")
     for marker in [
@@ -612,7 +678,7 @@ def run_validation() -> int:
     print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE14_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
     )
     print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
