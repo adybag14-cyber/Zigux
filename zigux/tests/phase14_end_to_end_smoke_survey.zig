@@ -118,13 +118,15 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 15), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.shared_smoke_surfaces.len);
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/README.md"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/Makefile"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, ".github/workflows/zigux-bootstrap.yml"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "Documentation/zigux/README.md"));
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
@@ -235,6 +237,29 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "focused smoke-shard replay contract") != null);
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        allocator,
+        .limited(64 * 1024),
+    );
+    defer allocator.free(docs_root);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 14 notes - ") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "scripts/zigux/check-phase14-docs-root-smoke-summary.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "zigux/tests/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase14-validate") != null);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        allocator,
+        .limited(128 * 1024),
+    );
+    defer allocator.free(tests_readme);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase14_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase14_end_to_end_smoke_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase14-smoke") != null);
+
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/freeze-map.md",
@@ -266,6 +291,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14-workqueue-reviewability-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "Documentation/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "attached-toolchain fallback examples for this note's shared replay routes only:") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test") != null);
