@@ -6,9 +6,10 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state, reopen triggers, and the required review-packet fields that stay aligned with the freeze map and indefinite-C policy
-- survey provenance last refreshed against reviewed head `febebdae089598f228fff0bc6ee44c1a860fd905`
-- as of the 2026-05-10 live compare-against-master reread, that reviewed head sits 13,166 commits behind current `master`, so a fresh bounded provenance refresh is required before this note should claim newer current-`master` coverage
+- survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-11` on 2026-05-11 after live compare-against-master showed the previously recorded reviewed head `febebdae089598f228fff0bc6ee44c1a860fd905` no longer matched current `master`
+- exact branch-head parity is not recorded for this parked review-process packet; the note now uses an explicit dated readback marker instead of a quickly stale exact-head count while keeping the same no-approval posture and the same bounded docs-root reminder follow-up
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -113,9 +114,10 @@ The current lane state is:
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-review-packet-field-sync`
+- landed `phase15-dated-readback-provenance-refresh`
 - open `phase15-docs-root-validator-route-sync`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, and now records the one remaining broader docs-root reminder follow-up that may still need attention before the lane can honestly stay in pure maintenance mode, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, the freeze map's required approver-set and rollback-threshold expectations, and the indefinite-C policy linkage, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, records the dated-readback provenance refresh that avoids a quickly stale exact-head count, and now records the one remaining broader docs-root reminder follow-up that may still need attention before the lane can honestly stay in pure maintenance mode, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
