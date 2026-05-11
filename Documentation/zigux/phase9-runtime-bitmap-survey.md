@@ -1,0 +1,23 @@
+# Phase 9 Runtime Bitmap Survey
+
+This note tracks the bounded Phase 9 runtime bitmap review packet under `samples/zigux/`.
+
+## Status
+- `PHASE9_STATUS=active`
+- `PHASE9_LANE_KEY=P9-L08`
+- scope: direct sample, loader scaffold, top-bit companion replay, module gate, survey gate, and shared loader handoff packet only
+
+## Boundaries
+- keep the runtime bitmap packet inside `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_survey.zig`, and the shared `zigux/tests/phase9_build.zig` bundle
+- keep the blocked shared runtime-loader substrate explicit
+- do not claim loadable runtime bitmap module parity
+
+## Gates
+1. `zig test zigux/tests/runtime_bitmap_survey.zig`
+2. `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+3. `make -C zigux phase9-runtime-loader-shared-tests`
+4. `make -C zigux phase9`
+
+## Next Bounded Step
+
+Keep the bounded runtime bitmap packet aligned with the visible sample, loader, top-bit companion, manifest, and shared build surfaces while the broader runtime substrate remains blocked.
