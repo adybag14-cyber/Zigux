@@ -119,6 +119,8 @@ REQUIRED_GATE_EVIDENCE_MARKERS = [
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     "make -C zigux phase4-perf-baseline-survey",
+    "zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-bitmap-diff-survey",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -215,6 +217,8 @@ zigux/tests/phase4_perf_baseline_manifest.json
 zigux/tests/phase4_perf_baseline_survey.zig
 zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
 make -C zigux phase4-perf-baseline-survey
+zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig
+make -C zigux phase4-bitmap-diff-survey
 """
 
 SELFTEST_TESTS_README = """# zigux/tests
