@@ -455,9 +455,17 @@ fn appendUnsigned(buffer: []u8, written: *usize, value: usize) void {
 pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     assertBitmapLen(bitmap, nbits);
 
+    if (nbits == 0) {
+        return 0;
+    }
+
     var written: usize = 0;
     var first = true;
     var range_bottom = find_bit.findFirstBit(bitmap, nbits);
+
+    if (range_bottom == nbits) {
+        return 0;
+    }
 
     while (range_bottom < nbits) {
         const next_zero = find_bit.findNextZeroBit(bitmap, nbits, range_bottom + 1);
@@ -874,6 +882,43 @@ test "bitmap zero-bit binary helpers stay explicit identity operations" {
     try std.testing.expect(!bitmap_intersects(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(bitmap_subset(lhs[0..0], rhs[0..0], 0));
+}
+
+test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops" {
+    const allocator = std.testing.allocator;
+    const lhs = [_]Word{0xffff_0000_ffff_0000};
+    const rhs = [_]Word{0x0000_ffff_0000_ffff};
+    const copy_src = [_]Word{0x0123_4567_89ab_cdef};
+
+    var empty_alloc = try bitmap_alloc(allocator, 0);
+    try std.testing.expect(empty_alloc == null);
+    bitmap_free(allocator, &empty_alloc);
+    try std.testing.expect(empty_alloc == null);
+
+    var empty_zalloc = try bitmap_zalloc(allocator, 0);
+    try std.testing.expect(empty_zalloc == null);
+    bitmap_free(allocator, &empty_zalloc);
+    try std.testing.expect(empty_zalloc == null);
+
+    var zero_dst = [_]Word{0x55aa_55aa_55aa_55aa};
+    const before = zero_dst[0];
+
+    bitmap_zero(zero_dst[0..0], 0);
+    try std.testing.expectEqual(before, zero_dst[0]);
+
+    bitmap_or(zero_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    try std.testing.expectEqual(before, zero_dst[0]);
+
+    bitmap_xor(zero_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    try std.testing.expectEqual(before, zero_dst[0]);
+
+    bitmap_copy(zero_dst[0..0], copy_src[0..0], 0);
+    try std.testing.expectEqual(before, zero_dst[0]);
+
+    var buffer = [_]u8{0xaa};
+    const rendered = bitmap_scnprintf(&[_]Word{}, 0, &buffer);
+    try std.testing.expectEqual(@as(usize, 0), rendered);
+    try std.testing.expectEqual(@as(u8, 0xaa), buffer[0]);
 }
 
 test "bitmap Linux-style aliases mirror the primary helper surface" {
