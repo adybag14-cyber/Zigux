@@ -29,13 +29,13 @@ The parked shared closure checkpoint is the bounded packet already described acr
 
 These shared routes keep the current bounded Phase 11 packet replayable without collapsing the driver-local watchdog, header-boundary, and HVC evidence into one generic closure claim.
 
-## Driver-Local Evidence That Still Stays Separate
+## Driver-Local Evidence And Planning That Still Stay Separate
 
-The shared closure packet stays parked because the detailed driver-local evidence still belongs to the owning lane notes and replay packets:
+The shared closure packet stays parked because the detailed driver-local evidence and planning still belong to the owning lane notes and replay packets:
 
 * bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
 * gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
-* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`
+* DesignWare watchdog planning lane: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`; current `master` still keeps this lane parked on the first platform-registration follow-through instead of a landed `dw_wdt` test, manifest, verify-helper, or survey packet
 * header-boundary packet: `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `drivers/tty/hvc/hvc_console.h`, and `scripts/zigux/check-phase11-header-boundary-packet.py`
 * HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`
 
