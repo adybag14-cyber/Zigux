@@ -14,14 +14,20 @@ README_PATH = Path("scripts/zigux/README.md")
 REQUIRED_FILES = (
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
+    Path("include/zigux/dev_t.h"),
     Path("zigux/bindings/abi.zig"),
+    Path("zigux/bindings/dev_t.zig"),
+    Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
+    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
     Path("scripts/zigux/check-phase3-abi.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
@@ -31,17 +37,27 @@ REQUIRED_FILES = (
 SLICE_NOTE_MARKERS = (
     "include/linux/zigux.h",
     "include/zigux/abi.h",
+    "include/zigux/dev_t.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/kernel/export_shim.zig",
+    "zigux/unsafe/narrow.zig",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "PHASE3_ABI_MANIFEST_FILE_COUNT=",
+    "PHASE3_CURRENT_INTEROP_GAP=",
+    "PHASE3_CURRENT_INTEROP_GAP_DETAIL=",
+    "PHASE3_NEXT_SAFE_STEP=",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
@@ -134,6 +150,19 @@ def run_self_test() -> int:
         if expected_slice_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing slice marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(
+            root / SLICE_NOTE_PATH,
+            _read(root / SLICE_NOTE_PATH).replace("PHASE3_CURRENT_INTEROP_GAP=\n", "", 1),
+        )
+        issues = validate_repo(root)
+        expected_gap_marker = "missing slice marker: PHASE3_CURRENT_INTEROP_GAP="
+        if expected_gap_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing interop-gap marker was not reported")
             return 1
         case_count += 1
 
