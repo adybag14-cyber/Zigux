@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
+BUILD_REL = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
 ATOMIC_REL = Path("zigux/helpers/atomic.zig")
 BARRIER_REL = Path("zigux/helpers/barrier.zig")
@@ -20,11 +21,16 @@ TESTS_README_REL = Path("zigux/tests/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
 
 REQUIRED_SURVEY_MARKERS = (
-    "PHASE3_LOW_LEVEL_PACKET=approved atomic, barrier, MMIO, and narrow-unsafe wrappers remain the bounded low-level helper packet for the Phase 3 ABI substrate",
-    "PHASE3_CURRENT_LOW_LEVEL_GAP=no same-lane helper gap is currently visible on direct current-master readback",
-    "PHASE3_CURRENT_LOW_LEVEL_GAP_DETAIL=zigux/tests/phase3_low_level_wrappers.zig now already replays generic and byte-decoded volatile-MMIO policy gates",
-    "PHASE3_NEXT_SAFE_STEP=keep future low-level wrapper follow-through bounded to one helper-local or note-local alignment step at a time",
-    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+    "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-compareexchange-compareexchangeweak",
+    "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
+    "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
+    "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
+    "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
+    "PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig",
+    "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
+    "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
@@ -33,6 +39,21 @@ REQUIRED_SURVEY_SNIPPETS = (
     "raw-pointer bridge scope gates in `zigux/unsafe/narrow.zig` and the focused test route",
     "non-`seq_cst` ordering coverage and signed atomic edges in the focused test route",
     "barrier-locality and handoff replays",
+)
+
+REQUIRED_BUILD_SNIPPETS = (
+    '.root_source_file = b.path("../bindings/abi.zig")',
+    '.root_source_file = b.path("../unsafe/narrow.zig")',
+    '.root_source_file = b.path("../helpers/atomic.zig")',
+    '.root_source_file = b.path("../helpers/barrier.zig")',
+    '.root_source_file = b.path("../helpers/mmio.zig")',
+    '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
+    'root_module.addImport("abi_bindings", abi_bindings_module);',
+    'root_module.addImport("atomic_helpers", atomic_helpers_module);',
+    'root_module.addImport("barrier_helpers", barrier_helpers_module);',
+    'root_module.addImport("mmio_helpers", mmio_helpers_module);',
+    'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    '"phase3-low-level-wrappers-test"',
 )
 
 REQUIRED_TEST_SNIPPETS = (
@@ -79,6 +100,7 @@ REFERENCE_MARKERS = (
     (SCRIPTS_README_REL, 'validate-phase3-low-level-wrapper-survey.py'),
     (TESTS_README_REL, 'validate-phase3-low-level-wrapper-survey.py'),
     (MAKEFILE_REL, 'scripts/zigux/validate-phase3-low-level-wrapper-survey.py'),
+    (MAKEFILE_REL, 'phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig'),
 )
 
 
@@ -100,6 +122,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = _read(root, SURVEY_REL, issues)
+    build = _read(root, BUILD_REL, issues)
     test = _read(root, TEST_REL, issues)
     atomic = _read(root, ATOMIC_REL, issues)
     barrier = _read(root, BARRIER_REL, issues)
@@ -109,6 +132,8 @@ def validate(root: Path) -> list[str]:
     if survey:
         _require(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
         _require(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+    if build:
+        _require(build, REQUIRED_BUILD_SNIPPETS, "missing_build_snippet", issues)
     if test:
         _require(test, REQUIRED_TEST_SNIPPETS, "missing_test_snippet", issues)
     if atomic:
@@ -137,6 +162,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
