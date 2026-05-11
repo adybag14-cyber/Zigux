@@ -89,7 +89,21 @@ test "phase 15 indefinite-C policy manifest records the restored stay-in-C packe
         try std.testing.expect(requirement.required_terms.len >= 2);
 
         if (std.mem.eql(u8, requirement.id, "indefinite-c-source-of-truth")) saw_source_of_truth = true;
-        if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) saw_recordkeeping = true;
+        if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) {
+            saw_recordkeeping = true;
+
+            var saw_named_owner = false;
+            var saw_required_approver_set = false;
+            var saw_rollback_owner = false;
+            for (requirement.required_terms) |term| {
+                if (std.mem.eql(u8, term, "named owner")) saw_named_owner = true;
+                if (std.mem.eql(u8, term, "required approver set")) saw_required_approver_set = true;
+                if (std.mem.eql(u8, term, "rollback owner")) saw_rollback_owner = true;
+            }
+            try std.testing.expect(saw_named_owner);
+            try std.testing.expect(saw_required_approver_set);
+            try std.testing.expect(saw_rollback_owner);
+        }
         if (std.mem.eql(u8, requirement.id, "indefinite-c-allowed-work")) saw_allowed_work = true;
         if (std.mem.eql(u8, requirement.id, "indefinite-c-exception-path")) saw_exception_path = true;
         if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-gate")) saw_reopen_gate = true;
@@ -147,6 +161,7 @@ test "phase 15 indefinite-C policy note preserves the restored stay-in-C record"
     try expectContains(policy_note, "shared Phase 15 summaries, validator wiring, and governance-lane sequencing");
     try expectContains(policy_note, "## When the indefinite-C policy applies");
     try expectContains(policy_note, "## Required Recorded Fields");
+    try expectContains(policy_note, "required approver set");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "## Allowed Work After an Indefinite-C Outcome");
@@ -174,10 +189,12 @@ test "phase 15 indefinite-C policy note preserves the restored stay-in-C record"
 
     try expectContains(freeze_map, "product source of truth");
     try expectContains(freeze_map, "no silent exception path");
+    try expectContains(review_process, "required approver set");
     try expectContains(review_process, "retained discussion state");
     try expectContains(review_process, "reopen triggers");
     try expectContains(review_process, "indefinite-C policy link");
     try expectContains(review_checklist, "current status bucket plus requested decision bucket explicit");
+    try expectContains(review_checklist, "required approver set");
     try expectContains(review_checklist, "retained discussion state");
     try expectContains(review_checklist, "reopen triggers explicit");
 }
