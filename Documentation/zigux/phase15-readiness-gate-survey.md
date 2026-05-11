@@ -54,4 +54,4 @@ Readiness here means:
 ## Next Step
 
 - keep this readiness packet parked unless a named reopen trigger or a real blocker-posture change appears
-- if the shared packet drifts again, re-check `Documentation/zigux/README.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `zigux/tests/README.md` together before widening into any new governance slice
+- if the shared packet drifts again, re-check `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zigux/tests/README.md`, and `zigux/Makefile` together, starting with whether the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture before widening into any new governance slice
