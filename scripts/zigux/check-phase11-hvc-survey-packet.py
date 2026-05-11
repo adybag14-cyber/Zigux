@@ -89,10 +89,10 @@ CLEANUP_REPLAY_MARKERS = [
 ]
 
 VERIFY_HELPER_MARKERS = [
-    'test "hvc_console verify keeps failed-open close and cleanup teardown explicit"',
+    'test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding"',
     'test "hvc_console verify keeps cleanup prerequisite failures explicit"',
+    'test "hvc_console verify keeps open notifier-state failures explicit"',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
-    'test "hvc_console verify rejects impossible hangup buffered-write state"',
 ]
 
 SYSRQ_HELPER_MARKERS = [
@@ -256,13 +256,13 @@ def run_self_test() -> None:
         verify_missing = tmpdir / REQUIRED_FILES["verify_helper"]
         verify_missing.write_text(
             verify_missing.read_text(encoding="utf-8").replace(
-                'test "hvc_console verify keeps cleanup prerequisite failures explicit"\n',
+                'test "hvc_console verify keeps open notifier-state failures explicit"\n',
                 "",
             ),
             encoding="utf-8",
         )
         expect_failure(
-            tmpdir, 'test "hvc_console verify keeps cleanup prerequisite failures explicit"'
+            tmpdir, 'test "hvc_console verify keeps open notifier-state failures explicit"'
         )
 
         build_self_test_fixture(tmpdir)
