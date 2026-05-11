@@ -25,6 +25,9 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
         "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
         "`zigux/tests/phase8_cpu_mask.zig`",
+        "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_bpf_type_names.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
@@ -33,6 +36,9 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        "`phase8_pin_path.zig`",
+        "`phase8_bpf_type_names.zig`",
+        "`phase8_perf_buffer_poll.zig`",
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "`fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
@@ -129,6 +135,27 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
         ),
         (
+            "lane_note_pin_path_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_pin_path.zig`",
+            "`zigux/tests/phase8_pin_path_review.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_pin_path.zig`",
+        ),
+        (
+            "lane_note_type_names_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_bpf_type_names.zig`",
+            "`zigux/tests/phase8_type_names_review.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_bpf_type_names.zig`",
+        ),
+        (
+            "lane_note_perf_buffer_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_perf_buffer_poll.zig`",
+            "`zigux/tests/phase8_perf_buffer_review.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_buffer_poll.zig`",
+        ),
+        (
             "lane_note_shared_wording_heading",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "### 4. Shared wording lane",
@@ -141,6 +168,20 @@ def run_self_test() -> None:
             "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
             "`zigux/tests/phase8_build.zig` no longer wires the current libbpf helper-first shard packet",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        ),
+        (
+            "segment_survey_type_names_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`phase8_bpf_type_names.zig`",
+            "`phase8_type_names_review.zig`",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `phase8_bpf_type_names.zig`",
+        ),
+        (
+            "segment_survey_perf_buffer_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`phase8_perf_buffer_poll.zig`",
+            "`phase8_perf_buffer_review.zig`",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `phase8_perf_buffer_poll.zig`",
         ),
         (
             "segment_survey_pin_path_split_anchor",
