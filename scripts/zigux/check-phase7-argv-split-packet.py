@@ -119,6 +119,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "phase 7 argvSplit matches focused parity fixtures",
+        "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
@@ -137,6 +138,11 @@ REQUIRED_MARKERS = {
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+    ],
+    "zigux/tests/phase7_argv_split_manifest.json": [
+        "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+        "argvFree on one live non-blank result does not disturb another caller-owned split result",
+        "deinit on one live non-blank result does not disturb another caller-owned split result",
     ],
 }
 
@@ -166,7 +172,6 @@ def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(
         {
-            "zigux/tests/phase7_argv_split_manifest.json": "{}\n",
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
             "lib/argv_split.zig": "// fixture\n",
         }
@@ -260,6 +265,13 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         ),
         (
+            "helper_distinct_callers_marker",
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+            "",
+            "zigux/tests/phase7_argv_split.zig: phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+        ),
+        (
             "helper_blank_exported_view_marker",
             "zigux/tests/phase7_argv_split.zig",
             "phase 7 blank argvSplit input reuses the empty exported argv view",
@@ -335,6 +347,27 @@ def run_self_test() -> None:
             "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
             "",
             "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+        ),
+        (
+            "manifest_distinct_callers_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+        ),
+        (
+            "manifest_argvfree_isolation_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "argvFree on one live non-blank result does not disturb another caller-owned split result",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: argvFree on one live non-blank result does not disturb another caller-owned split result",
+        ),
+        (
+            "manifest_deinit_isolation_marker",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "deinit on one live non-blank result does not disturb another caller-owned split result",
+            "",
+            "zigux/tests/phase7_argv_split_manifest.json: deinit on one live non-blank result does not disturb another caller-owned split result",
         ),
         (
             "build_survey_cwd_marker",
