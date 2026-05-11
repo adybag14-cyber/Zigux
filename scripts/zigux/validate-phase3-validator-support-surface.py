@@ -28,6 +28,8 @@ REQUIRED_MARKERS = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/phase3_check_lib.py --self-test",
@@ -93,6 +95,20 @@ def run_self_test() -> int:
     if runner_selftest_marker not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected runner self-test marker was not reported")
+        return 1
+
+    low_level_note_marker = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+    broken = validate_text(sample.replace(low_level_note_marker, "", 1))
+    if low_level_note_marker not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected low-level-wrapper note marker was not reported")
+        return 1
+
+    header_governance_marker = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+    broken = validate_text(sample.replace(header_governance_marker, "", 1))
+    if header_governance_marker not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected header-governance note marker was not reported")
         return 1
 
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
