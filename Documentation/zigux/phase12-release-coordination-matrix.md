@@ -30,7 +30,10 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - shared-tree-only anchors:
   - `Documentation/zigux/phase12-virtio-net-survey.md`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
-- rule: keep this two-versus-two split explicit in PMO release wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless new dedicated files actually land
+- shared-tree raw-read anchors during degraded contents reads:
+  - `zigux/tests/phase12_build.zig`
+  - `scripts/zigux/check-build-only-phase12-surface.py`
+- rule: keep this two-versus-two split explicit in PMO release wording, keep the shared build anchor plus checker visible during degraded contents reads, and do not promote any of those shared-tree surfaces into extra commit-pinned fallback artifacts unless new dedicated files actually land
 
 ## Smoke Set
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
