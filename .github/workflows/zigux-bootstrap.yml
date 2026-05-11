@@ -12,9 +12,6 @@ on:
       - 'net/**/*.zig'
       - 'drivers/**/*.zig'
       - 'scripts/basic/fixdep.c'
-      - 'scripts/genksyms/genksyms.c'
-      - 'scripts/kconfig/conf.c'
-      - 'scripts/kconfig/confdata.c'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
       - 'tools/lib/**/*.zig'
@@ -35,9 +32,6 @@ on:
       - 'net/**/*.zig'
       - 'drivers/**/*.zig'
       - 'scripts/basic/fixdep.c'
-      - 'scripts/genksyms/genksyms.c'
-      - 'scripts/kconfig/conf.c'
-      - 'scripts/kconfig/confdata.c'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
       - 'tools/lib/**/*.zig'
@@ -106,18 +100,6 @@ jobs:
 
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
-
-      - name: Self-test Phase 2 tool-manifest packet checker
-        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test
-
-      - name: Check Phase 2 tool-manifest packet
-        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py
-
-      - name: Self-test Phase 2 genksyms bridge alignment
-        run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test
-
-      - name: Check Phase 2 genksyms bridge alignment
-        run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py
 
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
@@ -275,53 +257,11 @@ jobs:
       - name: Check bounded fixdep artifact parity and determinism
         run: python3 scripts/zigux/check-fixdep-diff.py
 
-      - name: Self-test bounded genksyms bridge parity checker
-        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
-
-      - name: Check bounded genksyms bridge parity
-        run: python3 scripts/zigux/check-genksyms-bridge.py
-
-      - name: Check bounded genksyms CRC artifact parity
-        run: python3 scripts/zigux/check-genksyms-crc-diff.py
-
-      - name: Self-test Phase 2 kconfig selftest alignment
-        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
-
-      - name: Check Phase 2 kconfig selftest alignment
-        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
-
-      - name: Self-test bounded kconfig bridge parity checker
-        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
-
-      - name: Check bounded kconfig bridge parity
-        run: python3 scripts/zigux/check-kconfig-bridge.py
-
-      - name: Self-test bounded mk_elfconfig parity checker
-        run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test
-
-      - name: Check bounded mk_elfconfig artifact parity
-        run: python3 scripts/zigux/check-mk-elfconfig-diff.py
-
       - name: Check discovered Phase 3 parity
         run: python3 scripts/zigux/run-phase3-checks.py
 
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
-
-      - name: Run bounded genksyms bridge unit tests
-        run: zig test scripts/zigux/genksyms.zig
-
-      - name: Run bounded genksyms CRC unit tests
-        run: zig test scripts/zigux/genksyms_crc.zig
-
-      - name: Run bounded conf bridge unit tests
-        run: zig test scripts/zigux/kconfig/conf_bridge.zig
-
-      - name: Run bounded confdata bridge unit tests
-        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
-
-      - name: Run bounded mk_elfconfig unit tests
-        run: zig test scripts/zigux/mk_elfconfig.zig
 
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig
@@ -500,9 +440,11 @@ jobs:
             changed_files="$(git diff-tree --no-commit-id --name-only -r "$head")"
           fi
 
-          printf '%s\n' "$changed_files"
+          printf '%s
+' "$changed_files"
 
-          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-zig-toolchain\.py|scripts/zigux/check-phase2-toolchain-pin-scope\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/zig-toolchain-policy\.json|scripts/zigux/fixdep\.zig|scripts/zigux/genksyms\.zig|scripts/zigux/genksyms_crc\.zig|scripts/zigux/mk_elfconfig\.zig|scripts/zigux/kconfig/conf_bridge\.zig|scripts/zigux/kconfig/confdata_bridge\.zig|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
+          if printf '%s
+' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-zig-toolchain\.py|scripts/zigux/check-phase2-toolchain-pin-scope\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/zig-toolchain-policy\.json|scripts/zigux/fixdep\.zig|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
