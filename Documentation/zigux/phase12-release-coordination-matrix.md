@@ -12,6 +12,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - sequencing companion: `Documentation/zigux/phase12-release-sequencing.md`
 - closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - coverage companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- libbpf survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
@@ -49,6 +50,6 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 - Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packet and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Review Use
-- reread this matrix beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever the shared Phase 12 packet changes
+- reread this matrix beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever the shared Phase 12 packet changes
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording
 - treat this file as a compact owner-and-fallback summary, not as a substitute for the driver-local survey notes or the shared build packet
