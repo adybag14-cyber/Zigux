@@ -99,6 +99,10 @@ pub fn strim(buf: []u8) []u8 {
     return trimSpaces(buf);
 }
 
+pub fn strstrip(buf: []u8) []u8 {
+    return trimSpaces(buf);
+}
+
 pub fn removeSpaces(buf: []u8) []u8 {
     var read_idx: usize = 0;
     var write_idx: usize = 0;
@@ -406,6 +410,9 @@ test "skip trim remove and replace spaces work in place" {
     var strim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", strim(&strim_buf));
 
+    var strstrip_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
+    try std.testing.expectEqualStrings("hi", strstrip(&strstrip_buf));
+
     var trim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &trim_cstr_buf);
@@ -442,6 +449,10 @@ test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace
     var strim_buf = [_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'y' };
     try std.testing.expectEqualStrings("ab", strim(&strim_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'y' }, &strim_buf);
+
+    var strstrip_buf = [_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'z' };
+    try std.testing.expectEqualStrings("ab", strstrip(&strstrip_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'z' }, &strstrip_buf);
 }
 
 test "strreplace mirrors replaceChar C-string semantics" {
