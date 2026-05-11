@@ -34,12 +34,15 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `zigux/tests/phase10_virtio_driver_id.zig`
 - `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio.zig`
+- `drivers/virtio/virtio_verify.zig`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_ring.zig`
+- `drivers/virtio/virtio_ring_verify.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input.zig`
+- `drivers/virtio/virtio_input_verify.zig`
 - `zigux/tests/phase10_virtio_input_probe_preflight.zig`
 - `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 - `zigux/tests/phase10_virtio_input_registration_preflight.zig`
@@ -48,6 +51,7 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `zigux/tests/phase10_virtio_mmio.zig`
+- `drivers/virtio/virtio_mmio_verify.zig`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `zigux/Makefile`
@@ -59,7 +63,7 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 Treat the shared reminder notes, validators, and Linux-style make routes above together with the directly readable `zigux/tests/phase10_closure_manifest.json` plus `zigux/tests/phase10_virtio_ring_manifest.json` as the currently re-readable Phase 10 anchors. Treat the wider packet-local file list above as closure-manifest-backed inventory rather than as a claim that every path was directly re-read in the same review. If packet-local companions such as `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `drivers/virtio/virtio.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, or `zigux/tests/phase10_virtio_mmio_manifest.json` still cannot be materialized through the authenticated contents bridge on current `master`, record them as repo-reality gaps instead of presenting them as independently re-read shipped evidence.
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still describe the same bounded virtio core, ring, input, and MMIO closure packet while keeping the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, the already-shipped `samples/zigux/runtime_trace_events_loader.zig` scaffold as adjacent Phase 9 evidence rather than Phase 10 closure progress, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit, and do any packet-local direct-read misses stay framed as repo-reality gaps rather than silently re-presented as directly re-read evidence?
+- Do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still describe the same bounded virtio core, ring, input, and MMIO closure packet, the focused core, ring, input, and MMIO verify replays, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, the already-shipped `samples/zigux/runtime_trace_events_loader.zig` scaffold as adjacent Phase 9 evidence rather than Phase 10 closure progress, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit, and do any packet-local direct-read misses stay framed as repo-reality gaps rather than silently re-presented as directly re-read evidence?
 
 ## Phase 11 tests-root packet
 
@@ -77,7 +81,6 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
-- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
@@ -149,7 +152,7 @@ Tests-root reviewer prompt:
 ## Checklist carryover prompts
 
 Keep these reviewer questions explicit when `zigux/tests/README.md` or other shared contributor-facing workflow notes are refreshed:
-- Phase 10: do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still keep the bounded virtio core, ring, input, and MMIO packet aligned while preserving the shared validator-first route, the closure-manifest boundary, the adjacent Phase 9 scaffold, and the Phase 14 study-only deep-core ownership cues?
+- Phase 10: do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still keep the bounded virtio core, ring, input, and MMIO packet aligned while preserving the shared validator-first route, the focused core, ring, input, and MMIO verify replays, the closure-manifest boundary, the adjacent Phase 9 scaffold, and the Phase 14 study-only deep-core ownership cues?
 - Phase 11: do the docs-root notes, checker split, tests-root packet, and Linux-style make routes still keep the shared-versus-dedicated simple-driver packet, the bounded `hvc_cleanup()` teardown handoff, the dedicated bcm2835 archival packet, the DesignWare registration and teardown boundary, the HVC survey route, and the focused header-boundary survey aligned without implying removed validators or missing inventory fixtures?
 - Phase 13: do the contributor workflow guide, shared-helper sequencing note, release-notes and roadmap-traceability notes, the helper-owned Landlock ownership and syscall-governance notes, the landlock ruleset packet checker, the adjacent notifier survey and priority-signal guard, the shared validator-first eight-test release packet, the shared contributor-surface sync note, the shared review checklist, the broader tests-root guide, and Linux-style make routes still keep the active contributor packet aligned while treating missing direct companions such as `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs*.zig`, `zigux/tests/phase13_devres*.zig`, `zigux/tests/phase13_landlock_*.zig`, the direct Phase 13 manifest files under `zigux/tests/`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` as repo-reality gaps rather than shipped evidence?
 
