@@ -15,6 +15,9 @@ REQUIRED_FILES = {
     "manifest": "zigux/tests/phase6_helper_parity_manifest.json",
     "build_file": "zigux/tests/phase6_build.zig",
     "makefile": "zigux/Makefile",
+    "focused_test": "zigux/tests/phase6_hexdump.zig",
+    "perf_test": "zigux/tests/phase6_hexdump_perf.zig",
+    "fixtures": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
 }
 
 SLICE_NOTE_MARKERS = [
@@ -52,6 +55,12 @@ MANIFEST_MARKERS = [
 ]
 
 BUILD_FILE_MARKERS = [
+    'const hexdump_vectors_module = b.createModule(.{',
+    '.root_source_file = b.path("fixtures/phase6_hexdump_vectors.zig"),',
+    '.root_source_file = b.path("phase6_hexdump.zig"),',
+    'hexdump_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);',
+    '.root_source_file = b.path("phase6_hexdump_perf.zig"),',
+    'hexdump_perf_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);',
     'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
 ]
@@ -63,7 +72,7 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
 ]
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -83,6 +92,11 @@ def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {relative_path}: {marker}")
 
 
+def expect_nonempty(relative_path: str, text: str) -> None:
+    if not text.strip():
+        raise CheckError(f"empty required file: {relative_path}")
+
+
 def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["slice_note"], read_text(root, REQUIRED_FILES["slice_note"]), SLICE_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["catalog"], read_text(root, REQUIRED_FILES["catalog"]), CATALOG_MARKERS)
@@ -90,6 +104,9 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["manifest"], read_text(root, REQUIRED_FILES["manifest"]), MANIFEST_MARKERS)
     expect_markers(REQUIRED_FILES["build_file"], read_text(root, REQUIRED_FILES["build_file"]), BUILD_FILE_MARKERS)
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
+    expect_nonempty(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]))
+    expect_nonempty(REQUIRED_FILES["perf_test"], read_text(root, REQUIRED_FILES["perf_test"]))
+    expect_nonempty(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]))
 
 
 def write(path: Path, text: str) -> None:
@@ -104,6 +121,9 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["manifest"], "\n".join(MANIFEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["build_file"], "\n".join(BUILD_FILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["focused_test"], "test \"phase6 hexdump focused replay placeholder\" {}\n")
+    write(root / REQUIRED_FILES["perf_test"], "const perf_case = \"phase6 hexdump perf placeholder\";\n")
+    write(root / REQUIRED_FILES["fixtures"], "pub const length_cases = [_]u8{0};\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -150,6 +170,21 @@ def run_self_test() -> None:
         makefile = tmpdir / REQUIRED_FILES["makefile"]
         makefile.write_text(makefile.read_text(encoding="utf-8").replace('$(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py', '$(PYTHON) scripts/zigux/check-phase6-hexdump-review.py'), encoding="utf-8")
         expect_failure(tmpdir, 'scripts/zigux/check-phase6-hexdump-packet.py')
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text("", encoding="utf-8")
+        expect_failure(tmpdir, REQUIRED_FILES["focused_test"])
+
+        build_self_test_fixture(tmpdir)
+        perf_test = tmpdir / REQUIRED_FILES["perf_test"]
+        perf_test.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["perf_test"])
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text("   \n", encoding="utf-8")
+        expect_failure(tmpdir, REQUIRED_FILES["fixtures"])
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "Documentation")
