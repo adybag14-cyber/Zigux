@@ -48,17 +48,17 @@ When a real Phase 10 change lands, keep these shared surfaces aligned:
 
 Use this note to keep the bounded work order honest:
 1. Prefer one virtio lane at a time instead of batching core, ring, input, and MMIO reminders into one mixed change.
-2. Keep the current validator posture explicit: the shared scripts-root Phase 10 truthfulness packet on current `master` is `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-harness-coverage.py`, and the build-backed replay routes, so reminder-surface edits should stay aligned with those shipped checks instead of implying a broader dedicated per-lane checker stack.
+2. Keep the current validator posture explicit: the shared scripts-root Phase 10 truthfulness packet on current `master` is `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and the build-backed replay routes, so reminder-surface edits should stay aligned with those shipped checks instead of implying a broader dedicated per-lane checker stack.
 3. Keep risky transport blocked: do not imply queue setup or reset parity, IRQ parity, DMA paths, input registration lifecycle parity, or probe or remove lifecycle closure beyond the blocked gaps already recorded in `zigux/tests/phase10_closure_manifest.json`.
 4. Treat the separate Phase 5 `reference_samples` boundary and the separate Phase 9 `runtime_starters` boundary as adjacent evidence only, not counted Phase 10 closure progress.
 5. Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit instead of letting those anchors drift into the Phase 10 virtio packet.
 6. When a broad reminder surface changes, prefer the directly shipped closure-manifest and checker-backed review packet over speculative packet-local inventory growth.
-7. No dedicated `check-phase10-core-packet.py`, `check-phase10-ring-packet.py`, `check-phase10-input-packet.py`, `check-phase10-mmio-packet.py`, `check-phase10-mmio-freeze-boundary.py`, `validate-phase10.py`, or `validate-phase10-closure.py` script is shipped on current `master`, so same-lane reminder work should stay anchored to the direct driver, docs, manifest, tests-root, and shared-checker surfaces unless a new focused script actually lands.
+7. The shipped focused shared Phase 10 scripts on current `master` are `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py`, so same-lane reminder work should stay anchored to the direct driver, docs, manifest, tests-root, validator, and shared-checker surfaces unless a new focused script actually lands.
 
 ## Non-Goals
 
 This note does not widen Phase 10 into:
 - direct risky-transport or lifecycle parity claims
-- a dedicated shared validator stack beyond the shipped focused reminder checkers and build-backed replay routes
+- a dedicated shared validator stack beyond the shipped focused reminder checkers, validator routes, and build-backed replay routes
 - Phase 5 sample closure, Phase 9 runtime-loader closure, or Phase 14 study-only evidence as counted virtio-driver progress
 - a claim that the Phase 10 tranche is closed or ready for an Architecture Council reopen
