@@ -161,7 +161,8 @@ def check(root: Path) -> list[str]:
         f"- status bucket: `{STATUS_BUCKET}`",
         f"- validation gate: `{VALIDATION_GATE}`",
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
-        "Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+        "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.",
+        "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]:
         if marker not in smoke_note:
             errors.append(f"missing marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}")
@@ -258,7 +259,8 @@ def current_smoke_note_text() -> str:
             for packet in SELF_TEST_ANCHOR_PACKETS
         ],
         *ANCHOR_MANIFEST_MARKERS,
-        "Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+        "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.",
+        "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]
     return "\n".join(parts) + "\n"
 
@@ -359,6 +361,24 @@ def run_self_test() -> int:
 
         write(
             root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(
+                "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected rollback self-test note failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(
+            root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
@@ -409,7 +429,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
