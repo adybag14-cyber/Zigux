@@ -19,6 +19,13 @@ README_MARKERS = (
     "make -C zigux phase3-selftest",
     "validate_phase3_selftest.py",
 )
+README_PHASE3_MARKER_COUNTS = {
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "zigux/uapi/dev_t.zig": 1,
+}
+README_PHASE3_PREFIX = "Phase 3 notes - "
+README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
 CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "make -C zigux phase3-selftest",
@@ -48,6 +55,13 @@ SCRIPTS_README_MARKERS = (
     "validate_phase3_selftest.py",
     "make -C zigux phase3-selftest",
 )
+SCRIPTS_README_PHASE3_MARKER_COUNTS = {
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "zigux/uapi/dev_t.zig": 1,
+}
+SCRIPTS_README_PHASE3_PREFIX = "Phase 3 flow - "
+SCRIPTS_README_PHASE3_NEXT_PREFIX = "Phase 4 flow - "
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
@@ -94,41 +108,64 @@ def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) 
     return issues
 
 
-def _extract_tests_phase3_reminder(text: str) -> str | None:
-    if TESTS_README_PHASE3_REMINDER_PREFIX not in text:
+def _extract_section(text: str, start_prefix: str, next_prefix: str) -> str | None:
+    if start_prefix not in text:
         return None
-    reminder = text.split(TESTS_README_PHASE3_REMINDER_PREFIX, 1)[1]
-    if TESTS_README_PHASE3_REMINDER_NEXT_PREFIX in reminder:
-        reminder = reminder.split(TESTS_README_PHASE3_REMINDER_NEXT_PREFIX, 1)[0]
-    return reminder
+    section = text.split(start_prefix, 1)[1]
+    if next_prefix in section:
+        section = section.split(next_prefix, 1)[0]
+    return section
 
 
-def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
+def _check_section_marker_counts(
+    path: Path,
+    start_prefix: str,
+    next_prefix: str,
+    marker_counts: dict[str, int],
+    label: str,
+) -> list[str]:
     try:
         text = _read(path)
     except FileNotFoundError:
         return [f"missing repo file: {path.as_posix()}"]
 
-    reminder = _extract_tests_phase3_reminder(text)
-    if reminder is None:
-        return [
-            "missing tests README Phase 3 validator-support reminder block"
-        ]
+    section = _extract_section(text, start_prefix, next_prefix)
+    if section is None:
+        return [f"missing {label} section"]
 
     issues: list[str] = []
-    for marker, expected_count in TESTS_README_MARKER_COUNTS.items():
-        actual_count = reminder.count(marker)
+    for marker, expected_count in marker_counts.items():
+        actual_count = section.count(marker)
         if actual_count != expected_count:
             issues.append(
-                "tests README Phase 3 reminder marker count drift: "
-                f"{marker} (expected {expected_count}, found {actual_count})"
+                f"{label} marker count drift: {marker} (expected {expected_count}, found {actual_count})"
             )
     return issues
 
 
+def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
+    return _check_section_marker_counts(
+        path,
+        TESTS_README_PHASE3_REMINDER_PREFIX,
+        TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
+        TESTS_README_MARKER_COUNTS,
+        "tests README Phase 3 reminder",
+    )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
-    issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "docs README"))
+    docs_readme = repo_root / README_PATH
+    issues.extend(_check_markers(docs_readme, README_MARKERS, "docs README"))
+    issues.extend(
+        _check_section_marker_counts(
+            docs_readme,
+            README_PHASE3_PREFIX,
+            README_PHASE3_NEXT_PREFIX,
+            README_PHASE3_MARKER_COUNTS,
+            "docs README Phase 3 notes",
+        )
+    )
     issues.extend(
         _check_markers(
             repo_root / CHECKLIST_PATH, CHECKLIST_MARKERS, "review checklist"
@@ -146,9 +183,19 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
     )
     issues.extend(_check_tests_readme_phase3_reminder(tests_readme))
+    scripts_readme = repo_root / SCRIPTS_README_PATH
     issues.extend(
         _check_markers(
-            repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README"
+            scripts_readme, SCRIPTS_README_MARKERS, "scripts README"
+        )
+    )
+    issues.extend(
+        _check_section_marker_counts(
+            scripts_readme,
+            SCRIPTS_README_PHASE3_PREFIX,
+            SCRIPTS_README_PHASE3_NEXT_PREFIX,
+            SCRIPTS_README_PHASE3_MARKER_COUNTS,
+            "scripts README Phase 3 flow",
         )
     )
     issues.extend(
@@ -170,7 +217,18 @@ def _write(path: Path, text: str) -> None:
 
 
 def _populate_repo(root: Path) -> None:
-    _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
+    _write(
+        root / README_PATH,
+        "\n".join(
+            (
+                *README_MARKERS,
+                README_PHASE3_PREFIX,
+                *README_PHASE3_MARKER_COUNTS.keys(),
+                README_PHASE3_NEXT_PREFIX,
+            )
+        )
+        + "\n",
+    )
     _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
     _write(
         root / TESTS_README_PATH,
@@ -184,7 +242,18 @@ def _populate_repo(root: Path) -> None:
         )
         + "\n",
     )
-    _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    _write(
+        root / SCRIPTS_README_PATH,
+        "\n".join(
+            (
+                *SCRIPTS_README_MARKERS,
+                SCRIPTS_README_PHASE3_PREFIX,
+                *SCRIPTS_README_PHASE3_MARKER_COUNTS.keys(),
+                SCRIPTS_README_PHASE3_NEXT_PREFIX,
+            )
+        )
+        + "\n",
+    )
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
     _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
 
@@ -327,6 +396,48 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected dev_t marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path = root / README_PATH
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-abi-header-family-survey.md",
+                README_PHASE3_NEXT_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-abi-header-family-survey.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: Documentation/zigux/phase3-abi-header-family-survey.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README section-scoped drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path = root / SCRIPTS_README_PATH
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "zigux/uapi/dev_t.zig",
+                SCRIPTS_README_PHASE3_NEXT_PREFIX + "\n" + "zigux/uapi/dev_t.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: zigux/uapi/dev_t.zig "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README section-scoped drift was not reported")
             return 1
 
         _populate_repo(root)
