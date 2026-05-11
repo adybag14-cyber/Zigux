@@ -27,15 +27,21 @@ The survey note exists to keep those surfaces readable together without overstat
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
 
+The paired compile-local verifier in `drivers/tty/hvc/hvc_console_verify.zig` keeps the driver-local teardown and failure-mode packet reviewable beside that archived survey without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
+
 The bounded starter and its archival replay now keep these focused cues explicit:
 
 * final-close teardown summary
 * hvc_cleanup() tty-port release handoff summary
 * tiny notifier-add open handoff summary
+* cleanup-prerequisite failure replay
+* notifier-prerequisite and notifierless-open failure replays
+* targetless and no-dispatch sysrq or notifier deferral replays
 * khvcd worker-entry summary
 * khvcd sleep-and-reschedule handoff summary
 * `__hvc_poll` drain-order summary
 * `hvc_hangup()` disconnect summary
+* impossible hangup buffered-write guard
 * `hvc_remove()` handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`
