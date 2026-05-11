@@ -13,8 +13,8 @@ REQUIRED_FILES = {
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
     "validation_matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-    "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
-    "verify_helper": "drivers/tty/hvc/hvc_console_verify.zig",
+    "modem_control_split": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
 }
 
@@ -24,28 +24,31 @@ SURVEY_GATE_MARKERS = [
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
     'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
     'test "phase11 hvc console survey keeps bounded exported helper signature proofs"',
-    "final-close teardown handoff",
-    "notifier-facing handoff",
-    "hvc_cleanup() tty-port release handoff summary",
+    "hvc_cleanup tty-port release handoff",
+    "phase11_hvc_console_modem_control_split.zig",
+    "phase11_hvc_console_poll_retry_split.zig",
 ]
 
 SURVEY_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`",
     "Phase 11 simple-production-driver gap has been closed by the bounded starter.",
     "remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+    "zigux/tests/phase11_hvc_console_manifest.json",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "scripts/zigux/check-phase11-hvc-survey-packet.py",
+    "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "bounded supporting helper",
     "final-close teardown summary",
-    "`hvc_cleanup()` tty-port release handoff summary",
     "tiny notifier-add open handoff summary",
     "khvcd worker-entry summary",
     "khvcd sleep-and-reschedule handoff summary",
     "`__hvc_poll` drain-order summary",
     "`hvc_hangup()` disconnect summary",
     "`hvc_remove()` handoff summary",
-    "`hvc_kick()` wakeup cue",
+    "`hvc_cleanup()` tty-port release handoff summary",
     "notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`",
     "exported-helper signature proof",
     "It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.",
@@ -55,14 +58,22 @@ TEARDOWN_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
     "teardown evidence remains bounded to the landed HVC starter packet",
     "remaining follow-through is still live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, and host-backed transport or teardown validation",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+    "zigux/tests/phase11_hvc_console_manifest.json",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "scripts/zigux/check-phase11-hvc-survey-packet.py",
+    "make -C zigux phase11-hvc-survey",
     "final-close teardown boundaries",
+    "`hvc_cleanup()` tty-port release handoff",
     "`hvc_hangup()` disconnect cleanup",
     "`hvc_remove()` slot-release and handoff ordering",
-    "`summarizeNotifierAddOutcome()`",
+    "notifier-facing teardown edges beside `summarizeNotifierAddOutcome()`",
     "bounded sysrq-handling support through `drivers/tty/hvc/hvc_console_sysrq.zig` without claiming live sysrq execution",
+    "poll-retry and drain-order split",
+    "modem-control fallback split",
     "It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, or hardware-validated teardown parity.",
 ]
 
@@ -77,22 +88,23 @@ VALIDATION_MATRIX_MARKERS = [
     "notifier callback boundary",
     "khvcd polling contract boundary",
     "`hvc_hangup()` disconnect boundary",
-    "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, cleanup, remove, khvcd polling-contract, or hangup-disconnect ownership story changes",
+    "`summarizeNotifierAddOutcome()`",
+    "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes",
+    "host-free khvcd, notifier, remove, or cleanup handoff",
 ]
 
-CLEANUP_REPLAY_MARKERS = [
-    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
-    'test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
-    "CleanupRequiresFinalCloseOrHangup",
-    "CleanupRequiresTtyPortReference",
-    "ConsoleUnavailable",
+MODEM_CONTROL_SPLIT_MARKERS = [
+    'test "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks"',
+    'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
 ]
 
-VERIFY_HELPER_MARKERS = [
-    'test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding"',
-    'test "hvc_console verify keeps cleanup prerequisite failures explicit"',
-    'test "hvc_console verify keeps open notifier-state failures explicit"',
-    'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
+POLL_RETRY_SPLIT_MARKERS = [
+    'test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep"',
+    'test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries"',
+    'test "phase11 hvc console keeps sysrq toggle handoff distinct from literal fallback on the primary console"',
+    'test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes"',
+    'test "phase11 hvc console keeps non-kernel ^O as a literal byte without toggling sysrq state"',
+    'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
 ]
 
 SYSRQ_HELPER_MARKERS = [
@@ -103,7 +115,7 @@ SYSRQ_HELPER_MARKERS = [
     'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 8
 
 
 class CheckError(RuntimeError):
@@ -145,14 +157,14 @@ def run_check(root: Path) -> None:
         VALIDATION_MATRIX_MARKERS,
     )
     expect_markers(
-        REQUIRED_FILES["cleanup_replay"],
-        read_text(root, REQUIRED_FILES["cleanup_replay"]),
-        CLEANUP_REPLAY_MARKERS,
+        REQUIRED_FILES["modem_control_split"],
+        read_text(root, REQUIRED_FILES["modem_control_split"]),
+        MODEM_CONTROL_SPLIT_MARKERS,
     )
     expect_markers(
-        REQUIRED_FILES["verify_helper"],
-        read_text(root, REQUIRED_FILES["verify_helper"]),
-        VERIFY_HELPER_MARKERS,
+        REQUIRED_FILES["poll_retry_split"],
+        read_text(root, REQUIRED_FILES["poll_retry_split"]),
+        POLL_RETRY_SPLIT_MARKERS,
     )
     expect_markers(
         REQUIRED_FILES["sysrq_helper"],
@@ -171,8 +183,8 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["cleanup_replay"], "\n".join(CLEANUP_REPLAY_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["verify_helper"], "\n".join(VERIFY_HELPER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
 
 
@@ -197,35 +209,36 @@ def run_self_test() -> None:
         gate_missing = tmpdir / REQUIRED_FILES["survey_gate"]
         gate_missing.write_text(
             gate_missing.read_text(encoding="utf-8").replace(
-                "hvc_cleanup() tty-port release handoff summary\n", ""
+                "phase11_hvc_console_poll_retry_split.zig\n", ""
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "hvc_cleanup() tty-port release handoff summary")
+        expect_failure(tmpdir, "phase11_hvc_console_poll_retry_split.zig")
 
         build_self_test_fixture(tmpdir)
         note_missing = tmpdir / REQUIRED_FILES["survey_note"]
         note_missing.write_text(
             note_missing.read_text(encoding="utf-8").replace(
-                "exported-helper signature proof\n", ""
+                "zigux/tests/phase11_hvc_console_modem_control_split.zig\n", ""
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "exported-helper signature proof")
-
-        build_self_test_fixture(tmpdir)
-        note_missing.write_text(
-            note_missing.read_text(encoding="utf-8").replace(
-                "khvcd sleep-and-reschedule handoff summary\n", ""
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "khvcd sleep-and-reschedule handoff summary")
+        expect_failure(tmpdir, "zigux/tests/phase11_hvc_console_modem_control_split.zig")
 
         build_self_test_fixture(tmpdir)
         teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
         teardown_missing.write_text(
             teardown_missing.read_text(encoding="utf-8").replace(
+                "poll-retry and drain-order split\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "poll-retry and drain-order split")
+
+        build_self_test_fixture(tmpdir)
+        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
+        matrix_missing.write_text(
+            matrix_missing.read_text(encoding="utf-8").replace(
                 "`summarizeNotifierAddOutcome()`\n", ""
             ),
             encoding="utf-8",
@@ -233,36 +246,31 @@ def run_self_test() -> None:
         expect_failure(tmpdir, "`summarizeNotifierAddOutcome()`")
 
         build_self_test_fixture(tmpdir)
-        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
-        matrix_missing.write_text(
-            matrix_missing.read_text(encoding="utf-8").replace(
-                "khvcd polling contract boundary\n", ""
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "khvcd polling contract boundary")
-
-        build_self_test_fixture(tmpdir)
-        cleanup_missing = tmpdir / REQUIRED_FILES["cleanup_replay"]
-        cleanup_missing.write_text(
-            cleanup_missing.read_text(encoding="utf-8").replace(
-                "CleanupRequiresTtyPortReference\n", ""
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "CleanupRequiresTtyPortReference")
-
-        build_self_test_fixture(tmpdir)
-        verify_missing = tmpdir / REQUIRED_FILES["verify_helper"]
-        verify_missing.write_text(
-            verify_missing.read_text(encoding="utf-8").replace(
-                'test "hvc_console verify keeps open notifier-state failures explicit"\n',
+        modem_missing = tmpdir / REQUIRED_FILES["modem_control_split"]
+        modem_missing.write_text(
+            modem_missing.read_text(encoding="utf-8").replace(
+                'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"\n',
                 "",
             ),
             encoding="utf-8",
         )
         expect_failure(
-            tmpdir, 'test "hvc_console verify keeps open notifier-state failures explicit"'
+            tmpdir,
+            'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
+        )
+
+        build_self_test_fixture(tmpdir)
+        poll_missing = tmpdir / REQUIRED_FILES["poll_retry_split"]
+        poll_missing.write_text(
+            poll_missing.read_text(encoding="utf-8").replace(
+                'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
         )
 
         build_self_test_fixture(tmpdir)
