@@ -50,6 +50,13 @@ FORBIDDEN_SCRIPTS_README_MARKERS = (
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
 )
+DOCS_README_LINES = (
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+    f"`{UAPI_DEV_T.as_posix()}`",
+    "`zig build phase3-test --build-file zigux/tests/build.zig`",
+    "`make -C zigux phase3`",
+)
 
 
 def norm_lines(text: str) -> list[str]:
@@ -170,12 +177,7 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"missing_marker:{rel.as_posix()}:{marker}")
 
     docs_text = (root / DOCS_README).read_text(encoding="utf-8")
-    for marker in (
-        "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-        "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-        "`zig build phase3-test --build-file zigux/tests/build.zig`",
-        "`make -C zigux phase3`",
-    ):
+    for marker in DOCS_README_LINES:
         require_exact(issues, docs_text, "docs_root_marker", marker)
 
     scripts_readme_text = (root / SCRIPTS_README).read_text(encoding="utf-8")
@@ -242,6 +244,7 @@ def build_valid_workspace(root: Path) -> None:
     write(root / DOCS_README, "\n".join((
         "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
         "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
+        f"- `{UAPI_DEV_T.as_posix()}`",
         "- `zig build phase3-test --build-file zigux/tests/build.zig`",
         "- `make -C zigux phase3`",
         "",
@@ -285,6 +288,14 @@ def run_self_test() -> int:
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_UAPI_DEV_T_BLOB_SHA:"), issues
         build_valid_workspace(root)
 
+        write(root / DOCS_README, (root / DOCS_README).read_text(encoding="utf-8").replace(
+            f"`{UAPI_DEV_T.as_posix()}`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_docs_root_marker:`{UAPI_DEV_T.as_posix()}`"]
+        build_valid_workspace(root)
+
         write(root / SCRIPTS_README, "")
         assert validate(root) == ["missing_scripts_readme_marker:`validate-phase3-export-uapi-survey.py`"]
         build_valid_workspace(root)
@@ -310,7 +321,7 @@ def run_self_test() -> int:
         assert "missing_marker:zigux/Makefile:$(ZIG) build phase3-test --build-file zigux/tests/build.zig" in issues, issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
