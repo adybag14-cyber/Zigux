@@ -13,6 +13,9 @@ REQUIRED_FILES = {
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
     "validation_matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
+    "verify_helper": "drivers/tty/hvc/hvc_console_verify.zig",
+    "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
 }
 
 SURVEY_GATE_MARKERS = [
@@ -30,6 +33,8 @@ SURVEY_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`",
     "Phase 11 simple-production-driver gap has been closed by the bounded starter.",
     "remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation",
+    "zigux/tests/phase11_hvc_cleanup.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "bounded supporting helper",
     "final-close teardown summary",
@@ -50,6 +55,8 @@ TEARDOWN_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
     "teardown evidence remains bounded to the landed HVC starter packet",
     "remaining follow-through is still live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, and host-backed transport or teardown validation",
+    "zigux/tests/phase11_hvc_cleanup.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "final-close teardown boundaries",
     "`hvc_hangup()` disconnect cleanup",
@@ -73,7 +80,30 @@ VALIDATION_MATRIX_MARKERS = [
     "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, cleanup, remove, khvcd polling-contract, or hangup-disconnect ownership story changes",
 ]
 
-SELF_TEST_CASE_COUNT = 7
+CLEANUP_REPLAY_MARKERS = [
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+    'test "phase11 hvc console keeps write-teardown hangup buffering split reviewable"',
+    "CleanupRequiresFinalCloseOrHangup",
+    "CleanupRequiresTtyPortReference",
+    "ConsoleUnavailable",
+]
+
+VERIFY_HELPER_MARKERS = [
+    'test "hvc_console verify keeps failed-open close and cleanup teardown explicit"',
+    'test "hvc_console verify keeps cleanup prerequisite failures explicit"',
+    'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
+    'test "hvc_console verify rejects impossible hangup buffered-write state"',
+]
+
+SYSRQ_HELPER_MARKERS = [
+    "pub const SysrqHandoffRequest",
+    "pub const SysrqHandoffSnapshot",
+    "pub const keeps_live_sysrq_execution_out_of_scope = true;",
+    "pub fn summarizeSysrqHandoff",
+    'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
+]
+
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -114,6 +144,21 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["validation_matrix"]),
         VALIDATION_MATRIX_MARKERS,
     )
+    expect_markers(
+        REQUIRED_FILES["cleanup_replay"],
+        read_text(root, REQUIRED_FILES["cleanup_replay"]),
+        CLEANUP_REPLAY_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["verify_helper"],
+        read_text(root, REQUIRED_FILES["verify_helper"]),
+        VERIFY_HELPER_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["sysrq_helper"],
+        read_text(root, REQUIRED_FILES["sysrq_helper"]),
+        SYSRQ_HELPER_MARKERS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -126,6 +171,9 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["cleanup_replay"], "\n".join(CLEANUP_REPLAY_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["verify_helper"], "\n".join(VERIFY_HELPER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -193,6 +241,39 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "khvcd polling contract boundary")
+
+        build_self_test_fixture(tmpdir)
+        cleanup_missing = tmpdir / REQUIRED_FILES["cleanup_replay"]
+        cleanup_missing.write_text(
+            cleanup_missing.read_text(encoding="utf-8").replace(
+                "CleanupRequiresTtyPortReference\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "CleanupRequiresTtyPortReference")
+
+        build_self_test_fixture(tmpdir)
+        verify_missing = tmpdir / REQUIRED_FILES["verify_helper"]
+        verify_missing.write_text(
+            verify_missing.read_text(encoding="utf-8").replace(
+                'test "hvc_console verify keeps cleanup prerequisite failures explicit"\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir, 'test "hvc_console verify keeps cleanup prerequisite failures explicit"'
+        )
+
+        build_self_test_fixture(tmpdir)
+        sysrq_missing = tmpdir / REQUIRED_FILES["sysrq_helper"]
+        sysrq_missing.write_text(
+            sysrq_missing.read_text(encoding="utf-8").replace(
+                "pub fn summarizeSysrqHandoff\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "pub fn summarizeSysrqHandoff")
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "Documentation")
