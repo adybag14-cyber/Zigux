@@ -24,6 +24,7 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 - `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 - `scripts/zigux/validate-phase10.py`
 - `scripts/zigux/validate-phase10-closure.py`
 - `zigux/tests/phase10_build.zig`
@@ -76,7 +77,6 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
-- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
