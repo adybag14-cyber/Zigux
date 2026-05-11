@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L07",
   "phase": "Phase 10",
-  "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
+  "surveyed_commit": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -110,6 +110,13 @@
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
       "why_now": "The live ring slice carries queue-local notify-prepare bookkeeping that reports avail shadow, num_added, and whether a kick is needed while flushing the staged publish count, which mirrors virtqueue_kick_prepare()."
+    },
+    {
+      "id": "phase10-notification-data-summary-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice keeps a queue-local notification-data summary that makes split next-avail state and packed wrap-bit transitions reviewable without claiming transport-backed notify behavior."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
