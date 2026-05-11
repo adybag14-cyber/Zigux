@@ -26,8 +26,6 @@ REQUIRED_FILES = (
     REVIEW_PROCESS_NOTE_REL,
     HANDOFF_CHECKER_REL,
     MANIFEST_REL,
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
     BUILD_REL,
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -36,6 +34,9 @@ REQUIRED_FILES = (
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -113,6 +114,8 @@ CURRENT_REPO_HANDOFF_MARKERS = (
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
@@ -301,7 +304,7 @@ def _baseline_manifest() -> str:
     return json.dumps(
         {
             "handoff_evidence": {
-                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_blocker_evidence.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/tests/phase15_governance_lane_sequencing.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
+                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_handoff_next_steps_manifest.json, zigux/tests/phase15_readiness_gate_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_blocker_evidence.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/tests/phase15_governance_lane_sequencing.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
                 "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
             }
         },
@@ -341,9 +344,11 @@ def _seed_fixture_tree(root: Path) -> None:
         "Documentation/zigux/phase15-freeze-map-governance.md",
         "Documentation/zigux/phase15-parity-scorecard.md",
         "Documentation/zigux/phase15-indefinite-c-policy.md",
-    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-    "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+        "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+        "Documentation/zigux/phase15-readiness-gate-survey.md",
+        "Documentation/zigux/phase15-governance-lane-sequencing.md",
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        "zigux/tests/phase15_readiness_gate_manifest.json",
         "zigux/tests/phase15_freeze_map_governance.zig",
         "zigux/tests/phase15_parity_scorecard.zig",
         "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -354,8 +359,6 @@ def _seed_fixture_tree(root: Path) -> None:
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         "zigux/tests/phase15_governance_lane_sequencing.zig",
         "zigux/tests/phase15_readiness_gate.zig",
-        "zigux/tests/phase15_handoff_next_steps_manifest.json",
-        "zigux/tests/phase15_readiness_gate_manifest.json",
     ):
         _write(root / rel, "{}\n" if rel.endswith(".json") else "// stub\n")
 
@@ -486,12 +489,12 @@ def run_self_test() -> int:
         manifest_data = json.loads(baseline_manifest)
         manifest_data["handoff_evidence"]["current_repo_handoff"] = manifest_data["handoff_evidence"][
             "current_repo_handoff"
-        ].replace("scripts/zigux/check-phase15-scripts-readme-alignment.py, ", "", 1)
+        ].replace("zigux/tests/phase15_handoff_next_steps_manifest.json, ", "", 1)
         _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
         _assert_only(
             validate(root),
             [
-                "manifest_current_repo_handoff:missing:scripts/zigux/check-phase15-scripts-readme-alignment.py"
+                "manifest_current_repo_handoff:missing:zigux/tests/phase15_handoff_next_steps_manifest.json"
             ],
             "missing_manifest_repo_handoff_marker_guard_failed",
         )
