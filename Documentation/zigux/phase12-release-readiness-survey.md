@@ -22,6 +22,7 @@ It is a PMO release artifact, not a new replay route.
 - The smaller unshipped boundary is now the validator-first and focused-replay side of the lane: current `master` still does not expose a shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep naming only the shipped checker pair, smoke shard, full replay, and Linux-style Make routes.
 - Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.
 - The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.
+- During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.
 
 ## Boundaries
 
