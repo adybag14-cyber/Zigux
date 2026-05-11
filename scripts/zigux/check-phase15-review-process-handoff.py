@@ -81,6 +81,18 @@ CURRENT_REPO_HANDOFF_MARKERS = (
     "zigux/tests/README.md",
 )
 
+NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS = (
+    "Documentation/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase15.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -179,7 +191,12 @@ def validate(root: Path) -> list[str]:
     if not isinstance(next_step, str):
         issues.append("manifest:missing:handoff.next_step")
     else:
-        _require_markers_present(next_step, CURRENT_REPO_HANDOFF_MARKERS, "manifest_handoff_next_step", issues)
+        _require_markers_present(
+            next_step,
+            NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS,
+            "manifest_handoff_next_step",
+            issues,
+        )
 
     return issues
 
@@ -239,9 +256,12 @@ def _seed_fixture_tree(root: Path) -> None:
                     "current_mode": "maintenance_mode",
                     "replay_commands": list(HANDOFF_ROUTE_MARKERS),
                     "next_step": (
-                        "reread Documentation/zigux/phase15-governance-lane-sequencing.md, "
-                        "scripts/zigux/validate-phase15.py, scripts/zigux/README.md, and "
-                        "zigux/tests/README.md together"
+                        "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; "
+                        "if one same-lane truthfulness repair is still needed before then, start with Documentation/zigux/README.md, "
+                        "because the broad docs-root Phase 15 reminder still omits zigux/tests/README.md, scripts/zigux/README.md, "
+                        "scripts/zigux/validate-phase15.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, "
+                        "scripts/zigux/check-phase15-review-process-handoff.py, make -C zigux phase15-validate, "
+                        "make -C zigux phase15-test, and make -C zigux phase15 from the current validator-first packet"
                     ),
                 },
             },
@@ -301,6 +321,21 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        manifest_data = json.loads(_read(root / MANIFEST_PATH))
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "Documentation/zigux/README.md, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:Documentation/zigux/README.md"],
+            "missing_docs_root_next_step_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         (root / TESTS_README_PATH).unlink()
         _assert_only(
             validate(root),
@@ -337,7 +372,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS)}"
+        f"{len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS)}"
     )
     return 0
 
