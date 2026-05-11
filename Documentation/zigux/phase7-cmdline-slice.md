@@ -79,6 +79,7 @@ The current landed slice covers the bounded cmdline review packet under `lib/cmd
 The current tests keep these packet edges explicit:
 
 * `getOption()` and `getOptions()` preserve Linux-style range parsing, including validator-only counting paths
+* `getOption()` and `getOptions()` keep the oversized wrap contract explicit: `2147483648` wraps to `-2147483648`, `-2147483649` wraps to `2147483647`, and the paired `getOptions("2147483648,-2147483649", ...)` replay preserves the same wrapped values together with the validation-only count path
 * `memparse()` preserves suffix scaling, leading plus handling, and stop-index reporting
 * exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`
 * caller-owned `nextArg()` buffer slicing stays explicit for `param`, `value`, and `rest`
@@ -106,6 +107,6 @@ This slice still does not yet claim:
 ## Next bounded step
 
 Keep this slice parked unless fresh repo inspection finds one concrete cmdline parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
-If the family reopens, prefer one tiny same-packet follow-through around the already-landed `nextArg()` caller-slice ownership packet, the serialized edge fixtures, or the shared review-surface wording before widening into broader parsing policy or another lane.
+If the family reopens, prefer one tiny same-packet follow-through around the already-landed oversized-wrap replay, the `nextArg()` caller-slice ownership packet, the serialized edge fixtures, or the shared review-surface wording before widening into broader parsing policy or another lane.
 
 ## Footer
