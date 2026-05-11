@@ -46,13 +46,19 @@ SCRIPTS_README_MARKERS = (
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
     'Path("scripts/zigux/phase3_catalog.py"), ("--self-test",)',
+    'Path("scripts/zigux/phase3_check_lib.py"), ("--self-test",)',
+    'Path("scripts/zigux/generate-phase3-check-wrappers.py"), ("--self-test",)',
+    'Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)',
 )
 MAKEFILE_MARKERS = (
     "phase3-validate:",
     "$(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test",
     "$(PYTHON) scripts/zigux/phase3_catalog.py --self-test",
     "$(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    "$(PYTHON) scripts/zigux/phase3_check_lib.py --self-test",
+    "$(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test",
     "$(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
+    "$(PYTHON) scripts/zigux/run-phase3-checks.py --self-test",
     "phase3-selftest:",
 )
 
@@ -166,7 +172,7 @@ def run_self_test() -> int:
         broken_path = root / SELFTEST_DRIVER_PATH
         broken_path.write_text(
             _read(broken_path).replace(
-                'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+                'Path("scripts/zigux/phase3_check_lib.py"), ("--self-test",)',
                 "",
                 1,
             ),
@@ -175,7 +181,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected = (
             "missing selftest driver marker: "
-            'Path("scripts/zigux/check-phase3-catalog-selftest.py")'
+            'Path("scripts/zigux/phase3_check_lib.py"), ("--self-test",)'
         )
         if expected not in issues:
             print("PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=fail")
@@ -186,7 +192,7 @@ def run_self_test() -> int:
         broken_path = root / MAKEFILE_PATH
         broken_path.write_text(
             _read(broken_path).replace(
-                "$(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
+                "$(PYTHON) scripts/zigux/run-phase3-checks.py --self-test",
                 "",
                 1,
             ),
@@ -195,11 +201,11 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected = (
             "missing makefile marker: "
-            "$(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync"
+            "$(PYTHON) scripts/zigux/run-phase3-checks.py --self-test"
         )
         if expected not in issues:
             print("PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected makefile audit-doc-sync marker was not reported")
+            print("expected makefile run-phase3-checks marker was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=pass")
