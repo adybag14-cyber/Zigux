@@ -50,6 +50,11 @@ MANIFEST_MARKERS = [
     '"scripts/zigux/check-phase10-harness-coverage.py"',
 ]
 
+COMMANDS = [
+    ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
+    ["scripts/zigux/check-phase10-harness-coverage.py"],
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -75,8 +80,16 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
-def run(cmd: list[str]) -> int:
-    return subprocess.run(cmd, cwd=ROOT, check=False).returncode
+def run_command(root: Path, cmd: list[str]) -> int:
+    return subprocess.run([sys.executable, str(root / cmd[0]), *cmd[1:]], cwd=root, check=False).returncode
+
+
+def run_required_commands(root: Path) -> list[str]:
+    failed: list[str] = []
+    for command in COMMANDS:
+        if run_command(root, command) != 0:
+            failed.append(" ".join(command))
+    return failed
 
 
 def write_fixture(root: Path) -> None:
@@ -84,7 +97,14 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS) + "\n",
-        "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
+        "scripts/zigux/check-phase10-harness-coverage.py": (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_HARNESS_COVERAGE_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "print('PHASE10_HARNESS_COVERAGE=pass')\n"
+        ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
     }
@@ -106,6 +126,12 @@ def run_self_test() -> int:
                 "phase10-closure-self-test:baseline_failed:"
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+            )
+        failed_commands = run_required_commands(root)
+        if failed_commands:
+            raise SystemExit(
+                "phase10-closure-self-test:baseline_command_failed:"
+                f"commands={','.join(failed_commands)}"
             )
 
         makefile = root / "zigux/Makefile"
@@ -130,9 +156,27 @@ def run_self_test() -> int:
         manifest.write_text(manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1), encoding="utf-8")
         if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
+        write_fixture(root)
+
+        checker = root / "scripts/zigux/check-phase10-harness-coverage.py"
+        checker.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_HARNESS_COVERAGE_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        failed_commands = run_required_commands(root)
+        if failed_commands != ["scripts/zigux/check-phase10-harness-coverage.py"]:
+            raise SystemExit(
+                "phase10-closure-self-test:failed_command_not_detected:"
+                f"actual={','.join(failed_commands) if failed_commands else 'none'}"
+            )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -162,15 +206,14 @@ def main() -> int:
         print("MISSING_PHASE10_CLOSURE_MARKERS_END")
         return 1
 
-    commands = [
-        [sys.executable, str(ROOT / "scripts/zigux/check-phase10-harness-coverage.py"), "--self-test"],
-        [sys.executable, str(ROOT / "scripts/zigux/check-phase10-harness-coverage.py")],
-    ]
-    for command in commands:
-        if run(command) != 0:
-            print("PHASE10_CLOSURE_VALIDATION=fail")
-            print(f"PHASE10_CLOSURE_VALIDATION_FAILED_COMMAND={' '.join(command[1:])}")
-            return 1
+    failed_commands = run_required_commands(ROOT)
+    if failed_commands:
+        print("PHASE10_CLOSURE_VALIDATION=fail")
+        print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_START")
+        for command in failed_commands:
+            print(command)
+        print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_END")
+        return 1
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
@@ -178,7 +221,7 @@ def main() -> int:
         "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
         f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(MANIFEST_MARKERS)}"
     )
-    print("PHASE10_CLOSURE_COMMAND_COUNT=2")
+    print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
     return 0
 
 
