@@ -19,7 +19,9 @@ same checker family:
 - `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 
-Keep `Documentation/zigux/README.md`, `scripts/zigux/README.md`,
+Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
+`Documentation/zigux/phase7-argv-split-slice.md`,
+`Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/README.md`,
 `samples/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and
 `zigux/tests/phase7_build.zig` aligned around that same shared replay packet so
 the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
