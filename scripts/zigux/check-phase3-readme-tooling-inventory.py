@@ -46,6 +46,8 @@ REQUIRED_MARKERS = (
     "check-phase3-catalog-selftest.py",
     "validate-phase3-policy-unsafe-survey.py",
     "check-phase3-policy-byte-guards.py",
+    "check-phase3-policy-unsafe-focused-replay.py",
+    "check-phase3-policy-unsafe-mmio-consumer.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
@@ -244,6 +246,18 @@ def run_self_test() -> int:
     if "validate-phase3-validator-support-surface.py" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected validator-support surface marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase3-policy-unsafe-focused-replay.py", "", 1))
+    if "check-phase3-policy-unsafe-focused-replay.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected policy-unsafe focused-replay marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase3-policy-unsafe-mmio-consumer.py", "", 1))
+    if "check-phase3-policy-unsafe-mmio-consumer.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected policy-unsafe mmio-consumer marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("Documentation/zigux/phase3-boundary-lane-sequencing.md", "", 1))
