@@ -53,7 +53,9 @@ The docs-root Phase 1 summary still names this owner-map note, so the earlier `D
 
 The earlier `find_bit` edge bench gap is now closed on current `master` too. `zigux/tests/phase1_bench.zig` now carries the underscore-alias and backward-edge `findLastBit()` replay calls inside `findBitEdgeBench()`, and `zigux/tests/fixtures/phase1_bench_expectations.json` already keeps the widened exact edge checksum at `23340000`.
 
-That means the next honest same-lane follow-up is no longer another bench-body repair. The next useful host-tools step should come from the smallest remaining same-packet truthfulness or exact-check drift across the shipped Phase 1 bench checker, closure note, manifest, or shared reminder surfaces rather than reopening helper behavior.
+The next same-lane reminder gap has narrowed to the shared closure note instead. `Documentation/zigux/phase1-closure.md` keeps the bench checker, expectation fixture, and workflow-backed replay packet explicit, but its shared review packet still omits this owner-map note even though the docs root, scripts root, tests root, and review checklist already treat `Documentation/zigux/phase1-host-helper-lane-sequencing.md` as part of the closed Phase 1 review surface.
+
+That means the next honest same-lane follow-up is no longer another bench-body repair. The next useful host-tools step should come from the smallest remaining same-packet truthfulness or exact-check drift across the shipped Phase 1 closure note and adjacent shared reminder surfaces rather than reopening helper behavior.
 
 ## Anti-Overlap Rules
 
@@ -69,16 +71,13 @@ When this lane reopens, stay inside one bounded step only.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to reread the shipped Phase 1 bench-review packet for the smallest remaining exactness or reminder drift across:
+The next honest same-lane follow-up is to refresh the shared review packet in:
 
-- `scripts/zigux/check-phase1-bench.py`
 - `Documentation/zigux/phase1-closure.md`
-- `zigux/tests/fixtures/phase1_bench_expectations.json`
-- `zigux/tests/phase1_bench.zig`
 
-That bounded follow-up should stay inside one small Phase 1 bench-checker or review-surface truthfulness repair only if live `master` still undercounts the landed widened `find_bit` edge bench contract.
+That bounded follow-up should add `Documentation/zigux/phase1-host-helper-lane-sequencing.md` to the closed Phase 1 shared review packet so the closure note matches the already-landed docs-root, scripts-root, tests-root, and review-checklist reminder surfaces on current `master`.
 
-Until a new same-packet drift is confirmed, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+Until that truthfulness repair lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
