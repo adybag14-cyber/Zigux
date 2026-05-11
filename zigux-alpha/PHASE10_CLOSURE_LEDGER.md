@@ -61,14 +61,15 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/check-phase10-core-packet.py`
 - `PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/validate-phase10.py`
-- `PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py`
-- `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
-- `PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-- `PHASE10_LEDGER_EXACT_CHECK_7=python3 scripts/zigux/validate-phase10-closure.py`
-- `PHASE10_LEDGER_EXACT_CHECK_8=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-- `PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10-validate`
-- `PHASE10_LEDGER_EXACT_CHECK_10=make -C zigux phase10-test`
-- `PHASE10_LEDGER_EXACT_CHECK_11=make -C zigux phase10`
+- `PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
+- `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
+- `PHASE10_LEDGER_EXACT_CHECK_7=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `PHASE10_LEDGER_EXACT_CHECK_8=python3 scripts/zigux/validate-phase10-closure.py`
+- `PHASE10_LEDGER_EXACT_CHECK_9=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `PHASE10_LEDGER_EXACT_CHECK_10=make -C zigux phase10-validate`
+- `PHASE10_LEDGER_EXACT_CHECK_11=make -C zigux phase10-test`
+- `PHASE10_LEDGER_EXACT_CHECK_12=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper`
@@ -88,7 +89,7 @@ The shared closure manifest now also keeps the landed core helper packet explici
 
 The same closure packet also stays reviewable through the dedicated core lab gate plus the dedicated core, ring, input, and MMIO survey gates, and now also the focused ring drained-reset reuse, multitouch-preflight, and queue-isolation replays, so this ledger names the parked queue-handling and ready-state harness surface explicitly instead of letting those focused replays live only inside the shared build wiring.
 
-The direct closure-inventory checker now also stays explicit beside the dedicated core-packet checker carried by the live `make -C zigux phase10-validate` route, the dedicated harness-coverage checker, the direct-core tests-root checker self-test plus live replay, the shared closure validator, and the wider Phase 10 validator, so the parked packet keeps its named docs, manifests, drivers, and tests reviewable even when the combined `make -C zigux phase10-validate` wrapper is not the only command under inspection.
+The direct closure-inventory checker now also stays explicit beside the dedicated core-packet checker carried by the live `make -C zigux phase10-validate` route, the dedicated harness-coverage checker self-test plus live replay, the direct-core tests-root checker self-test plus live replay, the shared closure validator, and the wider Phase 10 validator, so the parked packet keeps its named docs, manifests, drivers, and tests reviewable even when the combined `make -C zigux phase10-validate` wrapper is not the only command under inspection.
 
 The shared closure note and manifest also keep the roadmap-boundary packet explicit: Phase 10 stays limited to `drivers/virtio/*.zig` plus justified helper bridges in `zigux/kernel/` or `zigux/helpers/`, the allowed evidence stays limited to driver-local lab slices, survey manifests, and shared validation gates, and any future freeze-boundary status change still needs an Architecture Council reopen record before this tranche can widen.
 
@@ -99,11 +100,12 @@ The shared closure manifest, the dedicated MMIO survey gate, the dedicated harne
 1. `python3 scripts/zigux/check-phase10-closure-inventory.py`
 2. `python3 scripts/zigux/check-phase10-core-packet.py`
 3. `python3 scripts/zigux/validate-phase10.py`
-4. `python3 scripts/zigux/check-phase10-harness-coverage.py`
-5. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
-6. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-7. `python3 scripts/zigux/validate-phase10-closure.py`
-8. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-9. `make -C zigux phase10-validate`
-10. `make -C zigux phase10-test`
-11. `make -C zigux phase10`
+4. `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
+5. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+6. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
+7. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+8. `python3 scripts/zigux/validate-phase10-closure.py`
+9. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+10. `make -C zigux phase10-validate`
+11. `make -C zigux phase10-test`
+12. `make -C zigux phase10`
