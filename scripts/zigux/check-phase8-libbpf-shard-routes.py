@@ -10,6 +10,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "scripts/zigux/README.md",
@@ -21,6 +23,23 @@ REQUIRED_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
+    ],
+    "Documentation/zigux/README.md": [
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master`",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "if the change touches the shared parked Phase 8 libbpf packet",
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`tools/lib/bpf/zigux_segments/manifest.json`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "`make -C zigux phase8-libbpf-segments-test`",
     ],
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
         "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
@@ -119,6 +138,8 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_docs_root", "Documentation/zigux/README.md"),
+        ("missing_review_checklist", "Documentation/zigux/review-checklist.md"),
         ("missing_lane_note", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
         ("missing_segment_survey", "Documentation/zigux/phase8-libbpf-segment-survey.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
@@ -127,6 +148,34 @@ def run_self_test() -> None:
         ("missing_makefile", "zigux/Makefile"),
     ]
     marker_cases = [
+        (
+            "docs_root_segment_survey_anchor",
+            "Documentation/zigux/README.md",
+            "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
+            "`Documentation/zigux/phase8-libbpf-segment-note.md`",
+            "Documentation/zigux/README.md: `Documentation/zigux/phase8-libbpf-segment-survey.md`",
+        ),
+        (
+            "docs_root_checker_anchor",
+            "Documentation/zigux/README.md",
+            "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+            "`scripts/zigux/check-phase8-libbpf-routes.py`",
+            "Documentation/zigux/README.md: `scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        ),
+        (
+            "review_checklist_manifest_anchor",
+            "Documentation/zigux/review-checklist.md",
+            "`tools/lib/bpf/zigux_segments/manifest.json`",
+            "`tools/lib/bpf/zigux_segments/index.json`",
+            "Documentation/zigux/review-checklist.md: `tools/lib/bpf/zigux_segments/manifest.json`",
+        ),
+        (
+            "review_checklist_route_anchor",
+            "Documentation/zigux/review-checklist.md",
+            "`make -C zigux phase8-libbpf-segments-test`",
+            "`make -C zigux phase8-libbpf-shared-test`",
+            "Documentation/zigux/review-checklist.md: `make -C zigux phase8-libbpf-segments-test`",
+        ),
         (
             "lane_note_manifest_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
