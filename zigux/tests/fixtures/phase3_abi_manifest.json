@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 57,
+  "file_count": 56,
   "files": [
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
