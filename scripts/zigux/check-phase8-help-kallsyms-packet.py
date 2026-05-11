@@ -21,7 +21,6 @@ HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
-KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 REQUIRED_FILES = (
@@ -39,7 +38,6 @@ REQUIRED_FILES = (
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
     KALLSYMS_TEST_PATH,
-    KALLSYMS_ONLY_BUILD_PATH,
     PHASE8_BUILD_PATH,
 )
 
