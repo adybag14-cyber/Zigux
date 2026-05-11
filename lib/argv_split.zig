@@ -407,14 +407,14 @@ test "ArgvSplitResult deinit is idempotent after the exported views are cleared"
 test "argvFree mirrors argv_free release ownership and stays safe after teardown" {
     var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
 
-    argvFree(std.testing.allocator(), &split);
+    argvFree(std.testing.allocator, &split);
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 
-    argvFree(std.testing.allocator(), &split);
+    argvFree(std.testing.allocator, &split);
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
