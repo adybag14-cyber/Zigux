@@ -13,10 +13,12 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/README.md",
 ]
 
 MAKE_MARKERS = [
@@ -52,6 +54,19 @@ EXACT_CHECK_MARKERS = [
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
 ]
 
+SCRIPTS_README_MARKERS = [
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+]
+
+TESTS_README_MARKERS = [
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`drivers/virtio/virtio.zig`",
+    "`drivers/virtio/virtio_driver_id.zig`",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -70,10 +85,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing: list[str] = []
     checks = [
+        ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
         ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_TEXT_MARKERS),
+        ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
     ]
     for label, rel_path, markers in checks:
         check_markers(missing, label, read_text(root, rel_path), markers)
@@ -117,6 +134,7 @@ def write_fixture(root: Path) -> None:
     text_files = {
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
+        "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -139,6 +157,7 @@ def write_fixture(root: Path) -> None:
             indent=2,
         )
         + "\n",
+        "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
     }
     for rel_path, content in text_files.items():
         path = root / rel_path
@@ -215,6 +234,23 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+                "`scripts/zigux/check-phase10-tests-readme-core-surfaces-removed.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_core_checker",
+            root,
+            "scripts_readme:`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -241,6 +277,23 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`drivers/virtio/virtio_driver_id.zig`",
+                "`drivers/virtio/virtio_driver_id_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_direct_core_surface",
+            root,
+            "tests_readme:`drivers/virtio/virtio_driver_id.zig`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         checker_path.unlink()
         expect_missing_file(
@@ -250,7 +303,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -277,5 +330,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS)}"
+    f"{len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
