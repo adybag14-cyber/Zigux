@@ -1,6 +1,6 @@
 # Phase 5 Sample Review Guide
 
-This guide keeps the roadmap-backed Phase 5 lane reviewable without overstating what current `master` actually exposes through direct file reads.
+This guide keeps the roadmap-backed Phase 5 lane reviewable without understating what current `master` already ships.
 
 ## Purpose
 
@@ -8,82 +8,88 @@ Use this guide when a change touches Phase 5 contributor guidance, one of the ap
 
 The roadmap-backed goal for Phase 5 is still narrow:
 
-* make approved Zigux idioms reviewable and repeatable
-* keep ownership and lifetime cues explicit
-* keep exact replay routes visible
-* avoid widening non-runtime samples into runtime-substrate claims
+  * make approved Zigux idioms reviewable and repeatable
+  * keep ownership and lifetime cues explicit
+  * keep exact replay routes visible
+  * avoid widening non-runtime samples into runtime-substrate claims
 
 ## Roadmap anchors
 
 Phase 5 is still scoped by the four Linux sample anchors named in the roadmap:
 
-* `samples/kfifo/bytestream-example.c`
-* `samples/kobject/kobject-example.c`
-* `samples/kprobes/kretprobe_example.c`
-* `samples/trace_events/trace-events-sample.c`
+  * `samples/kfifo/bytestream-example.c`
+  * `samples/kobject/kobject-example.c`
+  * `samples/kprobes/kretprobe_example.c`
+  * `samples/trace_events/trace-events-sample.c`
 
 Treat those anchors as the approved Phase 5 destination set unless the roadmap changes.
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-11 found the full four-anchor non-runtime Phase 5 packet readable on current `master`.
+Fresh repo-first inspection on 2026-05-11 confirmed that current `master` now carries the full bounded four-sample Phase 5 packet together with its shared contributor surfaces.
 
-Directly readable shared contributor surfaces still present on current `master` are:
+Verified shared review surfaces on `master` are:
+  * `Documentation/zigux/phase5-sample-review-guide.md`
+  * `Documentation/zigux/phase5-kfifo-sample-survey.md`
+  * `Documentation/zigux/phase5-kobject-sample-survey.md`
+  * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+  * `Documentation/zigux/phase5-trace-events-sample-survey.md`
+  * `Documentation/zigux/README.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `samples/zigux/README.md`
+  * `scripts/zigux/README.md`
+  * `zigux/tests/README.md`
+  * `zigux/Makefile`
+  * `.github/workflows/zigux-bootstrap.yml`
 
-* `Documentation/zigux/phase5-sample-review-guide.md`
-* `Documentation/zigux/phase5-kfifo-sample-survey.md`
-* `Documentation/zigux/phase5-kobject-sample-survey.md`
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
-* `Documentation/zigux/README.md`
-* `Documentation/zigux/review-checklist.md`
-* `samples/zigux/README.md`
-* `scripts/zigux/README.md`
-* `zigux/tests/README.md`
-* `zigux/Makefile`
-* `.github/workflows/zigux-bootstrap.yml`
+Verified landed Phase 5 sample packet surfaces on `master` are:
+  * `samples/zigux/bytestream_fifo.zig`
+  * `samples/zigux/kobject_example.zig`
+  * `samples/zigux/kretprobe_example.zig`
+  * `samples/zigux/trace_events_sample.zig`
+  * `zigux/tests/phase5_build.zig`
+  * `zigux/tests/phase5_bytestream_fifo.zig`
+  * `zigux/tests/phase5_bytestream_fifo_manifest.json`
+  * `zigux/tests/phase5_bytestream_fifo_survey.zig`
+  * `zigux/tests/phase5_kobject_example.zig`
+  * `zigux/tests/phase5_kobject_example_manifest.json`
+  * `zigux/tests/phase5_kobject_example_survey.zig`
+  * `zigux/tests/phase5_kretprobe_example.zig`
+  * `zigux/tests/phase5_kretprobe_example_manifest.json`
+  * `zigux/tests/phase5_kretprobe_example_survey.zig`
+  * `zigux/tests/phase5_trace_events_sample.zig`
+  * `zigux/tests/phase5_trace_events_sample_manifest.json`
+  * `zigux/tests/phase5_trace_events_sample_survey.zig`
+  * `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+  * `make -C zigux phase5-test`
+  * `make -C zigux phase5`
 
-Directly readable landed non-runtime Phase 5 sample anchors are currently:
+That same inspection also confirmed that later runtime-facing sample families are still present on `master`. Keep them under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence:
+  * `samples/zigux/runtime_atomic64.zig`
+  * `samples/zigux/runtime_atomic64_loader.zig`
+  * `samples/zigux/runtime_bitmap.zig`
+  * `samples/zigux/runtime_bitmap_loader.zig`
+  * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+  * `samples/zigux/runtime_kretprobe.zig`
+  * `samples/zigux/runtime_kretprobe_loader.zig`
+  * `samples/zigux/runtime_trace_events.zig`
+  * `samples/zigux/runtime_trace_events_loader.zig`
 
-* `samples/zigux/bytestream_fifo.zig`
-* `samples/zigux/kobject_example.zig`
-* `samples/zigux/kretprobe_example.zig`
-* `samples/zigux/trace_events_sample.zig`
-
-The shared replay route and directly coupled trace-events review surfaces are also readable together on current `master`:
-
-* `zigux/tests/phase5_build.zig`
-* `zigux/tests/phase5_trace_events_sample.zig`
-* `zigux/tests/phase5_trace_events_sample_manifest.json`
-* `zigux/tests/phase5_trace_events_sample_survey.zig`
-
-That same inspection still confirmed that later runtime-facing sample families are present on `master`. Keep them under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence:
-
-* `samples/zigux/runtime_atomic64.zig`
-* `samples/zigux/runtime_atomic64_loader.zig`
-* `samples/zigux/runtime_bitmap.zig`
-* `samples/zigux/runtime_bitmap_loader.zig`
-* `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-* `samples/zigux/runtime_kretprobe.zig`
-* `samples/zigux/runtime_kretprobe_loader.zig`
-* `samples/zigux/runtime_trace_events.zig`
-* `samples/zigux/runtime_trace_events_loader.zig`
+Keep the workflow boundary explicit too: `.github/workflows/zigux-bootstrap.yml` reruns only `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, while `make -C zigux phase5-test` and `make -C zigux phase5` remain local Linux-style wrappers over that same shared build entrypoint.
 
 ## Review posture
 
-Because the readable Phase 5 packet now includes all four roadmap-backed non-runtime anchors, same-lane follow-through should stay inside one of these bounded categories:
+Because the four approved Phase 5 samples are already landed, same-lane follow-through should stay inside one of these bounded categories:
 
-* contributor-guidance truthfulness fixes
-* exact-readback repairs in shared review surfaces
-* one shared-route or packet-alignment repair at a time
-* one sample-local survey-note, manifest, or replay-contract update at a time when the coupled landed sample changes
-* one no-extra-sample boundary repair at a time when a shared Phase 5 surface starts drifting toward helper, runtime, or freeze-map families that do not belong in the Phase 5 packet
+  * contributor-guidance truthfulness fixes
+  * exact-readback repairs in shared review surfaces
+  * one shared-route or packet-alignment repair at a time
+  * one sample-local survey-note, manifest, or replay-contract update at a time when the coupled landed sample changes
 
-Treat the current Phase 5 packet as intentionally non-runtime and fully four-anchor on current `master`:
-
-* the directly readable non-runtime packet on current `master` is the four-anchor `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample` set
-* the roadmap-backed job in this lane is to keep those sample packets and their shared contributor surfaces truthful and aligned
-* local or workflow wording should not fall back to older "trace-events is still missing" claims while the sample-local and shared replay surfaces are readable together again
+Treat the current Phase 5 packet as landed but still intentionally non-runtime:
+  * the four approved `samples/zigux/` reference samples are the whole shipped Phase 5 packet on current `master`
+  * shared docs that describe those four samples, their paired test packets, and the shared `phase5_build.zig` route should stay aligned with the exact landed packet instead of falling back to older pre-landing wording
+  * local `make -C zigux phase5-test` and `make -C zigux phase5` routes should stay described as wrappers over the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay, not as a separate validation lane
 
 Do not reopen sample behavior broadly, and do not count runtime-loader or runtime-pilot work as part of the non-runtime Phase 5 packet.
 
@@ -91,60 +97,66 @@ Do not reopen sample behavior broadly, and do not count runtime-loader or runtim
 
 Phase 5 stays non-runtime.
 
-Do not treat later runtime-oriented loader or pilot work as extra Phase 5 samples. Keep runtime-facing delivery under the later runtime lane instead of using it to imply that the roadmap's non-runtime Phase 5 packet is larger than the four directly readable landed anchors.
+Do not treat later runtime-oriented loader or pilot work as extra Phase 5 samples. Keep runtime-facing delivery under the later runtime lane instead of using it to imply that the roadmap's non-runtime Phase 5 packet is larger than the four approved anchors.
 
 Keep these no-extra-sample reminders explicit too:
-
-* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master`; keep string-helper reviewability under the Phase 7 helper packet
-* there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`; keep cmdline reviewability under the Phase 7 helper packet
-* there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`; keep `argv_split` reviewability under the Phase 7 helper packet
-* there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`; keep `rbtree` reviewability under the Phase 7 helper packet
-* there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`; keep direct bitmap helper reviewability under the earlier helper and rollback packets while runtime bitmap work stays in the later runtime lane
-* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep the approved formatting idiom cue tied to the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`
+  * there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master`; keep string-helper reviewability under the Phase 7 helper packet
+  * there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`; keep cmdline reviewability under the Phase 7 helper packet
+  * there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`; keep `argv_split` reviewability under the Phase 7 helper packet
+  * there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`; keep `rbtree` reviewability under the Phase 7 helper packet
+  * there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`; keep direct bitmap helper reviewability under the earlier helper and rollback packets while runtime bitmap work stays in the later runtime lane
+  * there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep the approved formatting idiom cue bounded to the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`
 
 Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`, and do not pull the study-only `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` families into this lane.
 
 ## Contributor checklist
 
 Before landing a Phase 5 change, confirm:
-
-* the roadmap anchor is one of the four approved Linux sample paths listed above
-* the change says clearly whether it touches shared contributor guidance or one specific landed sample packet
-* if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
-* if a shared doc claims a sample-local survey note is part of the shipped packet, that exact survey note path is directly readable instead of being inferred from a sibling sample or older wording
-* if a shared doc claims a sample-local replay route, the corresponding sample file, paired tests, paired manifest, and build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone
-* if the shared packet mentions the non-runtime trace-events anchor, keep `samples/zigux/trace_events_sample.zig`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` explicit together, and keep `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit across that same shared reviewer packet instead of letting ownership-lifetime cues drift behind the payload, formatting, and callback helpers
-* if a landed sample contract changes, the directly coupled survey note or manifest-backed contributor prompts move with it instead of lagging behind the sample code
-* if shared guidance touches the landed `kretprobe` packet, keep sample-owned `runRetargetReplay()`, `runLifecycleGuardReplay()`, the fixed `maxactiveBudget()` cue at `20`, `ownershipSummary()` plus `runOwnershipReplay()`, and `runRecoveryReplay()` with timestamp-order rejection, recovery, and post-exit handler rejection explicit across the guide, survey note, checklist, sample root, and any directly readable shared replay route
-* the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
-* later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
+  * the roadmap anchor is one of the four approved Linux sample paths listed above
+  * the change says clearly whether it touches shared contributor guidance or one specific landed sample packet
+  * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
+  * if a shared doc claims a sample-local survey note is part of the shipped packet, that exact survey note path is directly readable instead of being inferred from a sibling sample or older wording
+  * if a shared doc claims a sample-local replay route, the corresponding sample file, paired tests, paired manifest, and build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone
+  * if a landed sample contract changes, the directly coupled survey note or manifest-backed contributor prompts move with it instead of lagging behind the sample code
+  * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
+  * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
 ## Focused Sample Cues
 
-### `trace_events_sample`
+### `bytestream_fifo`
 
-Review the landed trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and the shared `zigux/tests/phase5_build.zig` replay route.
+Review the landed bytestream FIFO packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, `zigux/tests/phase5_build.zig`, `make -C zigux phase5-test`, and `make -C zigux phase5`.
 
-Keep `formattedMessage()`, the selected-string plus `iter=%d` replay, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, the exact `checked_focus` order, restored registration balance, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, post-exit replay and callback-registration rejection, docs-root and sample-root contributor surfaces, and the Phase 5-versus-Phase 9 boundary explicit together as one bounded non-runtime packet.
+Keep the exact queue-order drain contract, the non-destructive `snapshotInto()` cue, `StorageBacking.embedded_fixed_buffer`, the short-drain `"hel"` plus queued `"lo"` helper boundary, the `visibleSpanSummary()` split cue, the bounded preview-and-rollover packet around `runPreviewBoundaryReplay()` and `runWrappedPreviewReplay()`, and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route explicit together as one bounded non-runtime sample packet.
 
-Keep the no-extra-formatting reminder explicit too: no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
+### `kobject_example`
+
+Review the landed kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, `zigux/tests/phase5_build.zig`, `make -C zigux phase5-test`, and `make -C zigux phase5`.
+
+Keep `runPreRegistrationBoundaryReplay()` explicit for the initialized-but-not-registered boundary, `runRegisteredBoundaryReplay()` explicit for duplicate-registration and replay-restart rejection plus the still-usable foo roundtrip, `runInputValidationReplay()` explicit for the shared `baz` and `bar` dispatch plus parse-failure visibility, `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit for the lifecycle packet, `runTeardownReplay()` explicit for the registered teardown reset and post-`exit()` rejection packet, and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit instead of implying sysfs creation, `kernel_kobj`, uevents, or module-registration parity.
 
 ### `kretprobe_example`
 
-Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `zigux/tests/phase5_build.zig`, `make -C zigux phase5-test`, and `make -C zigux phase5`.
 
-Keep pre-init retargeting, `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries, the fixed `maxactiveBudget()` cue at `20`, `runRecoveryReplay()` plus outstanding-instance rejection, timestamp-order rejection and recovery plus post-exit handler rejection, and the sample-owned lifecycle summary packet explicit.
+Keep sample-owned `runRetargetReplay()` explicit for pre-init retargeting plus empty-symbol and post-init retarget rejection, `runLifecycleGuardReplay()` explicit for pre-init and post-`exit()` lifecycle guards, the fixed `maxactiveBudget()` cue at `20`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit across `cold`, `initialized`, `armed`, `replay_complete`, and `exited`, and `runRecoveryReplay()` explicit for timestamp-order rejection and recovery plus post-exit handler rejection, while keeping the shared `phase5_build.zig` route and the local `make -C zigux phase5-test` and `make -C zigux phase5` wrappers aligned with that same bounded packet.
 
-Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample. Keep `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` under their existing helper, rollback, and runtime lanes instead of treating bitmap as a shared Phase 5 approved idiom.
+### `trace_events_sample`
+
+Review the landed trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, `zigux/tests/phase5_build.zig`, `make -C zigux phase5-test`, and `make -C zigux phase5`.
+
+Keep `formattedMessage()`, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, the exact `checked_focus` order, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, the selected-string plus `iter=%d` formatting cue, and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route explicit together, while keeping the no-standalone-formatting-sample reminder explicit instead of implying a fifth Phase 5 formatting anchor.
 
 ## Non-goals
 
 This shared Phase 5 guide does not claim:
 
-* procfs parity
-* sysfs creation parity
-* probe registration parity
-* tracepoint macro parity
-* user-copy parity
-* module registration or loader wiring parity
-* scheduler-facing, workqueue-facing, ring-buffer-facing, or other deep-core runtime substrate closure
+  * procfs parity
+  * sysfs creation parity
+  * probe registration parity
+  * tracepoint macro parity
+  * user-copy parity
+  * module registration or loader wiring parity
+  * scheduler-facing, workqueue-facing, ring-buffer-facing, or other deep-core runtime substrate closure
+
+## Footer
