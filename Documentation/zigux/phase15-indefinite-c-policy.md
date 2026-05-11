@@ -30,10 +30,10 @@ This policy applies when all of the following are true:
 
 When an anchor is recorded under the indefinite-C policy, the reviewable record must keep all of the following explicit:
 
-- the current status bucket and the requested decision bucket
-- the decision record ID, the lane owner, and the rollback owner
-- the validation gate summary, the latest blocker disposition, and the evidence archive path
-- the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change
+- the exact Linux anchor path, the current roadmap phase, the current status bucket, and the requested decision bucket
+- the decision record ID, the lane owner, the required approver set, and the rollback owner
+- the validation gate summary, the current benchmark-notes status, the replay command, the latest blocker disposition, and the evidence archive path
+- the automatic return-to-blocked trigger, the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change, and the named reopen-trigger catalog item or items that justify later reopening
 - the parity scorecard link or blocker record, the explicit non-goals, and the written rationale for why the anchor remains in C
 
 ## Allowed work after an indefinite-C outcome
@@ -57,6 +57,8 @@ There is no silent exception path around the indefinite-C policy.
 
 The only allowed exception is an Architecture Council reopen request that satisfies the documented reopen conditions and carries fresh linked evidence showing why the old blocker is no longer the current product truth.
 
+That reopen request must cite a named reopen-trigger catalog item and a trigger-specific evidence refresh before it can ask the repo to revisit the retained stay-in-C outcome.
+
 Until that happens, the existing blocker remains recorded, the C implementation remains the product source of truth, and the anchor stays in the freeze-in-C set for the current plan horizon.
 
 ## Reopen conditions
@@ -67,6 +69,8 @@ An anchor recorded as remaining in C indefinitely may re-enter status review onl
 - an updated validation plan
 - fresh linked evidence
 - an Architecture Council review request
+- the named reopen-trigger catalog item that now applies
+- the trigger-specific evidence refresh that reopens the packet
 
 ## Reopen Trigger Catalog
 
