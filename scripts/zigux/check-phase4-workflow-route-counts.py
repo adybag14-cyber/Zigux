@@ -2,9 +2,9 @@
 """Validate the shipped Phase 4 wrapper-route inventory.
 
 The checker stays intentionally narrow: it makes sure the current Linux-style
-Makefile routes, the bootstrap workflow, and the dedicated local perf-baseline
-survey packet still line up with the bounded Phase 4 validation surfaces that
-the rollback lane documents.
+Makefile routes, the bootstrap workflow, the authoritative Phase 4 perf-wrapper
+docs, and the dedicated local perf-baseline survey packet still line up with the
+bounded Phase 4 validation surfaces that the rollback lane documents.
 """
 
 from __future__ import annotations
@@ -87,6 +87,20 @@ REQUIRED_BUILD_MARKERS = [
     "perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step);",
 ]
 
+REQUIRED_MATRIX_MARKERS = [
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-perf-baseline-survey",
+]
+
+REQUIRED_GATE_EVIDENCE_MARKERS = [
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-perf-baseline-survey",
+]
+
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_perf_baseline_survey_tests.step);",
 ]
@@ -154,6 +168,20 @@ SELFTEST_WORKFLOW = """jobs:
 SELFTEST_BUILD = """const std = @import(\"std\"); pub fn build(b: *std.Build) void { const target = b.standardTargetOptions(.{}); const optimize = b.standardOptimizeOption(.{}); const perf_baseline_survey_module = b.createModule(.{ .root_source_file = b.path(\"phase4_perf_baseline_survey.zig\"), .target = target, .optimize = optimize, }); const perf_baseline_survey_tests = b.addTest(.{ .name = \"phase4-perf-baseline-survey-tests\", .root_module = perf_baseline_survey_module, }); const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests); const test_step = b.step(\"test\", \"Run Phase 4 differential validation tests\"); const perf_baseline_survey_step = b.step( \"phase4-perf-baseline-survey\", \"Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet\", ); perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step); }
 """
 
+SELFTEST_MATRIX = """# Phase 4 Validation Matrix
+zigux/tests/phase4_perf_baseline_manifest.json
+zigux/tests/phase4_perf_baseline_survey.zig
+zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
+make -C zigux phase4-perf-baseline-survey
+"""
+
+SELFTEST_GATE_EVIDENCE = """# Phase 4 Gate Evidence
+zigux/tests/phase4_perf_baseline_manifest.json
+zigux/tests/phase4_perf_baseline_survey.zig
+zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
+make -C zigux phase4-perf-baseline-survey
+"""
+
 
 def repo_root_from_script(script_path: Path) -> Path:
     return script_path.resolve().parents[2]
@@ -192,7 +220,7 @@ def declared_targets(makefile_text: str) -> set[str]:
 
 
 def required_file_count() -> int:
-    return 5
+    return 7
 
 
 def required_check_count() -> int:
@@ -201,6 +229,8 @@ def required_check_count() -> int:
         + len(REQUIRED_MAKE_MARKERS)
         + len(REQUIRED_WORKFLOW_MARKERS)
         + len(REQUIRED_BUILD_MARKERS)
+        + len(REQUIRED_MATRIX_MARKERS)
+        + len(REQUIRED_GATE_EVIDENCE_MARKERS)
         + len(FORBIDDEN_BUILD_MARKERS)
     )
 
@@ -217,18 +247,32 @@ def check(
     makefile_path: Path,
     workflow_path: Path,
     build_path: Path,
+    validation_matrix_path: Path,
+    gate_evidence_path: Path,
     perf_manifest_path: Path,
     perf_survey_path: Path,
 ) -> None:
     makefile_text = read_text(makefile_path)
     workflow_text = read_text(workflow_path)
     build_text = read_text(build_path)
+    validation_matrix_text = read_text(validation_matrix_path)
+    gate_evidence_text = read_text(gate_evidence_path)
     read_text(perf_manifest_path)
     read_text(perf_survey_path)
     ensure_expected_targets(makefile_text)
     ensure_markers("zigux/Makefile", makefile_text, REQUIRED_MAKE_MARKERS)
     ensure_markers(".github/workflows/zigux-bootstrap.yml", workflow_text, REQUIRED_WORKFLOW_MARKERS)
     ensure_markers("zigux/tests/phase4_build.zig", build_text, REQUIRED_BUILD_MARKERS)
+    ensure_markers(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        validation_matrix_text,
+        REQUIRED_MATRIX_MARKERS,
+    )
+    ensure_markers(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        gate_evidence_text,
+        REQUIRED_GATE_EVIDENCE_MARKERS,
+    )
     ensure_absent_markers("zigux/tests/phase4_build.zig", build_text, FORBIDDEN_BUILD_MARKERS)
 
 
@@ -250,17 +294,31 @@ def run_selftest() -> None:
         makefile = root / "zigux/Makefile"
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
         build = root / "zigux/tests/phase4_build.zig"
+        validation_matrix = root / "Documentation/zigux/phase4-validation-matrix.md"
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
         perf_survey = root / "zigux/tests/phase4_perf_baseline_survey.zig"
         makefile.parent.mkdir(parents=True, exist_ok=True)
         workflow.parent.mkdir(parents=True, exist_ok=True)
         build.parent.mkdir(parents=True, exist_ok=True)
+        validation_matrix.parent.mkdir(parents=True, exist_ok=True)
+        gate_evidence.parent.mkdir(parents=True, exist_ok=True)
         makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
         workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         build.write_text(SELFTEST_BUILD, encoding="utf-8")
+        validation_matrix.write_text(SELFTEST_MATRIX, encoding="utf-8")
+        gate_evidence.write_text(SELFTEST_GATE_EVIDENCE, encoding="utf-8")
         perf_manifest.write_text("{}\n", encoding="utf-8")
         perf_survey.write_text('test "phase4 perf baseline selftest" {}\n', encoding="utf-8")
-        check(makefile, workflow, build, perf_manifest, perf_survey)
+        check(
+            makefile,
+            workflow,
+            build,
+            validation_matrix,
+            gate_evidence,
+            perf_manifest,
+            perf_survey,
+        )
     emit_status(self_test=True)
 
 
@@ -278,6 +336,8 @@ def main(argv: list[str]) -> int:
         root / "zigux/Makefile",
         root / ".github/workflows/zigux-bootstrap.yml",
         root / "zigux/tests/phase4_build.zig",
+        root / "Documentation/zigux/phase4-validation-matrix.md",
+        root / "Documentation/zigux/phase4-gate-evidence.md",
         root / "zigux/tests/phase4_perf_baseline_manifest.json",
         root / "zigux/tests/phase4_perf_baseline_survey.zig",
     )
