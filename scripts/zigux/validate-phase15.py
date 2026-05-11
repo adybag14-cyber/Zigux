@@ -71,6 +71,8 @@ DOCS_README_MARKERS = [
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "make -C zigux phase15",
     "no Architecture Council approval is recorded yet",
     "named reopen trigger",
@@ -197,7 +199,7 @@ def _baseline_docs_readme() -> str:
     return "\n".join(
         (
             "# Zigux Documentation",
-            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `zigux/tests/phase15_build.zig` and `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, and stay-in-C governance packet reviewable through one shared Phase 15 lane instead of widening into ad hoc deep-core status claims.",
+            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `zigux/tests/phase15_build.zig` - `make -C zigux phase15-validate` - `make -C zigux phase15-test` - `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, and stay-in-C governance packet reviewable through the shipped validator-first route, the shared build replay, and the full Linux-style Phase 15 lane instead of widening into ad hoc deep-core status claims.",
             "- the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.",
             "",
         )
@@ -280,9 +282,21 @@ def run_self_test() -> int:
 
         docs_rel = "Documentation/zigux/README.md"
         docs_text = _read(root, docs_rel)
-        missing_docs_marker = "make -C zigux phase15"
+        missing_docs_marker = "make -C zigux phase15-validate"
         _write(root, docs_rel, docs_text.replace(missing_docs_marker, "", 1))
         _assert_result(*validate(root), [], [f"docs_readme:{missing_docs_marker}"], "docs_marker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        missing_docs_test_marker = "make -C zigux phase15-test"
+        _write(root, docs_rel, docs_text.replace(missing_docs_test_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"docs_readme:{missing_docs_test_marker}"],
+            "docs_test_marker",
+        )
         _seed_fixture_tree(root)
         case_count += 1
 
