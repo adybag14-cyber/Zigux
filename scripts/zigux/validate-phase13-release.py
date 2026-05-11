@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
+
+REQUIRED_FILES = [
+    "scripts/zigux/validate-phase13-release.py",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+    "scripts/zigux/check-phase13-notifier-priority-signal.py",
+    "zigux/tests/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
+]
+
+REQUIRED_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "Phase 13 notes -",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase13-release-notes-survey.md`",
+        "`Documentation/zigux/phase13-roadmap-traceability.md`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "the current eight-test shared-helper release packet",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "if the change touches the shared Phase 13 release packet",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    ],
+    "Documentation/zigux/phase13-release-notes-survey.md": [
+        "validator-first eight-test shared-helper replay",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
+    ],
+    "Documentation/zigux/phase13-roadmap-traceability.md": [
+        "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
+        "`landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.",
+        "`landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "adjacent notifier evidence remains release-surface support",
+    ],
+    "Documentation/zigux/phase13-contributor-workflow-guide.md": [
+        "Use this guide when a change touches the active Phase 13 shared-helper packet",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "`zigux/helpers/notifier_chain_view.zig`",
+    ],
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
+        "# Phase 13 Shared Helper Lane Sequencing",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`make -C zigux phase13-validate`",
+        "Treat `make -C zigux phase13-validate` as the stable shared replay handle.",
+    ],
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md": [
+        "# Phase 13 Landlock Ruleset Ownership Note",
+        "`Documentation/zigux/review-checklist.md`",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`make -C zigux phase13-validate`",
+    ],
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
+        "# Phase 13 Landlock Syscalls Governance",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`make -C zigux phase13-validate`",
+    ],
+    "Documentation/zigux/phase13-notifier-list-survey.md": [
+        "# Phase 13 Notifier List Survey",
+        "shared Phase 13 build intentionally omits this packet from the eight-test shared helper replay",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`make -C zigux phase13-validate`",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
+        "## Phase 13 contributor packet",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "keep the validator-first eight-test release route explicit",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "## Phase 13 tests-root packet",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "shared validator-first eight-test release packet",
+    ],
+    "scripts/zigux/README.md": [
+        "Phase 13 flow",
+        "`validate-phase13-release.py`",
+        "`check-phase13-landlock-ruleset-packet.py`",
+        "`check-phase13-notifier-priority-signal.py`",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`make -C zigux phase13-validate`",
+        "eight-test shared helper replay",
+    ],
+    "zigux/tests/README.md": [
+        "## Phase 13 tests-root packet",
+        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "validator-first eight-test release path",
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 13 release-discipline packet",
+        "make -C zigux phase13-validate",
+        "Run Phase 13 shared helper tests",
+        "make -C zigux phase13-test",
+    ],
+}
+
+EXACT_COUNTS = {
+    "Documentation/zigux/phase13-release-notes-survey.md": {
+        "validator-first eight-test shared-helper replay": 1,
+        "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+    },
+    "Documentation/zigux/README.md": {
+        "the current eight-test shared-helper release packet": 1,
+    },
+    "scripts/zigux/README.md": {
+        "eight-test shared helper replay": 1,
+        "`make -C zigux phase13-validate`": 1,
+    },
+    "zigux/tests/README.md": {
+        "validator-first eight-test release path": 1,
+    },
+    ".github/workflows/zigux-bootstrap.yml": {
+        "make -C zigux phase13-validate": 1,
+        "make -C zigux phase13-test": 1,
+    },
+}
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def write_text(root: Path, rel_path: str, content: str) -> None:
+    path = root / rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def repeat_markers(markers: list[str], counts: dict[str, int] | None = None) -> str:
+    items = list(markers)
+    if counts:
+        for marker, expected in counts.items():
+            extra = expected - items.count(marker)
+            if extra > 0:
+                items.extend([marker] * extra)
+    return "\n".join(items) + "\n"
+
+
+def validate(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    for rel_path in REQUIRED_FILES:
+        if not (root / rel_path).exists():
+            issues.append(f"missing_file:{rel_path}")
+    if issues:
+        return issues
+
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                issues.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, counts in EXACT_COUNTS.items():
+        text = read_text(root, rel_path)
+        for marker, expected in counts.items():
+            actual = text.count(marker)
+            if actual != expected:
+                issues.append(
+                    f"exact_count:{rel_path}:{marker}:expected={expected}:actual={actual}"
+                )
+
+    return issues
+
+
+def assert_only(actual: list[str], expected: list[str], label: str) -> None:
+    if sorted(actual) != sorted(expected):
+        raise SystemExit(f"{label}:expected={expected}:actual={actual}")
+
+
+def run_self_test() -> int:
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="phase13-release-validator-") as tmpdir:
+        root = Path(tmpdir)
+        for rel_path in REQUIRED_FILES:
+            if rel_path in REQUIRED_MARKERS:
+                write_text(
+                    root,
+                    rel_path,
+                    repeat_markers(REQUIRED_MARKERS[rel_path], EXACT_COUNTS.get(rel_path)),
+                )
+            elif rel_path.endswith(".yml"):
+                write_text(root, rel_path, repeat_markers(REQUIRED_MARKERS[rel_path], EXACT_COUNTS.get(rel_path)))
+            elif rel_path.endswith(".py"):
+                write_text(root, rel_path, "# stub\n")
+            else:
+                write_text(root, rel_path, "# stub\n")
+
+        assert_only(validate(root), [], "baseline_should_pass")
+        case_count += 1
+
+        (root / "scripts/zigux/check-phase13-notifier-priority-signal.py").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:scripts/zigux/check-phase13-notifier-priority-signal.py"],
+            "missing_priority_checker_failed",
+        )
+        write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                    if marker != "validator-first eight-test shared-helper replay"
+                ],
+                {
+                    "Broad summaries should also keep the adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                },
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:validator-first eight-test shared-helper replay",
+                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:validator-first eight-test shared-helper replay:expected=1:actual=0",
+            ],
+            "missing_release_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "scripts/zigux/README.md",
+            repeat_markers(
+                REQUIRED_MARKERS["scripts/zigux/README.md"],
+                EXACT_COUNTS["scripts/zigux/README.md"],
+            )
+            + "eight-test shared helper replay\n"
+            + "`make -C zigux phase13-validate`\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "exact_count:scripts/zigux/README.md:eight-test shared helper replay:expected=1:actual=2",
+                "exact_count:scripts/zigux/README.md:`make -C zigux phase13-validate`:expected=1:actual=2",
+            ],
+            "duplicate_scripts_readme_markers_failed",
+        )
+        write_text(
+            root,
+            "scripts/zigux/README.md",
+            repeat_markers(
+                REQUIRED_MARKERS["scripts/zigux/README.md"],
+                EXACT_COUNTS["scripts/zigux/README.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            ".github/workflows/zigux-bootstrap.yml",
+            repeat_markers(
+                REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"],
+                EXACT_COUNTS[".github/workflows/zigux-bootstrap.yml"],
+            ).replace("Run Phase 13 shared helper tests\n", "", 1),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests",
+            ],
+            "missing_workflow_step_failed",
+        )
+        case_count += 1
+
+    print("PHASE13_RELEASE_VALIDATOR_SELF_TEST=pass")
+    print(f"PHASE13_RELEASE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 13 shared-helper release surfaces."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(args.root)
+    if issues:
+        print("PHASE13_RELEASE_VALIDATION=fail")
+        print("PHASE13_RELEASE_VALIDATION_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE13_RELEASE_VALIDATION_ISSUES_END")
+        return 1
+
+    marker_total = (
+        len(REQUIRED_FILES)
+        + sum(len(markers) for markers in REQUIRED_MARKERS.values())
+        + sum(len(counts) for counts in EXACT_COUNTS.values())
+    )
+    print("PHASE13_RELEASE_VALIDATION=pass")
+    print(f"PHASE13_RELEASE_VALIDATION_MARKER_COUNT={marker_total}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
