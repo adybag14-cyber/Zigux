@@ -19,7 +19,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, shared-request lifecycle proofs, and release-without-substrate handoff reviewable without implying live runtime registration parity."
+      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()`, and shared-request lifecycle proofs reviewable without implying live runtime registration parity."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
