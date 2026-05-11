@@ -140,6 +140,10 @@ pub const RuntimeKretprobeLoader = struct {
     ) !runtime_loader.LoadPlan {
         if (self.stage_state != .prepared) return error.InvalidLoaderState;
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
+        if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
+        _ = try runtime_loader.prepareRequest(shared_request.plan);
 
         const plan = self.cached_plan orelse return error.MissingLoadPlan;
         if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_request.plan)) {
@@ -410,6 +414,35 @@ test "runtime kretprobe loader bridges the shared request lifecycle without wide
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
+test "runtime kretprobe loader surfaces prepared shared selftest-hook drift before any live registration claim" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+    try std.testing.expect(shared_request.plan.provides_selftest_hook);
+    shared_request.plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));
+
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
 }
 
 test "runtime kretprobe loader surfaces shared request drift before any live registration claim" {
