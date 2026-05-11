@@ -168,12 +168,16 @@ EXACT_COUNT_CHECKS = {
 
 LINE_EXACT_COUNT_CHECKS = {
     ".github/workflows/zigux-bootstrap.yml": {
+        "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+        "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     },
     "zigux/Makefile": {
-        "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
-        "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     },
 }
 
