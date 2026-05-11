@@ -161,6 +161,33 @@
           "max_slowdown_pct": 150
         }
       ]
+    },
+    "hexdump": {
+      "replay": "zigux/tests/phase6_hexdump_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+      "measurement_mode": "relative_slowdown",
+      "cases": [
+        {
+          "label": "16B-plain-g1",
+          "reps": 40000,
+          "max_slowdown_pct": 175
+        },
+        {
+          "label": "32B-ascii-g2",
+          "reps": 10000,
+          "max_slowdown_pct": 550
+        },
+        {
+          "label": "16B-ascii-g4",
+          "reps": 20000,
+          "max_slowdown_pct": 550
+        },
+        {
+          "label": "16B-ascii-g8",
+          "reps": 20000,
+          "max_slowdown_pct": 600
+        }
+      ]
     }
   },
   "fixture_posture": {
@@ -222,6 +249,9 @@
     },
     "checksum": {
       "c_parity_cases": 41
+    },
+    "hexdump": {
+      "perf_replay_cases": 4
     },
     "generated_fixture_artifacts_committed": false
   }
