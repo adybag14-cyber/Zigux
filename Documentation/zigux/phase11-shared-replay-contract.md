@@ -45,8 +45,8 @@ The live gpio watchdog evidence inside that shared route stays explicit through 
 The dedicated gpio watchdog archival packet beside that slice also stays explicit through `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`.
 That bounded slice keeps the `gpio_wdt_lab` descriptor, timeout-property, drvdata-ordering, register-device preflight, teardown, and failure-mode packet reviewable without claiming live GPIO descriptor acquisition, watchdog-core registration, or hardware-backed validation.
 The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`.
-The current DesignWare lane inside that shared route stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`.
-That bounded planning lane keeps the first platform-registration follow-through visible beside the shared route without claiming a landed validation matrix, teardown note, manifest-backed replay, verify helper, dedicated checker, or MMIO-backed validation packet on current `master`.
+The live DesignWare watchdog packet inside that shared route also stays explicit through `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`.
+That bounded DesignWare packet keeps the registration-order scaffold, teardown and failure-mode parity split, and dedicated watchdog replay visible beside the shared route without claiming live platform registration, clock ownership, reset ownership, IRQ handling, or MMIO-backed validation.
 The shipped shared header-boundary companion inside that same route stays explicit through `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, and `scripts/zigux/check-phase11-header-boundary-packet.py`.
 This shared public-header packet keeps the bounded `watchdog_info`, `winsize`, and exported `drivers/tty/hvc/hvc_console.h` helper declaration survey visible beside the watchdog and HVC driver-local packets without collapsing it back into the dedicated `hvc_console` archival note.
 
@@ -56,7 +56,7 @@ The shared replay surface keeps the simple-driver tranche visible together, but 
 
 * gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
 * bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
-* DesignWare planning lane: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+* DesignWare watchdog packet: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
@@ -78,8 +78,8 @@ That driver-local execution follow-through still belongs to the owning Phase 11 
 
 * no broader shared validator stack beyond the landed `scripts/zigux/check-phase11-shared-replay-contract.py` and `scripts/zigux/check-phase11-header-boundary-packet.py` packet for this shared replay note
 * no driver-local next-step widening beyond the active shared replay packet
-* no landed DesignWare validation matrix, teardown note, manifest-backed replay, verify helper, or dedicated packet checker beyond the planning note already parked on current `master`
-* no tty-driver starter, cleanup replay, compile-local verify helper, tty registration, notifier execution, sysrq execution, khvcd execution, host-backed cleanup, live platform registration, live clock or reset ownership, live IRQ registration, or hardware-backed watchdog validation beyond the landed bcm2835 and gpio packets plus the landed HVC archival replay surfaces
+* no tty-driver starter, cleanup replay, compile-local verify helper, tty-driver registration, notifier execution, sysrq execution, khvcd execution, or host-backed cleanup beyond the landed HVC archival replay surfaces
+* no live platform registration, live clock or reset ownership, live IRQ registration, or MMIO-backed watchdog validation beyond the landed bcm2835, gpio, and DesignWare packets
 
 ## Follow-Through Rule
 
