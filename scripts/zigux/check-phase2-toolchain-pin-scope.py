@@ -156,6 +156,9 @@ EXACT_SURFACE_COUNTS = {
     },
 }
 
+SELF_TEST_CHANNEL = "0.17.0-dev.87+9b177a7d2"
+SELF_TEST_ARCHIVE_SHA256 = "0" * 64
+
 
 def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     payload: dict[str, object] = {}
@@ -337,20 +340,20 @@ def validate_toolchain_target_scope(text: str) -> list[str]:
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
-        "channel": "0.17.0-dev.87+9b177a7d2",
-        "minimum_version": "0.17.0-dev.87+9b177a7d2",
+        "channel": SELF_TEST_CHANNEL,
+        "minimum_version": SELF_TEST_CHANNEL,
         "archive_sha256": {
-            "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+            "x86_64-linux": SELF_TEST_ARCHIVE_SHA256,
         },
     }
     assert validate_policy(valid_policy) == []
 
     valid_notes = "\n".join(
         [
-            "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
-            "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+            f"- current pinned Zig channel: `{SELF_TEST_CHANNEL}`",
+            f"- current minimum Zig version: `{SELF_TEST_CHANNEL}`",
             "- current pinned bootstrap archive target: `x86_64-linux`",
-            "- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`",
+            f"- current pinned bootstrap archive sha256 (`x86_64-linux`): `{SELF_TEST_ARCHIVE_SHA256}`",
             *[f"- {marker}" if not marker.startswith("the ") else f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
     )
@@ -372,8 +375,8 @@ def run_self_test() -> int:
 
     workflow_text = "\n".join(
         [
-            "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
-            "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+            f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain",
+            f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
