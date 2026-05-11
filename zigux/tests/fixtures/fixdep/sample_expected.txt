@@ -1,0 +1,17 @@
+savedcmd_sample.o := clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o
+
+source_sample.o := zigux/tests/fixtures/fixdep/sample.c
+
+deps_sample.o := \
+    $(wildcard include/config/ZIGUX_SOURCE) \
+    $(wildcard include/config/ZIGUX_DRIVER) \
+  zigux/tests/fixtures/fixdep/sample.h \
+    $(wildcard include/config/ZIGUX_HEADER) \
+    $(wildcard include/config/ZIGUX_SHARED) \
+  zigux/tests/fixtures/fixdep/sample.rmeta \
+  zigux/tests/fixtures/fixdep/sample-config.h \
+    $(wildcard include/config/ZIGUX_LOCAL) \
+
+sample.o: $(deps_sample.o)
+
+$(deps_sample.o):
