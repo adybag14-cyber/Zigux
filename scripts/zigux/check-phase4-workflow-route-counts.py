@@ -81,6 +81,13 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: zig build test --build-file zigux/tests/phase4_build.zig",
 ]
 
+REQUIRED_WORKFLOW_ORDER_MARKERS = [
+    "run: make -C zigux phase4-validate",
+    "run: python3 scripts/zigux/validate-phase4.py --self-test",
+    "run: python3 scripts/zigux/validate-phase4.py",
+    "run: zig build test --build-file zigux/tests/phase4_build.zig",
+]
+
 REQUIRED_BUILD_MARKERS = [
     'b.path("phase4_perf_baseline_survey.zig")',
     '"phase4-perf-baseline-survey-tests"',
@@ -216,6 +223,25 @@ def ensure_markers(label: str, text: str, markers: list[str]) -> None:
         raise SystemExit(f"{label} is missing required Phase 4 markers:\n{joined}")
 
 
+def ensure_marker_order(label: str, text: str, markers: list[str]) -> None:
+    line_positions: list[int] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for marker in markers:
+        try:
+            position = lines.index(marker)
+        except ValueError as exc:
+            raise SystemExit(
+                f"{label} is missing required Phase 4 marker for order check:\n  - {marker}"
+            ) from exc
+        line_positions.append(position)
+    for idx in range(1, len(line_positions)):
+        if line_positions[idx] <= line_positions[idx - 1]:
+            ordered = "\n".join(f"  - {marker}" for marker in markers)
+            raise SystemExit(
+                f"{label} has out-of-order Phase 4 workflow markers; expected this sequence:\n{ordered}"
+            )
+
+
 def ensure_absent_markers(label: str, text: str, markers: list[str]) -> None:
     present = [marker for marker in markers if marker in text]
     if present:
@@ -243,6 +269,7 @@ def required_check_count() -> int:
         len(EXPECTED_MAKE_TARGETS)
         + len(REQUIRED_MAKE_MARKERS)
         + len(REQUIRED_WORKFLOW_MARKERS)
+        + len(REQUIRED_WORKFLOW_ORDER_MARKERS)
         + len(REQUIRED_BUILD_MARKERS)
         + len(REQUIRED_MATRIX_MARKERS)
         + len(REQUIRED_GATE_EVIDENCE_MARKERS)
@@ -280,6 +307,11 @@ def check(
     ensure_expected_targets(makefile_text)
     ensure_markers("zigux/Makefile", makefile_text, REQUIRED_MAKE_MARKERS)
     ensure_markers(".github/workflows/zigux-bootstrap.yml", workflow_text, REQUIRED_WORKFLOW_MARKERS)
+    ensure_marker_order(
+        ".github/workflows/zigux-bootstrap.yml",
+        workflow_text,
+        REQUIRED_WORKFLOW_ORDER_MARKERS,
+    )
     ensure_markers("zigux/tests/phase4_build.zig", build_text, REQUIRED_BUILD_MARKERS)
     ensure_markers(
         "Documentation/zigux/phase4-validation-matrix.md",
@@ -307,6 +339,7 @@ def emit_status(*, self_test: bool) -> None:
         print("PHASE4_WORKFLOW_ROUTE_COUNTS=pass")
     print(f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}")
     print(f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}")
+    print(f"PHASE4_WORKFLOW_ORDER_MARKER_COUNT={len(REQUIRED_WORKFLOW_ORDER_MARKERS)}")
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={required_file_count()}")
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT={required_check_count()}")
 
