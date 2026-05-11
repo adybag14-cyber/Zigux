@@ -14,6 +14,9 @@ PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
 )
+PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
+)
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TESTS_README_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
@@ -121,6 +124,7 @@ def main() -> int:
         ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
         ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
+        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
