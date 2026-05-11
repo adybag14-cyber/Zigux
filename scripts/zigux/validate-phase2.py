@@ -16,6 +16,12 @@ KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TESTS_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 KCONFIG_README_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
+KCONFIG_BRIDGE_REQUIRED_FILES = [
+    ROOT / "scripts" / "kconfig" / "conf.c",
+    ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+]
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
 PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass"
@@ -61,6 +67,7 @@ def main() -> int:
         ROOT / "scripts" / "zigux" / "install-zig.py",
         ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
         ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
+        *KCONFIG_BRIDGE_REQUIRED_FILES,
         ROOT / "zigux" / "Makefile",
         ROOT / "zigux" / "tests" / "README.md",
     ]
