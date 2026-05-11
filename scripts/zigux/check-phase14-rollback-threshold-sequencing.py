@@ -67,6 +67,7 @@ MAKEFILE_EXACT_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
@@ -173,7 +174,7 @@ def check(root: Path) -> list[str]:
         f"- status bucket: `{STATUS_BUCKET}`",
         f"- validation gate: `{VALIDATION_GATE}`",
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
-        "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.",
+        "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.",
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]:
         if marker not in smoke_note:
@@ -278,7 +279,7 @@ def current_smoke_note_text() -> str:
             for packet in SELF_TEST_ANCHOR_PACKETS
         ],
         *ANCHOR_MANIFEST_MARKERS,
-        "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.",
+        "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.",
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]
     return "\n".join(parts) + "\n"
@@ -309,6 +310,7 @@ def current_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
@@ -393,13 +395,13 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             current_smoke_note_text().replace(
-                "- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`, but the shared `make -C zigux phase14-validate` route currently replays only the direct rollback checker invocation. Keep that checker-local coverage explicit here until the shared make path changes.\n",
+                "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.\n",
                 "",
                 1,
             ),
         )
         if not any(
-            "check-phase14-rollback-threshold-sequencing.py` also ships a dedicated `--self-test`"
+            "check-phase14-rollback-threshold-sequencing.py --self-test`"
             in error
             for error in check(root)
         ):
@@ -441,6 +443,23 @@ def run_self_test() -> int:
             root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "check-phase14-rollback-threshold-sequencing.py --self-test" in error
+            for error in check(root)
+        ):
+            print("self-test expected rollback self-test route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test\n",
                 "",
                 1,
@@ -472,7 +491,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=10")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
