@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 FILES = [
+    "Documentation/zigux/phase10-closure-evidence.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "scripts/zigux/README.md",
@@ -67,6 +68,15 @@ TESTS_README_MARKERS = [
     "`drivers/virtio/virtio_driver_id.zig`",
 ]
 
+CLOSURE_NOTE_MARKERS = [
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+    "`zigux/Makefile` `phase10-test` route",
+    "`make -C zigux phase10-test`",
+    "`make -C zigux phase10`",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -85,6 +95,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing: list[str] = []
     checks = [
+        ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
@@ -132,6 +143,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     text_files = {
+        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
+            [
+                "# Phase 10 Closure Evidence",
+                "",
+                "- a dedicated shared harness-coverage checker, `scripts/zigux/check-phase10-harness-coverage.py`, keeps the packet honest",
+                "- a focused tests-root direct-core checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, keeps the direct-core reminder explicit",
+                "- a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, still records the intended packet",
+                "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
+                "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
+                "",
+            ]
+        ),
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -203,6 +226,23 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
+        original_closure_note = closure_note_path.read_text(encoding="utf-8")
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+                "`scripts/zigux/check-phase10-tests-readme-core-surfaces-removed.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_direct_core_checker",
+            root,
+            "closure_note:`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
@@ -303,7 +343,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -330,5 +370,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(CLOSURE_NOTE_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
