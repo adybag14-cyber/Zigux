@@ -145,6 +145,7 @@ EXACT_COUNT_CHECKS = {
         FALLBACK_REMINDER: 1,
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
+        "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     },
     "zigux/Makefile": {
         "phase2-tools:": 1,
