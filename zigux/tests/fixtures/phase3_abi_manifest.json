@@ -58,7 +58,6 @@
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
-    "scripts/zigux/artifact_diff.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml"
   ]
