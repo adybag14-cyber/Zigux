@@ -12,6 +12,8 @@
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
+- direct local C parity rerun route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
 - fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
