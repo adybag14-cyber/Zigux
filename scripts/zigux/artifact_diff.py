@@ -162,6 +162,39 @@ def assert_self_test_catalog_shape() -> None:
         )
 
 
+def assert_detail_shape(
+    details: dict[str, object],
+    *,
+    mode: str,
+    expected: Path,
+    actual: Path,
+    expected_exists: bool | None = None,
+    actual_exists: bool | None = None,
+    expected_json_error: bool = False,
+    actual_json_error: bool = False,
+    sha256: bool = False,
+) -> None:
+    assert details['mode'] == mode
+    assert details['expected'] == str(expected)
+    assert details['actual'] == str(actual)
+
+    shape_expectations = {
+        'expected_exists': expected_exists is not None,
+        'actual_exists': actual_exists is not None,
+        'expected_json_error': expected_json_error,
+        'actual_json_error': actual_json_error,
+        'expected_sha256': sha256,
+        'actual_sha256': sha256,
+    }
+    for key, should_exist in shape_expectations.items():
+        assert (key in details) is should_exist, (key, details)
+
+    if expected_exists is not None:
+        assert details['expected_exists'] is expected_exists
+    if actual_exists is not None:
+        assert details['actual_exists'] is actual_exists
+
+
 def assert_repeatable_case(
     mode: str,
     expected: Path,
@@ -205,7 +238,7 @@ def run_self_test() -> int:
         text_b.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert matched
-        assert details['mode'] == 'text'
+        assert_detail_shape(details, mode='text', expected=text_a, actual=text_b)
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
             'MODE=text',
@@ -227,6 +260,7 @@ def run_self_test() -> int:
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert not matched
+        assert_detail_shape(details, mode='text', expected=text_a, actual=text_b)
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
@@ -249,7 +283,7 @@ def run_self_test() -> int:
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
-        assert details['mode'] == 'json'
+        assert_detail_shape(details, mode='json', expected=json_a, actual=json_b)
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
             'MODE=json',
@@ -271,6 +305,7 @@ def run_self_test() -> int:
         json_b.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert not matched
+        assert_detail_shape(details, mode='json', expected=json_a, actual=json_b)
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
@@ -292,6 +327,13 @@ def run_self_test() -> int:
         invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, json_a)
         assert not matched
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=invalid_json,
+            actual=json_a,
+            expected_json_error=True,
+        )
         assert str(invalid_json) in details['expected_json_error']
         assert 'line 2 column 1' not in details['expected_json_error']
         assert render_result_lines(matched, details) == [
@@ -315,6 +357,13 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('json', json_a, invalid_json)
         assert not matched
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=json_a,
+            actual=invalid_json,
+            actual_json_error=True,
+        )
         assert str(invalid_json) in details['actual_json_error']
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
@@ -338,6 +387,13 @@ def run_self_test() -> int:
         other_invalid_json.write_text('{"beta": [1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, other_invalid_json)
         assert not matched
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=invalid_json,
+            actual=other_invalid_json,
+            expected_json_error=True,
+        )
         assert str(invalid_json) in details['expected_json_error']
         assert 'actual_json_error' not in details
         assert render_result_lines(matched, details) == [
@@ -361,8 +417,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('json', missing, json_a)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is True
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=missing,
+            actual=json_a,
+            expected_exists=False,
+            actual_exists=True,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
@@ -385,8 +447,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('json', json_a, missing)
         assert not matched
-        assert details['expected_exists'] is True
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=json_a,
+            actual=missing,
+            expected_exists=True,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
@@ -409,8 +477,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('json', missing, other_missing)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='json',
+            expected=missing,
+            actual=other_missing,
+            expected_exists=False,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
@@ -435,6 +509,7 @@ def run_self_test() -> int:
         blob_b.write_bytes(b'zigux-artifact-diff')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert matched
+        assert_detail_shape(details, mode='sha256', expected=blob_a, actual=blob_b, sha256=True)
         assert details['expected_sha256'] == details['actual_sha256']
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
@@ -458,6 +533,7 @@ def run_self_test() -> int:
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert not matched
+        assert_detail_shape(details, mode='sha256', expected=blob_a, actual=blob_b, sha256=True)
         assert details['expected_sha256'] != details['actual_sha256']
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
@@ -481,8 +557,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is True
+        assert_detail_shape(
+            details,
+            mode='text',
+            expected=missing,
+            actual=text_a,
+            expected_exists=False,
+            actual_exists=True,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
@@ -505,8 +587,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('text', text_a, missing)
         assert not matched
-        assert details['expected_exists'] is True
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='text',
+            expected=text_a,
+            actual=missing,
+            expected_exists=True,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
@@ -529,8 +617,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('text', missing, other_missing)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='text',
+            expected=missing,
+            actual=other_missing,
+            expected_exists=False,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
@@ -553,8 +647,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('sha256', missing, blob_a)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is True
+        assert_detail_shape(
+            details,
+            mode='sha256',
+            expected=missing,
+            actual=blob_a,
+            expected_exists=False,
+            actual_exists=True,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=sha256',
@@ -577,8 +677,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('sha256', blob_a, missing)
         assert not matched
-        assert details['expected_exists'] is True
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='sha256',
+            expected=blob_a,
+            actual=missing,
+            expected_exists=True,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=sha256',
@@ -601,8 +707,14 @@ def run_self_test() -> int:
 
         matched, details = compare_artifacts('sha256', missing, other_missing)
         assert not matched
-        assert details['expected_exists'] is False
-        assert details['actual_exists'] is False
+        assert_detail_shape(
+            details,
+            mode='sha256',
+            expected=missing,
+            actual=other_missing,
+            expected_exists=False,
+            actual_exists=False,
+        )
         assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=sha256',
