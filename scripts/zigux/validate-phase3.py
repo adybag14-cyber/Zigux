@@ -88,6 +88,7 @@ README_MARKERS = (
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
+    "validate-phase3-validator-support-surface.py",
     "validate-phase3-abi-bindings-syntax.py",
     "survey-phase3-abi-constant-parity.py",
     "phase3_catalog.py",
@@ -102,6 +103,7 @@ README_MARKERS = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
     "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
@@ -259,6 +261,44 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "scripts/zigux/README.md",
+            _read(root / "scripts/zigux/README.md").replace(
+                "validate-phase3-validator-support-surface.py\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_support_readme_marker = (
+            "missing scripts README marker: validate-phase3-validator-support-surface.py"
+        )
+        if expected_support_readme_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support README marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+        _write(
+            root / "scripts/zigux/README.md",
+            _read(root / "scripts/zigux/README.md").replace(
+                "Documentation/zigux/phase3-validator-support-surface.md\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_support_note_readme_marker = (
+            "missing scripts README marker: Documentation/zigux/phase3-validator-support-surface.md"
+        )
+        if expected_support_note_readme_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing validator-support note README marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
