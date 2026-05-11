@@ -4,13 +4,13 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`
+- `PHASE3_SURVEY_PROVENANCE=connector-plus-tree-fallback-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=21b239f78ad5806868079f99cbf111d3cb97de25`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
-- `PHASE3_PANIC_POLICY_BLOB_SHA=c0d9d09ba2421cfc20813c94b3371498dcd9bd79`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=8bb6db9c5625d3f04369e034d88ef4eff9048bcf`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=5f212bc871d5c6c194be3249ef8d91ca3b5d09cf`
@@ -18,13 +18,13 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=70bf700a8ec952ff7bbaf230cf5522071af810d0`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
-- `PHASE3_UNSAFE_BLOB_SHA=78319221371f440f974759985dd667d63e617dc1`
+- `PHASE3_UNSAFE_BLOB_SHA=f1f188711bde634dfabd74702c91399dfe935d28`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=91537cc1e4d6ae3cff25907efb47bef231d540b1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2b4eeab14deb6381cd646381e074eaf53c078903`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=1199b0aca0f5fe2a86776d0d5b8a81f834cc33cf`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=b8995d86288fcd6799606ae241cb4d81ed7e019a`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
