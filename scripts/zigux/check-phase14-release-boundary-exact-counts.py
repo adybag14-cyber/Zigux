@@ -32,12 +32,44 @@ STUDY_ONLY_ANCHORS = [
     "`kernel/workqueue.c`",
     "`kernel/trace/ring_buffer.c`",
 ]
+EXPECTED_COMPILE_SHARDS = [
+    {
+        "label": "phase14-workqueue-bridge-tests",
+        "root_source": "phase14_workqueue_bridge.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-workqueue-reviewability-tests",
+        "root_source": "phase14_workqueue_reviewability.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-skbuff-bridge-tests",
+        "root_source": "phase14_skbuff_bridge.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-ring-buffer-survey-tests",
+        "root_source": "phase14_ring_buffer_survey.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-rcu-tree-survey-tests",
+        "root_source": "phase14_rcu_tree_survey.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-end-to-end-smoke-tests",
+        "root_source": "phase14_end_to_end_smoke_survey.zig",
+        "coverage": "focused_and_full_bundle",
+    },
+]
 RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "PHASE14_RELEASE_CLOSED=no",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
-    "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`",
+    "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
     "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible",
     "combined shared replay entrypoint: `make -C zigux phase14`",
     "wrapper-backed full-bundle replay: `make -C zigux phase14-test`",
@@ -148,6 +180,9 @@ def check_manifest(errors: list[str], root: Path) -> None:
     anchor_packets = manifest.get("anchor_packets")
     if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
         errors.append("phase14 manifest anchor_packets drifted from the expected four-entry packet")
+    compile_shards = manifest.get("compile_shards")
+    if compile_shards != EXPECTED_COMPILE_SHARDS:
+        errors.append("phase14 manifest compile_shards drifted from the expected shared matrix")
 
 
 def check(root: Path) -> list[str]:
@@ -250,6 +285,7 @@ def good_manifest_text() -> str:
                 },
                 "shared_smoke_surfaces": MANIFEST_REQUIRED_SURFACES,
                 "anchor_packets": [{}, {}, {}, {}],
+                "compile_shards": EXPECTED_COMPILE_SHARDS,
             },
             indent=2,
         )
@@ -337,6 +373,17 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
+        manifest = json.loads(good_manifest_text())
+        manifest["compile_shards"] = EXPECTED_COMPILE_SHARDS[:-1]
+        write_text(
+            root / "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        if "phase14 manifest compile_shards drifted from the expected shared matrix" not in check(root):
+            print("self-test expected compile-shard matrix drift failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
         write_text(
             current_checker_path,
             original_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
@@ -348,7 +395,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=7")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
