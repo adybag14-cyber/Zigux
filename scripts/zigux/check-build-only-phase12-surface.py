@@ -166,6 +166,7 @@ REQUIRED_SCRIPTS_README_MARKERS = [
     "Phase 12 flow",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
     "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
     "`zigux/tests/phase12_build.zig`",
     "`make -C zigux phase12-smoke`",
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -680,6 +681,14 @@ def run_self_test() -> int:
         expect_failure(base, f"scripts_readme:{PHASE12_REMOVED_SURFACE_MARKER}")
 
         write_fixture_tree(base)
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme.replace(PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"scripts_readme:{PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH}")
+
+        write_fixture_tree(base)
         docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(docs_readme.replace(PHASE12_DOCS_REMOVED_VALIDATOR_MARKER, "", 1), encoding="utf-8")
         expect_failure(base, f"docs_readme:{PHASE12_DOCS_REMOVED_VALIDATOR_MARKER}")
@@ -875,7 +884,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=29")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
