@@ -25,6 +25,10 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-argv-split-slice.md`,
 `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/README.md`,
 `samples/zigux/README.md`, `zigux/tests/README.md`,
+`zigux/tests/phase7_cmdline_manifest.json`,
+`zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`,
+`zigux/tests/phase7_argv_split_manifest.json`,
+`zigux/tests/fixtures/phase7_argv_split_vectors.zig`,
 `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and
 `zigux/tests/phase7_build.zig` aligned around that same shared replay packet so
 the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
