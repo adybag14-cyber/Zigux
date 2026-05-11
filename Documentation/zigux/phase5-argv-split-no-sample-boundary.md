@@ -1,16 +1,16 @@
 # Phase 5 Argv-Split No-Sample Boundary
 
-This note keeps one Phase 5 contributor boundary explicit: current `master` still ships no standalone `samples/zigux/*argv*` reference sample, so `argv_split` reviewability stays under its existing Phase 7 helper-owned packet rather than the four landed Phase 5 samples.
+This note keeps one Phase 5 contributor boundary explicit: current `master` still ships no standalone `samples/zigux/*argv*` reference sample, so `argv_split` reviewability stays under its existing Phase 7 helper-owned packet rather than the still-unlanded Phase 5 reference-sample packet described by the roadmap.
 
 ## Why this note exists
 
-The active Phase 5 packet is intentionally small and sample-backed:
-- `samples/zigux/bytestream_fifo.zig`
-- `samples/zigux/kobject_example.zig`
-- `samples/zigux/kretprobe_example.zig`
-- `samples/zigux/trace_events_sample.zig`
+The roadmap-backed Phase 5 destination set is intentionally small:
+- `samples/kfifo/bytestream-example.c`
+- `samples/kobject/kobject-example.c`
+- `samples/kprobes/kretprobe_example.c`
+- `samples/trace_events/trace-events-sample.c`
 
-Contributors still need one compact reminder that `argv_split` belongs to the separate helper lane even when a Phase 5 wording refresh touches shared reviewer guidance.
+Current `master` still does not verify those four planned Zig sample surfaces in the tree, so contributors still need one compact reminder that `argv_split` belongs to the separate helper lane even when a Phase 5 wording refresh touches shared reviewer guidance.
 
 ## No-sample rule
 
@@ -43,4 +43,4 @@ If a shared Phase 5 guide, checklist, or README change mentions the no-`argv` sa
 
 ## Non-goals
 
-This note does not widen Phase 5 into a new `argv_split` sample, runtime-loader work, command-line substrate work, or any other follow-on beyond the already-shipped four-sample packet.
+This note does not widen Phase 5 into a new `argv_split` sample, runtime-loader work, command-line substrate work, or any other follow-on beyond the approved four-anchor Phase 5 lane.
