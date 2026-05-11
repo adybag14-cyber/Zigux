@@ -11,6 +11,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 FILES = {
     "note": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
+    "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
 }
 
 MARKERS = {
@@ -29,11 +30,18 @@ MARKERS = {
         "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
         "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-failure-matrix.py`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`",
         "* there is no shared `zigux/tests/phase11_build.zig` on current `master`",
-        "The next honest shared-lane follow-through is to repair one drifted survivor note at a time, starting with `Documentation/zigux/phase11-driver-lane-sequencing.md` or `Documentation/zigux/phase11-hvc-console-survey.md`, so each note stops naming missing build routes and missing helper files.",
+        "The next honest shared-lane follow-through is to repair `Documentation/zigux/phase11-hvc-console-survey.md` so the surviving HVC reminder packet stops naming missing shared build routes and helper files.",
+    ],
+    "lane_note": [
+        "# Phase 11 Driver Lane Sequencing",
+        "shared sequencing lane `P11-Y06` owns the shared packet truthfulness surfaces only: `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "The shared packet surfaces still living together on current `master` are only `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-shared-replay-contract.py`.",
+        "Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the two shared notes, the lane-sequencing note, and the shared contract checker, while the driver-local evidence stays with the owning lane.",
+        "Keep the current validator posture explicit: there is no shared `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11`, `make -C zigux phase11-hvc-survey`, or `validate-phase11.py` on `master`, so reminder-surface edits should stay aligned with the surviving shared note-and-checker packet instead of implying a broader replay or validator stack.",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 6
 
 
 class CheckError(RuntimeError):
@@ -90,6 +98,8 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
+            (FILES["lane_note"], MARKERS["lane_note"][2]),
+            (FILES["lane_note"], MARKERS["lane_note"][4]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
