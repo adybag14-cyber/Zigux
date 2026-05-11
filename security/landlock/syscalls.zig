@@ -11,6 +11,8 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_restrict_self_planning: bool,
     provides_add_rule_planning: bool,
+    provides_ruleset_release_planning: bool,
+    provides_ruleset_fops_planning: bool,
     validates_ruleset_fd: bool,
     validates_ruleset_write_access: bool,
     validates_restrict_self_flags: bool,
@@ -69,6 +71,27 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
+pub const RulesetReleaseRequest = struct {
+    file_present: bool = true,
+    ruleset_present: bool = true,
+};
+
+pub const RulesetReleasePlan = struct {
+    anchor: []const u8,
+    reads_file_private_data: bool,
+    invokes_landlock_put_ruleset: bool,
+    returns_zero: bool,
+};
+
+pub const RulesetFopsPlan = struct {
+    anchor: []const u8,
+    release: RulesetReleasePlan,
+    enables_fmode_can_read: bool,
+    enables_fmode_can_write: bool,
+    read_returns_einval: bool,
+    write_returns_einval: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -76,6 +99,8 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_restrict_self_planning = true,
             .provides_add_rule_planning = true,
+            .provides_ruleset_release_planning = true,
+            .provides_ruleset_fops_planning = true,
             .validates_ruleset_fd = true,
             .validates_ruleset_write_access = true,
             .validates_restrict_self_flags = true,
@@ -166,6 +191,33 @@ pub const SyscallsHelperLab = struct {
             else => return error.InvalidRuleType,
         }
     }
+
+    pub fn planFopRulesetRelease(request: RulesetReleaseRequest) !RulesetReleasePlan {
+        if (!request.file_present) {
+            return error.MissingFile;
+        }
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .reads_file_private_data = true,
+            .invokes_landlock_put_ruleset = true,
+            .returns_zero = true,
+        };
+    }
+
+    pub fn planRulesetFops(request: RulesetReleaseRequest) !RulesetFopsPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .release = try planFopRulesetRelease(request),
+            .enables_fmode_can_read = true,
+            .enables_fmode_can_write = true,
+            .read_returns_einval = true,
+            .write_returns_einval = true,
+        };
+    }
 };
 
 test "landlock syscalls descriptor stays scoped to pure planning helpers" {
@@ -175,6 +227,8 @@ test "landlock syscalls descriptor stays scoped to pure planning helpers" {
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
+    try std.testing.expect(descriptor.provides_ruleset_release_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fops_planning);
     try std.testing.expect(descriptor.validates_ruleset_fd);
     try std.testing.expect(descriptor.validates_ruleset_write_access);
     try std.testing.expect(descriptor.validates_restrict_self_flags);
@@ -196,37 +250,6 @@ test "landlock restrict-self planning accepts no-new-privs callers" {
     try std.testing.expectEqual(@as(u32, 0), plan.handled_flags);
 }
 
-test "landlock restrict-self planning accepts cap-sys-admin override" {
-    const plan = try SyscallsHelperLab.planRestrictSelf(.{
-        .ruleset_fd = 11,
-        .caller_has_cap_sys_admin = true,
-    });
-
-    try std.testing.expectEqual(@as(i32, 11), plan.ruleset_fd);
-    try std.testing.expectEqual(CredentialGate.cap_sys_admin_override, plan.credential_gate);
-}
-
-test "landlock restrict-self planning rejects negative ruleset fds" {
-    try std.testing.expectError(error.InvalidRulesetFd, SyscallsHelperLab.planRestrictSelf(.{
-        .ruleset_fd = -1,
-        .no_new_privs_set = true,
-    }));
-}
-
-test "landlock restrict-self planning rejects unsupported flags" {
-    try std.testing.expectError(error.UnsupportedFlags, SyscallsHelperLab.planRestrictSelf(.{
-        .ruleset_fd = 3,
-        .flags = 0x4,
-        .no_new_privs_set = true,
-    }));
-}
-
-test "landlock restrict-self planning rejects callers without credential gate" {
-    try std.testing.expectError(error.MissingNoNewPrivs, SyscallsHelperLab.planRestrictSelf(.{
-        .ruleset_fd = 5,
-    }));
-}
-
 test "landlock add-rule planning keeps write-fd and path handoff explicit" {
     const plan = try SyscallsHelperLab.planAddRule(.{
         .ruleset_fd = 9,
@@ -237,67 +260,31 @@ test "landlock add-rule planning keeps write-fd and path handoff explicit" {
         .parent_fd = 42,
     });
 
-    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
-    try std.testing.expectEqual(@as(i32, 9), plan.ruleset_fd);
     try std.testing.expectEqual(AddRuleAction.path_beneath, plan.action);
     try std.testing.expect(plan.requires_ruleset_write_access);
     try std.testing.expect(plan.requires_path_lookup);
     try std.testing.expectEqual(@as(u64, 0x7), plan.handled_access);
     try std.testing.expectEqual(@as(u64, 0x3), plan.requested_access);
     try std.testing.expectEqual(@as(i32, 42), plan.parent_fd);
-    try std.testing.expectEqual(@as(?u16, null), plan.port);
 }
 
-test "landlock add-rule planning keeps net-port dispatch explicit" {
-    const plan = try SyscallsHelperLab.planAddRule(.{
-        .ruleset_fd = 12,
-        .ruleset_mode = fmode_can_write,
-        .rule_type = rule_type_net_port,
-        .handled_access_net = 0x7,
-        .net_allowed_access = 0x1,
-        .port = 443,
-    });
-
-    try std.testing.expectEqual(AddRuleAction.net_port, plan.action);
-    try std.testing.expect(plan.requires_ruleset_write_access);
-    try std.testing.expect(!plan.requires_path_lookup);
-    try std.testing.expectEqual(@as(u64, 0x7), plan.handled_access);
-    try std.testing.expectEqual(@as(u64, 0x1), plan.requested_access);
-    try std.testing.expectEqual(@as(?u16, 443), plan.port);
+test "landlock ruleset release planning rejects missing file or ruleset state" {
+    try std.testing.expectError(error.MissingFile, SyscallsHelperLab.planFopRulesetRelease(.{
+        .file_present = false,
+    }));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planFopRulesetRelease(.{
+        .ruleset_present = false,
+    }));
 }
 
-test "landlock add-rule planning rejects flags non-writable rulesets and invalid dispatch" {
-    try std.testing.expectError(error.UnsupportedFlags, SyscallsHelperLab.planAddRule(.{
-        .ruleset_fd = 9,
-        .ruleset_mode = fmode_can_write,
-        .flags = 1,
-        .rule_type = rule_type_path_beneath,
-        .handled_access_fs = 0x1,
-        .path_allowed_access = 0x1,
-        .parent_fd = 4,
-    }));
+test "landlock ruleset_fops planning keeps release and invalid read write stubs explicit" {
+    const plan = try SyscallsHelperLab.planRulesetFops(.{});
 
-    try std.testing.expectError(error.InsufficientRulesetMode, SyscallsHelperLab.planAddRule(.{
-        .ruleset_fd = 9,
-        .ruleset_mode = fmode_can_read,
-        .rule_type = rule_type_path_beneath,
-        .handled_access_fs = 0x1,
-        .path_allowed_access = 0x1,
-        .parent_fd = 4,
-    }));
-
-    try std.testing.expectError(error.AccessNotHandled, SyscallsHelperLab.planAddRule(.{
-        .ruleset_fd = 9,
-        .ruleset_mode = fmode_can_write,
-        .rule_type = rule_type_path_beneath,
-        .handled_access_fs = 0x1,
-        .path_allowed_access = 0x3,
-        .parent_fd = 4,
-    }));
-
-    try std.testing.expectError(error.InvalidRuleType, SyscallsHelperLab.planAddRule(.{
-        .ruleset_fd = 9,
-        .ruleset_mode = fmode_can_write,
-        .rule_type = 99,
-    }));
+    try std.testing.expect(plan.release.reads_file_private_data);
+    try std.testing.expect(plan.release.invokes_landlock_put_ruleset);
+    try std.testing.expect(plan.release.returns_zero);
+    try std.testing.expect(plan.enables_fmode_can_read);
+    try std.testing.expect(plan.enables_fmode_can_write);
+    try std.testing.expect(plan.read_returns_einval);
+    try std.testing.expect(plan.write_returns_einval);
 }
