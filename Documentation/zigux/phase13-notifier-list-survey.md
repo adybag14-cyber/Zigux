@@ -47,7 +47,9 @@ surfaces without promoting it into a separate shared replay count.
 - `drivers/tty/hvc/hvc_console.h`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
-- `zigux/tests/phase13_build.zig`
+
+The direct `zigux/tests/phase13_build.zig` route is not materialized on current `master`, so keep the shipped validator-first handles below explicit instead of treating that missing build file as independently shipped adjacent evidence.
+
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
