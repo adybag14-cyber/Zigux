@@ -28,7 +28,6 @@ This run directly verified these current Phase 10 review surfaces through authen
 - `scripts/zigux/check-phase10-harness-coverage.py`
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 - `zigux/Makefile`
-- `zigux/tests/README.md`
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 
@@ -45,6 +44,7 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - the live `zigux/Makefile` `phase10-test` route reruns `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test` and `python3 scripts/zigux/check-phase10-harness-coverage.py` beside the existing core, ring, input, MMIO, and freeze-boundary packet guards
 - a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, that still records the allowed destination families, the blocked risky-transport posture, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane
 - a directly readable packet-local ring manifest, `zigux/tests/phase10_virtio_ring_manifest.json`, that still records the landed queue-local helper evidence, the blocked risky-transport bridge, and the bounded ring-lane ownership posture beside the broader closure packet
+- a directly readable packet-local ring survey note, `Documentation/zigux/phase10-virtio-ring-survey.md`, that now keeps the focused `zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replay explicit beside the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, so the shared closure packet does not undercount that already-landed ring reset follow-through just because the replay file itself is not independently re-readable through the authenticated contents bridge in this runtime
 - a representative packet-local core survey note, `Documentation/zigux/phase10-virtio-core-survey.md`, that remained directly readable through raw GitHub URL fallback and still records the parked `P10-L01` core-lane governance packet, the bounded helper evidence, the dedicated checker path, and the shared Phase 10 replay routes
 - a directly readable lane-sequencing note, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, that still records the current core, ring, input, and MMIO lane-owner split plus the shared packet surfaces and non-goals that keep the Phase 10 bundle parked below risky transport work
 - the shared reminder surfaces in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and this closure note, which keep the direct-core tests-root checker explicit on current `master`
