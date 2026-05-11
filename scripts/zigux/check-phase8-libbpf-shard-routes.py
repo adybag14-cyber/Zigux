@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parent
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
