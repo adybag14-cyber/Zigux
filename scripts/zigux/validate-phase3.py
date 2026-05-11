@@ -13,6 +13,11 @@ import tempfile
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+ATOMIC_HELPER_PATH = Path("zigux/helpers/atomic.zig")
+BARRIER_HELPER_PATH = Path("zigux/helpers/barrier.zig")
+MMIO_HELPER_PATH = Path("zigux/helpers/mmio.zig")
+LOW_LEVEL_TEST_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
+TEST_BUILD_PATH = Path("zigux/tests/build.zig")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*:")
@@ -41,6 +46,11 @@ REPO_FILES = (
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/unsafe/narrow.zig"),
+    ATOMIC_HELPER_PATH,
+    BARRIER_HELPER_PATH,
+    MMIO_HELPER_PATH,
+    LOW_LEVEL_TEST_PATH,
+    TEST_BUILD_PATH,
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     ABI_MANIFEST_PATH,
@@ -319,8 +329,28 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        manifest_rel = ABI_MANIFEST_PATH
         _write(root / phase3_abi_rel, "# restored\n")
+        (root / LOW_LEVEL_TEST_PATH).unlink()
+        issues = validate_repo(root)
+        expected_low_level_test_missing = f"missing repo file: {LOW_LEVEL_TEST_PATH.as_posix()}"
+        if expected_low_level_test_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing low-level replay was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / LOW_LEVEL_TEST_PATH, "# restored\n")
+        (root / MMIO_HELPER_PATH).unlink()
+        issues = validate_repo(root)
+        expected_mmio_missing = f"missing repo file: {MMIO_HELPER_PATH.as_posix()}"
+        if expected_mmio_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing mmio helper was not reported")
+            return 1
+        case_count += 1
+
+        manifest_rel = ABI_MANIFEST_PATH
+        _write(root / MMIO_HELPER_PATH, "# restored\n")
         _write(root / ABI_MANIFEST_PATH, _manifest_payload([]))
         issues = validate_repo(root)
         expected_manifest_entry_missing = "missing phase3 ABI manifest entry: zigux/uapi/dev_t.zig"
