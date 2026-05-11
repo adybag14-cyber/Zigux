@@ -43,7 +43,7 @@ These are the only helpers that still keep bounded direct helper-local follow-up
 
 ## Current Repo Reality
 
-Fresh repo-first inspection shows the older saved Phase 1 reopen cues are already closed on current `master`.
+Fresh repo-first inspection shows several older saved Phase 1 reopen cues are already closed on current `master`.
 
 The Phase 1 closure validator already carries the bitmap final-partial-word and Linux-style alias closure markers that older lane memory once described as missing. Future runs should not reopen that already-landed validator sync.
 
@@ -53,13 +53,13 @@ The docs-root Phase 1 summary still names this owner-map note, so the earlier `D
 
 The earlier `find_bit` edge bench gap is now closed on current `master` too. `zigux/tests/phase1_bench.zig` now carries the underscore-alias and backward-edge `findLastBit()` replay calls inside `findBitEdgeBench()`, and `zigux/tests/fixtures/phase1_bench_expectations.json` already keeps the widened exact edge checksum at `23340000`.
 
-The earlier shared closure-note gap is closed on current `master` too. `Documentation/zigux/phase1-closure.md` already keeps `Documentation/zigux/phase1-host-helper-lane-sequencing.md` inside its shared review packet, matching the docs root, scripts root, tests root, and review checklist reminder surfaces.
+The earlier shared closure-note gap is only partly closed on current `master`. `Documentation/zigux/phase1-closure.md` already keeps `Documentation/zigux/phase1-host-helper-lane-sequencing.md` inside its shared review packet, matching the docs root and scripts root, but the broader Phase 1 reminder lines in `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` still omit this owner-map note.
 
 The earlier shared Phase 1 validator packet gap is closed on current `master` too. `scripts/zigux/validate-phase1.py` already exact-checks `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS`, keeps `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` inside the shared checksum listing, exact-checks the widened `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=23340000` contract, and exercises dedicated negative self-test cases for missing or drifted edge-bench expectations.
 
-That means this note should no longer send future runs back to the already-landed validator sync as the default next deliverable. Fresh repo-first inspection now leaves the lane parked until another same-packet truthfulness or exact-check gap appears across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
+That means this lane should not be treated as fully parked yet. Fresh repo-first inspection now leaves one smaller same-packet truthfulness follow-up still open across the shipped Phase 1 reminder surfaces: the owner-map note is explicit in `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md`, but not yet in the broader Phase 1 checklist and tests-root packet reminders.
 
-Future host-tools follow-up should come only from the next freshly observed same-packet truthfulness or exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
+Future host-tools follow-up should come only from that remaining same-packet truthfulness sync or another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, or helper-local anchor surfaces.
 
 ## Anti-Overlap Rules
 
@@ -70,23 +70,23 @@ When this lane reopens, stay inside one bounded step only.
 - Do not reopen the already-landed `validate-phase1.py` write-text typo repair.
 - Do not reopen the already-landed docs-root owner-map sync.
 - Do not reopen the already-landed `find_bit` edge bench sync.
-- Do not reopen the already-landed shared closure-note owner-map sync.
+- Do not reopen the already-landed portion of the shared closure-note owner-map sync in `Documentation/zigux/phase1-closure.md`.
 - Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
 ## Next Bounded Step
 
-Leave this lane parked unless fresh repo-first inspection finds another equally small same-lane truthfulness or exact-check gap inside one already-landed Phase 1 surface such as:
+Keep the next host-tools-alpha slot inside the smallest remaining shared-reminder truthfulness sync before reopening any helper-local work.
 
-- `Documentation/zigux/phase1-closure.md`
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
-- `scripts/zigux/validate-phase1.py`
-- `scripts/zigux/validate-phase1-closure.py`
-- `zigux/tests/phase1_bench.zig`
-- one existing direct helper-local anchor in `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, or `tools/lib/string.zig`
+Start with one of these reminder surfaces only:
 
-Until a new concrete gap appears, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
+
+The next run should prefer the reviewer-facing `Documentation/zigux/review-checklist.md` packet first: add `Documentation/zigux/phase1-host-helper-lane-sequencing.md` to the broad closed Phase 1 reminder and then tighten the paired `scripts/zigux/validate-phase1.py` marker expectations so that omission fails closed on future rereads.
+
+Until that reminder-level sync lands, keep Phase 1 follow-up work on review-surface truthfulness, closure accuracy, fixture drift, benchmark exactness, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
