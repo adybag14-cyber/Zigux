@@ -23,6 +23,8 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
+RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -32,6 +34,8 @@ PHASE12_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
 
 REQUIRED_FILES = [
     SCRIPTS_README_PATH,
+    TESTS_README_PATH,
+    RELEASE_SEQUENCING_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -51,6 +55,27 @@ SCRIPTS_README_MARKERS = [
     "`make -C zigux phase12-smoke`",
     "`make -C zigux phase12`",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
+]
+
+TESTS_README_MARKERS = [
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`Documentation/zigux/phase12-release-sequencing.md`",
+    "`Documentation/zigux/phase12-release-readiness-survey.md`",
+    "`Documentation/zigux/phase12-release-coordination-matrix.md`",
+    "`.github/workflows/zigux-bootstrap.yml`",
+    "`zigux/tests/phase12_build.zig`",
+    "`make -C zigux phase12-smoke`",
+    "`make -C zigux phase12`",
+    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`",
+]
+
+RELEASE_SEQUENCING_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
+    "Current `master` already keeps the compact release-coordination matrix explicit",
 ]
 
 WORKFLOW_MARKERS = [
@@ -144,6 +169,18 @@ def validate(root: Path) -> list[str]:
         SCRIPTS_README_MARKERS,
     )
     ensure_contains(
+        failures,
+        "tests_readme",
+        read_text(root, TESTS_README_PATH),
+        TESTS_README_MARKERS,
+    )
+    ensure_contains(
+        failures,
+        "release_sequencing",
+        read_text(root, RELEASE_SEQUENCING_PATH),
+        RELEASE_SEQUENCING_MARKERS,
+    )
+    ensure_contains(
         failures, "workflow", read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS
     )
     ensure_contains(
@@ -161,6 +198,14 @@ def validate(root: Path) -> list[str]:
 
 def minimal_scripts_readme() -> str:
     return "\n".join(["# scripts/zigux", *SCRIPTS_README_MARKERS, ""])
+
+
+def minimal_tests_readme() -> str:
+    return "\n".join(["# zigux/tests", *TESTS_README_MARKERS, ""])
+
+
+def minimal_release_sequencing() -> str:
+    return "\n".join(["# Phase 12 Release Sequencing", *RELEASE_SEQUENCING_MARKERS, ""])
 
 
 def minimal_workflow() -> str:
@@ -225,6 +270,10 @@ pub fn build(b: *std.Build) void {
 def placeholder_for(rel_path: str) -> str:
     if rel_path == SCRIPTS_README_PATH:
         return minimal_scripts_readme()
+    if rel_path == TESTS_README_PATH:
+        return minimal_tests_readme()
+    if rel_path == RELEASE_SEQUENCING_PATH:
+        return minimal_release_sequencing()
     if rel_path == WORKFLOW_PATH:
         return minimal_workflow()
     if rel_path == MAKEFILE_PATH:
@@ -257,18 +306,34 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        scripts_readme_path = base / SCRIPTS_README_PATH
+        tests_readme_path = base / TESTS_README_PATH
+        release_sequencing_path = base / RELEASE_SEQUENCING_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
 
-        scripts_readme_path.write_text(
-            scripts_readme_path.read_text(encoding="utf-8").replace(
-                SCRIPTS_README_MARKERS[-1], "", 1
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(
+                TESTS_README_MARKERS[2], "", 1
             ),
             encoding="utf-8",
         )
-        expect_failure(base, f"scripts_readme:{SCRIPTS_README_MARKERS[-1]}")
+        expect_failure(
+            base,
+            f"tests_readme:{TESTS_README_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        release_sequencing_path.write_text(
+            release_sequencing_path.read_text(encoding="utf-8").replace(
+                RELEASE_SEQUENCING_MARKERS[4], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[4]}",
+        )
 
         write_fixture_tree(base)
         workflow_path.write_text(
@@ -315,7 +380,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=5")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -356,6 +421,8 @@ def main() -> int:
     marker_count = (
         len(REQUIRED_FILES)
         + len(SCRIPTS_README_MARKERS)
+        + len(TESTS_README_MARKERS)
+        + len(RELEASE_SEQUENCING_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(PHASE12_BUILD_MARKERS)
