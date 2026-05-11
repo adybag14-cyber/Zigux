@@ -66,4 +66,4 @@ This note does not claim:
 
 ## Next Bounded Step
 
-If this lane reopens, the next honest follow-through is the one-file tests-root wording sync that keeps `zigux/tests/README.md` explicit about `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, then reread `Documentation/zigux/phase12-libbpf-segment-survey.md` and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` against that same live verify shard without widening into helper behavior or blocked object-model work.
+If this lane reopens, reread `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `zigux/tests/README.md` against the same live verify shard before choosing another shared reminder repair. The older tests-root wording sync is already closed on current `master`, so refresh only the narrowest remaining one-file shared reminder that drifts next before widening into helper behavior or blocked object-model work.
