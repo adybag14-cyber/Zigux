@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-
+from typing import Any
 
 SELF_PATH = Path(__file__).resolve()
 DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
@@ -101,16 +101,6 @@ CLOSURE_MARKERS = [
     "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig",
     "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
-    "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
-    "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
-    "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path",
-    "PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_REVIEW=helper-local tail-word inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans in the final partial tail word keep the last in-range bit reachable from an inclusive start",
-    "PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay still only consumes the committed inclusive_boundary_* head-word fields directly, so the direct helper-local tail-word inclusive-boundary test remains the owning review-visible anchor for the final partial-word boundary path",
-    "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
-    "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
-    "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
-    "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
-    "PHASE1_FIND_BIT_BENCH_REVIEW=the shared Phase 1 benchmark packet keeps the exact next-bit and edge-loop iteration and checksum contract explicit so the steady-state and edge-case find_bit smoke paths remain live and review-visible",
     "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
     "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
     "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
@@ -123,6 +113,16 @@ CLOSURE_MARKERS = [
     "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
     "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation",
     "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
+    "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
+    "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
+    "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path",
+    "PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_REVIEW=helper-local tail-word inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans in the final partial tail word keep the last in-range bit reachable from an inclusive start",
+    "PHASE1_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay still only consumes the committed inclusive_boundary_* head-word fields directly, so the direct helper-local tail-word inclusive-boundary test remains the owning review-visible anchor for the final partial-word boundary path",
+    "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
+    "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
+    "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
+    "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
+    "PHASE1_FIND_BIT_BENCH_REVIEW=the shared Phase 1 benchmark packet keeps the exact next-bit and edge-loop iteration and checksum contract explicit so the steady-state and edge-case find_bit smoke paths remain live and review-visible",
     "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
 ]
 
@@ -156,6 +156,39 @@ EXPECTED_BENCH = {
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
         "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
     },
+}
+
+EXPECTED_FIND_BIT_MANIFEST = {
+    "helper_test_anchors": [
+        'test "single-word next scans honor start masks"',
+        'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        'test "zero-bit windows return without reading bitmap words"',
+        'test "zero-sized scans ignore populated backing words"',
+        'test "next scans past nbits return without reading bitmap words"',
+        'test "tail-word next set scans skip earlier in-range matches before clamping"',
+        'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+        'test "low-level underscore aliases mirror the primary find helpers"',
+    ],
+    "same_word_start_masks": 'test "single-word next scans honor start masks"',
+    "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
+    "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
+    "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
+    "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+    "tail_clamp_fixture_keys": [
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last",
+    ],
+    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master",
 }
 
 
@@ -212,6 +245,23 @@ def run_phase1_validator(root: Path) -> list[str]:
     return [f"phase1_validator_failed:{detail}"]
 
 
+def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["find_bit_manifest:json_object"]
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["find_bit_manifest:review_anchors"]
+    find_bit_anchors = review_anchors.get("tools/lib/find_bit.zig")
+    if not isinstance(find_bit_anchors, dict):
+        return ["find_bit_manifest:tools/lib/find_bit.zig"]
+
+    missing: list[str] = []
+    for key, expected in EXPECTED_FIND_BIT_MANIFEST.items():
+        if find_bit_anchors.get(key) != expected:
+            missing.append(f"find_bit_manifest:{key}")
+    return missing
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     workflow = load_text(root, ".github/workflows/zigux-bootstrap.yml")
     docs_root = load_text(root, "Documentation/zigux/README.md")
@@ -222,6 +272,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     makefile = load_text(root, "zigux/Makefile")
     build_zig = load_text(root, "zigux/tests/build.zig")
     bench = load_json(root, "zigux/tests/fixtures/phase1_bench_expectations.json")
+    manifest = load_json(root, "zigux/tests/fixtures/phase1_helper_manifest.json")
 
     missing: list[str] = []
     missing.extend(run_phase1_validator(root))
@@ -236,6 +287,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(require_markers(makefile, "makefile", MAKEFILE_MARKERS))
     missing.extend(require_markers(build_zig, "build", BUILD_MARKERS))
     missing.extend(collect_bench_markers(bench))
+    missing.extend(collect_find_bit_manifest_markers(manifest))
     return missing
 
 
@@ -247,7 +299,7 @@ def write_text(root: Path, relative_path: str, text: str) -> None:
 
 def make_fixture_root(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
-        write_text(root, relative_path, "// fixture\n")
+        write_text(root, relative_path, "{}\n" if relative_path.endswith(".json") else "// fixture\n")
 
     write_text(root, ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_MARKERS) + "\n")
     write_text(root, "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
@@ -258,6 +310,11 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root, "zigux/tests/build.zig", "\n".join(BUILD_MARKERS) + "\n")
     write_text(root, "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(EXPECTED_BENCH, indent=2) + "\n")
+    write_text(
+        root,
+        "zigux/tests/fixtures/phase1_helper_manifest.json",
+        json.dumps({"review_anchors": {"tools/lib/find_bit.zig": EXPECTED_FIND_BIT_MANIFEST}}, indent=2) + "\n",
+    )
     write_text(root, "scripts/zigux/validate-phase1.py", "import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=pass')\n    raise SystemExit(0)\n")
 
 
@@ -276,14 +333,27 @@ def run_self_test() -> None:
         make_fixture_root(root)
 
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
-        workflow_path.write_text(workflow_path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], ""), encoding="utf-8")
+        workflow_path.write_text(workflow_path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], "", 1), encoding="utf-8")
         assert any(item.startswith("workflow:") for item in collect_missing_markers(root))
         case_count += 1
         make_fixture_root(root)
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[0], ""), encoding="utf-8")
+        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
         assert any(item.startswith("closure:") for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[19], "", 1), encoding="utf-8")
+        assert any(item == f"closure:{CLOSURE_MARKERS[19]}" for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "find_bit_manifest:tail_word_inclusive_boundary_anchor" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
@@ -337,7 +407,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_FIND_BIT_MANIFEST)}"
     )
     return 0
 
