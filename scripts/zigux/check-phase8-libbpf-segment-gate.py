@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
 
 
 SCRIPT_PATH = Path(__file__).resolve()
@@ -120,6 +121,7 @@ LEGACY_PACKET_REQUIRED_MARKERS = {
     "tools/lib/bpf/zigux_segments/manifest.json": [
         "\"surveyed_commit\":",
         "\"segments\": [",
+        "\"segmentation_notes\": [",
     ],
 }
 
@@ -158,13 +160,57 @@ PARKED_DRIFT_MARKERS = {
 }
 
 SURVEYED_COMMIT_NOTE_RE = re.compile(
-    r"survey checkpoint: refreshed against inspected `master` head `([0-9a-f]{40})`"
+    r"(?:survey checkpoint: refreshed against inspected `master` head|surveyed commit:)\s*`?([0-9a-f]{40})`?"
 )
 SURVEYED_COMMIT_TEST_RE = re.compile(
-    r'const current_surveyed_commit = "([0-9a-f]{40})";'
+    r'const (?:(?:current|expected)_)?surveyed_commit = "([0-9a-f]{40})";'
 )
 SURVEYED_COMMIT_MANIFEST_RE = re.compile(
     r'"surveyed_commit"\s*:\s*"([0-9a-f]{40})"'
+)
+
+EXPECTED_BRIDGE_SEGMENTS = {
+    "fdinfo-map-info-helpers": {
+        "status": "starter_landed",
+        "kind": "helper_first",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    "map-reuse-compatibility": {
+        "status": "starter_landed",
+        "kind": "helper_first",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    "file-path-and-handle-bridge": {
+        "status": "deferred_high_risk",
+        "kind": "resource_boundary",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+}
+
+EXPECTED_BRIDGE_LANDED_SCOPE = [
+    "buildProcFdinfoPath() bounded /proc//fdinfo/ pathname shaping",
+    "parseFdinfoLine() field splitting and trimming",
+    "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
+    "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
+    "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+    "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
+    "resolveReusedMapName() object-name retention for truncated reused-map names",
+    "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+    "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
+    "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+    "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+]
+
+EXPECTED_BRIDGE_QUEUED_SCOPE = [
+    "direct procfs reads and descriptor ownership flow",
+    "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+]
+
+EXPECTED_BRIDGE_WHY_NOW = (
+    "The shared file-path bridge destination now records the fdinfo parsing foundation, "
+    "helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse "
+    "planning packet as a reviewable landed helper slice, so future surveys can keep promoting "
+    "bounded bridge behavior without crossing into live descriptor or reopen side effects."
 )
 
 FIXTURE_TEXT = {
@@ -185,7 +231,7 @@ FIXTURE_TEXT = {
 """,
     "Documentation/zigux/phase8-libbpf-segment-survey.md": """# Phase 8 Libbpf Segment Survey
 
-- survey checkpoint: refreshed against inspected `master` head `0123456789abcdef0123456789abcdef01234567`
+- surveyed commit: `0123456789abcdef0123456789abcdef01234567`
 - tools/lib/bpf/zigux_segments/manifest.json
 - zigux/tests/phase8_libbpf_segments.zig
 - zigux/tests/phase8_libbpf_segments_only_build.zig
@@ -234,10 +280,10 @@ Keep follow-up inside the shared wording lane
 scripts/zigux/validate-phase8.py
 """,
     "zigux/Makefile": """phase8-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
 
 phase8-libbpf-segments-test:
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
 """,
     "zigux/tests/README.md": """# zigux/tests
 
@@ -247,17 +293,47 @@ phase8-libbpf-segments-test:
 - zigux/tests/phase8_libbpf_segments_only_build.zig
 - make -C zigux phase8-libbpf-segments-test
 """,
-    "zigux/tests/phase8_libbpf_segments.zig": """const current_surveyed_commit = \"0123456789abcdef0123456789abcdef01234567\";
+    "zigux/tests/phase8_libbpf_segments.zig": """const expected_surveyed_commit = \"0123456789abcdef0123456789abcdef01234567\";
 """,
     "zigux/tests/phase8_libbpf_segments_only_build.zig": """const root_module = b.createModule(.{
     .root_source_file = b.path(\"phase8_libbpf_segments.zig\"),
 });
 """,
-    "tools/lib/bpf/zigux_segments/manifest.json": """{
-  \"surveyed_commit\": \"0123456789abcdef0123456789abcdef01234567\",
-  \"segments\": []
-}
-""",
+    "tools/lib/bpf/zigux_segments/manifest.json": json.dumps(
+        {
+            "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+            "segments": [
+                {
+                    "slug": "fdinfo-map-info-helpers",
+                    "status": "starter_landed",
+                    "kind": "helper_first",
+                    "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                },
+                {
+                    "slug": "map-reuse-compatibility",
+                    "status": "starter_landed",
+                    "kind": "helper_first",
+                    "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                },
+                {
+                    "slug": "file-path-and-handle-bridge",
+                    "status": "deferred_high_risk",
+                    "kind": "resource_boundary",
+                    "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                },
+            ],
+            "segmentation_notes": [
+                {
+                    "destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                    "landed_scope": EXPECTED_BRIDGE_LANDED_SCOPE,
+                    "queued_scope": EXPECTED_BRIDGE_QUEUED_SCOPE,
+                    "why_now": EXPECTED_BRIDGE_WHY_NOW,
+                }
+            ],
+        },
+        indent=2,
+    )
+    + "\n",
 }
 
 
@@ -319,8 +395,72 @@ def parked_wording_mode(root: Path) -> bool:
     return all(marker in text for marker in required)
 
 
+def validate_bridge_segmentation_contract(root: Path) -> list[str]:
+    manifest = json.loads(read_text(root, "tools/lib/bpf/zigux_segments/manifest.json"))
+    problems: list[str] = []
+
+    segments = manifest.get("segments")
+    if not isinstance(segments, list):
+        return ["tools/lib/bpf/zigux_segments/manifest.json:segments:not_a_list"]
+
+    by_slug = {
+        segment.get("slug"): segment
+        for segment in segments
+        if isinstance(segment, dict) and isinstance(segment.get("slug"), str)
+    }
+
+    for slug, expected in EXPECTED_BRIDGE_SEGMENTS.items():
+        segment = by_slug.get(slug)
+        if segment is None:
+            problems.append(f"tools/lib/bpf/zigux_segments/manifest.json:missing_bridge_segment:{slug}")
+            continue
+        for field, expected_value in expected.items():
+            if segment.get(field) != expected_value:
+                problems.append(
+                    "tools/lib/bpf/zigux_segments/manifest.json:"
+                    f"bridge_segment:{slug}:{field}:{segment.get(field)}:{expected_value}"
+                )
+
+    notes = manifest.get("segmentation_notes")
+    if not isinstance(notes, list):
+        return problems + ["tools/lib/bpf/zigux_segments/manifest.json:segmentation_notes:not_a_list"]
+    if len(notes) != 1:
+        problems.append(
+            f"tools/lib/bpf/zigux_segments/manifest.json:segmentation_notes:length:{len(notes)}:1"
+        )
+        return problems
+
+    note = notes[0]
+    if not isinstance(note, dict):
+        return problems + ["tools/lib/bpf/zigux_segments/manifest.json:segmentation_notes:entry:not_an_object"]
+
+    destination = note.get("destination")
+    if destination != "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig":
+        problems.append(
+            "tools/lib/bpf/zigux_segments/manifest.json:"
+            f"segmentation_notes:destination:{destination}:tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+        )
+
+    for field, expected in (
+        ("landed_scope", EXPECTED_BRIDGE_LANDED_SCOPE),
+        ("queued_scope", EXPECTED_BRIDGE_QUEUED_SCOPE),
+    ):
+        actual = note.get(field)
+        if actual != expected:
+            problems.append(
+                "tools/lib/bpf/zigux_segments/manifest.json:"
+                f"segmentation_notes:{field}:{actual!r}:{expected!r}"
+            )
+
+    if note.get("why_now") != EXPECTED_BRIDGE_WHY_NOW:
+        problems.append("tools/lib/bpf/zigux_segments/manifest.json:segmentation_notes:why_now")
+
+    return problems
+
+
 def validate_legacy_segment_packet(root: Path) -> tuple[list[str], list[str]]:
     missing_markers = collect_missing_markers(root, LEGACY_PACKET_REQUIRED_MARKERS)
+    missing_markers.extend(validate_bridge_segmentation_contract(root))
     commit_sync_errors: list[str] = []
     try:
         note_commit = find_required_commit(
@@ -331,7 +471,7 @@ def validate_legacy_segment_packet(root: Path) -> tuple[list[str], list[str]]:
         test_commit = find_required_commit(
             read_text(root, "zigux/tests/phase8_libbpf_segments.zig"),
             SURVEYED_COMMIT_TEST_RE,
-            "phase8_libbpf_segments.zig:missing_or_invalid_current_surveyed_commit",
+            "phase8_libbpf_segments.zig:missing_or_invalid_expected_surveyed_commit",
         )
         manifest_commit = find_required_commit(
             read_text(root, "tools/lib/bpf/zigux_segments/manifest.json"),
@@ -479,6 +619,23 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        bad_bridge_manifest = json.loads(original_manifest)
+        bad_bridge_manifest["segmentation_notes"][0]["landed_scope"] = EXPECTED_BRIDGE_LANDED_SCOPE[:-1]
+        manifest_path.write_text(json.dumps(bad_bridge_manifest, indent=2) + "\n", encoding="utf-8")
+        bridge_errors = validate(tmp_root)[2]
+        assert len(bridge_errors) == 1 and "segmentation_notes:landed_scope" in bridge_errors[0], bridge_errors
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        bad_segment_manifest = json.loads(original_manifest)
+        for segment in bad_segment_manifest["segments"]:
+            if segment["slug"] == "map-reuse-compatibility":
+                segment["status"] = "ready_next"
+                break
+        manifest_path.write_text(json.dumps(bad_segment_manifest, indent=2) + "\n", encoding="utf-8")
+        bridge_errors = validate(tmp_root)[2]
+        assert len(bridge_errors) == 1 and "bridge_segment:map-reuse-compatibility:status" in bridge_errors[0], bridge_errors
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         parked_root = tmp_root / "parked"
         clone_fixture_root(parked_root, include_legacy_packet=False)
         expect_validation(
@@ -559,7 +716,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
