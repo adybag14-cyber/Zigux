@@ -391,6 +391,25 @@ def run_self_test() -> int:
             return 1
         write(root, MAKEFILE_PATH, current_makefile_text())
 
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "check-phase14-rollback-threshold-sequencing.py" in error
+            for error in check(root)
+        ):
+            print("self-test expected rollback-checker route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
