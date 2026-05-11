@@ -148,6 +148,9 @@ PHASE12_RELEASE_READINESS_VERIFY_SHARD_MARKER = (
 PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER = (
     "It is not a closure claim, and it is not itself a shipped replay surface."
 )
+PHASE12_RELEASE_CLOSURE_VERIFY_SHARD_MARKER = (
+    "  * verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`"
+)
 PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER = (
     "shared fallback overview note: `Documentation/zigux/phase12-raw-github-coverage-survey.md` keeps the mixed raw-read split explicit and must stay aligned with the two commit-pinned fallback artifacts without being treated as a third commit-pinned fallback artifact"
 )
@@ -176,10 +179,10 @@ PHASE12_COMPLEX_DRIVER_LANE_TRUTHFULNESS_MARKER = (
 )
 PHASE12_COMPLEX_DRIVER_LANE_NEXT_STEP_MARKER = (
     "If this lane reopens soon, rerun `python3 scripts/zigux/check-build-only-phase12-surface.py`, then reread "
-    "`Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, "
-    "`Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, "
-    "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, "
-    "`Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the same smoke-first Phase 12 packet, "
+    "`Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, "
+    "`Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, "
+    "`Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, "
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the same smoke-first Phase 12 packet, "
     "the same checker pair, and the same two-versus-two fallback split."
 )
 PHASE12_LIBBPF_HEAVY_CONSUMER_PHASE8_MARKER = (
@@ -252,6 +255,7 @@ REQUIRED_PHASE12_RELEASE_READINESS_MARKERS = [
 ]
 REQUIRED_PHASE12_RELEASE_CLOSURE_MARKERS = [
     PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER,
+    PHASE12_RELEASE_CLOSURE_VERIFY_SHARD_MARKER,
     PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER,
     PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER,
     PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER,
@@ -365,6 +369,7 @@ EXACT_COUNT_MAPS = {
     },
     "phase12_release_closure": {
         PHASE12_RELEASE_CLOSURE_REPLAY_BOUNDARY_MARKER: 1,
+        PHASE12_RELEASE_CLOSURE_VERIFY_SHARD_MARKER: 1,
         PHASE12_RELEASE_CLOSURE_FALLBACK_MARKER: 1,
         PHASE12_RELEASE_CLOSURE_UNSHIPPED_ROUTE_MARKER: 1,
         PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER: 1,
@@ -707,6 +712,13 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         phase12_release_closure_path.write_text(
+            phase12_release_closure_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_CLOSURE_VERIFY_SHARD_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"phase12_release_closure:{PHASE12_RELEASE_CLOSURE_VERIFY_SHARD_MARKER}")
+
+        write_fixture_tree(base)
+        phase12_release_closure_path.write_text(
             phase12_release_closure_path.read_text(encoding="utf-8").replace(PHASE12_RELEASE_CLOSURE_ATTACHED_TOOLCHAIN_MARKER, "", 1),
             encoding="utf-8",
         )
@@ -760,7 +772,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build:smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
