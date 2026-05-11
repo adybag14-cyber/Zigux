@@ -12,6 +12,34 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
+EXPECTED_SHIPPED_TARGET_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASES = [
+    "baseline_round_trip",
+    "shipped_target_count_drift",
+    "missing_exact_readback_heading",
+    "validator_blob_pin_drift",
+    "phase4_build_manifest_blob_pin_drift",
+    "phase4_build_survey_blob_pin_drift",
+    "phase9_build_manifest_blob_pin_drift",
+    "phase9_build_survey_blob_pin_drift",
+    "gate_evidence_self_test_case_count_drift",
+    "gate_evidence_self_test_cases_drift",
+    "shared_validator_reruns_gate_evidence_self_test_drift",
+    "shared_validator_expected_target_count_drift",
+    "shared_validator_expected_self_test_case_count_drift",
+    "bitmap_diff_survey_replay_marker_drift",
+    "kprobe_gap_packet_presence_drift",
+    "perf_baseline_packet_presence_drift",
+    "perf_baseline_note_split_marker_drift",
+    "perf_baseline_owner_drift",
+    "perf_baseline_shared_promotion_status_drift",
+    "test_fsmount_gap_packet_presence_drift",
+    "missing_note_file",
+]
+SELF_TEST_CASES_LINE = (
+    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES)
+)
 
 REQUIRED_STATUS_MARKERS = [
     "PHASE4_EVIDENCE_DATE=",
@@ -33,11 +61,17 @@ REQUIRED_STATUS_MARKERS = [
 
 EXACT_STATUS_LINES = [
     "PHASE4_EXACT_READBACK_REF=master",
-    "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16",
-    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21",
+    f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}",
+    f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}",
+    SELF_TEST_CASES_LINE,
     "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+    f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}",
+    (
+        "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+        f"{EXPECTED_SELF_TEST_CASE_COUNT}"
+    ),
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
@@ -48,6 +82,9 @@ REQUIRED_PROSE_MARKERS = [
     "## Current Conclusion",
     "`scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.",
     "`zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet",
+    "shared CI perf coverage stays out of scope.",
+    "Validation and Perf Team stays named as the decision owner",
+    "phase4-bitmap-live-helper-replay-tests",
     "shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
 ]
 
@@ -94,6 +131,12 @@ def read_text(path: Path) -> str:
 
 def exact_status_line_count(text: str, status_line: str) -> int:
     return sum(1 for line in text.splitlines() if line == f"- `{status_line}`")
+
+
+def replace_once(text: str, old: str, new: str) -> str:
+    if old not in text:
+        raise ValueError(f"missing marker: {old}")
+    return text.replace(old, new, 1)
 
 
 def validate_root(root: Path) -> list[str]:
@@ -158,14 +201,17 @@ def write_fixture_tree(root: Path) -> None:
             "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
             "- `PHASE4_EXACT_READBACK_REF=master`",
             *blob_pin_lines,
-            "- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`",
-            "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`",
-            "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,missing_note_file`",
+            f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}`",
+            f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}`",
+            f"- `{SELF_TEST_CASES_LINE}`",
             "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
             "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
             "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`",
-            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`",
+            f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}`",
+            (
+                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+                f"{EXPECTED_SELF_TEST_CASE_COUNT}`"
+            ),
             "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
@@ -173,12 +219,38 @@ def write_fixture_tree(root: Path) -> None:
             "## Exact Readback Evidence",
             "- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.",
             "- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet while shared CI perf coverage stays out of scope.",
+            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.",
             "",
             "## Current Conclusion",
             "- shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+            "- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.",
         ]
     )
     write_text(root / GATE_EVIDENCE_REL, gate_evidence + "\n")
+
+
+def expect_failure(
+    root: Path,
+    gate_evidence_path: Path,
+    description: str,
+    *,
+    exact_failure: str | None = None,
+    prefix_failure: str | None = None,
+) -> bool:
+    failures = validate_root(root)
+    if exact_failure is not None and exact_failure not in failures:
+        print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
+        print(f"expected {description} failure: {exact_failure}")
+        print("\n".join(failures))
+        return False
+    if prefix_failure is not None and not any(
+        entry.startswith(prefix_failure) for entry in failures
+    ):
+        print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
+        print(f"expected {description} failure prefix: {prefix_failure}")
+        print("\n".join(failures))
+        return False
+    return True
 
 
 def run_self_test() -> int:
@@ -186,6 +258,8 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_gate_evidence_") as tmp_dir:
         root = Path(tmp_dir)
         write_fixture_tree(root)
+        gate_evidence_path = root / GATE_EVIDENCE_REL
+        original_note = read_text(gate_evidence_path)
 
         failures = validate_root(root)
         if failures:
@@ -194,74 +268,367 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        gate_evidence_path = root / GATE_EVIDENCE_REL
-        original = read_text(gate_evidence_path)
-
-        gate_evidence_path.write_text(original.replace("PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16", "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=15", 1), encoding="utf-8")
-        failures = validate_root(root)
-        if "status_exact_count:PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16:0" not in failures:
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected shipped target count drift failure")
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}",
+                f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT - 1}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shipped target count drift",
+            exact_failure=(
+                "status_exact_count:"
+                f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}:0"
+            ),
+        ):
             return 1
         case_count += 1
-        gate_evidence_path.write_text(original, encoding="utf-8")
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
 
-        gate_evidence_path.write_text(original.replace("## Exact Readback Evidence", "## Readback Evidence", 1), encoding="utf-8")
-        failures = validate_root(root)
-        if "missing_prose_marker:## Exact Readback Evidence" not in failures:
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected exact readback heading drift failure")
+        gate_evidence_path.write_text(
+            replace_once(original_note, "## Exact Readback Evidence", "## Readback Evidence"),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "exact readback heading drift",
+            exact_failure="missing_prose_marker:## Exact Readback Evidence",
+        ):
             return 1
         case_count += 1
-        gate_evidence_path.write_text(original, encoding="utf-8")
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
 
         validator_path = root / "scripts/zigux/validate-phase4.py"
+        original_validator = read_text(validator_path)
         validator_path.write_text("drifted validator fixture\n", encoding="utf-8")
-        failures = validate_root(root)
-        if not any(entry.startswith("blob_pin_mismatch:PHASE4_VALIDATOR_BLOB_SHA:") for entry in failures):
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected validator blob drift failure")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "validator blob pin drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_VALIDATOR_BLOB_SHA:",
+        ):
             return 1
         case_count += 1
-        write_text(validator_path, "fixture for scripts/zigux/validate-phase4.py\n")
-        gate_evidence_path.write_text(read_text(gate_evidence_path).replace(
-            next(line for line in read_text(gate_evidence_path).splitlines() if line.startswith("- `PHASE4_VALIDATOR_BLOB_SHA=")),
-            f"- `PHASE4_VALIDATOR_BLOB_SHA={git_blob_sha1(validator_path.read_bytes())}`",
-            1,
-        ) + "\n", encoding="utf-8")
+        validator_path.write_text(original_validator, encoding="utf-8")
 
         manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        original_manifest = read_text(manifest_path)
         manifest_path.write_text("manifest drift\n", encoding="utf-8")
-        failures = validate_root(root)
-        if not any(entry.startswith("blob_pin_mismatch:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:") for entry in failures):
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected manifest blob drift failure")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "runtime manifest blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:",
+        ):
             return 1
         case_count += 1
-        write_text(manifest_path, "fixture for zigux/tests/phase4_runtime_atomic64_diff_manifest.json\n")
-        gate_evidence_path.write_text(read_text(gate_evidence_path).replace(
-            next(line for line in read_text(gate_evidence_path).splitlines() if line.startswith("- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=")),
-            f"- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA={git_blob_sha1(manifest_path.read_bytes())}`",
-            1,
-        ) + "\n", encoding="utf-8")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+        original_survey = read_text(survey_path)
         survey_path.write_text("survey drift\n", encoding="utf-8")
-        failures = validate_root(root)
-        if not any(entry.startswith("blob_pin_mismatch:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:") for entry in failures):
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected survey blob drift failure")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "runtime survey blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        build_path = root / "zigux/tests/phase4_build.zig"
+        original_build = read_text(build_path)
+        build_path.write_text("phase4 build drift\n", encoding="utf-8")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "phase4 build blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_BUILD_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        build_path.write_text(original_build, encoding="utf-8")
+
+        checklist_path = root / "Documentation/zigux/review-checklist.md"
+        original_checklist = read_text(checklist_path)
+        checklist_path.write_text("review checklist drift\n", encoding="utf-8")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "review checklist blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}",
+                f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT - 1}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "self-test count drift",
+            exact_failure=(
+                "status_exact_count:"
+                f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                SELF_TEST_CASES_LINE,
+                SELF_TEST_CASES_LINE.replace(
+                    "missing_note_file", "missing_note_file_drifted", 1
+                ),
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "self-test case catalog drift",
+            exact_failure=f"status_exact_count:{SELF_TEST_CASES_LINE}:0",
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shared validator rerun self-test drift",
+            exact_failure=(
+                "status_exact_count:PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}",
+                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT - 1}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shared validator expected target count drift",
+            exact_failure=(
+                "status_exact_count:"
+                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_SHIPPED_TARGET_COUNT}:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                (
+                    "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+                    f"{EXPECTED_SELF_TEST_CASE_COUNT}"
+                ),
+                (
+                    "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+                    f"{EXPECTED_SELF_TEST_CASE_COUNT - 1}"
+                ),
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shared validator expected self-test count drift",
+            exact_failure=(
+                "status_exact_count:"
+                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+                f"{EXPECTED_SELF_TEST_CASE_COUNT}:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "phase4-bitmap-live-helper-replay-tests",
+                "phase4-bitmap-live-helper-replay-drift",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "bitmap replay marker drift",
+            exact_failure="missing_prose_marker:phase4-bitmap-live-helper-replay-tests",
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
+                "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "kprobe packet presence drift",
+            exact_failure="status_exact_count:PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true:0",
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
+                "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "perf baseline packet presence drift",
+            exact_failure=(
+                "status_exact_count:PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "shared CI perf coverage stays out of scope.",
+                "shared CI perf coverage is promoted here.",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "perf baseline split-marker drift",
+            exact_failure="missing_prose_marker:shared CI perf coverage stays out of scope.",
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "Validation and Perf Team stays named as the decision owner",
+                "Tooling and Validation Team stays named as the decision owner",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "perf baseline owner drift",
+            exact_failure=(
+                "missing_prose_marker:Validation and Perf Team stays named as the decision owner"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+                "shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates are promoted.",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shared perf promotion status drift",
+            exact_failure=(
+                "missing_prose_marker:shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved."
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
+                "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount packet presence drift",
+            exact_failure=(
+                "status_exact_count:PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true:0"
+            ),
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.unlink()
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "missing note",
+            exact_failure=f"file:{GATE_EVIDENCE_REL.as_posix()}",
+        ):
             return 1
         case_count += 1
 
-        gate_evidence_path.unlink()
-        failures = validate_root(root)
-        expected = f"file:{GATE_EVIDENCE_REL.as_posix()}"
-        if expected not in failures:
-            print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
-            print("expected missing note failure")
-            return 1
-        case_count += 1
+    if case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE4_GATE_EVIDENCE_SELF_TEST=fail")
+        print(
+            "unexpected self-test case count "
+            f"{case_count} != {EXPECTED_SELF_TEST_CASE_COUNT}"
+        )
+        return 1
 
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
     print(f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={case_count}")
@@ -269,8 +636,14 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 4 gate-evidence note.")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in coverage checks in a temporary workspace.")
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 4 gate-evidence note."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in coverage checks in a temporary workspace.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
