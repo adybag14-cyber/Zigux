@@ -13,6 +13,112 @@
     "blocked_deliverable": "loadable Phase 9 runtime bitmap pilot module parity",
     "next_gate": "keep the loader scaffold, top-bit companion contract, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan"
   },
+  "delivery_evidence_catalog": [
+    {
+      "id": "runtime-bitmap-sample",
+      "kind": "sample_starter",
+      "path": "samples/zigux/runtime_bitmap.zig",
+      "why_now": "The runtime bitmap sample is the family-local starter that keeps the bounded `lib/test_bitmap.c` replay visible without claiming live loadable-module parity."
+    },
+    {
+      "id": "runtime-bitmap-loader-scaffold",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_bitmap_loader.zig",
+      "why_now": "The sample-side loader scaffold keeps the prepared bitmap handoff reviewable while the shared runtime substrate is still blocked."
+    },
+    {
+      "id": "runtime-bitmap-top-bit-companion",
+      "kind": "validation",
+      "path": "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+      "why_now": "The focused top-bit companion replay keeps the highest-valid-bit contract inside the same bounded runtime bitmap packet."
+    },
+    {
+      "id": "runtime-bitmap-module-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_bitmap_module.zig",
+      "why_now": "The direct module gate keeps the starter lifecycle, selftest-hook, and mutation packet machine-checkable on current master."
+    },
+    {
+      "id": "runtime-bitmap-diff-gate",
+      "kind": "differential_validation",
+      "path": "zigux/tests/runtime_bitmap_diff.zig",
+      "why_now": "The focused diff gate keeps the bounded parity cases explicit without widening the packet into the full Linux helper surface."
+    },
+    {
+      "id": "runtime-bitmap-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_bitmap_survey.zig",
+      "why_now": "The dedicated survey gate is the packet-local fail-closed surface for the runtime bitmap survey note and manifest."
+    },
+    {
+      "id": "runtime-loader-facade",
+      "kind": "validation",
+      "path": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared runtime-loader facade keeps the review-only handoff surface explicit while the live runtime substrate remains blocked."
+    },
+    {
+      "id": "runtime-loader-contract",
+      "kind": "validation",
+      "path": "zigux/kernel/runtime_loader_contract.zig",
+      "why_now": "The shared request contract records the allocator, lifecycle, and selftest-hook handoff shape that the bitmap loader scaffold must preserve."
+    },
+    {
+      "id": "runtime-loader-allocator-init-flow",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_loader_allocator_init_flow.zig",
+      "why_now": "The allocator/init-flow replay keeps the shared loader-side request packet reviewable beside the bitmap-local sample and survey gates."
+    },
+    {
+      "id": "runtime-bitmap-shared-build-boundary",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build bundle enumerates the bitmap-local sample, module, diff, top-bit, survey, and shared loader replay surfaces that this manifest now catalogs explicitly."
+    },
+    {
+      "id": "runtime-bitmap-survey-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+      "why_now": "The survey note records the current bounded runtime bitmap packet and keeps the still-blocked live loader binding explicit."
+    },
+    {
+      "id": "runtime-bitmap-module-slice-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+      "why_now": "The module-slice note keeps the same bitmap-local starter, loader scaffold, top-bit, and shared handoff packet visible for review."
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "zigux/tests/runtime_bitmap_manifest.json",
+      "role": "packet_truth_manifest",
+      "owner": "P9-L08",
+      "boundary": "Records the visible runtime bitmap packet on current master without borrowing proof from unrelated loader or later runtime-substrate lanes."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L08",
+      "boundary": "Records the bounded runtime bitmap review packet and keeps the blocked live loader-binding boundary explicit."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+      "role": "module_slice_note",
+      "owner": "P9-L08",
+      "boundary": "Tracks the same starter, loader-scaffold, top-bit, and shared handoff proof without claiming loadable-module parity."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "role": "shared_owner_map",
+      "owner": "P9-L16",
+      "boundary": "Owns the shared Phase 9 loader-facing reminder packet separately from this runtime bitmap family-local packet."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "role": "shared_build_bundle",
+      "owner": "P9-L11",
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the bitmap-local `phase9-runtime-bitmap-tests`, `phase9-runtime-bitmap-top-bit-tests`, and `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the broader loader packet stays outside this family-local ownership surface."
+    }
+  ],
   "gaps": [
     {
       "id": "runtime-bitmap-loader-scaffold",
