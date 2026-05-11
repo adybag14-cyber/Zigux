@@ -10,6 +10,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"
+POLICY_PATH = "Documentation/zigux/phase15-indefinite-c-policy.md"
 MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 LANE_NOTE_PATH = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"
@@ -34,6 +35,25 @@ NOTE_REPLAY_ROUTE_MARKERS = (
     "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
+)
+
+POLICY_FIELD_SYNC_MARKERS = (
+    "required approver set",
+    "retained discussion state",
+    "named reopen-trigger catalog item",
+    "trigger-specific evidence refresh",
+)
+
+POLICY_EXCEPTION_POSTURE_MARKERS = (
+    "There is no silent exception path around the indefinite-C policy.",
+    "The only allowed exception is an Architecture Council reopen request",
+    "the existing blocker remains recorded",
+)
+
+POLICY_REOPEN_TRIGGER_MARKERS = (
+    "narrower_followup_answers_blocker",
+    "evidence_packet_stale_or_contradictory",
+    "ownership_or_validation_changed",
 )
 
 REQUIRED_MANIFEST_FIELDS = (
@@ -131,6 +151,7 @@ def validate(root: Path) -> list[str]:
 
     required_files = (
         NOTE_PATH,
+        POLICY_PATH,
         MANIFEST_PATH,
         LANE_NOTE_PATH,
         VALIDATOR_PATH,
@@ -144,6 +165,7 @@ def validate(root: Path) -> list[str]:
         return issues
 
     note = _read(root / NOTE_PATH)
+    policy = _read(root / POLICY_PATH)
     lane_note = _read(root / LANE_NOTE_PATH)
     validator = _read(root / VALIDATOR_PATH)
     scripts_readme = _read(root / SCRIPTS_README_PATH)
@@ -153,6 +175,9 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(note, REQUIRED_NOTE_MARKERS, "note", issues)
     _require_markers_present(note, CURRENT_APPROVAL_POSTURE_MARKERS, "note", issues)
     _require_markers_present(note, NOTE_REPLAY_ROUTE_MARKERS, "note", issues)
+    _require_markers_present(policy, POLICY_FIELD_SYNC_MARKERS, "policy", issues)
+    _require_markers_present(policy, POLICY_EXCEPTION_POSTURE_MARKERS, "policy", issues)
+    _require_markers_present(policy, POLICY_REOPEN_TRIGGER_MARKERS, "policy", issues)
     _require_markers_present(lane_note, CURRENT_REPO_HANDOFF_MARKERS, "lane_note", issues)
     _require_markers_present(validator, ("scripts/zigux/check-phase15-review-process-handoff.py",), "validator", issues)
     _require_markers_present(scripts_readme, ("check-phase15-review-process-handoff.py",), "scripts_readme", issues)
@@ -234,6 +259,26 @@ def _seed_fixture_tree(root: Path) -> None:
                 "- make -C zigux phase15",
                 "- no Architecture Council approval is currently recorded for a freeze-map status change",
                 "- Keep the Phase 15 governance lane in maintenance mode.",
+                "",
+            )
+        ),
+    )
+    _write(
+        root / POLICY_PATH,
+        "\n".join(
+            (
+                "# Phase 15 Indefinite-C Policy",
+                "",
+                "- required approver set",
+                "- retained discussion state",
+                "- named reopen-trigger catalog item",
+                "- trigger-specific evidence refresh",
+                "- There is no silent exception path around the indefinite-C policy.",
+                "- The only allowed exception is an Architecture Council reopen request",
+                "- the existing blocker remains recorded",
+                "- narrower_followup_answers_blocker",
+                "- evidence_packet_stale_or_contradictory",
+                "- ownership_or_validation_changed",
                 "",
             )
         ),
@@ -338,6 +383,28 @@ def run_self_test() -> int:
         _write(root / NOTE_PATH, note_text)
         case_count += 1
 
+        policy_path = root / POLICY_PATH
+        policy_text = _read(policy_path)
+        missing_policy_marker = "required approver set"
+        _write(root / POLICY_PATH, policy_text.replace(f"- {missing_policy_marker}\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"policy:missing:{missing_policy_marker}"],
+            "missing_policy_field_guard_failed",
+        )
+        _write(root / POLICY_PATH, policy_text)
+        case_count += 1
+
+        missing_policy_exception_marker = "The only allowed exception is an Architecture Council reopen request"
+        _write(root / POLICY_PATH, policy_text.replace(f"- {missing_policy_exception_marker}\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"policy:missing:{missing_policy_exception_marker}"],
+            "missing_policy_exception_guard_failed",
+        )
+        _write(root / POLICY_PATH, policy_text)
+        case_count += 1
+
         manifest_path = root / MANIFEST_PATH
         manifest_data = json.loads(_read(manifest_path))
         manifest_data["reopen_trigger_catalog"].remove("ownership_or_validation_changed")
@@ -384,6 +451,15 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        _seed_fixture_tree(root)
+        (root / POLICY_PATH).unlink()
+        _assert_only(
+            validate(root),
+            [f"missing_file:{POLICY_PATH}"],
+            "missing_policy_file_guard_failed",
+        )
+        case_count += 1
+
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
     print(f"PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -412,7 +488,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS)}"
+        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS)}"
     )
     return 0
 
