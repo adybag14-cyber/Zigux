@@ -23,6 +23,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ("--self-test",)),
     (Path("scripts/zigux/survey-phase3-abi-constant-parity.py"), ("--self-test",)),
     (Path("scripts/zigux/phase3_catalog.py"), ("--self-test",)),
