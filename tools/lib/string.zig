@@ -582,6 +582,36 @@ test "memchrInv zero-value scans keep the earliest dirty byte across every prefi
     }
 }
 
+test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments" {
+    const word_bytes = @sizeOf(usize);
+    var backing = [_]u8{0xaa} ** (word_bytes * 5);
+
+    for (0..word_bytes) |prefix| {
+        const slice = backing[prefix .. prefix + (word_bytes * 2) + 1];
+        for (0..slice.len) |dirty_idx| {
+            @memset(backing[0..], 0xaa);
+            slice[dirty_idx] = 0x11;
+            slice[slice.len - 1] = 0x33;
+            try std.testing.expectEqual(@as(?usize, dirty_idx), memchrInv(slice, 0xaa));
+        }
+    }
+}
+
+test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments" {
+    const word_bytes = @sizeOf(usize);
+    var backing = [_]u8{0} ** (word_bytes * 5);
+
+    for (0..word_bytes) |prefix| {
+        const slice = backing[prefix .. prefix + (word_bytes * 2) + 1];
+        for (0..slice.len) |dirty_idx| {
+            @memset(backing[0..], 0);
+            slice[dirty_idx] = 0x7f;
+            slice[slice.len - 1] = 0x33;
+            try std.testing.expectEqual(@as(?usize, dirty_idx), memchrInv(slice, 0));
+        }
+    }
+}
+
 test "memchrInv short zero-value scans stay byte-accurate" {
     var short_zero_scan = [_]u8{ 0, 0, 0x7f, 0 };
     try std.testing.expectEqual(@as(?usize, 2), memchrInv(&short_zero_scan, 0));
