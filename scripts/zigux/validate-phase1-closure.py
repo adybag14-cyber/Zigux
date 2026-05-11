@@ -714,16 +714,17 @@ def run_self_test() -> None:
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure_path.read_text(encoding="utf-8")
-        for label, marker, _ in [
-            REQUIRED_CLOSURE_MARKERS[12],
-            REQUIRED_CLOSURE_MARKERS[13],
-            REQUIRED_CLOSURE_MARKERS[14],
-            REQUIRED_CLOSURE_MARKERS[17],
-            REQUIRED_CLOSURE_MARKERS[19],
-            REQUIRED_CLOSURE_MARKERS[20],
-            REQUIRED_CLOSURE_MARKERS[24],
-            REQUIRED_CLOSURE_MARKERS[26],
-        ]:
+        marker_labels = [
+            "closure_bitmap_first_word_boundary_review_count",
+            "closure_bitmap_final_partial_word_review_count",
+            "closure_bitmap_scnprintf_truncation_review_count",
+            "closure_bitmap_zero_bit_noop_review_count",
+            "closure_bitmap_linux_alias_review_count",
+            "closure_rbtree_review_packet_count",
+        ]
+        for target_label in marker_labels:
+            label, marker, _ = next(case for case in CLOSURE_MARKERS if case[0] == target_label)
+
             def mutate_closure(marker=marker):
                 closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
 
