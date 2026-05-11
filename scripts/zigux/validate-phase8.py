@@ -11,18 +11,24 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 COMMAND_GAP_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
+EXEC_CMD_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-exec-cmd-packet.py"
 TESTS_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
 PERF_BUFFER_POLL_CHECKER_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
+EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 HELP_SLICE_PATH = "Documentation/zigux/phase8-help-slice.md"
 KALLSYMS_SLICE_PATH = "Documentation/zigux/phase8-kallsyms-slice.md"
+EXEC_CMD_ZIG_PATH = "tools/lib/subcmd/exec-cmd.zig"
 HELP_ZIG_PATH = "tools/lib/subcmd/help.zig"
 KALLSYMS_ZIG_PATH = "tools/lib/symbol/kallsyms.zig"
+EXEC_CMD_TEST_PATH = "zigux/tests/phase8_exec_cmd.zig"
+EXEC_CMD_ONLY_BUILD_PATH = "zigux/tests/phase8_exec_cmd_only_build.zig"
 HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
@@ -36,16 +42,22 @@ REQUIRED_FILES = [
     WORKFLOW_PATH,
     COMMAND_GAP_SURVEY_PATH,
     SEQUENCING_PATH,
+    DOCS_ROOT_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     VALIDATOR_PATH,
+    EXEC_CMD_PACKET_CHECKER_PATH,
     TESTS_ALIGNMENT_CHECKER_PATH,
     HELP_KALLSYMS_PACKET_CHECKER_PATH,
     PERF_BUFFER_POLL_CHECKER_PATH,
+    EXEC_CMD_SLICE_PATH,
     HELP_SLICE_PATH,
     KALLSYMS_SLICE_PATH,
+    EXEC_CMD_ZIG_PATH,
     HELP_ZIG_PATH,
     KALLSYMS_ZIG_PATH,
+    EXEC_CMD_TEST_PATH,
+    EXEC_CMD_ONLY_BUILD_PATH,
     HELP_TEST_PATH,
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
@@ -62,6 +74,8 @@ REQUIRED_MARKERS = {
     WORKFLOW_PATH: [
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
+        "Run focused Phase 8 exec-cmd tests",
+        "make -C zigux phase8-exec-cmd-test",
     ],
     COMMAND_GAP_SURVEY_PATH: [
         "PHASE8_USERSPACE_KERNEL_BRIDGE_STATUS=parked_gap_packet_landed",
@@ -87,7 +101,19 @@ REQUIRED_MARKERS = {
         "runtime readback caution: authenticated contents reads for some Phase 8 files are inconsistent from this environment, so public default-branch tree evidence plus exact readable blob content should win over older absent-file assumptions",
         "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
     ],
+    DOCS_ROOT_PATH: [
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "`make -C zigux phase8-validate`",
+    ],
     REVIEW_CHECKLIST_PATH: [
+        "if the change touches the parked Phase 8 `exec-cmd` packet",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "helper-first, output-stable deferred-exec planning packet",
+        "separate `kernel/workqueue.c` Phase 14 boundary-study target",
         "if the change touches the shared parked Phase 8 libbpf packet",
         "if the change touches the shared Phase 8 help-and-kallsyms packet",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
@@ -105,16 +131,21 @@ REQUIRED_MARKERS = {
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase8.py`",
+        "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`make -C zigux phase8-validate`",
+        "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
@@ -124,6 +155,11 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-perf-buffer-poll-test`",
     ],
     TESTS_README_PATH: [
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "`make -C zigux phase8-validate`",
+        "`make -C zigux phase8`",
         "`zigux/tests/phase8_help.zig`",
         "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
@@ -141,6 +177,7 @@ REQUIRED_MARKERS = {
     ],
     MAKEFILE_PATH: [
         "phase8-validate:",
+        "phase8-exec-cmd-test:",
         "scripts/zigux/validate-phase8.py",
         "scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-help-kallsyms-packet.py",
@@ -152,6 +189,28 @@ REQUIRED_MARKERS = {
         "phase8-libbpf-segments-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8: phase8-validate",
+    ],
+    EXEC_CMD_PACKET_CHECKER_PATH: [
+        "PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass",
+        "phase8 exec-cmd packet ok",
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        "zigux/tests/phase8_exec_cmd.zig",
+        "tools/lib/subcmd/exec-cmd.zig",
+    ],
+    EXEC_CMD_SLICE_PATH: [
+        "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        "pure deferred `execv_cmd()`-style handoff planning",
+        "pure `execl_cmd()`-style argv collection and handoff planning only",
+        "make -C zigux phase8-validate",
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
+    ],
+    EXEC_CMD_TEST_PATH: [
+        'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
+        'test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {',
+        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {',
+        'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
+        'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
+        'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {',
     ],
     CPU_MASK_SLICE_PATH: [
         "PHASE8_SLICE=libbpf-cpu-mask-starter",
@@ -174,13 +233,19 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     VALIDATOR_PATH: "# fixture\n",
+    EXEC_CMD_PACKET_CHECKER_PATH: "\n".join(REQUIRED_MARKERS[EXEC_CMD_PACKET_CHECKER_PATH]) + "\n",
     TESTS_ALIGNMENT_CHECKER_PATH: "# fixture\n",
     HELP_KALLSYMS_PACKET_CHECKER_PATH: "# fixture\n",
     PERF_BUFFER_POLL_CHECKER_PATH: "# fixture\n",
+    DOCS_ROOT_PATH: "\n".join(REQUIRED_MARKERS[DOCS_ROOT_PATH]) + "\n",
+    EXEC_CMD_SLICE_PATH: "\n".join(REQUIRED_MARKERS[EXEC_CMD_SLICE_PATH]) + "\n",
     HELP_SLICE_PATH: "# fixture\n",
     KALLSYMS_SLICE_PATH: "# fixture\n",
+    EXEC_CMD_ZIG_PATH: "// fixture\n",
     HELP_ZIG_PATH: "// fixture\n",
     KALLSYMS_ZIG_PATH: "// fixture\n",
+    EXEC_CMD_TEST_PATH: "\n".join(REQUIRED_MARKERS[EXEC_CMD_TEST_PATH]) + "\n",
+    EXEC_CMD_ONLY_BUILD_PATH: "// fixture\n",
     HELP_TEST_PATH: "// fixture\n",
     HELP_ONLY_BUILD_PATH: "// fixture\n",
     HELP_KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
@@ -244,13 +309,19 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_validator", VALIDATOR_PATH),
+        ("missing_exec_cmd_packet_checker", EXEC_CMD_PACKET_CHECKER_PATH),
         ("missing_tests_alignment_checker", TESTS_ALIGNMENT_CHECKER_PATH),
         ("missing_help_kallsyms_packet_checker", HELP_KALLSYMS_PACKET_CHECKER_PATH),
         ("missing_perf_buffer_poll_checker", PERF_BUFFER_POLL_CHECKER_PATH),
+        ("missing_docs_root", DOCS_ROOT_PATH),
+        ("missing_exec_cmd_slice_note", EXEC_CMD_SLICE_PATH),
         ("missing_help_slice_note", HELP_SLICE_PATH),
         ("missing_kallsyms_slice_note", KALLSYMS_SLICE_PATH),
+        ("missing_exec_cmd_source", EXEC_CMD_ZIG_PATH),
         ("missing_help_source", HELP_ZIG_PATH),
         ("missing_kallsyms_source", KALLSYMS_ZIG_PATH),
+        ("missing_exec_cmd_test", EXEC_CMD_TEST_PATH),
+        ("missing_exec_cmd_only_build", EXEC_CMD_ONLY_BUILD_PATH),
         ("missing_help_test", HELP_TEST_PATH),
         ("missing_help_only_build", HELP_ONLY_BUILD_PATH),
         ("missing_help_kallsyms_only_build", HELP_KALLSYMS_ONLY_BUILD_PATH),
@@ -270,6 +341,13 @@ def run_self_test() -> None:
             "make -C zigux phase8-validate",
             "make -C zigux phase8-verify",
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
+        ),
+        (
+            "workflow_exec_cmd_route_marker",
+            WORKFLOW_PATH,
+            "make -C zigux phase8-exec-cmd-test",
+            "make -C zigux phase8-exec-cmd-replay",
+            f"{WORKFLOW_PATH}: make -C zigux phase8-exec-cmd-test",
         ),
         (
             "command_gap_lane_key_marker",
@@ -298,6 +376,62 @@ def run_self_test() -> None:
             "### 1. Command lane",
             "### 1. Command packet",
             f"{SEQUENCING_PATH}: ### 1. Command lane",
+        ),
+        (
+            "docs_root_exec_cmd_route_marker",
+            DOCS_ROOT_PATH,
+            "`make -C zigux phase8-exec-cmd-test`",
+            "`make -C zigux phase8-exec-cmd-replay`",
+            f"{DOCS_ROOT_PATH}: `make -C zigux phase8-exec-cmd-test`",
+        ),
+        (
+            "review_checklist_exec_cmd_packet_marker",
+            REVIEW_CHECKLIST_PATH,
+            "if the change touches the parked Phase 8 `exec-cmd` packet",
+            "if the change touches the Phase 8 exec packet",
+            f"{REVIEW_CHECKLIST_PATH}: if the change touches the parked Phase 8 `exec-cmd` packet",
+        ),
+        (
+            "scripts_readme_exec_cmd_checker_marker",
+            SCRIPTS_README_PATH,
+            "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
+            "`scripts/zigux/check-phase8-exec-cmd.py`",
+            f"{SCRIPTS_README_PATH}: `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "tests_readme_exec_cmd_route_marker",
+            TESTS_README_PATH,
+            "`make -C zigux phase8-exec-cmd-test`",
+            "`make -C zigux phase8-exec-cmd-replay`",
+            f"{TESTS_README_PATH}: `make -C zigux phase8-exec-cmd-test`",
+        ),
+        (
+            "makefile_exec_cmd_route",
+            MAKEFILE_PATH,
+            "phase8-exec-cmd-test:",
+            "phase8-exec-cmd-replay:",
+            f"{MAKEFILE_PATH}: phase8-exec-cmd-test:",
+        ),
+        (
+            "exec_cmd_packet_checker_self_test_marker",
+            EXEC_CMD_PACKET_CHECKER_PATH,
+            "PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass",
+            "PHASE8_EXEC_CMD_PACKET_SELF_TEST=broken",
+            f"{EXEC_CMD_PACKET_CHECKER_PATH}: PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass",
+        ),
+        (
+            "exec_cmd_slice_marker",
+            EXEC_CMD_SLICE_PATH,
+            "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+            "PHASE8_SLICE=exec-cmd-starter-packet",
+            f"{EXEC_CMD_SLICE_PATH}: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        ),
+        (
+            "exec_cmd_test_docs_root_marker",
+            EXEC_CMD_TEST_PATH,
+            'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
+            'test "phase 8 exec-cmd docs root summary drifted" {',
+            f'{EXEC_CMD_TEST_PATH}: test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {{',
         ),
         (
             "review_checklist_help_checker_marker",
