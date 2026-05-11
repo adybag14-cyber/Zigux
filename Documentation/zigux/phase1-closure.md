@@ -98,6 +98,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase1-installer-review-surfaces.py`
