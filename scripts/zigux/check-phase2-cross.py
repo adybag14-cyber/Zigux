@@ -195,7 +195,7 @@ def main() -> int:
         return 1
 
     if args.target:
-        return run_cross_compile(ROOT, target)
+        return run_cross_compile(ROOT, args.target)
 
     payload = load_fixture(FIXTURE)
     targets = payload["targets"]
