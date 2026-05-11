@@ -121,7 +121,7 @@ FILE_MARKERS = {
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "phase2-cross:",
-        "phase2: phase2-validate phase2-cross",
+        "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
     ],
 }
 
