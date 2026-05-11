@@ -725,6 +725,44 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+        _write(
+            root / "scripts/zigux/README.md",
+            _read(root / "scripts/zigux/README.md").replace(
+                "check-phase3-policy-unsafe-focused-replay.py\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_focused_replay_readme_marker = (
+            "missing scripts README marker: check-phase3-policy-unsafe-focused-replay.py"
+        )
+        if expected_focused_replay_readme_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing focused policy replay README marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+        _write(
+            root / "scripts/zigux/README.md",
+            _read(root / "scripts/zigux/README.md").replace(
+                "check-phase3-policy-unsafe-mmio-consumer.py\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_mmio_consumer_readme_marker = (
+            "missing scripts README marker: check-phase3-policy-unsafe-mmio-consumer.py"
+        )
+        if expected_mmio_consumer_readme_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing mmio consumer README marker was not reported")
+            return 1
+        case_count += 1
+
         _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
         _write(
             root / "zigux/Makefile",
