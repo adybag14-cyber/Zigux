@@ -31,8 +31,9 @@ The active shared Phase 11 packet is the docs-root, closure-note, owner-map, che
 * `.github/workflows/zigux-bootstrap.yml`
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `make -C zigux phase11`
+* `make -C zigux phase11-hvc-survey`
 
-These shared docs, the workflow-backed routes, the shared contract checker, the shared closure note, and the shared driver-lane owner map prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
+These shared docs, the workflow-backed routes, the shared contract checker, the shared closure note, the shared driver-lane owner map, and the dedicated `phase11-hvc-survey` replay route prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts.
 
 The live gpio watchdog evidence inside that shared route stays explicit through `Documentation/zigux/phase11-gpio-wdt-module-slice.md`.
 The dedicated gpio watchdog archival packet beside that slice also stays explicit through `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`.
