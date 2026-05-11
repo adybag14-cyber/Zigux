@@ -934,6 +934,114 @@ def run_selftest() -> None:
                 "zigux/Makefile missing scripts/zigux/check-phase4-artifact-diff-determinism.py "
                 "did not fail the Phase 4 workflow-route self-test"
             )
+
+        tests_readme.write_text(SELFTEST_TESTS_README, encoding="utf-8")
+        missing_perf_baseline_build_readme_marker = tests_readme.read_text(encoding="utf-8").replace(
+            "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\n",
+            "",
+            1,
+        )
+        tests_readme.write_text(missing_perf_baseline_build_readme_marker, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/tests/README.md missing the direct perf-baseline survey route "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        tests_readme.write_text(SELFTEST_TESTS_README, encoding="utf-8")
+        missing_perf_baseline_make_readme_marker = tests_readme.read_text(encoding="utf-8").replace(
+            "make -C zigux phase4-perf-baseline-survey\n",
+            "",
+            1,
+        )
+        tests_readme.write_text(missing_perf_baseline_make_readme_marker, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "make -C zigux phase4-perf-baseline-survey" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/tests/README.md missing the Linux-style perf-baseline survey route "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        gate_evidence.write_text(SELFTEST_GATE_EVIDENCE, encoding="utf-8")
+        missing_bitmap_survey_make_gate_evidence_marker = gate_evidence.read_text(encoding="utf-8").replace(
+            "make -C zigux phase4-bitmap-diff-survey\n",
+            "",
+            1,
+        )
+        gate_evidence.write_text(missing_bitmap_survey_make_gate_evidence_marker, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "make -C zigux phase4-bitmap-diff-survey" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "Documentation/zigux/phase4-gate-evidence.md missing the bitmap-diff survey wrapper "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        build.write_text(SELFTEST_BUILD, encoding="utf-8")
+        forbidden_perf_baseline_dependency = build.read_text(encoding="utf-8").replace(
+            'const test_step = b.step("test", "Run Phase 4 differential validation tests");',
+            'const test_step = b.step("test", "Run Phase 4 differential validation tests"); test_step.dependOn(&run_perf_baseline_survey_tests.step);',
+            1,
+        )
+        build.write_text(forbidden_perf_baseline_dependency, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "test_step.dependOn(&run_perf_baseline_survey_tests.step);" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                "zigux/tests/phase4_build.zig widening the shared test step into the perf-baseline survey "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
     emit_status(self_test=True)
 
 
