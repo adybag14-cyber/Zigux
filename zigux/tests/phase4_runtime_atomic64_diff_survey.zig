@@ -68,7 +68,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
     try std.testing.expectEqualStrings("ee28bc6be404bd09343d21a6517f9e1bafc197e2", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("47a10dfe75be538c5f77d25f97fd1a2bccf9d6fa", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("f7ebe6a5b4d4421416936b9f5d76798f2cd13eed", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
@@ -95,5 +95,5 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
 // validator blob a88aca48f80693cc26b1bc9e01fabfa4955c1b45
 // phase4 matrix blob ee28bc6be404bd09343d21a6517f9e1bafc197e2
-// review checklist blob 47a10dfe75be538c5f77d25f97fd1a2bccf9d6fa
+// review checklist blob f7ebe6a5b4d4421416936b9f5d76798f2cd13eed
 // phase9 build blob 613dd2d8ad020c72a523c8fb8b2fe51ae65e6bba
