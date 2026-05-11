@@ -15,6 +15,7 @@ REQUIRED_MARKERS = (
     "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -28,6 +29,7 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
     "zigux/tests/README.md",
     "zigux/bindings/abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
@@ -98,9 +100,9 @@ def run_self_test() -> int:
         print("expected bindings marker was not reported")
         return 1
 
-    broken_sample = sample.rsplit("zigux/uapi/version.zig", 1)
+    broken_sample = sample.rsplit("zigux/uapi/dev_t.zig", 1)
     broken = validate_text("".join(broken_sample))
-    if "shared reminder missing marker: zigux/uapi/version.zig" not in broken:
+    if "shared reminder missing marker: zigux/uapi/dev_t.zig" not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected shared reminder marker was not reported")
         return 1
