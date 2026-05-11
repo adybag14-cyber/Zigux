@@ -190,6 +190,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects non-prepared shared requests before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));",
     );
     try expectContains(
