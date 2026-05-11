@@ -49,11 +49,9 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 ## Current Truthfulness Blockers
 
-Two bounded truthfulness blockers remain on current `master`.
+One bounded truthfulness blocker remains on current `master`.
 
-First, the shared scripts-root Phase 10 summary still undercounts one shipped guard. This run reverified that `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/README.md`, and this closure note all keep `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit beside the shared harness-coverage checker and validator routes, but `scripts/zigux/README.md` still names only `scripts/zigux/check-phase10-harness-coverage.py` inside its broad Phase 10 shared-surface packet.
-
-Second, representative packet-local direct reads still return `404 Not Found` through the same authenticated contents bridge even though the shared packet and one packet-local ring manifest read cleanly. This run rechecked the same pattern and still saw `404` for paths such as:
+Representative packet-local direct reads still return `404 Not Found` through the same authenticated contents bridge even though the shared packet and one packet-local ring manifest read cleanly. This run rechecked the same pattern and still saw `404` for paths such as:
 
 - `Documentation/zigux/phase10-virtio-core-slice.md`
 - `drivers/virtio/virtio.zig`
@@ -74,6 +72,5 @@ The roadmap posture remains unchanged:
 
 The next truthful virtio-driver follow-through should stay inside one shared reminder surface or one packet-local readback check at a time:
 
-1. update `scripts/zigux/README.md` so its broad Phase 10 shared-surface packet names `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` beside `scripts/zigux/check-phase10-harness-coverage.py`, then read back `master` to confirm the scripts-root reminder now matches the docs root, review checklist, tests-root companion, lane sequencing note, and closure note
-2. reread one representative packet-local Phase 10 path that still returns `404` through the authenticated contents bridge against `zigux/tests/phase10_closure_manifest.json` and `zigux/tests/phase10_virtio_ring_manifest.json`, then decide whether the next smallest same-lane step is a packet-local checker or note update that narrows any overstated direct-read claim
-3. keep any follow-up one shared reminder surface or one packet-local checker at a time so the lane stays parked on truthfulness repairs instead of reopening transport, IRQ, reset, queue-discovery, or lifecycle behavior
+1. reread one representative packet-local Phase 10 path that still returns `404` through the authenticated contents bridge against `zigux/tests/phase10_closure_manifest.json` and `zigux/tests/phase10_virtio_ring_manifest.json`, then decide whether the next smallest same-lane step is a packet-local checker or note update that narrows any overstated direct-read claim
+2. keep any follow-up one shared reminder surface or one packet-local checker at a time so the lane stays parked on truthfulness repairs instead of reopening transport, IRQ, reset, queue-discovery, or lifecycle behavior
