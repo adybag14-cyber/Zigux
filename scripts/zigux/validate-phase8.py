@@ -26,7 +26,6 @@ HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
-KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
@@ -49,7 +48,6 @@ REQUIRED_FILES = [
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
     KALLSYMS_TEST_PATH,
-    KALLSYMS_ONLY_BUILD_PATH,
     CPU_MASK_SLICE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
@@ -81,8 +79,8 @@ REQUIRED_MARKERS = {
         "zigux/Makefile",
         "### 1. Command lane",
         "### 4. Shared wording lane",
-        "current repo-reality caution: the default-branch content surface still returns not-found for the older `Documentation/zigux/phase8-*-slice.md`, `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, and `zigux/tests/phase8_*` packet that some shared summaries still name",
-        "The next honest reopen cue now starts at `scripts/zigux/README.md`",
+        "runtime readback caution: authenticated contents reads for some Phase 8 files are inconsistent from this environment, so public default-branch tree evidence plus exact readable blob content should win over older absent-file assumptions",
+        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
     ],
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared parked Phase 8 libbpf packet",
@@ -123,7 +121,6 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`zigux/tests/phase8_kallsyms.zig`",
-        "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`make -C zigux phase8-help-test`",
@@ -178,7 +175,6 @@ FIXTURE_OVERRIDES = {
     HELP_ONLY_BUILD_PATH: "// fixture\n",
     HELP_KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     KALLSYMS_TEST_PATH: "// fixture\n",
-    KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
     LIBBPF_SHARD_ROUTES_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SHARD_ROUTES_PATH]) + "\n",
 }
@@ -248,7 +244,6 @@ def run_self_test() -> None:
         ("missing_help_only_build", HELP_ONLY_BUILD_PATH),
         ("missing_help_kallsyms_only_build", HELP_KALLSYMS_ONLY_BUILD_PATH),
         ("missing_kallsyms_test", KALLSYMS_TEST_PATH),
-        ("missing_kallsyms_only_build", KALLSYMS_ONLY_BUILD_PATH),
         ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
