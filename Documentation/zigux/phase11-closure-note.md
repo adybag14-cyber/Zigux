@@ -45,4 +45,4 @@ The adjacent driver-local or packet-local Phase 11 surfaces are still present, b
 
 ## Next Bounded Step
 
-The next honest shared-lane follow-through is to repair one drifted survivor note at a time, starting with `Documentation/zigux/phase11-driver-lane-sequencing.md` or `Documentation/zigux/phase11-hvc-console-survey.md`, so each note stops naming missing build routes and missing helper files.
+The next honest shared-lane follow-through is to repair `Documentation/zigux/phase11-hvc-console-survey.md` so the surviving HVC reminder packet stops naming missing shared build routes and helper files.
