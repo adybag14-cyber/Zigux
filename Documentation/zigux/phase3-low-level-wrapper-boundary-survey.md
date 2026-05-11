@@ -10,11 +10,15 @@ This note records the current low-level wrapper packet that `master` still route
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints`
+- `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
+- `PHASE3_ALLOCATOR_POLICY_SCOPE=interop-policy-mode-decoding-caller-provided-gating-and-global-fallback-gating`
+- `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
+- `PHASE3_PANIC_POLICY_SCOPE=interop-policy-mode-decoding-action-selection-and-returnability-gating`
 - `PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
-- `PHASE3_BOUNDARY_GAP=no-new-kernel-style-low-level-family-landed-beyond-current-atomic-barrier-mmio-and-narrow-unsafe-packet`
+- `PHASE3_BOUNDARY_GAP=no-new-kernel-style-low-level-family-landed-beyond-current-atomic-barrier-mmio-allocator-policy-panic-policy-and-narrow-unsafe-packet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-this-lane-limited-to-packet-local-survey-validator-or-build-surface-repairs-unless-the-current-helper-surface-moves-again`
 
 ## Current Packet
@@ -26,8 +30,10 @@ The focused replay now proves the current packet directly.
 - `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, including non-`seq_cst` orderings and signed min/max edges.
 - `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `acquire`, `release`, `full`, and `acquireRelease`, including the barrier-locality and handoff replays that current `master` already ships.
 - `zigux/helpers/mmio.zig` keeps the approved MMIO packet explicit through direct 8-, 16-, 32-, and 64-bit reads and writes plus the interop-policy and policy-byte entrypoints that the focused replay exercises.
+- `zigux/helpers/allocator_policy.zig` keeps the approved allocator policy surface explicit through interop-policy mode decoding, caller-provided gating, global-fallback gating, and reserved-byte rejection for the same focused replay packet.
+- `zigux/helpers/panic_policy.zig` keeps the approved panic policy surface explicit through interop-policy mode decoding, action selection, returnability gating, and reserved-byte rejection for the same focused replay packet.
 - `zigux/unsafe/narrow.zig` remains the declared narrow-unsafe boundary for the raw-pointer bridge and volatile-MMIO scopes used by that same packet.
-- `zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet, including the MMIO interop-policy gate, the raw-pointer bridge gate, non-`seq_cst` atomic edges, and the barrier locality and handoff proofs.
+- `zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet, including the MMIO interop-policy gate, the raw-pointer bridge gate, non-`seq_cst` atomic edges, the barrier locality and handoff proofs, and the allocator and panic policy helper proofs.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 ## Roadmap Fit
@@ -38,6 +44,8 @@ For this lane, the roadmap-backed requirement is still narrow and helper-first:
 - approved atomic wrappers
 - approved barrier wrappers
 - approved MMIO wrappers
+- explicit allocator policy helpers
+- explicit panic policy helpers
 - explicit narrow unsafe scope instead of hidden pointer expansion
 
 That means the right work here is packet-local truthfulness.
@@ -51,7 +59,9 @@ The current focused replay shows that the shipped packet now includes:
 - interop-policy and policy-byte MMIO entrypoints in the focused test route
 - raw-pointer bridge scope gates in `zigux/unsafe/narrow.zig` and the focused test route
 - non-`seq_cst` ordering coverage and signed atomic edges in the focused test route
-- barrier-locality and handoff replays in both `zigux/helpers/barrier.zig` and the focused test route
+- barrier-locality and handoff replays
+- allocator policy mode decoding, caller-provided gating, and fallback gating in the focused test route
+- panic policy mode decoding, action selection, and returnability gating in the focused test route
 
 The bounded gap is therefore not absence.
 The remaining gap is still breadth control.
@@ -59,7 +69,7 @@ This lane should only reopen for one more survey, validator, or focused build re
 
 ## Next Step
 
-The next honest follow-on inside `P3-L22` stays small:
+The next honest follow-on inside `shared-subsystems` stays small:
 
 - keep the dedicated survey, validator, and focused build route aligned with the current low-level wrapper replay
 - keep the helper packet narrow until a roadmap-backed boundary slice needs another explicit low-level helper
