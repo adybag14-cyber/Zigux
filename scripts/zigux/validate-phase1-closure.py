@@ -295,6 +295,51 @@ CLOSURE_MARKERS = [
         "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
     ),
     ("closure_rollback", "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring"),
+    (
+        "closure_bitmap_first_word_boundary_review_count",
+        "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
+        1,
+    ),
+    (
+        "closure_bitmap_final_partial_word_review_count",
+        "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
+        1,
+    ),
+    (
+        "closure_bitmap_scnprintf_truncation_review_count",
+        "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
+        1,
+    ),
+    (
+        "closure_bitmap_scnprintf_tiny_buffer_review_count",
+        "PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes",
+        1,
+    ),
+    (
+        "closure_bitmap_copy_alias_review_count",
+        "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
+        1,
+    ),
+    (
+        "closure_bitmap_raw_copy_alias_review_count",
+        "PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics",
+        1,
+    ),
+    (
+        "closure_bitmap_zero_bit_noop_review_count",
+        "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
+        1,
+    ),
+    (
+        "closure_bitmap_linux_alias_review_count",
+        "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface",
+        1,
+    ),
+    (
+        "closure_rbtree_review_packet_count",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
+        1,
+    ),
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -666,6 +711,28 @@ def run_self_test() -> None:
         assert "review_checklist_phase1_packet:expected=1:actual=0" in missing
         case_count += 1
         make_fixture_root(root)
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        for label, marker, _ in [
+            REQUIRED_CLOSURE_MARKERS[12],
+            REQUIRED_CLOSURE_MARKERS[13],
+            REQUIRED_CLOSURE_MARKERS[14],
+            REQUIRED_CLOSURE_MARKERS[17],
+            REQUIRED_CLOSURE_MARKERS[19],
+            REQUIRED_CLOSURE_MARKERS[20],
+            REQUIRED_CLOSURE_MARKERS[24],
+            REQUIRED_CLOSURE_MARKERS[26],
+        ]:
+            def mutate_closure(marker=marker):
+                closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
+
+            mutate_closure()
+            missing = collect_missing_markers(root)
+            assert f"{label}:expected=1:actual=0" in missing
+            case_count += 1
+            make_fixture_root(root)
+            closure_text = closure_path.read_text(encoding="utf-8")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
