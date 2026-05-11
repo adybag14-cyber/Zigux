@@ -116,6 +116,9 @@ FILE_MARKERS = {
     ],
     "zigux/Makefile": [
         "phase2-toolchain:",
+        "phase2-tools:",
+        "phase2-kconfig:",
+        "phase2-validate:",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
@@ -139,6 +142,11 @@ EXACT_COUNT_CHECKS = {
         FALLBACK_REMINDER: 1,
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
+    },
+    "zigux/Makefile": {
+        "phase2-tools:": 1,
+        "phase2-kconfig:": 1,
+        "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross": 1,
     },
 }
 
@@ -192,6 +200,38 @@ def write_text(path: Path, content: str) -> None:
 
 
 def render_file_text(rel_path: str) -> str:
+    if rel_path == "zigux/Makefile":
+        return "\n".join(
+            [
+                "PYTHON ?= python3",
+                "ZIGUX_ROOT := /tmp/zigux-root",
+                "phase2-toolchain:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "phase2-tools: phase2-toolchain",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+                "phase2-kconfig: phase2-toolchain",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                "phase2-validate: phase2-tools phase2-kconfig",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                "phase2-cross: phase2-toolchain",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+                "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+                "",
+            ]
+        )
+
     markers = list(FILE_MARKERS.get(rel_path, []))
     exact_checks = EXACT_COUNT_CHECKS.get(rel_path, {})
     for marker, expected in exact_checks.items():
