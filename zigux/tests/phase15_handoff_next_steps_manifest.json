@@ -24,6 +24,28 @@
     "deep_core_status_change_ready": false,
     "tests_root_validator_routes_explicit": true
   },
+  "adjacent_lane_boundaries": [
+    {
+      "lane_family": "shared-summaries",
+      "zigux_destination": "Documentation/zigux/README.md",
+      "why_out_of_scope": "Compact docs-root and shared reminder repairs belong here before the dedicated handoff packet should reopen."
+    },
+    {
+      "lane_family": "review-process",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_out_of_scope": "Review-field wording and approver-bucket changes belong to the review-process packet, not the handoff packet."
+    },
+    {
+      "lane_family": "parity-scorecard",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_out_of_scope": "Blocker-evidence or aggregate-metric repairs belong to the parity-scorecard packet."
+    },
+    {
+      "lane_family": "readiness-gate",
+      "zigux_destination": "Documentation/zigux/phase15-readiness-gate-survey.md",
+      "why_out_of_scope": "Validator-first maintenance posture edits belong to the readiness packet and its validator route."
+    }
+  ],
   "named_reopen_triggers": [
     {
       "id": "evidence_packet_stale_or_contradictory",
@@ -49,7 +71,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "The shared-summary repair is now landed: `zigux/tests/README.md` keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` explicit beside the checker routes, so the next honest same-lane follow-up is to reread those shared summaries only if repo reality drifts again.",
+    "If the compact docs-root Phase 15 reminder still understates the parked maintenance notes, route that repair to `shared-summaries` first and reopen this lane only if the dedicated handoff packet itself drifts.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
