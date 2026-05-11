@@ -36,10 +36,10 @@ The Phase 3 roadmap wants one blessed export surface with explicit ownership and
 ## Current Gap
 
 The Phase 3 roadmap calls for the first permanent C/Zigux boundary through explicit export shims, curated bindings, and a narrow `zigux/uapi/` starter. Live `master` now satisfies that starter packet, but it still stops intentionally short of broader UAPI growth.
-  * `zigux/uapi/` still ships only `version.zig`, so the current UAPI surface remains a starter boundary-header contract rather than a wider exported family.
-  * `zigux/tests/phase3_export_uapi.zig` and `zigux/tests/phase3_export_uapi_build.zig` already stage a `dev_t`-adjacent follow-up, but the live `zigux/uapi/` tree still has no `zigux/uapi/dev_t.zig`, so that behavior packet is a boundary-gap cue rather than shipped UAPI closure.
+  * `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`, so the current UAPI surface is no longer version-only even though it still remains a narrow starter family rather than a broader exported boundary.
+  * `zigux/tests/phase3_export_uapi.zig`, `zigux/tests/phase3_export_uapi_build.zig`, and the shared Phase 3 manifest already replay that bounded `dev_t`-adjacent follow-up, but the packet still stops short of broader UAPI family growth beyond the boundary-header and `dev_t` starters.
   * the export shim still operates as a relay plus status-normalization layer; it does not yet claim broader header governance, generated bindings growth, or new Linux-facing entry points beyond the already-landed starter helpers.
-  * the next safe packet-local step is either landing one real `zigux/uapi/dev_t.zig` family with its matching replay and shared review-surface refresh or trimming the staged `phase3_export_uapi` behavior packet back to the version-only starter, rather than letting review surfaces imply wider UAPI coverage than the tree actually ships.
+  * any future top-level export/UAPI family beyond `version.zig` and `dev_t.zig` should land with its own matching replay and shared review-surface refresh instead of being implied by broader header aggregation alone.
   * `include/linux/zigux.h` now aggregates many approved Phase 3 helper families, so any new top-level export/UAPI entry point has to land with a fresh shared-ABI readback and an explicit packet-local resurvey instead of being implied by that broader header.
   * the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, and one shared review surface together rather than relying on header growth alone to imply review coverage.
 ## Scope
