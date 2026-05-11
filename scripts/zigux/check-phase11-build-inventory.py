@@ -63,7 +63,7 @@ REQUIRED_BUILD_STEPS = [
     (
         "hvc_console_survey_step",
         "hvc-console-survey",
-        "Run the dedicated Phase 11 hvc_console survey replay",
+        "Run the dedicated Phase 11 hvc_console archival survey",
     ),
 ]
 REQUIRED_BUILD_STEP_BINDINGS = [
@@ -343,7 +343,7 @@ pub fn build(b: *std.Build) void {
 
     const hvc_console_survey_step = b.step(
         \"hvc-console-survey\",
-        \"Run the dedicated Phase 11 hvc_console survey replay\",
+        \"Run the dedicated Phase 11 hvc_console archival survey\",
     );
     hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
 }
