@@ -24,6 +24,7 @@ REQUIRED_CONTEXT = (
     "`zigux/tests/phase10_virtio_driver_id.zig`",
     "`drivers/virtio/virtio_verify.zig`",
     "`zigux/tests/phase10_virtio_ring.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_input.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
@@ -34,9 +35,11 @@ REQUIRED_CONTEXT = (
     "`make -C zigux phase10`",
 )
 
-REQUIRED_SUMMARY = (
+REQUIRED_SUMMARY_MARKERS = (
     "the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
-    "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay"
+    "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay",
+    "the lane-sequenced virtio ring plus the focused `drivers/virtio/virtio_ring_verify.zig` "
+    "and `zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays",
 )
 
 EXPECTED_SURFACE_COUNTS = {
@@ -62,10 +65,12 @@ def check_line(line: str) -> None:
             "phase10 tests-readme core-surfaces checker missing markers: "
             + ", ".join(missing)
         )
-    if REQUIRED_SUMMARY not in line:
-        raise SystemExit(
-            "phase10 tests-readme core-surfaces checker missing direct-surface summary"
-        )
+    for marker in REQUIRED_SUMMARY_MARKERS:
+        if marker not in line:
+            raise SystemExit(
+                "phase10 tests-readme core-surfaces checker missing summary marker: "
+                + marker
+            )
     for marker, expected_count in EXPECTED_SURFACE_COUNTS.items():
         if line.count(marker) != expected_count:
             raise SystemExit(
@@ -112,6 +117,7 @@ def run_self_test() -> int:
         "`drivers/virtio/virtio_ring_verify.zig`, "
         "`zigux/tests/phase10_virtio_ring_manifest.json`, "
         "`zigux/tests/phase10_virtio_ring_survey.zig`, "
+        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, "
         "`zigux/tests/phase10_virtio_input.zig`, "
         "`drivers/virtio/virtio_input_verify.zig`, "
         "`zigux/tests/phase10_virtio_input_probe_preflight.zig`, "
@@ -130,10 +136,11 @@ def run_self_test() -> int:
         "to keep the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
         "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay, "
         "core survey, the focused core-verify replay, the lane-sequenced virtio ring "
-        "plus the focused ring-verify replay, the lane-sequenced virtio input plus "
-        "the focused input-verify, probe-preflight, queue-callback-preflight, "
-        "registration-preflight, teardown-observation, and status-drain replays, "
-        "and the virtio mmio packet plus the focused mmio-verify replay"
+        "plus the focused `drivers/virtio/virtio_ring_verify.zig` and "
+        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays, "
+        "the lane-sequenced virtio input plus the focused input-verify, probe-preflight, "
+        "queue-callback-preflight, registration-preflight, teardown-observation, and "
+        "status-drain replays, and the virtio mmio packet plus the focused mmio-verify replay"
     )
     good = "# zigux/tests\n\nGuidance\n" + good_line + "\n"
     check_text(good)
@@ -195,12 +202,41 @@ def run_self_test() -> int:
     try:
         check_text(missing_summary)
     except SystemExit as exc:
-        assert "missing direct-surface summary" in str(exc)
+        assert "missing summary marker" in str(exc)
     else:
-        raise AssertionError("expected summary failure")
+        raise AssertionError("expected direct-surface summary failure")
+
+    missing_ring_reset_reuse_entry = good.replace(
+        "`zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, ",
+        "`zigux/tests/phase10_virtio_ring_survey.zig`, ",
+        1,
+    ).replace(
+        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays",
+        "ring drained-reset reuse replays",
+        1,
+    )
+    try:
+        check_text(missing_ring_reset_reuse_entry)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`" in str(exc)
+    else:
+        raise AssertionError("expected ring reset reuse marker failure")
+
+    missing_ring_reset_reuse_summary = good.replace(
+        "the lane-sequenced virtio ring plus the focused `drivers/virtio/virtio_ring_verify.zig` and "
+        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays, ",
+        "the lane-sequenced virtio ring plus the focused `drivers/virtio/virtio_ring_verify.zig` replay, ",
+        1,
+    )
+    try:
+        check_text(missing_ring_reset_reuse_summary)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays" in str(exc)
+    else:
+        raise AssertionError("expected ring reset reuse summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
