@@ -53,7 +53,7 @@ MARKERS = {
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "the dedicated archival `hvc_console` teardown note plus survey-gate split packet and sysrq-helper boundary",
+        "manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
 }
 
