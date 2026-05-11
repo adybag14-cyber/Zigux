@@ -16,6 +16,7 @@ REQUIRED_SURFACES = (
 )
 
 REQUIRED_CONTEXT = (
+    "`zigux/tests/phase10_closure_manifest.json`",
     "`zigux/tests/phase10_virtio_core.zig`",
     "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
     "`zigux/tests/phase10_virtio_driver_id.zig`",
@@ -144,6 +145,18 @@ def run_self_test() -> int:
     else:
         raise AssertionError("expected missing direct surfaces failure")
 
+    missing_closure_manifest = good.replace(
+        "`zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, ",
+        "`zigux/tests/phase10_build.zig`, ",
+        1,
+    )
+    try:
+        check_text(missing_closure_manifest)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_closure_manifest.json`" in str(exc)
+    else:
+        raise AssertionError("expected missing closure manifest failure")
+
     duplicate_surface = good.replace(
         "`drivers/virtio/virtio.zig`",
         "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio.zig`",
@@ -170,7 +183,7 @@ def run_self_test() -> int:
         raise AssertionError("expected summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
