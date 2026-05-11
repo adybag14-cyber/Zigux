@@ -8,7 +8,9 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_positive_entry_classification);
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
+    try std.testing.expect(descriptor.provides_lookup_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
+    try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 }
@@ -26,6 +28,24 @@ test "simple empty planner stays negative-child tolerant and truncation-bounded"
     try std.testing.expect(plan.saw_negative_child);
     try std.testing.expectEqual(@as(usize, libfs.max_directory_entries), plan.examined_entries);
     try std.testing.expect(plan.truncated);
+}
+
+test "lookup and offset helpers stay reviewable without implying live VFS mutation" {
+    const addressable_lookup = libfs.LibfsHelperLab.planSimpleLookup(libfs.name_max);
+    const oversized_lookup = libfs.LibfsHelperLab.planSimpleLookup(libfs.name_max + 1);
+    const relative_seek = libfs.LibfsHelperLab.planOffsetDirectorySeek(libfs.dir_offset_first, -1, .cur);
+    const unsupported_seek = libfs.LibfsHelperLab.planOffsetDirectorySeek(libfs.dir_offset_first, 8, .unsupported);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", addressable_lookup.anchor);
+    try std.testing.expect(addressable_lookup.installs_negative_dentry);
+    try std.testing.expectEqual(libfs.LookupMode.name_too_long, oversized_lookup.mode);
+    try std.testing.expect(!oversized_lookup.installs_negative_dentry);
+
+    try std.testing.expectEqual(libfs.OffsetSeekStatus.ok, relative_seek.status);
+    try std.testing.expectEqual(@as(?i64, 1), relative_seek.resolved_offset);
+    try std.testing.expect(!relative_seek.points_at_real_entry_window);
+    try std.testing.expectEqual(libfs.OffsetSeekStatus.unsupported_whence, unsupported_seek.status);
+    try std.testing.expectEqual(@as(?i64, null), unsupported_seek.resolved_offset);
 }
 
 test "transaction release planner stays helper-only and unconditional-zero" {
