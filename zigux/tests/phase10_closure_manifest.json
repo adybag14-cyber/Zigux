@@ -5,7 +5,7 @@
   "doc_count": 12,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 15,
+  "test_count": 16,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -194,6 +194,9 @@
     "zigux/tests/phase10_virtio_driver_id.zig": [
       "phase10 driver-id review path replay"
     ],
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+      "phase10 ring drained-reset reuse replay"
+    ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
       "phase10 input queue-callback-preflight replay"
     ],
@@ -275,6 +278,7 @@
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
