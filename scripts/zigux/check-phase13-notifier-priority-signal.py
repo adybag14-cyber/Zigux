@@ -172,7 +172,10 @@ def run_self_test() -> int:
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[2]),
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[2]),
             ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[2]),
+            ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[2]),
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[2]),
+            ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[1]),
         )
         for label, rel_path, needle in mutations:
             case_root = Path(tmp) / f"{label}_{cases}"
