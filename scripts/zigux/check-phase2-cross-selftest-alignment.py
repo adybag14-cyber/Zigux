@@ -31,6 +31,16 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-cross.py": 1,
 }
 
+WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
+    "scripts/zigux/install-zig\\.py",
+    "scripts/zigux/check-zig-toolchain\\.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope\\.py",
+    "scripts/zigux/check-phase2-cross\\.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
+    "scripts/zigux/zig-toolchain-policy\\.json",
+    "scripts/zigux/fixdep\\.zig",
+]
+
 PHASE2_CROSS_CHECKER_MARKERS = [
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
@@ -85,6 +95,14 @@ def validate_required_markers(text: str, *, label: str, markers: list[str]) -> l
         if marker not in text:
             issues.append(f"{label}:missing_marker:{marker}")
     return issues
+
+
+def validate_workflow_scope_fragments(text: str) -> list[str]:
+    return validate_required_markers(
+        text,
+        label="workflow_scope",
+        markers=WORKFLOW_SCOPE_REQUIRED_FRAGMENTS,
+    )
 
 
 def validate_exact_workflow_runs(text: str) -> list[str]:
@@ -143,6 +161,14 @@ def run_self_test() -> int:
     if not any(issue.startswith("workflow_exact_run:") for issue in issues):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
 
+    scope_text = "\n".join(WORKFLOW_SCOPE_REQUIRED_FRAGMENTS)
+    if validate_workflow_scope_fragments(scope_text):
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
+
+    scope_issues = validate_workflow_scope_fragments("scripts/zigux/install-zig\\.py")
+    if "workflow_scope:missing_marker:scripts/zigux/check-zig-toolchain\\.py" not in scope_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
+
     makefile_text = "\n".join(
         [
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
@@ -177,7 +203,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -208,6 +234,7 @@ def main() -> int:
         print("MISSING_PHASE2_CROSS_ALIGNMENT_FILES_END")
         return 1
 
+    workflow_text = WORKFLOW.read_text(encoding="utf-8")
     issues: list[str] = []
     issues.extend(
         validate_targets_manifest(load_json_object(TARGETS_MANIFEST, label="targets"))
@@ -233,7 +260,8 @@ def main() -> int:
             markers=CLOSURE_MARKERS,
         )
     )
-    issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_workflow_runs(workflow_text))
+    issues.extend(validate_workflow_scope_fragments(workflow_text))
     issues.extend(validate_exact_makefile_runs(MAKEFILE.read_text(encoding="utf-8")))
 
     if issues:
