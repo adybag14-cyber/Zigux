@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L02",
+  "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-11",
+  "surveyed_commit": "7b5519444e8f73f84c68dc3e63580fcaef06ffb6",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -14,7 +14,10 @@
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md"
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig"
   ],
   "indefinite_c_requirements": [
     {
@@ -32,9 +35,9 @@
         "Linux anchor path",
         "current roadmap phase",
         "current status bucket",
+        "lane owner",
         "requested decision bucket",
         "decision record ID",
-        "named owner",
         "required approver set",
         "rollback owner",
         "validation gate summary",
@@ -88,51 +91,41 @@
       ]
     }
   ],
-  "handoff": {
-    "current_mode": "maintenance_mode",
-    "replay_commands": [
-      "make -C zigux phase15-validate",
-      "make -C zigux phase15-test",
-      "make -C zigux phase15"
-    ],
-    "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice"
-  },
   "gaps": [
     {
       "id": "phase15-indefinite-c-policy-note",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "Shared Phase 15 governance summaries already pointed at a dedicated stay-in-C policy packet, so the missing note had become a truthfulness gap on current master."
+      "why_now": "The roadmap requires a dedicated policy for code that remains in C indefinitely, and the live packet now keeps that stay-in-C posture reviewable in one place."
     },
     {
       "id": "phase15-indefinite-c-policy-manifest",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
-      "why_now": "The restored stay-in-C packet needs a machine-checkable record so the long-term in-C posture does not collapse back into prose only."
+      "why_now": "The dedicated stay-in-C packet needs a machine-checkable record so the long-term in-C posture does not collapse back into prose only."
     },
     {
       "id": "phase15-indefinite-c-policy-test",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.zig",
-      "why_now": "A dedicated Zig guard is the smallest honest way to keep the restored policy packet aligned with the current freeze-map, review-process, and checklist vocabulary."
+      "why_now": "A dedicated Zig guard is the smallest honest way to keep the indefinite-C policy packet aligned with the freeze map, review-process note, and checklist vocabulary."
     },
     {
-      "id": "phase15-indefinite-c-current-gap-survey",
-      "status": "starter_landed",
-      "kind": "survey",
-      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The packet now needs one explicit note saying the missing local stay-in-C artifact has been restored and that the remaining work is the existing deep-core blocker posture rather than another absent policy file."
+      "id": "phase15-build-gate-indefinite-c-policy",
+      "status": "landed",
+      "kind": "build_gate",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "The shared Phase 15 build keeps the indefinite-C policy packet replayable beside the focused blocker-evidence and lane-owner-alignment replays."
     },
     {
-      "id": "phase15-indefinite-c-maintenance-handoff",
-      "status": "starter_landed",
-      "kind": "handoff",
-      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The restored stay-in-C packet needs the same parked maintenance-mode handoff language already used by the surrounding Phase 15 governance family."
+      "id": "phase15-indefinite-c-field-sync-followup",
+      "status": "landed",
+      "kind": "truthfulness_repair",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
+      "why_now": "The packet must keep its lane key, supporting artifact list, and landed-versus-blocked records aligned with the live policy note so exception and blocker posture do not drift silently."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
