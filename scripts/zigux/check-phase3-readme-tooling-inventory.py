@@ -22,6 +22,14 @@ PHASE4_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
 )
+PHASE4_VALIDATE_ROUTE_SNIPPET = (
+    "- `make -C zigux phase4-validate` reruns the validator-first Phase 4 route, including "
+    "`scripts/zigux/check-artifact-diff-contract.py`, "
+    "`scripts/zigux/check-phase4-artifact-diff-determinism.py`, "
+    "`scripts/zigux/check-phase4-gate-evidence.py`, and "
+    "`scripts/zigux/check-phase4-workflow-route-counts.py`, before the shared "
+    "`zigux/tests/phase4_build.zig` replay."
+)
 REQUIRED_MARKERS = (
     "validate-phase3.py",
     "validate_phase3_selftest.py",
@@ -64,6 +72,9 @@ REQUIRED_MARKERS = (
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
 )
+REQUIRED_README_SNIPPETS = (
+    PHASE4_VALIDATE_ROUTE_SNIPPET,
+)
 # Keep this checker scoped to helpers the scripts README still presents directly.
 # Broader Phase 2 replay surfaces currently live in docs/tests/make routes instead.
 REQUIRED_REPO_FILES = (
@@ -101,6 +112,10 @@ def load_text(path: Path) -> str:
 
 def validate_text(text: str) -> list[str]:
     return [marker for marker in REQUIRED_MARKERS if marker not in text]
+
+
+def validate_readme_snippets(text: str) -> list[str]:
+    return [snippet for snippet in REQUIRED_README_SNIPPETS if snippet not in text]
 
 
 def validate_repo_files(repo_root: Path) -> list[str]:
@@ -164,8 +179,14 @@ def _baseline_makefile() -> str:
 
 
 def run_self_test() -> int:
-    sample = "\n".join(REQUIRED_MARKERS)
+    sample = "\n".join(REQUIRED_MARKERS) + "\n\n" + "\n".join(REQUIRED_README_SNIPPETS)
     missing = validate_text(sample)
+    if missing:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("\n".join(missing))
+        return 1
+
+    missing = validate_readme_snippets(sample)
     if missing:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("\n".join(missing))
@@ -201,24 +222,6 @@ def run_self_test() -> int:
         print("expected phase3 selftest route marker was not reported")
         return 1
 
-    broken = validate_text(sample.replace("check-phase4-gate-evidence.py", "", 1))
-    if "check-phase4-gate-evidence.py" not in broken:
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-        print("expected phase4 gate-evidence marker was not reported")
-        return 1
-
-    broken = validate_text(sample.replace("make -C zigux phase4-validate", "", 1))
-    if "make -C zigux phase4-validate" not in broken:
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-        print("expected phase4 validate route marker was not reported")
-        return 1
-
-    broken = validate_text(sample.replace("check-phase4-workflow-route-counts.py", "", 1))
-    if "check-phase4-workflow-route-counts.py" not in broken:
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-        print("expected phase4 workflow-route-counts marker was not reported")
-        return 1
-
     broken = validate_text(
         sample.replace(
             "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
@@ -232,6 +235,12 @@ def run_self_test() -> int:
     ):
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected compatibility-entrypoint marker was not reported")
+        return 1
+
+    broken = validate_readme_snippets(sample.replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1))
+    if PHASE4_VALIDATE_ROUTE_SNIPPET not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected phase4 validate sentence was not reported")
         return 1
 
     with TemporaryDirectory() as temp_dir:
@@ -309,6 +318,10 @@ def main() -> int:
     readme_path = args.repo_root / README_PATH
     text = load_text(readme_path)
     missing = validate_text(text)
+    missing.extend(
+        f"missing_readme_snippet:{snippet}"
+        for snippet in validate_readme_snippets(text)
+    )
     missing.extend(validate_repo_files(args.repo_root))
     missing.extend(validate_makefile(args.repo_root))
     if missing:
