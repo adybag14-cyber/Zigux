@@ -16,6 +16,7 @@ class ValidationError(RuntimeError):
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 
 BASE64_CASES = [
@@ -134,7 +135,7 @@ def validate_manifest(repo_root: Path) -> None:
     checksum = perf_thresholds.get("checksum")
     if not isinstance(checksum, dict):
         raise ValidationError(f"missing perf_thresholds.checksum in {MANIFEST_PATH}")
-    if checksum.get("replay") != "zigux/tests/phase6_checksum_perf.zig":
+    if checksum.get("replay") != CHECKSUM_PERF_PATH.as_posix():
         raise ValidationError(f"unexpected checksum replay in {MANIFEST_PATH}")
     if checksum.get("fixture") != CHECKSUM_VECTORS_PATH.as_posix():
         raise ValidationError(f"unexpected checksum fixture in {MANIFEST_PATH}")
@@ -166,6 +167,7 @@ def run_checks(repo_root: Path) -> None:
     validate_manifest(repo_root)
     ensure_text_markers(SURVEY_PATH, SURVEY_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
+    ensure_text_markers(CHECKSUM_PERF_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
     ensure_text_markers(CHECKSUM_VECTORS_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
 
 
@@ -218,7 +220,7 @@ def scaffold_repo(root: Path) -> None:
                 "equality_budget_formula": "std.math.log2_int_ceil(len) + 1",
             },
             "checksum": {
-                "replay": "zigux/tests/phase6_checksum_perf.zig",
+                "replay": CHECKSUM_PERF_PATH.as_posix(),
                 "fixture": CHECKSUM_VECTORS_PATH.as_posix(),
                 "measurement_mode": "relative_slowdown",
                 "cases": [
@@ -239,6 +241,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
     write(root / SURVEY_PATH, "# Phase 6 Perf Gate Survey\n\n" + "\n".join(SURVEY_SNIPPETS) + "\n")
     write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
+    write(root / CHECKSUM_PERF_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
     write(root / CHECKSUM_VECTORS_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
 
 
@@ -284,6 +287,12 @@ def run_self_test() -> None:
             BASE64_PERF_PATH,
             '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
             '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 16000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        )
+        assert_failure(
+            root,
+            CHECKSUM_PERF_PATH,
+            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 150, },',
+            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 175, },',
         )
         assert_failure(
             root,
