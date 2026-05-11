@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "because the saved Phase 15 shared-checklist repair is already landed on current `master`, stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if another same-lane reminder truthfulness follow-up is still needed before then, reread `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together and publish only the smallest tests-root sync that keeps the full `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet equally explicit"
+    "next_step": "because the saved Phase 15 shared-checklist repair is already landed on current `master`, stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if another same-lane reminder truthfulness follow-up is still needed before then, reread `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/Makefile` together and publish only the smallest tests-root sync that keeps the full `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` packet equally explicit" 
   },
   "gaps": [
     {
