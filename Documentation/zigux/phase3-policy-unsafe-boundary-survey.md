@@ -30,8 +30,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`
-- `PHASE3_BOUNDARY_GAP=dedicated-policy-unsafe-focused-replay-pair-now-ships-inside-the-shared-abi-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-and-the-dedicated-phase3_policy_unsafe-focused-replay-pair-until-a-broader-helper-expansion-lands`
+- `PHASE3_BOUNDARY_GAP=shared-policy-and-unsafe-boundary-now-routes-through-the-shared-abi-packet-without-a-separate-focused-replay-pair`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-and-its-dump-and-validator-surfaces-unless-a-new-direct-policy-unsafe-replay-or-helper-family-lands`
 
 ## Roadmap Contract
 
@@ -63,7 +63,7 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` plus the shared `zig build phase3-dump --build-file zigux/tests/build.zig` route keep the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
-The current tree now ships a dedicated `phase3_policy_unsafe` replay pair through `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, but it still does not ship a broader policy-and-unsafe helper family. This note should stay tied to the real shared ABI packet and that focused replay pair instead of claiming more than that.
+The current tree no longer ships a dedicated `phase3_policy_unsafe` replay pair, and the live validator packet now keeps this boundary inside the shared `abi` slice alone. This note should stay tied to the real shared ABI packet instead of implying an extra focused replay family that the live tests tree no longer carries.
 
 ## Ledger Alignment
 
@@ -80,10 +80,10 @@ Current same-family progress already includes three helper-local reserved-byte t
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly and now mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers, instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand
 - the MMIO helper now exposes explicit `InteropPolicy`-gated `range`, `read*`, and `write*` entry points instead of forcing volatile MMIO callers to re-check unsafe-scope bytes outside the helper before using the bounded pointer bridge
 - the shared ABI packet now also carries a dedicated `scripts/zigux/check-phase3-policy-byte-guards.py` guard, so shared docs-root and scripts-root summaries should keep that policy-byte gate explicit whenever this packet moves instead of flattening the current substrate back into helpers-plus-survey wording alone
-- the remaining same-lane gap is no longer a missing focused replay pair; it is only the need to keep this survey, the shared ABI packet, and the dedicated `phase3_policy_unsafe` focused replay pair aligned without implying a broader runtime policy subsystem
+- the remaining same-lane gap is no longer a missing focused replay pair; it is only the need to keep this survey, the shared ABI packet, and the dump-and-validator surfaces aligned without implying a retired focused replay family or a broader runtime policy subsystem
 
 ## Next Bounded Step
 
-- leave this lane parked unless one of the shared ABI packet files or the dedicated `phase3_policy_unsafe` focused replay pair drifts again
-- keep the next same-lane change to one note, manifest, validator, or focused-test alignment step tied only to this packet
-- if a broader policy-and-unsafe helper family ever lands later, resurvey this note against the exact live files before claiming that surface here
+- leave this lane parked unless one of the shared ABI packet files or the directly coupled dump or validator surfaces drifts again
+- keep the next same-lane change to one note, manifest, validator, or focused dump-alignment step tied only to this packet
+- if a broader policy-and-unsafe helper family or a new direct focused replay ever lands later, resurvey this note against the exact live files before claiming that surface here
