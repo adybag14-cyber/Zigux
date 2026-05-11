@@ -8,12 +8,15 @@
       "helper": "lib/base64.zig",
       "tests": [
         "zigux/tests/phase6_base64.zig",
+        "zigux/tests/phase6_base64_c_parity.zig",
         "zigux/tests/phase6_base64_perf.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_base64_vectors.zig"
+        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_harness.c"
       ],
-      "slice_note": "Documentation/zigux/phase6-base64-slice.md"
+      "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+      "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py"
     },
     {
       "id": "bsearch",
@@ -78,11 +81,14 @@
     }
   },
   "exact_checks": [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "make -C zigux phase6-base64-c-parity",
+    "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-checksum-c-parity",
     "make -C zigux phase6-hexdump-test",
-    "make -C zigux phase6-validate",
     "make -C zigux phase6-perf",
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-checksum-perf",
@@ -99,7 +105,8 @@
       "variant_decode_vectors": 4,
       "invalid_decode_vectors": 24,
       "perf_payload_cases": 1,
-      "perf_replay_cases": 4
+      "perf_replay_cases": 4,
+      "c_parity_cases": 24
     },
     "checksum": {
       "c_parity_cases": 41
