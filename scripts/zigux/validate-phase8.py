@@ -33,7 +33,6 @@ HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
-KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
 LOGGING_SLICE_PATH = "Documentation/zigux/phase8-logging-slice.md"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
@@ -63,7 +62,6 @@ REQUIRED_FILES = [
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
     KALLSYMS_TEST_PATH,
-    KALLSYMS_ONLY_BUILD_PATH,
     CPU_MASK_SLICE_PATH,
     LOGGING_SLICE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
@@ -254,7 +252,6 @@ FIXTURE_OVERRIDES = {
     HELP_ONLY_BUILD_PATH: "// fixture\n",
     HELP_KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     KALLSYMS_TEST_PATH: "// fixture\n",
-    KALLSYMS_ONLY_BUILD_PATH: "// fixture\n",
     LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
     LIBBPF_SHARD_ROUTES_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SHARD_ROUTES_PATH]) + "\n",
 }
@@ -330,7 +327,6 @@ def run_self_test() -> None:
         ("missing_help_only_build", HELP_ONLY_BUILD_PATH),
         ("missing_help_kallsyms_only_build", HELP_KALLSYMS_ONLY_BUILD_PATH),
         ("missing_kallsyms_test", KALLSYMS_TEST_PATH),
-        ("missing_kallsyms_only_build", KALLSYMS_ONLY_BUILD_PATH),
         ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
         ("missing_logging_slice_note", LOGGING_SLICE_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
