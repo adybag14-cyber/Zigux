@@ -11,6 +11,7 @@ from pathlib import Path
 REQUIRED_FILES = {
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
     "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
     "validation_matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "modem_control_split": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
@@ -20,7 +21,7 @@ REQUIRED_FILES = {
 
 SURVEY_GATE_MARKERS = [
     "Documentation/zigux/phase11-hvc-console-survey.md",
-    'test "phase11 hvc console survey manifest records the landed starter and remaining tty gap cleanly"',
+    'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
     'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
     'test "phase11 hvc console survey keeps bounded exported helper signature proofs"',
@@ -52,6 +53,27 @@ SURVEY_NOTE_MARKERS = [
     "notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`",
     "exported-helper signature proof",
     "It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.",
+]
+
+SLICE_NOTE_MARKERS = [
+    "* `PHASE11_HVC_CONSOLE_SLICE_STATUS=starter_packet_archived`",
+    "lane: `P11-L16`",
+    "keep the landed teardown and failure-mode packet readable beside the shared Phase 11 replay route",
+    "zigux/tests/phase11_hvc_console_manifest.json",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-teardown-note.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.",
+]
+
+SLICE_NOTE_FORBIDDEN_MARKERS = [
+    "drivers/tty/hvc/hvc_console_verify.zig",
+    "zigux/tests/phase11_hvc_console.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
@@ -115,7 +137,7 @@ SYSRQ_HELPER_MARKERS = [
     'test "phase11 hvc sysrq handoff keeps live execution out of scope"',
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -135,6 +157,12 @@ def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {relative_path}: {marker}")
 
 
+def expect_forbidden_markers_absent(relative_path: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            raise CheckError(f"forbidden marker present in {relative_path}: {marker}")
+
+
 def run_check(root: Path) -> None:
     expect_markers(
         REQUIRED_FILES["survey_gate"],
@@ -145,6 +173,13 @@ def run_check(root: Path) -> None:
         REQUIRED_FILES["survey_note"],
         read_text(root, REQUIRED_FILES["survey_note"]),
         SURVEY_NOTE_MARKERS,
+    )
+    slice_note = read_text(root, REQUIRED_FILES["slice_note"])
+    expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
+    expect_forbidden_markers_absent(
+        REQUIRED_FILES["slice_note"],
+        slice_note,
+        SLICE_NOTE_FORBIDDEN_MARKERS,
     )
     expect_markers(
         REQUIRED_FILES["teardown_note"],
@@ -181,6 +216,7 @@ def write(path: Path, text: str) -> None:
 def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
@@ -224,6 +260,25 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "zigux/tests/phase11_hvc_console_modem_control_split.zig")
+
+        build_self_test_fixture(tmpdir)
+        slice_missing = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_missing.write_text(
+            slice_missing.read_text(encoding="utf-8").replace(
+                "drivers/tty/hvc/hvc_console_sysrq.zig\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "drivers/tty/hvc/hvc_console_sysrq.zig")
+
+        build_self_test_fixture(tmpdir)
+        slice_forbidden = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_forbidden.write_text(
+            slice_forbidden.read_text(encoding="utf-8")
+            + "drivers/tty/hvc/hvc_console_verify.zig\n",
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "drivers/tty/hvc/hvc_console_verify.zig")
 
         build_self_test_fixture(tmpdir)
         teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
