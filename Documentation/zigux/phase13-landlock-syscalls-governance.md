@@ -6,7 +6,7 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
-Treat `SyscallsHelperLab.descriptor()` in `security/landlock/syscalls.zig` as the helper-owned truth for the current packet boundary. The descriptor keeps the shipped helper explicit as a planning-only lab that still reports `touches_live_fd_table = false`, `touches_live_paths = false`, `touches_live_credentials = false`, and `touches_live_domains = false`, so this note must keep live file-descriptor ownership, live path mutation, live credential updates, and live syscall enforcement out of scope.
+As of `2026-05-11`, current `master` does not materialize `security/landlock/syscalls.zig`. Keep this note as the syscall-facing governance boundary for the roadmap-owned `security/landlock/syscalls.c` anchor until a bounded helper file actually lands, and treat any helper-local wording as repo reality only after current-`master` readback confirms the exact file.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
@@ -28,7 +28,7 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-If direct companions such as `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps and keep reviewer guidance anchored to the shipped docs-root, tests-root, validator, and make-route surfaces above instead of presenting those direct paths as independently shipped evidence.
+If direct companions such as `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps and keep reviewer guidance anchored to the shipped docs-root, tests-root, validator, and make-route surfaces above instead of presenting those direct paths as independently shipped evidence.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -37,9 +37,9 @@ The intent is simple: keep the syscall-facing policy packet reviewable as one bo
 Use this note to keep these boundaries explicit:
 - syscall policy wording, review prompts, and reminder-surface ownership belong here
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- shared packet routing stays with the shipped validator-first and make-route surfaces above; if `zigux/tests/phase13_build.zig` or the direct syscall companions are absent, keep those paths recorded as repo reality rather than as shipped evidence
+- shared packet routing stays with the shipped validator-first and make-route surfaces above; if `security/landlock/syscalls.zig`, `zigux/tests/phase13_build.zig`, or the direct syscall companions are absent, keep those paths recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
-- keep the shipped helper tied to descriptor-backed planning only, not to live syscall enforcement or to any claim that FD, path, credential, or domain ownership moved into Zigux
+- if a future helper lands, keep it tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that FD, path, credential, or domain ownership moved into Zigux
 
 Keep this packet parked unless a future lane can add another equally bounded planner.
 
@@ -51,4 +51,4 @@ If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing direct syscall companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
-- helper-owned wording still matches `SyscallsHelperLab.descriptor()` and its `touches_live_fd_table`, `touches_live_paths`, `touches_live_credentials`, and `touches_live_domains` boundary flags
+- if `security/landlock/syscalls.zig` later lands, helper-owned wording must match the exact descriptor-backed boundary flags that current-`master` readback shows instead of assuming broader live ownership
