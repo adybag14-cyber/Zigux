@@ -17,6 +17,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 TESTS_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 PERF_BUFFER_POLL_CHECKER_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
+CPU_MASK_SLICE_PATH = "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
@@ -29,6 +30,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase8.py",
     TESTS_ALIGNMENT_CHECKER_PATH,
     PERF_BUFFER_POLL_CHECKER_PATH,
+    CPU_MASK_SLICE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
     MAKEFILE_PATH,
@@ -102,6 +104,13 @@ REQUIRED_MARKERS = {
         "phase8-libbpf-segments-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8: phase8-validate",
+    ],
+    CPU_MASK_SLICE_PATH: [
+        "PHASE8_SLICE=libbpf-cpu-mask-starter",
+        "repeated comma and newline delimiter skipping for sysfs-style CPU mask strings",
+        "anchor-faithful acceptance of carriage returns, tabs, and other ASCII whitespace that `parse_cpu_mask_str()` reaches through `sscanf()`-driven range parsing",
+        "direct and chunked carriage-return or tab-delimited fragments that must keep matching the live libbpf helper",
+        "deferred `perf-buffer-online-cpu-routing` setup or the broader interrupt-routing-sensitive timing boundary",
     ],
     LIBBPF_SEGMENT_GATE_PATH: [
         "PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass",
@@ -179,6 +188,7 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_tests_alignment_checker", TESTS_ALIGNMENT_CHECKER_PATH),
         ("missing_perf_buffer_poll_checker", PERF_BUFFER_POLL_CHECKER_PATH),
+        ("missing_cpu_mask_slice_note", CPU_MASK_SLICE_PATH),
         ("missing_libbpf_segment_gate_checker", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes_checker", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_command_gap_survey", COMMAND_GAP_SURVEY_PATH),
@@ -248,6 +258,13 @@ def run_self_test() -> None:
             "phase8-cpu-mask-test:",
             "phase8-cpu-mask-route:",
             f"{MAKEFILE_PATH}: phase8-cpu-mask-test:",
+        ),
+        (
+            "cpu_mask_slice_whitespace_marker",
+            CPU_MASK_SLICE_PATH,
+            "anchor-faithful acceptance of carriage returns, tabs, and other ASCII whitespace that `parse_cpu_mask_str()` reaches through `sscanf()`-driven range parsing",
+            "anchor-faithful acceptance of tabs only",
+            f"{CPU_MASK_SLICE_PATH}: anchor-faithful acceptance of carriage returns, tabs, and other ASCII whitespace that `parse_cpu_mask_str()` reaches through `sscanf()`-driven range parsing",
         ),
         (
             "libbpf_segment_gate_mode_marker",
