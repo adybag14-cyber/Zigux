@@ -266,6 +266,10 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14-workqueue-reviewability-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "attached-toolchain fallback examples for this note's shared replay routes only:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14") != null);
 
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
