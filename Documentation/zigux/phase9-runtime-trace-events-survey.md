@@ -47,6 +47,8 @@ The immediate same-family blocker on current `master` is no longer a missing tra
 
 The remaining blocker is the broader Phase 9 runtime substrate. Until that shared substrate lands, the trace-events packet should stay described as reviewable evidence rather than as completed live runtime tracepoint registration lifecycle parity.
 
+That still-blocked boundary includes runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior. The family-local packet should keep those surfaces explicit as blocked instead of letting them fade into generic runtime-substrate wording.
+
 ## Recommended next step
 
-The next same-family follow-through should stay small and literal: keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet and the shared loader-facing reminder packet, and leave any broader runtime-substrate step to the separate shared Phase 9 lanes.
+The next same-family follow-through should stay small and literal: keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit and the blocked runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior spelled out until the separate shared runtime-substrate lanes actually move.
