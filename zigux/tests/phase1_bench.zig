@@ -132,11 +132,19 @@ fn stringBench() !struct { checksum: u64 } {
     var checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_string) : (idx += 1) {
-        const enabled = try string.strtobool(if ((idx & 1) == 0) "on" else "0");
+        const even = (idx & 1) == 0;
+        const enabled = try string.strtobool(if (even) "on" else "0");
         var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
         const trimmed = string.trimSpaces(&trim_buf);
+        const parsed = string.memparse(if (even) "64K rest" else "-17 tail");
+        const dirty = if (even)
+            string.memchrInv("aaaaXaaa", 'a')
+        else
+            string.memchrInv("bbbb", 'b');
         checksum +%= @as(u64, @intFromBool(enabled));
         checksum +%= @intCast(trimmed.len);
+        checksum +%= @intCast(parsed.rest.len);
+        checksum +%= @as(u64, @intFromBool(dirty != null));
     }
 
     return .{ .checksum = checksum };
