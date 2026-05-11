@@ -5,6 +5,8 @@ const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
+const allocator_policy = @import("allocator_policy_helpers");
+const panic_policy = @import("panic_policy_helpers");
 
 test "phase3 low-level wrappers cover the shipped helper surface directly" {
     var value: u32 = 5;
@@ -431,4 +433,61 @@ test "phase3 low-level wrappers keep barrier handoff reviewable" {
     barrier.acquire();
     try std.testing.expect(!packet.ready);
     try std.testing.expectEqual(@as(u32, 73), packet.value);
+}
+
+test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {
+    const caller_abort_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const heap_bug_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.bug),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const arena_warn_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = 0,
+        .reserved = 1,
+    };
+
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), allocator_policy.modeFromInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), allocator_policy.modeFromInteropPolicy(arena_warn_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(reserved_policy));
+    try std.testing.expect(allocator_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 0));
+    try std.testing.expect(!allocator_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 1));
+    try std.testing.expect(allocator_policy.requiresExplicitCallerInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(arena_warn_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(reserved_policy));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(caller_abort_policy));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(heap_bug_policy));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(arena_warn_policy));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(reserved_policy));
+
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .bug), panic_policy.modeFromInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .warn), panic_policy.modeFromInteropPolicy(arena_warn_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(reserved_policy));
+    try std.testing.expect(panic_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 0));
+    try std.testing.expect(!panic_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 1));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .abort_now), panic_policy.actionForInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .bug_check), panic_policy.actionForInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForInteropPolicy(arena_warn_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForInteropPolicy(reserved_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(heap_bug_policy));
+    try std.testing.expect(panic_policy.canReturnInteropPolicy(arena_warn_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(reserved_policy));
 }
