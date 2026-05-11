@@ -531,7 +531,7 @@ test "phase11 hvc console survey keeps the survey note, slice note, and validati
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "hvc_kick") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "notifier-IRQ helper surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, manifest.surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 11 simple-production-driver gap has been closed by the bounded starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny notifier-add open handoff summary") != null);
