@@ -23,11 +23,15 @@ EXPECTED_TARGETS = [
 
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}": 1,
 }
 
 EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-cross.py --self-test": 1,
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
     "scripts/zigux/check-phase2-cross.py": 1,
 }
 
@@ -58,6 +62,8 @@ PHASE2_VALIDATOR_MARKERS = [
 CLOSURE_MARKERS = [
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
+    "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "make -C zigux phase2-cross",
 ]
@@ -150,6 +156,8 @@ def run_self_test() -> int:
     workflow_text = "\n".join(
         [
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+            "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
             "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
         ]
     )
@@ -172,6 +180,8 @@ def run_self_test() -> int:
     makefile_text = "\n".join(
         [
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
         ]
     )
