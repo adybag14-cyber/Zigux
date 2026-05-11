@@ -51,10 +51,42 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
 )
 PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18
+PHASE2_REQUIRED_RELATIVE_PATHS = (
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/install-zig.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/zig-toolchain-policy.json",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
+)
+PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25
 
 
 def build_validation_commands() -> list[list[str]]:
     return [[sys.executable, str(spec[0]), *spec[1:]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
+
+
+def build_required_paths() -> list[Path]:
+    return [ROOT / rel_path for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS]
 
 
 def collect_command_inventory_issues() -> list[str]:
@@ -108,6 +140,19 @@ def collect_command_inventory_issues() -> list[str]:
     return issues
 
 
+def collect_required_file_inventory_issues() -> list[str]:
+    issues: list[str] = []
+    count = len(PHASE2_REQUIRED_RELATIVE_PATHS)
+    if count != PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT:
+        issues.append(
+            "phase2_validation_required_files:count="
+            f"{count}:expected={PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT}"
+        )
+    if len(set(PHASE2_REQUIRED_RELATIVE_PATHS)) != count:
+        issues.append("phase2_validation_required_files:duplicate_relative_path")
+    return issues
+
+
 def run(cmd: list[str]) -> int:
     completed = subprocess.run(cmd, cwd=ROOT, check=False)
     return completed.returncode
@@ -128,58 +173,25 @@ def main() -> int:
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="Check that the live Phase 2 validator packet is present.",
+        help="Check that the live Phase 2 validator packet inventory is internally consistent.",
     )
     args = parser.parse_args()
 
-    required = [
-        ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
-        ROOT / "Documentation" / "zigux" / "README.md",
-        ROOT / "Documentation" / "zigux" / "phase2-closure.md",
-        ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
-        ROOT / "Documentation" / "zigux" / "review-checklist.md",
-        ROOT / "scripts" / "zigux" / "README.md",
-        ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
-        ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
-        ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
-        ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
-        ROOT / "scripts" / "zigux" / "fixdep.zig",
-        ROOT / "scripts" / "zigux" / "install-zig.py",
-        ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
-        ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
-        ROOT / "zigux" / "Makefile",
-        ROOT / "zigux" / "tests" / "README.md",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
-        ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
-    ]
-    missing = require_files(required)
-    if missing:
-        label = "PHASE2_VALIDATION_SELF_TEST" if args.self_test else "PHASE2_VALIDATION"
-        print(f"{label}=fail")
-        print("PHASE2_VALIDATION_MISSING_FILES_START")
-        for item in missing:
-            print(item)
-        print("PHASE2_VALIDATION_MISSING_FILES_END")
-        return 1
-
     command_issues = collect_command_inventory_issues()
-    if command_issues:
+    file_inventory_issues = collect_required_file_inventory_issues()
+    if command_issues or file_inventory_issues:
         label = "PHASE2_VALIDATION_SELF_TEST" if args.self_test else "PHASE2_VALIDATION"
         print(f"{label}=fail")
-        for issue in command_issues:
+        for issue in [*command_issues, *file_inventory_issues]:
             print(issue)
         return 1
 
     if args.self_test:
         print("PHASE2_VALIDATION_SELF_TEST=pass")
-        print(f"PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT={len(required)}")
+        print(
+            "PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT="
+            f"{PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT}"
+        )
         print(
             "PHASE2_VALIDATION_SELF_TEST_COMMAND_COUNT="
             f"{PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}"
@@ -187,6 +199,15 @@ def main() -> int:
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER)
         print(PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER)
         return 0
+
+    missing = require_files(build_required_paths())
+    if missing:
+        print("PHASE2_VALIDATION=fail")
+        print("PHASE2_VALIDATION_MISSING_FILES_START")
+        for item in missing:
+            print(item)
+        print("PHASE2_VALIDATION_MISSING_FILES_END")
+        return 1
 
     commands = build_validation_commands()
     for command in commands:
