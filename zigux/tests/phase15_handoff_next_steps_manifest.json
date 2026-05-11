@@ -21,7 +21,8 @@
     "dedicated_handoff_guard_present": true,
     "shared_build_handoff_replay_present": true,
     "named_reopen_trigger_catalog_present": true,
-    "deep_core_status_change_ready": false
+    "deep_core_status_change_ready": false,
+    "tests_root_validator_routes_explicit": true
   },
   "named_reopen_triggers": [
     {
@@ -48,7 +49,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "The next honest same-lane follow-up is now a shared-summary repair, not another make-route or review-checklist route question: reread `zigux/tests/README.md` against `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `scripts/zigux/check-phase15-review-process-handoff.py`, then land the smallest tests-root truthfulness update that keeps the parked Phase 15 governance packet explicit without widening into new approval claims.",
+    "The shared-summary repair is now landed: `zigux/tests/README.md` keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` explicit beside the checker routes, so the next honest same-lane follow-up is to reread those shared summaries only if repo reality drifts again.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
