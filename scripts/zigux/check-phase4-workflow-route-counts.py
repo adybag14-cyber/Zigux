@@ -489,6 +489,34 @@ def run_selftest() -> None:
                 "did not fail the Phase 4 workflow-route self-test"
             )
 
+        workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
+        missing_validate_workflow_route = workflow.read_text(encoding="utf-8").replace(
+            "        run: make -C zigux phase4-validate\n",
+            "",
+            1,
+        )
+        workflow.write_text(missing_validate_workflow_route, encoding="utf-8")
+        try:
+            check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            )
+        except SystemExit as exc:
+            if "run: make -C zigux phase4-validate" not in str(exc):
+                raise
+        else:
+            raise SystemExit(
+                ".github/workflows/zigux-bootstrap.yml missing run: make -C zigux phase4-validate "
+                "did not fail the Phase 4 workflow-route self-test"
+            )
+
+        workflow.write_text(SELFTEST_WORKFLOW, encoding="utf-8")
         makefile.write_text(SELFTEST_MAKEFILE, encoding="utf-8")
         missing_artifact_diff_contract_command = makefile.read_text(encoding="utf-8").replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
