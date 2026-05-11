@@ -47,9 +47,11 @@ Fresh repo-first inspection shows that the older saved bitmap closure-validator 
 
 The Phase 1 closure validator already carries the bitmap final-partial-word and Linux-style alias closure markers that older lane memory still described as missing. Future runs should not reopen that already-landed validator sync.
 
-The docs-root Phase 1 summary now also names this owner-map note, so the earlier `Documentation/zigux/README.md` truthfulness gap is closed on current `master` as well.
+The older saved `scripts/zigux/validate-phase1.py` write-text handoff is already closed on current `master` as well. The built-in Phase 1 validator self-test now uses `Path.write_text()`, so future runs should not replay that typo-only repair or keep treating it as the next same-lane deliverable.
 
-Fresh validator-local rereads still show that the parked `scripts/zigux/validate-phase1.py` bitmap-manifest-anchor handoff is the next smallest same-lane follow-up, but its saved publication helper is preimage-pinned to an older live validator body. Future runs should refresh that one-file helper against current `master` before trying to land it.
+The docs-root Phase 1 summary still names this owner-map note, so the earlier `Documentation/zigux/README.md` truthfulness gap remains closed on current `master`.
+
+Fresh closure-packet rereads now show that `scripts/zigux/validate-phase1-closure.py` is the next smallest same-lane follow-up instead: its baked-in Phase 1 manifest packet still lags the current live `zigux/tests/fixtures/phase1_helper_manifest.json` review-anchor shape, especially across the newer bitmap, find_bit, rbtree, and string closure anchors that current `master` already treats as authoritative.
 
 ## Anti-Overlap Rules
 
@@ -57,15 +59,16 @@ When this lane reopens, stay inside one bounded step only.
 
 - Do not batch shared-replay parked helpers with the direct-anchor helper family.
 - Do not reopen the already-landed bitmap closure-marker repair.
+- Do not reopen the already-landed `validate-phase1.py` write-text typo repair.
 - Do not reopen the already-landed docs-root owner-map sync.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, or build-route repair before changing helper semantics.
 - If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to refresh the parked one-file `scripts/zigux/validate-phase1.py` bitmap-manifest-anchor helper against the current live validator preimage, then tighten the shared Phase 1 closure-validator packet around the same owner-map note so the docs-root and fail-closed review surfaces cannot drift apart.
+The next honest same-lane follow-up is to refresh `scripts/zigux/validate-phase1-closure.py` against the current live Phase 1 helper manifest packet, rerun its built-in self-test, and land only that one-file closure-checker sync.
 
-Until that validator refresh lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
+Until that closure-validator refresh lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
 ## Footer
 
