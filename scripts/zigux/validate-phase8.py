@@ -71,7 +71,8 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "python3 scripts/zigux/validate-phase8.py",
         "make -C zigux phase8-validate",
-        "Current `master` does not currently expose:",
+        "Current public default-branch tree readback shows the parked command and help",
+        "Authenticated contents reads for some Phase 8 files are inconsistent from this",
     ],
     SEQUENCING_PATH: [
         "PHASE8_STATUS=parked",
