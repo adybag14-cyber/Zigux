@@ -12,6 +12,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 - product boundary:
   - `drivers/nvme/host/pci.zig`
   - `zigux/tests/phase12_nvme_pci.zig`
+  - `zigux/tests/phase12_nvme_pci_recovery_replay.zig`
   - `zigux/tests/phase12_nvme_pci_manifest.json`
   - `zigux/tests/phase12_nvme_pci_survey.zig`
   - `zigux/tests/phase12_build.zig`
@@ -29,10 +30,11 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 ## Survey findings
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
-- the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
+- the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, the new focused `zigux/tests/phase12_nvme_pci_recovery_replay.zig` shard, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, negotiates and can reserve a bounded queue-count window, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks, records a bounded PRP metadata helper through command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need, and records a bounded recovery replay helper through reset-generation staleness, cached PRP metadata freshness, admin queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering before any live DMA-backed queue work.
-- the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `nvme pci` starter ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing shard implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the raw GitHub fallback map.
+- the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `nvme pci` starter, the dedicated `phase12_nvme_pci_recovery_replay.zig` shard, and the verify step ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing validation packet implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the raw GitHub fallback map.
+- the new recovery-replay shard matters because it fail-closes on the default descriptor path itself: it proves the defaulted descriptor fields stay inert when cached PRP metadata goes stale, surfaces explicit descriptor rebuild demand only when cached metadata really requires it, and proves that a refreshed generation clears that replay debt again without widening into DMA transport, blk-mq flow, or PCI lifecycle work.
 - that footing is useful, but it still does not cover PRP or SGL descriptor construction, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
 - the next honest driver-facing step is still not transport parity; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay helpers.
 
@@ -56,7 +58,9 @@ The survey manifest now records:
 - the still-blocked `phase12-nvme-pci-dma-safe-transport-gap`
 - the still-blocked `phase12-nvme-pci-throughput-and-recovery-gap`
 
-This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus queue-count reservation plus PRP-shape plus PRP-metadata plus recovery-replay starters are real, but the transport-heavy roadmap work is still intentionally blocked.
+The dedicated `zigux/tests/phase12_nvme_pci_recovery_replay.zig` shard is intentionally tracked inside that landed build-gate and driver-test packet rather than as a new roadmap gap of its own, because it narrows validation around an already-landed recovery replay helper instead of widening the tranche into a fresh delivery target.
+
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus queue-count reservation plus PRP-shape plus PRP-metadata plus recovery-replay starters are real, and the dedicated replay shard now makes that last helper's bounded evidence easier to review, but the transport-heavy roadmap work is still intentionally blocked.
 
 ## Non-goals
 
@@ -74,7 +78,7 @@ This survey slice does not claim:
 1. run the focused smoke preflight
 - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 - `make -C zigux phase12-smoke`
-- these rerun the direct `nvme pci` starter ahead of the broader survey-backed replay route.
+- these rerun the direct `nvme pci` starter, the verify step, and the dedicated recovery-replay shard ahead of the broader survey-backed replay route.
 
 2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
@@ -88,4 +92,4 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay helpers.
 
-Until that driver-local reopen is approved, keep this survey aligned with the shared smoke-plus-build replay packet instead of letting the focused preflight shard drift back into build-file-only, Makefile-only, or fallback-map-only knowledge.
+Until that driver-local reopen is approved, keep this survey aligned with the shared smoke-plus-build replay packet and its dedicated recovery-replay shard instead of letting that focused preflight drift back into build-file-only, Makefile-only, or fallback-map-only knowledge.
