@@ -58,8 +58,8 @@
       "id": "narrower_followup_answers_blocker",
       "status": "blocked_on_narrower_same_family_followup",
       "kind": "blocker_queue",
-      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
-      "why_now": "Reopen this lane only if a smaller same-family follow-up now answers part of the blocker story through the live tests-root parity-scorecard companion without widening into shared summary, scorecard, readiness, or freeze-map ownership."
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "Reopen this lane only if a smaller same-family follow-up now answers part of the blocker story through the live machine-readable parity-scorecard companion without widening into shared summary, scorecard, readiness, or freeze-map ownership."
     },
     {
       "id": "ownership_or_validation_changed",
