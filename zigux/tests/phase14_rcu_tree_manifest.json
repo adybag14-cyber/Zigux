@@ -25,7 +25,7 @@
       "roadmap_destination": "kernel/rcu/tree_bridge.zig",
       "current_state": "blocked_on_stay_in_c_evidence",
       "reviewable_artifact": "Documentation/zigux/freeze-map.md",
-      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still shows gp-sequence publication, expedited waits, NOCB offload, and memory-ordering behavior that are too coupled for a Phase 14 bridge claim."
+      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-watch or dyntick re-entry transitions, CPU hotplug callback migration, and memory-ordering behavior too tightly together for a Phase 14 bridge claim."
     }
   ],
   "survey_summary": {
