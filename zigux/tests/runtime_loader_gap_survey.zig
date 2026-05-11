@@ -76,6 +76,33 @@ test "phase 9 runtime loader gap survey keeps the blocked trace-events boundary 
     try expectContains(note, "`samples/zigux/runtime_trace_events_loader.zig` now records the same bounded init or exit handoff shape");
 }
 
+test "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit" {
+    const allocator = std.testing.allocator;
+    const manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_loader_gap_manifest.json", 128 * 1024);
+    defer allocator.free(manifest);
+
+    const kretprobe_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_kretprobe_loader.zig", 128 * 1024);
+    defer allocator.free(kretprobe_loader);
+
+    const trace_events_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_trace_events_loader.zig", 128 * 1024);
+    defer allocator.free(trace_events_loader);
+
+    try expectContains(manifest, "\"shared_request_boundary_surface\": \"zigux/kernel/runtime_loader.zig\"");
+    try expectContains(manifest, "\"shared_request_boundary_guard\": \"RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit\"");
+    try expectContains(manifest, "\"review_only_loader_plan_surfaces\": [");
+    try expectContains(manifest, "\"samples/zigux/runtime_atomic64_loader.zig\"");
+    try expectContains(manifest, "\"samples/zigux/runtime_bitmap_loader.zig\"");
+    try expectContains(manifest, "\"samples/zigux/runtime_kretprobe_loader.zig\"");
+    try expectContains(manifest, "\"samples/zigux/runtime_trace_events_loader.zig\"");
+    try expectContains(manifest, "\"metadata_only_registration_surfaces\": [");
+    try expectContains(manifest, "\"forbidden_live_calls\": [ \"module_init()\", \"module_exit()\", \"register_kretprobe()\", \"unregister_kretprobe()\" ]");
+    try expectContains(kretprobe_loader, "register_kretprobe");
+    try expectContains(kretprobe_loader, "unregister_kretprobe");
+    try expectContains(trace_events_loader, "tracepoint_probe_register");
+    try expectContains(trace_events_loader, "tracepoint_probe_unregister");
+    try expectContains(trace_events_loader, "registration_depth");
+}
+
 test "phase 9 runtime loader gap survey keeps phase 8 argv and environment controls out of the shared runtime surface" {
     const allocator = std.testing.allocator;
     const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
