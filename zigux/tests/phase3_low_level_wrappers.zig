@@ -180,6 +180,17 @@ test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
         @as(u8, 0x44),
         try mmio.read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
     );
+    try mmio.write64InteropPolicyBytes(
+        base,
+        8,
+        0x0bad_f00d_dead_beef,
+        @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        0,
+    );
+    try std.testing.expectEqual(
+        @as(u64, 0x0bad_f00d_dead_beef),
+        try mmio.read64InteropPolicyBytes(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
+    );
 
     try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));
     try std.testing.expectEqual(
@@ -213,6 +224,10 @@ test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
     try std.testing.expectError(
         error.UnsafeScopeDenied,
         mmio.read64InteropPolicyByte(base, 8, @intFromEnum(abi.UnsafeScope.none)),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.read64InteropPolicyBytes(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio), 1),
     );
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));
 }
