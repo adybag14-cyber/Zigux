@@ -152,6 +152,12 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
+      - name: Self-test Phase 3 validator-support surface
+        run: python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test
+
+      - name: Validate Phase 3 validator-support surface
+        run: python3 scripts/zigux/validate-phase3-validator-support-surface.py
+
       - name: Validate Phase 3 ABI bindings syntax
         run: python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py
 
@@ -500,7 +506,6 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
 
   phase2-cross:
     if: needs.phase2-cross-scope.outputs.should_run == 'true'
