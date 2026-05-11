@@ -71,6 +71,13 @@ test "phase 15 indefinite-C policy packet matches the current ownership and exce
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "the existing blocker remains recorded");
     try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
+    try expectContains(policy_note, "current roadmap phase");
+    try expectContains(policy_note, "required approver set");
+    try expectContains(policy_note, "benchmark-notes status");
+    try expectContains(policy_note, "replay command");
+    try expectContains(policy_note, "automatic return-to-blocked trigger");
+    try expectContains(policy_note, "named reopen-trigger catalog item");
+    try expectContains(policy_note, "trigger-specific evidence refresh");
     try expectContains(policy_note, "lane owner");
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "named owner") == null);
 
@@ -80,6 +87,7 @@ test "phase 15 indefinite-C policy packet matches the current ownership and exce
 
     var saw_recordkeeping = false;
     var saw_exception_path = false;
+    var saw_reopen_gate = false;
     var saw_reopen_catalog = false;
     var saw_blocker_gap = false;
 
@@ -97,6 +105,12 @@ test "phase 15 indefinite-C policy packet matches the current ownership and exce
             saw_exception_path = true;
             try std.testing.expectEqual(@as(usize, 3), requirement.required_terms.len);
             try expectContains(requirement.required_terms[0], "no silent exception path");
+        }
+        if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-gate")) {
+            saw_reopen_gate = true;
+            try std.testing.expectEqual(@as(usize, 5), requirement.required_terms.len);
+            try expectContains(requirement.required_terms[0], "named reopen-trigger catalog item");
+            try expectContains(requirement.required_terms[4], "trigger-specific evidence refresh");
         }
         if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
             saw_reopen_catalog = true;
@@ -119,6 +133,7 @@ test "phase 15 indefinite-C policy packet matches the current ownership and exce
 
     try std.testing.expect(saw_recordkeeping);
     try std.testing.expect(saw_exception_path);
+    try std.testing.expect(saw_reopen_gate);
     try std.testing.expect(saw_reopen_catalog);
     try std.testing.expect(saw_blocker_gap);
 }
