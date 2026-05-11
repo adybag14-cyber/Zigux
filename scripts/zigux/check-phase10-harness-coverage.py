@@ -79,6 +79,8 @@ CLOSURE_NOTE_MARKERS = [
     "`zigux/Makefile` `phase10-test` route",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "ring drained-reset reuse replay",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -176,6 +178,8 @@ def write_fixture(root: Path) -> None:
                 "- a dedicated shared harness-coverage checker, `scripts/zigux/check-phase10-harness-coverage.py`, keeps the packet honest",
                 "- a focused tests-root direct-core checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, keeps the direct-core reminder explicit",
                 "- a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, still records the intended packet",
+                "- the broader shared reminder packet keeps the exact `zigux/tests/phase10_virtio_ring_reset_reuse.zig` replay explicit on current `master`",
+                "- the ring drained-reset reuse replay stays visible beside the shared closure packet",
                 "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
                 "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
                 "",
@@ -276,6 +280,36 @@ def run_self_test() -> int:
             "closure_note_direct_core_checker",
             root,
             "closure_note:`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_ring_reset_reuse_entry",
+            root,
+            "closure_note:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "ring drained-reset reuse replay",
+                "ring reset wording drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_ring_reset_reuse_phrase",
+            root,
+            "closure_note:ring drained-reset reuse replay",
         )
         closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
@@ -433,7 +467,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
