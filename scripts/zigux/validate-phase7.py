@@ -159,6 +159,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
     ],
+    "zigux/tests/phase7_argv_split.zig": [
+        "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+    ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         "Documentation/zigux/phase7-argv-split-slice.md",
         "phase 7 argvSplit matches focused parity fixtures",
@@ -185,7 +188,7 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
     "zigux/tests/phase7_cmdline.zig": "// fixture\n",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": "// fixture\n",
-    "zigux/tests/phase7_argv_split.zig": "// fixture\n",
+    "zigux/tests/phase7_argv_split.zig": "\n".join(REQUIRED_MARKERS[\"zigux/tests/phase7_argv_split.zig\"]) + "\n",
     "zigux/tests/phase7_argv_split_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"]) + "\n",
     "zigux/tests/phase7_argv_split_manifest.json": "{}\n",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
@@ -293,6 +296,7 @@ def run_self_test() -> None:
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
         ("cmdline_survey_fixture_path", "zigux/tests/phase7_cmdline_survey.zig", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("cmdline_survey_fixture_import", "zigux/tests/phase7_cmdline_survey.zig", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_vectors_drift.zig\");", "zigux/tests/phase7_cmdline_survey.zig: const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");"),
+        ("argv_split_helper_double_teardown_marker", "zigux/tests/phase7_argv_split.zig", "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result", "", "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit stays safe when called after teardown already cleared the result"),
         ("argv_split_survey_vector_sizing_marker", "zigux/tests/phase7_argv_split_survey.zig", "phase 7 argvSplit matches focused parity fixtures", "", "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit matches focused parity fixtures"),
         ("argv_split_survey_final_token_marker", "zigux/tests/phase7_argv_split_survey.zig", "phase 7 blank argvSplit input reuses the empty exported argv view", "", "zigux/tests/phase7_argv_split_survey.zig: phase 7 blank argvSplit input reuses the empty exported argv view"),
         ("argv_split_survey_distinct_callers_marker", "zigux/tests/phase7_argv_split_survey.zig", "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space", "", "zigux/tests/phase7_argv_split_survey.zig: phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space"),
