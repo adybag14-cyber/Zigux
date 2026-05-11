@@ -52,6 +52,7 @@ REQUIRED_MARKERS = (
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-header-family-survey.py",
     "validate-phase3-validator-support-surface.py",
+    "Documentation/zigux/phase3-validator-support-surface.md",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
@@ -246,6 +247,12 @@ def run_self_test() -> int:
     if "validate-phase3-validator-support-surface.py" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected validator-support surface marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("Documentation/zigux/phase3-validator-support-surface.md", "", 1))
+    if "Documentation/zigux/phase3-validator-support-surface.md" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected validator-support note marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("check-phase3-policy-unsafe-focused-replay.py", "", 1))
