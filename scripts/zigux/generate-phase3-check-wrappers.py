@@ -7,16 +7,41 @@ from pathlib import Path
 
 from phase3_check_lib import render_wrapper_stub
 
+RUN_FROM_WRAPPER_IMPORT = "from phase3_check_lib import run_from_wrapper"
+RUN_FROM_WRAPPER_CALL = "run_from_wrapper(__file__)"
+
+
+def wrapper_is_generated_or_stale(text: str) -> bool:
+    if text == render_wrapper_stub():
+        return True
+    return RUN_FROM_WRAPPER_IMPORT in text and RUN_FROM_WRAPPER_CALL in text
+
 
 def run_self_test() -> int:
     expected = render_wrapper_stub()
-    stale = "#!/usr/bin/env python3\nprint('stale')\n"
+    stale = "\n".join(
+        [
+            "#!/usr/bin/env python3",
+            "from phase3_check_lib import run_from_wrapper",
+            "",
+            "print('stale')",
+            "raise SystemExit(run_from_wrapper(__file__))",
+            "",
+        ]
+    )
+    foreign = "#!/usr/bin/env python3\nprint('hand-maintained')\n"
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_wrapper_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         expected_wrapper = tmp_dir / "check-phase3-expected.py"
-        expected_wrapper.write_text(stale, encoding="utf-8")
+        expected_wrapper.write_text(expected, encoding="utf-8")
+        stale_wrapper = tmp_dir / "check-phase3-stale.py"
+        stale_wrapper.write_text(stale, encoding="utf-8")
+        foreign_wrapper = tmp_dir / "check-phase3-foreign.py"
+        foreign_wrapper.write_text(foreign, encoding="utf-8")
         missing_wrapper = tmp_dir / "check-phase3-missing.py"
-        assert expected_wrapper.read_text(encoding="utf-8") != expected
+        assert wrapper_is_generated_or_stale(expected_wrapper.read_text(encoding="utf-8"))
+        assert wrapper_is_generated_or_stale(stale_wrapper.read_text(encoding="utf-8"))
+        assert not wrapper_is_generated_or_stale(foreign_wrapper.read_text(encoding="utf-8"))
         assert not missing_wrapper.exists()
     print("PHASE3_WRAPPER_SELF_TEST=pass")
     return 0
