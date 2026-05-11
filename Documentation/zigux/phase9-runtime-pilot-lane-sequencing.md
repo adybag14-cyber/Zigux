@@ -45,6 +45,14 @@ Current `master` readback now confirms the shared loader-facing family through d
 - `samples/zigux/runtime_trace_events_loader.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
 
+Current `master` readback also confirms the shared-loader checker and replay routes that this owner-map note is supposed to keep authoritative:
+
+- `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test`
+- `python3 scripts/zigux/check-phase9-build-only-surface.py`
+- `make -C zigux phase9-runtime-loader-shared-tests`
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+- `make -C zigux phase9`
+
 This survey can also read the broad Phase 9 pilot-family review packet on current `master`:
 
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
