@@ -77,7 +77,7 @@ Because those companion manifest, Zig, and replay surfaces are already landed, t
 
 The next honest Architecture Council follow-up is maintenance only:
 
-- keep the shared `zigux/tests/README.md` reminder parked unless a named reopen trigger fires or repo reality drifts away from the current Phase 15 validator-first and replay routes
+- if one shared-summary truthfulness repair is still needed before a named reopen trigger or real deep-core blocker-posture change, inspect `Documentation/zigux/README.md` first because the broad docs-root Phase 15 reminder still omits `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` from the current validator-first packet
 - otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
 Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
