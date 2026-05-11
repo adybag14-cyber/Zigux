@@ -23,6 +23,10 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
 }
 
 
@@ -98,7 +102,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=5")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=9")
         return 0
 
     if issues:
