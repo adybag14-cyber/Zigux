@@ -33,11 +33,16 @@
       "exited"
     ],
     "helper_call_markers": [
-      "string_helpers.sysfsStreq",
-      "string_helpers.sysfsMatchString",
-      "string_helpers.stringGetSize",
-      "string_helpers.stringUnescape",
-      "string_helpers.stringEscapeMem"
+      ".comparable_match = string_helpers.sysfsStreq(\"mode\", \"mode\\n\"),",
+      ".matched_index = string_helpers.sysfsMatchString(&values, values.len, \"enabled\\n\"),",
+      "var size_text = RenderedText{};\n        size_text.len = string_helpers.stringGetSize(",
+      "var compact_size_text = RenderedText{};\n        compact_size_text.len = string_helpers.stringGetSize(",
+      "var unescaped_text = RenderedText{};\n        unescaped_text.len = string_helpers.stringUnescape(",
+      "var exact_unescape_text = RenderedText{};\n        exact_unescape_text.len = string_helpers.stringUnescape(",
+      "var escaped_text = RenderedText{};\n        escaped_text.len = string_helpers.stringEscapeMem(",
+      "var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };\n        bounded_escape_text.len = string_helpers.stringEscapeMem(",
+      "var selected_escape_text = RenderedText{};\n        selected_escape_text.len = string_helpers.stringEscapeMem(",
+      "var appended_escape_text = RenderedText{};\n        appended_escape_text.len = string_helpers.stringEscapeMem("
     ],
     "test_assertions": [
       "try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);",
@@ -52,6 +57,8 @@
       "try std.testing.expectEqualSlices(u8, \"\\n\", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);",
       "try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"\\\\x0a\", replay.escaped_text.bytes[0..replay.escaped_text.len]);",
+      "try std.testing.expectEqual(@as(usize, 4), replay.bounded_escape_text.len);",
+      "try std.testing.expectEqualSlices(u8, \"\\\\x0a?\", replay.bounded_escape_text.bytes[0..5]);",
       "try std.testing.expectEqualSlices(u8, \"A\\\\n\\tZ\", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"A\\\\x0aZ\", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);",
       "try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);"
@@ -91,14 +98,14 @@
       "status": "starter_landed",
       "kind": "reference_sample",
       "zigux_destination": "samples/zigux/string_helpers_sample.zig",
-      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, one exact-fit unescape destination proof, deterministic only-selected newline escaping, and append-selected newline hex escaping without widening helper semantics."
+      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, one exact-fit unescape destination proof, one bounded no-terminator escape window proof, deterministic only-selected newline escaping, and append-selected newline hex escaping without widening helper semantics."
     },
     {
       "id": "phase7-string-helpers-sample-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_string_helpers_sample_survey.zig",
-      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence, including the exact-fit unescape boundary plus stage transitions, invalid-match behavior, and only-selected and append-selected newline escaping, does not land as an undocumented side path."
+      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence, including the exact-fit unescape boundary, bounded no-terminator escape window, stage transitions, invalid-match behavior, and only-selected and append-selected newline escaping, does not land as an undocumented side path."
     },
     {
       "id": "phase7-string-helpers-slice-note",
