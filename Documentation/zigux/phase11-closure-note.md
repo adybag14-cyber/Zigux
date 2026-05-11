@@ -1,12 +1,12 @@
 # Phase 11 Closure Note
 
 This note records the parked shared closure checkpoint for the active Phase 11 simple-driver tranche on `master`.
-It keeps the already-landed shared replay packet explicit without implying that the bcm2835, gpio, DesignWare, or HVC driver lanes have reached broader hardware or lifecycle closure.
+It keeps the already-landed shared replay packet explicit without implying that the bcm2835, gpio, DesignWare, header-boundary, or HVC lanes have reached broader hardware or lifecycle closure.
 
 ## Status
 
 * `PHASE11_CLOSURE_STATUS=shared_packet_parked`
-* scope: keep the current simple-driver packet honest across the docs root, scripts root, tests root, shared checker, shared build route, and the dedicated HVC archival replay route while driver-local follow-through stays with the owning lane
+* scope: keep the current simple-driver packet honest across the docs root, scripts root, tests root, shared checker, shared build route, the dedicated header-boundary packet, and the dedicated HVC archival replay route while driver-local follow-through stays with the owning lane
 
 ## Shared Closure Packet On `master`
 
@@ -27,16 +27,17 @@ The parked shared closure checkpoint is the bounded packet already described acr
 * `make -C zigux phase11`
 * `make -C zigux phase11-hvc-survey`
 
-These shared routes keep the current bounded Phase 11 packet replayable without collapsing the driver-local watchdog and HVC evidence into one generic closure claim.
+These shared routes keep the current bounded Phase 11 packet replayable without collapsing the driver-local watchdog, header-boundary, and HVC evidence into one generic closure claim.
 
 ## Driver-Local Evidence That Still Stays Separate
 
 The shared closure packet stays parked because the detailed driver-local evidence still belongs to the owning lane notes and replay packets:
 
-* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
+* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
 * gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
-* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`
-* HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`
+* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`
+* header-boundary packet: `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `drivers/tty/hvc/hvc_console.h`, and `scripts/zigux/check-phase11-header-boundary-packet.py`
+* HVC archival packet: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`
 
 ## What This Closure Note Does Not Claim
 
@@ -48,4 +49,4 @@ The shared closure packet stays parked because the detailed driver-local evidenc
 ## Follow-Through Rule
 
 Future shared Phase 11 work should reopen only for the next smallest shared-packet truthfulness repair across the docs root, scripts root, tests root, shared contract checker, or build-route wording.
-Driver-local manifests, surveys, teardown notes, validation matrices, helper signatures, and replay scaffolds should return to the owning lane instead of widening this parked closure checkpoint.
+Driver-local manifests, surveys, teardown notes, validation matrices, helper signatures, packet checkers, and replay scaffolds should return to the owning lane instead of widening this parked closure checkpoint.
