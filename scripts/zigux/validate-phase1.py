@@ -399,7 +399,7 @@ def make_fixture_root(root: Path) -> None:
     ) + "\n"
     (root / "zigux/tests/phase1_helpers.zig").write_text(helpers_body, encoding="utf-8")
     (root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    (root / "zigux/tests/fixtures/phase1_helpers.json").writeText(json.dumps(EXPECTED_FIXTURE, separators=(",", ":")) + "\n", encoding="utf-8")
+    (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(json.dumps(EXPECTED_FIXTURE, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -442,7 +442,7 @@ def run_self_test() -> None:
 
         manifest = json.loads(load_text(manifest_path))
         manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("phase1_helper_replay_anchor")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_path.writeText(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
