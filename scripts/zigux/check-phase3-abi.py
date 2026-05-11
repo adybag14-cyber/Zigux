@@ -29,7 +29,6 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
-    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
