@@ -148,7 +148,8 @@ def run_self_test() -> int:
         return 1
 
     wrapper_selftest_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"
-    broken = validate_text(sample.rsplit(wrapper_selftest_marker, 1)[0])
+    before, separator, after = sample.rpartition(wrapper_selftest_marker)
+    broken = validate_text(before + after if separator else sample)
     if f"current packet missing marker: {wrapper_selftest_marker}" not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected wrapper self-test current packet marker was not reported")
