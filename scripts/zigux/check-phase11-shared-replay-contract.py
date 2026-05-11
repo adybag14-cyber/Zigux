@@ -25,7 +25,7 @@ REQUIRED_NOTE_MARKERS = (
     "The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.",
     "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.",
     "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
-    "* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
+    "* gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
     "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
     "* DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts",
     "The dedicated archival HVC evidence on current `master` is also kept explicit beside that shared route through the bounded survey, teardown, and failure-mode packet:",
@@ -72,7 +72,6 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "- `check-phase11-hvc-survey-packet.py`",
     "Phase 11 flow",
     "- `Documentation/zigux/README.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
     "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
     "`drivers/watchdog/bcm2835_wdt_verify.zig`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
@@ -91,8 +90,6 @@ REQUIRED_TESTS_README_MARKERS = (
     "the dedicated bcm2835 archival checker route",
     "the dedicated DesignWare packet checker",
     "the dedicated bcm2835, gpio, and DesignWare manifest-backed survey checkpoints",
-    "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
-    "the dedicated gpio teardown companion",
     "the dedicated DesignWare teardown companion",
     "the dedicated `hvc_console` survey note, teardown note, and checker-backed `make -C zigux phase11-hvc-survey` replay",
 )
@@ -209,10 +206,8 @@ def run_self_test() -> int:
             ("phase11-closure-note", CLOSURE_NOTE_PATH, REQUIRED_CLOSURE_NOTE_MARKERS[2]),
             ("phase11-lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[6]),
             ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS[1]),
-            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[7]),
-            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[11]),
-            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[10]),
-            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[11]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[10]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[9]),
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
         )
         for label, rel_path, needle in mutations:
