@@ -7,6 +7,8 @@ pub const simple_transaction_limit: usize = page_size;
 pub const max_directory_entries: usize = 128;
 pub const dir_offset_first: i64 = 2;
 pub const dir_offset_end_of_directory: i64 = std.math.maxInt(i32);
+pub const dir_offset_min: i64 = dir_offset_first + 1;
+pub const dir_offset_max: i64 = dir_offset_end_of_directory - 1;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -16,6 +18,7 @@ pub const ModuleDescriptor = struct {
     provides_lookup_planning: bool,
     provides_transaction_release_planning: bool,
     provides_offset_seek_planning: bool,
+    provides_offset_rename_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -84,6 +87,56 @@ pub const OffsetDirectorySeekPlan = struct {
     points_at_end_of_directory: bool,
 };
 
+pub const OffsetSlotClass = enum {
+    missing,
+    dot_entry_window,
+    first_real_entry,
+    managed_entry,
+    end_of_directory,
+    out_of_range,
+};
+
+pub const OffsetRenameStatus = enum {
+    ok,
+    missing_destination_offset,
+    reserved_destination_offset,
+};
+
+pub const OffsetRenamePlan = struct {
+    anchor: []const u8,
+    source_offset: ?i64,
+    destination_offset: ?i64,
+    source_slot_class: OffsetSlotClass,
+    destination_slot_class: OffsetSlotClass,
+    status: OffsetRenameStatus,
+    removes_source_from_old_map: bool,
+    clears_destination_offset_before_replace: bool,
+    installs_source_at_destination_offset: bool,
+    preserves_destination_offset_value: bool,
+};
+
+pub const OffsetRenameExchangeStatus = enum {
+    ok,
+    missing_source_offset,
+    reserved_source_offset,
+    missing_destination_offset,
+    reserved_destination_offset,
+};
+
+pub const OffsetRenameExchangePlan = struct {
+    anchor: []const u8,
+    source_offset: ?i64,
+    destination_offset: ?i64,
+    source_slot_class: OffsetSlotClass,
+    destination_slot_class: OffsetSlotClass,
+    status: OffsetRenameExchangeStatus,
+    stores_source_in_destination_map: bool,
+    stores_destination_in_source_map: bool,
+    swaps_recorded_offsets: bool,
+    preserves_existing_offset_values: bool,
+    rolls_back_destination_store_on_second_store_failure: bool,
+};
+
 pub const LibfsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -94,6 +147,7 @@ pub const LibfsHelperLab = struct {
             .provides_lookup_planning = true,
             .provides_transaction_release_planning = true,
             .provides_offset_seek_planning = true,
+            .provides_offset_rename_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -196,6 +250,81 @@ pub const LibfsHelperLab = struct {
             .points_at_end_of_directory = resolved_offset.? == dir_offset_end_of_directory,
         };
     }
+
+    pub fn classifyOffsetSlot(offset: ?i64) OffsetSlotClass {
+        if (offset == null) {
+            return .missing;
+        }
+
+        const value = offset.?;
+        if (value < 0) {
+            return .out_of_range;
+        }
+        if (value < dir_offset_first) {
+            return .dot_entry_window;
+        }
+        if (value == dir_offset_first) {
+            return .first_real_entry;
+        }
+        if (value >= dir_offset_min and value <= dir_offset_max) {
+            return .managed_entry;
+        }
+        if (value == dir_offset_end_of_directory) {
+            return .end_of_directory;
+        }
+        return .out_of_range;
+    }
+
+    pub fn planSimpleOffsetRename(source_offset: ?i64, destination_offset: ?i64) OffsetRenamePlan {
+        const source_slot_class = classifyOffsetSlot(source_offset);
+        const destination_slot_class = classifyOffsetSlot(destination_offset);
+        const status: OffsetRenameStatus = switch (destination_slot_class) {
+            .managed_entry => .ok,
+            .missing => .missing_destination_offset,
+            else => .reserved_destination_offset,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .source_offset = source_offset,
+            .destination_offset = destination_offset,
+            .source_slot_class = source_slot_class,
+            .destination_slot_class = destination_slot_class,
+            .status = status,
+            .removes_source_from_old_map = source_slot_class == .managed_entry,
+            .clears_destination_offset_before_replace = status == .ok,
+            .installs_source_at_destination_offset = status == .ok,
+            .preserves_destination_offset_value = status == .ok,
+        };
+    }
+
+    pub fn planSimpleOffsetRenameExchange(source_offset: ?i64, destination_offset: ?i64) OffsetRenameExchangePlan {
+        const source_slot_class = classifyOffsetSlot(source_offset);
+        const destination_slot_class = classifyOffsetSlot(destination_offset);
+        const status: OffsetRenameExchangeStatus = switch (source_slot_class) {
+            .missing => .missing_source_offset,
+            .managed_entry => switch (destination_slot_class) {
+                .missing => .missing_destination_offset,
+                .managed_entry => .ok,
+                else => .reserved_destination_offset,
+            },
+            else => .reserved_source_offset,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .source_offset = source_offset,
+            .destination_offset = destination_offset,
+            .source_slot_class = source_slot_class,
+            .destination_slot_class = destination_slot_class,
+            .status = status,
+            .stores_source_in_destination_map = status == .ok,
+            .stores_destination_in_source_map = status == .ok,
+            .swaps_recorded_offsets = status == .ok,
+            .preserves_existing_offset_values = status == .ok,
+            .rolls_back_destination_store_on_second_store_failure = status == .ok,
+        };
+    }
 };
 
 test "libfs helper descriptor stays anchored to fs/libfs.c" {
@@ -208,6 +337,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_lookup_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
+    try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 }
@@ -323,4 +453,62 @@ test "offset seek plan recognizes the end-of-directory sentinel" {
     try std.testing.expectEqual(@as(?i64, dir_offset_end_of_directory), plan.resolved_offset);
     try std.testing.expect(!plan.points_at_real_entry_window);
     try std.testing.expect(plan.points_at_end_of_directory);
+}
+
+test "offset slot classification distinguishes managed entries from reserved sentinels" {
+    try std.testing.expectEqual(OffsetSlotClass.missing, LibfsHelperLab.classifyOffsetSlot(null));
+    try std.testing.expectEqual(OffsetSlotClass.dot_entry_window, LibfsHelperLab.classifyOffsetSlot(0));
+    try std.testing.expectEqual(OffsetSlotClass.first_real_entry, LibfsHelperLab.classifyOffsetSlot(dir_offset_first));
+    try std.testing.expectEqual(OffsetSlotClass.managed_entry, LibfsHelperLab.classifyOffsetSlot(dir_offset_min));
+    try std.testing.expectEqual(OffsetSlotClass.end_of_directory, LibfsHelperLab.classifyOffsetSlot(dir_offset_end_of_directory));
+}
+
+test "offset rename plan preserves destination slot value for managed entries" {
+    const plan = LibfsHelperLab.planSimpleOffsetRename(dir_offset_min + 4, dir_offset_min + 9);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(OffsetSlotClass.managed_entry, plan.source_slot_class);
+    try std.testing.expectEqual(OffsetSlotClass.managed_entry, plan.destination_slot_class);
+    try std.testing.expectEqual(OffsetRenameStatus.ok, plan.status);
+    try std.testing.expect(plan.removes_source_from_old_map);
+    try std.testing.expect(plan.clears_destination_offset_before_replace);
+    try std.testing.expect(plan.installs_source_at_destination_offset);
+    try std.testing.expect(plan.preserves_destination_offset_value);
+}
+
+test "offset rename plan rejects missing or reserved destination slots" {
+    const missing = LibfsHelperLab.planSimpleOffsetRename(dir_offset_min + 1, null);
+    try std.testing.expectEqual(OffsetRenameStatus.missing_destination_offset, missing.status);
+    try std.testing.expect(!missing.clears_destination_offset_before_replace);
+    try std.testing.expect(!missing.installs_source_at_destination_offset);
+
+    const reserved = LibfsHelperLab.planSimpleOffsetRename(dir_offset_min + 1, dir_offset_first);
+    try std.testing.expectEqual(OffsetRenameStatus.reserved_destination_offset, reserved.status);
+    try std.testing.expectEqual(OffsetSlotClass.first_real_entry, reserved.destination_slot_class);
+    try std.testing.expect(!reserved.preserves_destination_offset_value);
+}
+
+test "offset rename exchange plan swaps managed offsets and records rollback expectations" {
+    const plan = LibfsHelperLab.planSimpleOffsetRenameExchange(dir_offset_min + 2, dir_offset_min + 8);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(OffsetRenameExchangeStatus.ok, plan.status);
+    try std.testing.expectEqual(OffsetSlotClass.managed_entry, plan.source_slot_class);
+    try std.testing.expectEqual(OffsetSlotClass.managed_entry, plan.destination_slot_class);
+    try std.testing.expect(plan.stores_source_in_destination_map);
+    try std.testing.expect(plan.stores_destination_in_source_map);
+    try std.testing.expect(plan.swaps_recorded_offsets);
+    try std.testing.expect(plan.preserves_existing_offset_values);
+    try std.testing.expect(plan.rolls_back_destination_store_on_second_store_failure);
+}
+
+test "offset rename exchange plan requires both managed offsets" {
+    const missing_source = LibfsHelperLab.planSimpleOffsetRenameExchange(null, dir_offset_min + 3);
+    try std.testing.expectEqual(OffsetRenameExchangeStatus.missing_source_offset, missing_source.status);
+    try std.testing.expect(!missing_source.stores_source_in_destination_map);
+
+    const reserved_destination = LibfsHelperLab.planSimpleOffsetRenameExchange(dir_offset_min + 3, dir_offset_end_of_directory);
+    try std.testing.expectEqual(OffsetRenameExchangeStatus.reserved_destination_offset, reserved_destination.status);
+    try std.testing.expectEqual(OffsetSlotClass.end_of_directory, reserved_destination.destination_slot_class);
+    try std.testing.expect(!reserved_destination.swaps_recorded_offsets);
 }
