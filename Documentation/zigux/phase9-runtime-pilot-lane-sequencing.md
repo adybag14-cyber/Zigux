@@ -42,6 +42,12 @@ Current `master` still exposes the shared loader-facing reminder packet:
 - `samples/zigux/runtime_trace_events_loader.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
 
+Current `master` also keeps the shared convenience-target names literal for that same packet:
+
+- `make -C zigux phase9-runtime-loader-shared-tests` remains the focused shared-loader replay for the runtime-loader facade, runtime-loader contract, and allocator/init-flow proof bundle
+- `make -C zigux phase9-test` remains the shared build-only checker plus Phase 9 build replay route
+- `make -C zigux phase9` remains the broader runtime-pilot bundle replay route
+
 Current `master` also keeps the four pilot-family review packets visible:
 
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
