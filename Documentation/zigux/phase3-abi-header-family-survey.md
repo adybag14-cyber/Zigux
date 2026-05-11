@@ -45,6 +45,7 @@ constant-parity packet should keep this survey explicit beside
 `Documentation/zigux/phase3-export-uapi-boundary-survey.md`,
 `Documentation/zigux/phase3-linux-zigux-header-governance.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `scripts/zigux/README.md`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
 `zigux/tests/README.md`, `zigux/bindings/abi.zig`,
 `zigux/tests/phase3_abi_dump.zig`,
