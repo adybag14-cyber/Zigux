@@ -53,6 +53,21 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `make -C zigux phase11-hvc-survey`
 
+The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:
+
+* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-dw-wdt-survey.md`
+* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+* `scripts/zigux/check-phase11-dw-wdt-packet.py`
+* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
+* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`
+* `zigux/tests/phase11_dw_wdt_manifest.json`
+* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+* `zigux/tests/phase11_dw_wdt_survey.zig`
+* `drivers/watchdog/dw_wdt_verify.zig`
+
+That dedicated DesignWare packet keeps the bounded `platform_set_drvdata` handoff, the pre-registration `watchdog_register_device` review surface, and the continued-heartbeat teardown and remove failure-mode split explicit without widening into live platform registration, clock or reset acquisition, IRQ ownership, or MMIO execution.
+
 The shared header-boundary evidence also stays explicit beside that shared route:
 
 * `Documentation/zigux/phase11-uapi-header-parity-survey.md`
@@ -60,7 +75,7 @@ The shared header-boundary evidence also stays explicit beside that shared route
 * `zigux/tests/phase11_uapi_header_parity_manifest.json`
 * `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
-The remaining bcm2835, gpio, and DesignWare watchdog evidence stays with the corresponding packet-local notes, manifests, surveys, and checkers rather than being collapsed back into one generic shared reminder.
+The remaining bcm2835 and gpio watchdog evidence stays with the corresponding packet-local notes, manifests, surveys, and checkers rather than being collapsed back into one generic shared reminder.
 
 ## What This Contract Does Not Claim
 
@@ -71,4 +86,4 @@ The remaining bcm2835, gpio, and DesignWare watchdog evidence stays with the cor
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, and the shared header-boundary evidence remain aligned with live `master`.
+Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the dedicated DesignWare watchdog packet, and the shared header-boundary evidence remain aligned with live `master`.
