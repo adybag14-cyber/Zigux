@@ -27,11 +27,11 @@ That anchor is still high value because `virtio_net.c` is a large production dri
 - current `master` does not carry `zigux/tests/phase12_virtio_net.zig`
 - current `master` does not carry `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - current `master` does not carry `zigux/tests/phase12_virtio_net_survey.zig`
-- current `master` does not carry `zigux/tests/phase12_virtio_net_manifest.json`
+- current `master` still carries `zigux/tests/phase12_virtio_net_manifest.json` as the parked survey manifest for this lane
 - current `master` does not carry `zigux/tests/phase12_build.zig`
-- `python3 scripts/zigux/check-build-only-phase12-surface.py` currently fails and reports the entire shared Phase 12 replay packet as missing, including every virtio-net file named above
+- `python3 scripts/zigux/check-build-only-phase12-surface.py` currently fails and reports the missing runnable Phase 12 replay packet, including the absent virtio-net driver, direct tests, syntax-lab shard, survey gate, and shared build file
 
-Those checks mean the present lane has no live compile target, no direct smoke shard, and no bounded recovery replay surface to execute. On current `master`, compile, throughput, and recovery verification for the old virtio-net packet stop at repo-truth inspection rather than runnable Zig validation.
+Those checks mean the present lane still has one repo-backed parked manifest plus this survey note, but it has no live compile target, no direct smoke shard, and no bounded recovery replay surface to execute. On current `master`, compile, throughput, and recovery verification for the old virtio-net packet stop at repo-truth inspection rather than runnable Zig validation.
 
 ## Truthful boundary
 
@@ -41,7 +41,7 @@ The truthful current boundary is narrower:
 
 - the roadmap still wants a bounded `virtio_net` lane in Phase 12
 - the Phase 10 virtio foundation still exists and remains the nearest reusable substrate
-- the earlier Phase 12 virtio-net packet is absent from `HEAD`
+- the earlier runnable Phase 12 virtio-net packet is absent from `HEAD`, but the parked survey manifest still survives beside this note
 - throughput and recovery parity remain blocked not only by roadmap requirements, but also by the absence of any current driver-local Zig packet to verify
 
 ## Non-goals
