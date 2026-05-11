@@ -141,6 +141,14 @@ BENCH_EXPECTATIONS = {
         "PHASE1_BENCH_LIST_SORT_CHECKSUM",
         "PHASE1_BENCH_RBTREE_CHECKSUM",
     ],
+    "exact_checksums": {
+        "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000,
+        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 620000,
+        "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 15621472,
+        "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 12820000,
+        "PHASE1_BENCH_STRING_CHECKSUM": 320000,
+        "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
+    },
 }
 
 PHASE1_MANIFEST = json.loads(
@@ -400,8 +408,7 @@ def collect_workflow_markers(workflow: str) -> list[str]:
     required = [
         'group: ${{ github.ref == \'refs/heads/master\' && format(\'{0}-{1}-{2}\', github.workflow, github.ref, github.sha) || format(\'{0}-{1}\', github.workflow, github.ref) }}',
         "- name: Validate Phase 1 closure",
-        'validator_path = Path("scripts/zigux/validate-phase1-closure.py")',
-        'raise SystemExit(namespace["main"]())',
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
         "run: make -C zigux phase7-test",
     ]
     for marker in required:
@@ -465,9 +472,7 @@ def make_fixture_root(root: Path) -> None:
                 "  bootstrap:",
                 "    steps:",
                 "      - name: Validate Phase 1 closure",
-                "        run: |",
-                "          validator_path = Path(\"scripts/zigux/validate-phase1-closure.py\")",
-                "          raise SystemExit(namespace[\"main\"]())",
+                "        run: python3 scripts/zigux/validate-phase1-closure.py",
                 "      - name: Run Phase 7 runtime helper tests",
                 "        run: make -C zigux phase7-test",
                 "",
