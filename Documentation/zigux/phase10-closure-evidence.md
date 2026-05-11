@@ -52,9 +52,9 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 ## Current Truthfulness Blockers
 
-One bounded shared-reminder truthfulness blocker remains on current `master`.
+No bounded shared-reminder truthfulness blocker is currently visible on current `master`.
 
-The broad Phase 10 checklist reminder in `Documentation/zigux/review-checklist.md` still names the shared closure note, closure manifest, checker packet, core reset replay, direct driver-id replay, and Linux-style make routes, but it still leaves the direct core review pair `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` implicit even though the live tests-root, scripts-root, lane-sequencing, and compact review-companion packet now keep both paths explicit.
+The broad Phase 10 checklist reminder in `Documentation/zigux/review-checklist.md` now names the shared closure note, closure manifest, checker packet, the direct core review pair `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig`, the bounded reset-queue replay, the direct driver-id replay, and the Linux-style make routes, matching the already-explicit tests-root, scripts-root, lane-sequencing, and compact review-companion packet.
 
 ## Parked Boundary
 
@@ -68,5 +68,5 @@ The roadmap posture remains unchanged:
 
 The next truthful virtio-driver follow-through should stay inside one shared reminder surface at a time:
 
-1. update `Documentation/zigux/review-checklist.md` so its shared Phase 10 checklist packet names `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` beside the existing closure-manifest, checker, reset-queue, driver-id test, and make-route surfaces
-2. read back `Documentation/zigux/review-checklist.md` on `master` and confirm both direct core paths appear exactly once so nearby runs do not reopen the already-closed tests-root handoff
+1. leave this shared reminder packet parked unless `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase10.py`, or `zigux/tests/phase10_closure_manifest.json` moves again
+2. if one of those surfaces changes, reread the shared Phase 10 reminder packet first and land only the smallest same-packet truthfulness repair without widening into risky transport or closure-manifest scope
