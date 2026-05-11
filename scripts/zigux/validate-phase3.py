@@ -5,8 +5,18 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import tempfile
 
+
+ABI_HEADER_PATH = Path("include/zigux/abi.h")
+ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
+HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
+HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
+ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*:")
+ZIG_EXTERN_STRUCT_RE = re.compile(
+    r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*extern struct\b"
+)
 
 REPO_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
@@ -19,8 +29,8 @@ REPO_FILES = (
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
-    Path("include/zigux/abi.h"),
-    Path("zigux/bindings/abi.zig"),
+    ABI_HEADER_PATH,
+    ABI_BINDINGS_PATH,
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
@@ -117,6 +127,60 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _record_duplicate(
+    seen: dict[str, int], issues: list[str], label: str, name: str, lineno: int
+) -> None:
+    previous = seen.get(name)
+    if previous is None:
+        seen[name] = lineno
+        return
+    issues.append(
+        f"duplicate {label}: {name} (first line {previous}, duplicate line {lineno})"
+    )
+
+
+def _validate_duplicate_declarations(text: str, matchers: tuple[tuple[str, re.Pattern[str]], ...]) -> list[str]:
+    issues: list[str] = []
+    for label, pattern in matchers:
+        seen: dict[str, int] = {}
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            match = pattern.match(line)
+            if match is None:
+                continue
+            _record_duplicate(seen, issues, label, match.group(1), lineno)
+    return issues
+
+
+def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+
+    header_path = repo_root / ABI_HEADER_PATH
+    if header_path.is_file():
+        issues.extend(
+            _validate_duplicate_declarations(
+                _read(header_path),
+                (
+                    ("ABI header #define", HEADER_DEFINE_RE),
+                    ("ABI header struct", HEADER_STRUCT_RE),
+                ),
+            )
+        )
+
+    bindings_path = repo_root / ABI_BINDINGS_PATH
+    if bindings_path.is_file():
+        issues.extend(
+            _validate_duplicate_declarations(
+                _read(bindings_path),
+                (
+                    ("ABI binding const", ZIG_CONST_RE),
+                    ("ABI binding extern struct", ZIG_EXTERN_STRUCT_RE),
+                ),
+            )
+        )
+
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REPO_FILES:
@@ -137,6 +201,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in readme_text:
                 issues.append(f"missing scripts README marker: {marker}")
 
+    issues.extend(validate_abi_surface_sanity(repo_root))
     return issues
 
 
@@ -149,6 +214,21 @@ def _populate_repo(root: Path) -> None:
     for rel_path in REPO_FILES:
         _write(root / rel_path, "# stub\n")
 
+    _write(
+        root / ABI_HEADER_PATH,
+        "#define ZIGUX_ABI_VERSION 1\n"
+        "#define ZIGUX_ABI_MINOR 2\n"
+        "struct zigux_layout {\n"
+        "    int value;\n"
+        "};\n",
+    )
+    _write(
+        root / ABI_BINDINGS_PATH,
+        "pub const ZIGUX_ABI_VERSION: u32 = 1;\n"
+        "pub const ZiguxLayout = extern struct {\n"
+        "    value: i32,\n"
+        "};\n",
+    )
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
 
@@ -213,18 +293,24 @@ def run_self_test() -> int:
         _write(root / next_step_rel, "# restored\n")
         (root / validator_support_rel).unlink()
         issues = validate_repo(root)
-        expected_validator_support_missing = f"missing repo file: {validator_support_rel.as_posix()}"
+        expected_validator_support_missing = (
+            f"missing repo file: {validator_support_rel.as_posix()}"
+        )
         if expected_validator_support_missing not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing validator-support note was not reported")
             return 1
         case_count += 1
 
-        support_validator_rel = Path("scripts/zigux/validate-phase3-validator-support-surface.py")
+        support_validator_rel = Path(
+            "scripts/zigux/validate-phase3-validator-support-surface.py"
+        )
         _write(root / validator_support_rel, "# restored\n")
         (root / support_validator_rel).unlink()
         issues = validate_repo(root)
-        expected_support_validator_missing = f"missing repo file: {support_validator_rel.as_posix()}"
+        expected_support_validator_missing = (
+            f"missing repo file: {support_validator_rel.as_posix()}"
+        )
         if expected_support_validator_missing not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing validator-support checker was not reported")
@@ -252,7 +338,8 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected_validator_marker = (
-            "missing make marker: $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test"
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/validate-phase3-validator-support-surface.py --self-test"
         )
         if expected_validator_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
@@ -298,7 +385,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
@@ -309,7 +396,8 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected_catalog_marker = (
-            "missing make marker: $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test"
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/check-phase3-catalog-selftest.py --self-test"
         )
         if expected_catalog_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
@@ -326,6 +414,58 @@ def run_self_test() -> int:
         if expected_readme_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing README marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+        _write(
+            root / ABI_HEADER_PATH,
+            _read(root / ABI_HEADER_PATH) + "#define ZIGUX_ABI_VERSION 3\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_define = (
+            "duplicate ABI header #define: ZIGUX_ABI_VERSION "
+            "(first line 1, duplicate line 6)"
+        )
+        if expected_duplicate_define not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected duplicate header define was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / ABI_BINDINGS_PATH,
+            _read(root / ABI_BINDINGS_PATH)
+            + "pub const ZIGUX_ABI_VERSION: u32 = 2;\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_const = (
+            "duplicate ABI binding const: ZIGUX_ABI_VERSION "
+            "(first line 1, duplicate line 5)"
+        )
+        if expected_duplicate_const not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected duplicate binding const was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / ABI_BINDINGS_PATH,
+            _read(root / ABI_BINDINGS_PATH)
+            + "pub const ZiguxLayout = extern struct {\n"
+            + "    value: i32,\n"
+            + "};\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_extern_struct = (
+            "duplicate ABI binding extern struct: ZiguxLayout "
+            "(first line 2, duplicate line 5)"
+        )
+        if expected_duplicate_extern_struct not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected duplicate extern struct was not reported")
             return 1
         case_count += 1
 
