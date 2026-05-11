@@ -15,11 +15,17 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
-FIND_BIT_REQUIRED_PARITY_KEYS = (
-    "last",
-    "tail_clamped_last",
-    "tail_clamped_empty_last",
-)
+REQUIRED_PARITY_KEYS = {
+    "find_bit": (
+        "last",
+        "tail_clamped_last",
+        "tail_clamped_empty_last",
+    ),
+    "string": (
+        "replace_char_cstr_end",
+        "replace_char_cstr_bytes",
+    ),
+}
 
 SOURCE_RELS = [
     HARNESS_REL,
@@ -85,14 +91,15 @@ def collect_output_issues(actual: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
 
-    find_bit = payload.get("find_bit")
-    if not isinstance(find_bit, dict):
-        return ["missing:find_bit"]
-
     issues: list[str] = []
-    for key in FIND_BIT_REQUIRED_PARITY_KEYS:
-        if key not in find_bit:
-            issues.append(f"missing:find_bit.{key}")
+    for section_name, required_keys in REQUIRED_PARITY_KEYS.items():
+        section = payload.get(section_name)
+        if not isinstance(section, dict):
+            issues.append(f"missing:{section_name}")
+            continue
+        for key in required_keys:
+            if key not in section:
+                issues.append(f"missing:{section_name}.{key}")
     return issues
 
 
@@ -292,14 +299,28 @@ def run_self_test() -> None:
                         "last": 1,
                         "tail_clamped_last": 2,
                         "tail_clamped_empty_last": 3,
-                    }
+                    },
+                    "string": {
+                        "replace_char_cstr_end": 2,
+                        "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+                    },
                 }
             ),
             encoding="utf-8",
         )
         assert collect_output_issues(actual) == []
 
-        actual.write_text('{"find_bit":{"last":1,"tail_clamped_last":2}}', encoding="utf-8")
+        actual.write_text(
+            '{"find_bit":{"last":1,"tail_clamped_last":2,"tail_clamped_empty_last":3},"string":{"replace_char_cstr_end":2}}',
+            encoding="utf-8",
+        )
+        missing_output = collect_output_issues(actual)
+        assert "missing:string.replace_char_cstr_bytes" in missing_output
+
+        actual.write_text(
+            '{"find_bit":{"last":1,"tail_clamped_last":2},"string":{"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122]}}',
+            encoding="utf-8",
+        )
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.tail_clamped_empty_last" in missing_output
 
@@ -309,7 +330,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=13")
 
 
 def main() -> int:
