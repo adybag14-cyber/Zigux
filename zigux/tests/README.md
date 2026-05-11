@@ -198,7 +198,7 @@ Key entrypoints
   * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
-  * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`
+  * `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
   * `zigux/tests/phase13_build.zig`
   * `zigux/tests/phase3_abi.zig`
   * `zigux/tests/phase3_low_level_wrappers.zig`
