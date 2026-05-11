@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/README.md",
@@ -39,6 +40,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_kprobe_example_survey.zig",
+    "zigux/tests/phase4_test_fsmount_manifest.json",
+    "zigux/tests/phase4_test_fsmount_survey.zig",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/phase4_build.zig",
@@ -103,7 +106,7 @@ REQUIRED_GATE_EVIDENCE_MARKERS = [
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=",
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
-    "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
+    "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
     "shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
 ]
@@ -122,12 +125,16 @@ REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/phase4_kprobe_example_survey.zig",
     "zig test zigux/tests/phase4_kprobe_example_survey.zig",
     "make -C zigux phase4-kprobe-example-survey",
+    "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    "zigux/tests/phase4_test_fsmount_manifest.json",
+    "zigux/tests/phase4_test_fsmount_survey.zig",
+    "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-test-fsmount-survey",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "scripts/zigux/validate-phase4.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
-    "make -C zigux phase4-test-fsmount-survey",
 ]
 
 REQUIRED_SCRIPT_README_MARKERS = [
@@ -224,6 +231,7 @@ MARKER_GROUPS = [
 
 PLACEHOLDER_FILES = [
     "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
@@ -232,6 +240,8 @@ PLACEHOLDER_FILES = [
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_kprobe_example_survey.zig",
+    "zigux/tests/phase4_test_fsmount_manifest.json",
+    "zigux/tests/phase4_test_fsmount_survey.zig",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/phase4_build.zig",
@@ -416,12 +426,16 @@ def _write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase4_kprobe_example_survey.zig",
         "zig test zigux/tests/phase4_kprobe_example_survey.zig",
         "make -C zigux phase4-kprobe-example-survey",
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        "make -C zigux phase4-test-fsmount-survey",
         "zigux/tests/phase4_perf_baseline_manifest.json",
         "zigux/tests/phase4_perf_baseline_survey.zig",
         "scripts/zigux/validate-phase4.py",
         "scripts/zigux/check-phase4-artifact-diff-determinism.py",
         "scripts/zigux/check-phase4-workflow-route-counts.py",
-        "make -C zigux phase4-test-fsmount-survey",
     ]) + "\n")
 
     _write(root / "Documentation/zigux/review-checklist.md", "\n".join([
@@ -513,7 +527,7 @@ def _write_fixture_tree(root: Path) -> None:
         "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`",
         "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`",
         "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
-        "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
+        "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
         "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
     ]
     for marker, rel_path in blob_targets.items():
