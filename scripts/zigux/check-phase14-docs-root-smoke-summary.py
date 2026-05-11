@@ -23,6 +23,7 @@ RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-ex
 
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-core-boundary-traceability.md",
     "Documentation/zigux/phase14-release-boundary-survey.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
@@ -273,6 +274,26 @@ def run_self_test() -> int:
 
         write_text(
             root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `Documentation/zigux/phase14-core-boundary-traceability.md`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: Documentation/zigux/phase14-core-boundary-traceability.md"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root traceability marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
             good_docs_root_text().replace("- `make -C zigux phase14-test`\n", "", 1),
         )
         if not any(
@@ -371,7 +392,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
