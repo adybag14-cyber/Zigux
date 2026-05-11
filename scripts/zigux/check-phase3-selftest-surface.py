@@ -34,6 +34,12 @@ TESTS_README_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
+TESTS_README_PHASE3_REMINDER_PREFIX = (
+    "  * keep the focused Phase 3 validator-support replay explicit in the tests root too:"
+)
+TESTS_README_PHASE3_REMINDER_NEXT_PREFIX = (
+    "  * keep the shared Phase 4 rollback packet explicit in the tests root too:"
+)
 SCRIPTS_README_MARKERS = (
     "check-phase3-selftest-surface.py",
     "validate_phase3_selftest.py",
@@ -85,6 +91,38 @@ def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) 
     return issues
 
 
+def _extract_tests_phase3_reminder(text: str) -> str | None:
+    if TESTS_README_PHASE3_REMINDER_PREFIX not in text:
+        return None
+    reminder = text.split(TESTS_README_PHASE3_REMINDER_PREFIX, 1)[1]
+    if TESTS_README_PHASE3_REMINDER_NEXT_PREFIX in reminder:
+        reminder = reminder.split(TESTS_README_PHASE3_REMINDER_NEXT_PREFIX, 1)[0]
+    return reminder
+
+
+def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
+    try:
+        text = _read(path)
+    except FileNotFoundError:
+        return [f"missing repo file: {path.as_posix()}"]
+
+    reminder = _extract_tests_phase3_reminder(text)
+    if reminder is None:
+        return [
+            "missing tests README Phase 3 validator-support reminder block"
+        ]
+
+    issues: list[str] = []
+    for marker, expected_count in TESTS_README_MARKER_COUNTS.items():
+        actual_count = reminder.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                "tests README Phase 3 reminder marker count drift: "
+                f"{marker} (expected {expected_count}, found {actual_count})"
+            )
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "docs README"))
@@ -104,6 +142,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             "tests README",
         )
     )
+    issues.extend(_check_tests_readme_phase3_reminder(tests_readme))
     issues.extend(
         _check_markers(
             repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README"
@@ -135,7 +174,9 @@ def _populate_repo(root: Path) -> None:
         "\n".join(
             (
                 *TESTS_README_MARKERS,
+                TESTS_README_PHASE3_REMINDER_PREFIX,
                 *TESTS_README_MARKER_COUNTS.keys(),
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
             )
         )
         + "\n",
@@ -183,12 +224,33 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "tests README marker count drift: scripts/zigux/survey-phase3-abi-constant-parity.py "
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/survey-phase3-abi-constant-parity.py "
             "(expected 1, found 0)"
         )
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected constant-parity marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/survey-phase3-abi-constant-parity.py",
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "scripts/zigux/survey-phase3-abi-constant-parity.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/survey-phase3-abi-constant-parity.py "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped constant-parity drift was not reported")
             return 1
 
         _populate_repo(root)
@@ -202,7 +264,7 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "tests README marker count drift: Documentation/zigux/phase3-abi-header-family-survey.md "
+            "tests README Phase 3 reminder marker count drift: Documentation/zigux/phase3-abi-header-family-survey.md "
             "(expected 1, found 0)"
         )
         if expected not in issues:
@@ -221,7 +283,7 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "tests README marker count drift: Documentation/zigux/phase3-abi-h-boundary-next-step.md "
+            "tests README Phase 3 reminder marker count drift: Documentation/zigux/phase3-abi-h-boundary-next-step.md "
             "(expected 1, found 0)"
         )
         if expected not in issues:
@@ -240,7 +302,7 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "tests README marker count drift: zigux/uapi/dev_t.zig (expected 1, found 0)"
+            "tests README Phase 3 reminder marker count drift: zigux/uapi/dev_t.zig (expected 1, found 0)"
         )
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
