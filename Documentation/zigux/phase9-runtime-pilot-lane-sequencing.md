@@ -50,6 +50,7 @@ Current `master` also keeps the four pilot-family review packets visible:
 - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 - the paired `phase9-runtime-*-module-slice.md` notes
 - the dedicated `zigux/tests/runtime_*_survey.zig` gates
+- the bitmap-only `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay
 
 That means the shared Phase 9 packet should keep the loader-facing family explicit as live review evidence while still keeping the loadable-runtime-substrate blocker explicit and keeping pilot-family follow-through inside the family lanes that now own it.
 
@@ -60,7 +61,7 @@ Current `master` no longer needs the older docs-root follow-through that earlier
 - direct readback now shows `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already defer the exact shared owner map back to this sequencing note
 - the remaining same-lane overlap risk is now inside this note itself: older pilot-family labels can still point future runs at stale owners even though the active packet-local follow-through has already moved
 - the current atomic64 follow-through is the packet-local survey-versus-module-slice sync tracked in `P9-Y01`
-- the current bitmap follow-through stays bitmap-local: `P9-L06` owns the active module selftest mirror proof, while the older top-bit survey cleanup under `P9-L08` remains parked unless the same packet reopens
+- the current bitmap follow-through stays bitmap-local: `P9-L06` owns the active module selftest mirror proof, while `P9-L08` remains the older parked top-bit companion packet around `samples/zigux/runtime_bitmap_top_bit_contract.zig` unless the same bitmap family reopens
 - the current trace-events follow-through stays trace-events-local: `P9-L10` owns the survey-note and survey-gate reminder sync, while `P9-Y03` owns the adjacent survey-note and manifest ownership-note sync
 - the current kretprobe follow-through is the pilot-local survey-gate lifecycle and tracing proof sync tracked in `P9-Y04`, while the older `P9-L16` sample-proof lane is historical only unless repo evidence explicitly reassigns ownership
 - the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces
@@ -117,7 +118,7 @@ If a nearby lane is already working inside a surviving family-local packet, this
 Current `master` already exposes the pilot-family notes plus the shared loader packet, so scheduled follow-through should use the current packet-local owners instead of older labels that no longer match the active lane split.
 
 - `P9-Y01`: owns the runtime atomic64 survey-versus-module-slice ownership-note sync. Family-local survey and directly coupled module-slice wording should stay here instead of being bounced back into the shared sequencing lane.
-- `P9-L06` and parked `P9-L08`: keep runtime bitmap packet-local follow-through bitmap-local. `P9-L06` owns the active module selftest mirror proof, while `P9-L08` remains the older parked top-bit survey packet unless the same bitmap family reopens.
+- `P9-L06` and parked `P9-L08`: keep runtime bitmap packet-local follow-through bitmap-local. `P9-L06` owns the active module selftest mirror proof, while `P9-L08` remains the older parked top-bit companion packet around `samples/zigux/runtime_bitmap_top_bit_contract.zig` unless the same bitmap family reopens.
 - `P9-L10` and `P9-Y03`: keep runtime trace-events packet-local follow-through trace-events-local. `P9-L10` owns the survey-note and survey-gate reminder sync, while `P9-Y03` owns the adjacent survey-note and manifest ownership-note sync.
 - `P9-Y04`: owns the current runtime kretprobe survey-gate lifecycle and tracing proof follow-through. Treat `P9-L16` as a historical sample-proof lane only unless repo evidence explicitly moves ownership back.
 
