@@ -61,6 +61,8 @@ MARKERS = {
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
         "## Phase 11 tests-root packet",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
@@ -92,7 +94,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 27
 
 
 class CheckError(RuntimeError):
@@ -166,13 +168,16 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][13]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][2]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][6]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][8]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][4]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][7]),
             (FILES["tests_companion"], MARKERS["tests_companion"][9]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][12]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][10]),
             (FILES["tests_companion"], MARKERS["tests_companion"][13]),
             (FILES["tests_companion"], MARKERS["tests_companion"][14]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][15]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][16]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
