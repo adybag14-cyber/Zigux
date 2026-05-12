@@ -20,6 +20,7 @@ NOTE_EXISTENCE_FILES = [
     "Documentation/zigux/phase11-dw-wdt-survey.md",
     "Documentation/zigux/phase11-dw-wdt-teardown-note.md",
     "scripts/zigux/check-phase11-dw-wdt-packet.py",
+    "scripts/zigux/check-phase11-shared-summary-surfaces.py",
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt.zig",
     "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
@@ -93,7 +94,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 37
 
 
 class CheckError(RuntimeError):
@@ -182,6 +183,7 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase11-dw-wdt-survey.md", "Documentation/zigux/phase11-dw-wdt-survey.md"),
             ("Documentation/zigux/phase11-dw-wdt-teardown-note.md", "Documentation/zigux/phase11-dw-wdt-teardown-note.md"),
             ("scripts/zigux/check-phase11-dw-wdt-packet.py", "scripts/zigux/check-phase11-dw-wdt-packet.py"),
+            ("scripts/zigux/check-phase11-shared-summary-surfaces.py", "scripts/zigux/check-phase11-shared-summary-surfaces.py"),
             ("zigux/tests/phase11_dw_wdt_manifest.json", "zigux/tests/phase11_dw_wdt_manifest.json"),
             ("zigux/tests/phase11_dw_wdt.zig", "zigux/tests/phase11_dw_wdt.zig"),
             ("zigux/tests/phase11_dw_wdt_registration_scaffold.zig", "zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
