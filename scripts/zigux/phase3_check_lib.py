@@ -48,6 +48,28 @@ def shared_runner_gate_for_slug(slug: str) -> str:
     return f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {slug}"
 
 
+def command_plan_for_slug(slug: str) -> tuple[tuple[str, ...], ...]:
+    if slug == "abi":
+        return (
+            (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+            ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+            ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
+        )
+    return ()
+
+
+def run_command_plan(
+    commands: tuple[tuple[str, ...], ...],
+    root: Path,
+    runner=subprocess.run,
+) -> int:
+    for command in commands:
+        result = runner(list(command), cwd=root, check=False)
+        if result.returncode != 0:
+            return result.returncode
+    return 0
+
+
 def run_phase3_check(
     slug: str,
     description: str | None = None,
@@ -65,6 +87,17 @@ def run_phase3_check(
         return result.returncode
     print(f"PHASE3_RUN_STATUS=pass:{slug}")
     return 0
+
+
+def run_phase3_slice_entry(
+    entry: object,
+    root: Path = ROOT,
+    runner=subprocess.run,
+) -> int:
+    command_plan = command_plan_for_slug(entry.slug)
+    if command_plan:
+        return run_command_plan(command_plan, root, runner=runner)
+    return run_phase3_check(entry.slug, description=entry.description, root=root)
 
 
 def run_from_wrapper(path: str | Path) -> int:
@@ -94,6 +127,40 @@ def run_self_test() -> int:
     else:
         raise AssertionError("expected invalid wrapper path failure")
     assert shared_runner_gate_for_slug("abi") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi"
+
+    abi_plan = command_plan_for_slug("abi")
+    assert abi_plan == (
+        (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+        ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+        ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
+    )
+    assert command_plan_for_slug("bitmap-cpumask") == ()
+
+    observed_calls: list[tuple[tuple[str, ...], Path, bool]] = []
+
+    def fake_runner_ok(command, cwd, check):
+        observed_calls.append((tuple(command), cwd, check))
+        return type("Result", (), {"returncode": 0})()
+
+    assert run_command_plan(abi_plan, ROOT, runner=fake_runner_ok) == 0
+    assert observed_calls == [
+        ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
+        (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+        (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+    ]
+
+    observed_calls.clear()
+
+    def fake_runner_fail_second(command, cwd, check):
+        observed_calls.append((tuple(command), cwd, check))
+        returncode = 7 if len(observed_calls) == 2 else 0
+        return type("Result", (), {"returncode": returncode})()
+
+    assert run_command_plan(abi_plan, ROOT, runner=fake_runner_fail_second) == 7
+    assert observed_calls == [
+        ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
+        (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+    ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_lib_") as tmp_dir_str:
         root = Path(tmp_dir_str)
