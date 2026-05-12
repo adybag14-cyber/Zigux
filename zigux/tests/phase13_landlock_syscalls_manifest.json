@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L18",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-12",
   "anchor": "security/landlock/syscalls.c",
@@ -13,11 +13,10 @@
     "preexisting_phase13_make_target_present": true,
     "preexisting_syscalls_zig_present": true,
     "preexisting_phase13_landlock_syscalls_test_present": true,
-    "preexisting_phase13_landlock_syscalls_manifest_present": true,
-    "preexisting_phase13_landlock_syscalls_slice_present": false,
-    "preexisting_phase13_landlock_syscalls_reviewability_present": false,
+    "preexisting_phase13_landlock_syscalls_slice_present": true,
+    "preexisting_phase13_landlock_syscalls_reviewability_present": true,
     "preexisting_phase13_landlock_syscalls_survey_present": true,
-    "preexisting_phase13_landlock_syscalls_governance_present": true
+    "preexisting_phase13_landlock_syscalls_manifest_present": true
   },
   "gaps": [
     {
@@ -25,49 +24,49 @@
       "status": "blocked_on_missing_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master still does not ship the older shared Phase 13 build bundle, so this planning-only helper packet keeps that wider replay surface blocked instead of pretending the shared build route already exists."
+      "why_now": "Current master still does not materialize the older shared Phase 13 build bundle, so the syscall lane must keep that missing wider replay route explicit instead of pretending the shared build surface is already back."
     },
     {
-      "id": "phase13-landlock-syscalls-test-gate",
+      "id": "phase13-landlock-syscalls-helper-starter",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "Current master ships a bounded Landlock syscalls helper lab for restrict-self planning, logging-flag translation, add-rule dispatch, release-side `fop_ruleset_release()` planning, and the combined `ruleset_fops` wrapper contract without claiming live Landlock mutation."
+    },
+    {
+      "id": "phase13-landlock-syscalls-direct-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_landlock_syscalls.zig",
-      "why_now": "A direct replay is now present on current master and keeps the planning-only helper packet machine-checkable even while the wider shared build bundle and dedicated reviewability shard stay absent."
-    },
-    {
-      "id": "phase13-landlock-syscalls-manifest",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_landlock_syscalls_manifest.json",
-      "why_now": "The paired manifest is now present on current master and records the same helper-local packet, live readback marker, and remaining gaps as the direct replay and the two landlock syscall notes."
+      "why_now": "A direct syscall replay keeps the shipped credential-gate, logging-flag, add-rule dispatch, and release-side planning packet machine-checkable while the shared build surface stays absent."
     },
     {
       "id": "phase13-landlock-syscalls-reviewability-gate",
-      "status": "blocked_on_reviewability_packet",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-      "why_now": "Current master still lacks the dedicated reviewability shard, so the helper packet keeps that path blocked instead of letting the direct replay or manifest stand in for separate reviewability evidence."
+      "why_now": "The dedicated reviewability gate keeps the helper, slice, governance note, survey note, and manifest aligned as one bounded packet while the shared build surface stays absent."
     },
     {
-      "id": "phase13-landlock-live-credential-mutation",
+      "id": "phase13-landlock-live-fd-installation",
+      "status": "blocked_on_live_fd_installation",
+      "kind": "runtime_boundary",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The current helper packet does not model live `anon_inode_getfd()` installation, file-descriptor revocation, or real file-operations registration; it stays at reviewable planning only."
+    },
+    {
+      "id": "phase13-landlock-live-credential-state",
       "status": "blocked_on_live_credential_state",
       "kind": "runtime_boundary",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "Live credential mutation remains blocked because the shipped helper stays planning-only and exposes CredentialGate decisions without mutating caller credentials."
+      "why_now": "The current helper packet does not mutate live credentials, attach a real domain, or perform the actual `landlock_restrict_self()` credential transition."
     },
     {
-      "id": "phase13-landlock-live-ruleset-ownership",
+      "id": "phase13-landlock-live-ruleset-state",
       "status": "blocked_on_live_ruleset_state",
       "kind": "runtime_boundary",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "Live ruleset ownership remains blocked because the shipped helper surfaces only planners and does not install, revoke, or mutate live ruleset objects."
-    },
-    {
-      "id": "phase13-landlock-live-syscall-enforcement",
-      "status": "blocked_on_live_syscall_state",
-      "kind": "runtime_boundary",
-      "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "Live syscall enforcement remains blocked because the shipped helper packet keeps only reviewable planning and wrapper discipline instead of real kernel-side enforcement."
+      "why_now": "The current helper packet does not claim live ruleset ownership, live private-data lifecycle, or real syscall enforcement, so runtime ruleset state remains outside this bounded lane."
     }
   ]
 }
