@@ -100,6 +100,9 @@ SCRIPTS_README_MARKERS = [
 ]
 
 TESTS_README_MARKERS = [
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -863,6 +866,39 @@ def run_self_test() -> int:
             [],
             [f"readiness_survey:{missing_handoff_checker_marker}"],
             "readiness_handoff_checker_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        tests_readme_rel = "zigux/tests/README.md"
+        tests_readme_text = _read(root, tests_readme_rel)
+        missing_tests_checklist_marker = "Documentation/zigux/review-checklist.md"
+        _write(
+            root,
+            tests_readme_rel,
+            tests_readme_text.replace(missing_tests_checklist_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"tests_readme:{missing_tests_checklist_marker}"],
+            "tests_readme_checklist_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        tests_readme_text = _read(root, tests_readme_rel)
+        missing_tests_scripts_alignment_marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+        _write(
+            root,
+            tests_readme_rel,
+            tests_readme_text.replace(missing_tests_scripts_alignment_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"tests_readme:{missing_tests_scripts_alignment_marker}"],
+            "tests_readme_scripts_alignment_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
