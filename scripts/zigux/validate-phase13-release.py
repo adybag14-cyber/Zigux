@@ -54,9 +54,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`zigux/tests/phase13_build.zig`",
-        "`zigux/tests/phase13_devres_reviewability.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
-        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "repo-reality gaps rather than independently shipped current-`master` evidence.",
         "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
@@ -65,9 +63,10 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
+        "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
-        "`zigux/helpers/list_view.zig`",
-        "`zigux/helpers/hlist_view.zig`",
+        "`security/landlock/ruleset.zig`",
+        "`security/landlock/syscalls.zig`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -398,9 +397,9 @@ def run_self_test() -> int:
                     for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
                     if marker
                     not in {
-                        "`include/zigux/abi.h`",
-                        "`zigux/helpers/list_view.zig`",
-                        "`zigux/helpers/hlist_view.zig`",
+                        "`zigux/bindings/notifier_abi.zig`",
+                        "`security/landlock/ruleset.zig`",
+                        "`security/landlock/syscalls.zig`",
                     }
                 ],
                 EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
@@ -409,11 +408,11 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`include/zigux/abi.h`",
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/helpers/list_view.zig`",
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/helpers/hlist_view.zig`",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/bindings/notifier_abi.zig`",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/ruleset.zig`",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/syscalls.zig`",
             ],
-            "missing_notifier_adjacent_footholds_failed",
+            "missing_adjacent_direct_evidence_markers_failed",
         )
         write_text(
             root,
