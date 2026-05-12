@@ -95,6 +95,12 @@ jobs:
       - name: Check Phase 1 installer companion checks
         run: python3 scripts/zigux/check-phase1-installer-companion-checks.py
 
+      - name: Self-test Phase 1 direct-owner markers
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
+
+      - name: Check Phase 1 direct-owner markers
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py
+
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
