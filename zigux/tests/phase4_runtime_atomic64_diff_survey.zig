@@ -260,6 +260,24 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned w
     try expectMarker(gate_evidence_source, marker);
 }
 
+test "phase 4 atomic64 survey keeps the gate-evidence phase4 build blob pin aligned with live sources" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    const phase4_build_blob_sha = try gitBlobShaHex(phase4_build_source);
+    const phase4_build_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_BUILD_BLOB_SHA={s}",
+        .{phase4_build_blob_sha},
+    );
+    defer std.testing.allocator.free(phase4_build_marker);
+
+    try expectMarker(gate_evidence_source, phase4_build_marker);
+}
+
 test "phase 4 atomic64 survey keeps the gate-evidence validator and review-checklist blob pins aligned with live sources" {
     const gate_evidence_source = try readRepoFile(
         std.testing.allocator,
@@ -330,11 +348,3 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
 }
-
-// runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
-// runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
-// phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
-// validator blob dc5da2bc63a54c02cd807e5da2e0b871df6b5cbd
-// phase4 matrix blob e2cb7b91276200a072e95e6e59ac77661dd9b2ab
-// review checklist blob 0f5c7a4bf46dfc1f4b57e62604a7af9217fbe03c
-// phase9 build blob 7f855cce2b91c156d5c0373b3b0fa096eab0aeda
