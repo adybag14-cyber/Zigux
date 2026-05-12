@@ -13,6 +13,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
+EXPECTED_STATUS = "closed"
 EXPECTED_TARGETS = [
     "x86_64-linux-musl",
     "aarch64-linux-musl",
@@ -46,9 +47,15 @@ def validate_fixture(root: Path) -> list[str]:
     if payload.get("phase") != "Phase 2":
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
 
+    if payload.get("status") != EXPECTED_STATUS:
+        issues.append(f"fixture:status:{payload.get('status')!r}")
+
     targets = payload.get("targets")
     if targets != EXPECTED_TARGETS:
         issues.append(f"fixture:targets:{targets!r}")
+
+    if payload.get("target_count") != len(EXPECTED_TARGETS):
+        issues.append(f"fixture:target_count:{payload.get('target_count')!r}")
 
     zig_test_files = payload.get("zig_test_files")
     if zig_test_files != EXPECTED_ZIG_TEST_FILES:
@@ -108,6 +115,8 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
                 "zig_test_files": EXPECTED_ZIG_TEST_FILES,
             },
@@ -132,6 +141,8 @@ def run_self_test() -> int:
             json.dumps(
                 {
                     "phase": "Phase 2",
+                    "status": EXPECTED_STATUS,
+                    "target_count": 2,
                     "targets": EXPECTED_TARGETS[:-1],
                     "zig_test_files": EXPECTED_ZIG_TEST_FILES,
                 },
@@ -142,6 +153,26 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:targets:") for issue in issues)
+        assert "fixture:target_count:2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": "open",
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert "fixture:status:'open'" in issues
         case_count += 1
 
         build_self_test_root(root)
