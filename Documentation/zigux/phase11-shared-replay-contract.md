@@ -1,104 +1,58 @@
 # Phase 11 Shared Replay Contract
 
-This note records the bounded shared replay surface for the active Phase 11 simple-driver tranche on current `master`.
-The live shared packet is build-backed again on current `master`, but it remains a reminder-and-continuity surface rather than a claim of full simple-driver closure.
+This note records the bounded shared reminder surface for the current Phase 11 simple-driver tranche on `master`.
+Direct GitHub contents reads for the previously referenced Phase 11 build and replay files now return 404, so the shared contract must describe only materialized reminder surfaces plus the remaining repo-reality gaps.
 
 ## Status
 
 * `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`
 * compatibility marker for coupled reminder notes: `PHASE11_SHARED_REPLAY_STATUS=closure_packet_reviewable`
-* scope: keep the shared Phase 11 replay route and its adjacent dedicated archival evidence honest while deeper driver follow-through stays inside the owning Phase 11 lanes
+* scope: keep the shared Phase 11 reminder packet honest while the direct watchdog and HVC replay files plus the shared build entrypoint remain repo-reality gaps
 
 ## Roadmap Anchor
 
 * the product roadmap still defines Phase 11 as the simple-production-driver tranche for `drivers/watchdog/*.zig` and `drivers/tty/hvc/*.zig`
-* the shared packet should name the replay-backed surfaces that still exist together on current `master`
-* driver-local teardown, survey, validation, registration, notifier, sysrq, khvcd, and platform-backed follow-through still belong to the owning Phase 11 lanes
+* the current shared Phase 11 task is reminder-surface truthfulness and checker discipline until the missing direct build and replay files return
+* driver-local teardown, survey, validation, registration, notifier, sysrq, and platform-backed follow-through still belong to the owning Phase 11 lanes
 
-## Shared Replay Surface On `master`
+## Shared Reminder Surface On `master`
 
-The active shared Phase 11 packet is currently reviewable through these shared surfaces:
+The active shared Phase 11 packet is currently reviewable through these shared reminder surfaces:
 
 * `Documentation/zigux/phase11-shared-replay-contract.md`
 * `Documentation/zigux/phase11-closure-note.md`
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
-* `zigux/tests/phase11_build.zig`
-* `make -C zigux phase11`
+* `zigux/Makefile`
+* `.github/workflows/zigux-bootstrap.yml`
 
-These shared surfaces keep the build-backed replay route explicit without implying a broader validator stack than the current shipped checkers and surveys.
+These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract even though the direct build-backed replay files are not materialized today.
 
 ## Current Repo Reality
 
-* shared build replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-* full delivery wrapper: `make -C zigux phase11`
+* direct GitHub contents reads do not materialize `zigux/tests/phase11_build.zig`
+* direct GitHub contents reads also do not materialize the previously referenced direct replay files `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
+* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, but treat them as reminder-only configuration markers until the missing Phase 11 build file and direct replay files land again
 * no shared `validate-phase11.py`
 * no shared `make -C zigux phase11-validate` target on `master`
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
-* the shared packet uses the shipped `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
-* `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when shared Phase 11 reminder wording moves
-* the remaining bcm2835 and gpio watchdog evidence stays beside the shared route on their own packet-local validation, survey, teardown, checker, and manifest-backed reminder surfaces rather than being collapsed back into one generic shared note
-
-## Exact Delivery Checks On `master`
-
-* bootstrap self-tests currently run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`, `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`, `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`, `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test`, and `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
-* bootstrap delivery checks then run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`, `python3 scripts/zigux/check-phase11-header-boundary-packet.py`, `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-contract` before the shared replay
-* the shared `zigux/tests/phase11_build.zig` replay currently runs exactly `phase11-gpio-wdt-tests`, `phase11-gpio-wdt-survey-tests`, `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-survey-tests`, `phase11-dw-wdt-tests`, `phase11-dw-wdt-survey-tests`, `phase11-hvc-console-tests`, `phase11-hvc-cleanup-tests`, and `phase11-hvc-console-survey-tests`
-* the shared bundle stays directly replayable through `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-* the dedicated archival HVC replay still stays available through `make -C zigux phase11-hvc-survey` when the archival packet needs a focused single-lane rerun
+* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts rather than a materialized build-backed replay stack
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
-The DesignWare watchdog lane now keeps its surviving bounded reminder packet explicit beside that shared route:
-
-* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
-* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-* `Documentation/zigux/phase11-dw-wdt-survey.md`
-* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
-* `scripts/zigux/check-phase11-dw-wdt-packet.py`
-* `drivers/watchdog/dw_wdt.zig`
-* `drivers/watchdog/dw_wdt_verify.zig`
-* `zigux/tests/phase11_dw_wdt.zig`
-* `zigux/tests/phase11_dw_wdt_manifest.json`
-* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-* `zigux/tests/phase11_dw_wdt_survey.zig`
-
-Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig` together as the current DesignWare continuity packet on `master`: they keep the landed direct teardown, verification, survey, and platform-registration scaffolding surfaces explicit beside the next bounded platform-backed follow-through.
-
-The dedicated archival HVC evidence still stays explicit beside that shared route:
-
-* `Documentation/zigux/phase11-hvc-console-slice.md`
-* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-* `Documentation/zigux/phase11-hvc-console-survey.md`
-* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-* `zigux/tests/phase11_hvc_console.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
-* `zigux/tests/phase11_hvc_console_modem_control_split.zig`
-* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `drivers/tty/hvc/hvc_console_sysrq.zig`
-* `scripts/zigux/check-phase11-hvc-survey-packet.py`
-* `zigux/tests/phase11_hvc_console_manifest.json`
-* `zigux/tests/phase11_hvc_console_survey.zig`
-* `make -C zigux phase11-hvc-survey`
-
-Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`.
-
-The shared header-boundary evidence also stays explicit beside that shared route:
-
-* `Documentation/zigux/phase11-uapi-header-parity-survey.md`
-* `scripts/zigux/check-phase11-header-boundary-packet.py`
-* `zigux/tests/phase11_uapi_header_parity_manifest.json`
-* `zigux/tests/phase11_uapi_header_parity_survey.zig`
+* bcm2835, gpio, DesignWare, HVC, and header-boundary notes plus their dedicated `check-phase11-*.py` scripts remain parked as continuity surfaces beside the shared packet
+* until the direct Zig driver and replay files return, treat those parked notes and checkers as reminder evidence rather than as proof that the corresponding direct Phase 11 build or replay files are present on current `master`
 
 ## What This Contract Does Not Claim
 
 * no overall simple-driver tranche closure
+* no materialized shared build-backed replay route on current `master`
+* no direct bcm2835, gpio, DesignWare, or HVC verify-and-replay packet on current `master`
 * no shared `validate-phase11.py` or `phase11-validate` route
-* no platform registration, PM plumbing, tty registration, notifier execution, khvcd execution, sysrq dispatch, or hardware-backed validation beyond the shipped bounded surveys
+* no platform registration, PM plumbing, tty registration, notifier execution, khvcd execution, sysrq dispatch, or hardware-backed validation beyond the parked reminder notes
 
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the surviving DesignWare continuity packet, and the shared header-boundary evidence remain aligned with live `master`.
+Prefer one shared note or checker at a time so the shared reminder packet, the parked driver-local notes, and the contributor-facing summaries remain aligned with the files current `master` can actually materialize.
