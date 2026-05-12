@@ -211,6 +211,7 @@
         "test \"memparse applies suffixes before signed clamping\""
       ],
       "memparse_review_anchors": [
+        "test \"memparse handles decimal hexadecimal octal and suffixes\"",
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
         "test \"memparse clamps explicit positive signed overflow\"",
