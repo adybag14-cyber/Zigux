@@ -29,6 +29,8 @@ VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
 INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
 INTEROP_MAKE = "make -C zigux phase3-interop"
+REVIEW_OWNERSHIP_PREFIX = "## Review Ownership"
+CURRENT_GAP_PREFIX = "## Current Gap"
 
 PROVENANCE = (
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
@@ -49,8 +51,10 @@ SURVEY_LINES = (
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
 )
-SURVEY_CONTAINS = (
+REVIEW_OWNERSHIP_SNIPPETS = (
     "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, while this survey keeps the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions paired with that narrower kernel-facing relay.",
+    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
     "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
 )
 ABI_SLICE_LINES = (
@@ -168,6 +172,36 @@ def require_contains(issues: list[str], text: str, prefix: str, marker: str) -> 
         issues.append(f"missing_{prefix}:{marker}")
 
 
+def require_section_contains_once(
+    issues: list[str], section: str | None, prefix: str, marker: str, missing_section: str
+) -> None:
+    if section is None:
+        issues.append(missing_section)
+        return
+    count = section.count(marker)
+    if count == 1:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{marker}")
+    else:
+        issues.append(f"duplicate_{prefix}:{count}:{marker}")
+
+
+def extract_section(text: str, start_heading: str, next_heading: str | None) -> str | None:
+    start_token = f"\n{start_heading}\n"
+    if text.startswith(f"{start_heading}\n"):
+        section = text.split(f"{start_heading}\n", 1)[1]
+    elif start_token in text:
+        section = text.split(start_token, 1)[1]
+    else:
+        return None
+    if next_heading is not None:
+        next_token = f"\n{next_heading}\n"
+        if next_token in section:
+            section = section.split(next_token, 1)[0]
+    return section
+
+
 def backtick_value(text: str, key: str) -> list[str]:
     prefix = f"`{key}="
     return [line[len(prefix):-1] for line in norm_lines(text) if line.startswith(prefix) and line.endswith("`")]
@@ -204,18 +238,30 @@ def validate(root: Path) -> list[str]:
             issues.append(f"missing_file:{rel.as_posix()}")
 
     survey_path = root / SURVEY
-    if not survey_path.exists():
+    if issues:
         return issues
     survey_text = survey_path.read_text(encoding="utf-8")
 
     require_one_of(issues, survey_text, "survey_provenance", PROVENANCE)
     for marker in SURVEY_LINES:
         require_exact(issues, survey_text, "survey_marker", marker)
-    for marker in SURVEY_CONTAINS:
-        require_contains(issues, survey_text, "survey_rule", marker)
     for marker in FORBIDDEN_SURVEY_MARKERS:
         if marker in survey_text:
             issues.append(f"forbidden_survey_marker:{marker}")
+
+    review_ownership = extract_section(
+        survey_text,
+        REVIEW_OWNERSHIP_PREFIX,
+        CURRENT_GAP_PREFIX,
+    )
+    for marker in REVIEW_OWNERSHIP_SNIPPETS:
+        require_section_contains_once(
+            issues,
+            review_ownership,
+            "review_ownership_rule",
+            marker,
+            f"missing_survey_section:{REVIEW_OWNERSHIP_PREFIX}",
+        )
 
     for key, rel in (
         ("PHASE3_EXPORT_SHIM_BLOB_SHA", EXPORT_SHIM),
@@ -497,10 +543,13 @@ def build_valid_workspace(root: Path) -> None:
         f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
         f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
         "",
-        "## Review Ownership",
+        REVIEW_OWNERSHIP_PREFIX,
         "",
-        "- `Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
-        "- any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
+        *(f"- {line}" for line in REVIEW_OWNERSHIP_SNIPPETS),
+        "",
+        CURRENT_GAP_PREFIX,
+        "",
+        "- current gap placeholder",
         "",
     )))
 
@@ -520,13 +569,42 @@ def run_self_test() -> int:
         case_count += 1
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
-            "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+            REVIEW_OWNERSHIP_SNIPPETS[0],
             "broken governance reminder.",
             1,
         ))
         assert validate(root) == [
-            "missing_survey_rule:`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface."
+            f"missing_review_ownership_rule:{REVIEW_OWNERSHIP_SNIPPETS[0]}"
         ]
+        build_valid_workspace(root)
+        case_count += 1
+
+        survey_text = (root / SURVEY).read_text(encoding="utf-8")
+        moved_marker = REVIEW_OWNERSHIP_SNIPPETS[1]
+        survey_text = survey_text.replace(f"- {moved_marker}\n", "", 1)
+        survey_text = survey_text.replace(
+            f"{CURRENT_GAP_PREFIX}\n\n- current gap placeholder\n",
+            f"{CURRENT_GAP_PREFIX}\n\n- current gap placeholder\n- {moved_marker}\n",
+            1,
+        )
+        write(root / SURVEY, survey_text)
+        assert validate(root) == [
+            f"missing_review_ownership_rule:{moved_marker}"
+        ]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SURVEY,
+            (root / SURVEY).read_text(encoding="utf-8").replace(
+                REVIEW_OWNERSHIP_PREFIX,
+                "## Review Ownership Drift",
+                1,
+            ),
+        )
+        assert validate(root) == [f"missing_survey_section:{REVIEW_OWNERSHIP_PREFIX}"] * len(
+            REVIEW_OWNERSHIP_SNIPPETS
+        )
         build_valid_workspace(root)
         case_count += 1
 
@@ -542,17 +620,6 @@ def run_self_test() -> int:
         ))
         assert validate(root) == [
             "missing_marker:Documentation/zigux/phase3-kernel-export-shim-governance.md:`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`"
-        ]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / KERNEL_EXPORT_GOVERNANCE, (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8").replace(
-            "new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
-            "broken churn rule",
-            1,
-        ))
-        assert validate(root) == [
-            "missing_kernel_export_governance_rule:new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure"
         ]
         build_valid_workspace(root)
         case_count += 1
