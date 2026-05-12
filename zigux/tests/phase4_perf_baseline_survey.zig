@@ -90,6 +90,13 @@ test "phase4 perf baseline survey keeps coordination owners, the dedicated surve
     try std.testing.expectEqual(@as(u64, 109), @as(u64, 109));
 }
 
+test "phase4 perf baseline survey keeps promotion-decision coordination owners explicit" {
+    try requireMarkerCount("\"coordination_owners\": [", 2);
+    try requireMarker(
+        "    \"coordination_owners\": [\n      \"ABI and Runtime Team\",\n      \"Shared Subsystems Pod\"\n    ]",
+    );
+}
+
 test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
     try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
     try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
