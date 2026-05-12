@@ -144,6 +144,20 @@ FILE_MARKERS = {
     ],
 }
 
+FORBIDDEN_FILE_MARKERS = {
+    "zigux/tests/README.md": [
+        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-mk-elfconfig-diff.py",
+        "zig test scripts/zigux/genksyms.zig",
+        "zig test scripts/zigux/genksyms_crc.zig",
+        "zig test scripts/zigux/kconfig/conf_bridge.zig",
+        "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+        "zig test scripts/zigux/mk_elfconfig.zig",
+    ],
+}
+
 EXACT_COUNT_CHECKS = {
     "Documentation/zigux/review-checklist.md": {
         FALLBACK_REMINDER: 1,
@@ -204,6 +218,15 @@ def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> li
     return [f"{prefix}:missing:{marker}" for marker in markers if marker not in text]
 
 
+def collect_forbidden_marker_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        count = count_occurrences(text, marker)
+        if count != 0:
+            issues.append(f"{prefix}:forbidden:{marker}:count={count}:expected=0")
+    return issues
+
+
 def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
     issues: list[str] = []
     for marker, expected in checks.items():
@@ -234,6 +257,14 @@ def validate_root(root: Path) -> list[str]:
     for rel_path, markers in FILE_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         issues.extend(collect_missing_markers(text, markers, prefix=rel_path))
+        if rel_path in FORBIDDEN_FILE_MARKERS:
+            issues.extend(
+                collect_forbidden_marker_issues(
+                    text,
+                    FORBIDDEN_FILE_MARKERS[rel_path],
+                    prefix=rel_path,
+                )
+            )
         if rel_path in EXACT_COUNT_CHECKS:
             issues.extend(collect_exact_count_issues(text, EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
         if rel_path in LINE_EXACT_COUNT_CHECKS:
@@ -372,6 +403,16 @@ def run_self_test() -> int:
                 assert f"{rel_path}:line_exact_count:{marker}:count={expected + 1}:expected={expected}" in issues
                 case_count += 1
 
+        for rel_path, markers in FORBIDDEN_FILE_MARKERS.items():
+            for marker in markers:
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(duplicate_marker(original, marker), encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:forbidden:{marker}:count=1:expected=0" in issues
+                case_count += 1
+
         for rel_path in MISSING_FILE_CASES:
             build_self_test_root(root)
             (root / rel_path).unlink()
@@ -385,6 +426,7 @@ def run_self_test() -> int:
         + 1
         + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values())
         + 2 * sum(len(checks) for checks in LINE_EXACT_COUNT_CHECKS.values())
+        + sum(len(markers) for markers in FORBIDDEN_FILE_MARKERS.values())
         + len(MISSING_FILE_CASES)
     )
     assert case_count == expected_case_count
