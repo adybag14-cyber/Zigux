@@ -51,6 +51,8 @@ REQUIRED_MARKERS = {
         "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
         "Keep follow-up inside the shared wording lane",
+        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
+        "the remaining drift is the mixed pin-path posture between the readable tests-root shard and the still-unreadable docs-plus-source pair `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
@@ -210,6 +212,20 @@ def run_self_test() -> None:
             "### 4. Shared wording lane",
             "### 4. Shared wording packet",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: ### 4. Shared wording lane",
+        ),
+        (
+            "lane_note_next_step_docs_root_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
+            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
+        ),
+        (
+            "lane_note_pin_path_split_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "the remaining drift is the mixed pin-path posture between the readable tests-root shard and the still-unreadable docs-plus-source pair `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+            "the remaining drift is the mixed pin-path posture between the readable tests-root shard and the readable docs-plus-source pair `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: the remaining drift is the mixed pin-path posture between the readable tests-root shard and the still-unreadable docs-plus-source pair `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         ),
         (
             "segment_survey_build_anchor",
