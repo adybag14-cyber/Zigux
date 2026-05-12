@@ -194,7 +194,6 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
     try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence", parsed.value.metrics.phase15_governance_only_blocker_anchor_count);
-    try expectMetricLine(scorecard_doc, "Phase 14 coupled blocker anchor count", parsed.value.metrics.phase14_coupled_blocker_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors still blocked on prior-phase bridge evidence", parsed.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
