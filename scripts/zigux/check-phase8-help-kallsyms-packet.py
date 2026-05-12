@@ -23,31 +23,43 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     REVIEW_CHECKLIST_PATH: (
-        "if the change touches the current Phase 8 help-and-kallsyms reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "if the change touches the shared Phase 8 help-and-kallsyms packet",
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "current `master` does not expose `tools/lib/symbol/`",
-        "older `zigux/tests/phase8_kallsyms*.zig` companions",
+        "`tools/lib/symbol/kallsyms.zig`",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-kallsyms-test`",
     ),
     SCRIPTS_README_PATH: (
-        "Phase 8 flow - current `master` keeps the shared Phase 8 reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "Phase 8 flow - the current shared Phase 8 review surface on `master` is",
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "`Documentation/zigux/README.md`",
-        "concrete command, symbol, libbpf helper, slice-note, and `zigux/tests/phase8_*` shard files remain absent",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms.zig`",
+        "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-kallsyms-test`",
     ),
     TESTS_README_PATH: (
-        "Phase 8 reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`zigux/tests/phase8_help.zig`",
+        "`zigux/tests/phase8_help_only_build.zig`",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms.zig`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "`Documentation/zigux/README.md`",
-        "the default-branch tree read surface no longer exposes the older `zigux/tests/phase8_help*.zig` or `zigux/tests/phase8_kallsyms*.zig` shard files",
+        "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-kallsyms-test`",
     ),
     SEQUENCING_PATH: (
         "### 2. Symbol lane",
-        "the default-branch tree read surface does not currently expose `tools/lib/symbol/`",
-        "the default-branch tree read surface does not currently expose the older `zigux/tests/phase8_kallsyms*.zig` companions",
-        "Do not reopen this lane until the tree again carries explicit symbol-lane files on `master`.",
+        "Use this lane for bounded `kallsyms` reminder, compile, or packet-truthfulness work only.",
+        "the current Phase 8 test packet includes `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
+        "Keep follow-up parked unless a concrete symbol-lane packet drift appears on current `master`.",
     ),
 }
 
@@ -94,8 +106,7 @@ def make_fixture_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         if rel_path == SCRIPT_PATH:
             continue
-        markers = REQUIRED_MARKERS.get(rel_path, ())
-        write_text(root, rel_path, "\n".join(markers) + "\n")
+        write_text(root, rel_path, "\n".join(REQUIRED_MARKERS[rel_path]) + "\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -125,19 +136,19 @@ def run_self_test() -> int:
         mutations = (
             (
                 REVIEW_CHECKLIST_PATH,
-                "if the change touches the current Phase 8 help-and-kallsyms reminder packet",
+                "if the change touches the shared Phase 8 help-and-kallsyms packet",
             ),
             (
                 SCRIPTS_README_PATH,
-                "Phase 8 flow - current `master` keeps the shared Phase 8 reminder packet",
+                "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
             ),
             (
                 TESTS_README_PATH,
-                "Phase 8 reminder packet",
+                "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
             ),
             (
                 SEQUENCING_PATH,
-                "the default-branch tree read surface does not currently expose `tools/lib/symbol/`",
+                "the current Phase 8 test packet includes `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_help_kallsyms_only_build.zig`",
             ),
         )
         for rel_path, marker in mutations:
