@@ -14,7 +14,10 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
+    Path("include/zigux/dev_t.h"),
     Path("zigux/bindings/abi.zig"),
+    Path("zigux/bindings/dev_t.zig"),
+    Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
@@ -23,6 +26,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
+    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
@@ -31,6 +35,8 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+    Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
 )
 
 # The export/UAPI lane explicitly keeps these dedicated replay files out of the
@@ -41,10 +47,15 @@ OPTIONAL_EXPORT_UAPI_REPLAY_FILES = (
 )
 
 MAKEFILE_PATH = Path("zigux/Makefile")
+RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 MAKE_MARKERS = (
     "phase3-abi:",
-    "$(PYTHON) scripts/zigux/check-phase3-abi.py",
     "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+)
+RUNNER_MARKERS = (
+    'if slug == "abi":',
+    '(sys.executable, "scripts/zigux/check-phase3-abi.py"),',
+    '("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),',
 )
 
 
@@ -67,6 +78,13 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in makefile_text:
                 issues.append(f"missing make marker: {marker}")
 
+    runner_path = repo_root / RUNNER_PATH
+    if runner_path.is_file():
+        runner_text = _read(runner_path)
+        for marker in RUNNER_MARKERS:
+            if marker not in runner_text:
+                issues.append(f"missing runner marker: {marker}")
+
     return issues
 
 
@@ -79,6 +97,7 @@ def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path)
     _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
+    _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
@@ -116,15 +135,25 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / missing_rel)
-        _write(
-            root / MAKEFILE_PATH,
-            "phase3-abi:\n\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig\n",
-        )
+        _write(root / MAKEFILE_PATH, "phase3-abi:\n")
         issues = validate_repo(root)
-        expected_marker = "missing make marker: $(PYTHON) scripts/zigux/check-phase3-abi.py"
-        if expected_marker not in issues:
+        expected_make_marker = "missing make marker: $(ZIG) build phase3-test --build-file zigux/tests/build.zig"
+        if expected_make_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / RUNNER_PATH,
+            'if slug == "abi":\n(sys.executable, "scripts/zigux/check-phase3-abi.py"),\n',
+        )
+        issues = validate_repo(root)
+        expected_runner_marker = 'missing runner marker: ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),'
+        if expected_runner_marker not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing runner marker was not reported")
             return 1
         case_count += 1
 
