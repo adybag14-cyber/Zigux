@@ -195,6 +195,13 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(loader_plan_gap.why_now, "register_kretprobe");
     try expectContains(loader_plan_gap.why_now, "unregister_kretprobe");
 
+    const prepared_plan_drift_gap = findGap(manifest.gaps, "runtime-kretprobe-shared-prepared-plan-drift") orelse return error.MissingPreparedPlanDriftGap;
+    try std.testing.expectEqualStrings("starter_landed", prepared_plan_drift_gap.status);
+    try std.testing.expectEqualStrings("shared_loader_review_guard", prepared_plan_drift_gap.kind);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", prepared_plan_drift_gap.zigux_destination);
+    try expectContains(prepared_plan_drift_gap.why_now, "requestSharedRuntimeLoad");
+    try expectContains(prepared_plan_drift_gap.why_now, "waiting_on_runtime_substrate");
+
     const substrate_gap = findGap(manifest.gaps, "runtime-kretprobe-substrate-handoff") orelse return error.MissingSubstrateGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", substrate_gap.status);
     try std.testing.expectEqualStrings("runtime_substrate", substrate_gap.kind);
@@ -213,6 +220,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         survey_note,
         "selftest-complete prepared snapshot explicit across later exit activity",
+    );
+    try expectContains(
+        survey_note,
+        "prepared selftest-hook drift rejection, prepared shared-plan drift rejection, and release-without-substrate behavior",
     );
     try expectContains(survey_note, "`make -C zigux phase9-runtime-kretprobe-test`");
     try expectContains(survey_note, "`make -C zigux phase9`");
