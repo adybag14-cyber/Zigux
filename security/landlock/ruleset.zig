@@ -16,6 +16,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_tree_search_planning: bool,
     provides_rule_tree_link_planning: bool,
     provides_rule_tree_replacement_planning: bool,
+    provides_insert_rule_branch_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -130,6 +131,21 @@ pub const RuleTreeReplacementPlan = struct {
     resulting_num_rules: u32,
 };
 
+pub const InsertRuleBranchMode = enum {
+    insert_with_link,
+    replace_existing_rule,
+};
+
+pub const InsertRuleBranchPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    mode: InsertRuleBranchMode,
+    resulting_rule: RulePlan,
+    link_plan: ?RuleTreeLinkPlan = null,
+    replacement_plan: ?RuleTreeReplacementPlan = null,
+    resulting_num_rules: u32,
+};
+
 fn insertionSiteMatchesTerminalSearchStep(search_plan: RuleTreeSearchPlan, insertion_site: InsertionSite) bool {
     if (search_plan.search_depth == 0 or search_plan.search_depth > max_tree_search_depth) {
         return false;
@@ -187,6 +203,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_tree_search_planning = true,
             .provides_rule_tree_link_planning = true,
             .provides_rule_tree_replacement_planning = true,
+            .provides_insert_rule_branch_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -543,7 +560,58 @@ pub const RulesetHelperLab = struct {
             .resulting_num_rules = search_plan.resulting_num_rules,
         };
     }
+
+    pub fn planInsertRuleBranch(search_plan: RuleTreeSearchPlan, existing_rule: ?RulePlan, incoming_layers: []const Layer) !InsertRuleBranchPlan {
+        if (search_plan.matched_existing_rule) {
+            const rule = existing_rule orelse return error.MissingExistingRule;
+            if (incoming_layers.len != 1) {
+                return error.MatchingRuleRequiresSingleLayer;
+            }
+
+            const replacement_plan = try planRuleTreeReplacement(search_plan, rule, incoming_layers[0]);
+            return .{
+                .anchor = replacement_plan.anchor,
+                .root = replacement_plan.root,
+                .mode = .replace_existing_rule,
+                .resulting_rule = replacement_plan.resulting_rule,
+                .replacement_plan = replacement_plan,
+                .resulting_num_rules = replacement_plan.resulting_num_rules,
+            };
+        }
+
+        if (existing_rule != null) {
+            return error.UnexpectedExistingRule;
+        }
+
+        const link_plan = try planRuleTreeLink(search_plan);
+        return .{
+            .anchor = link_plan.anchor,
+            .root = link_plan.root,
+            .mode = .insert_with_link,
+            .resulting_rule = try copyRulePlan(incoming_layers),
+            .link_plan = link_plan,
+            .resulting_num_rules = link_plan.resulting_num_rules,
+        };
+    }
 };
+
+test "landlock ruleset descriptor advertises insert-rule branch planning" {
+    const descriptor = RulesetHelperLab.descriptor();
+
+    try std.testing.expectEqualStrings("landlock_ruleset_helper_lab", descriptor.name);
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_ruleset_creation_planning);
+    try std.testing.expect(descriptor.provides_union_access_masks);
+    try std.testing.expect(descriptor.provides_layer_mask_init);
+    try std.testing.expect(descriptor.provides_rule_unmasking);
+    try std.testing.expect(descriptor.provides_rule_insertion_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_search_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_link_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);
+    try std.testing.expect(descriptor.provides_insert_rule_branch_planning);
+    try std.testing.expect(!descriptor.touches_live_object_trees);
+    try std.testing.expect(!descriptor.touches_live_hierarchy);
+}
 
 test "landlock ruleset creation keeps the first-layer access mask packet explicit" {
     const plan = try RulesetHelperLab.planRulesetCreation(.{
@@ -656,6 +724,45 @@ test "landlock ruleset tree search and link keep root and attachment sites expli
     try std.testing.expectEqual(TreeLinkMode.attach_right, attach_link.mode);
     try std.testing.expectEqual(@as(?u64, 40), attach_link.parent_key_data);
     try std.testing.expectEqual(@as(u32, 8), attach_link.resulting_num_rules);
+}
+
+test "landlock ruleset insert-rule branch planning keeps no-match link work explicit" {
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 55, &.{ 10, 30, 40 }, 7);
+    const branch_plan = try RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{
+        .{ .level = 1, .access = 0x3 },
+        .{ .level = 3, .access = 0x8 },
+    });
+
+    try std.testing.expectEqual(InsertRuleBranchMode.insert_with_link, branch_plan.mode);
+    try std.testing.expectEqual(TreeRoot.inode, branch_plan.root);
+    try std.testing.expectEqual(@as(u32, 8), branch_plan.resulting_num_rules);
+    try std.testing.expectEqual(@as(usize, 2), branch_plan.resulting_rule.num_layers);
+    try std.testing.expect(branch_plan.link_plan != null);
+    try std.testing.expect(branch_plan.replacement_plan == null);
+    try std.testing.expectEqual(TreeLinkMode.attach_right, branch_plan.link_plan.?.mode);
+}
+
+test "landlock ruleset insert-rule branch planning keeps matched replacement work explicit" {
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    const branch_plan = try RulesetHelperLab.planInsertRuleBranch(search_plan, existing, &.{
+        .{ .level = 5, .access = 0x10 },
+    });
+
+    try std.testing.expectEqual(InsertRuleBranchMode.replace_existing_rule, branch_plan.mode);
+    try std.testing.expectEqual(TreeRoot.inode, branch_plan.root);
+    try std.testing.expectEqual(@as(u32, 6), branch_plan.resulting_num_rules);
+    try std.testing.expectEqual(@as(usize, 3), branch_plan.resulting_rule.num_layers);
+    try std.testing.expect(branch_plan.link_plan == null);
+    try std.testing.expect(branch_plan.replacement_plan != null);
+    try std.testing.expectEqual(@as(u64, 99), branch_plan.replacement_plan.?.matched_key_data);
 }
 
 test "landlock ruleset insertion rejects empty access when extending a level-zero rule" {
