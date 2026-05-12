@@ -42,6 +42,10 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
         "python3 scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_build.zig",
@@ -206,6 +210,28 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_argv_split_selftest_marker = "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test"
+        note_path.write_text(note_text.replace(missing_argv_split_selftest_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_argv_split_selftest_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        )
+        write_fixture_root(tmp_root)
+
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_rbtree_direct_marker = "python3 scripts/zigux/check-phase7-rbtree-parity.py"
+        note_path.write_text(note_text.replace(missing_rbtree_direct_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_rbtree_direct_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        )
+        write_fixture_root(tmp_root)
+
         makefile_path = tmp_root / "zigux/Makefile"
         makefile_text = makefile_path.read_text(encoding="utf-8")
         missing_makefile_marker = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"
@@ -285,7 +311,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=10")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=12")
 
 
 
