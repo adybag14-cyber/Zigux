@@ -135,7 +135,7 @@ Keep the no-extra-formatting reminder explicit too: no standalone `samples/zigux
 
 ### `kretprobe_example`
 
-Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
 
 Keep `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, `runOwnershipBoundaryReplay()`, and `runLifecycleGuardReplay()` explicit together with pre-init retargeting, the fixed `maxactiveBudget()` cue at `20`, the outstanding-instance exit boundary, timestamp-order rejection and recovery, the one-missed-instance summary, and post-exit handler rejection. Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.
 
@@ -145,7 +145,7 @@ Keep `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, `Documenta
 
 Review the landed bytestream FIFO packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the shared `zigux/tests/phase5_build.zig` replay route.
 
-Keep `StorageBacking.embedded_fixed_buffer`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `available()`, `usesWrappedStorageWindow()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit together as one bounded non-runtime packet.
+Keep `StorageBacking.embedded_fixed_buffer`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `available()`, and `usesWrappedStorageWindow()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit together as one bounded non-runtime packet.
 
 Keep the `reviewContract().focus` order explicit too: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`.
 
