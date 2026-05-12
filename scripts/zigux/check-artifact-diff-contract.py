@@ -15,6 +15,8 @@ ARTIFACT_DIFF_NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
 EXPECTED_CONTRACT_CASES = [
     "helper_self_test",
     "helper_self_test_repeat",
+    "cli_help_output",
+    "cli_help_output_repeat",
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
@@ -42,6 +44,7 @@ EXPECTED_CONTRACT_CASES = [
 ]
 REPEAT_CONTRACT_CASES = [
     "helper_self_test_repeat",
+    "cli_help_output_repeat",
     "text_pass_repeat",
     "json_mismatch_repeat",
     "sha256_drift_repeat",
@@ -396,7 +399,7 @@ def run_self_test() -> int:
     covered_cases.append("contract_summary_status_drift")
 
     bad_base_count_lines = expected_contract_summary_lines()
-    bad_base_count_lines[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=21"
+    bad_base_count_lines[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22"
     expect_assertion(
         "contract_summary_base_count_drift",
         lambda: assert_contract_output(bad_base_count_lines),
@@ -406,7 +409,7 @@ def run_self_test() -> int:
     bad_base_case_order_lines = expected_contract_summary_lines()
     bad_base_case_order_lines[2] = (
         "ARTIFACT_DIFF_CONTRACT_BASE_CASES="
-        + ",".join(["cli_missing_required_args", "helper_self_test", *BASE_CONTRACT_CASES[2:]])
+        + ",".join(["cli_help_output", "helper_self_test", *BASE_CONTRACT_CASES[2:]])
     )
     expect_assertion(
         "contract_summary_base_case_order_drift",
@@ -415,7 +418,7 @@ def run_self_test() -> int:
     covered_cases.append("contract_summary_base_case_order_drift")
 
     bad_repeat_count_lines = expected_contract_summary_lines()
-    bad_repeat_count_lines[3] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=3"
+    bad_repeat_count_lines[3] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4"
     expect_assertion(
         "contract_summary_repeat_count_drift",
         lambda: assert_contract_output(bad_repeat_count_lines),
@@ -425,7 +428,7 @@ def run_self_test() -> int:
     bad_repeat_case_order_lines = expected_contract_summary_lines()
     bad_repeat_case_order_lines[4] = (
         "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES="
-        + ",".join(["text_pass_repeat", "helper_self_test_repeat", *REPEAT_CONTRACT_CASES[2:]])
+        + ",".join(["cli_help_output_repeat", "helper_self_test_repeat", *REPEAT_CONTRACT_CASES[2:]])
     )
     expect_assertion(
         "contract_summary_repeat_case_order_drift",
@@ -434,7 +437,7 @@ def run_self_test() -> int:
     covered_cases.append("contract_summary_repeat_case_order_drift")
 
     bad_case_count_lines = expected_contract_summary_lines()
-    bad_case_count_lines[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25"
+    bad_case_count_lines[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
     expect_assertion(
         "contract_summary_case_count_drift",
         lambda: assert_contract_output(bad_case_count_lines),
@@ -528,6 +531,8 @@ def main() -> int:
         ],
         repeat_count=2,
     )
+    covered_cases.append("cli_help_output")
+    covered_cases.append("cli_help_output_repeat")
 
     run_error_contract_case(
         [],
