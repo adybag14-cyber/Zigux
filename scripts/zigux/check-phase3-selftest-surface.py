@@ -135,8 +135,10 @@ MAKEFILE_MARKERS = (
     "phase3-selftest:",
 )
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str]:
     try:
@@ -148,6 +150,7 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
         for marker in markers
         if marker not in text
     ]
+
 
 def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) -> list[str]:
     try:
@@ -164,6 +167,7 @@ def _check_marker_counts(path: Path, marker_counts: dict[str, int], label: str) 
             )
     return issues
 
+
 def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> str | None:
     if start_prefix not in text:
         return None
@@ -173,6 +177,7 @@ def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> s
     elif next_prefix is None and "\n## " in section:
         section = section.split("\n## ", 1)[0]
     return section
+
 
 def _check_section_marker_counts(
     path: Path,
@@ -199,6 +204,7 @@ def _check_section_marker_counts(
             )
     return issues
 
+
 def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
     return _check_section_marker_counts(
         path,
@@ -207,6 +213,7 @@ def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
         TESTS_README_PHASE3_REMINDER_MARKER_COUNTS,
         "tests README Phase 3 reminder",
     )
+
 
 def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
     return _check_section_marker_counts(
@@ -217,6 +224,7 @@ def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
         "header-family survey shared reminder",
     )
 
+
 def _check_review_checklist_phase3_reminder(path: Path) -> list[str]:
     return _check_section_marker_counts(
         path,
@@ -225,6 +233,7 @@ def _check_review_checklist_phase3_reminder(path: Path) -> list[str]:
         CHECKLIST_PHASE3_REMINDER_MARKER_COUNTS,
         "review checklist Phase 3 reminder",
     )
+
 
 def _check_note_next_step(path: Path) -> list[str]:
     return _check_section_marker_counts(
@@ -235,6 +244,7 @@ def _check_note_next_step(path: Path) -> list[str]:
         "abi.h next-step note",
     )
 
+
 def _check_scripts_header_family_reminder(path: Path) -> list[str]:
     return _check_section_marker_counts(
         path,
@@ -243,6 +253,7 @@ def _check_scripts_header_family_reminder(path: Path) -> list[str]:
         SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS,
         "scripts README header-family reminder",
     )
+
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -309,9 +320,11 @@ def validate_repo(repo_root: Path) -> list[str]:
     )
     return issues
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
 
 def _populate_repo(root: Path) -> None:
     _write(
@@ -393,6 +406,7 @@ def _populate_repo(root: Path) -> None:
     )
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
     _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_selftest_surface_") as temp_dir:
@@ -666,6 +680,27 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
+                "should stay anchored in this dedicated survey and the paired next-step note",
+                "## Future follow-through\n"
+                + "should stay anchored in this dedicated survey and the paired next-step note",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "should stay anchored in this dedicated survey and the paired next-step note "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped anchor-policy drift was not reported")
+            return 1
+
+        _populate_repo(root)
         scripts_path = root / SCRIPTS_README_PATH
         scripts_path.write_text(
             _read(scripts_path).replace(
@@ -750,7 +785,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        broken_path.write_text(
+        broken_path.writeText(
             _read(broken_path).replace(
                 "scripts/zigux/generate-phase3-check-wrappers.py --check",
                 "",
@@ -867,7 +902,7 @@ def run_self_test() -> int:
             print("expected abi.h next-step marker count drift was not reported")
             return 1
 
-        _populate_repo(root)
+        _populateRepo(root)
         broken_path.write_text(
             _read(broken_path).replace(
                 "Documentation/zigux/phase3-validator-support-surface.md",
@@ -1093,6 +1128,7 @@ def run_self_test() -> int:
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate the shared Phase 3 selftest reminder surface."
@@ -1118,6 +1154,7 @@ def main() -> int:
 
     print(f"validated {args.repo_root / SCRIPTS_README_PATH}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
