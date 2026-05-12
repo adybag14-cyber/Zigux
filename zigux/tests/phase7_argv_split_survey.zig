@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const active_lane_key = "P7-L11";
+const active_lane_key = "P7-L09";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -100,7 +100,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/argv_split.c", manifest.anchor);
-    try std.testing.expect(std.mem.containsAtLeast(u8, slice_note, 1, "PHASE7_LANE_KEY=P7-L11"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, slice_note, 1, "PHASE7_LANE_KEY=P7-L09"));
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/argv_split.zig", manifest.roadmap_destinations[0]);
     try std.testing.expectEqual(@as(usize, 95), manifest.survey_summary.argv_split_c_lines);
