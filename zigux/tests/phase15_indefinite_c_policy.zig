@@ -6,6 +6,13 @@ const Requirement = struct {
     required_terms: []const []const u8,
 };
 
+const MaintenanceHandoff = struct {
+    current_lane_posture: []const u8,
+    replay_before_trusting: []const []const u8,
+    reopen_conditions: []const []const u8,
+    next_future_target: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -22,6 +29,7 @@ const Manifest = struct {
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
     indefinite_c_requirements: []const Requirement,
+    maintenance_handoff: MaintenanceHandoff,
     gaps: []const Gap,
 };
 
@@ -64,8 +72,8 @@ fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase 15 indefinite-C policy packet matches the live stay-in-C note, exception posture, and blocker accounting" {
-    const policy_note = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 24 * 1024);
+test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maintenance handoff, exception posture, and blocker accounting" {
+    const policy_note = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 32 * 1024);
     defer std.testing.allocator.free(policy_note);
 
     const review_process = try readRepoFile("Documentation/zigux/phase15-architecture-council-review-process.md", 24 * 1024);
@@ -74,7 +82,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
     const parity_scorecard = try readRepoFile("Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
     defer std.testing.allocator.free(parity_scorecard);
 
-    const manifest_json = try readRepoFile("zigux/tests/phase15_indefinite_c_policy.json", 24 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_indefinite_c_policy.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -88,7 +96,10 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqual(@as(usize, 4), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/freeze-map.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
@@ -112,6 +123,14 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
     try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "named reopen-trigger catalog item");
     try expectContains(policy_note, "trigger-specific evidence refresh");
+    try expectContains(policy_note, "## Maintenance-Mode Handoff");
+    try expectContains(policy_note, "current lane posture: `maintenance_mode`");
+    try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_policy.zig");
+    try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
+    try expectContains(policy_note, "zig build test --build-file zigux/tests/phase15_build.zig");
+    try expectContains(policy_note, "policy packet's truthfulness");
+    try expectContains(policy_note, "keep the repair inside the policy packet and its direct replays");
     try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
 
     try expectContains(review_process, "named owner for the lane");
@@ -125,7 +144,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
 
     const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 19), recordkeeping.required_terms.len);
-    try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[5]);
+    try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[3]);
     try std.testing.expectEqualStrings("required approver set", recordkeeping.required_terms[6]);
     try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", recordkeeping.required_terms[13]);
@@ -152,6 +171,15 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
     try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", reopen_catalog.required_terms[1]);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", reopen_catalog.required_terms[2]);
 
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "phase15_indefinite_c_policy.zig");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[1], "phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[2], "phase15_indefinite_c_lane_owner_alignment.zig");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[3], "phase15_build.zig");
+    try expectContains(manifest.maintenance_handoff.reopen_conditions[0], "trigger-specific evidence refresh");
+    try expectContains(manifest.maintenance_handoff.reopen_conditions[1], "parity scorecard blocker record");
+    try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "supporting-artifact route drift");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "inside the policy packet");
+
     var landed_gap_count: usize = 0;
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
@@ -160,7 +188,13 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, excep
         try std.testing.expect(gap.why_now.len > 0);
         if (std.mem.eql(u8, gap.status, "landed")) landed_gap_count += 1;
     }
-    try std.testing.expectEqual(@as(usize, 5), landed_gap_count);
+    try std.testing.expectEqual(@as(usize, 6), landed_gap_count);
+
+    const handoff_gap = findGap(manifest.gaps, "phase15-indefinite-c-maintenance-handoff") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("landed", handoff_gap.status);
+    try std.testing.expectEqualStrings("maintenance_handoff", handoff_gap.kind);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", handoff_gap.zigux_destination);
+    try expectContains(handoff_gap.why_now, "when to reopen");
 
     const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
