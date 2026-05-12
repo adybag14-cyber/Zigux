@@ -17,6 +17,7 @@ CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 DOCS_ROOT_CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
 TESTS_README_PATH = Path("zigux/tests/README.md")
+TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
 ROADMAP_ANCHORS = [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c",
@@ -169,6 +170,28 @@ def require_exact_line_count(errors: list[str], rel_path: str, text: str, marker
             )
 
 
+def require_lines_after_anchor(
+    errors: list[str],
+    rel_path: str,
+    text: str,
+    anchor_line: str,
+    expected_lines: list[str],
+    label: str,
+) -> None:
+    lines = text.splitlines()
+    anchor_count = sum(1 for line in lines if line == anchor_line)
+    if anchor_count != 1:
+        errors.append(
+            f"marker count drift in {rel_path}: {anchor_line} (expected 1, found {anchor_count})"
+        )
+        return
+
+    anchor_index = lines.index(anchor_line)
+    actual_lines = lines[anchor_index + 1 : anchor_index + 1 + len(expected_lines)]
+    if actual_lines != expected_lines:
+        errors.append(f"marker order drift in {rel_path} after anchor: {label}")
+
+
 def check_manifest(errors: list[str], root: Path) -> None:
     path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not path.exists():
@@ -245,6 +268,14 @@ def check(root: Path) -> list[str]:
         tests_readme_text,
         TESTS_README_PACKET_LINES,
     )
+    require_lines_after_anchor(
+        errors,
+        tests_readme_path.relative_to(root).as_posix(),
+        tests_readme_text,
+        TESTS_README_PACKET_ANCHOR,
+        TESTS_README_PACKET_LINES,
+        "phase14_smoke_packet_after_anchor",
+    )
 
     phase14_section = extract_section(roadmap_text, PHASE14_SECTION_HEADING)
     if phase14_section is None:
@@ -282,6 +313,7 @@ def good_tests_readme_text() -> str:
             "# zigux/tests",
             "",
             "Key entrypoints",
+            TESTS_README_PACKET_ANCHOR,
             *TESTS_README_PACKET_LINES,
             "  * `zigux/tests/phase14_ring_buffer_survey.zig`",
             "  * `zigux/tests/phase14_rcu_tree_survey.zig`",
@@ -432,6 +464,35 @@ def run_self_test() -> int:
         write_text(root / TESTS_README_PATH, good_tests_readme_text())
 
         write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "\n".join(
+                    [
+                        TESTS_README_PACKET_ANCHOR,
+                        TESTS_README_PACKET_LINES[0],
+                        TESTS_README_PACKET_LINES[1],
+                    ]
+                ),
+                "\n".join(
+                    [
+                        TESTS_README_PACKET_ANCHOR,
+                        TESTS_README_PACKET_LINES[1],
+                        TESTS_README_PACKET_LINES[0],
+                    ]
+                ),
+                1,
+            ),
+        )
+        if not any(
+            "marker order drift in zigux/tests/README.md after anchor: phase14_smoke_packet_after_anchor"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected tests-readme packet-order failure", file=sys.stderr)
+            return 1
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
             root / "Documentation/zigux/freeze-map.md",
             good_freeze_map_text().replace("- `kernel/trace/ring_buffer.c`\n", "", 1),
         )
@@ -484,7 +545,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=11")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
