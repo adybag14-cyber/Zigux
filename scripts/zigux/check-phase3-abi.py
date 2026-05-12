@@ -12,9 +12,11 @@ import tempfile
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
+    Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
@@ -239,6 +241,36 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / low_level_build_rel)
+
+        low_level_wrapper_survey_rel = Path(
+            "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+        )
+        (root / low_level_wrapper_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_low_level_wrapper_survey_missing = (
+            f"missing repo file: {low_level_wrapper_survey_rel.as_posix()}"
+        )
+        if expected_low_level_wrapper_survey_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing low-level-wrapper survey note was not reported")
+            return 1
+        case_count += 1
+        _write(root / low_level_wrapper_survey_rel)
+
+        header_governance_rel = Path(
+            "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+        )
+        (root / header_governance_rel).unlink()
+        issues = validate_repo(root)
+        expected_header_governance_missing = (
+            f"missing repo file: {header_governance_rel.as_posix()}"
+        )
+        if expected_header_governance_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing Linux-facing header governance note was not reported")
+            return 1
+        case_count += 1
+        _write(root / header_governance_rel)
 
         validator_support_note_rel = Path(
             "Documentation/zigux/phase3-validator-support-surface.md"
