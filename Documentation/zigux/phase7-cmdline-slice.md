@@ -70,6 +70,7 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 5. keep the shared Phase 7 helper gate explicit
 
 * `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+* `make -C zigux phase7-test`
 * `make -C zigux phase7`
 
 ## Current parity surface
