@@ -50,12 +50,14 @@ ABI_SLICE_LINES = (
     f"`{EXPORT_SHIM.as_posix()}`",
     f"`{UAPI_VERSION.as_posix()}`",
     f"`{UAPI_DEV_T.as_posix()}`",
+    f"`{ABI_DUMP.as_posix()}`",
 )
 ABI_NEXT_STEP_LINES = (
     f"`{SURVEY.as_posix()}`",
     f"`{EXPORT_SHIM.as_posix()}`",
     f"`{UAPI_VERSION.as_posix()}`",
     f"`{UAPI_DEV_T.as_posix()}`",
+    f"`{ABI_DUMP.as_posix()}`",
     f"`{VALIDATOR.as_posix()}`",
 )
 FORBIDDEN_SURVEY_MARKERS = (
@@ -388,6 +390,7 @@ def build_valid_workspace(root: Path) -> None:
         f"- `{EXPORT_SHIM.as_posix()}`",
         f"- `{UAPI_VERSION.as_posix()}`",
         f"- `{UAPI_DEV_T.as_posix()}`",
+        f"- `{ABI_DUMP.as_posix()}`",
         "",
     )))
     write(root / ABI_NEXT_STEP, "\n".join((
@@ -395,6 +398,7 @@ def build_valid_workspace(root: Path) -> None:
         f"- `{EXPORT_SHIM.as_posix()}`",
         f"- `{UAPI_VERSION.as_posix()}`",
         f"- `{UAPI_DEV_T.as_posix()}`",
+        f"- `{ABI_DUMP.as_posix()}`",
         f"- `{VALIDATOR.as_posix()}`",
         "",
     )))
@@ -465,12 +469,30 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(root / ABI_SLICE, (root / ABI_SLICE).read_text(encoding="utf-8").replace(
+            f"`{ABI_DUMP.as_posix()}`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_abi_slice_marker:`{ABI_DUMP.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / ABI_NEXT_STEP, (root / ABI_NEXT_STEP).read_text(encoding="utf-8").replace(
             f"`{VALIDATOR.as_posix()}`",
             "`broken`",
             1,
         ))
         assert validate(root) == [f"missing_abi_next_step_marker:`{VALIDATOR.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / ABI_NEXT_STEP, (root / ABI_NEXT_STEP).read_text(encoding="utf-8").replace(
+            f"`{ABI_DUMP.as_posix()}`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_abi_next_step_marker:`{ABI_DUMP.as_posix()}`"]
         build_valid_workspace(root)
         case_count += 1
 
