@@ -21,6 +21,7 @@ PHASE2_ARTIFACT_TOOLS_MANIFEST = (
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_MAKEFILE = ROOT / "zigux" / "Makefile"
 PHASE2_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+FIXDEP_CASES = ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json"
 KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
 KCONFIG_BRIDGE_CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 KCONFIG_BRIDGE_CONFDATA_MANIFEST = (
@@ -35,6 +36,7 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
+    "the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract",
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
@@ -88,6 +90,19 @@ PHASE2_VALIDATOR_MARKERS = [
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18",
     "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
 ]
+
+EXPECTED_FIXDEP_CASES = (
+    {"name": "sample"},
+    {"name": "sample_multi_target"},
+    {"name": "sample_escaped_space"},
+    {"name": "sample_escaped_colon"},
+    {"name": "sample_concatenated"},
+    {"name": "sample_comment_only"},
+    {"name": "sample_comment_only_stdout_full", "stdout_mode": "dev_full"},
+    {"name": "sample_missing_dep"},
+    {"name": "sample_missing_dep_stdout_full", "stdout_mode": "dev_full"},
+    {"name": "sample_output_write", "stdout_mode": "dev_full"},
+)
 
 EXPECTED_CONF_CASES = (
     {
@@ -397,6 +412,49 @@ def load_json_object(path: Path, label: str) -> tuple[dict[str, object] | None, 
     return payload, []
 
 
+def load_json_list(path: Path, label: str) -> tuple[list[object] | None, list[str]]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        return None, [f"{label}:read_error:{exc}"]
+    except json.JSONDecodeError as exc:
+        return None, [f"{label}:invalid_json:{exc.msg}"]
+    if not isinstance(payload, list):
+        return None, [f"{label}:expected_list"]
+    return payload, []
+
+
+def validate_fixdep_cases(payload: list[object]) -> list[str]:
+    issues: list[str] = []
+    expected_count = len(EXPECTED_FIXDEP_CASES)
+    if len(payload) != expected_count:
+        issues.append(f"fixdep_cases:count={len(payload)}:expected={expected_count}")
+
+    for index, expected_case in enumerate(EXPECTED_FIXDEP_CASES):
+        if index >= len(payload):
+            break
+        case = payload[index]
+        if not isinstance(case, dict):
+            issues.append(f"fixdep_cases[{index}]:expected_object")
+            continue
+        case_name = expected_case["name"]
+        for field_name, expected_value in expected_case.items():
+            actual_value = case.get(field_name)
+            if actual_value != expected_value:
+                issues.append(
+                    f"fixdep_cases:{case_name}:{field_name}:expected={expected_value}:actual={actual_value}"
+                )
+
+    if len(payload) > expected_count:
+        for case in payload[expected_count:]:
+            if isinstance(case, dict):
+                extra_name = case.get("name", "<missing>")
+            else:
+                extra_name = "<non_object>"
+            issues.append(f"fixdep_cases:unexpected_extra:{extra_name}")
+    return issues
+
+
 def validate_case_list(
     payload: dict[str, object],
     *,
@@ -490,6 +548,38 @@ def run_self_test_checks() -> list[str]:
                 "phase2_validation_commands",
             ),
             ["phase2_validation_commands:missing:scripts/zigux/validate-phase2.py"],
+        ),
+        (
+            "fixdep_cases_ok",
+            validate_fixdep_cases([dict(case) for case in EXPECTED_FIXDEP_CASES]),
+            [],
+        ),
+        (
+            "fixdep_cases_missing_dev_full",
+            validate_fixdep_cases(
+                [
+                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[:6]],
+                    {"name": "sample_comment_only_stdout_full"},
+                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[7:]],
+                ]
+            ),
+            ["fixdep_cases:sample_comment_only_stdout_full:stdout_mode:expected=dev_full:actual=None"],
+        ),
+        (
+            "fixdep_cases_missing_closure_marker",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker
+                    != "the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [
+                "phase2_closure:missing:the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract"
+            ],
         ),
         (
             "conf_cases_ok",
@@ -883,6 +973,7 @@ def main() -> int:
         PHASE2_CLOSURE_DOC,
         PHASE2_MAKEFILE,
         PHASE2_WORKFLOW,
+        FIXDEP_CASES,
         KCONFIG_BRIDGE_CASES,
         KCONFIG_BRIDGE_CONF_MANIFEST,
         KCONFIG_BRIDGE_CONFDATA_MANIFEST,
@@ -909,6 +1000,11 @@ def main() -> int:
             "phase2_validator",
         )
     )
+
+    fixdep_cases_payload, fixdep_cases_load_issues = load_json_list(FIXDEP_CASES, "fixdep_cases")
+    issues.extend(fixdep_cases_load_issues)
+    if fixdep_cases_payload is not None:
+        issues.extend(validate_fixdep_cases(fixdep_cases_payload))
 
     cases_payload, cases_load_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
     issues.extend(cases_load_issues)
@@ -958,7 +1054,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=28")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=31")
         return 0
 
     if issues:
