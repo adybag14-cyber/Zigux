@@ -82,9 +82,15 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
     "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
+]
+
+SCRIPTS_README_FORBIDDEN_MARKERS = [
+    "`Documentation/zigux/phase12-nvme-pci-slice.md`",
+    "`Documentation/zigux/phase12-nvme-pci-survey.md`",
 ]
 
 TESTS_README_MARKERS = [
@@ -240,6 +246,12 @@ def ensure_contains(failures: list[str], label: str, text: str, markers: list[st
             failures.append(f"{label}:{marker}")
 
 
+def ensure_absent(failures: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            failures.append(f"{label}_unexpected:{marker}")
+
+
 def ensure_exact_counts(
     failures: list[str], label: str, text: str, expected_counts: dict[str, int]
 ) -> None:
@@ -300,6 +312,13 @@ def validate(root: Path) -> list[str]:
     ]
     for label, rel_path, markers in checks:
         ensure_contains(failures, label, read_text(root, rel_path), markers)
+
+    ensure_absent(
+        failures,
+        "scripts_readme",
+        read_text(root, SCRIPTS_README_PATH),
+        SCRIPTS_README_FORBIDDEN_MARKERS,
+    )
 
     ensure_exact_counts(
         failures,
@@ -508,6 +527,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        scripts_readme_path = base / SCRIPTS_README_PATH
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8")
+            + f"\n{SCRIPTS_README_FORBIDDEN_MARKERS[0]}\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"scripts_readme_unexpected:{SCRIPTS_README_FORBIDDEN_MARKERS[0]}",
+        )
+
+        write_fixture_tree(base)
         lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
@@ -551,7 +582,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=5")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -593,6 +624,7 @@ def main() -> int:
     marker_count = (
         len(REQUIRED_FILES)
         + len(SCRIPTS_README_MARKERS)
+        + len(SCRIPTS_README_FORBIDDEN_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(RELEASE_READINESS_SURVEY_MARKERS)
         + len(RELEASE_SEQUENCING_MARKERS)
