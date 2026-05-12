@@ -92,8 +92,8 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
     ),
     EXEC_CMD_SOURCE_PATH: (
-        "pub fn planDeferredExecvCall(",
-        "pub fn planDeferredExeclCall(",
+        "pub fn buildDeferredExecvCall(",
+        "pub fn buildDeferredExeclCall(",
     ),
     EXEC_CMD_C_PATH: (
         "int execv_cmd",
@@ -181,7 +181,7 @@ def run_self_test() -> int:
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
-            (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
