@@ -61,13 +61,21 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle, while the preserved grouped-ASCII ceiling rationale stays anchored in `Documentation/zigux/phase6-hexdump-perf-refresh.md` under the same helper-owned review packet
 
 ## Shared Routes
-- `make -C zigux phase6-base64-c-parity`
+
+### Reviewable on current `master`
 - `make -C zigux phase6-bsearch-test`
-- `make -C zigux phase6-checksum-c-parity`
 - `make -C zigux phase6-hexdump-test`
-- `make -C zigux phase6-validate`
-- `make -C zigux phase6`
+- `make -C zigux phase6-hexdump-review`
+- `make -C zigux phase6-hexdump-perf`
+
+### Still present in shared route surfaces but currently blocked or documentary
+- `make -C zigux phase6-base64-c-parity`
+- `make -C zigux phase6-checksum-c-parity`
 - `make -C zigux phase6-base64-perf`
 - `make -C zigux phase6-checksum-perf`
-- `make -C zigux phase6-hexdump-perf`
 - `make -C zigux phase6-perf`
+- `make -C zigux phase6-validate`
+- `make -C zigux phase6`
+- current blocked-route posture: the slice notes above keep the base64 and checksum direct C parity routes as reviewable scaffolding only, not truthful complete replay routes, because the focused helper-owned fixture and replay files they still import are absent on current `master`
+- current perf-route posture: the shared perf survey above keeps the base64 and checksum slowdown routes documentary until their missing helper-owned replay files return, so the aggregate `phase6-perf` route should be read as inventory evidence rather than a truthful current-`master` replay summary
+- current shared-lane posture: the broader `phase6-validate` and `phase6` wrappers remain part of the shared route inventory, but the blocked base64 and checksum helper-local packet gaps mean reviewers should cross-check the slice notes and perf survey before treating those aggregate wrappers as runnable packet summaries
