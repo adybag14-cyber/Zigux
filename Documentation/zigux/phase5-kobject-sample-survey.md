@@ -88,7 +88,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - `runOwnershipReplay()` keeps the init/register/exit counter progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1` across those same lifecycle snapshots
 - initialized-only `exit()` reports `abandoned_before_registration` before attributes are registered
 - storing `42` into `foo` renders back as `42\n`
-- `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
+- sample-owned `runInputValidationReplay()` keeps `baz` and `bar` on the same show and store path while rendering `9\n` and `10\n` through their own attribute names after the replay stores those exact values
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
 - `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-`exit()` show-or-store, second-`exit()`, and anchor-replay rejection explicit
 
@@ -111,7 +111,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do the manifest prompts and exact checks still keep initialized-only `exit()` reporting `abandoned_before_registration` and registered `exit()` reporting `tore_down_registered_attributes`?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
 - if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
-- do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
+- do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and module registration remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
 
