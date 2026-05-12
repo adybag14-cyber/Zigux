@@ -132,6 +132,89 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared CI perf promotion") != null);
 }
 
+test "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable" {
+    const parsed = try std.json.parseFromSlice(
+        Manifest,
+        std.testing.allocator,
+        @embedFile("phase4_runtime_atomic64_diff_manifest.json"),
+        .{},
+    );
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "gate-evidence surfaces again") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.roadmap_gap_summary, "self-referential gate-evidence blob pin") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.roadmap_gap_summary, "approved local benchmark commands") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.roadmap_gap_summary, "approved local-only acceptable limits") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.roadmap_gap_summary, "broader sample follow-ups remain intentionally open") != null,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared CI perf promotion") != null);
+}
+
+test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit" {
+    const parsed = try std.json.parseFromSlice(
+        Manifest,
+        std.testing.allocator,
+        @embedFile("phase4_runtime_atomic64_diff_manifest.json"),
+        .{},
+    );
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/atomic64_diff.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/runtime_atomic64_diff.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/review-checklist.md") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-validation-matrix.md") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_manifest.json") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null,
+    );
+
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-gate-evidence.md") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_perf_baseline_manifest.json") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_perf_baseline_survey.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null,
+    );
+}
+
 test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper" {
     const gate_evidence_source = try readRepoFile(
         std.testing.allocator,
