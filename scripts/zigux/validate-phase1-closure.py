@@ -668,8 +668,21 @@ def run_self_test() -> None:
         assert any(item.startswith("phase1_validator_failed:") for item in collect_missing_markers(root))
         case_count += 1
 
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
+        for label, marker, _ in [
+            REQUIRED_CLOSURE_MARKERS[12],
+            REQUIRED_CLOSURE_MARKERS[13],
+            REQUIRED_CLOSURE_MARKERS[14],
+            REQUIRED_CLOSURE_MARKERS[17],
+            REQUIRED_CLOSURE_MARKERS[19],
+            REQUIRED_CLOSURE_MARKERS[20],
+            REQUIRED_CLOSURE_MARKERS[24],
+            REQUIRED_CLOSURE_MARKERS[26],
+        ]:
+            def mutate_closure(marker=marker):
+                closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
+
+        print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
+        print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
