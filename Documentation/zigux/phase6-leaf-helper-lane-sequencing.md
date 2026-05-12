@@ -51,6 +51,7 @@ Keep helper-local work under:
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - the `bsearch` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
