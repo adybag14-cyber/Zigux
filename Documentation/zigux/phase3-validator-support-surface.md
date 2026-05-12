@@ -27,6 +27,7 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/run-phase3-checks.py`
 - `Documentation/zigux/phase3-abi-slice.md`
 - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+- `Documentation/zigux/phase3-kernel-export-shim-governance.md`
 - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
 - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
 - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
@@ -56,7 +57,8 @@ Phase 3 ABI and runtime tranche.
   and `run-phase3-checks.py` as shipped helper entrypoints on current `master`,
   not as historical-only references
 - keep `Documentation/zigux/phase3-validator-support-surface.md` paired with
-  `scripts/zigux/validate-phase3-validator-support-surface.py` and
+  `scripts/zigux/validate-phase3-validator-support-surface.py`,
+  `Documentation/zigux/phase3-kernel-export-shim-governance.md`, and
   `Documentation/zigux/phase3-abi-h-boundary-next-step.md` so the shipped
   validator-support inventory and the broad next-step reminder policy fail
   closed together when either note drifts
@@ -75,10 +77,12 @@ Phase 3 ABI and runtime tranche.
 Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/validate-phase3-validator-support-surface.py`,
+`Documentation/zigux/phase3-kernel-export-shim-governance.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `zigux/uapi/dev_t.zig`, and `zigux/bindings/abi.zig`; adjacent
 header-family and checklist reminders can keep
-`Documentation/zigux/phase3-abi-h-boundary-next-step.md` and
+`Documentation/zigux/phase3-kernel-export-shim-governance.md`,
+`Documentation/zigux/phase3-abi-h-boundary-next-step.md`, and
 `zigux/uapi/dev_t.zig` explicit without restating this validator-support note
 so the shipped support helpers do not get restated as missing historical-only
 entrypoints.
