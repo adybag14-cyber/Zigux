@@ -2,7 +2,7 @@
   "phase": "Phase 10",
   "status": "active",
   "tranche": "virtio-lab-bundle",
-  "doc_count": 12,
+  "doc_count": 7,
   "manifest_count": 4,
   "driver_count": 4,
   "test_count": 16,
@@ -252,14 +252,9 @@
   "docs": [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-    "Documentation/zigux/phase10-virtio-core-slice.md",
     "Documentation/zigux/phase10-virtio-core-survey.md",
-    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
-    "Documentation/zigux/phase10-virtio-input-slice.md",
-    "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
-    "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
   ],
