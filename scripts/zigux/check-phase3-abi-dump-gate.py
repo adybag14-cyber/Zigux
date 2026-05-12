@@ -79,7 +79,7 @@ WORKFLOW_MARKERS = (
 REQUIRED_REPLAY_STRUCT_MARKERS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_BUDGET_VIEW",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
 )
 
@@ -286,7 +286,6 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         broken = root / TESTS_README_PATH
-        broken.writeText = None
         broken.write_text(
             _read(broken).replace("zigux/tests/phase3_abi_dump.zig\n", "", 1),
             encoding="utf-8",
@@ -428,7 +427,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected = (
             "missing harness struct marker: "
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view"
+            "chrdev_notify_ack_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW"
         )
         if expected not in issues:
             print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
