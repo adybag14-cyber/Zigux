@@ -82,6 +82,7 @@ REQUIRED_MARKERS = {
     EXEC_CMD_SLICE_PATH: (
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         "helper-first, output-stable deferred-exec planning",
+        "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers",
         "make -C zigux phase8-validate",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
@@ -178,6 +179,7 @@ def run_self_test() -> int:
             (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
+            (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
         )
