@@ -76,6 +76,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/validate-phase2.py": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+    "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
 }
@@ -642,6 +644,8 @@ def run_self_test_checks() -> list[str]:
             validate_exact_lines(
                 "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n",
                 PHASE2_WORKFLOW_RUN_COUNTS,
@@ -649,6 +653,22 @@ def run_self_test_checks() -> list[str]:
             ),
             [
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=0:expected=1"
+            ],
+        ),
+        (
+            "workflow_genksyms_bridge_selftest_missing",
+            validate_exact_lines(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n",
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=0:expected=1"
             ],
         ),
         (
@@ -815,7 +835,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=16")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=17")
         return 0
 
     if issues:
