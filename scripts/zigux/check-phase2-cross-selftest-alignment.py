@@ -16,6 +16,7 @@ CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
 EXPECTED_TARGETS = [
@@ -87,6 +88,12 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "make -C zigux phase2-cross",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
 ]
 
 
@@ -261,6 +268,25 @@ def run_self_test() -> int:
     if tests_readme_missing != [expected_tests_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
 
+    review_checklist_issues = validate_required_markers(
+        "\n".join(REVIEW_CHECKLIST_MARKERS),
+        label="phase2_review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if review_checklist_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_presence")
+
+    review_checklist_missing = validate_required_markers(
+        "\n".join(REVIEW_CHECKLIST_MARKERS[:-1]),
+        label="phase2_review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    expected_review_checklist_issue = (
+        "phase2_review_checklist:missing_marker:zigux/tests/fixtures/phase2_cross_targets.json"
+    )
+    if review_checklist_missing != [expected_review_checklist_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
+
     closure_missing = validate_required_markers(
         "\n".join(CLOSURE_MARKERS[:2] + CLOSURE_MARKERS[3:]),
         label="phase2_closure_doc",
@@ -282,7 +308,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -305,6 +331,7 @@ def main() -> int:
         BOOTSTRAP_NOTES,
         SCRIPTS_README,
         TESTS_README,
+        REVIEW_CHECKLIST,
         TARGETS_MANIFEST,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -361,6 +388,13 @@ def main() -> int:
             TESTS_README.read_text(encoding="utf-8"),
             label="phase2_tests_readme",
             markers=TESTS_README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            REVIEW_CHECKLIST.read_text(encoding="utf-8"),
+            label="phase2_review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(workflow_text))
