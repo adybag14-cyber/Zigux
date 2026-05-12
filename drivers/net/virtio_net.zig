@@ -233,3 +233,98 @@ pub const VirtioNetProbeLab = struct {
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
     }
 };
+
+test "captureProbeSnapshot clamps queue pairs to device capacity" {
+    var lab = VirtioNetProbeLab.init();
+    const snapshot = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 8,
+        .device_queue_pairs = 4,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", snapshot.anchor);
+    try std.testing.expectEqual(@as(u16, 4), snapshot.effective_queue_pairs);
+    try std.testing.expectEqual(QueueFallbackReason.negotiated_pair_cap, snapshot.fallback_reason);
+    try std.testing.expect(snapshot.control_vq_present);
+    try std.testing.expect(snapshot.rss_enabled);
+    try std.testing.expectEqual(HeaderShape.hash_report, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, default_headroom_bytes), snapshot.hdr_len_bytes);
+    try std.testing.expectEqual(snapshot, lab.last_probe_snapshot.?);
+}
+
+test "summarizeQueueTopology lays out rx tx and control queues for multiqueue" {
+    var lab = VirtioNetProbeLab.init();
+    const summary = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 8,
+        .device_queue_pairs = 4,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+
+    try std.testing.expectEqual(@as(u16, 4), summary.receive_queue_count);
+    try std.testing.expectEqual(@as(u16, 4), summary.transmit_queue_count);
+    try std.testing.expectEqual(@as(u16, 4), summary.first_transmit_queue_index);
+    try std.testing.expectEqual(@as(?u16, 8), summary.first_control_queue_index);
+    try std.testing.expectEqual(@as(u16, 9), summary.total_queue_count);
+    try std.testing.expect(summary.multi_queue);
+    try std.testing.expect(summary.rss_enabled);
+    try std.testing.expectEqual(summary, lab.last_queue_topology_summary.?);
+}
+
+test "summarizeQueueTopology keeps rss off when fallback collapses to one pair" {
+    var lab = VirtioNetProbeLab.init();
+    const summary = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 0,
+        .has_control_vq = false,
+        .has_rss = true,
+    });
+
+    try std.testing.expectEqual(@as(u16, default_queue_pairs), summary.effective_queue_pairs);
+    try std.testing.expectEqual(QueueFallbackReason.device_single_queue, summary.fallback_reason);
+    try std.testing.expectEqual(@as(u16, 2), summary.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), summary.first_control_queue_index);
+    try std.testing.expect(!summary.multi_queue);
+    try std.testing.expect(!summary.rss_enabled);
+}
+
+test "planMergeableReceiveBuffer reuses existing room when available" {
+    var lab = VirtioNetProbeLab.init();
+    const plan = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 1500,
+        .existing_room_bytes = 2048,
+    });
+
+    try std.testing.expectEqual(ReceiveBufferMode.recycled_room, plan.buffer_mode);
+    try std.testing.expect(plan.reuses_existing_room);
+    try std.testing.expect(plan.fits_single_page);
+    try std.testing.expectEqual(@as(u16, 1), plan.required_buffers);
+    try std.testing.expectEqual(plan, lab.last_mergeable_plan.?);
+}
+
+test "planMergeableReceiveBuffer uses mergeable path for multi page packets" {
+    var lab = VirtioNetProbeLab.init();
+    const plan = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 5000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    try std.testing.expectEqual(ReceiveBufferMode.mergeable, plan.buffer_mode);
+    try std.testing.expectEqual(BigPacketReason.exceeds_single_buffer, plan.big_packet_reason);
+    try std.testing.expectEqual(@as(u32, 5064), plan.total_bytes);
+    try std.testing.expectEqual(@as(u16, 2), plan.required_buffers);
+    try std.testing.expect(!plan.reuses_existing_room);
+    try std.testing.expect(!plan.fits_single_page);
+    try std.testing.expect(plan.uses_mergeable_path);
+}
+
+test "planMergeableReceiveBuffer rejects big packets without mergeable support" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.MergeableReceiveBuffersRequired, lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 5000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = false,
+    }));
+}
