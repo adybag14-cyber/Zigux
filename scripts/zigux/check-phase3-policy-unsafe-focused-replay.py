@@ -71,7 +71,7 @@ def forbid_markers(path: Path, markers: tuple[str, ...]) -> None:
             raise CheckFailure(f"stale_marker:{path.as_posix()}:{marker}")
 
 
- def check_repo_root(repo_root: Path) -> None:
+def check_repo_root(repo_root: Path) -> None:
     require_markers(repo_root / SURVEY_REL, SURVEY_REQUIRED)
     require_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_REQUIRED)
     forbid_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_FORBIDDEN)
