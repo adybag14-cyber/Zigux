@@ -1,0 +1,70 @@
+{
+  "lane_key": "P13-L01",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-12",
+  "anchor": "fs/libfs.c",
+  "roadmap_destinations": [
+    "fs/libfs.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "current_phase13_build_present": false,
+    "current_libfs_zig_present": true,
+    "current_phase13_libfs_test_present": true,
+    "current_phase13_libfs_reviewability_present": true,
+    "current_phase13_libfs_survey_present": true,
+    "current_phase13_libfs_manifest_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-libfs-helper-starter",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, simple transaction release, and offset-based directory planning."
+    },
+    {
+      "id": "phase13-libfs-offset-rename-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "Current master ships helper-only offset-based rename planning that keeps reserved dot-window and end-of-directory slots explicit without mutating live directory maps."
+    },
+    {
+      "id": "phase13-libfs-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
+      "why_now": "A dedicated reviewability replay keeps the current libfs helper surface explicit, including the rename planners that were already landed in fs/libfs.zig."
+    },
+    {
+      "id": "phase13-libfs-survey-note",
+      "status": "starter_landed",
+      "kind": "survey",
+      "zigux_destination": "Documentation/zigux/phase13-libfs-survey.md",
+      "why_now": "The libfs roadmap anchor needs one packet-local survey note that records the current helper-first filesystem boundary without widening into other Phase 13 workstreams."
+    },
+    {
+      "id": "phase13-build-gate",
+      "status": "blocked_on_shared_build_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "Current master does not materialize the older shared Phase 13 build packet, so the libfs lane still relies on direct helper-local replays instead of claiming the missing wider build surface is present."
+    },
+    {
+      "id": "phase13-libfs-live-dcache-mutation",
+      "status": "blocked_on_dcache_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The current helper packet does not perform live dcache entry insertion, negative-dentry installation side effects, or dentry-map mutation; it stays at reviewable planning only."
+    },
+    {
+      "id": "phase13-libfs-live-inode-state",
+      "status": "blocked_on_inode_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The current helper packet does not drive live inode lifetime, inode lock ordering, or page-cache-backed filesystem state; it stays on helper-only directory and transaction planning."
+    }
+  ]
+}
