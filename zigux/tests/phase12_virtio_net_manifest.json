@@ -25,26 +25,26 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "starter_present_runtime_data_path_blocked",
-      "current_surface": "Current master carries a bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, and queue-reset recovery planning, but it still stops before live DMA-safe receive ownership, page-pool wiring, refill loops, or transport-backed submit flow.",
+      "current_surface": "Current master carries a bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, and queue-reset recovery planning, but it still stops before live DMA-safe receive ownership, page-pool wiring, refill loops, or transport-backed submit flow.",
       "blocked_by": "DMA-safe receive ownership, refill execution, and runtime transport coordination still need later queue and lifecycle helpers beyond the current in-memory summaries."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_queue_summary_recovery_and_refill_present_direct_gate_present_shared_smoke_present",
-      "current_surface": "The driver-local starter, bounded queue-topology summary, bounded receive-refill summary, bounded queue-reset recovery planner, direct test, dedicated survey gate, dedicated syntax lab, and shared `phase12_build.zig` syntax-smoke route are all present on current master.",
-      "blocked_by": "Control-queue sequencing and runtime queue execution still need later follow-up packets before broader queueing correctness can be treated as landed."
+      "status": "starter_queue_summary_control_queue_recovery_and_refill_present_direct_gate_present_shared_smoke_present",
+      "current_surface": "The driver-local starter, bounded queue-topology summary, bounded receive-refill summary, bounded control-queue recovery planner, bounded queue-reset recovery planner, direct test, dedicated survey gate, dedicated syntax lab, and shared `phase12_build.zig` syntax-smoke route are all present on current master.",
+      "blocked_by": "Control-queue payload shaping and runtime queue execution still need later follow-up packets before broader queueing correctness can be treated as landed."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
-      "status": "starter_recovery_and_refill_summary_present_throughput_gate_missing",
-      "current_surface": "The current starter now proves bounded probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, and queue-reset recovery planning that remembers the last queue placement and refill expectations.",
+      "status": "starter_control_queue_recovery_and_refill_summary_present_throughput_gate_missing",
+      "current_surface": "The current starter now proves bounded probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, and queue-reset recovery planning that remembers the last queue placement and refill expectations.",
       "blocked_by": "Throughput parity, post-restore replay, and live queue execution remain outside the current starter."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "starter_queue_summary_recovery_and_refill_direct_lab_present_shared_route_present",
-      "current_surface": "The survey note, survey gate, driver-local starter, direct test, dedicated syntax lab, queue-topology follow-up, queue-reset recovery planner, refill-order follow-up, and shared Phase 12 smoke route are present on current master.",
-      "blocked_by": "A later follow-up still needs control-queue sequencing before this packet can widen into the broader complex-driver validation bundle."
+      "status": "starter_queue_summary_control_queue_recovery_and_refill_direct_lab_present_shared_route_present",
+      "current_surface": "The survey note, survey gate, driver-local starter, direct test, dedicated syntax lab, queue-topology follow-up, control-queue recovery follow-up, queue-reset recovery planner, refill-order follow-up, and shared Phase 12 smoke route are present on current master.",
+      "blocked_by": "A later follow-up still needs control-queue payload shaping before this packet can widen into the broader complex-driver validation bundle."
     }
   },
   "gaps": [
@@ -67,21 +67,21 @@
       "status": "survey_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The dedicated survey gate keeps the bounded starter, queue-topology follow-up, queue-recovery planner, refill-order follow-up, syntax-lab presence, and blocked runtime-data-path boundary explicit."
+      "why_now": "The dedicated survey gate keeps the bounded starter, queue-topology follow-up, control-queue recovery follow-up, queue-recovery planner, refill-order follow-up, syntax-lab presence, and blocked runtime-data-path boundary explicit."
     },
     {
       "id": "phase12-virtio-net-survey-note",
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The survey note records the same bounded queue-topology follow-up, queue-recovery starter, refill-order follow-up, and still-blocked runtime boundary."
+      "why_now": "The survey note records the same bounded queue-topology follow-up, control-queue recovery follow-up, queue-recovery starter, refill-order follow-up, and still-blocked runtime boundary."
     },
     {
       "id": "phase12-virtio-net-syntax-lab-gate",
       "status": "starter_landed_and_shared_smoke_wired",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_syntax_lab.zig",
-      "why_now": "The dedicated syntax lab keeps the driver-local starter, queue-topology follow-up, queue-recovery planner, and refill-order follow-up reachable and is wired into the shared Phase 12 smoke route."
+      "why_now": "The dedicated syntax lab keeps the driver-local starter, queue-topology follow-up, control-queue recovery follow-up, queue-recovery planner, and refill-order follow-up reachable and is wired into the shared Phase 12 smoke route."
     },
     {
       "id": "phase12-virtio-net-mergeable-receive-buffer-starter",
@@ -98,11 +98,18 @@
       "why_now": "Current master now carries a bounded queue-topology summary that keeps receive and transmit pair counts plus optional control-virtqueue placement reviewable without claiming runtime traffic."
     },
     {
+      "id": "phase12-virtio-net-control-queue-followup",
+      "status": "landed_on_master",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "Current master now carries a bounded control-queue recovery planner that keeps restore ordering, receive-mode sync, hash-report restore, and optional MAC, VLAN, and RSS resync reviewable without claiming runtime control-virtqueue traffic."
+    },
+    {
       "id": "phase12-virtio-net-queue-recovery-followup",
       "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The bounded queue-recovery follow-up now remembers the last queue-topology summary and receive-buffer refill cues across `freezeForReset()`, `recoveryQueuePlan()`, and `restoreAfterReset()` without claiming live transport execution."
+      "why_now": "The bounded queue-recovery follow-up now remembers the last queue-topology summary and receive-buffer refill cues across `freezeForReset()`, `controlQueueRecoveryPlan()`, `recoveryQueuePlan()`, and `restoreAfterReset()` without claiming live transport execution."
     },
     {
       "id": "phase12-virtio-net-refill-order-followup",
