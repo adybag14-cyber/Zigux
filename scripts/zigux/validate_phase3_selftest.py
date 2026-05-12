@@ -314,7 +314,7 @@ def run_self_test() -> int:
             print("expected missing makefile self-test command was not reported")
             return 1
 
-        (root / MAKEFILE_PATH).writeText(
+        (root / MAKEFILE_PATH).write_text(
             _synthetic_makefile_text(),
             encoding="utf-8",
         )
