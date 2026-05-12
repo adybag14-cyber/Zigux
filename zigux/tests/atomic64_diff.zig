@@ -220,9 +220,15 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         "\"phase4_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\"",
     );
     try expectNoMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_gate_evidence_blob_sha\": ");
-    try expectMarker(
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+    try expectManifestContainsGitBlobSha(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_review_checklist_blob_sha\": \"95ee9e5c37bd8469049f6cee61935ab43d5165e2\"",
+        "phase4_review_checklist_blob_sha",
+        review_checklist_source,
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
