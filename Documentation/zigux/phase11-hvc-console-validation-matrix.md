@@ -5,7 +5,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 ## Status
 
 - `PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`
-- lane: `P11-L16`
+- lane: `P11-L13`
 - reviewed against live `master`
 - archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 - scope: keep the current archived HVC packet honest about what is already reviewable, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
