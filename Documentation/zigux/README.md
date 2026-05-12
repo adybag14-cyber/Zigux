@@ -49,6 +49,7 @@ The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, 
 Phase 3 notes
 - `Documentation/zigux/phase3-abi-slice.md`
 - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+- `Documentation/zigux/phase3-kernel-export-shim-governance.md`
 - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
 - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
 - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
@@ -77,7 +78,7 @@ Phase 3 notes
 - `scripts/zigux/run-phase3-checks.py`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
-- `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the dedicated substrate owner map, the policy-and-unsafe survey, the dedicated policy-byte guard, the low-level-wrapper survey, the export/UAPI boundary survey, the dedicated Linux `zigux.h` header-governance note, the dedicated ABI header-family survey, the dedicated `abi.h` next-step note, the dedicated validator-support surface note, its validator, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.
+- `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the dedicated substrate owner map, the dedicated kernel export-shim governance note, the policy-and-unsafe survey, the dedicated policy-byte guard, the low-level-wrapper survey, the export/UAPI boundary survey, the dedicated Linux `zigux.h` header-governance note, the dedicated ABI header-family survey, the dedicated `abi.h` next-step note, the dedicated validator-support surface note, its validator, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.
 - `python3 scripts/zigux/phase3_catalog.py --self-test` stays available as an opt-in support-script safety check without duplicating the default `phase3-validate` route.
 - the current bounded Phase 3 decision is no longer whether this lane still needs broad allocator, panic, atomic, barrier, MMIO, or unsafe expansion; the live packet is the shared ABI substrate already kept reviewable through those shared gates, so future follow-up here should stay inside the smallest note, manifest, checker, or validator alignment step unless a real boundary helper surface moves.
 Phase 5 notes
