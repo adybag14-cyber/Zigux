@@ -25,29 +25,36 @@ Shared surfaces to keep aligned:
 Keep the bounded virtio packet explicit through:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- `Documentation/zigux/phase10-virtio-core-slice.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
-- `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `Documentation/zigux/phase10-virtio-input-slice.md`
-- `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
-- `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
+- `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/validate-phase10.py`
+- `scripts/zigux/validate-phase10-closure.py`
+- `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_build.zig`
 - `zigux/Makefile`
+- `make -C zigux phase10-validate`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
 Contributor reminder:
 - keep the blocked risky-transport posture explicit
-- keep the allowed `drivers/virtio/*.zig` destination family explicit
-- treat Phase 5 reference samples and Phase 9 runtime starters as adjacent evidence, not extra Phase 10 closure proof
+- keep the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family explicit
+- keep the parked `P10-L10` freeze-boundary owner and rollback-owner note explicit around `Documentation/zigux/freeze-map.md` plus `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- keep Phase 5 reference samples and Phase 9 runtime starters as adjacent evidence, not extra Phase 10 closure proof
+- keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit
+- keep the missing slice-note companions `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps instead of shipped current-`master` evidence
 
 ## Phase 11 contributor packet
 
