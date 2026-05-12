@@ -23,6 +23,8 @@ The scorecard now also carries the same phase, status-bucket, required-approver-
 
 The paired freeze-map governance gate now cross-checks this scorecard's dated readback marker plus the active-freeze and blocked-anchor aggregate counts against the live freeze-map manifest, so the metrics below are reviewable governance accounting rather than note-only summary prose.
 
+That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
+
 ## Aggregate Metrics
 
 - active freeze-in-C anchor count: `4`
@@ -32,6 +34,12 @@ The paired freeze-map governance gate now cross-checks this scorecard's dated re
 - anchors still blocked on prior-phase bridge evidence: `2`
 - study-only anchors tracked outside this scorecard: `2`
 - Architecture Council approvals recorded for status change: `0`
+
+## Validator-first route
+
+- the shared validator-first route exists through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
+- the dedicated Phase 15 build replay exists through `zig build test --build-file zigux/tests/phase15_build.zig`
+- the convenience replay exists through `make -C zigux phase15`
 
 ## Anchor Scorecard
 
@@ -105,6 +113,16 @@ This scorecard does not claim:
 - Architecture Council approval for any direct Zigux deep-core port
 - parity closure for `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`
 - a broader implementation roadmap beyond the current blocker-accounting packet
+
+## Gates
+
+1. run the shared validator-first gate
+   - `python3 scripts/zigux/validate-phase15.py`
+   - `make -C zigux phase15-validate`
+2. run the dedicated Phase 15 build
+   - `zig build test --build-file zigux/tests/phase15_build.zig`
+3. run the convenience target
+   - `make -C zigux phase15`
 
 ## Next bounded step
 
