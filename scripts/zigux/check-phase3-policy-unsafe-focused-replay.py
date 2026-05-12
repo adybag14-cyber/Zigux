@@ -18,10 +18,19 @@ SURVEY_REQUIRED = (
 )
 
 ABI_SLICE_REQUIRED = (
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/mmio.zig",
+    "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
 )
 
@@ -33,8 +42,13 @@ ABI_SLICE_FORBIDDEN = (
 MANIFEST_REQUIRED = (
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
 )
@@ -101,6 +115,20 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         abi_slice_path = tmpdir / ABI_SLICE_REL
+        abi_slice_path.write_text(
+            abi_slice_path.read_text(encoding="utf-8").replace(ABI_SLICE_REQUIRED[0] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert ABI_SLICE_REL.as_posix() in str(exc)
+            assert ABI_SLICE_REQUIRED[0] in str(exc)
+        else:
+            raise AssertionError("expected missing abi-slice policy packet marker failure")
+
+        write_fixture(tmpdir)
+        abi_slice_path = tmpdir / ABI_SLICE_REL
         abi_slice_path.write_text(abi_slice_path.read_text(encoding="utf-8") + ABI_SLICE_FORBIDDEN[0] + "\n", encoding="utf-8")
         try:
             check_repo_root(tmpdir)
@@ -111,16 +139,17 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         manifest_path = tmpdir / ABI_MANIFEST_REL
-        manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[3] + "\n", ""), encoding="utf-8")
+        manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[5] + "\n", ""), encoding="utf-8")
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
             assert ABI_MANIFEST_REL.as_posix() in str(exc)
+            assert MANIFEST_REQUIRED[5] in str(exc)
         else:
             raise AssertionError("expected missing manifest marker failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=4")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=5")
     finally:
         shutil.rmtree(tmpdir)
 
