@@ -34,6 +34,20 @@ fn requireRepoMarker(repo_root_relative_path: []const u8, marker: []const u8) !v
     }
 }
 
+fn requireRepoMarkerAbsent(repo_root_relative_path: []const u8, marker: []const u8) !void {
+    const source = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        std.testing.allocator,
+        .limited(1024 * 1024),
+    );
+    defer std.testing.allocator.free(source);
+
+    if (std.mem.indexOf(u8, source, marker) != null) {
+        return error.UnexpectedRepoMarker;
+    }
+}
+
 test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
     try requireMarker("\"lane_key\": \"P4-L20\"");
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
@@ -178,5 +192,24 @@ test "phase4 perf baseline survey keeps the shared review checklist perf-governa
     try requireRepoMarker(
         "Documentation/zigux/review-checklist.md",
         "the still-pending shared-CI perf-promotion posture",
+    );
+}
+
+test "phase4 perf baseline survey stays outside the shared test and workflow packet" {
+    try requireRepoMarker(
+        "zigux/tests/phase4_build.zig",
+        "const perf_baseline_survey_step = b.step(",
+    );
+    try requireRepoMarker(
+        "zigux/tests/phase4_build.zig",
+        "\"phase4-perf-baseline-survey\"",
+    );
+    try requireRepoMarkerAbsent(
+        "zigux/tests/phase4_build.zig",
+        "test_step.dependOn(&run_perf_baseline_survey_tests.step);",
+    );
+    try requireRepoMarkerAbsent(
+        ".github/workflows/zigux-bootstrap.yml",
+        "phase4-perf-baseline-survey",
     );
 }
