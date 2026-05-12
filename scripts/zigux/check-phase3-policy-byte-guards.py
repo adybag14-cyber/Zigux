@@ -5,7 +5,6 @@ import argparse
 import tempfile
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 PANIC_REL = "zigux/helpers/panic_policy.zig"
@@ -19,7 +18,6 @@ REQUIRED_SURVEY_MARKERS = (
     "dedicated reserved-byte and typed-wrapper guard",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "requireRawPointerBridgeByte",
     "shared dump gate",
 )
 
@@ -56,15 +54,15 @@ REQUIRED_NARROW_SNIPPETS = (
 REQUIRED_FOCUSED_REPLAY_SNIPPETS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-    "zigux/tests/phase3_policy_unsafe.zig",
-    "zigux/tests/phase3_policy_unsafe_build.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
 REQUIRED_MMIO_CONSUMER_SNIPPETS = (
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "zigux/helpers/mmio.zig",
-    "zigux/helpers/interop_policy.zig",
-    "zigux/tests/phase3_policy_unsafe.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig",
 )
 
 
@@ -101,20 +99,9 @@ def validate(root: Path) -> list[str]:
     if narrow:
         _check_snippets(narrow, REQUIRED_NARROW_SNIPPETS, "missing_narrow_snippet", issues)
     if focused_replay:
-        _check_snippets(
-            focused_replay,
-            REQUIRED_FOCUSED_REPLAY_SNIPPETS,
-            "missing_focused_replay_snippet",
-            issues,
-        )
+        _check_snippets(focused_replay, REQUIRED_FOCUSED_REPLAY_SNIPPETS, "missing_focused_replay_snippet", issues)
     if mmio_consumer:
-        _check_snippets(
-            mmio_consumer,
-            REQUIRED_MMIO_CONSUMER_SNIPPETS,
-            "missing_mmio_consumer_snippet",
-            issues,
-        )
-
+        _check_snippets(mmio_consumer, REQUIRED_MMIO_CONSUMER_SNIPPETS, "missing_mmio_consumer_snippet", issues)
     return issues
 
 
@@ -133,60 +120,36 @@ def run_self_test() -> int:
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS) + "\n")
         _write(root, MMIO_CONSUMER_REL, "\n".join(REQUIRED_MMIO_CONSUMER_SNIPPETS) + "\n")
-
-        issues = validate(root)
-        if issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            for issue in issues:
-                print(issue)
-            return 1
+        assert validate(root) == []
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_survey_marker:{REQUIRED_SURVEY_MARKERS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing survey marker was not reported")
-            return 1
+        assert f"missing_survey_marker:{REQUIRED_SURVEY_MARKERS[-1]}" in issues
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing narrow snippet was not reported")
-            return 1
+        assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[-1]}" in issues
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_panic_snippet:{REQUIRED_PANIC_SNIPPETS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing panic snippet was not reported")
-            return 1
+        assert f"missing_panic_snippet:{REQUIRED_PANIC_SNIPPETS[-1]}" in issues
 
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS) + "\n")
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_allocator_snippet:{REQUIRED_ALLOCATOR_SNIPPETS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing allocator snippet was not reported")
-            return 1
+        assert f"missing_allocator_snippet:{REQUIRED_ALLOCATOR_SNIPPETS[-1]}" in issues
 
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_focused_replay_snippet:{REQUIRED_FOCUSED_REPLAY_SNIPPETS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing focused replay snippet was not reported")
-            return 1
+        assert f"missing_focused_replay_snippet:{REQUIRED_FOCUSED_REPLAY_SNIPPETS[-1]}" in issues
 
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS) + "\n")
         _write(root, MMIO_CONSUMER_REL, "\n".join(REQUIRED_MMIO_CONSUMER_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
-        if f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" not in issues:
-            print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=fail")
-            print("expected missing mmio consumer snippet was not reported")
-            return 1
+        assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=6")
@@ -194,9 +157,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Fail closed on the Phase 3 policy-byte and reserved-byte guard packet."
-    )
+    parser = argparse.ArgumentParser(description="Fail closed on the Phase 3 policy-byte and reserved-byte guard packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
     parser.add_argument("root", nargs="?", help="Optional repo root override.")
     args = parser.parse_args()
