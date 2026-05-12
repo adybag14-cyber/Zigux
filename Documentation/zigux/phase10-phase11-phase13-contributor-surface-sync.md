@@ -105,6 +105,10 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `zigux/tests/phase13_libfs_manifest.json`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
@@ -123,6 +127,7 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `zigux/helpers/notifier_chain_view.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
+- `drivers/tty/hvc/hvc_console.h`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
