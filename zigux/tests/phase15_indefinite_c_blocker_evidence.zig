@@ -12,6 +12,8 @@ const PolicyManifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
+    surveyed_commit_mode: []const u8,
+    surveyed_commit_mode_reason: []const u8,
     roadmap_requirement: []const u8,
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
@@ -52,6 +54,17 @@ fn expectListContains(list: []const []const u8, needle: []const u8) !void {
     return error.TestUnexpectedResult;
 }
 
+fn isDatedMasterReadbackMarker(text: []const u8) bool {
+    return std.mem.startsWith(u8, text, "current-master-readback-");
+}
+
+fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
+    for (gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
+}
+
 test "phase 15 blocker evidence packet keeps the blocked posture and focused companions explicit" {
     const policy_json = try readRepoFile("zigux/tests/phase15_indefinite_c_policy.json", 24 * 1024);
     defer std.testing.allocator.free(policy_json);
@@ -64,22 +77,24 @@ test "phase 15 blocker evidence packet keeps the blocked posture and focused com
 
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
+    try std.testing.expect(isDatedMasterReadbackMarker(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
+    try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_build.zig");
 
-    var saw_blocker_gap = false;
-    for (manifest.gaps) |gap| {
-        if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
-            saw_blocker_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-            try expectContains(gap.why_now, "lacks evidence strong enough");
-        }
-    }
-    try std.testing.expect(saw_blocker_gap);
+    const dated_refresh = findGap(manifest.gaps, "phase15-indefinite-c-dated-readback-provenance-refresh") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("landed", dated_refresh.status);
+    try std.testing.expectEqualStrings("provenance_refresh", dated_refresh.kind);
+    try expectContains(dated_refresh.why_now, "dated readback marker");
+
+    const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", blocker_gap.zigux_destination);
+    try expectContains(blocker_gap.why_now, "lacks evidence strong enough");
 }
 
 test "phase 15 blocker evidence docs and scorecard still agree on the no approval posture" {
@@ -110,6 +125,8 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     try std.testing.expectEqual(@as(usize, 4), parsed.value.metrics.blocked_status_change_anchor_count);
     try std.testing.expectEqual(@as(usize, 0), parsed.value.metrics.architecture_council_status_change_approval_count);
 
+    try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
+    try expectContains(policy_note, "current-master-readback-2026-05-12");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "existing blocker remains recorded");
