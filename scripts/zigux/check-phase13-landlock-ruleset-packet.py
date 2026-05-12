@@ -14,6 +14,9 @@ SCRIPT_PATH = "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 CONTRIBUTOR_GUIDE_PATH = "Documentation/zigux/phase13-contributor-workflow-guide.md"
+RELEASE_NOTES_PATH = "Documentation/zigux/phase13-release-notes-survey.md"
+NOTIFIER_SURVEY_PATH = "Documentation/zigux/phase13-notifier-list-survey.md"
+SYSCALLS_GOVERNANCE_PATH = "Documentation/zigux/phase13-landlock-syscalls-governance.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 LANE_NOTE_PATH = "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
@@ -27,6 +30,9 @@ REQUIRED_FILES = (
     DOCS_README_PATH,
     REVIEW_CHECKLIST_PATH,
     CONTRIBUTOR_GUIDE_PATH,
+    RELEASE_NOTES_PATH,
+    NOTIFIER_SURVEY_PATH,
+    SYSCALLS_GOVERNANCE_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     LANE_NOTE_PATH,
@@ -59,6 +65,33 @@ REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+    "`make -C zigux phase13-validate`",
+)
+
+REQUIRED_RELEASE_NOTES_MARKERS = (
+    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:",
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`security/landlock/ruleset.zig`",
+    "`security/landlock/syscalls.zig`",
+)
+
+REQUIRED_NOTIFIER_SURVEY_MARKERS = (
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+    "`Documentation/zigux/phase13-release-notes-survey.md`",
+    "`Documentation/zigux/phase13-roadmap-traceability.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "paired Landlock",
+)
+
+REQUIRED_SYSCALLS_GOVERNANCE_MARKERS = (
+    "# Phase 13 Landlock Syscalls Governance",
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+    "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+    "`scripts/zigux/validate-phase13-release.py`",
     "`make -C zigux phase13-validate`",
 )
 
@@ -134,6 +167,9 @@ def validate(root: Path) -> list[str]:
         ("docs-readme", DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS),
         ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS),
         ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS),
+        ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS),
+        ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS),
+        ("syscalls-governance", SYSCALLS_GOVERNANCE_PATH, REQUIRED_SYSCALLS_GOVERNANCE_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
         ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS),
         ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS),
@@ -182,6 +218,21 @@ def make_fixture_root(root: Path) -> None:
     )
     write_text(
         root,
+        RELEASE_NOTES_PATH,
+        "\n".join(REQUIRED_RELEASE_NOTES_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        NOTIFIER_SURVEY_PATH,
+        "\n".join(REQUIRED_NOTIFIER_SURVEY_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        SYSCALLS_GOVERNANCE_PATH,
+        "\n".join(REQUIRED_SYSCALLS_GOVERNANCE_MARKERS) + "\n",
+    )
+    write_text(
+        root,
         SCRIPTS_README_PATH,
         "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n",
     )
@@ -224,6 +275,9 @@ def run_self_test() -> int:
         mutations = (
             ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[3]),
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[4]),
+            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[0]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[0]),
+            ("syscalls-governance", SYSCALLS_GOVERNANCE_PATH, REQUIRED_SYSCALLS_GOVERNANCE_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[3]),
             ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[1]),
