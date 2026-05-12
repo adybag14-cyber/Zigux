@@ -20,7 +20,7 @@ This note tracks the bounded Phase 5 reviewability survey for the roadmap's `sam
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and still names `samples/kobject/kobject-example.c` as one of the approved Linux anchors.
 
-Current repo reality is narrower than several shared reminders imply. The public tree does not currently expose a shipped `samples/zigux/kobject_example.zig` module or a dedicated `zigux/tests/phase5_kobject_example_survey.zig` replay, so this note should not describe those paths as already landed. The truthful same-lane job is to record what the repo actually ships today and leave the next step bounded.
+Current repo reality is narrower than several shared reminders implied earlier in the lane. The public tree does not currently expose a shipped `samples/zigux/kobject_example.zig` module or a dedicated `zigux/tests/phase5_kobject_example_survey.zig` replay, so this note should not describe those paths as already landed. The truthful same-lane job is to record what the repo actually ships today and leave the next step bounded.
 
 ## Current repo reality on `master`
 
@@ -31,11 +31,10 @@ Fresh repo-first inspection for this lane found these kobject-adjacent surfaces 
 - `zigux/tests/phase5_kobject_example_manifest.json` exists and still records the ownership-and-lifetime prompts, exact checks, and non-goals for the kobject anchor.
 - `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` already carry the narrower note-plus-build-plus-tests packet and no longer overstate the missing sample-root path.
 
-The same inspection also found one remaining shared-summary overclaim that this note should keep explicit instead of flattening back into a vague “broader packet” warning:
+The same inspection also confirmed that the shared contributor packet is now aligned around that narrower kobject note-plus-tests packet instead of the older overclaim:
 
-- `scripts/zigux/README.md` still lists `samples/zigux/kobject_example.zig` as shipped Phase 5 evidence even though direct contents readback for that path currently returns `404 Not Found`.
-- `samples/zigux/kobject_example.zig` is not visible in the current `samples/zigux/` directory tree.
-- `zigux/tests/phase5_kobject_example_survey.zig` is not visible in the current `zigux/tests/` directory tree.
+- `scripts/zigux/README.md` no longer lists `samples/zigux/kobject_example.zig` or `zigux/tests/phase5_kobject_example_survey.zig` as landed Phase 5 evidence.
+- `scripts/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` now all point reviewers at the same narrower kobject packet: this note, the focused test, the manifest, and the shared `zigux/tests/phase5_build.zig` route.
 
 ## What the focused validation surfaces still prove
 
@@ -57,13 +56,13 @@ Those surfaces are useful as review evidence, but they are not the same as a pub
 The precise gap is now narrower and more honest than the older note claimed:
 
 - the roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor
-- current `master` still carries the shared `zigux/tests/phase5_build.zig` route plus focused test and manifest evidence for that anchor
-- current `master` does not currently expose the sample module path and dedicated survey replay path that `scripts/zigux/README.md` still describes as already landed
+- current `master` still carries the shared `zigux/tests/phase5_build.zig` route plus focused test and manifest evidence for that anchor, and the directly coupled shared reminder surfaces now describe that narrower packet truthfully
+- current `master` still does not expose the sample module path and dedicated survey replay path that would make the full four-sample packet directly readable from the public tree
 
 That means the next same-lane step should stay inside one of these bounded repairs:
 
 - restore the missing `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example_survey.zig` files if they are meant to be part of the shipped Phase 5 packet
-- or narrow the remaining shared Phase 5 scripts-root summary so it stops claiming those two paths are already present on current `master` while still keeping the shared `zigux/tests/phase5_build.zig` route explicit
+- or keep the lane parked on readback truthfulness until one of those missing kobject paths actually returns on current `master`
 
 ## Non-goals
 
@@ -76,4 +75,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless a follow-up run is specifically restoring the missing kobject sample files or tightening the remaining shared Phase 5 reminder in `scripts/zigux/README.md`. If the repo stays in its current state, prefer that one-file scripts-root summary repair so the contributor-facing Phase 5 surface stops listing the missing sample-root path while keeping the shared `zigux/tests/phase5_build.zig` route explicit.
+Keep this lane parked unless a follow-up run is specifically restoring the missing kobject sample files. If the repo stays in its current state, the highest-value same-lane work is readback closeout rather than another shared-summary repair, because the directly coupled Phase 5 reminder surfaces already agree on the narrower kobject packet.
