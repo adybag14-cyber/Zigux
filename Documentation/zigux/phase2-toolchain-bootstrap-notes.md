@@ -36,7 +36,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - `PHASE2_LINUX_STYLE_ROUTES=phase2-toolchain,phase2-validate,phase2-tools,phase2-kconfig,phase2-cross,phase2`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
-- the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset currently stays anchored in this dedicated note, `scripts/zigux/README.md`, and `scripts/zigux/check-phase2-toolchain-pin-scope.py` until the broader shared reminder surfaces restate the same detail explicitly and keep the same six-route inventory visible
+- the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset now stays explicit across this dedicated note, `Documentation/zigux/README.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`, while `scripts/zigux/check-phase2-toolchain-pin-scope.py` keeps the pin-scope guard fail-closed on the same six-route inventory
 
 ## Alignment Notes
 
