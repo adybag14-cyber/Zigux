@@ -6,7 +6,7 @@ It stays inside the archival Phase 11 HVC lane and does not widen into tty regis
 ## Status
 
 * `PHASE11_HVC_CONSOLE_SLICE_STATUS=starter_packet_archived`
-* lane: `P11-L13`
+* lane: `P11-L16`
 * scope: keep the landed teardown and failure-mode packet readable beside the shared Phase 11 replay route
 
 ## Landed Starter Surface
