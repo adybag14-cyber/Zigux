@@ -7,7 +7,8 @@ from pathlib import Path
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 SURVEY = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 DOCS_README = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
@@ -129,6 +130,17 @@ HEADER_GOVERNANCE_MARKERS = (
     "`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
     "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
     "`include/zigux/abi.h`",
+)
+MAKEFILE_MARKERS = (
+    "phase3-validate:",
+    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "phase3-interop:",
+    "$(PYTHON) scripts/zigux/run-phase3-checks.py",
+    "phase3-abi:",
+    "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+    DUMP_GATE,
+    "phase3: phase3-validate phase3-abi phase3-interop",
 )
 
 
@@ -325,15 +337,6 @@ def validate(root: Path) -> list[str]:
             "struct zigux_boundary_header {",
             "struct zigux_export_status {",
         ),
-        MAKEFILE: (
-            "phase3-validate:",
-            "phase3-interop:",
-            "$(PYTHON) scripts/zigux/run-phase3-checks.py",
-            "phase3-abi:",
-            "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
-            DUMP_GATE,
-            "phase3: phase3-validate phase3-abi phase3-interop",
-        ),
     }.items():
         if not (root / rel).exists():
             continue
@@ -341,6 +344,10 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{rel.as_posix()}:{marker}")
+
+    makefile_text = (root / MAKEFILE).read_text(encoding="utf-8")
+    for marker in MAKEFILE_MARKERS:
+        require_exact(issues, makefile_text, "makefile_marker", marker)
 
     governance_text = (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8")
     for marker in KERNEL_EXPORT_GOVERNANCE_CONTAINS:
@@ -434,6 +441,8 @@ def build_valid_workspace(root: Path) -> None:
     )))
     write(root / MAKEFILE, "\n".join((
         "phase3-validate:",
+        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
         "phase3-interop:",
         "\t$(PYTHON) scripts/zigux/run-phase3-checks.py",
         "phase3-abi:",
@@ -725,7 +734,27 @@ def run_self_test() -> int:
 
         write(root / MAKEFILE, "phase3-validate:\n")
         issues = validate(root)
-        assert "missing_marker:zigux/Makefile:$(ZIG) build phase3-test --build-file zigux/tests/build.zig" in issues, issues
+        assert "missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test" in issues, issues
+        assert "missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py" in issues, issues
+        assert "missing_makefile_marker:$(ZIG) build phase3-test --build-file zigux/tests/build.zig" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(
+            "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
+            "",
+            1,
+        ))
+        assert validate(root) == ["missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(
+            "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n",
+            "",
+            1,
+        ))
+        assert validate(root) == ["missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py"]
         build_valid_workspace(root)
         case_count += 1
 
@@ -734,12 +763,12 @@ def run_self_test() -> int:
             "$(PYTHON) broken.py",
             1,
         ))
-        assert validate(root) == ["missing_marker:zigux/Makefile:$(PYTHON) scripts/zigux/run-phase3-checks.py"]
+        assert validate(root) == ["missing_makefile_marker:$(PYTHON) scripts/zigux/run-phase3-checks.py"]
         build_valid_workspace(root)
         case_count += 1
 
         write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(DUMP_GATE, "zig build broken --build-file zigux/tests/build.zig", 1))
-        assert validate(root) == [f"missing_marker:{MAKEFILE.as_posix()}:{DUMP_GATE}"]
+        assert validate(root) == [f"missing_makefile_marker:{DUMP_GATE}"]
         build_valid_workspace(root)
         case_count += 1
 
