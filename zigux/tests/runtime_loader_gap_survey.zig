@@ -30,7 +30,7 @@ test "phase 9 runtime loader gap survey keeps manifest and note aligned" {
     try expectContains(manifest, "\"role\": \"machine-checks the manifest, the blocker note, the shared request contract, the explicit without-substrate rollback path, the new shared command_name field, and the still-absent argv or environment control surface\"");
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture");
-    try expectContains(note, "`make -C zigux phase9-loader-gap-survey`");
+    try expectContains(note, "`make -C zigux phase9-runtime-loader-shared-tests`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet");
 }
 
