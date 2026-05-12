@@ -213,13 +213,24 @@ def validate(root: Path) -> list[str]:
         EXPORT_SHIM: (
             "pub const Header = uapi_version.Header;",
             "pub const HeaderCompatibility = uapi_version.Compatibility;",
+            "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
+            "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
             "pub fn compatibilityStatus(",
+            "pub fn evaluateHeader(",
+            "pub fn extendsBoundary(header_value: Header) bool {",
+            "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
             'test "phase3 export shim relays compatibility through explicit status packets" {',
+            'test "phase3 export shim evaluation keeps compatibility evidence and status together" {',
         ),
         UAPI_VERSION: (
             "pub const Compatibility = enum {",
             "future_compatible",
+            "pub const AcceptedHeader = struct {",
+            "pub const HeaderEvaluation = struct {",
             "pub fn compatibility(header: Header) ?Compatibility {",
+            "pub fn acceptHeader(header: Header) ?AcceptedHeader {",
+            "pub fn evaluateHeader(header: Header) HeaderEvaluation {",
+            "pub fn requestedExtraBytes(self: @This()) ?u32 {",
             'test "phase3 uapi evaluation keeps requested boundary shape explicit" {',
         ),
         UAPI_DEV_T: (
@@ -316,14 +327,26 @@ def build_valid_workspace(root: Path) -> None:
         'const uapi_version = @import("uapi_version");',
         "pub const Header = uapi_version.Header;",
         "pub const HeaderCompatibility = uapi_version.Compatibility;",
+        "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
+        "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
         "pub fn compatibilityStatus() void {}",
+        "pub fn evaluateHeader() void {}",
+        "pub fn extendsBoundary(header_value: Header) bool { _ = header_value; return false; }",
+        "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }",
         'test "phase3 export shim relays compatibility through explicit status packets" {}',
+        'test "phase3 export shim evaluation keeps compatibility evidence and status together" {}',
         "",
     )))
     write(root / UAPI_VERSION, "\n".join((
         "pub const Header = extern struct {};",
         "pub const Compatibility = enum { canonical, future_compatible };",
+        "pub const AcceptedHeader = struct {};",
+        "pub const HeaderEvaluation = struct {",
+        "    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }",
+        "};",
         "pub fn compatibility(header: Header) ?Compatibility { _ = header; return null; }",
+        "pub fn acceptHeader(header: Header) ?AcceptedHeader { _ = header; return null; }",
+        "pub fn evaluateHeader(header: Header) HeaderEvaluation { _ = header; return .{}; }",
         'test "phase3 uapi evaluation keeps requested boundary shape explicit" {}',
         "",
     )))
@@ -605,6 +628,41 @@ def run_self_test() -> int:
 
         (root / LINUX_HEADER).unlink()
         assert validate(root) == [f"missing_file:{LINUX_HEADER.as_posix()}"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / EXPORT_SHIM, (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
+            "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n",
+            "",
+            1,
+        ))
+        assert validate(root) == [
+            "stale_survey_blob:PHASE3_EXPORT_SHIM_BLOB_SHA:"
+            + backtick_value((root / SURVEY).read_text(encoding="utf-8"), "PHASE3_EXPORT_SHIM_BLOB_SHA")[0]
+            + "!="
+            + blob_sha(root / EXPORT_SHIM),
+            "missing_marker:zigux/kernel/export_shim.zig:pub fn requestedExtraBytes(header_value: Header) ?u32 {",
+        ]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / UAPI_VERSION, (root / UAPI_VERSION).read_text(encoding="utf-8").replace(
+            "pub const HeaderEvaluation = struct {\n",
+            "",
+            1,
+        ).replace(
+            "    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n",
+            "",
+            1,
+        ).replace(
+            "};\n",
+            "",
+            1,
+        ))
+        issues = validate(root)
+        assert issues[0].startswith("stale_survey_blob:PHASE3_UAPI_VERSION_BLOB_SHA:"), issues
+        assert "missing_marker:zigux/uapi/version.zig:pub const HeaderEvaluation = struct {" in issues, issues
+        assert "missing_marker:zigux/uapi/version.zig:pub fn requestedExtraBytes(self: @This()) ?u32 {" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
