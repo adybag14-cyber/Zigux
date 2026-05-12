@@ -49,7 +49,7 @@ Keep this trace-events packet honest in the same way as the shared Phase 9 owner
 
 ## Active blocker posture
 
-The immediate same-family blocker on current `master` is not packet visibility. The family-local sample, loader, direct module and diff tests, dedicated survey gate, manifest, and paired review notes are visible again on current `master`.
+The immediate same-family blocker on current `master` is not packet visibility. The family-local sample, loader, direct module and diff tests, dedicated survey gate, manifest, and paired review notes are all present on current `master`.
 
 The remaining blocker is the broader Phase 9 runtime substrate. Until that shared substrate lands, the trace-events packet should stay described as reviewable evidence rather than as completed live runtime tracepoint registration lifecycle parity.
 
