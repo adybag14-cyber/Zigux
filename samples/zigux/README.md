@@ -14,6 +14,7 @@ Boundary notes
 
 Separate helper-backed sample packet
 - `samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor
+- the roadmap-backed Phase 7 product destination here still remains `lib/string_helpers.zig`; this draft sample stays supporting review evidence for that helper lane rather than an approved sample-root idiom on its own
 - review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`
 - keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family
 - current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample
