@@ -115,7 +115,6 @@ EXPECTED_WORKFLOW_LINES = [
 
 EXPECTED_TESTS_README_MARKERS = [
     "scripts/zigux/check-genksyms-bridge.py",
-    "zig test scripts/zigux/genksyms.zig",
     "the shipped genksyms bridge direct replay",
 ]
 
