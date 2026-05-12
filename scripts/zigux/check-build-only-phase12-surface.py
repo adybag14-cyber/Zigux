@@ -117,6 +117,8 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "The bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill must remain described as lab-only reversible-delivery evidence rather than closure-ready runtime recovery.",
     "Until then, release planning should name only the shipped smoke preflight routes, the shared build-and-make replay path, the narrow build-only contract checker, the shared fallback overview note, the shared libbpf anti-overlap companion, and the bounded storage rollback drill.",
     "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain shared-tree raw-read anchors for the smoke-first packet rather than extra commit-pinned fallback artifacts.",
+    "current `master` already keeps `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned on the same smoke-first `virtio_scsi` packet",
+    "The next honest same-lane PMO follow-through now shifts to the shared review checklist instead: `Documentation/zigux/review-checklist.md` still overstates the shared Phase 12 packet",
 ]
 
 WORKFLOW_MARKERS = [
@@ -511,6 +513,30 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        release_closure_checklist_path.write_text(
+            release_closure_checklist_path.read_text(encoding="utf-8").replace(
+                RELEASE_CLOSURE_CHECKLIST_MARKERS[5], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[5]}",
+        )
+
+        write_fixture_tree(base)
+        release_closure_checklist_path.write_text(
+            release_closure_checklist_path.read_text(encoding="utf-8").replace(
+                RELEASE_CLOSURE_CHECKLIST_MARKERS[6], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[6]}",
+        )
+
+        write_fixture_tree(base)
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
                 "make -C zigux phase12-smoke", "", 1
@@ -567,7 +593,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
