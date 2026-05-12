@@ -35,11 +35,26 @@ If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifes
 
 ## Traceability Map
 
-- `libfs` maps to the bounded shared-helper tranche and should stay represented as its own contributor-facing bucket.
+- `libfs` maps to the bounded shared-helper tranche and should stay represented as its own contributor-facing bucket through the shipped `fs/libfs.zig`, `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json` while older direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, and `zigux/tests/phase13_libfs_addressability.zig` stay framed as repo-reality gaps until current `master` materializes them again.
 - `devres` maps to the bounded shared-helper tranche and should stay split between helper parity and checker-backed packet truthfulness work.
 - `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.
 - adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the shipped notifier survey, the landed priority-signal guard, the validator-first release handle, the Linux-style make routes, and the shipped `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` direct-evidence shards explicit; direct notifier manifests, the dedicated notifier header, and the remaining list helpers stay repo-reality gaps until current `master` materializes them again
+
+## Libfs Lane Traceability
+
+Keep the current `libfs` mapping explicit through:
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `fs/libfs.zig`
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
+
+Current `master` materializes the dedicated `libfs` survey note, the helper-local `fs/libfs.zig` starter, the direct libfs replay, the direct reviewability replay, the manifest-backed helper packet, and the stable validator-first make routes for the `fs/libfs.c` roadmap anchor. If direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, or `zigux/tests/phase13_libfs_addressability.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
+
+That bounded `libfs` packet still covers positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, simple transaction acquire, publish, and release planning, plus offset seek, readdir, rename, and rename-exchange planning without claiming live dcache entry insertion, inode lifetime management, page-cache-backed filesystem state, or broader filesystem registration. The dedicated survey note plus the shipped helper-local libfs packet should stay visible here as roadmap-to-repo evidence, and any still-missing slice, shared-build, or addressability companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
 
 ## Landlock Ruleset Lane Traceability
 
