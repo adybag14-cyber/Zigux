@@ -15,9 +15,11 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 DOCS_ROOT_CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
 TESTS_README_PATH = Path("zigux/tests/README.md")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
+
 ROADMAP_ANCHORS = [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c",
@@ -79,6 +81,7 @@ RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "PHASE14_RELEASE_CLOSED=no",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "release-facing inventory follow-through: `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase14_workqueue_reviewability.zig`, `make -C zigux phase14-test`, and `make -C zigux phase14` remain explicit alongside that shared smoke packet so release-facing review keeps the scripts-root and tests-root inventory plus the wrapper-backed full-bundle and combined replay routes visible without widening beyond the current study-only boundary packet",
     "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
     "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible",
     "combined shared replay entrypoint: `make -C zigux phase14`",
@@ -97,8 +100,8 @@ SURVEY_EXACT_COUNT_MARKERS = [
 ]
 MANIFEST_REQUIRED_SURFACES = [
     DOCS_ROOT_CHECKER_PATH,
+    ROLLBACK_CHECKER_PATH,
     CHECKER_PATH,
-    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/validate-phase14.py",
 ]
 
@@ -111,16 +114,10 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def write_text(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
 def extract_section(text: str, heading: str) -> str | None:
-    lines = text.splitlines()
     active = False
     collected: list[str] = []
-    for line in lines:
+    for line in text.splitlines():
         stripped = line.strip()
         if stripped == heading:
             active = True
@@ -134,10 +131,9 @@ def extract_section(text: str, heading: str) -> str | None:
 
 
 def extract_bullets(text: str, heading: str) -> list[str]:
-    lines = text.splitlines()
     active = False
     bullets: list[str] = []
-    for line in lines:
+    for line in text.splitlines():
         stripped = line.strip()
         if stripped == heading:
             active = True
@@ -160,7 +156,9 @@ def require_exact_count(errors: list[str], rel_path: str, text: str, markers: li
             )
 
 
-def require_exact_line_count(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
+def require_exact_line_count(
+    errors: list[str], rel_path: str, text: str, markers: list[str]
+) -> None:
     lines = text.splitlines()
     for marker in markers:
         count = sum(1 for line in lines if line == marker)
@@ -185,7 +183,6 @@ def require_lines_after_anchor(
             f"marker count drift in {rel_path}: {anchor_line} (expected 1, found {anchor_count})"
         )
         return
-
     anchor_index = lines.index(anchor_line)
     actual_lines = lines[anchor_index + 1 : anchor_index + 1 + len(expected_lines)]
     if actual_lines != expected_lines:
@@ -202,16 +199,18 @@ def check_manifest(errors: list[str], root: Path) -> None:
     except json.JSONDecodeError as exc:
         errors.append(f"invalid json in {path.relative_to(root).as_posix()}: {exc}")
         return
+
     surfaces = manifest.get("shared_smoke_surfaces")
     if not isinstance(surfaces, list):
         errors.append("phase14 shared_smoke_surfaces payload is not a list")
-        return
-    for surface in MANIFEST_REQUIRED_SURFACES:
-        count = surfaces.count(surface)
-        if count != 1:
-            errors.append(
-                f"phase14 shared_smoke_surfaces drift for {surface} (expected 1, found {count})"
-            )
+    else:
+        for surface in MANIFEST_REQUIRED_SURFACES:
+            count = surfaces.count(surface)
+            if count != 1:
+                errors.append(
+                    f"phase14 shared_smoke_surfaces drift for {surface} (expected 1, found {count})"
+                )
+
     productization = manifest.get("productization")
     if not isinstance(productization, dict):
         errors.append("phase14 manifest productization payload is not an object")
@@ -220,29 +219,39 @@ def check_manifest(errors: list[str], root: Path) -> None:
             errors.append("phase14 manifest status_bucket drifted from study_only")
         if productization.get("rollback_owner") != "Repo Tooling Pod":
             errors.append("phase14 manifest rollback_owner drifted from Repo Tooling Pod")
+
     anchor_packets = manifest.get("anchor_packets")
     if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
         errors.append("phase14 manifest anchor_packets drifted from the expected four-entry packet")
-    compile_shards = manifest.get("compile_shards")
-    if compile_shards != EXPECTED_COMPILE_SHARDS:
+
+    if manifest.get("compile_shards") != EXPECTED_COMPILE_SHARDS:
         errors.append("phase14 manifest compile_shards drifted from the expected shared matrix")
 
 
-def check(root: Path) -> list[str]:
+def check(root: Path, source_text: str | None = None) -> list[str]:
     errors: list[str] = []
-    release_path = root / "Documentation/zigux/phase14-release-boundary-survey.md"
-    survey_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-    freeze_map_path = root / "Documentation/zigux/freeze-map.md"
-    roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
-    tests_readme_path = root / TESTS_README_PATH
-    for path in (release_path, survey_path, freeze_map_path, roadmap_path, tests_readme_path):
+    required_files = [
+        root / "Documentation/zigux/phase14-release-boundary-survey.md",
+        root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        root / "Documentation/zigux/freeze-map.md",
+        root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+        root / TESTS_README_PATH,
+        root / "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    ]
+    for path in required_files:
         if not path.exists():
             errors.append(f"missing file: {path.relative_to(root).as_posix()}")
     if errors:
         return errors
 
-    if MARKER not in read_text(Path(__file__)):
+    if MARKER not in (source_text if source_text is not None else read_text(Path(__file__))):
         errors.append("checker marker missing from checker source")
+
+    release_path = root / "Documentation/zigux/phase14-release-boundary-survey.md"
+    survey_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+    freeze_map_path = root / "Documentation/zigux/freeze-map.md"
+    roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
+    tests_readme_path = root / TESTS_README_PATH
 
     release_text = read_text(release_path)
     survey_text = read_text(survey_path)
@@ -250,18 +259,8 @@ def check(root: Path) -> list[str]:
     roadmap_text = read_text(roadmap_path)
     tests_readme_text = read_text(tests_readme_path)
 
-    require_exact_count(
-        errors,
-        release_path.relative_to(root).as_posix(),
-        release_text,
-        RELEASE_BOUNDARY_MARKERS,
-    )
-    require_exact_count(
-        errors,
-        survey_path.relative_to(root).as_posix(),
-        survey_text,
-        SURVEY_EXACT_COUNT_MARKERS,
-    )
+    require_exact_count(errors, release_path.relative_to(root).as_posix(), release_text, RELEASE_BOUNDARY_MARKERS)
+    require_exact_count(errors, survey_path.relative_to(root).as_posix(), survey_text, SURVEY_EXACT_COUNT_MARKERS)
     require_exact_line_count(
         errors,
         tests_readme_path.relative_to(root).as_posix(),
@@ -297,10 +296,13 @@ def check(root: Path) -> list[str]:
 
 
 def good_release_boundary_text() -> str:
-    return "\n".join(
-        f"- `{marker}`" if marker.startswith("PHASE14_") else f"- {marker}"
-        for marker in RELEASE_BOUNDARY_MARKERS
-    ) + "\n"
+    lines: list[str] = []
+    for marker in RELEASE_BOUNDARY_MARKERS:
+        if marker.startswith("PHASE14_"):
+            lines.append(f"- `{marker}`")
+        else:
+            lines.append(f"- {marker}")
+    return "\n".join(lines) + "\n"
 
 
 def good_survey_text() -> str:
@@ -369,84 +371,124 @@ def good_manifest_text() -> str:
     )
 
 
+def write(root: Path, rel_path: str | Path, text: str) -> None:
+    path = root / Path(rel_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def expect_contains(errors: list[str], needle: str, label: str) -> None:
+    if not any(needle in error for error in errors):
+        print(label, file=sys.stderr)
+        if errors:
+            for error in errors:
+                print(f"- {error}", file=sys.stderr)
+        raise SystemExit(1)
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-        current_checker_path = Path(__file__)
-        original_source = read_text(current_checker_path)
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+        write(root, TESTS_README_PATH, good_tests_readme_text())
+        write(root, "Documentation/zigux/freeze-map.md", good_freeze_map_text())
+        write(root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
-        write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
-        write_text(root / TESTS_README_PATH, good_tests_readme_text())
-        write_text(root / "Documentation/zigux/freeze-map.md", good_freeze_map_text())
-        write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
-
-        if errors := check(root):
+        if errors := check(root, source_text=MARKER):
             print("self-test expected success but failed:", file=sys.stderr)
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
 
-        write_text(
-            root / "Documentation/zigux/phase14-release-boundary-survey.md",
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
             good_release_boundary_text().replace("- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`\n", "", 1),
         )
-        if not any("PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0" in error for error in check(root)):
-            print("self-test expected missing active-delivery marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+            "self-test expected missing active-delivery marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
 
-        write_text(
-            root / "Documentation/zigux/phase14-release-boundary-survey.md",
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                "- release-facing inventory follow-through:",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "release-facing inventory follow-through:",
+            "self-test expected missing release-facing inventory failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
             good_release_boundary_text().replace(
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
                 1,
             ),
         )
-        if not any("PHASE14_SHARED_SMOKE_GATE_COUNT=1" in error for error in check(root)):
-            print("self-test expected duplicate shared-smoke gate marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+            "self-test expected duplicate shared-smoke gate marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
 
-        write_text(
-            root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
             good_survey_text().replace("- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n", "", 1),
         )
-        if not any("PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test" in error for error in check(root)):
-            print("self-test expected missing survey test-entrypoint failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test",
+            "self-test expected missing survey test-entrypoint failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
 
-        write_text(
-            root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
             good_survey_text().replace("- `PHASE14_ANCHOR_PACKET_COUNT=4`\n", "", 1),
         )
-        if not any("PHASE14_ANCHOR_PACKET_COUNT=4" in error for error in check(root)):
-            print("self-test expected missing survey anchor-count failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_ANCHOR_PACKET_COUNT=4",
+            "self-test expected missing survey anchor-count failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
 
-        write_text(
-            root / TESTS_README_PATH,
+        write(
+            root,
+            TESTS_README_PATH,
             good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_workqueue_reviewability.zig`\n",
                 "",
                 1,
             ),
         )
-        if not any(
-            "marker count drift in zigux/tests/README.md:   * `zigux/tests/phase14_workqueue_reviewability.zig` (expected 1, found 0)"
-            in error
-            for error in check(root)
-        ):
-            print("self-test expected missing tests-readme packet line failure", file=sys.stderr)
-            return 1
-        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_workqueue_reviewability.zig",
+            "self-test expected missing tests-readme packet line failure",
+        )
+        write(root, TESTS_README_PATH, good_tests_readme_text())
 
-        write_text(
-            root / TESTS_README_PATH,
+        write(
+            root,
+            TESTS_README_PATH,
             good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
                 "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n"
@@ -454,17 +496,16 @@ def run_self_test() -> int:
                 1,
             ),
         )
-        if not any(
-            "marker count drift in zigux/tests/README.md:   * `zigux/tests/phase14_end_to_end_smoke_manifest.json` (expected 1, found 2)"
-            in error
-            for error in check(root)
-        ):
-            print("self-test expected duplicate tests-readme packet line failure", file=sys.stderr)
-            return 1
-        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            "self-test expected duplicate tests-readme packet line failure",
+        )
+        write(root, TESTS_README_PATH, good_tests_readme_text())
 
-        write_text(
-            root / TESTS_README_PATH,
+        write(
+            root,
+            TESTS_README_PATH,
             good_tests_readme_text().replace(
                 "\n".join(
                     [
@@ -483,69 +524,71 @@ def run_self_test() -> int:
                 1,
             ),
         )
-        if not any(
-            "marker order drift in zigux/tests/README.md after anchor: phase14_smoke_packet_after_anchor"
-            in error
-            for error in check(root)
-        ):
-            print("self-test expected tests-readme packet-order failure", file=sys.stderr)
-            return 1
-        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14_smoke_packet_after_anchor",
+            "self-test expected tests-readme packet-order failure",
+        )
+        write(root, TESTS_README_PATH, good_tests_readme_text())
 
-        write_text(
-            root / "Documentation/zigux/freeze-map.md",
+        write(
+            root,
+            "Documentation/zigux/freeze-map.md",
             good_freeze_map_text().replace("- `kernel/trace/ring_buffer.c`\n", "", 1),
         )
-        if not any("freeze-map study-only anchors drifted" in error for error in check(root)):
-            print("self-test expected freeze-map study-only drift failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/freeze-map.md", good_freeze_map_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "freeze-map study-only anchors drifted",
+            "self-test expected freeze-map study-only drift failure",
+        )
+        write(root, "Documentation/zigux/freeze-map.md", good_freeze_map_text())
 
-        write_text(
-            root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+        write(
+            root,
+            "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
             good_roadmap_text().replace("- net/core/skbuff.c\n", "", 1),
         )
-        if not any("roadmap Phase 14 anchor list drifted" in error for error in check(root)):
-            print("self-test expected roadmap anchor drift failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            "roadmap Phase 14 anchor list drifted",
+            "self-test expected roadmap anchor drift failure",
+        )
+        write(root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
 
-        write_text(
-            root / "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
             json.dumps({"shared_smoke_surfaces": []}, indent=2) + "\n",
         )
-        if not any(
-            f"phase14 shared_smoke_surfaces drift for {CHECKER_PATH} (expected 1, found 0)"
-            in error
-            for error in check(root)
-        ):
-            print("self-test expected manifest surface drift failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+        expect_contains(
+            check(root, source_text=MARKER),
+            CHECKER_PATH,
+            "self-test expected manifest surface drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
         manifest = json.loads(good_manifest_text())
         manifest["compile_shards"] = EXPECTED_COMPILE_SHARDS[:-1]
-        write_text(
-            root / "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
             json.dumps(manifest, indent=2) + "\n",
         )
-        if "phase14 manifest compile_shards drifted from the expected shared matrix" not in check(root):
-            print("self-test expected compile-shard matrix drift failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
-
-        write_text(
-            current_checker_path,
-            original_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest compile_shards drifted",
+            "self-test expected compile-shard matrix drift failure",
         )
-        if "checker marker missing from checker source" not in check(root):
-            print("self-test expected checker-source marker failure", file=sys.stderr)
-            write_text(current_checker_path, original_source)
-            return 1
-        write_text(current_checker_path, original_source)
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        expect_contains(
+            check(root, source_text="PHASE14_CHECK_PACKET=broken_marker"),
+            "checker marker missing from checker source",
+            "self-test expected checker-source marker failure",
+        )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=12")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
