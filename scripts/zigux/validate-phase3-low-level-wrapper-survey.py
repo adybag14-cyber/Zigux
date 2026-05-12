@@ -102,6 +102,29 @@ REQUIRED_BARRIER_SNIPPETS = (
     'test "phase3 barrier wrappers keep barrier handoff reviewable"',
 )
 
+REQUIRED_MMIO_SNIPPETS = (
+    'pub fn range(base_addr: usize, length: u32, stride: u32) Range {',
+    'pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
+    'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
+    'pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) MmioError!Range {',
+    'pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) MmioError!Range {',
+    'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {',
+    'pub fn read8(base_addr: usize, offset: usize) u8 {',
+    'pub fn read16(base_addr: usize, offset: usize) u16 {',
+    'pub fn read32(base_addr: usize, offset: usize) u32 {',
+    'pub fn read64(base_addr: usize, offset: usize) u64 {',
+    'pub fn write8(base_addr: usize, offset: usize, value: u8) void {',
+    'pub fn write16(base_addr: usize, offset: usize, value: u16) void {',
+    'pub fn write32(base_addr: usize, offset: usize, value: u32) void {',
+    'pub fn write64(base_addr: usize, offset: usize, value: u64) void {',
+    'pub fn read32InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u32 {',
+    'pub fn write32InteropPolicy(base_addr: usize, offset: usize, value: u32, policy: abi.InteropPolicy) MmioError!void {',
+    'pub fn read32InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u32 {',
+    'pub fn write32InteropPolicyByte(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8) MmioError!void {',
+    'pub fn read64InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u64 {',
+    'pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {',
+)
+
 REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
     'pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {',
     'pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {',
@@ -172,7 +195,7 @@ def validate(root: Path) -> list[str]:
     test = _read(root, TEST_REL, issues)
     atomic = _read(root, ATOMIC_REL, issues)
     barrier = _read(root, BARRIER_REL, issues)
-    _read(root, MMIO_REL, issues)
+    mmio = _read(root, MMIO_REL, issues)
     allocator_policy = _read(root, ALLOCATOR_POLICY_REL, issues)
     panic_policy = _read(root, PANIC_POLICY_REL, issues)
     narrow = _read(root, NARROW_REL, issues)
@@ -188,6 +211,8 @@ def validate(root: Path) -> list[str]:
         _require(atomic, REQUIRED_ATOMIC_SNIPPETS, "missing_atomic_snippet", issues)
     if barrier:
         _require(barrier, REQUIRED_BARRIER_SNIPPETS, "missing_barrier_snippet", issues)
+    if mmio:
+        _require(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
     if allocator_policy:
         _require(
             allocator_policy,
@@ -228,7 +253,7 @@ def run_self_test() -> int:
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(root, MMIO_REL, "mmio\n")
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(root, ALLOCATOR_POLICY_REL, "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n")
         _write(root, PANIC_POLICY_REL, "\n".join(REQUIRED_PANIC_POLICY_SNIPPETS) + "\n")
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
@@ -302,6 +327,26 @@ def run_self_test() -> int:
             return 1
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                "pub fn write64InteropPolicyBytes(",
+                "pub fn removedWrite64InteropPolicyBytes(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_mmio_snippet:pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio helper failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(
             root,
             SURVEY_REL,
