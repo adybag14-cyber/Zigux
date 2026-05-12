@@ -58,6 +58,20 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const survey_note = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice_note = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(module_slice_note);
+
     const phase9_build = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase9_build.zig",
@@ -147,6 +161,39 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try std.testing.expectEqualStrings("runtime_substrate", substrate_gap.kind);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", substrate_gap.zigux_destination);
     try expectContains(substrate_gap.why_now, "real register_kretprobe parity");
+
+    try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L13`");
+    try expectContains(
+        survey_note,
+        "initialized-stage and selftest-complete shared-request handoff snapshots explicit",
+    );
+    try expectContains(
+        survey_note,
+        "an initialized prepared request stays pinned even if later sample selftest activity runs before the shared runtime-loader handoff",
+    );
+    try expectContains(
+        survey_note,
+        "selftest-complete prepared snapshot explicit across later exit activity",
+    );
+    try expectContains(survey_note, "`make -C zigux phase9-runtime-kretprobe-test`");
+    try expectContains(survey_note, "`make -C zigux phase9`");
+
+    try expectContains(
+        module_slice_note,
+        "initialized and selftest-complete shared-request snapshot replays",
+    );
+    try expectContains(
+        module_slice_note,
+        "a selftest-complete shared-request snapshot replay that stays explicit even if later sample exit activity runs before the shared runtime-loader handoff",
+    );
+    try expectContains(
+        module_slice_note,
+        "the shared `phase9-runtime-loader-shared-tests` shard and the workflow-backed `make -C zigux phase9` route",
+    );
+    try expectContains(
+        module_slice_note,
+        "shared-request handoff evidence reviewable without claiming loadable-module parity",
+    );
 
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_kretprobe_survey.zig\")");
     try expectContains(phase9_build, ".name = \"phase9-runtime-kretprobe-survey-tests\"");
