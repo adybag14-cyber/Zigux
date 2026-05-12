@@ -53,6 +53,8 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase7-string-helpers-slice.md` and\n`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of",
         "`P7-L04`",
         "zigux/tests/phase7_build.zig",
+        "`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still\nmissing from the live tree.",
+        "`make -C zigux phase7-test`, `zig build test --build-file\nzigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the\nauthoritative blocker-bearing bundle routes",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_LANE_KEY=P7-L04",
@@ -268,6 +270,35 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_pair_note_marker = (
+            "`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still\n"
+            "missing from the live tree."
+        )
+        note_path.write_text(note_text.replace(missing_pair_note_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_string_helpers_pair_blocker_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still\nmissing from the live tree.",
+        )
+        write_fixture_root(tmp_root)
+
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_blocker_route_marker = (
+            "`make -C zigux phase7-test`, `zig build test --build-file\n"
+            "zigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the\n"
+            "authoritative blocker-bearing bundle routes"
+        )
+        note_path.write_text(note_text.replace(missing_blocker_route_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_blocker_route_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `make -C zigux phase7-test`, `zig build test --build-file\nzigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the\nauthoritative blocker-bearing bundle routes",
+        )
+        write_fixture_root(tmp_root)
+
         slice_path = tmp_root / "Documentation/zigux/phase7-string-helpers-slice.md"
         slice_text = slice_path.read_text(encoding="utf-8")
         missing_slice_lane_marker = "PHASE7_LANE_KEY=P7-L04"
@@ -369,7 +400,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=17")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=19")
 
 
 
