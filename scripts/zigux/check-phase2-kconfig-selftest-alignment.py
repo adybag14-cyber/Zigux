@@ -32,7 +32,7 @@ VALIDATOR_EXACT_COUNTS = {
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
     'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `11-case` confdata fixture replay",
+    "16-case` conf bridge plus `12-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
