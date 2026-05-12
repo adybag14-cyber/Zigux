@@ -26,6 +26,8 @@ ABI_DUMP = Path("zigux/tests/phase3_abi_dump.zig")
 MAKEFILE = Path("zigux/Makefile")
 VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
+INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
+INTEROP_MAKE = "make -C zigux phase3-interop"
 
 PROVENANCE = (
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
@@ -40,6 +42,8 @@ SURVEY_LINES = (
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_PATH={ABI_DUMP.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`",
+    f"`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`",
+    f"`PHASE3_SHARED_INTEROP_MAKE={INTEROP_MAKE}`",
     f"`PHASE3_SHARED_MAKEFILE_PATH={MAKEFILE.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
@@ -250,6 +254,7 @@ def validate(root: Path) -> list[str]:
         MAKEFILE: (
             "phase3-validate:",
             "phase3-interop:",
+            "$(PYTHON) scripts/zigux/run-phase3-checks.py",
             "phase3-abi:",
             "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
             DUMP_GATE,
@@ -292,6 +297,8 @@ def validate(root: Path) -> list[str]:
         "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "- name: Self-test Phase 3 export/UAPI survey",
         "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "- name: Check discovered Phase 3 parity",
+        "run: python3 scripts/zigux/run-phase3-checks.py",
         "- name: Run Phase 3 ABI/interp substrate tests",
         "run: zig build phase3-test --build-file zigux/tests/build.zig",
     ):
@@ -338,6 +345,7 @@ def build_valid_workspace(root: Path) -> None:
     write(root / MAKEFILE, "\n".join((
         "phase3-validate:",
         "phase3-interop:",
+        "\t$(PYTHON) scripts/zigux/run-phase3-checks.py",
         "phase3-abi:",
         "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
         f"\t{DUMP_GATE}",
@@ -415,6 +423,8 @@ def build_valid_workspace(root: Path) -> None:
         "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "- name: Self-test Phase 3 export/UAPI survey",
         "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "- name: Check discovered Phase 3 parity",
+        "  run: python3 scripts/zigux/run-phase3-checks.py",
         "- name: Run Phase 3 ABI/interp substrate tests",
         "  run: zig build phase3-test --build-file zigux/tests/build.zig",
         "",
@@ -531,6 +541,15 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(root / WORKFLOW, (root / WORKFLOW).read_text(encoding="utf-8").replace(
+            "run: python3 scripts/zigux/run-phase3-checks.py",
+            "run: python3 broken.py",
+            1,
+        ))
+        assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/run-phase3-checks.py"]
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8") + "phase3_export_uapi.zig\n")
         assert validate(root) == ["forbidden_survey_marker:phase3_export_uapi.zig"]
         build_valid_workspace(root)
@@ -547,6 +566,15 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(
+            "$(PYTHON) scripts/zigux/run-phase3-checks.py",
+            "$(PYTHON) broken.py",
+            1,
+        ))
+        assert validate(root) == ["missing_marker:zigux/Makefile:$(PYTHON) scripts/zigux/run-phase3-checks.py"]
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(DUMP_GATE, "zig build broken --build-file zigux/tests/build.zig", 1))
         assert validate(root) == [f"missing_marker:{MAKEFILE.as_posix()}:{DUMP_GATE}"]
         build_valid_workspace(root)
@@ -558,6 +586,15 @@ def run_self_test() -> int:
             1,
         ))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
+            f"`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`",
+            "`PHASE3_SHARED_INTEROP_ROUTE=broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`"]
         build_valid_workspace(root)
         case_count += 1
 
