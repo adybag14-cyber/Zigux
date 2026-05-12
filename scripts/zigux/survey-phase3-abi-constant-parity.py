@@ -15,7 +15,7 @@ DEFAULT_LAYOUT_ASSERT = ROOT / "zigux" / "helpers" / "layout_assert.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 20
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 21
 
 REQUIRED_ABI_VERSION = ("ZIGUX_ABI_VERSION", "ABI_VERSION", 1)
 
@@ -177,6 +177,12 @@ def collect_duplicate_exact_markers(path: Path, markers: tuple[str, ...], issue_
     return issues
 
 
+def source_contains_json_key(source: str, json_key: str) -> bool:
+    raw_marker = f'"{json_key}":'
+    escaped_marker = f'\\"{json_key}\\":'
+    return raw_marker in source or escaped_marker in source
+
+
 def validate_layout_assert(layout_assert_path: Path) -> list[str]:
     layout_assert_source = layout_assert_path.read_text(encoding="utf-8")
     issues: list[str] = []
@@ -247,9 +253,9 @@ def validate_constant_parity(
     elif binding_version != expected_version:
         issues.append(f"{bindings_path}:wrong_binding_value:{binding_version_name}:{binding_version}")
 
-    if '"abi_version":' not in dump_source:
+    if not source_contains_json_key(dump_source, "abi_version"):
         issues.append(f"{dump_path}:missing_dump_key:abi_version")
-    if '"abi_version":' not in harness_source:
+    if not source_contains_json_key(harness_source, "abi_version"):
         issues.append(f"{harness_path}:missing_harness_key:abi_version")
 
     fixture_version = expected.get("abi_version")
@@ -271,9 +277,9 @@ def validate_constant_parity(
         elif binding_value != expected_value:
             issues.append(f"{bindings_path}:wrong_binding_value:{binding_name}:{binding_value}")
 
-        if f'"{json_key}":' not in dump_source:
+        if not source_contains_json_key(dump_source, json_key):
             issues.append(f"{dump_path}:missing_dump_key:{json_key}")
-        if f'"{json_key}":' not in harness_source:
+        if not source_contains_json_key(harness_source, json_key):
             issues.append(f"{harness_path}:missing_harness_key:{json_key}")
 
         fixture_value = expected_constants.get(json_key)
@@ -373,6 +379,20 @@ def run_self_test() -> int:
         assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected) == []
         case_count += 1
 
+        dump.write_text(
+            '\n'.join(['// \\"abi_version\\":'] + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        harness.write_text(
+            '\n'.join(['/* \\"abi_version\\": */'] + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected) == []
+        case_count += 1
+
+        reset_all()
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
