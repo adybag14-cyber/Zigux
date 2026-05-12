@@ -61,7 +61,7 @@
     {
       "id": "shared-b-dispatch",
       "kind": "attribute_roundtrip",
-      "expected": "sample-owned runInputValidationReplay() keeps baz and bar on the same show and store path while still rendering 7 and -5 through their own attribute names"
+      "expected": "sample-owned runInputValidationReplay() keeps baz and bar on the same show and store path while rendering 9 and 10 through their own attribute names after the replay stores those exact values"
     },
     {
       "id": "parse-failure",
