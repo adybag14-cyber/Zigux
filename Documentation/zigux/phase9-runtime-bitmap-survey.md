@@ -13,7 +13,8 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 - keep the blocked shared runtime-loader substrate explicit
 - do not claim loadable runtime bitmap module parity
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
-- keep the four approved Phase 5 reference anchors explicit here too: `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig`
+- keep the three directly readable Phase 5 reference anchors explicit here too: `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig`
+- keep the narrower Phase 5 kobject packet explicit here too: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`
 - keep `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` explicit as the separate Phase 9 runtime bitmap family rather than a fifth approved Phase 5 sample idiom
 - keep the focused `phase9-runtime-bitmap-tests` route explicit as the shared build packet that now bundles the sample, diff, loader, top-bit, survey, and shared loader-adjacent replay surfaces without implying live runtime substrate parity
 
