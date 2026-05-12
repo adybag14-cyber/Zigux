@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
+GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
@@ -41,6 +42,8 @@ PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     (FIXDEP_GATE_CHECKER,),
     (FIXDEP_DIFF_CHECKER, "--self-test"),
     (FIXDEP_DIFF_CHECKER,),
+    (GENKSYMS_BRIDGE_CHECKER, "--self-test"),
+    (GENKSYMS_BRIDGE_CHECKER,),
     (PHASE2_CROSS_CHECKER, "--self-test"),
     (PHASE2_CROSS_CHECKER,),
     (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),
@@ -65,6 +68,8 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "scripts/zigux/check-phase2-fixdep-gate.py",
         "scripts/zigux/check-fixdep-diff.py --self-test",
         "scripts/zigux/check-fixdep-diff.py",
+        "scripts/zigux/check-genksyms-bridge.py --self-test",
+        "scripts/zigux/check-genksyms-bridge.py",
         "scripts/zigux/check-phase2-cross.py --self-test",
         "scripts/zigux/check-phase2-cross.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -76,7 +81,7 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "zig test scripts/zigux/fixdep.zig",
     }
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -84,6 +89,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
@@ -95,6 +101,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/zig-toolchain-policy.json",
@@ -105,8 +112,8 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "zigux/tests/fixtures/phase2_tool_manifest.json",
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
-PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 8
+PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 10
 
 
 def build_validation_commands(
@@ -208,7 +215,7 @@ def run_self_test() -> list[str]:
                 tuple(spec for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
             ),
             [
-                "phase2_validation_commands:count=18:expected=19",
+                "phase2_validation_commands:count=20:expected=21",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
             ],
         ),
@@ -218,7 +225,7 @@ def run_self_test() -> list[str]:
                 direct_command_specs=(),
             ),
             [
-                "phase2_validation_commands:count=18:expected=19",
+                "phase2_validation_commands:count=20:expected=21",
                 "phase2_validation_commands:missing:zig test scripts/zigux/fixdep.zig",
             ],
         ),
@@ -228,7 +235,7 @@ def run_self_test() -> list[str]:
                 PHASE2_VALIDATION_PY_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
             ),
             [
-                "phase2_validation_commands:count=20:expected=19",
+                "phase2_validation_commands:count=22:expected=21",
                 "phase2_validation_commands:duplicate_command_tail",
             ],
         ),
@@ -242,8 +249,22 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=18:expected=19",
+                "phase2_validation_commands:count=20:expected=21",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_genksyms_bridge_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (GENKSYMS_BRIDGE_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=20:expected=21",
+                "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py",
             ],
         ),
         (
@@ -279,6 +300,20 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_required_files:duplicate_relative_path",
                 "phase2_validation_required_files:missing:zigux/tests/fixtures/phase2_tool_manifest.json",
+            ],
+        ),
+        (
+            "required_file_inventory_missing_genksyms_script",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "scripts/zigux/check-genksyms-bridge.py"
+                )
+            ),
+            [
+                "phase2_validation_required_files:count=26:expected=27",
+                "phase2_validation_required_files:missing:scripts/zigux/check-genksyms-bridge.py",
             ],
         ),
     ]
