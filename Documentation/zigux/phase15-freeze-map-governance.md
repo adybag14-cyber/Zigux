@@ -24,6 +24,8 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `scripts/zigux/check-phase15-review-process-handoff.py`
   - `zigux/tests/README.md`
+  - `zigux/tests/phase15_build.zig`
+  - `zigux/tests/phase15_parity_scorecard.zig`
   - `zigux/tests/phase15_parity_scorecard.json`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
