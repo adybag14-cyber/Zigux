@@ -17,6 +17,9 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
+PERF_BUFFER_POLL_GATE_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
+LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
+LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 
 REQUIRED_FILES = (
     DOCS_ROOT_PATH,
@@ -28,36 +31,52 @@ REQUIRED_FILES = (
     MAKEFILE_PATH,
     VALIDATOR_PATH,
     HELP_KALLSYMS_PACKET_CHECKER_PATH,
+    PERF_BUFFER_POLL_GATE_PATH,
+    LIBBPF_SEGMENT_GATE_PATH,
+    LIBBPF_SHARD_ROUTES_PATH,
 )
 
 REQUIRED_MARKERS = {
     DOCS_ROOT_PATH: (
-        "Phase 8 notes - `Documentation/zigux/README.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the current shared reminder packet reviewable while `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, and the older `zigux/tests/phase8_*` shard files remain repo-reality gaps on current `master`.",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
     ),
     REVIEW_CHECKLIST_PATH: (
-        "if the change touches the current Phase 8 help-and-kallsyms reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
-        "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "current `master` does not expose `tools/lib/symbol/`",
+        "if the change touches the shared parked Phase 8 libbpf packet",
+        "`scripts/zigux/validate-phase8.py`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`tools/lib/bpf/zigux_segments/manifest.json`",
+        "`make -C zigux phase8-libbpf-segments-test`",
     ),
     SCRIPTS_README_PATH: (
-        "Phase 8 flow - current `master` keeps the shared Phase 8 reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
-        "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "`Documentation/zigux/README.md`",
+        "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "make -C zigux phase8-validate",
     ),
     TESTS_README_PATH: (
-        "Phase 8 reminder packet",
-        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
-        "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-        "`Documentation/zigux/README.md`",
+        "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-libbpf-segments-test`",
     ),
     SEQUENCING_PATH: (
-        "`PHASE8_STATUS=parked`",
-        "### 2. Symbol lane",
-        "the default-branch tree read surface does not currently expose `tools/lib/symbol/`",
-        "the default-branch tree read surface does not currently expose the older `zigux/tests/phase8_kallsyms*.zig` companions",
-        "Do not reopen this lane until the tree again carries explicit symbol-lane files on `master`.",
+        "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
+        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
     ),
     WORKFLOW_PATH: (
         "Validate Phase 8 tooling packet",
@@ -65,13 +84,16 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase8-validate:",
-        "scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        "scripts/zigux/validate-phase8.py",
     ),
 }
 
 FIXTURE_OVERRIDES = {
     VALIDATOR_PATH: "# fixture\n",
     HELP_KALLSYMS_PACKET_CHECKER_PATH: "# fixture\n",
+    PERF_BUFFER_POLL_GATE_PATH: "# fixture\n",
+    LIBBPF_SEGMENT_GATE_PATH: "# fixture\n",
+    LIBBPF_SHARD_ROUTES_PATH: "# fixture\n",
 }
 
 
@@ -135,42 +157,45 @@ def run_self_test() -> None:
         ("missing_workflow", WORKFLOW_PATH),
         ("missing_makefile", MAKEFILE_PATH),
         ("missing_help_kallsyms_checker", HELP_KALLSYMS_PACKET_CHECKER_PATH),
+        ("missing_perf_buffer_poll_gate", PERF_BUFFER_POLL_GATE_PATH),
+        ("missing_libbpf_segment_gate", LIBBPF_SEGMENT_GATE_PATH),
+        ("missing_libbpf_shard_routes", LIBBPF_SHARD_ROUTES_PATH),
     ]
     marker_cases = [
         (
-            "docs_root_phase8_reminder_marker",
+            "docs_root_libbpf_shard_routes_marker",
             DOCS_ROOT_PATH,
-            "scripts/zigux/check-phase8-help-kallsyms-packet.py",
-            "scripts/zigux/check-phase8-help-symbol-packet.py",
-            f"{DOCS_ROOT_PATH}: Phase 8 notes - `Documentation/zigux/README.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the current shared reminder packet reviewable while `tools/lib/subcmd/`, `tools/lib/symbol/`, `tools/lib/bpf/zigux_segments/`, and the older `zigux/tests/phase8_*` shard files remain repo-reality gaps on current `master`.",
+            "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+            "`scripts/zigux/check-phase8-libbpf-routes.py`",
+            f"{DOCS_ROOT_PATH}: `scripts/zigux/check-phase8-libbpf-shard-routes.py`",
         ),
         (
-            "review_checklist_symbol_gap_marker",
+            "review_checklist_libbpf_manifest_marker",
             REVIEW_CHECKLIST_PATH,
-            "current `master` does not expose `tools/lib/symbol/`",
-            "current `master` still exposes `tools/lib/symbol/`",
-            f"{REVIEW_CHECKLIST_PATH}: current `master` does not expose `tools/lib/symbol/`",
+            "`tools/lib/bpf/zigux_segments/manifest.json`",
+            "`tools/lib/bpf/zigux_segments/index.json`",
+            f"{REVIEW_CHECKLIST_PATH}: `tools/lib/bpf/zigux_segments/manifest.json`",
         ),
         (
-            "scripts_readme_phase8_packet_marker",
+            "scripts_readme_libbpf_segment_gate_marker",
             SCRIPTS_README_PATH,
-            "Phase 8 flow - current `master` keeps the shared Phase 8 reminder packet",
-            "Phase 8 flow - current `master` keeps the old Phase 8 helper packet",
-            f"{SCRIPTS_README_PATH}: Phase 8 flow - current `master` keeps the shared Phase 8 reminder packet",
+            "scripts/zigux/check-phase8-libbpf-segment-gate.py",
+            "scripts/zigux/check-phase8-libbpf-segment.py",
+            f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-libbpf-segment-gate.py",
         ),
         (
-            "tests_readme_phase8_packet_marker",
+            "tests_readme_perf_buffer_route_marker",
             TESTS_README_PATH,
-            "Phase 8 reminder packet",
-            "Phase 8 helper packet",
-            f"{TESTS_README_PATH}: Phase 8 reminder packet",
+            "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "`zigux/tests/phase8_perf_buffer_review_build.zig`",
+            f"{TESTS_README_PATH}: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         ),
         (
-            "sequencing_symbol_gap_marker",
+            "sequencing_next_step_marker",
             SEQUENCING_PATH,
-            "the default-branch tree read surface does not currently expose `tools/lib/symbol/`",
-            "the default-branch tree read surface still exposes `tools/lib/symbol/`",
-            f"{SEQUENCING_PATH}: the default-branch tree read surface does not currently expose `tools/lib/symbol/`",
+            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
+            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`:",
+            f"{SEQUENCING_PATH}: The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
         ),
         (
             "workflow_phase8_validate_marker",
@@ -180,11 +205,11 @@ def run_self_test() -> None:
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "makefile_checker_marker",
+            "makefile_validator_marker",
             MAKEFILE_PATH,
-            "scripts/zigux/check-phase8-help-kallsyms-packet.py",
-            "scripts/zigux/check-phase8-help-symbol-packet.py",
-            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-help-kallsyms-packet.py",
+            "scripts/zigux/validate-phase8.py",
+            "scripts/zigux/validate-phase8-lane.py",
+            f"{MAKEFILE_PATH}: scripts/zigux/validate-phase8.py",
         ),
     ]
 
