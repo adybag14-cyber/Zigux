@@ -137,6 +137,8 @@ Keep the no-extra-formatting reminder explicit too: no standalone `samples/zigux
 
 Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
 
+Keep `zigux/tests/phase5_kretprobe_example.zig` explicit as a focused replay wired through `zigux/tests/phase5_build.zig` rather than a standalone direct `zig test` entrypoint, while `zig test samples/zigux/kretprobe_example.zig` remains the sample-local direct self-check.
+
 Keep `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, `runOwnershipBoundaryReplay()`, and `runLifecycleGuardReplay()` explicit together with pre-init retargeting, the fixed `maxactiveBudget()` cue at `20`, the outstanding-instance exit boundary, timestamp-order rejection and recovery, the one-missed-instance summary, and post-exit handler rejection. Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.
 
 Keep `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` under their existing helper, rollback, and runtime lanes instead of treating bitmap as a shared Phase 5 approved idiom.
