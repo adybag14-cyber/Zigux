@@ -36,6 +36,11 @@
       "why_out_of_scope": "Review-field wording and approver-bucket changes belong to the review-process packet, not the handoff packet."
     },
     {
+      "lane_family": "parity-scorecard-survey",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard-survey.md",
+      "why_out_of_scope": "Roadmap-versus-repo truthfulness about whether the dedicated parity packet exists and still points at the right companion surfaces belongs to the parity-scorecard-survey packet, not to this handoff packet."
+    },
+    {
       "lane_family": "parity-scorecard",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_out_of_scope": "Blocker-evidence or aggregate-metric repairs belong to the parity-scorecard packet."
