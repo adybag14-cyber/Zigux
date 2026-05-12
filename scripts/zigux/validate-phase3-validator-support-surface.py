@@ -118,12 +118,14 @@ def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _extract_section(text: str, heading: str, next_heading: str) -> str | None:
+def _extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
     if heading not in text:
         return None
     section = text.split(heading, 1)[1]
-    if next_heading and next_heading in section:
+    if next_heading is not None and next_heading in section:
         section = section.split(next_heading, 1)[0]
+    elif next_heading is None and "\n## " in section:
+        section = section.split("\n## ", 1)[0]
     return section
 
 
@@ -172,7 +174,7 @@ def validate_text(text: str) -> list[str]:
     shared_reminder = _extract_section(
         text,
         "## Shared reminder",
-        "",
+        None,
     )
 
     missing.extend(
@@ -540,6 +542,29 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared reminder duplicate drift was not reported")
+        return 1
+
+    before, separator, after = sample.partition("\n## Shared reminder\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder section separator was not found")
+        return 1
+    broken = validate_text(
+        before
+        + "\n## Shared reminder\n"
+        + after.replace(
+            "zigux/uapi/dev_t.zig",
+            "## Future follow-through\nzigux/uapi/dev_t.zig",
+            1,
+        )
+    )
+    expected = (
+        "shared reminder marker count drift: zigux/uapi/dev_t.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder next-heading drift was not reported")
         return 1
 
     boundary_sample = _boundary_note_sample_text()
