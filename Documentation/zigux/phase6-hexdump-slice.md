@@ -10,9 +10,11 @@
 - `zigux/tests/phase6_hexdump_perf.zig`
 - `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
 - the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
 - a dedicated hexdump-only build step now reruns the focused helper replay while the helper-local perf gate keeps its threshold matrix preflight beside the ReleaseSafe slowdown replay
+- the preserved grouped-ASCII ceiling rationale now stays helper-local through `Documentation/zigux/phase6-hexdump-perf-refresh.md`, so any reopen must keep that note aligned with the same hexdump-owned review packet instead of handing it back to a shared Phase 6 perf lane
 - a dedicated Linux-style review route now keeps the helper-local checker, focused replay, perf-matrix preflight, and perf gate under the same `PYTHON` and `ZIG` environment plumbing without widening the shared `phase6` route
 - direct local checker route: `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - `make -C zigux phase6-hexdump-test`
