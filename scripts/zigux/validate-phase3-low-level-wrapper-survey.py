@@ -193,7 +193,6 @@ def run_self_test() -> int:
                 print(issue)
             return 1
 
-        (root / SURVEY_REL).writeText = None
         (root / SURVEY_REL).write_text("broken\n", encoding="utf-8")
         issues = validate(root)
         if not any(issue.startswith("missing_survey_marker:") for issue in issues):
