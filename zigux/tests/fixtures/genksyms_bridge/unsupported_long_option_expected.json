@@ -1,0 +1,5 @@
+{
+  "stdout": "",
+  "stderr": "unrecognized option '--bogus'\n",
+  "exit_code": 1
+}
