@@ -419,6 +419,28 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
 }
 
 test "atomic64 diff wrapper keeps its local-only perf-baseline governance explicit" {
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"decision_owner\": \"Validation and Perf Team\"",
+    );
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"decision_owner\": \"Validation and Perf Team\"",
+        "\"shared_ci_perf_promotion_status\": \"pending\"",
+        &.{
+            "\"coordination_owners\": [",
+            "\"ABI and Runtime Team\"",
+            "\"Shared Subsystems Pod\"",
+        },
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"shared_ci_perf_promotion_status\": \"pending\"",
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"",
+    );
     try expectOrderedMarkersInSection(
         phase4_perf_baseline_manifest_source,
         "\"surface\": \"zigux/tests/atomic64_diff.zig\"",
