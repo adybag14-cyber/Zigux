@@ -35,31 +35,31 @@
       "id": "trace-events-sample",
       "kind": "sample_starter",
       "path": "samples/zigux/runtime_trace_events.zig",
-      "why_now": "The sample is visible again on current master and carries the bounded trace-events replay surface that the lane-local packet must describe truthfully."
+      "why_now": "The sample is visible on current master and carries the bounded trace-events replay surface that the lane-local packet must describe truthfully."
     },
     {
       "id": "trace-events-loader-scaffold",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The sample-side loader scaffold is visible again on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, and outstanding-registration drain proofs without clearing the broader substrate blocker."
+      "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, and outstanding-registration drain proofs without clearing the broader substrate blocker."
     },
     {
       "id": "trace-events-module-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "The direct module gate is visible again on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, and registration-drain packet machine-checkable."
+      "why_now": "The direct module gate is visible on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, and registration-drain packet machine-checkable."
     },
     {
       "id": "trace-events-diff-gate",
       "kind": "differential_validation",
       "path": "zigux/tests/runtime_trace_events_diff.zig",
-      "why_now": "The focused diff gate is visible again on current master and keeps the diagnostics-summary replay packet explicit."
+      "why_now": "The focused diff gate is visible on current master and keeps the diagnostics-summary replay packet explicit."
     },
     {
       "id": "trace-events-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_survey.zig",
-      "why_now": "The dedicated survey gate is visible again on current master and remains the packet-local fail-closed check for note and manifest drift."
+      "why_now": "The dedicated survey gate is visible on current master and remains the packet-local fail-closed check for note and manifest drift."
     },
     {
       "id": "trace-events-manifest",
