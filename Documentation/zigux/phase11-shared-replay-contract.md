@@ -38,6 +38,7 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the shared packet uses the existing `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when shared Phase 11 reminder wording moves
+* no direct `drivers/tty/hvc/hvc_console_verify.zig` or `zigux/tests/phase11_hvc_console.zig` currently materializes on `master`
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
@@ -54,6 +55,8 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `make -C zigux phase11-hvc-survey`
+
+Treat absent direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_console.zig` companions as repo-reality gaps rather than as shipped HVC replay evidence when shared Phase 11 reminder surfaces are refreshed.
 
 The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:
 
