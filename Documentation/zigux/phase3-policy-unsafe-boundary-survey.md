@@ -6,8 +6,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 - `PHASE3_SURVEY_PROVENANCE=connector-plus-tree-fallback-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
-- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=21b239f78ad5806868079f99cbf111d3cb97de25`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-size-align-offset-helper-consumed-by-shared-abi-replays`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=c9d462d5d21ff337658256458674e3329ccb4935`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=8bb6db9c5625d3f04369e034d88ef4eff9048bcf`
@@ -15,23 +15,23 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=5f212bc871d5c6c194be3249ef8d91ca3b5d09cf`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=70bf700a8ec952ff7bbaf230cf5522071af810d0`
+- `PHASE3_MMIO_BLOB_SHA=da243407a376213cc583d46e824862985ba75477`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=edc8c6b2ab2745ad03749fd636a3d71199db64ab`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
-- `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
+- `PHASE3_ABI_TEST_BLOB_SHA=c21736d6ca2e9cb8e90da003a5c1185d8b4394df`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
-- `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
+- `PHASE3_ABI_DUMP_BLOB_SHA=0859efb2c4ba1a8178d10171321223b21273ae02`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=ab6f6bca70dbf672b8e6fa777233a69a505f9aea`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=4d53724d71eb8874dd5cf5a069246fda0f266794`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=abdcc6b19affd4087d8ad64bb4e4b96e907cee77`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`
 - `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands`
 
 ## Roadmap Contract
 
@@ -51,40 +51,40 @@ This lane does not justify broad runtime policy machinery on its own.
 
 This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.
 
-The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
+The current tree still carries a real bounded policy-and-unsafe packet, but the shared ABI replay owns more of the visible proof surface than older versions of this survey claimed:
 
-- `zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, offset, and interop-policy byte-value checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.
-- `zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
-- `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.
-- `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
-- `zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy`, while keeping the direct raw-pointer bridge relays narrowed to the `constSliceAt*`, `constPointerAt*`, and `writeValueAt*` helper family instead of widening into a broader unsafe façade.
-- `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` rather than widening into a larger policy substrate.
-- `zigux/helpers/mmio.zig` now routes shared policy-aware MMIO through decoded `interop_policy.DecodedInteropPolicy` inputs plus `readScopedWithPolicy`, `writeScopedWithPolicy`, width-specific `read*Scoped` and `write*Scoped` helpers, and the `read*Policy` and `write*Policy` relay family, so volatile-MMIO callers stay inside the bounded unsafe contract while misaligned and overflowed accesses fail closed in the shipped tests.
-- `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.
-- `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` plus the shared `zig build phase3-dump --build-file zigux/tests/build.zig` route keep the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the dump path.
-- `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
+- `zigux/helpers/layout_assert.zig` is now a tiny generic helper that exposes only `size()`, `align()`, and `offset()` assertions; the packet-local ABI coverage for `InteropPolicy`, `BoundaryHeader`, `ExportStatus`, and the newer chrdev budget-window views now lives in the shared `zigux/tests/phase3_abi.zig` and `zigux/tests/phase3_abi_dump.zig` replays instead of inside this helper.
+- `zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
+- `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.
+- `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
+- `zigux/unsafe/narrow.zig` also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy`, while keeping the direct raw-pointer bridge relays narrowed to the `constSliceAt*`, `constPointerAt*`, `pointerAt*`, and `writeValueAt*` helper family instead of widening into a broader unsafe facade.
+- `zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.
+- `scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.
+- `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet for this family today, but it currently proves the `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` layouts, exported constants, and `export_shim` compatibility rules directly against `abi_bindings` and `export_shim` rather than importing the policy helpers themselves.
+- `zigux/tests/phase3_abi_dump.zig` keeps the current shared dump path explicit by emitting ABI constants plus the `InteropPolicy` and chrdev budget-window struct layouts; it no longer claims a dedicated policy/unsafe dump family or helper-local `MmioRange` layout packet of its own.
+- `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` still treat these helpers and review surfaces as part of the shared `abi` slice.
 
-The current tree no longer ships a dedicated `phase3_policy_unsafe` replay pair, and the live validator packet now keeps this boundary inside the shared `abi` slice alone. This note should stay tied to the real shared ABI packet instead of implying an extra focused replay family that the live tests tree no longer carries.
+The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair, and the live validator packet keeps this boundary inside the shared `abi` slice alone. This note should stay tied to the real shared ABI packet instead of implying an extra focused replay family or helper-local layout surface that the live tests tree no longer carries.
 
 ## Ledger Alignment
 
 This policy-and-unsafe note is still evidence for the same bounded Phase 3 ABI substrate packet recorded in `BOOTSTRAP_COMMIT_LEDGER.md` entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`.
 
-That means this lane remains note-and-marker maintenance inside the shared ABI packet rather than a new standalone tranche.
+That means this lane remains survey-and-marker maintenance inside the shared ABI packet rather than a new standalone tranche.
 
 ## Current Boundary Gap
 
-Current same-family progress already includes three helper-local reserved-byte tightenings, one bounded unsafe-entry alignment, one MMIO policy-routing refresh, and one shared packet guard:
+Current same-family progress already includes helper-local explicit-byte decoding, typed-policy relays, and shared ABI proof refreshes:
 
-- the panic helper now decodes ABI panic-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
-- the allocator helper now decodes ABI allocator-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
-- the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly and mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers, instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand
-- the MMIO helper now routes policy-aware reads and writes through decoded `interop_policy.DecodedInteropPolicy` values plus explicit scoped-width relays, while the shipped tests keep denied-scope, misaligned, and overflowed accesses failing closed instead of spreading that contract across unrelated callers
-- the shared ABI packet now also carries a dedicated `scripts/zigux/check-phase3-policy-byte-guards.py` guard, so shared docs-root and scripts-root summaries should keep that policy-byte gate explicit whenever this packet moves instead of flattening the current substrate back into helpers-plus-survey wording alone
-- the remaining same-lane gap is no longer a missing focused replay pair; it is only the need to keep this survey, the shared ABI packet, and the dump-and-validator surfaces aligned without implying a retired focused replay family or a broader runtime policy subsystem
+- the panic helper decodes ABI panic-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
+- the allocator helper decodes ABI allocator-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
+- the narrow unsafe helper decodes ABI unsafe-scope bytes explicitly and mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers, instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand
+- the MMIO helper routes policy-aware reads and writes through explicit byte and typed `InteropPolicy` relays while keeping denied-scope accesses fail-closed instead of spreading that contract across unrelated callers
+- the shared ABI proof packet now owns more of the visible layout and constant evidence than the tiny `layout_assert` helper does, so this survey has to keep the helper-role description and blob markers honest instead of repeating older helper-local coverage claims
+- the remaining same-lane gap is only to keep this survey aligned with the live helper roles, shared ABI replay surfaces, and current blob markers without implying a retired focused replay family or a broader runtime policy subsystem
 
 ## Next Bounded Step
 
-- leave this lane parked unless one of the shared ABI packet files or the directly coupled dump or validator surfaces drifts again
-- keep the next same-lane change to one note, manifest, validator, or focused dump-alignment step tied only to this packet
+- leave this lane parked unless one of the shared ABI packet files or the directly coupled survey surfaces drifts again
+- keep the next same-lane change to one survey-side wording or marker refresh tied only to this packet
 - if a broader policy-and-unsafe helper family or a new direct focused replay ever lands later, resurvey this note against the exact live files before claiming that surface here
