@@ -58,6 +58,8 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
 EXPECTED_CONTRACT_CASES = [
     "helper_self_test",
     "helper_self_test_repeat",
+    "cli_help_output",
+    "cli_help_output_repeat",
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
@@ -343,12 +345,23 @@ def run_self_test() -> int:
 
     contract_lines = [
         "ARTIFACT_DIFF_CONTRACT=pass",
-        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22",
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
         "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(
-            [case for case in EXPECTED_CONTRACT_CASES if case not in {"helper_self_test_repeat", "text_pass_repeat", "json_mismatch_repeat", "sha256_drift_repeat"}]
+            [
+                case
+                for case in EXPECTED_CONTRACT_CASES
+                if case
+                not in {
+                    "helper_self_test_repeat",
+                    "cli_help_output_repeat",
+                    "text_pass_repeat",
+                    "json_mismatch_repeat",
+                    "sha256_drift_repeat",
+                }
+            ]
         ),
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4",
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
         f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}",
         "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(EXPECTED_CONTRACT_CASES),
     ]
@@ -356,7 +369,7 @@ def run_self_test() -> int:
     covered_cases.append("contract_summary_round_trip")
 
     bad_contract_count = contract_lines.copy()
-    bad_contract_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25"
+    bad_contract_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
     expect_assertion(
         "contract_summary_case_count_drift",
         lambda: assert_contract_summary(bad_contract_count),
