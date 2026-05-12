@@ -18,6 +18,10 @@ CONTRIBUTOR_SYNC_PATH = "Documentation/zigux/phase10-phase11-phase13-contributor
 TESTS_COMPANION_PATH = "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
 RELEASE_VALIDATOR_PATH = "scripts/zigux/validate-phase13-release.py"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+NOTIFIER_BINDINGS_PATH = "zigux/bindings/notifier_abi.zig"
+NOTIFIER_HELPER_PATH = "zigux/helpers/notifier_chain_view.zig"
+ABI_HEADER_PATH = "include/zigux/abi.h"
+HVC_HEADER_PATH = "drivers/tty/hvc/hvc_console.h"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
@@ -30,6 +34,10 @@ REQUIRED_FILES = (
     TESTS_COMPANION_PATH,
     RELEASE_VALIDATOR_PATH,
     SCRIPTS_README_PATH,
+    NOTIFIER_BINDINGS_PATH,
+    NOTIFIER_HELPER_PATH,
+    ABI_HEADER_PATH,
+    HVC_HEADER_PATH,
 )
 
 REQUIRED_NOTIFIER_SURVEY_MARKERS = (
@@ -110,6 +118,30 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
 )
 
+REQUIRED_NOTIFIER_BINDINGS_MARKERS = (
+    "pub const NotifierBlock = extern struct {",
+    "next: usize,",
+    "priority: i32,",
+)
+
+REQUIRED_NOTIFIER_HELPER_MARKERS = (
+    "pub const ChainView = struct {",
+    "pub fn hasNonincreasingPriority(self: ChainView) bool {",
+    "test \"chain view checks nonincreasing notifier priority\" {",
+)
+
+REQUIRED_ABI_HEADER_MARKERS = (
+    "#define ZIGUX_ABI_VERSION 1U",
+    "struct zigux_boundary_header {",
+    "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+)
+
+REQUIRED_HVC_HEADER_MARKERS = (
+    "extern int notifier_add_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_del_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
+)
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -133,6 +165,10 @@ def validate(root: Path) -> list[str]:
         ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS),
         ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
+        ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS),
+        ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS),
+        ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS),
+        ("hvc-header", HVC_HEADER_PATH, REQUIRED_HVC_HEADER_MARKERS),
     )
     for label, rel_path, markers in checks:
         text = read_text(root, rel_path)
@@ -159,6 +195,10 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, TESTS_COMPANION_PATH, "\n".join(REQUIRED_TESTS_COMPANION_MARKERS) + "\n")
     write_text(root, RELEASE_VALIDATOR_PATH, "\n".join(REQUIRED_RELEASE_VALIDATOR_MARKERS) + "\n")
     write_text(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
+    write_text(root, NOTIFIER_BINDINGS_PATH, "\n".join(REQUIRED_NOTIFIER_BINDINGS_MARKERS) + "\n")
+    write_text(root, NOTIFIER_HELPER_PATH, "\n".join(REQUIRED_NOTIFIER_HELPER_MARKERS) + "\n")
+    write_text(root, ABI_HEADER_PATH, "\n".join(REQUIRED_ABI_HEADER_MARKERS) + "\n")
+    write_text(root, HVC_HEADER_PATH, "\n".join(REQUIRED_HVC_HEADER_MARKERS) + "\n")
 
 
 def assert_missing_case(root: Path, label: str, rel_path: str, needle: str) -> None:
@@ -193,6 +233,10 @@ def run_self_test() -> int:
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[5]),
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
+            ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
+            ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
+            ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[1]),
+            ("hvc-header", HVC_HEADER_PATH, REQUIRED_HVC_HEADER_MARKERS[2]),
         )
         for label, rel_path, needle in mutations:
             case_root = Path(tmp) / f"{label}_{cases}"
@@ -206,6 +250,8 @@ def run_self_test() -> int:
 
 
 def main() -> int:
+    root = Path(__file__).resolve()
+    default_root = root.parents[2] if len(root.parents) > 2 else Path.cwd()
     parser = argparse.ArgumentParser(
         description="Validate the current Phase 13 notifier priority-signal reminder surfaces."
     )
@@ -213,7 +259,7 @@ def main() -> int:
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path(__file__).resolve().parents[2],
+        default=default_root,
         help="Repository root to validate.",
     )
     args = parser.parse_args()
