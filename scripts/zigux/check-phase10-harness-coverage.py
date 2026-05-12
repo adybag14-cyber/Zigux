@@ -65,10 +65,18 @@ EXACT_CHECK_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
     "`drivers/virtio/virtio_ring.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`drivers/virtio/virtio_input.zig`",
+    "`drivers/virtio/virtio_input_verify.zig`",
+    "`drivers/virtio/virtio_mmio.zig`",
+    "`drivers/virtio/virtio_mmio_verify.zig`",
+    "`make -C zigux phase10-validate`",
+    "current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
 ]
 
 DOC_README_MARKERS = [
@@ -652,6 +660,81 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`scripts/zigux/validate-phase10.py`",
+                "`scripts/zigux/validate-phase10-removed.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_validate_phase10",
+            root,
+            "scripts_readme:`scripts/zigux/validate-phase10.py`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`drivers/virtio/virtio_input.zig`",
+                "`drivers/virtio/virtio_input_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_input_surface",
+            root,
+            "scripts_readme:`drivers/virtio/virtio_input.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`drivers/virtio/virtio_mmio.zig`",
+                "`drivers/virtio/virtio_mmio_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_mmio_surface",
+            root,
+            "scripts_readme:`drivers/virtio/virtio_mmio.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`make -C zigux phase10-validate`",
+                "`make -C zigux phase10-validate-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_phase10_validate_route",
+            root,
+            "scripts_readme:`make -C zigux phase10-validate`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
+                "the scripts-root reminder now treats every Phase 10 slice note as shipped current-master evidence.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_slice_gap_phrase",
+            root,
+            "scripts_readme:current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -740,7 +823,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
