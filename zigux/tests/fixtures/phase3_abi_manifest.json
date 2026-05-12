@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 57,
+  "file_count": 59,
   "files": [
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -46,6 +46,8 @@
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
