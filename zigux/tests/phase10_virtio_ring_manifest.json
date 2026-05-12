@@ -147,6 +147,13 @@
       "why_now": "Current master does not materialize the direct ring verify replay, so the wrapper-facing reset-readiness and callback pacing proof remains absent rather than landed review evidence."
     },
     {
+      "id": "phase10-ring-reset-reuse-replay",
+      "status": "repo_reality_gap",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+      "why_now": "Current master does not materialize the drained-reset reuse replay named by the shared closure packet, so the rollback-facing reuse proof remains absent rather than landed review evidence."
+    },
+    {
       "id": "phase10-virtio-ring-slice-note",
       "status": "repo_reality_gap",
       "kind": "documentation",
