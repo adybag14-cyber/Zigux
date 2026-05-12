@@ -46,10 +46,10 @@ Broad summaries should keep those shipped Landlock helper anchors explicit inste
 
 Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `zigux/tests/phase13_devres_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
 Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.
 
