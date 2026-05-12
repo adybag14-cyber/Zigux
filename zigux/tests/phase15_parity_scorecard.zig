@@ -56,6 +56,35 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectMetricLine(scorecard_doc: []const u8, label: []const u8, value: usize) !void {
+    var line_buffer: [128]u8 = undefined;
+    const rendered = try std.fmt.bufPrint(&line_buffer, "{s}: `{d}`", .{ label, value });
+    try expectContains(scorecard_doc, rendered);
+}
+
+fn countStatusBucket(anchors: []const Anchor, expected_status_bucket: []const u8) usize {
+    var count: usize = 0;
+    for (anchors) |anchor| {
+        if (std.mem.eql(u8, anchor.current_status_bucket, expected_status_bucket)) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
+fn countPhase14CoupledAnchors(anchors: []const Anchor) usize {
+    var count: usize = 0;
+    for (anchors) |anchor| {
+        for (anchor.evidence_archive.linked_evidence) |linked_evidence| {
+            if (std.mem.startsWith(u8, linked_evidence, "Documentation/zigux/phase14-")) {
+                count += 1;
+                break;
+            }
+        }
+    }
+    return count;
+}
+
 test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -80,6 +109,26 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     try std.testing.expectEqual(@as(usize, 2), manifest.metrics.study_only_anchors_tracked_outside_scorecard);
     try std.testing.expectEqual(@as(usize, 0), manifest.metrics.architecture_council_status_change_approval_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
+    try std.testing.expectEqual(
+        manifest.metrics.architecture_council_status_change_approval_count > 0,
+        manifest.posture.architecture_council_status_change_approval_recorded,
+    );
+    try std.testing.expectEqual(
+        manifest.metrics.active_freeze_in_c_anchor_count,
+        countStatusBucket(manifest.anchors, "freeze_in_c"),
+    );
+    try std.testing.expectEqual(
+        manifest.metrics.blocked_status_change_anchor_count,
+        manifest.anchors.len,
+    );
+    try std.testing.expectEqual(
+        manifest.metrics.phase14_coupled_blocker_anchor_count,
+        countPhase14CoupledAnchors(manifest.anchors),
+    );
+    try std.testing.expectEqual(
+        manifest.metrics.phase14_coupled_blocker_anchor_count,
+        manifest.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence,
+    );
 
     const sched = manifest.anchors[0];
     try std.testing.expectEqualStrings("kernel/sched/core.c", sched.path);
@@ -128,8 +177,12 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
     try expectContains(scorecard_doc, "current-master-readback-2026-05-12");
-    try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
-    try expectContains(scorecard_doc, "blocked status-change anchor count: `4`");
+    try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
+    try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
+    try expectMetricLine(scorecard_doc, "Phase 14 coupled blocker anchor count", parsed.value.metrics.phase14_coupled_blocker_anchor_count);
+    try expectMetricLine(scorecard_doc, "anchors still blocked on prior-phase bridge evidence", parsed.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
+    try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
+    try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
 
     for (parsed.value.anchors) |anchor| {
         try expectContains(scorecard_doc, anchor.path);
