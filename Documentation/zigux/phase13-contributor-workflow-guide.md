@@ -47,13 +47,20 @@ If a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-
 
 ## Current Repo Reality
 
-As of `2026-05-11`, current `master` materializes the bounded `libfs` foothold through `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_libfs_reviewability.zig`. It also materializes the direct `zigux/tests/phase13_devres.zig` replay together with `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`, but it still does not materialize these direct Phase 13 companions:
+As of `2026-05-11`, current `master` materializes the bounded `libfs` foothold through `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_libfs_reviewability.zig`. It also materializes the direct `zigux/tests/phase13_devres.zig` replay together with `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`. Current `master` also materializes small helper-local `security/landlock/ruleset.zig` and `security/landlock/syscalls.zig` starters, so contributor workflow wording should keep those direct helper anchors explicit beside `Documentation/zigux/phase13-landlock-ruleset-ownership.md` and `Documentation/zigux/phase13-landlock-syscalls-governance.md` instead of treating Landlock as docs-only ownership metadata, but it still does not materialize these direct Phase 13 companions:
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - older `scripts/zigux/check-phase13-devres-packet.py`
 
 When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
@@ -66,8 +73,9 @@ Current `master` also does not materialize the direct notifier/list companions r
 3. If a broad reminder changes, reread the shared surfaces together before adding packet-local prose.
 4. Before naming a direct scripts-root checker as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing script as a blocker.
 5. Before naming a direct helper-local tests-root companion as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing direct companion as repo reality.
-6. Keep adjacent notifier evidence explicit whenever a contributor-facing summary mentions the shared Phase 13 packet.
-7. Record Phase 13 as still active and reviewable; do not imply closure or a frozen packet.
+6. Before describing Landlock as docs-only ownership metadata, verify whether `security/landlock/ruleset.zig` and `security/landlock/syscalls.zig` are present on current `master`; if they are, keep those shipped helper anchors explicit while still recording missing direct Landlock slice, survey, manifest, and tests-root companions as repo reality.
+7. Keep adjacent notifier evidence explicit whenever a contributor-facing summary mentions the shared Phase 13 packet.
+8. Record Phase 13 as still active and reviewable; do not imply closure or a frozen packet.
 
 ## Contributor Prompts
 
@@ -75,10 +83,11 @@ Use these prompts when reviewing or updating shared workflow wording:
 - Does the wording keep `libfs`, `devres`, `landlock`, and adjacent notifier evidence as separate ownership buckets?
 - Does the wording keep the helper-owned Landlock ruleset boundary explicit through `Documentation/zigux/phase13-landlock-ruleset-ownership.md` instead of folding that owner cue into generic syscall or release wording?
 - Does the wording keep the helper-owned Landlock syscalls governance boundary explicit through `Documentation/zigux/phase13-landlock-syscalls-governance.md` instead of folding that owner cue into generic ruleset, notifier, or release wording?
+- Does the wording keep the shipped helper-local `security/landlock/ruleset.zig` and `security/landlock/syscalls.zig` starters explicit beside those ownership notes instead of treating Landlock as docs-only metadata?
 - Does the wording keep notifier evidence adjacent to the shared-helper packet rather than counting it as a fifth helper tranche?
 - Does the wording stay grounded in shipped contributor-facing notes instead of hoping for future validator or replay surfaces?
 - Does the wording avoid presenting a direct `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-*.py` path as independently shipped reviewer evidence when that exact file cannot be materialized on current `master`?
-- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` paths framed as repo-reality gaps instead of shipped evidence while leaving the shipped `zigux/tests/phase13_libfs.zig` foothold, the shipped `zigux/tests/phase13_libfs_reviewability.zig` companion, the shipped `zigux/tests/phase13_devres.zig` replay, the shipped `zigux/tests/phase13_devres_reviewability.zig` and `zigux/tests/phase13_devres_dma_coherent.zig` companions, and the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard explicit?
+- Does the wording keep the currently missing direct `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` paths framed as repo-reality gaps instead of shipped evidence while leaving the shipped `zigux/tests/phase13_libfs.zig` foothold, the shipped `zigux/tests/phase13_libfs_reviewability.zig` companion, the shipped `zigux/tests/phase13_devres.zig` replay, the shipped `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_manifest.json` companions, the shipped `security/landlock/ruleset.zig` and `security/landlock/syscalls.zig` starters, and the shipped `scripts/zigux/check-phase13-devres-packet-alignment.py` guard explicit?
 - Does the wording keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and `make -C zigux phase13` while leaving the direct notifier/list companions framed as adjacent repo-reality gaps until current `master` materializes them?
 - Does the wording keep the packet bounded to helper-first and truthfulness work instead of widening into subsystem-implementation claims?
 
