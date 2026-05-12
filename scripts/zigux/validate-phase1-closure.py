@@ -166,7 +166,7 @@ EXPECTED_BENCH = {
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
         "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
         "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1308000,
-        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 56000,
+        "PHASE1_BENCH_FIND_ADD_CHECKSUM": 56000,
         "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 1868000,
         "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 148000,
     },
@@ -667,22 +667,27 @@ def run_self_test() -> None:
         phase1_validator.write_text("import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=fail')\n    raise SystemExit(1)\n", encoding="utf-8")
         assert any(item.startswith("phase1_validator_failed:") for item in collect_missing_markers(root))
         case_count += 1
+        make_fixture_root(root)
 
-        for label, marker, _ in [
-            REQUIRED_CLOSURE_MARKERS[12],
-            REQUIRED_CLOSURE_MARKERS[13],
-            REQUIRED_CLOSURE_MARKERS[14],
-            REQUIRED_CLOSURE_MARKERS[17],
-            REQUIRED_CLOSURE_MARKERS[19],
-            REQUIRED_CLOSURE_MARKERS[20],
-            REQUIRED_CLOSURE_MARKERS[24],
-            REQUIRED_CLOSURE_MARKERS[26],
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        for marker in [
+            CLOSURE_MARKERS[12],
+            CLOSURE_MARKERS[13],
+            CLOSURE_MARKERS[14],
+            CLOSURE_MARKERS[17],
+            CLOSURE_MARKERS[19],
+            CLOSURE_MARKERS[20],
+            CLOSURE_MARKERS[24],
+            CLOSURE_MARKERS[26],
         ]:
-            def mutate_closure(marker=marker):
-                closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
+            closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
+            assert any(item == f"closure:{marker}" for item in collect_missing_markers(root))
+            closure_path.write_text(closure_text, encoding="utf-8")
+            case_count += 1
 
-        print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-        print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
+    print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
