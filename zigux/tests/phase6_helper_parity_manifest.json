@@ -60,10 +60,16 @@
     }
   ],
   "shared_gates": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase6-shared-surface.py",
+    "zigux/tests/README.md",
+    "zigux/tests/phase6_build.zig",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile"
   ],
   "perf_posture": {
