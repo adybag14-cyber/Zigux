@@ -77,6 +77,11 @@ TESTS_README_MARKERS = (
     "make -C zigux phase3-selftest",
 )
 TESTS_README_MARKER_COUNTS = {
+    "scripts/zigux/phase3_catalog.py --self-test": 1,
+    "scripts/zigux/phase3_check_lib.py --self-test": 1,
+    "scripts/zigux/generate-phase3-check-wrappers.py --check": 1,
+    "scripts/zigux/run-phase3-checks.py --self-test": 1,
+    "scripts/zigux/phase3_catalog.py --audit-doc-sync": 1,
     "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
@@ -653,6 +658,103 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected scripts README section-bounded governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/phase3_catalog.py --self-test",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/phase3_catalog.py --self-test "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected phase3 catalog self-test drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/phase3_check_lib.py --self-test",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/phase3_check_lib.py --self-test "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected phase3 check-lib self-test drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/generate-phase3-check-wrappers.py --check",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/generate-phase3-check-wrappers.py --check "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected wrapper-check drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/run-phase3-checks.py --self-test",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/run-phase3-checks.py --self-test "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected run-phase3-checks self-test drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/phase3_catalog.py --audit-doc-sync",
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "scripts/zigux/phase3_catalog.py --audit-doc-sync",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: scripts/zigux/phase3_catalog.py --audit-doc-sync "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped audit-doc-sync drift was not reported")
             return 1
 
         _populate_repo(root)
