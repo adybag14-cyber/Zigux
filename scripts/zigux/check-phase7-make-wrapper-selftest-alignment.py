@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
@@ -141,6 +142,7 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     assert missing_markers == [marker], case
 
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_markers == [], case
@@ -174,6 +176,15 @@ def run_self_test() -> None:
         assert validate(tmp_root) == (["scripts/zigux/check-phase7-build-wiring.py"], [], [])
         write_fixture_root(tmp_root)
 
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.unlink()
+        expect_missing_file(
+            "missing_phase7_workflow_file",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml",
+        )
+        write_fixture_root(tmp_root)
+
         note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
         note_text = note_path.read_text(encoding="utf-8")
         missing_note_marker = "python3 scripts/zigux/check-phase7-build-wiring.py --self-test"
@@ -189,11 +200,13 @@ def run_self_test() -> None:
         makefile_text = makefile_path.read_text(encoding="utf-8")
         missing_makefile_marker = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"
         makefile_path.write_text(makefile_text.replace(missing_makefile_marker, "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_alignment_makefile_marker",
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        )
+        assert validate(tmp_root) == (
+            [],
+            ["zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"],
+            [
+                "zigux/Makefile: expected 1 occurrence(s) of 'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py', found 0"
+            ],
+        ), "missing_alignment_makefile_marker"
         write_fixture_root(tmp_root)
 
         checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
@@ -240,7 +253,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=7")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=8")
 
 
 def main() -> int:
