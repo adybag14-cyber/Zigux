@@ -15,7 +15,7 @@
   "phase4_build_blob_sha": "86f88d03cd82e2e11ea6ed4a02175b77b472fdb4",
   "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "cfbe03fb6c1f6f1c118c253a3bd7a81a5c1c5387",
+  "phase4_validator_blob_sha": "f502faede8b3c03b59314175b979412b0d88a005",
   "phase4_gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
   "phase9_build_present": true,
   "phase9_build_blob_sha": "7f855cce2b91c156d5c0373b3b0fa096eab0aeda",
