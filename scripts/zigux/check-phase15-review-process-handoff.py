@@ -159,6 +159,7 @@ DECISION_BUCKETS = (
 
 HANDOFF_REPLAY_COMMANDS = (
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 )
@@ -396,6 +397,17 @@ def run_self_test() -> int:
             validate(root),
             ["manifest_required_review_packet_fields:missing:required approver set"],
             "missing_manifest_field",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["replay_commands"].remove("make -C zigux phase15-test")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_replay_commands:missing:make -C zigux phase15-test"],
+            "missing_manifest_handoff_phase15_test",
         )
         _seed_fixture_tree(root)
         case_count += 1
