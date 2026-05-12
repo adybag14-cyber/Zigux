@@ -11,27 +11,30 @@ VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
-VALIDATE_REQUIRED_LINES = (
-    'KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py"',
-    '    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py",',
-    '    [sys.executable, str(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER), "--self-test"],',
-    '    [sys.executable, str(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER)],',
+VALIDATE_REQUIRED_SNIPPETS = (
+    'KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER = (',
+    'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py"',
+    '(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER, "--self-test"),',
+    '(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER,),',
+    '"scripts/zigux/check-phase2-kconfig-route-contract.py",',
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 26",
 )
 
 MAKEFILE_KCONFIG_ROUTE_LINES = (
-    '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-    '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
-    '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test',
-    '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py',
-    '\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig',
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
 )
 
 WORKFLOW_KCONFIG_ROUTE_LINES = (
-    '  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-    '  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
-    '  run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
-    '  run: python3 scripts/zigux/check-kconfig-bridge.py',
-    '  run: zig test scripts/zigux/kconfig/confdata_bridge.zig',
+    "  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "  run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "  run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "  run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
 
 
@@ -42,20 +45,31 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
-def count_issue(issues: list[tuple[str, str]], code: str, label: str, lines: list[str], expected: int = 1) -> None:
+def count_issue(
+    issues: list[tuple[str, str]],
+    code: str,
+    label: str,
+    lines: list[str],
+    *,
+    expected: int = 1,
+) -> None:
     actual = lines.count(label)
     if actual != expected:
         issues.append((code, f"{label}:actual={actual}:expected={expected}"))
 
 
-def collect_issues(validate_phase2_text: str, makefile_text: str, workflow_text: str) -> list[tuple[str, str]]:
+def collect_issues(
+    validate_phase2_text: str,
+    makefile_text: str,
+    workflow_text: str,
+) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    validate_lines = validate_phase2_text.splitlines()
     makefile_lines = makefile_text.splitlines()
     workflow_lines = workflow_text.splitlines()
 
-    for snippet in VALIDATE_REQUIRED_LINES:
-        count_issue(issues, "VALIDATE_PHASE2_ROUTE_DRIFT", snippet, validate_lines)
+    for snippet in VALIDATE_REQUIRED_SNIPPETS:
+        if snippet not in validate_phase2_text:
+            issues.append(("VALIDATE_PHASE2_ROUTE_DRIFT", snippet))
 
     for snippet in MAKEFILE_KCONFIG_ROUTE_LINES:
         count_issue(issues, "MAKEFILE_KCONFIG_PACKET_DRIFT", snippet, makefile_lines)
@@ -81,75 +95,91 @@ def build_validate_phase2_text(*, include_route_contract: bool = True) -> str:
         'import sys',
         'from pathlib import Path',
         'ROOT = Path(__file__).resolve().parents[2]',
-        'KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
-        'KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"',
+        'PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (',
+        '    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
+        ')',
     ]
     if include_route_contract:
-        lines.append('KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py"')
+        lines.extend(
+            [
+                'KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER = (',
+                '    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py"',
+                ')',
+            ]
+        )
     lines.extend(
         [
-            'required = [',
-            '    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",',
-            '    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",',
-        ]
-    )
-    if include_route_contract:
-        lines.append('    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-route-contract.py",')
-    lines.extend(
-        [
-            ']',
-            'commands = [',
-            '    [sys.executable, str(KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER), "--self-test"],',
-            '    [sys.executable, str(KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_CHECKER)],',
-            '    [sys.executable, str(KCONFIG_BRIDGE_CHECKER), "--self-test"],',
-            '    [sys.executable, str(KCONFIG_BRIDGE_CHECKER)],',
+            'PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (',
+            '    (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER, "--self-test"),',
+            '    (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER,),',
         ]
     )
     if include_route_contract:
         lines.extend(
             [
-                '    [sys.executable, str(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER), "--self-test"],',
-                '    [sys.executable, str(KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER)],',
+                '    (KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER, "--self-test"),',
+                '    (KCONFIG_BRIDGE_ROUTE_CONTRACT_CHECKER,),',
             ]
         )
-    lines.append(']')
-    return "\n".join(lines)
-
-
-def build_makefile_text() -> str:
-    lines = [
-        'phase2-validate:',
-        '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-        '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
-    ]
     lines.extend(
         [
-            'phase2-kconfig:',
-            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test',
-            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py',
-            '\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig',
+            ')',
+            'PHASE2_REQUIRED_RELATIVE_PATHS = (',
+        ]
+    )
+    if include_route_contract:
+        lines.append('    "scripts/zigux/check-phase2-kconfig-route-contract.py",')
+    lines.extend(
+        [
+            ')',
+            (
+                "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = "
+                + ("21" if include_route_contract else "19")
+            ),
+            (
+                "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = "
+                + ("26" if include_route_contract else "25")
+            ),
         ]
     )
     return "\n".join(lines)
 
 
-def build_workflow_text() -> str:
+def build_makefile_text(*, include_kconfig_packet: bool = True) -> str:
     lines = [
-        '- name: Self-test Phase 2 kconfig selftest alignment',
-        '  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-        '- name: Check Phase 2 kconfig selftest alignment',
-        '  run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+        "phase2-kconfig: phase2-toolchain",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     ]
-    lines.extend(
-        [
-            '- name: Self-test bounded kconfig bridge parity checker',
-            '  run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
-            '- name: Check bounded kconfig bridge parity',
-            '  run: python3 scripts/zigux/check-kconfig-bridge.py',
-            '- name: Run bounded confdata bridge unit tests',
-            '  run: zig test scripts/zigux/kconfig/confdata_bridge.zig',
-        ]
-    )
+    if include_kconfig_packet:
+        lines.extend(MAKEFILE_KCONFIG_ROUTE_LINES)
+    return "\n".join(lines)
+
+
+def build_workflow_text(*, include_kconfig_packet: bool = True) -> str:
+    lines = [
+        "- name: Self-test Phase 2 kconfig README alignment",
+        "  run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+        "- name: Check Phase 2 kconfig README alignment",
+        "  run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    ]
+    if include_kconfig_packet:
+        lines.extend(
+            [
+                "- name: Self-test Phase 2 kconfig selftest alignment",
+                WORKFLOW_KCONFIG_ROUTE_LINES[0],
+                "- name: Check Phase 2 kconfig selftest alignment",
+                WORKFLOW_KCONFIG_ROUTE_LINES[1],
+                "- name: Self-test bounded kconfig bridge parity checker",
+                WORKFLOW_KCONFIG_ROUTE_LINES[2],
+                "- name: Check bounded kconfig bridge parity",
+                WORKFLOW_KCONFIG_ROUTE_LINES[3],
+                "- name: Run bounded confdata bridge unit tests",
+                WORKFLOW_KCONFIG_ROUTE_LINES[4],
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -172,28 +202,20 @@ def run_self_test() -> int:
     assert any(code == "VALIDATE_PHASE2_ROUTE_DRIFT" for code, _ in validate_missing)
     checks_run += 1
 
-    confdata_missing_make = collect_issues(
+    makefile_missing = collect_issues(
         build_validate_phase2_text(),
-        build_makefile_text().replace(
-            '\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig',
-            '',
-            1,
-        ),
+        build_makefile_text(include_kconfig_packet=False),
         build_workflow_text(),
     )
-    assert any(code == "MAKEFILE_KCONFIG_PACKET_DRIFT" for code, _ in confdata_missing_make)
+    assert any(code == "MAKEFILE_KCONFIG_PACKET_DRIFT" for code, _ in makefile_missing)
     checks_run += 1
 
-    confdata_missing_workflow = collect_issues(
+    workflow_missing = collect_issues(
         build_validate_phase2_text(),
         build_makefile_text(),
-        build_workflow_text().replace(
-            '  run: zig test scripts/zigux/kconfig/confdata_bridge.zig',
-            '',
-            1,
-        ),
+        build_workflow_text(include_kconfig_packet=False),
     )
-    assert any(code == "WORKFLOW_KCONFIG_PACKET_DRIFT" for code, _ in confdata_missing_workflow)
+    assert any(code == "WORKFLOW_KCONFIG_PACKET_DRIFT" for code, _ in workflow_missing)
     checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kconfig_route_contract_") as tmp_dir_str:
@@ -219,12 +241,34 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the shared Phase 2 validator, Makefile, and workflow routes still carry the bounded kconfig bridge packet."
+        description=(
+            "Check that the shared Phase 2 validator, Makefile, and workflow routes "
+            "still carry the bounded kconfig bridge packet."
+        )
     )
-    parser.add_argument("--validate-phase2", type=Path, default=VALIDATE_PHASE2, help="Override validate-phase2.py path")
-    parser.add_argument("--makefile", type=Path, default=MAKEFILE, help="Override Makefile path")
-    parser.add_argument("--workflow", type=Path, default=WORKFLOW, help="Override workflow path")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage without repo files")
+    parser.add_argument(
+        "--validate-phase2",
+        type=Path,
+        default=VALIDATE_PHASE2,
+        help="Override validate-phase2.py path",
+    )
+    parser.add_argument(
+        "--makefile",
+        type=Path,
+        default=MAKEFILE,
+        help="Override Makefile path",
+    )
+    parser.add_argument(
+        "--workflow",
+        type=Path,
+        default=WORKFLOW,
+        help="Override workflow path",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in checker coverage without repo files",
+    )
     args = parser.parse_args()
 
     if args.self_test:
