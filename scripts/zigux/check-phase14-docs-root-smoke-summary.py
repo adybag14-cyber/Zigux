@@ -16,6 +16,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=docs_root_smoke_summary"
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SMOKE_SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+CORE_TRACEABILITY_PATH = Path("Documentation/zigux/phase14-core-boundary-traceability.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
@@ -70,6 +71,25 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+]
+
+CORE_TRACEABILITY_MARKERS = [
+    "manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+    "survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`",
+    "lane key: `P14-L01`",
+    "surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
+    "ready-next gap: `phase14-workqueue-pending-bit-audit`",
+    "blocked gap: `phase14-workqueue-live-execution-blocker`",
+    "full-bundle reviewability replay: `zigux/tests/phase14_workqueue_reviewability.zig`",
+    "focused smoke shard: `make -C zigux phase14-smoke`",
+    "shared full replay: `make -C zigux phase14-test`",
+]
+
+CORE_TRACEABILITY_EXACT_LINE_MARKERS = [
+    "  * lane key: `P14-L01`",
+    "  * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
+    "  * ready-next gap: `phase14-workqueue-pending-bit-audit`",
+    "  * blocked gap: `phase14-workqueue-live-execution-blocker`",
 ]
 
 MAKEFILE_MARKERS = [
@@ -204,6 +224,14 @@ def check(root: Path) -> list[str]:
     check_text_file(
         errors,
         root,
+        CORE_TRACEABILITY_PATH,
+        CORE_TRACEABILITY_MARKERS,
+        CORE_TRACEABILITY_EXACT_LINE_MARKERS,
+        exact_line_match=True,
+    )
+    check_text_file(
+        errors,
+        root,
         MAKEFILE_PATH,
         MAKEFILE_MARKERS,
         MAKEFILE_EXACT_COUNT_MARKERS,
@@ -232,6 +260,26 @@ def good_smoke_survey_text() -> str:
             "- `make -C zigux phase14-smoke`",
             "- `make -C zigux phase14-test`",
             "- `make -C zigux phase14`",
+        ]
+    ) + "\n"
+
+
+def good_core_traceability_text() -> str:
+    return "\n".join(
+        [
+            "# Phase 14 Core Boundary Traceability",
+            "## Current repo evidence",
+            "### Workqueue",
+            "  * manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+            "  * survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`",
+            "  * lane key: `P14-L01`",
+            "  * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
+            "  * ready-next gap: `phase14-workqueue-pending-bit-audit`",
+            "  * blocked gap: `phase14-workqueue-live-execution-blocker`",
+            "## Shared replay contract",
+            "  * full-bundle reviewability replay: `zigux/tests/phase14_workqueue_reviewability.zig`",
+            "  * focused smoke shard: `make -C zigux phase14-smoke`",
+            "  * shared full replay: `make -C zigux phase14-test`",
         ]
     ) + "\n"
 
@@ -272,6 +320,7 @@ def run_self_test() -> int:
 
         write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+        write_text(root / CORE_TRACEABILITY_PATH, good_core_traceability_text())
         write_text(root / MAKEFILE_PATH, good_makefile_text())
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
@@ -405,6 +454,46 @@ def run_self_test() -> int:
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
 
         write_text(
+            root / CORE_TRACEABILITY_PATH,
+            good_core_traceability_text().replace(
+                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: ready-next gap: `phase14-workqueue-pending-bit-audit`"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing traceability ready-next marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / CORE_TRACEABILITY_PATH, good_core_traceability_text())
+
+        write_text(
+            root / CORE_TRACEABILITY_PATH,
+            good_core_traceability_text().replace(
+                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
+                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md:   * ready-next gap: `phase14-workqueue-pending-bit-audit` (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate traceability ready-next line failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / CORE_TRACEABILITY_PATH, good_core_traceability_text())
+
+        write_text(
             root / MAKEFILE_PATH,
             good_makefile_text().replace(
                 f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test\n",
@@ -520,7 +609,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
