@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 import tempfile
@@ -161,6 +162,34 @@ LEDGER_EXACT_ONCE_ERROR = (
     "PHASE10_CLOSURE_LEDGER_EXACT_ONCE_MISMATCH_END"
 )
 
+LEDGER_MIRROR_ERROR = (
+    "PHASE10_CLOSURE_VALIDATION_LEDGER_MIRRORS=fail\n"
+    "PHASE10_CLOSURE_LEDGER_MIRROR_MISMATCH_START\n"
+    "{details}\n"
+    "PHASE10_CLOSURE_LEDGER_MIRROR_MISMATCH_END"
+)
+
+LEDGER_LANE_MAP = {
+    "core": "PHASE10_LEDGER_SURVEY_CORE_LANE",
+    "ring": "PHASE10_LEDGER_SURVEY_RING_LANE",
+    "input": "PHASE10_LEDGER_SURVEY_INPUT_LANE",
+    "mmio": "PHASE10_LEDGER_SURVEY_MMIO_LANE",
+}
+
+LEDGER_COMMIT_MAP = {
+    "core": "PHASE10_LEDGER_SURVEY_CORE_COMMIT",
+    "ring": "PHASE10_LEDGER_SURVEY_RING_COMMIT",
+    "input": "PHASE10_LEDGER_SURVEY_INPUT_COMMIT",
+    "mmio": "PHASE10_LEDGER_SURVEY_MMIO_COMMIT",
+}
+
+LEDGER_SCOREBOARD_STATUS_MAP = {
+    "virtqueue_wrappers": "PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS",
+    "mmio_wrappers": "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS",
+    "lab_only_driver_validation": "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION",
+    "dual_implementations_for_risky_areas": "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS",
+}
+
 COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
@@ -171,6 +200,10 @@ COMMANDS = [
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
+
+def read_manifest(root: Path) -> dict:
+    return json.loads(read_text(root, "zigux/tests/phase10_closure_manifest.json"))
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -186,6 +219,32 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
     return missing
+
+
+def build_ledger_mirror_markers(root: Path) -> list[str]:
+    manifest = read_manifest(root)
+    scoreboard = manifest["roadmap_parity_scoreboard"]
+    provenance = manifest["survey_provenance"]
+    markers = [
+        "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+        f"PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE={provenance['source']}",
+    ]
+    for key, label in LEDGER_LANE_MAP.items():
+        markers.append(f"{label}={provenance['lane_keys'][key]}")
+    for key, label in LEDGER_COMMIT_MAP.items():
+        markers.append(f"{label}={provenance['surveyed_commits'][key]}")
+    for key, label in LEDGER_SCOREBOARD_STATUS_MAP.items():
+        markers.append(f"{label}={scoreboard[key]['status']}")
+    return markers
+
+
+def collect_ledger_mirror_mismatches(root: Path) -> list[str]:
+    ledger_lines = set(read_text(root, "zigux-alpha/PHASE10_CLOSURE_LEDGER.md").splitlines())
+    mismatches: list[str] = []
+    for marker in build_ledger_mirror_markers(root):
+        if marker not in ledger_lines:
+            mismatches.append(marker)
+    return mismatches
 
 
 def collect_ledger_exact_once_mismatches(root: Path) -> list[str]:
@@ -214,6 +273,69 @@ def run_required_commands(root: Path) -> list[str]:
     return failed
 
 
+def build_fixture_manifest_text() -> str:
+    return """{
+  \"phase\": \"Phase 10\",
+  \"status\": \"active\",
+  \"tranche\": \"virtio-lab-bundle\",
+  \"roadmap_parity_scoreboard\": {
+    \"virtqueue_wrappers\": {
+      \"status\": \"starter_landed\"
+    },
+    \"mmio_wrappers\": {
+      \"status\": \"starter_landed\"
+    },
+    \"lab_only_driver_validation\": {
+      \"status\": \"starter_landed\"
+    },
+    \"dual_implementations_for_risky_areas\": {
+      \"status\": \"blocked_on_risky_transport\"
+    }
+  },
+  \"survey_provenance\": {
+    \"source\": \"manifest_derived\",
+    \"lane_keys\": {
+      \"core\": \"P10-L01\",
+      \"ring\": \"P10-L07\",
+      \"input\": \"P10-L13\",
+      \"mmio\": \"P10-L10\"
+    },
+    \"surveyed_commits\": {
+      \"core\": \"c11221dc7a68d7511ae1c69d64b3f08528287ed8\",
+      \"ring\": \"bdfe88e865b94387b3c3bd41ca98054c452f78b9\",
+      \"input\": \"7361ac51374149a96b7a7a2c6ea3c995d8cc1231\",
+      \"mmio\": \"84f90e23ad1c28ae345905d5293a8c5395f37d43\"
+    }
+  },
+  \"focused_harness_replays\": {
+    \"zigux/tests/phase10_virtio_core_reset_queue.zig\": [
+      \"phase10 core reset-queue replay\"
+    ]
+  },
+  \"exact_checks\": [
+    \"scripts/zigux/check-phase10-harness-coverage.py\"
+  ],
+  \"ready_transport_followups\": {
+    \"zigux/tests/phase10_virtio_mmio_manifest.json\": \"phase10-mmio-lifecycle-and-irq-paths\"
+  },
+  \"landed_ring_helper_evidence\": {
+    \"zigux/tests/phase10_virtio_ring_manifest.json\": [
+      \"phase10-notification-data-summary-helper\"
+    ]
+  },
+  \"landed_mmio_helper_evidence\": {
+    \"zigux/tests/phase10_virtio_mmio_manifest.json\": [
+      \"phase10-mmio-selected-queue-readiness-helper\"
+    ]
+  }
+}
+"""
+
+
+def build_fixture_ledger_text(root: Path) -> str:
+    return "\n".join(build_ledger_mirror_markers(root) + LEDGER_EXACT_ONCE_MARKERS) + "\n"
+
+
 def write_fixture(root: Path) -> None:
     transport_manifest_body = "\n".join(TRANSPORT_MANIFEST_MARKERS) + "\n"
     files = {
@@ -239,8 +361,7 @@ def write_fixture(root: Path) -> None:
             "print('PHASE10_TESTS_README_CORE_SURFACES_CHECK=pass')\n"
         ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
-        "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
-        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_EXACT_ONCE_MARKERS) + "\n",
+        "zigux/tests/phase10_closure_manifest.json": build_fixture_manifest_text(),
         "zigux/tests/phase10_virtio_ring_manifest.json": transport_manifest_body,
         "zigux/tests/phase10_virtio_input_manifest.json": transport_manifest_body,
         "zigux/tests/phase10_virtio_mmio_manifest.json": transport_manifest_body,
@@ -249,6 +370,9 @@ def write_fixture(root: Path) -> None:
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
+    ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(build_fixture_ledger_text(root), encoding="utf-8")
 
 
 def expect_marker_missing(root: Path, expected: str, error_label: str) -> None:
@@ -263,6 +387,13 @@ def expect_failed_commands(root: Path, expected: list[str], error_label: str) ->
         raise SystemExit(f"{error_label}:actual={actual}")
 
 
+def expect_ledger_mirror_mismatch(root: Path, expected: str, error_label: str) -> None:
+    mismatches = collect_ledger_mirror_mismatches(root)
+    if expected not in mismatches:
+        actual = ",".join(mismatches) if mismatches else "none"
+        raise SystemExit(f"{error_label}:actual={actual}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_") as tmp_dir:
         root = Path(tmp_dir)
@@ -271,12 +402,14 @@ def run_self_test() -> int:
         missing_files = collect_missing_files(root)
         missing_markers = collect_missing_markers(root)
         ledger_mismatches = collect_ledger_exact_once_mismatches(root)
-        if missing_files or missing_markers or ledger_mismatches:
+        ledger_mirror_mismatches = collect_ledger_mirror_mismatches(root)
+        if missing_files or missing_markers or ledger_mismatches or ledger_mirror_mismatches:
             raise SystemExit(
                 "phase10-closure-self-test:baseline_failed:"
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
-                f"ledger={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
+                f"ledger={','.join(ledger_mismatches) if ledger_mismatches else 'none'}:"
+                f"ledger_mirrors={','.join(ledger_mirror_mismatches) if ledger_mirror_mismatches else 'none'}"
             )
         expect_failed_commands(root, [], "phase10-closure-self-test:baseline_command_failed")
 
@@ -444,8 +577,8 @@ def run_self_test() -> int:
         closure_manifest = root / "zigux/tests/phase10_closure_manifest.json"
         closure_manifest.write_text(
             closure_manifest.read_text(encoding="utf-8").replace(
-                '"scripts/zigux/check-phase10-harness-coverage.py"\n',
-                "",
+                '"scripts/zigux/check-phase10-harness-coverage.py"',
+                '"scripts/zigux/check-phase10-harness-coverage.py-missing"',
                 1,
             ),
             encoding="utf-8",
@@ -459,8 +592,8 @@ def run_self_test() -> int:
 
         closure_manifest.write_text(
             closure_manifest.read_text(encoding="utf-8").replace(
-                '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"\n',
-                '"core": "0000000000000000000000000000000000000000"\n',
+                '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
+                '"core": "0000000000000000000000000000000000000000"',
                 1,
             ),
             encoding="utf-8",
@@ -488,6 +621,66 @@ def run_self_test() -> int:
                 "phase10-closure-self-test:missing_ledger_exact_once_mismatch_not_detected:"
                 f"actual={actual}"
             )
+        write_fixture(root)
+
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_ledger_mirror_mismatch(
+            root,
+            "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+            "phase10-closure-self-test:missing_ledger_source_mismatch_not_detected",
+        )
+        write_fixture(root)
+
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13\n",
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_ledger_mirror_mismatch(
+            root,
+            "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
+            "phase10-closure-self-test:missing_ledger_lane_mismatch_not_detected",
+        )
+        write_fixture(root)
+
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_SURVEY_CORE_COMMIT=c11221dc7a68d7511ae1c69d64b3f08528287ed8\n",
+                "PHASE10_LEDGER_SURVEY_CORE_COMMIT=0000000000000000000000000000000000000000\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_ledger_mirror_mismatch(
+            root,
+            "PHASE10_LEDGER_SURVEY_CORE_COMMIT=c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+            "phase10-closure-self-test:missing_ledger_commit_mismatch_not_detected",
+        )
+        write_fixture(root)
+
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed\n",
+                "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=blocked_on_risky_transport\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_ledger_mirror_mismatch(
+            root,
+            "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed",
+            "phase10-closure-self-test:missing_ledger_scoreboard_status_mismatch_not_detected",
+        )
         write_fixture(root)
 
         checker = root / "scripts/zigux/check-phase10-harness-coverage.py"
@@ -526,7 +719,7 @@ def run_self_test() -> int:
 
         ring_manifest = root / "zigux/tests/phase10_virtio_ring_manifest.json"
         ring_manifest.write_text(
-            ring_manifest.read_text(encoding="utf-8").replace('"freeze_boundary_status": "aligned"\n', "", 1),
+            ring_manifest.read_text(encoding="utf-8").replace('"freeze_boundary_status": "aligned"', "", 1),
             encoding="utf-8",
         )
         expect_marker_missing(
@@ -539,8 +732,8 @@ def run_self_test() -> int:
         input_manifest = root / "zigux/tests/phase10_virtio_input_manifest.json"
         input_manifest.write_text(
             input_manifest.read_text(encoding="utf-8").replace(
-                '"risky_transport_posture": "blocked_on_risky_transport"\n',
-                '"risky_transport_posture": "starter_landed"\n',
+                '"risky_transport_posture": "blocked_on_risky_transport"',
+                '"risky_transport_posture": "starter_landed"',
                 1,
             ),
             encoding="utf-8",
@@ -554,7 +747,7 @@ def run_self_test() -> int:
 
         mmio_manifest = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         mmio_manifest.write_text(
-            mmio_manifest.read_text(encoding="utf-8").replace('"dma_paths"\n', "", 1),
+            mmio_manifest.read_text(encoding="utf-8").replace('"dma_paths"', "", 1),
             encoding="utf-8",
         )
         expect_marker_missing(
@@ -566,8 +759,8 @@ def run_self_test() -> int:
 
         ring_manifest.write_text(
             ring_manifest.read_text(encoding="utf-8").replace(
-                '"architecture_council_reopen_attached": false\n',
-                '"architecture_council_reopen_attached": true\n',
+                '"architecture_council_reopen_attached": false',
+                '"architecture_council_reopen_attached": true',
                 1,
             ),
             encoding="utf-8",
@@ -579,7 +772,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
@@ -609,6 +802,11 @@ def main() -> int:
         print("MISSING_PHASE10_CLOSURE_MARKERS_END")
         return 1
 
+    ledger_mirror_mismatches = collect_ledger_mirror_mismatches(ROOT)
+    if ledger_mirror_mismatches:
+        print(LEDGER_MIRROR_ERROR.format(details="\n".join(ledger_mirror_mismatches)))
+        return 1
+
     ledger_mismatches = collect_ledger_exact_once_mismatches(ROOT)
     if ledger_mismatches:
         print(LEDGER_EXACT_ONCE_ERROR.format(details="\n".join(ledger_mismatches)))
@@ -623,7 +821,7 @@ def main() -> int:
         print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_END")
         return 1
 
-    marker_count = sum(len(markers) for markers in MARKER_SETS.values()) + len(LEDGER_EXACT_ONCE_MARKERS)
+    marker_count = sum(len(markers) for markers in MARKER_SETS.values()) + len(LEDGER_EXACT_ONCE_MARKERS) + len(build_ledger_mirror_markers(ROOT))
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={marker_count}")
