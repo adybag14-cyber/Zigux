@@ -149,6 +149,14 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/validate-phase13-release.py`",
         "shared validator-first release handle",
+        "`fs/libfs.zig`",
+        "`zigux/tests/phase13_libfs.zig`",
+        "`zigux/tests/phase13_libfs_reviewability.zig`",
+        "`zigux/tests/phase13_devres.zig`",
+        "`zigux/tests/phase13_devres_reviewability.zig`",
+        "`zigux/tests/phase13_devres_dma_coherent.zig`",
+        "`zigux/tests/phase13_devres_manifest.json`",
+        "`Documentation/zigux/phase13-devres-survey.md`",
         "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
         "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
@@ -671,6 +679,64 @@ def run_self_test() -> int:
                 "exact_count:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.:expected=1:actual=0",
             ],
             "missing_tests_companion_repo_reality_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+                    if marker != "`zigux/tests/phase13_libfs_reviewability.zig`"
+                ],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`zigux/tests/phase13_libfs_reviewability.zig`",
+            ],
+            "missing_tests_companion_libfs_reviewability_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+                    if marker != "`zigux/tests/phase13_devres_reviewability.zig`"
+                ],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`zigux/tests/phase13_devres_reviewability.zig`",
+            ],
+            "missing_tests_companion_devres_reviewability_failed",
         )
         write_text(
             root,
