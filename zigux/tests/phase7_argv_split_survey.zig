@@ -65,6 +65,18 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");
     defer allocator.free(slice_note);
 
+    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
+    defer allocator.free(docs_root);
+
+    const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
+    defer allocator.free(scripts_root);
+
+    const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
+    defer allocator.free(tests_root);
+
+    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_readme);
+
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
 
@@ -105,6 +117,36 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
 
+    try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample");
+    try expectContains(docs_root, "lib/argv_split.zig");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(scripts_root, "zigux/tests/phase7_argv_split.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectContains(scripts_root, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
+    try expectContains(scripts_root, "make -C zigux phase7-validate");
+    try expectContains(scripts_root, "make -C zigux phase7");
+
+    try expectContains(tests_root, "`scripts/zigux/check-phase7-argv-split-packet.py`");
+    try expectContains(tests_root, "`zigux/tests/phase7_argv_split_survey.zig`");
+    try expectContains(tests_root, "`zigux/tests/phase7_argv_split_manifest.json`");
+    try expectContains(tests_root, "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`");
+    try expectContains(tests_root, "`make -C zigux phase7-validate`");
+    try expectContains(tests_root, "`make -C zigux phase7`");
+
+    try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
+    try expectContains(samples_readme, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(samples_readme, "lib/argv_split.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_argv_split.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectContains(samples_readme, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(samples_readme, "zigux/tests/phase7_build.zig");
+
     try expectContains(build_file, "\"phase7_argv_split.zig\"");
     try expectContains(build_file, "\"phase7_argv_split_survey.zig\"");
     try expectContains(build_file, "\"phase7-argv-split-tests\"");
@@ -120,10 +162,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
     try expectContains(helper_tests, "split.cArgv()");
 
-    try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",");
-    try expectContains(fixture_module, ".name = \"leading NUL truncates to zero argv entries\",");
-    try expectContains(fixture_module, ".name = \"first NUL stops counting and splitting\",");
-    try expectContains(fixture_module, ".name = \"quote characters stay inside returned tokens\",");
+    try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",\n");
+    try expectContains(fixture_module, ".name = \"leading NUL truncates to zero argv entries\",\n");
+    try expectContains(fixture_module, ".name = \"first NUL stops counting and splitting\",\n");
+    try expectContains(fixture_module, ".name = \"quote characters stay inside returned tokens\",\n");
 
     try expectContains(checker, "\"zigux/tests/phase7_argv_split.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\"");
