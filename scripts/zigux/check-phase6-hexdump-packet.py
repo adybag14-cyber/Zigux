@@ -79,6 +79,37 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
 ]
 
+FOCUSED_TEST_MARKERS = [
+    'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
+    'try std.testing.expectEqual(@as(usize, 4), fixtures.overflow_cases.len);',
+    'try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);',
+    'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+    'const normalized_length_case = fixtures.length_cases[7];',
+    'const uneven_group_length_case = fixtures.length_cases[8];',
+    'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
+    'try std.testing.expectEqual(@as(usize, 65), hexdump.hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));',
+]
+
+PERF_TEST_MARKERS = [
+    'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
+    "const expected = fixtures.prepareExpectedLine(",
+    'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+    "if (helper_result.accumulator != reference_result.accumulator) {",
+    "return error.HexdumpPerfAccumulatorMismatch;",
+    "if (failed) return error.HexdumpPerfRegression;",
+]
+
+FIXTURE_MARKERS = [
+    'test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {',
+    '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },',
+    '.{ .name = "uneven group fallback line length", .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false, .expected_length = 26 },',
+    'test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {',
+    '.label = "16B-plain-g1",',
+    '.label = "32B-ascii-g2",',
+    '.label = "16B-ascii-g4",',
+    '.label = "16B-ascii-g8",',
+]
+
 PERF_MATRIX_MARKERS = [
     'const fixtures = @import("phase6_hexdump_vectors");',
     '.label = "16B-plain-g1"',
@@ -89,7 +120,7 @@ PERF_MATRIX_MARKERS = [
     'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
 ]
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 16
 
 
 class CheckError(RuntimeError):
@@ -109,11 +140,6 @@ def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {relative_path}: {marker}")
 
 
-def expect_nonempty(relative_path: str, text: str) -> None:
-    if not text.strip():
-        raise CheckError(f"empty required file: {relative_path}")
-
-
 def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["slice_note"], read_text(root, REQUIRED_FILES["slice_note"]), SLICE_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["catalog"], read_text(root, REQUIRED_FILES["catalog"]), CATALOG_MARKERS)
@@ -121,10 +147,10 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["manifest"], read_text(root, REQUIRED_FILES["manifest"]), MANIFEST_MARKERS)
     expect_markers(REQUIRED_FILES["build_file"], read_text(root, REQUIRED_FILES["build_file"]), BUILD_FILE_MARKERS)
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
-    expect_nonempty(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]))
-    expect_nonempty(REQUIRED_FILES["perf_test"], read_text(root, REQUIRED_FILES["perf_test"]))
+    expect_markers(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]), FOCUSED_TEST_MARKERS)
+    expect_markers(REQUIRED_FILES["perf_test"], read_text(root, REQUIRED_FILES["perf_test"]), PERF_TEST_MARKERS)
     expect_markers(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]), PERF_MATRIX_MARKERS)
-    expect_nonempty(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]))
+    expect_markers(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]), FIXTURE_MARKERS)
 
 
 def write(path: Path, text: str) -> None:
@@ -139,10 +165,10 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["manifest"], "\n".join(MANIFEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["build_file"], "\n".join(BUILD_FILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["focused_test"], 'test "phase6 hexdump focused replay placeholder" {}\n')
-    write(root / REQUIRED_FILES["perf_test"], 'const perf_case = "phase6 hexdump perf placeholder";\n')
+    write(root / REQUIRED_FILES["focused_test"], "\n".join(FOCUSED_TEST_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["perf_test"], "\n".join(PERF_TEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["perf_matrix_test"], "\n".join(PERF_MATRIX_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["fixtures"], "pub const length_cases = [_]u8{0};\n")
+    write(root / REQUIRED_FILES["fixtures"], "\n".join(FIXTURE_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -200,8 +226,31 @@ def run_self_test() -> None:
 
         build_self_test_fixture(tmpdir)
         focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                'try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "fixtures.length_cases.len")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
         focused_test.write_text("", encoding="utf-8")
         expect_failure(tmpdir, REQUIRED_FILES["focused_test"])
+
+        build_self_test_fixture(tmpdir)
+        perf_test = tmpdir / REQUIRED_FILES["perf_test"]
+        perf_test.write_text(
+            perf_test.read_text(encoding="utf-8").replace(
+                'PHASE6_HEXDUMP_PERF_CASE_COUNT',
+                'PHASE6_HEXDUMP_PERF_CASE_TOTAL',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "PHASE6_HEXDUMP_PERF_CASE_COUNT")
 
         build_self_test_fixture(tmpdir)
         perf_test = tmpdir / REQUIRED_FILES["perf_test"]
@@ -220,6 +269,17 @@ def run_self_test() -> None:
         perf_matrix_test = tmpdir / REQUIRED_FILES["perf_matrix_test"]
         perf_matrix_test.unlink()
         expect_failure(tmpdir, REQUIRED_FILES["perf_matrix_test"])
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(
+            fixtures.read_text(encoding="utf-8").replace(
+                '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "empty plain line reports zero length")
 
         build_self_test_fixture(tmpdir)
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
