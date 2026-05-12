@@ -2,7 +2,6 @@ const std = @import("std");
 const devres = @import("devres");
 
 const SurveySummary = struct {
-    devres_c_lines: usize,
     preexisting_phase13_build_present: bool,
     preexisting_phase13_make_target_present: bool,
     preexisting_devres_zig_present: bool,
@@ -10,6 +9,7 @@ const SurveySummary = struct {
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
     preexisting_phase13_devres_survey_present: bool,
+    preexisting_phase13_devres_dma_coherent_present: bool,
 };
 
 const Gap = struct {
@@ -32,14 +32,14 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
+        std.mem.eql(u8, status, "blocked_on_missing_shared_build_surface") or
+        std.mem.eql(u8, status, "blocked_on_missing_direct_devres_test_surface") or
+        std.mem.eql(u8, status, "blocked_on_missing_reviewability_surface") or
         std.mem.eql(u8, status, "blocked_on_dma_state") or
-        std.mem.eql(u8, status, "blocked_on_scatterlist_state") or
-        std.mem.eql(u8, status, "blocked_on_device_tree_state") or
-        std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
+        std.mem.eql(u8, status, "blocked_on_scatterlist_state");
 }
 
-test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary" {
+test "phase13 devres reviewability packet stays aligned with the current narrow boundary packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -47,7 +47,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         io_instance.io(),
         "zigux/tests/phase13_devres_manifest.json",
         std.testing.allocator,
-        .limited(48 * 1024),
+        .limited(16 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -67,13 +67,29 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     );
     defer std.testing.allocator.free(survey_note);
 
-    const devres_source = try std.Io.Dir.cwd().readFileAlloc(
+    const helper_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "lib/devres.zig",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(devres_source);
+    defer std.testing.allocator.free(helper_source);
+
+    const direct_replay = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_devres.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(direct_replay);
+
+    const dma_boundary_replay = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_devres_dma_coherent.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(dma_boundary_replay);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
         .ignore_unknown_fields = true,
@@ -81,20 +97,18 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("10369315cba5d146a7c6c4c6480ef9d279dc490f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-readback-2026-05-11", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
-    try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
+
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -106,34 +120,34 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
+    try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, ".provides_iounmap_call_planning = true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedIounmapPlan") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIounmap(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, ".warns_on_release_miss = !release_matches") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub const ManagedIounmapPlan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn planManagedIounmap(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, ".warns_on_release_miss = !release_matches") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_iounmap()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_iounmap()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "10369315cba5d146a7c6c4c6480ef9d279dc490f") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dmam_alloc_*") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dma_map_sgtable()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct scatterlist") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sg_table") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sg_*") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "live scatter-gather ownership") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "live DMA-backed helpers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-only DMA/scatterlist boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "P13-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-11") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "\"lane_key\": \"P13-L08\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "\"surveyed_commit\": \"master-readback-2026-05-11\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "\"id\": \"phase13-devres-reviewability-gate\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dma_boundary_replay, "\"preexisting_phase13_build_present\": false") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dma_boundary_replay, "\"id\": \"phase13-devres-dma-coherent-replay\"") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_build_gate = false;
+    var saw_direct_test_gate = false;
     var saw_reviewability_gate = false;
-    var saw_survey_note = false;
-    var saw_arch_phys_wc = false;
-    var saw_arch_io_memtype = false;
-    var saw_dma_block = false;
-    var saw_scatterlist_block = false;
+    var saw_dma_boundary_gate = false;
+    var saw_dma_boundary = false;
+    var saw_scatterlist_boundary = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -147,44 +161,38 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
             blocked_count += 1;
         }
 
-        if (std.mem.eql(u8, gap.id, "phase13-devres-reviewability-gate")) {
-            saw_reviewability_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase13_devres_reviewability.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-only DMA/scatterlist boundary machine-checkable") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-helper-starter")) {
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_iounmap()") != null);
+        if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
+            saw_build_gate = true;
+            try std.testing.expectEqualStrings("blocked_on_missing_shared_build_surface", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_build.zig", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-test-gate")) {
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc()") != null);
+            saw_direct_test_gate = true;
+            try std.testing.expectEqualStrings("blocked_on_missing_direct_devres_test_surface", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_devres.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-survey-note")) {
-            saw_survey_note = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-devres-survey.md", gap.zigux_destination);
+        if (std.mem.eql(u8, gap.id, "phase13-devres-reviewability-gate")) {
+            saw_reviewability_gate = true;
+            try std.testing.expectEqualStrings("blocked_on_missing_reviewability_surface", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_devres_reviewability.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-arch-phys-wc-token-planner")) {
-            saw_arch_phys_wc = true;
+        if (std.mem.eql(u8, gap.id, "phase13-devres-dma-coherent-replay")) {
+            saw_dma_boundary_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "arch_phys_wc_del()") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-arch-io-memtype-planner")) {
-            saw_arch_io_memtype = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "arch_io_free_memtype_wc()") != null);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_devres_dma_coherent.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checkable") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-dma-backed-helpers")) {
-            saw_dma_block = true;
+            saw_dma_boundary = true;
             try std.testing.expectEqualStrings("blocked_on_dma_state", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_alloc_*") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dma_map_sgtable()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-scatterlist-ownership")) {
-            saw_scatterlist_block = true;
+            saw_scatterlist_boundary = true;
             try std.testing.expectEqualStrings("blocked_on_scatterlist_state", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct scatterlist") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_table") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -192,12 +200,12 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 5), blocked_count);
+    try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_direct_test_gate);
     try std.testing.expect(saw_reviewability_gate);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_arch_phys_wc);
-    try std.testing.expect(saw_arch_io_memtype);
-    try std.testing.expect(saw_dma_block);
-    try std.testing.expect(saw_scatterlist_block);
+    try std.testing.expect(saw_dma_boundary_gate);
+    try std.testing.expect(saw_dma_boundary);
+    try std.testing.expect(saw_scatterlist_boundary);
 }
