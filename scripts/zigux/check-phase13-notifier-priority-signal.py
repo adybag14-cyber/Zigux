@@ -45,6 +45,8 @@ REQUIRED_RELEASE_NOTES_MARKERS = (
     "Broad summaries should also keep the adjacent notifier evidence packet visible through the current materialized review surfaces:",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.",
 )
 
@@ -52,6 +54,8 @@ REQUIRED_TRACEABILITY_MARKERS = (
     "adjacent notifier evidence maps to Phase 13 release-surface truthfulness only",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "record them as repo-reality gaps instead of presenting them here as independently shipped evidence.",
 )
 
@@ -59,6 +63,8 @@ REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
     "Keep notifier evidence adjacent to that packet rather than treating it as a fifth helper anchor.",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "record them as adjacent repo-reality gaps instead of as independently shipped review evidence:",
 )
 
@@ -66,6 +72,8 @@ REQUIRED_LANE_NOTE_MARKERS = (
     "Adjacent notifier evidence stays in scope for release-surface truthfulness",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "keep them recorded as adjacent repo-reality gaps instead of shipped evidence.",
 )
 
@@ -73,6 +81,8 @@ REQUIRED_CONTRIBUTOR_SYNC_MARKERS = (
     "## Phase 13 contributor packet",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor",
 )
 
@@ -80,6 +90,8 @@ REQUIRED_TESTS_COMPANION_MARKERS = (
     "## Phase 13 tests-root packet",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
 )
 
@@ -168,12 +180,12 @@ def run_self_test() -> int:
 
         mutations = (
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
-            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[2]),
-            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[2]),
-            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[2]),
-            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[2]),
-            ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[2]),
-            ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[2]),
+            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[3]),
+            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
+            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[3]),
+            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[3]),
+            ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[3]),
+            ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[3]),
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[1]),
         )
