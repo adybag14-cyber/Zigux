@@ -256,6 +256,12 @@ int main(void)
 	print_u16_case("carry-discipline", "two-byte no-carry seed stays one step below overflow",
 		       csum_fold(partial_bytes(no_carry_pair, sizeof(no_carry_pair), 0xfffff7f7U)));
 
+	print_u16_case("add16", "saturated plus one wraps with carry", csum16_add(0xffff, 0x0001));
+	print_u16_case("add16", "saturated plus zero stays saturated", csum16_add(0xffff, 0x0000));
+	print_u16_case("add16", "saturated plus saturated preserves ones complement", csum16_add(0xffff, 0xffff));
+	print_u16_case("sub16", "zero minus one borrows across ones complement", csum16_sub(0x0000, 0x0001));
+	print_u16_case("sub16", "subtracting a prior addend recovers the original word", csum16_sub(0x2345, 0x1111));
+
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
 	payload[0] = 0x12;
