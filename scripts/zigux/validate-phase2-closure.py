@@ -98,7 +98,7 @@ PHASE2_VALIDATOR_MARKERS = [
     '    "zigux/tests/fixtures/phase2_tool_manifest.json",',
     '    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 30",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 32",
 ]
 
 EXPECTED_FIXDEP_CASES = (
@@ -363,7 +363,6 @@ EXPECTED_CONFDATA_MANIFEST = {
         "confdata bridge keeps only the last state across unset and set transitions",
     ],
 }
-
 
 def require_files(paths: list[Path]) -> list[str]:
     missing: list[str] = []
@@ -711,11 +710,11 @@ def run_self_test_checks() -> list[str]:
         (
             "phase2_validator_missing_required_file_count_marker",
             validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 30"),
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 32"),
                 PHASE2_VALIDATOR_MARKERS,
                 "phase2_validator",
             ),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 30"],
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 32"],
         ),
     ]
 
