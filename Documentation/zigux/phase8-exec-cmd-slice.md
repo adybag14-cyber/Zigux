@@ -38,6 +38,7 @@ The current parked deferred-exec packet covers:
 - a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers, with `setupPathWithPwd()` keeping the logical-`PWD` acceptance rule reviewable without widening into broader process or environment side effects
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later deferred `execv_cmd()`-style handoff planning, plus a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`
+- composed `planDeferredExecvCall()`, `planDeferredExecvCallWithPwd()`, `planDeferredExeclCall()`, and `planDeferredExeclCallWithPwd()` helpers that keep the integrated `PATH` planning plus deferred argv-handoff packet reviewable before any direct launch ownership exists
 
 The current tests keep these bounded edges explicit:
 - helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge and the rooted `argv[0]` slash-avoidance edge
@@ -49,6 +50,7 @@ The current tests keep these bounded edges explicit:
 - the shared logical-`PWD` replay keeps the logical-`PWD` alias acceptance proof explicit while the identity-backed helper path accepts a same-device-and-inode alias to the same directory
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure deferred `execv` and `execl` handoff helpers keep the parked argv packet reviewable before any direct `execv_cmd()` or `execvp()` ownership exists
+- the integrated deferred planning helpers keep the parked `PATH` packet and deferred argv handoff aligned before any direct launch ownership exists
 - the `collectExeclArgs()` overflow and missing-null guards stay reviewable before any direct varargs launch path exists
 - the focused Phase 8 replay stays on the integrated deferred-exec packet and keeps the live C helper anchors, checklist hook, and validator route aligned before the broader tooling replay runs
 - `make -C zigux phase8-exec-cmd-test` exposes that focused replay as a one-command route
