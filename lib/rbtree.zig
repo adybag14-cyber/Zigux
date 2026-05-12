@@ -529,6 +529,11 @@ pub fn eraseInit(node: *Node, root: *Root) void {
     clearNode(node);
 }
 
+pub fn eraseInitCached(node: *Node, root: *RootCached) void {
+    _ = eraseCached(node, root);
+    clearNode(node);
+}
+
 pub fn firstCached(root: *const RootCached) ?*Node {
     return root.leftmost;
 }
@@ -976,6 +981,52 @@ test "rbtree eraseInit clears detached nodes after erase" {
 
     try std.testing.expectEqual(@as(usize, 3), count);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 15, 20 }, order[0..count]);
+}
+
+test "rbtree eraseInitCached detaches cached nodes and keeps cached roots reusable" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var reseed = Entry{ .key = 6 };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = addCached(&entry.node, &root, less);
+    }
+
+    eraseInitCached(&entries[1].node, &root);
+    try std.testing.expect(emptyNode(&entries[1].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    eraseInitCached(&entries[0].node, &root);
+    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    eraseInitCached(&entries[2].node, &root);
+    try std.testing.expect(emptyNode(&entries[2].node));
+    try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, null), root.root.node);
+
+    try std.testing.expectEqual(@as(?*Node, &reseed.node), addCached(&reseed.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &reseed.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
 
 test "rbtree replaceNode keeps displaced nodes non-empty until cleared" {
