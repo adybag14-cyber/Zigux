@@ -48,17 +48,14 @@ MARKERS = {
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "`make -C zigux phase11`",
         "five shipped Phase 11 checker scripts on `master`",
-        "the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
         "`zigux/tests/phase11_hvc_console_survey.zig`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
-        "`zigux/tests/phase11_hvc_cleanup.zig`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
         "framed as repo-reality gap references",
     ],
     "tests_companion": [
@@ -80,7 +77,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 18
 
 
 class CheckError(RuntimeError):
@@ -145,9 +142,6 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][13]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
-            (FILES["tests_root"], MARKERS["tests_root"][15]),
-            (FILES["tests_root"], MARKERS["tests_root"][16]),
-            (FILES["tests_root"], MARKERS["tests_root"][17]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][8]),
