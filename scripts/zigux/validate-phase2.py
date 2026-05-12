@@ -30,7 +30,7 @@ KCONFIG_README_ALIGNMENT_CHECKER = (
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
 PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass"
-PHASE2_VALIDATION_COMMAND_SPECS = (
+PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     (TESTS_README_ALIGNMENT_CHECKER, "--self-test"),
     (TESTS_README_ALIGNMENT_CHECKER,),
     (KCONFIG_README_ALIGNMENT_CHECKER, "--self-test"),
@@ -49,6 +49,9 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,),
     (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test"),
     (TOOLCHAIN_PIN_SCOPE_CHECKER,),
+)
+PHASE2_VALIDATION_DIRECT_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
+    ("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),
 )
 PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
     {
@@ -70,9 +73,10 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "scripts/zigux/check-phase2-tool-manifest-packets.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        "zig test scripts/zigux/fixdep.zig",
     }
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -102,13 +106,16 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 7
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 8
 
 
 def build_validation_commands(
-    command_specs: tuple[tuple[Path, str], ...] | tuple[tuple[Path], ...] = PHASE2_VALIDATION_COMMAND_SPECS,
+    py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
+    direct_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_DIRECT_COMMAND_SPECS,
 ) -> list[list[str]]:
-    return [[sys.executable, str(spec[0]), *spec[1:]] for spec in command_specs]
+    commands = [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in py_command_specs]
+    commands.extend([[str(part) for part in spec] for spec in direct_command_specs])
+    return commands
 
 
 def build_required_paths(
@@ -132,20 +139,28 @@ def command_tail_from_parts(parts: tuple[Path | str, ...]) -> str:
 
 
 def collect_command_inventory_issues(
-    command_specs: tuple[tuple[Path, str], ...] | tuple[tuple[Path], ...] = PHASE2_VALIDATION_COMMAND_SPECS,
+    py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
     *,
+    direct_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_DIRECT_COMMAND_SPECS,
     expected_count: int = PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT,
     expected_tails: frozenset[str] = PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS,
 ) -> list[str]:
     issues: list[str] = []
-    commands = build_validation_commands(command_specs)
+    commands = build_validation_commands(py_command_specs, direct_command_specs)
     if len(commands) != expected_count:
         issues.append(
             "phase2_validation_commands:count="
             f"{len(commands)}:expected={expected_count}"
         )
 
-    tails = [command_tail_from_parts(tuple(command[1:])) for command in commands]
+    tails: list[str] = []
+    for command in commands:
+        parts: tuple[Path | str, ...]
+        if command and command[0] == sys.executable:
+            parts = tuple(command[1:])
+        else:
+            parts = tuple(command)
+        tails.append(command_tail_from_parts(parts))
     if len(set(tails)) != len(tails):
         issues.append("phase2_validation_commands:duplicate_command_tail")
 
@@ -190,20 +205,30 @@ def run_self_test() -> list[str]:
         (
             "command_inventory_missing_tests_gate",
             collect_command_inventory_issues(
-                tuple(spec for spec in PHASE2_VALIDATION_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
+                tuple(spec for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
             ),
             [
-                "phase2_validation_commands:count=17:expected=18",
+                "phase2_validation_commands:count=18:expected=19",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_fixdep_direct_replay",
+            collect_command_inventory_issues(
+                direct_command_specs=(),
+            ),
+            [
+                "phase2_validation_commands:count=18:expected=19",
+                "phase2_validation_commands:missing:zig test scripts/zigux/fixdep.zig",
             ],
         ),
         (
             "command_inventory_duplicate_toolchain_scope_gate",
             collect_command_inventory_issues(
-                PHASE2_VALIDATION_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
+                PHASE2_VALIDATION_PY_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
             ),
             [
-                "phase2_validation_commands:count=19:expected=18",
+                "phase2_validation_commands:count=20:expected=19",
                 "phase2_validation_commands:duplicate_command_tail",
             ],
         ),
@@ -212,12 +237,12 @@ def run_self_test() -> list[str]:
             collect_command_inventory_issues(
                 tuple(
                     spec
-                    for spec in PHASE2_VALIDATION_COMMAND_SPECS
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
                     if spec != (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,)
                 )
             ),
             [
-                "phase2_validation_commands:count=17:expected=18",
+                "phase2_validation_commands:count=18:expected=19",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
             ],
         ),
@@ -335,7 +360,7 @@ def main() -> int:
     for command in commands:
         if run(command) != 0:
             print("PHASE2_VALIDATION=fail")
-            print(f"PHASE2_VALIDATION_FAILED_COMMAND={' '.join(command[1:])}")
+            print(f"PHASE2_VALIDATION_FAILED_COMMAND={' '.join(command[1:] if command[0] == sys.executable else command)}")
             return 1
 
     print("PHASE2_VALIDATION=pass")
