@@ -42,6 +42,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
+    Path("scripts/zigux/phase3_check_lib.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
 )
 
@@ -54,15 +55,21 @@ OPTIONAL_EXPORT_UAPI_REPLAY_FILES = (
 
 MAKEFILE_PATH = Path("zigux/Makefile")
 RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
+CHECK_LIB_PATH = Path("scripts/zigux/phase3_check_lib.py")
 MAKE_MARKERS = (
     "phase3-abi:",
     "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
 )
 RUNNER_MARKERS = (
+    "from phase3_check_lib import run_phase3_slice_entry",
+    "return run_phase3_slice_entry(entry, root=root)",
+)
+CHECK_LIB_MARKERS = (
     'if slug == "abi":',
     '(sys.executable, "scripts/zigux/check-phase3-abi.py"),',
     '("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),',
     '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),',
+    "def run_phase3_slice_entry(",
 )
 
 
@@ -92,6 +99,13 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in runner_text:
                 issues.append(f"missing runner marker: {marker}")
 
+    check_lib_path = repo_root / CHECK_LIB_PATH
+    if check_lib_path.is_file():
+        check_lib_text = _read(check_lib_path)
+        for marker in CHECK_LIB_MARKERS:
+            if marker not in check_lib_text:
+                issues.append(f"missing shared helper marker: {marker}")
+
     return issues
 
 
@@ -105,6 +119,7 @@ def _populate_repo(root: Path) -> None:
         _write(root / rel_path)
     _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
     _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
+    _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
@@ -163,12 +178,9 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
-        _write(
-            root / RUNNER_PATH,
-            'if slug == "abi":\n(sys.executable, "scripts/zigux/check-phase3-abi.py"),\n',
-        )
+        _write(root / RUNNER_PATH, "from phase3_check_lib import run_phase3_slice_entry\n")
         issues = validate_repo(root)
-        expected_runner_marker = 'missing runner marker: ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),'
+        expected_runner_marker = "missing runner marker: return run_phase3_slice_entry(entry, root=root)"
         if expected_runner_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing runner marker was not reported")
@@ -176,19 +188,12 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
-        _write(
-            root / RUNNER_PATH,
-            _read(root / RUNNER_PATH).replace(
-                '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),\n',
-                "",
-                1,
-            ),
-        )
+        _write(root / CHECK_LIB_PATH, "def run_phase3_slice_entry(entry, root=root):\n    return 0\n")
         issues = validate_repo(root)
-        expected_dump_runner_marker = 'missing runner marker: ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),'
-        if expected_dump_runner_marker not in issues:
+        expected_helper_marker = 'missing shared helper marker: if slug == "abi":'
+        if expected_helper_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
-            print("expected missing dump runner marker was not reported")
+            print("expected missing shared helper marker was not reported")
             return 1
         case_count += 1
 
