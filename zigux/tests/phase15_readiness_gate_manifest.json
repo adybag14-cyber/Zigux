@@ -1,0 +1,12 @@
+{
+  "repo_evidence": {
+    "phase15_validate_target_present": true,
+    "phase15_test_target_present": true,
+    "shared_ci_phase15_present": true,
+    "phase15_replay_green_on_current_master": true
+  },
+  "phase15_validate_checkers": [
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py"
+  ]
+}
