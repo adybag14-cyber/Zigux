@@ -105,6 +105,50 @@ test "phase 7 non-blank argvSplit calls keep owned storage and C-argv views dist
     try std.testing.expectEqualStrings("panic=-1", std.mem.span(second.cArgv()[0].?));
 }
 
+test "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact" {
+    var first = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    var second = try argv_split.argvSplit(std.testing.allocator, "panic=-1 init=/init");
+    defer second.deinit(std.testing.allocator);
+
+    const second_storage_ptr = second.storage.ptr;
+    const second_argv_ptr = second.argv.ptr;
+    const second_c_argv = second.cArgv();
+
+    first.deinit(std.testing.allocator);
+
+    try std.testing.expect(second.storage.ptr == second_storage_ptr);
+    try std.testing.expect(second.argv.ptr == second_argv_ptr);
+    try std.testing.expect(second.cArgv() == second_c_argv);
+    try std.testing.expectEqual(@as(usize, 2), second.argv.len);
+    try std.testing.expectEqualStrings("panic=-1", second.argv[0]);
+    try std.testing.expectEqualStrings("init=/init", second.argv[1]);
+    try std.testing.expectEqualStrings("panic=-1", std.mem.span(second.cArgv()[0].?));
+    try std.testing.expectEqualStrings("init=/init", std.mem.span(second.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[second.argv.len]);
+}
+
+test "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact" {
+    var first = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    var second = try argv_split.argvSplit(std.testing.allocator, "panic=-1 init=/init");
+    defer second.deinit(std.testing.allocator);
+
+    const second_storage_ptr = second.storage.ptr;
+    const second_argv_ptr = second.argv.ptr;
+    const second_c_argv = second.cArgv();
+
+    argv_split.argvFree(std.testing.allocator, &first);
+
+    try std.testing.expect(second.storage.ptr == second_storage_ptr);
+    try std.testing.expect(second.argv.ptr == second_argv_ptr);
+    try std.testing.expect(second.cArgv() == second_c_argv);
+    try std.testing.expectEqual(@as(usize, 2), second.argv.len);
+    try std.testing.expectEqualStrings("panic=-1", second.argv[0]);
+    try std.testing.expectEqualStrings("init=/init", second.argv[1]);
+    try std.testing.expectEqualStrings("panic=-1", std.mem.span(second.cArgv()[0].?));
+    try std.testing.expectEqualStrings("init=/init", std.mem.span(second.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[second.argv.len]);
+}
+
 test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     var buffer: [4]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
