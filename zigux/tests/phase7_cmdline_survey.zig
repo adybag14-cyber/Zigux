@@ -72,6 +72,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "- do not allocate");
     try expectContains(slice_note, "empty-input handling keeps `param` and `rest` borrowed from the caller slice");
     try expectContains(slice_note, "leading-whitespace handling keeps the Linux-style empty sentinel token");
+    try expectContains(slice_note, "getOption() clears caller-provided output on malformed signed and unsigned input");
     try expectContains(
         slice_note,
         "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination",
