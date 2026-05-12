@@ -240,7 +240,7 @@ def run_self_test() -> int:
             "",
             1,
         )
-        (root / MAKEFILE_PATH).writeText(makefile, encoding="utf-8")
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
         expected = f"missing make command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
         if expected not in missing:
