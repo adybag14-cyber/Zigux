@@ -14,6 +14,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
     Path("include/zigux/dev_t.h"),
@@ -42,10 +43,14 @@ REQUIRED_FILES = (
     Path("scripts/zigux/run-phase3-checks.py"),
 )
 REQUIRED_MANIFEST_ENTRIES = (
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("include/zigux/dev_t.h"),
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
+    Path("zigux/tests/phase3_abi_dump.zig"),
 )
 
 # The export/UAPI lane explicitly keeps these dedicated replay files out of the
@@ -210,8 +215,8 @@ def run_self_test() -> int:
                 print("expected missing phase3 ABI manifest entry was not reported")
                 return 1
             case_count += 1
+            _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
 
-        _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
         issues = validate_repo(root)
