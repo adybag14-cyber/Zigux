@@ -14,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 16
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -42,6 +42,9 @@ SELF_TEST_CASES = [
     "test_fsmount_gap_packet_presence_drift",
     "test_fsmount_threshold_posture_drift",
     "test_fsmount_owner_drift",
+    "test_fsmount_validation_entrypoint_drift",
+    "test_fsmount_linux_style_wrapper_drift",
+    "test_fsmount_next_step_drift",
     "missing_note_file",
 ]
 SELF_TEST_CASES_LINE = (
@@ -110,6 +113,9 @@ REQUIRED_SELF_TEST_CASE_MARKERS = [
     "kprobe_next_step_drift",
     "test_fsmount_threshold_posture_drift",
     "test_fsmount_owner_drift",
+    "test_fsmount_validation_entrypoint_drift",
+    "test_fsmount_linux_style_wrapper_drift",
+    "test_fsmount_next_step_drift",
     "missing_note_file",
 ]
 
@@ -999,6 +1005,63 @@ def run_self_test() -> int:
             gate_evidence_path,
             "test_fsmount owner drift",
             prefix_failure="test_fsmount_manifest:owner:",
+        ):
+            return 1
+        case_count += 1
+        test_fsmount_manifest_path.write_text(
+            json.dumps(original_test_fsmount_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        drifted_manifest = dict(original_test_fsmount_manifest)
+        drifted_manifest["validation_entrypoint"] = "zig build broken-test-fsmount-entrypoint"
+        test_fsmount_manifest_path.write_text(
+            json.dumps(drifted_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount validation entrypoint drift",
+            prefix_failure="test_fsmount_manifest:validation_entrypoint:",
+        ):
+            return 1
+        case_count += 1
+        test_fsmount_manifest_path.write_text(
+            json.dumps(original_test_fsmount_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        drifted_manifest = dict(original_test_fsmount_manifest)
+        drifted_manifest["dedicated_linux_style_survey_wrapper"] = "make -C zigux broken-phase4-test-fsmount-survey"
+        test_fsmount_manifest_path.write_text(
+            json.dumps(drifted_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount linux-style wrapper drift",
+            prefix_failure="test_fsmount_manifest:dedicated_linux_style_survey_wrapper:",
+        ):
+            return 1
+        case_count += 1
+        test_fsmount_manifest_path.write_text(
+            json.dumps(original_test_fsmount_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        drifted_manifest = dict(original_test_fsmount_manifest)
+        drifted_manifest["next_bounded_evidence_step"] = "drifted next bounded evidence step"
+        test_fsmount_manifest_path.write_text(
+            json.dumps(drifted_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "test_fsmount next-step drift",
+            prefix_failure="test_fsmount_manifest:next_bounded_evidence_step:",
         ):
             return 1
         case_count += 1
