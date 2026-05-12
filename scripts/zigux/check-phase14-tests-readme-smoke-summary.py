@@ -23,6 +23,16 @@ TESTS_README_PACKET_LINES = [
     "  * `zigux/tests/phase14_ring_buffer_manifest.json`",
     "  * `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
+TESTS_README_COMPILE_SHARD_LINES = [
+    "  * `zigux/tests/phase14_ring_buffer_survey.zig`",
+    "  * `zigux/tests/phase14_rcu_tree_survey.zig`",
+    "  * `zigux/tests/phase14_skbuff_bridge.zig`",
+    "  * `zigux/tests/phase14_workqueue_bridge.zig`",
+    "  * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
+]
+TESTS_README_AFTER_ANCHOR_LINES = (
+    TESTS_README_PACKET_LINES + TESTS_README_COMPILE_SHARD_LINES
+)
 
 
 def repo_root() -> Path:
@@ -80,14 +90,14 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
             errors,
             TESTS_README_PATH.as_posix(),
             text,
-            TESTS_README_PACKET_LINES,
+            TESTS_README_AFTER_ANCHOR_LINES,
         )
         require_lines_after_anchor(
             errors,
             TESTS_README_PATH.as_posix(),
             text,
             TESTS_README_PACKET_ANCHOR,
-            TESTS_README_PACKET_LINES,
+            TESTS_README_AFTER_ANCHOR_LINES,
             "phase14_smoke_packet_after_anchor",
         )
     if MARKER not in (source_text if source_text is not None else read_text(Path(__file__))):
@@ -102,9 +112,7 @@ def good_tests_readme_text() -> str:
             "",
             "Key entrypoints",
             TESTS_README_PACKET_ANCHOR,
-            *TESTS_README_PACKET_LINES,
-            "  * `zigux/tests/phase14_ring_buffer_survey.zig`",
-            "  * `zigux/tests/phase14_rcu_tree_survey.zig`",
+            *TESTS_README_AFTER_ANCHOR_LINES,
         ]
     ) + "\n"
 
@@ -163,18 +171,33 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_skbuff_bridge.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_skbuff_bridge.zig",
+            "self-test expected missing compile-shard tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 "\n".join(
                     [
                         TESTS_README_PACKET_ANCHOR,
-                        TESTS_README_PACKET_LINES[0],
-                        TESTS_README_PACKET_LINES[1],
+                        TESTS_README_AFTER_ANCHOR_LINES[0],
+                        TESTS_README_AFTER_ANCHOR_LINES[1],
                     ]
                 ),
                 "\n".join(
                     [
                         TESTS_README_PACKET_ANCHOR,
-                        TESTS_README_PACKET_LINES[1],
-                        TESTS_README_PACKET_LINES[0],
+                        TESTS_README_AFTER_ANCHOR_LINES[1],
+                        TESTS_README_AFTER_ANCHOR_LINES[0],
                     ]
                 ),
                 1,
@@ -184,6 +207,31 @@ def run_self_test() -> int:
             check(root, source_text=MARKER),
             "phase14_smoke_packet_after_anchor",
             "self-test expected tests-readme packet-order failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "\n".join(
+                    [
+                        TESTS_README_COMPILE_SHARD_LINES[2],
+                        TESTS_README_COMPILE_SHARD_LINES[3],
+                    ]
+                ),
+                "\n".join(
+                    [
+                        TESTS_README_COMPILE_SHARD_LINES[3],
+                        TESTS_README_COMPILE_SHARD_LINES[2],
+                    ]
+                ),
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14_smoke_packet_after_anchor",
+            "self-test expected compile-shard order failure",
         )
         write_text(root / TESTS_README_PATH, good_tests_readme_text())
 
@@ -208,7 +256,11 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=7")
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
+        f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
+    )
     return 0
 
 
