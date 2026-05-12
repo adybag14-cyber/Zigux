@@ -15,12 +15,25 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
     defer std.testing.allocator.free(note);
 
     try expectContains(note, "PHASE15_STATUS=lane_sequencing_note_landed");
-    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-11");
+    try expectContains(note, "PHASE15_LANE_KEY=P15-Y06");
+    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-12");
     try expectContains(note, "freeze-map-governance");
     try expectContains(note, "review-process");
+    try expectContains(note, "parity-scorecard-survey");
+    try expectContains(note, "parity-scorecard");
+    try expectContains(note, "indefinite-c-policy");
     try expectContains(note, "readiness-gate");
     try expectContains(note, "handoff-next-steps");
     try expectContains(note, "shared-summaries");
+    try expectContains(note, "Documentation/zigux/phase15-parity-scorecard-survey.md");
+    try expectContains(note, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectContains(note, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(note, "zigux/tests/phase15_parity_scorecard.json");
+    try expectContains(note, "zigux/tests/phase15_parity_scorecard.zig");
+    try expectContains(note, "zigux/tests/phase15_indefinite_c_policy.json");
+    try expectContains(note, "zigux/tests/phase15_indefinite_c_policy.zig");
+    try expectContains(note, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(note, "Documentation/zigux/phase15-readiness-gate-survey.md");
     try expectContains(note, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(note, "Documentation/zigux/phase15-governance-lane-sequencing.md");
@@ -28,7 +41,6 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
     try expectContains(note, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectContains(note, "zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(note, "zigux/tests/phase15_readiness_gate.zig");
-    try expectContains(note, "zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(note, "make -C zigux phase15-validate");
     try expectContains(note, "make -C zigux phase15-test");
     try expectContains(note, "make -C zigux phase15");
