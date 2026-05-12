@@ -37,6 +37,13 @@ surface:
 - `make -C zigux phase7-test`
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
+The same parked packet also depends on the shared docs-root Phase 5 no-sample
+reminders staying equally explicit for `string_helpers`, `cmdline`,
+`argv_split`, and `rbtree` so `Documentation/zigux/README.md` does not
+under-describe the parked helper bundle compared with
+`Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and the
+four Phase 7 slice notes.
+
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
 `Documentation/zigux/phase7-cmdline-slice.md`,
