@@ -52,9 +52,9 @@ SELF_TEST_ANCHOR_PACKETS = [
         "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
     },
     {
-        "lane_key": "P14-L08",
+        "lane_key": "P14-L06",
         "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
-        "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+        "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
     },
     {
         "lane_key": "P14-L16",
