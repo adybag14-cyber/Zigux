@@ -16,6 +16,12 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+KCONFIG_BRIDGE_SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
+)
 
 VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
@@ -83,7 +89,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(path: Path) -> str:
@@ -161,6 +167,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(
         collect_missing_markers(bootstrap_notes_text, PHASE2_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS")
     )
+    for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
+        if not resolve_path(root, bridge_path).exists():
+            issues.append(("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()))
     return issues
 
 
@@ -200,6 +209,9 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
+    for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
+        content = "{}\n" if bridge_path.suffix == ".json" else "# present\n"
+        write_text(resolve_path(root, bridge_path), content)
 
 
 def replace_once(text: str, marker: str, replacement: str) -> str:
@@ -351,6 +363,13 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", PHASE2_BOOTSTRAP_NOTES_MARKERS[1]) in issues
         checks_run += 1
+
+        for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
+            build_self_test_root(root)
+            resolve_path(root, bridge_path).unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
 
         for rel_path in (
             PHASE2_VALIDATOR,
