@@ -271,6 +271,26 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(
             root,
+            MAKEFILE_REL,
+            (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+                "phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_reference:zigux/Makefile:phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper make route reference failure")
+            return 1
+
+        _write(root, MAKEFILE_REL, "\n".join(grouped_markers[MAKEFILE_REL]) + "\n")
+        _write(
+            root,
             SURVEY_REL,
             (root / SURVEY_REL).read_text(encoding="utf-8").replace(
                 "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
