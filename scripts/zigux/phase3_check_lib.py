@@ -12,6 +12,15 @@ from phase3_catalog import discover_phase3_slices
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PREFIX = "check-phase3-"
 
+ABI_COMMAND_PLAN = (
+    (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+    (sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),
+    (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
+    ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+    ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
+)
+
 WRAPPER_STUB = """#!/usr/bin/env python3
 from __future__ import annotations
 
@@ -50,11 +59,7 @@ def shared_runner_gate_for_slug(slug: str) -> str:
 
 def command_plan_for_slug(slug: str) -> tuple[tuple[str, ...], ...]:
     if slug == "abi":
-        return (
-            (sys.executable, "scripts/zigux/check-phase3-abi.py"),
-            ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
-            ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
-        )
+        return ABI_COMMAND_PLAN
     return ()
 
 
@@ -129,11 +134,7 @@ def run_self_test() -> int:
     assert shared_runner_gate_for_slug("abi") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi"
 
     abi_plan = command_plan_for_slug("abi")
-    assert abi_plan == (
-        (sys.executable, "scripts/zigux/check-phase3-abi.py"),
-        ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
-        ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
-    )
+    assert abi_plan == ABI_COMMAND_PLAN
     assert command_plan_for_slug("bitmap-cpumask") == ()
 
     observed_calls: list[tuple[tuple[str, ...], Path, bool]] = []
@@ -145,6 +146,9 @@ def run_self_test() -> int:
     assert run_command_plan(abi_plan, ROOT, runner=fake_runner_ok) == 0
     assert observed_calls == [
         ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),
         (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
         (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), ROOT, False),
     ]
@@ -159,7 +163,7 @@ def run_self_test() -> int:
     assert run_command_plan(abi_plan, ROOT, runner=fake_runner_fail_second) == 7
     assert observed_calls == [
         ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
-        (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_lib_") as tmp_dir_str:
