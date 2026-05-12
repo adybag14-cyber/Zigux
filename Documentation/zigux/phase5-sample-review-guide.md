@@ -157,6 +157,8 @@ Review the landed kobject packet through `Documentation/zigux/phase5-kobject-sam
 
 Keep `runAnchorReplay()` explicit for the init-first, exact-three-attribute registration cue, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runTeardownReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, the unnamed attribute-group shape, the shared `baz`/`bar` dispatch and parse-failure packet, the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split, and the initialized-but-not-registered plus post-`exit()` rejection boundaries explicit together as one bounded non-runtime packet.
 
+Keep `scripts/zigux/README.md` honest here too: the scripts-root Phase 5 summary may stay generic at the four-sample level, but it still needs to leave `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, and `runTeardownReplay()` readable as the exact kobject packet beside the shared `zigux/tests/phase5_build.zig` route instead of flattening this sample back to an unnamed summary.
+
 ## Non-goals
 
 This shared Phase 5 guide does not claim:
