@@ -156,6 +156,10 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "phase4_bitmap_diff_survey.zig",
     "phase4_perf_baseline_manifest.json",
     "phase4_perf_baseline_survey.zig",
+    "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "make -C zigux phase4-kprobe-example-survey",
+    "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    "make -C zigux phase4-test-fsmount-survey",
     "approved local-only benchmark commands and acceptable limits",
     "shared-CI perf promotion",
 ]
@@ -298,12 +302,15 @@ PLACEHOLDER_FILES = [
     "zigux/tests/phase9_build.zig",
 ]
 
+
 def _git_blob_sha1(payload: bytes) -> str:
     return hashlib.sha1(f"blob {len(payload)}\0".encode() + payload).hexdigest()
+
 
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
+
 
 def _write_stub_checker(path: Path, lines: list[str]) -> None:
     body = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
@@ -312,20 +319,25 @@ def _write_stub_checker(path: Path, lines: list[str]) -> None:
     body.extend([f"print({line!r})" for line in lines])
     _write(path, "\n".join(body) + "\n")
 
+
 def _missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 def _check_markers(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
+
 def required_marker_count() -> int:
     return sum(len(markers) for _, _, markers in MARKER_GROUPS)
+
 
 def run_root_marker_checks(root: Path) -> list[str]:
     failures: list[str] = []
     for prefix, rel_path, markers in MARKER_GROUPS:
         failures.extend(_check_markers((root / rel_path).read_text(encoding="utf-8"), markers, prefix))
     return failures
+
 
 def _run_python_script(root: Path, relative_path: str, *args: str) -> tuple[int, list[str]]:
     result = subprocess.run(
@@ -337,6 +349,7 @@ def _run_python_script(root: Path, relative_path: str, *args: str) -> tuple[int,
     )
     return result.returncode, result.stdout.splitlines()
 
+
 def run_generic_checks(root: Path) -> list[str]:
     failures: list[str] = []
     for label, argv, pass_marker in GENERIC_CHECKS:
@@ -346,6 +359,7 @@ def run_generic_checks(root: Path) -> list[str]:
         elif pass_marker is not None and pass_marker not in lines:
             failures.append(f"{label}:missing_pass_marker")
     return failures
+
 
 def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     manifest = json.loads((root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(encoding="utf-8"))
@@ -379,6 +393,7 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     )
     return failures
 
+
 def run_phase4_perf_baseline_matrix_check(root: Path) -> list[str]:
     matrix_text = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(encoding="utf-8")
     return _check_markers(
@@ -386,6 +401,7 @@ def run_phase4_perf_baseline_matrix_check(root: Path) -> list[str]:
         REQUIRED_PHASE4_PERF_BASELINE_MATRIX_ROW_MARKERS,
         "phase4_perf_baseline_matrix",
     )
+
 
 def validate_root(root: Path) -> list[str]:
     failures = [f"file:{item}" for item in _missing_files(root)]
@@ -396,6 +412,7 @@ def validate_root(root: Path) -> list[str]:
     failures.extend(run_phase4_runtime_atomic64_packet_check(root))
     failures.extend(run_phase4_perf_baseline_matrix_check(root))
     return failures
+
 
 def _write_fixture_tree(root: Path) -> None:
     _write(root / "scripts/zigux/validate-phase4.py", Path(__file__).read_text(encoding="utf-8"))
@@ -486,6 +503,10 @@ def _write_fixture_tree(root: Path) -> None:
         "phase4_bitmap_diff_survey.zig",
         "phase4_perf_baseline_manifest.json",
         "phase4_perf_baseline_survey.zig",
+        "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+        "make -C zigux phase4-kprobe-example-survey",
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "make -C zigux phase4-test-fsmount-survey",
         "approved local-only benchmark commands and acceptable limits",
         "shared-CI perf promotion",
     ]) + "\n")
@@ -654,6 +675,7 @@ def _write_fixture_tree(root: Path) -> None:
     ])
     _write(root / "Documentation/zigux/phase4-gate-evidence.md", "\n".join(lines) + "\n")
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validator_") as tempdir:
         root = Path(tempdir)
@@ -817,6 +839,44 @@ def run_self_test() -> int:
             return 1
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "Documentation/zigux/phase4-kprobe-example-gap-survey.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "script_readme:Documentation/zigux/phase4-kprobe-example-gap-survey.md" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "make -C zigux phase4-test-fsmount-survey\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "script_readme:make -C zigux phase4-test-fsmount-survey" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         remaining_gap_checker_path = root / "scripts/zigux/check-phase4-remaining-gap-matrix.py"
         original_remaining_gap_checker = remaining_gap_checker_path.read_text(encoding="utf-8")
         remaining_gap_checker_path.write_text(
@@ -891,6 +951,7 @@ def run_self_test() -> int:
     print("PHASE4_VALIDATOR_SELF_TEST=pass")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the shared Phase 4 rollback-readiness packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage in a temporary workspace.")
@@ -920,6 +981,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE4_REQUIRED_MARKER_COUNT={required_marker_count()}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
