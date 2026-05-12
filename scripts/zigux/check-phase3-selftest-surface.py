@@ -569,6 +569,26 @@ def run_self_test() -> int:
         _populate_repo(root)
         survey_path.write_text(
             _read(survey_path).replace(
+                "zigux/uapi/dev_t.zig",
+                "## Future follow-through\n" + "zigux/uapi/dev_t.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "zigux/uapi/dev_t.zig "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped dev_t reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
                 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX
                 + "\n"
                 + "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
