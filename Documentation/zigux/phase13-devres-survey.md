@@ -34,6 +34,14 @@ Current `master` still carries a real helper-first `lib/devres.zig` foothold, bu
 - current `master` still ships the devres slice note, the shared `phase13-validate` make target, `scripts/zigux/validate-phase13-release.py`, the direct `zigux/tests/phase13_devres.zig` replay, and the direct `zigux/tests/phase13_devres_reviewability.zig` companion, but it still does not ship the older shared `zigux/tests/phase13_build.zig` packet surface that broader Phase 13 notes sometimes imply.
 - the helper-only DMA/scatterlist boundary therefore stays explicit through `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` instead of overstating the missing wider Phase 13 build-backed packet as if it were still present on `master`.
 
+## Exact Live Readback
+
+- live helper readback on current `master` still shows `.provides_iounmap_call_planning = true`, `pub const ManagedIounmapPlan`, `pub fn planManagedIounmap(`, and `.warns_on_release_miss = !release_matches` in `lib/devres.zig`, so the `devm_iounmap()` planner remains present as shipped evidence rather than as survey-only prose.
+- `zigux/tests/phase13_devres.zig` is still present on current `master` and still replays the exact-match and release-miss `planManagedIounmap()` cases, along with the managed `devm_ioremap_uc()` and `devm_ioremap_wc()` wrapper paths that keep the helper-first MMIO surface explicit.
+- `zigux/tests/phase13_devres_reviewability.zig` is still present on current `master`, while `zigux/tests/phase13_build.zig` is absent on current `master`.
+- `zigux/tests/phase13_devres_manifest.json` still labels the current packet as `P13-L08` and still records `preexisting_phase13_devres_test_present: false` plus `preexisting_phase13_devres_reviewability_present: false`, even though the direct replay and reviewability files are both present in the live tree.
+- the direct replay and reviewability files still embed older packet identifiers such as `"lane_key": "P13-L05"` and older surveyed-commit markers, while the manifest and survey now advertise a later live readback. By live-source inspection, that means `scripts/zigux/check-phase13-devres-packet-alignment.py` is currently pointed at a real packet-drift repair target rather than a cleanly aligned evidence packet.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -76,4 +84,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-If this helper-local boundary packet remains useful after the current repo drift settles, the next honest same-lane move is to keep the direct `zigux/tests/phase13_devres.zig` replay, the direct `zigux/tests/phase13_devres_reviewability.zig` companion, the manifest-backed replay, and `scripts/zigux/check-phase13-devres-packet-alignment.py` truthful when the devres slice note, survey note, or helper-local DMA/scatterlist boundary wording moves again, without widening into live mappings, live DMA ownership, scatterlist delivery, or broader release-validator ownership.
+If this helper-local boundary packet remains useful after the current repo drift settles, the next honest same-lane move is to refresh `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` together so the shipped `devm_iounmap()` and UC or WC evidence matches the manifest-backed packet again, without widening into live mappings, live DMA ownership, scatterlist delivery, or broader release-validator ownership.
