@@ -1,20 +1,22 @@
 # Phase 11 DesignWare Watchdog Platform Registration Plan
 
-This note records the next bounded follow-up for the landed Phase 11 DesignWare watchdog packet on current `master`.
+This note records the next bounded follow-up for the surviving Phase 11 DesignWare watchdog packet on current `master`.
 
 ## Why this step belongs next
 
-The live repository already ships a bounded `dw_wdt` packet under the DesignWare lane:
+The live repository still keeps the DesignWare lane reviewable through:
 
-- `drivers/watchdog/dw_wdt.zig` keeps fixed and custom TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and the registration-facing handoff reviewable
-- `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig` keep the current teardown, registration-order, and survey packet replayable
-- `zigux/tests/phase11_dw_wdt_manifest.json`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md` keep the current lane evidence and ownership boundaries explicit
+- `drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries
+- `drivers/watchdog/dw_wdt_verify.zig` for the directly coupled teardown and failure-mode review surface
+- `Documentation/zigux/phase11-driver-lane-sequencing.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the current owner-lane packet truth, pinned to `P11-L10`
 
-That means the honest next step is no longer to invent a first DesignWare packet. The next bounded follow-up is to attach the already-landed registration-facing handoff to one acquisition-facing platform-registration scaffold while keeping the current validation matrix and teardown note as the lane's truth surfaces.
+That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.
+
+The next bounded follow-up is still to attach the registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live platform behavior.
 
 ## Scope for the first platform-backed step
 
-Keep the next implementation bounded to one acquisition-facing scaffold inside the existing DesignWare packet without claiming a full probe path.
+Keep the next implementation bounded to one acquisition-facing scaffold inside the surviving DesignWare packet without claiming a full probe path.
 
 The preferred first packet is:
 
@@ -40,20 +42,19 @@ Do not widen this first scaffold into:
 
 The first scaffold packet should stay publishable with bounded proof only:
 
-- focused Zig tests for the new acquisition-order summary or summaries in `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` or a directly coupled DesignWare replay
-- update `zigux/tests/phase11_dw_wdt_manifest.json` and `Documentation/zigux/phase11-dw-wdt-survey.md` only if the new scaffold changes shipped lane evidence
-- update `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` only if the new scaffold changes the next hardware-validation checkpoint
-- keep `Documentation/zigux/phase11-dw-wdt-teardown-note.md` unchanged unless `stop()`, `teardownSummary()`, or `removeSummary()` ownership actually moves
+- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` together when the DesignWare packet meaning changes
+- keep proof bounded to the checker self-test plus the narrowest truthful Zig-side review available for the scaffold change
+- create a new DesignWare manifest, survey, validation-matrix, or teardown surface only if a future scaffold lands enough new lane evidence to justify reviving it
 - Phase 11 shared build replay only as a truthfulness check, not as a claim that hardware-backed behavior is complete
 
 ## Recommended file targets
 
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `drivers/watchdog/dw_wdt.zig`
-- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-- `zigux/tests/phase11_dw_wdt_manifest.json` only if the scaffold lands or the next-step wording changes
-- `Documentation/zigux/phase11-dw-wdt-survey.md` and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` only if the bounded packet evidence actually moves
+- `drivers/watchdog/dw_wdt_verify.zig`
 
 ## Handoff
 
-If a future run picks up this packet, keep it to one acquisition-facing helper or summary family only. If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step. If neither acquisition branch lands yet, keep this note aligned with the already-landed DesignWare packet instead of reopening shared Phase 11 reminder surfaces.
+If a future run picks up this packet, keep it to one acquisition-facing helper or summary family only. If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step. If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.
