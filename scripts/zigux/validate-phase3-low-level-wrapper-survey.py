@@ -13,9 +13,6 @@ TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
 ATOMIC_REL = Path("zigux/helpers/atomic.zig")
 BARRIER_REL = Path("zigux/helpers/barrier.zig")
 MMIO_REL = Path("zigux/helpers/mmio.zig")
-ALLOCATOR_POLICY_REL = Path("zigux/helpers/allocator_policy.zig")
-PANIC_POLICY_REL = Path("zigux/helpers/panic_policy.zig")
-NARROW_REL = Path("zigux/unsafe/narrow.zig")
 ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
@@ -28,25 +25,19 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
-    "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
-    "PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig",
-    "PHASE3_ALLOCATOR_POLICY_SCOPE=interop-policy-mode-decoding-caller-provided-gating-and-global-fallback-gating",
-    "PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig",
-    "PHASE3_PANIC_POLICY_SCOPE=interop-policy-mode-decoding-action-selection-and-returnability-gating",
-    "PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig",
+    "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_BOUNDARY_GAP=no-new-kernel-style-low-level-family-landed-beyond-current-atomic-barrier-and-direct-mmio-packet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-this-lane-limited-to-packet-local-survey-validator-or-build-surface-repairs-for-atomic-barrier-and-direct-mmio-ownership-only",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "64-bit MMIO coverage in the focused test route",
-    "interop-policy and policy-byte MMIO entrypoints in the focused test route",
-    "raw-pointer bridge scope gates in `zigux/unsafe/narrow.zig` and the focused test route",
-    "non-`seq_cst` ordering coverage and signed atomic edges in the focused test route",
-    "barrier-locality and handoff replays",
-    "allocator policy mode decoding, caller-provided gating, and fallback gating in the focused test route",
-    "panic policy mode decoding, action selection, and returnability gating in the focused test route",
+    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet's direct wrapper surface, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs.",
+    "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay consumes those helpers as prerequisites.",
+    "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -55,37 +46,27 @@ REQUIRED_BUILD_SNIPPETS = (
     '.root_source_file = b.path("../helpers/atomic.zig")',
     '.root_source_file = b.path("../helpers/barrier.zig")',
     '.root_source_file = b.path("../helpers/mmio.zig")',
-    '.root_source_file = b.path("../helpers/allocator_policy.zig")',
-    '.root_source_file = b.path("../helpers/panic_policy.zig")',
     '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
     'root_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("atomic_helpers", atomic_helpers_module);',
     'root_module.addImport("barrier_helpers", barrier_helpers_module);',
     'root_module.addImport("mmio_helpers", mmio_helpers_module);',
     'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-    'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
-    'root_module.addImport("panic_policy_helpers", panic_policy_helpers_module);',
     '"phase3-low-level-wrappers-test"',
 )
 
 REQUIRED_TEST_SNIPPETS = (
-    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable"',
-    'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"',
-    'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable"',
-    'test "phase3 low-level wrappers keep barrier locality reviewable"',
-    'test "phase3 low-level wrappers keep barrier handoff reviewable"',
-    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable"',
+    'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
+    'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
+    'test "phase3 low-level wrappers keep barrier locality reviewable" {',
+    'test "phase3 low-level wrappers keep barrier handoff reviewable" {',
     'mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);',
-    'mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
-    'const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);',
-    'try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);',
+    'mmio.write16(base, 1, 0x1234);',
+    'mmio.write32(base, 3, 0x89abcdef);',
+    'mmio.write64(base, 5, 0xfedc_ba98_7654_3210);',
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
-    'allocator_policy.modeFromInteropPolicy(caller_abort_policy)',
-    'allocator_policy.permitsGlobalFallbackInteropPolicy(arena_warn_policy)',
-    'panic_policy.actionForInteropPolicy(heap_bug_policy)',
-    'panic_policy.canReturnInteropPolicy(arena_warn_policy)',
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -104,11 +85,6 @@ REQUIRED_BARRIER_SNIPPETS = (
 
 REQUIRED_MMIO_SNIPPETS = (
     'pub fn range(base_addr: usize, length: u32, stride: u32) Range {',
-    'pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
-    'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
-    'pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) MmioError!Range {',
-    'pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) MmioError!Range {',
-    'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {',
     'pub fn read8(base_addr: usize, offset: usize) u8 {',
     'pub fn read16(base_addr: usize, offset: usize) u16 {',
     'pub fn read32(base_addr: usize, offset: usize) u32 {',
@@ -117,48 +93,7 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn write16(base_addr: usize, offset: usize, value: u16) void {',
     'pub fn write32(base_addr: usize, offset: usize, value: u32) void {',
     'pub fn write64(base_addr: usize, offset: usize, value: u64) void {',
-    'pub fn read32InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u32 {',
-    'pub fn write32InteropPolicy(base_addr: usize, offset: usize, value: u32, policy: abi.InteropPolicy) MmioError!void {',
-    'pub fn read32InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u32 {',
-    'pub fn write32InteropPolicyByte(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8) MmioError!void {',
-    'pub fn read64InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u64 {',
-    'pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {',
-)
-
-REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
-    'pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {',
-    'pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {',
-    'pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {',
-    'pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {',
-)
-
-REQUIRED_PANIC_POLICY_SNIPPETS = (
-    'pub const Action = enum {',
-    'pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {',
-    'pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {',
-    'pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {',
-)
-
-REQUIRED_NARROW_SNIPPETS = (
-    'pub const UnsafeScopeTag = enum(u8) {',
-    'volatile_mmio = 1,',
-    'raw_pointer_bridge = 2,',
-    'pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {',
-    'pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {',
-    'pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {',
-    'pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {',
-    'pub fn pointerAtInteropPolicyBytes(',
-    'pub fn pointerAtInteropPolicy(',
-    'pub fn pointerAtByte(',
-    'pub fn constSliceAtInteropPolicyBytes(',
-    'pub fn constSliceAtInteropPolicy(',
-    'pub fn constSliceAtByte(',
-    'pub fn constPointerAtInteropPolicyBytes(',
-    'pub fn constPointerAtInteropPolicy(',
-    'pub fn constPointerAtByte(',
-    'pub fn writeValueAtInteropPolicyBytes(',
-    'pub fn writeValueAtInteropPolicy(',
-    'pub fn writeValueAtByte(',
+    'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
 )
 
 REFERENCE_MARKERS = (
@@ -196,9 +131,6 @@ def validate(root: Path) -> list[str]:
     atomic = _read(root, ATOMIC_REL, issues)
     barrier = _read(root, BARRIER_REL, issues)
     mmio = _read(root, MMIO_REL, issues)
-    allocator_policy = _read(root, ALLOCATOR_POLICY_REL, issues)
-    panic_policy = _read(root, PANIC_POLICY_REL, issues)
-    narrow = _read(root, NARROW_REL, issues)
 
     if survey:
         _require(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
@@ -213,22 +145,6 @@ def validate(root: Path) -> list[str]:
         _require(barrier, REQUIRED_BARRIER_SNIPPETS, "missing_barrier_snippet", issues)
     if mmio:
         _require(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
-    if allocator_policy:
-        _require(
-            allocator_policy,
-            REQUIRED_ALLOCATOR_POLICY_SNIPPETS,
-            "missing_allocator_policy_snippet",
-            issues,
-        )
-    if panic_policy:
-        _require(
-            panic_policy,
-            REQUIRED_PANIC_POLICY_SNIPPETS,
-            "missing_panic_policy_snippet",
-            issues,
-        )
-    if narrow:
-        _require(narrow, REQUIRED_NARROW_SNIPPETS, "missing_narrow_snippet", issues)
 
     for rel, marker in REFERENCE_MARKERS:
         text = _read(root, rel, issues)
@@ -254,9 +170,6 @@ def run_self_test() -> int:
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(root, ALLOCATOR_POLICY_REL, "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n")
-        _write(root, PANIC_POLICY_REL, "\n".join(REQUIRED_PANIC_POLICY_SNIPPETS) + "\n")
-        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         grouped_markers: dict[Path, list[str]] = {}
         for rel, marker in REFERENCE_MARKERS:
             grouped_markers.setdefault(rel, []).append(marker)
@@ -281,69 +194,30 @@ def run_self_test() -> int:
         _write(root, TEST_REL, "missing helper checks\n")
         issues = validate(root)
         if not any(
-            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable"'
+            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep barrier handoff reviewable" {'
             for issue in issues
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing allocator/panic helper replay failure")
+            print("expected missing barrier handoff replay failure")
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(
             root,
-            TEST_REL,
-            (root / TEST_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"',
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
                 "",
                 1,
             ),
         )
         issues = validate(root)
         if not any(
-            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"'
+            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep direct reads and writes reviewable" {'
             for issue in issues
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing raw-pointer bridge replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            NARROW_REL,
-            (root / NARROW_REL).read_text(encoding="utf-8").replace(
-                "pub fn pointerAtInteropPolicyBytes(",
-                "pub fn removedPointerAtInteropPolicyBytes(",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == "missing_narrow_snippet:pub fn pointerAtInteropPolicyBytes("
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing raw-pointer bridge helper failure")
-            return 1
-
-        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                "pub fn write64InteropPolicyBytes(",
-                "pub fn removedWrite64InteropPolicyBytes(",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_mmio_snippet:pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio helper failure")
+            print("expected missing direct mmio replay failure")
             return 1
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
@@ -351,19 +225,18 @@ def run_self_test() -> int:
             root,
             SURVEY_REL,
             (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
-                "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-entrypoints",
+                "policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
+                "",
                 1,
             ),
         )
         issues = validate(root)
         if not any(
-            issue
-            == "missing_survey_marker:PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints"
+            issue.startswith("missing_survey_snippet:the policy-aware MMIO relays in `zigux/helpers/mmio.zig`")
             for issue in issues
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio scope marker failure")
+            print("expected missing owner-split survey failure")
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
