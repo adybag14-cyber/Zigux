@@ -1,6 +1,6 @@
 PHONY += phase1-validate phase1-test phase1-bench phase1
 PHONY += phase2-validate phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2
-PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3
+PHONY += phase3-validate phase3-selftest phase3-abi phase3-low-level-wrappers-test phase3-interop phase3
 PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 PHONY += phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6
@@ -115,6 +115,9 @@ phase3-selftest:
 phase3-abi:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig
 
+phase3-low-level-wrappers-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig
+
 phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig
@@ -169,6 +172,6 @@ phase14-smoke:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-test --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14: phase14-validate phase14-smoke phase14-test
