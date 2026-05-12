@@ -19,6 +19,9 @@ pub const SampleFocus = enum {
     peek_and_skip,
     non_destructive_snapshot,
     preview_truncation,
+    remaining_capacity,
+    queue_shape_boundaries,
+    helper_boundaries,
     reset_and_replay,
     ownership_and_lifetime,
 };
@@ -29,6 +32,9 @@ pub const sample_review_focus = [_]SampleFocus{
     .peek_and_skip,
     .non_destructive_snapshot,
     .preview_truncation,
+    .remaining_capacity,
+    .queue_shape_boundaries,
+    .helper_boundaries,
     .reset_and_replay,
     .ownership_and_lifetime,
 };
