@@ -172,10 +172,10 @@ What is now landed is the smallest shared consumer contract:
 - `zigux/kernel/runtime_loader.zig` defines a common loader-stage vocabulary
   for shared runtime handoff
 - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps that
-  shared loader-stage vocabulary reviewable beside the three sample-side loader
-  plans that already bind into the shared request shape, while the newer
-  trace-events scaffold remains an adjacent pre-execution note rather than part
-  of the shared request union
+  shared loader-stage vocabulary reviewable beside the four sample-side loader
+  plans that now bind into the shared request shape, while the trace-events
+  scaffold still keeps live runtime substrate and tracepoint-registration
+  execution blocked
 - the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through
   an explicit allocator-handoff record instead of leaving allocator posture in
@@ -184,10 +184,11 @@ What is now landed is the smallest shared consumer contract:
   machine-checkable by rejecting nonzero `selftest_runs` whenever
   `provides_selftest_hook` is absent, so the three shared-request loader plans
   share one explicit review boundary instead of loader-local conventions
-- the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared
-  request shape while still stopping at `waiting_on_runtime_substrate`, while
-  the trace-events scaffold records the same pre-execution lifecycle cues
-  without yet claiming a shared-request binding
+- the atomic64, bitmap, kretprobe, and trace-events loader scaffolds can now
+  emit that shared request shape while still stopping at
+  `waiting_on_runtime_substrate`, and the trace-events scaffold still keeps its
+  registration labels review-only plus the broader live runtime-substrate
+  blocker explicit
 
 The current pilot-module evidence also carries an explicit
 rollback-without-substrate path:
