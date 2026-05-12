@@ -46,11 +46,11 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 ## Current Truthfulness Posture
 
-Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/phase10_closure_manifest.json`, and `scripts/zigux/README.md` now all keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
+Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `zigux/tests/phase10_closure_manifest.json` keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
 
-That closes the older shared reminder-surface drift recorded in this note. Across the directly re-readable shared Phase 10 surfaces from this run, I did not find a smaller new blocker that stayed inside the parked virtio core, ring, input, and MMIO packet without widening into risky transport claims.
+The broader shared-summary follow-through is narrower. `scripts/zigux/README.md` still describes the same ring evidence as the ring verifier plus drained-reset reuse replay, but this run did not re-establish an exact path-level shared-summary claim for `zigux/tests/phase10_virtio_ring_reset_reuse.zig` across the broader docs-root and scripts-root reminder surfaces.
 
-The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and future same-lane follow-through should reopen only for another directly visible one-file reminder, checker, manifest, or survey drift.
+The older shared reminder-surface drift is therefore narrowed, not fully closed. The Phase 10 closure note remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should start with the smallest shared-summary repair that makes that ring replay explicit without widening into risky transport claims.
 
 ## Parked Boundary
 
@@ -65,5 +65,5 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder or checker surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. if fresh repo-first inspection finds another equally small same-lane drift, prefer one shared reminder, checker, manifest, or survey surface at a time
-3. reread `scripts/zigux/check-phase10-harness-coverage.py` and `scripts/zigux/validate-phase10-closure.py` against that exact surface so the closure note, scripts root, companion note, lane-sequencing note, and closure manifest stay aligned
+2. reread `Documentation/zigux/README.md` plus `scripts/zigux/README.md` against `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, starting with whether the broader shared Phase 10 summaries should also keep `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside `drivers/virtio/virtio_ring_verify.zig`
+3. if a fresh repo-first inspection finds another equally small same-lane drift after that, prefer one shared reminder, checker, manifest, or survey surface at a time
