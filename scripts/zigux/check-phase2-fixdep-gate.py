@@ -52,7 +52,7 @@ ARTIFACT_DIFF_MARKERS = [
 VALIDATE_PHASE2_MARKERS = [
     'ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"',
     '[sys.executable, str(FIXDEP_GATE_CHECKER), "--self-test"]',
-    "[sys.executable, str(FIXDEP_GATE_CHECKER)]",
+    '[sys.executable, str(FIXDEP_GATE_CHECKER)]',
 ]
 
 TESTS_README_MARKERS = [
@@ -73,6 +73,97 @@ EXPECTED_CASE_NAMES = [
     "sample_missing_dep_stdout_full",
     "sample_output_write",
 ]
+
+EXPECTED_CASES = {
+    "sample": {
+        "depfile": "sample.d",
+        "target": "sample.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
+        "expected": "sample_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_multi_target": {
+        "depfile": "sample_multi_target.d",
+        "target": "module/sample2.o",
+        "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
+        "expected": "sample_multi_target_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_escaped_space": {
+        "depfile": "sample_escaped_space.d",
+        "target": "sample_escaped_space.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
+        "expected": "sample_escaped_space_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_escaped_colon": {
+        "depfile": "sample_escaped_colon.d",
+        "target": "sample_escaped_colon.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
+        "expected": "sample_escaped_colon_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_concatenated": {
+        "depfile": "sample_concatenated.d",
+        "target": "sample_concatenated.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
+        "expected": "sample_concatenated_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_comment_only": {
+        "depfile": "sample_comment_only.d",
+        "target": "sample_comment_only.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o",
+        "expected": "sample_comment_only_expected.txt",
+        "expected_stderr": "sample_comment_only_expected.stderr.txt",
+        "expected_exit_code": 1,
+    },
+    "sample_comment_only_stdout_full": {
+        "depfile": "sample_comment_only.d",
+        "target": "sample_comment_only_stdout_full.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only_stdout_full.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_comment_only_expected.stderr.txt",
+        "expected_exit_code": 1,
+        "stdout_mode": "dev_full",
+    },
+    "sample_missing_dep": {
+        "depfile": "sample_missing_dep.d",
+        "target": "sample_missing_dep.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o",
+        "expected": "sample_missing_dep_expected.txt",
+        "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+        "expected_exit_code": 2,
+    },
+    "sample_missing_dep_stdout_full": {
+        "depfile": "sample_missing_dep.d",
+        "target": "sample_missing_dep_stdout_full.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+        "expected_exit_code": 2,
+        "stdout_mode": "dev_full",
+    },
+    "sample_output_write": {
+        "depfile": "sample.d",
+        "target": "sample_output_write.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_output_write_expected.stderr.txt",
+        "expected_exit_code": 1,
+        "stdout_mode": "dev_full",
+    },
+}
+
+CASE_CONTRACT_FIELDS = (
+    "depfile",
+    "target",
+    "cmdline",
+    "expected",
+    "expected_stderr",
+    "expected_exit_code",
+    "stdout_mode",
+)
 
 FILE_MARKERS = {
     "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
@@ -99,6 +190,7 @@ def validate_cases(root: Path) -> list[str]:
         return ["zigux/tests/fixtures/fixdep/cases.json:type"]
 
     seen: list[str] = []
+    fixture_root = root / "zigux/tests/fixtures/fixdep"
     for index, case in enumerate(cases):
         label = f"zigux/tests/fixtures/fixdep/cases.json:cases[{index}]"
         if not isinstance(case, dict):
@@ -113,6 +205,29 @@ def validate_cases(root: Path) -> list[str]:
         name = case.get("name")
         if isinstance(name, str):
             seen.append(name)
+            expected_case = EXPECTED_CASES.get(name)
+            if expected_case is None:
+                issues.append(f"{label}:unexpected_name:{name}")
+            else:
+                for field in CASE_CONTRACT_FIELDS:
+                    expected_value = expected_case.get(field)
+                    actual_value = case.get(field)
+                    if actual_value != expected_value:
+                        issues.append(
+                            f"{label}:{field}:expected={expected_value!r}:got={actual_value!r}"
+                        )
+
+                expected_exit_code = case.get("expected_exit_code")
+                if expected_exit_code != 0:
+                    expected_stderr = case.get("expected_stderr")
+                    if not isinstance(expected_stderr, str) or not expected_stderr:
+                        issues.append(f"{label}:expected_stderr_required")
+                elif case.get("expected_stderr") is not None:
+                    issues.append(f"{label}:unexpected_expected_stderr")
+
+                stdout_mode = case.get("stdout_mode")
+                if stdout_mode not in (None, "dev_full"):
+                    issues.append(f"{label}:stdout_mode:unsupported:{stdout_mode!r}")
 
         for field in ("depfile", "expected", "expected_stdout", "expected_stderr"):
             value = case.get(field)
@@ -121,7 +236,7 @@ def validate_cases(root: Path) -> list[str]:
             if not isinstance(value, str) or not value:
                 issues.append(f"{label}:{field}:type")
                 continue
-            if not (root / "zigux/tests/fixtures/fixdep" / value).is_file():
+            if not (fixture_root / value).is_file():
                 issues.append(f"{label}:{field}:missing_fixture:{value}")
 
     if seen != EXPECTED_CASE_NAMES:
@@ -190,7 +305,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample",
             "depfile": "sample.d",
             "target": "sample.o",
-            "cmdline": "clang -c sample.c -o sample.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
             "expected": "sample_expected.txt",
             "expected_exit_code": 0,
         },
@@ -198,7 +313,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_multi_target",
             "depfile": "sample_multi_target.d",
             "target": "module/sample2.o",
-            "cmdline": "clang -c sample2.c -o module/sample2.o",
+            "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
             "expected": "sample_multi_target_expected.txt",
             "expected_exit_code": 0,
         },
@@ -206,7 +321,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_escaped_space",
             "depfile": "sample_escaped_space.d",
             "target": "sample_escaped_space.o",
-            "cmdline": "clang -c sample.c -o sample_escaped_space.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
             "expected": "sample_escaped_space_expected.txt",
             "expected_exit_code": 0,
         },
@@ -214,7 +329,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_escaped_colon",
             "depfile": "sample_escaped_colon.d",
             "target": "sample_escaped_colon.o",
-            "cmdline": "clang -c sample_escaped_colon_source.c -o sample_escaped_colon.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
             "expected": "sample_escaped_colon_expected.txt",
             "expected_exit_code": 0,
         },
@@ -222,7 +337,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_concatenated",
             "depfile": "sample_concatenated.d",
             "target": "sample_concatenated.o",
-            "cmdline": "clang -c sample_concatenated_source.c -o sample_concatenated.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
             "expected": "sample_concatenated_expected.txt",
             "expected_exit_code": 0,
         },
@@ -230,7 +345,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_comment_only",
             "depfile": "sample_comment_only.d",
             "target": "sample_comment_only.o",
-            "cmdline": "clang -c sample.c -o sample_comment_only.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o",
             "expected": "sample_comment_only_expected.txt",
             "expected_stderr": "sample_comment_only_expected.stderr.txt",
             "expected_exit_code": 1,
@@ -239,7 +354,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_comment_only_stdout_full",
             "depfile": "sample_comment_only.d",
             "target": "sample_comment_only_stdout_full.o",
-            "cmdline": "clang -c sample.c -o sample_comment_only_stdout_full.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only_stdout_full.o",
             "expected": "sample_output_write_expected.txt",
             "expected_stderr": "sample_comment_only_expected.stderr.txt",
             "expected_exit_code": 1,
@@ -249,7 +364,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_missing_dep",
             "depfile": "sample_missing_dep.d",
             "target": "sample_missing_dep.o",
-            "cmdline": "clang -c sample_missing_dep_source.c -o sample_missing_dep.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o",
             "expected": "sample_missing_dep_expected.txt",
             "expected_stderr": "sample_missing_dep_expected.stderr.txt",
             "expected_exit_code": 2,
@@ -258,7 +373,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_missing_dep_stdout_full",
             "depfile": "sample_missing_dep.d",
             "target": "sample_missing_dep_stdout_full.o",
-            "cmdline": "clang -c sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
             "expected": "sample_output_write_expected.txt",
             "expected_stderr": "sample_missing_dep_expected.stderr.txt",
             "expected_exit_code": 2,
@@ -268,7 +383,7 @@ def build_self_test_root(root: Path) -> None:
             "name": "sample_output_write",
             "depfile": "sample.d",
             "target": "sample_output_write.o",
-            "cmdline": "clang -c sample.c -o sample_output_write.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o",
             "expected": "sample_output_write_expected.txt",
             "expected_stderr": "sample_output_write_expected.stderr.txt",
             "expected_exit_code": 1,
@@ -321,6 +436,22 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
         assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:expected" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        del cases[0]["expected_exit_code"]
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:expected_exit_code:expected=0:got=None" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        cases[0]["stdout_mode"] = "dev_full"
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:stdout_mode:expected=None:got='dev_full'" in issues
         case_count += 1
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
