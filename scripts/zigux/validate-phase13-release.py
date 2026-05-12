@@ -120,6 +120,9 @@ REQUIRED_MARKERS = {
         "shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/bindings/notifier_abi.zig`",
+        "`include/zigux/abi.h`",
+        "ABI footholds explicit as adjacent notifier evidence",
         "`make -C zigux phase13-validate`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
@@ -438,6 +441,65 @@ def run_self_test() -> int:
             repeat_markers(
                 REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
                 EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"]
+                    if marker not in {"`zigux/bindings/notifier_abi.zig`", "`include/zigux/abi.h`"}
+                ],
+                {},
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`zigux/bindings/notifier_abi.zig`",
+                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`include/zigux/abi.h`",
+            ],
+            "missing_notifier_survey_adjacent_shards_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"],
+                EXACT_COUNTS.get("Documentation/zigux/phase13-notifier-list-survey.md"),
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"]
+                    if marker != "ABI footholds explicit as adjacent notifier evidence"
+                ],
+                {},
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:ABI footholds explicit as adjacent notifier evidence",
+            ],
+            "missing_notifier_survey_abi_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"],
+                EXACT_COUNTS.get("Documentation/zigux/phase13-notifier-list-survey.md"),
             ),
         )
         case_count += 1
