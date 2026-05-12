@@ -2,7 +2,7 @@
 This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. Newer validator-local status lines still need a later full schema refresh when this lane intentionally widens.
 
 ## Status
-- `PHASE4_EVIDENCE_DATE=2026-05-11`
+- `PHASE4_EVIDENCE_DATE=2026-05-12`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
@@ -16,14 +16,14 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_MAKEFILE_BLOB_SHA=3179c9a173ba827bd3bd53c2ebc0a78fcc5a8cdf`
 - `PHASE4_WORKFLOW_BLOB_SHA=26daa911f8a46dbe9082da4e7343bd69e40d8150`
 - `PHASE4_DOC_README_BLOB_SHA=1f3151b96b335a64b1ef0b99d7867d4d47e1fc0b`
-- `PHASE4_SCRIPT_README_BLOB_SHA=006d00a60fdbe4dde4bc23f9371e939f6efd6aa5`
-- `PHASE4_TESTS_README_BLOB_SHA=d2583985fa7805e9085e1c0e5e1645eade0e7311`
+- `PHASE4_SCRIPT_README_BLOB_SHA=2a6f269d6b18c0794b5745e3e43db818bbc62be0`
+- `PHASE4_TESTS_README_BLOB_SHA=56dd0c8939c4bde10d8c7eea7bb96c750d131fc5`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=18a8e9fb86e1c0a38f47bc1413cf1114095334bc`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=dd1e2da578cd1a55c4ac28692aed8d8afa7aa671`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=aba3525619ad36df684f18b04bc5cbefa6794aec`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=72325062a266ac8498f700e2c5380cd5b060f0b1`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=325c3fa098a2038f7636e9b57915e0d211732192`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=bca0209b0bc1f76526b135288ec555fdb5fb458a`
 - `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=915152a0c2b9ce7d6b73c52968ee6fc0f39aea99`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=27`
@@ -60,5 +60,5 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
 - that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope, with `median_elapsed_ns <= 8192` for atomic64 and `median_elapsed_ns <= 12288` for bitmap across seven monotonic samples.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
-- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
+- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.
 - the docs-root, scripts-root, tests-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, and the dedicated local-only perf-baseline survey wrappers are explicit across that shared Phase 4 review packet again even though the broader gate-evidence status schema still needs a later dedicated refresh.
