@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 12",
+  "lane_key": "P12-L02",
+  "build_file": "zigux/tests/phase12_cross_build.zig",
+  "build_step": "cross",
+  "target_count": 3,
+  "targets": [
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
+    "riscv64-linux-musl"
+  ]
+}
