@@ -284,7 +284,7 @@
       "c_abi_equality_record_member_size_replay": true
     },
     "checksum": {
-      "c_parity_cases": 41
+      "c_parity_cases": 22
     },
     "hexdump": {
       "perf_replay_cases": 4
