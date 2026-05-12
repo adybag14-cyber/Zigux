@@ -44,6 +44,14 @@ Treat the landed `trace_events_sample` packet as the approved Phase 5 idiom for 
 
 The honest remaining gap is therefore not a missing fifth Phase 5 sample and not a missing separate ownership-only trace-events sample. The remaining same-lane risk is reminder-surface drift if shared docs stop naming the trace-events packet as one combined tracing-plus-ownership idiom.
 
+## Contributor reminder
+
+When this approved-idiom note or its directly coupled trace-events packet moves, keep these exact review cues explicit together instead of softening them into a generic tracing summary:
+
+- `formattedMessage()`, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, and sample-owned `runOwnershipReplay()` remain the public sample surfaces reviewers should point to first
+- the exact `checked_focus` order stays `descriptor_anchor`, `selected_string_cycle`, `formatted_message_surface`, `conditional_family_markers`, `callback_balance`, and `ownership_and_lifetime`
+- `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection and the post-exit replay plus callback-registration rejection remain the explicit callback-boundary and teardown guard rails for this non-runtime packet
+
 ## Boundary reminders
 
 - do not reopen this lane by treating the Phase 9 `runtime_trace_events` family as Phase 5 evidence
