@@ -49,22 +49,31 @@ Current `master` still carries the note, manifest, survey, and no-string-sample 
 
 ## Gates
 
-1. run the focused Zig Phase 7 helper tests
+1. keep the focused Zig Phase 7 helper tests explicit as a parked cross-packet target
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+
+The shared replay command above still describes the intended bundle route, but it is not a current string_helpers-local green claim while `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` remain absent from live `master`.
+
 2. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 - `make -C zigux phase7-validate`
-3. keep the helper wired through the Zigux convenience target
+
+3. keep the helper wired through the Zigux convenience target as a parked shared route
 - `make -C zigux phase7`
+
+This shared make-wrapper route stays blocker-bearing until the missing helper-plus-test pair is restored; keep it documented as a parked bundle target instead of as evidence that the full string_helpers helper packet currently passes on `master`.
+
 4. keep the dedicated survey gate reviewable
 - `zigux/tests/phase7_string_helpers_survey.zig`
+
 5. keep the dedicated no-string-sample boundary guard reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 - `make -C zigux phase7-string-helpers-sample-boundary`
+
 6. keep the dedicated manifest packet explicit
 - `zigux/tests/phase7_string_helpers_manifest.json`
 
@@ -72,27 +81,27 @@ Current `master` still carries the note, manifest, survey, and no-string-sample 
 
 The most recently described bounded slice covers:
 
-- `skip_spaces()`
+- `skipSpaces()`
 - `strim()`
-- `sysfs_streq()`
-- `match_string()`
-- `__sysfs_match_string()`
+- `sysfsStreq()`
+- `matchString()`
+- `sysfsMatchString()`
 - `strreplace()`
-- `kstrdup_and_replace()`
-- `kstrdup_quotable()` over the bounded quotable-log escape path
-- `memcpy_and_pad()`
-- `string_is_terminated()`
-- `string_upper()`
-- `string_lower()`
-- `string_get_size()`
-- `parse_int_array()`
-- `parse_int_array_user()` over the bounded copied-user-buffer wrapper path
-- `string_unescape()`
-- `string_unescape_inplace()` over the bounded in-place runtime-safe wrapper path
-- `string_escape_mem()` over the bounded runtime-safe escape subset
-- `string_escape_str()` over the bounded first-NUL string-oriented escape wrapper path
-- `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
-- `kfree_strarray()` over the bounded repeated-teardown-safe release path
+- `kstrdupAndReplace()`
+- `kstrdupQuotable()` over the bounded quotable-log escape path
+- `memcpyAndPad()`
+- `stringIsTerminated()`
+- `stringUpper()`
+- `stringLower()`
+- `stringGetSize()`
+- `parseIntArray()`
+- `parseIntArrayUser()` over the bounded copied-user-buffer wrapper path
+- `stringUnescape()`
+- `stringUnescapeInplace()` over the bounded in-place runtime-safe wrapper path
+- `stringEscapeMem()` over the bounded runtime-safe escape subset
+- `stringEscapeStr()` over the bounded first-NUL string-oriented escape wrapper path
+- `kasprintfStrarray()` over the bounded sequential prefix-index ownership path
+- `kfreeStrarray()` over the bounded repeated-teardown-safe release path
 
 The parked review packet still describes tests for:
 
@@ -108,8 +117,8 @@ The parked review packet still describes tests for:
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL and leaves destination bytes beyond the copied prefix untouched
 - Linux-style three-significant-figure size rendering for decimal and binary units, including no-space and no-bytes modifiers plus zero-block and truncated-buffer behavior
-- mixed-base, negative-number, first-NUL-bounded, and empty-input integer-array parsing through the count-prefixed `parse_int_array()` starter
-- copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parse_int_array_user()`
+- mixed-base, negative-number, first-NUL-bounded, and empty-input integer-array parsing through the count-prefixed `parseIntArray()` starter
+- copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parseIntArrayUser()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination, including the direct `string_unescape_inplace()` wrapper route
 - exact-fit, terminator-only, and zero-capacity destination handling for `string_unescape()` so the helper's bounded write discipline stays reviewable
