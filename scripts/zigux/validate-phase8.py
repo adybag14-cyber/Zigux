@@ -13,6 +13,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
@@ -33,6 +34,7 @@ REQUIRED_FILES = (
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SEQUENCING_PATH,
+    BOUNDARY_SURVEY_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     VALIDATOR_PATH,
@@ -111,6 +113,12 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
+    ),
+    BOUNDARY_SURVEY_PATH: (
+        "PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        "`python3 scripts/zigux/validate-phase8.py`",
+        "`make -C zigux phase8-validate`",
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
     ),
     WORKFLOW_PATH: (
         "Validate Phase 8 tooling packet",
@@ -193,6 +201,7 @@ def run_self_test() -> None:
         ("missing_scripts_readme", SCRIPTS_README_PATH),
         ("missing_tests_readme", TESTS_README_PATH),
         ("missing_sequencing_note", SEQUENCING_PATH),
+        ("missing_boundary_survey", BOUNDARY_SURVEY_PATH),
         ("missing_workflow", WORKFLOW_PATH),
         ("missing_makefile", MAKEFILE_PATH),
         ("missing_tests_readme_alignment_checker", TESTS_README_ALIGNMENT_CHECKER_PATH),
@@ -248,6 +257,20 @@ def run_self_test() -> None:
             "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
             "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-review.py`",
             f"{SEQUENCING_PATH}: current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "boundary_survey_shared_note_marker",
+            BOUNDARY_SURVEY_PATH,
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-sequencing.md",
+            f"{BOUNDARY_SURVEY_PATH}: PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        ),
+        (
+            "boundary_survey_validate_route_marker",
+            BOUNDARY_SURVEY_PATH,
+            "`python3 scripts/zigux/validate-phase8.py`",
+            "`python3 scripts/zigux/phase8_validate.py`",
+            f"{BOUNDARY_SURVEY_PATH}: `python3 scripts/zigux/validate-phase8.py`",
         ),
         (
             "makefile_tests_readme_alignment_marker",
