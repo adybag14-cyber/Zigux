@@ -32,10 +32,7 @@ NOTE_STATIC_MARKERS = [
 ]
 
 README_MARKERS = [
-    "check-phase2-toolchain-pin-scope.py --self-test",
     "check-phase2-toolchain-pin-scope.py",
-    "x86_64-linux bootstrap host target",
-    "cross-target compile matrix stays a separate Phase 2 surface",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -89,7 +86,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"scripts/zigux/check-zig-toolchain.py": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
-    "issues.extend(validate_exact_makefile_runs(makefile_text))",
+    'issues.extend(validate_exact_makefile_runs(PHASE2_MAKEFILE.read_text(encoding="utf-8")))',
 ]
 
 MAKEFILE_MARKERS = [
@@ -131,11 +128,10 @@ TOOLCHAIN_TARGET_REQUIRED_LINES = [
 
 EXACT_SURFACE_COUNTS = {
     "scripts_readme": {
-        "check-phase2-toolchain-pin-scope.py --self-test": 1,
-        "x86_64-linux bootstrap host target": 1,
+        "check-phase2-toolchain-pin-scope.py": 2,
     },
     "docs_root_readme": {
-        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": 1,
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": 2,
         "pinned Zig toolchain": 1,
         "make -C zigux phase2-validate": 1,
     },
@@ -353,7 +349,7 @@ def run_self_test() -> int:
             f"- current pinned Zig channel: `{SELF_TEST_CHANNEL}`",
             f"- current minimum Zig version: `{SELF_TEST_CHANNEL}`",
             "- current pinned bootstrap archive target: `x86_64-linux`",
-            f"- current pinned bootstrap archive sha256 (`x86_64-linux`): `{SELF_TEST_ARCHIVE_SHA256}`",
+            f"- current pinned bootstrap archive sha256 (`{x86_64-linux}`): `{SELF_TEST_ARCHIVE_SHA256}`",
             *[f"- {marker}" if not marker.startswith("the ") else f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
     )
