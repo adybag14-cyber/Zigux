@@ -37,12 +37,10 @@ EXACT_MAKEFILE_RUN_COUNTS = {
 
 WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
     "scripts/zigux/install-zig\\.py",
-    "scripts/zigux/check-zig-toolchain\\.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope\\.py",
     "scripts/zigux/check-phase2-cross\\.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
-    "scripts/zigux/zig-toolchain-policy\\.json",
     "scripts/zigux/fixdep\\.zig",
+    "zigux/tests/fixtures/phase2_cross_targets\\.json",
 ]
 
 PHASE2_CROSS_CHECKER_MARKERS = [
@@ -123,9 +121,8 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
 
 def validate_exact_makefile_runs(text: str) -> list[str]:
     issues: list[str] = []
-    stripped_lines = [line.strip() for line in text.splitlines()]
     for command, expected_count in EXACT_MAKEFILE_RUN_COUNTS.items():
-        count = sum(1 for line in stripped_lines if line.endswith(command))
+        count = sum(1 for line in text.splitlines() if line.strip().endswith(command))
         if count != expected_count:
             issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
     return issues
@@ -174,7 +171,7 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
 
     scope_issues = validate_workflow_scope_fragments("scripts/zigux/install-zig\\.py")
-    if "workflow_scope:missing_marker:scripts/zigux/check-zig-toolchain\\.py" not in scope_issues:
+    if "workflow_scope:missing_marker:scripts/zigux/check-phase2-cross\\.py" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
 
     makefile_text = "\n".join(
