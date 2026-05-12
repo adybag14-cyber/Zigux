@@ -260,6 +260,48 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned w
     try expectMarker(gate_evidence_source, marker);
 }
 
+test "phase 4 atomic64 survey keeps the gate-evidence validator and review-checklist blob pins aligned with live sources" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    const validate_phase4_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(validate_phase4_source);
+    const validate_phase4_blob_sha = try gitBlobShaHex(validate_phase4_source);
+    const validate_phase4_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_VALIDATOR_BLOB_SHA={s}",
+        .{validate_phase4_blob_sha},
+    );
+    defer std.testing.allocator.free(validate_phase4_marker);
+
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+    const review_checklist_blob_sha = try gitBlobShaHex(review_checklist_source);
+    const review_checklist_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={s}",
+        .{review_checklist_blob_sha},
+    );
+    defer std.testing.allocator.free(review_checklist_marker);
+
+    try expectMarker(gate_evidence_source, validate_phase4_marker);
+    try expectMarker(gate_evidence_source, review_checklist_marker);
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "validator_blob_pin_drift");
+    try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
+    try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
+}
+
 // runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
