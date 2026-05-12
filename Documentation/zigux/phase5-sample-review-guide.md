@@ -147,7 +147,7 @@ Keep `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, `Documenta
 
 Review the landed bytestream FIFO packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the shared `zigux/tests/phase5_build.zig` replay route.
 
-Keep `StorageBacking.embedded_fixed_buffer`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `available()`, and `usesWrappedStorageWindow()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit together as one bounded non-runtime packet.
+Keep `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, the replay-visible preview markers `preview_len`, `preview_total_visible`, and `preview_truncated`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit together as one bounded non-runtime packet. Do not describe extra queue-shape helper entrypoints here unless the sample itself, the paired bytestream tests, and the shared survey packet grow them together.
 
 Keep the `reviewContract().focus` order explicit too: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`.
 
