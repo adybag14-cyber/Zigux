@@ -66,9 +66,9 @@ Allowed surfaces:
 
 Current wording-lane caution:
 - do not let older absent-file assumptions overrule current tree evidence
-- the dedicated `Documentation/zigux/phase8-libbpf-segment-survey.md` note already carries the refreshed mixed 2026-05-12 libbpf readback, so shared wording follow-through should now focus on reminder surfaces that still speak more broadly than that dedicated survey proves
+- the dedicated `Documentation/zigux/phase8-libbpf-segment-survey.md` note already carries the refreshed mixed 2026-05-12 readback, so shared wording follow-through should now focus on reminder surfaces that still speak more broadly than that dedicated survey proves
 - current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while it narrows the libbpf reminder packet
-- the broader shared libbpf reminder packet is still narrowest to reopen through `Documentation/zigux/review-checklist.md`: the checklist keeps the helper-first tranche visible, but it still undercounts the current segmented packet by omitting the live `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and focused `zigux/tests/phase8_libbpf_segments*.zig` replay markers that the dedicated survey note and public tree readback keep explicit
+- the broader shared libbpf reminder packet is still narrowest to re-check through `Documentation/zigux/review-checklist.md`: current 2026-05-12 exact readback shows the checklist already keeps the live `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and focused `zigux/tests/phase8_libbpf_segments*.zig` replay markers explicit beside the dedicated survey note and public tree readback, so any future reopen there should look for a fresh shared-checker or wording drift rather than re-fixing those landed test markers
 - when this lane reopens, re-read the shared reminder surfaces against `Documentation/zigux/phase8-libbpf-segment-survey.md`, the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
 - Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.
@@ -81,6 +81,6 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`: the dedicated libbpf survey already carries the refreshed mixed 2026-05-12 readback, but the shared checklist still undercounts the current helper-first segmentation packet by omitting the pin-path, perf-buffer-poll, and focused libbpf-segment replay markers that the live tree and survey keep explicit.
+The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`: the dedicated libbpf survey already carries the refreshed mixed 2026-05-12 readback, and current exact readback now shows the shared checklist already keeps the live pin-path, perf-buffer-poll, and focused libbpf-segment replay markers explicit too, so only reopen that shared checkpoint if a fresh same-lane checker or wording drift appears.
 
 Keep the next reopen scoped to that one shared wording repair inside `Documentation/zigux/review-checklist.md`; do not reopen docs-root, scripts-root, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.
