@@ -1,13 +1,15 @@
 const std = @import("std");
 const virtio_net = @import("virtio_net");
 
-test "phase12 virtio net syntax lab keeps queue-topology and recovery exports reachable" {
+test "phase12 virtio net syntax lab keeps queue-topology, refill, and recovery exports reachable" {
     _ = virtio_net.ModuleDescriptor;
     _ = virtio_net.ProbeRequest;
     _ = virtio_net.ProbeSnapshot;
     _ = virtio_net.QueueTopologySummary;
     _ = virtio_net.MergeableReceiveBufferRequest;
     _ = virtio_net.MergeableReceiveBufferPlan;
+    _ = virtio_net.ReceiveRefillPath;
+    _ = virtio_net.ReceiveRefillSummary;
     _ = virtio_net.QueueFallbackReason;
     _ = virtio_net.HeaderShape;
     _ = virtio_net.ReceiveBufferMode;
@@ -43,16 +45,34 @@ test "phase12 virtio net syntax lab keeps queue-topology and recovery exports re
     try std.testing.expect(!topology.multi_queue);
     try std.testing.expect(!topology.rss_enabled);
 
+    const single_page_plan = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 1500,
+        .existing_room_bytes = 0,
+        .headroom_bytes = virtio_net.default_headroom_bytes,
+        .mergeable_rx_bufs = true,
+    });
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.single_page, single_page_plan.buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, single_page_plan.big_packet_reason);
+
+    const refill = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 1500,
+        .existing_room_bytes = 0,
+        .headroom_bytes = virtio_net.default_headroom_bytes,
+        .mergeable_rx_bufs = true,
+    });
+    try std.testing.expectEqual(virtio_net.ReceiveRefillPath.allocate_single_page, refill.refill_path);
+    try std.testing.expect(refill.publishes_receive_buffers);
+
     const frozen = try lab.freezeForReset();
     try std.testing.expectEqual(virtio_net.RecoveryAction.freeze, frozen.action);
-    try std.testing.expect(!frozen.receive_buffer_refill_required);
+    try std.testing.expect(frozen.receive_buffer_refill_required);
 
     const restored = try lab.restoreAfterReset();
     try std.testing.expectEqual(virtio_net.RecoveryAction.restore, restored.action);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
 }
 
-test "phase12 virtio net syntax lab keeps mergeable path and recycled room distinct through recovery" {
+test "phase12 virtio net syntax lab keeps mergeable path and recycled room distinct through refill and recovery" {
     var mergeable_lab = virtio_net.VirtioNetProbeLab.init();
     _ = mergeable_lab.captureProbeSnapshot(.{
         .requested_queue_pairs = 2,
@@ -76,6 +96,13 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
         .headroom_bytes = 128,
         .mergeable_rx_bufs = true,
     });
+    const mergeable_refill = try mergeable_lab.summarizeReceiveRefill(.{
+        .packet_bytes = 5000,
+        .existing_room_bytes = 0,
+        .headroom_bytes = 128,
+        .mergeable_rx_bufs = true,
+    });
+    try std.testing.expectEqual(virtio_net.ReceiveRefillPath.allocate_mergeable_chain, mergeable_refill.refill_path);
     _ = try mergeable_lab.freezeForReset();
     const mergeable = try mergeable_lab.recoveryQueuePlan();
     try std.testing.expect(mergeable.requires_receive_buffer_refill);
@@ -104,6 +131,13 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
         .headroom_bytes = 32,
         .mergeable_rx_bufs = true,
     });
+    const recycled_refill = try recycled_lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+    try std.testing.expectEqual(virtio_net.ReceiveRefillPath.reuse_existing_room, recycled_refill.refill_path);
     _ = try recycled_lab.freezeForReset();
     const recycled = try recycled_lab.recoveryQueuePlan();
     try std.testing.expect(recycled.requires_receive_buffer_refill);
