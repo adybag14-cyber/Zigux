@@ -16,6 +16,33 @@ FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
 REQUIRED_PARITY_KEYS = {
+    "bitmap": (
+        "weight",
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len",
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values",
+        "and_result",
+        "and_values",
+        "andnot_result",
+        "andnot_values",
+        "or_values",
+        "xor_values",
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+        "equal",
+        "intersects",
+        "subset",
+        "range_after_set",
+        "range_after_clear",
+        "full_after_fill",
+        "empty_after_zero",
+    ),
     "find_bit": (
         "last",
         "tail_clamped_last",
@@ -30,6 +57,21 @@ REQUIRED_PARITY_KEYS = {
         "empty_clump_first_value",
         "empty_clump_next_offset",
         "empty_clump_next_value",
+    ),
+    "rbtree": (
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "next_match_terminal_null",
     ),
     "string": (
         "replace_char_cstr_end",
@@ -301,48 +343,97 @@ def run_self_test() -> None:
         duplicate_issues = collect_input_issues(tmp_root, duplicate_sources)
         assert "duplicate_source:tools/lib/string.c" in duplicate_issues
 
+        valid_output = {
+            "bitmap": {
+                "weight": 3,
+                "scnprintf": "1-3,7,10-11",
+                "truncated_scnprintf_len": 7,
+                "truncated_scnprintf": "1-3,7,1",
+                "terminator_only_scnprintf_len": 0,
+                "terminator_only_nul": 0,
+                "zero_length_scnprintf_len": 0,
+                "alloc_words": 2,
+                "zalloc_words": 2,
+                "zalloc_values": [0, 0],
+                "and_result": True,
+                "and_values": [10, 0],
+                "andnot_result": True,
+                "andnot_values": [4, 0],
+                "or_values": [14, 0],
+                "xor_values": [4, 0],
+                "partial_xor_nbits": 4,
+                "partial_xor_masked_values": [14],
+                "equal": True,
+                "intersects": True,
+                "subset": True,
+                "range_after_set": [14, 12, 0],
+                "range_after_clear": [0, 0, 0],
+                "full_after_fill": True,
+                "empty_after_zero": True,
+            },
+            "find_bit": {
+                "last": 1,
+                "tail_clamped_last": 2,
+                "tail_clamped_empty_last": 3,
+                "first_clump_offset": 8,
+                "first_clump_value": 66,
+                "next_clump_offset": 8,
+                "next_clump_value": 66,
+                "tail_clump_offset": 64,
+                "tail_clump_value": 8,
+                "empty_clump_first_offset": 8,
+                "empty_clump_first_value": 170,
+                "empty_clump_next_offset": 8,
+                "empty_clump_next_value": 170,
+            },
+            "rbtree": {
+                "empty_root": True,
+                "insert_order": [5, 10, 15, 20, 25],
+                "reverse_order": [25, 20, 15, 10, 5],
+                "replace_order": [5, 10, 15, 25],
+                "erase_init_order": [5, 15, 25],
+                "postorder_count": 3,
+                "erase_init_node_empty": True,
+                "cleared_node_empty": True,
+                "find_found_key": 15,
+                "find_missing": True,
+                "find_first_serial": 0,
+                "next_match_serials": [0, 2, 4],
+                "next_match_terminal_null": True,
+            },
+            "string": {
+                "replace_char_cstr_end": 2,
+                "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+            },
+        }
+
         actual = tmp_root / "phase1_helpers.actual.json"
-        actual.write_text(
-            json.dumps(
-                {
-                    "find_bit": {
-                        "last": 1,
-                        "tail_clamped_last": 2,
-                        "tail_clamped_empty_last": 3,
-                        "first_clump_offset": 8,
-                        "first_clump_value": 66,
-                        "next_clump_offset": 8,
-                        "next_clump_value": 66,
-                        "tail_clump_offset": 64,
-                        "tail_clump_value": 8,
-                        "empty_clump_first_offset": 8,
-                        "empty_clump_first_value": 170,
-                        "empty_clump_next_offset": 8,
-                        "empty_clump_next_value": 170,
-                    },
-                    "string": {
-                        "replace_char_cstr_end": 2,
-                        "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
-                    },
-                }
-            ),
-            encoding="utf-8",
-        )
+        actual.write_text(json.dumps(valid_output), encoding="utf-8")
         assert collect_output_issues(actual) == []
 
-        actual.write_text(
-            '{"find_bit":{"last":1,"tail_clamped_last":2,"tail_clamped_empty_last":3,"first_clump_offset":8,"first_clump_value":66,"next_clump_offset":8,"next_clump_value":66,"tail_clump_offset":64,"tail_clump_value":8,"empty_clump_first_offset":8,"empty_clump_first_value":170,"empty_clump_next_offset":8,"empty_clump_next_value":170},"string":{"replace_char_cstr_end":2}}',
-            encoding="utf-8",
-        )
+        missing_string_output = json.loads(json.dumps(valid_output))
+        del missing_string_output["string"]["replace_char_cstr_bytes"]
+        actual.write_text(json.dumps(missing_string_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:string.replace_char_cstr_bytes" in missing_output
 
-        actual.write_text(
-            '{"find_bit":{"last":1,"tail_clamped_last":2,"first_clump_offset":8,"first_clump_value":66,"next_clump_offset":8,"next_clump_value":66,"tail_clump_offset":64,"tail_clump_value":8,"empty_clump_first_offset":8,"empty_clump_first_value":170,"empty_clump_next_offset":8,"empty_clump_next_value":170},"string":{"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122]}}',
-            encoding="utf-8",
-        )
+        missing_find_bit_output = json.loads(json.dumps(valid_output))
+        del missing_find_bit_output["find_bit"]["tail_clamped_empty_last"]
+        actual.write_text(json.dumps(missing_find_bit_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.tail_clamped_empty_last" in missing_output
+
+        missing_bitmap_output = json.loads(json.dumps(valid_output))
+        del missing_bitmap_output["bitmap"]["partial_xor_masked_values"]
+        actual.write_text(json.dumps(missing_bitmap_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.partial_xor_masked_values" in missing_output
+
+        missing_rbtree_output = json.loads(json.dumps(valid_output))
+        del missing_rbtree_output["rbtree"]["next_match_serials"]
+        actual.write_text(json.dumps(missing_rbtree_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:rbtree.next_match_serials" in missing_output
 
         actual.write_text('{"find_bit":', encoding="utf-8")
         decode_issues = collect_output_issues(actual)
@@ -350,7 +441,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=15")
 
 
 def main() -> int:
