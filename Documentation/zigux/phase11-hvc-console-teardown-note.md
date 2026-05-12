@@ -13,6 +13,7 @@ It stays inside the simple-driver lane and records only the host-free teardown a
 
 The current teardown-facing HVC packet on `master` is:
 
+* `drivers/tty/hvc/hvc_console.zig`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
@@ -22,7 +23,7 @@ The current teardown-facing HVC packet on `master` is:
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 
-These surfaces keep the teardown packet readable beside the shared Phase 11 replay route without promoting it into a broader runtime-parity claim.
+These surfaces keep the teardown packet readable beside the shared Phase 11 replay route without promoting it into a broader runtime-parity claim, and the direct `drivers/tty/hvc/hvc_console.zig` starter remains the anchor for the shipped close, hangup, remove, and cleanup summaries.
 
 ## What The Landed Teardown Packet Covers
 
