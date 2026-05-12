@@ -12,6 +12,7 @@
   "shared_smoke_surfaces": [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "scripts/zigux/README.md",
