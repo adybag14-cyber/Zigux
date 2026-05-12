@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=parked`
 - `PHASE5_LANE_KEY=P5-L22`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389`
+- `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
@@ -86,11 +86,11 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
   - `runRecoveryReplay()` still rejects `exit()` while armed, still rejects `199` after `200`, still accepts `260` for `60 ns`, and still leaves the post-exit handler rejections explicit
   - `maxactiveBudget()` remains fixed at `20`, the replay still records one missed instance, and `runLifecycleGuardReplay()` keeps the pre-init `runAnchorReplay()` and `exit()` rejection plus the double `init()` and post-init retarget rejection explicit
   - `runOwnershipReplay()` still keeps the cold -> initialized -> armed -> replay_complete -> exited ownership snapshots explicit with the skipped-kernel-thread path and exited teardown boundary
-- the manifest-backed survey packet below is now pinned to `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389` after the lane-local scratch survey replay recorded in the latest verification snapshot
+- the manifest-backed survey packet below is now pinned to `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231` after the lane-local scratch survey replay recorded in the latest verification snapshot
 
 ## Latest verification snapshot
 
-- inspected `master` head: `368dcb11d347e77c13bef6607bd99b313573e389`
+- inspected `master` head: `7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
@@ -128,7 +128,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init and post-init lifecycle guards, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, helper-backed fixed `maxactive`, summary recording, and teardown
 - this sample must remain visibly separate from the later `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` Phase 9 follow-ons so contributors do not over-claim runtime substrate coverage
-- this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared Phase 5 guide, workflow route, and shared review checklist all point at the same inspected `master` head
+- this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared Phase 5 guide, workflow route, and shared review checklist all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
