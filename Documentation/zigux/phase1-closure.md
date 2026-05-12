@@ -195,7 +195,7 @@ The shared Phase 1 parity replay for `tools/lib/find_bit.zig` must also keep the
 
 That means `tail_clamped_first`, `tail_clamped_next`, `tail_zero_clamped_first`, `tail_zero_clamped_next`, `tail_and_clamped_first`, `tail_and_clamped_next`, `tail_clamped_last`, and `tail_clamped_empty_last` stay present and review-visible whenever the helper or its shared replay changes. Those fixture fields are the bounded proof that first-, next-, zero-, shared-, and last-bit scans all stop at the declared `nbits` boundary instead of silently reporting set or clear bits from the masked tail beyond the live window.
 
-- `PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits`
+- `PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, tail_and_clamped_next, tail_clamped_last, and tail_clamped_empty_last stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits`
 
 The shared Phase 1 replay in `zigux/tests/phase1_helpers.zig` already consumes `tail_clamped_last` and `tail_clamped_empty_last` directly when it checks `findLastBit()`. Reviewers should keep those two last-bit fields aligned with the six existing first-, next-, zero-, and shared-bit tail-clamp fields whenever the helper or replay changes.
 
