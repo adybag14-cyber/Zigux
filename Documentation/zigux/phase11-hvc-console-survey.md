@@ -27,6 +27,8 @@ The current bounded HVC archival packet on `master` is:
 
 The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
+The current archival packet still does not materialize the direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, or `drivers/tty/hvc/hvc_console_verify.zig` companions, so keep those paths framed as repo-reality gaps rather than as part of the landed archival replay.
+
 ## What Landed
 
 The shipped `drivers/tty/hvc/hvc_console.zig` starter is the direct anchor for the current HVC archival packet.
