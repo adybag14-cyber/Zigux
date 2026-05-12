@@ -7,7 +7,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 SELF_PATH = Path(__file__).resolve()
 
 
@@ -32,15 +31,21 @@ RELEASE_COORDINATION_MATRIX_PATH = (
 RELEASE_CLOSURE_CHECKLIST_PATH = (
     "Documentation/zigux/phase12-release-closure-checklist.md"
 )
+COMPLEX_DRIVER_LANE_SEQUENCING_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
-PHASE12_DRIVER_PATH = "drivers/scsi/virtio_scsi.zig"
-PHASE12_TEST_PATH = "zigux/tests/phase12_virtio_scsi.zig"
-PHASE12_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
+PHASE12_VIRTIO_NET_DRIVER_PATH = "drivers/net/virtio_net.zig"
+PHASE12_VIRTIO_NET_TEST_PATH = "zigux/tests/phase12_virtio_net.zig"
+PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+PHASE12_VIRTIO_SCSI_DRIVER_PATH = "drivers/scsi/virtio_scsi.zig"
+PHASE12_VIRTIO_SCSI_TEST_PATH = "zigux/tests/phase12_virtio_scsi.zig"
+PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
 PHASE12_REPEATED_REPLAN_PATH = "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig"
 PHASE12_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
 
@@ -51,40 +56,55 @@ REQUIRED_FILES = [
     RELEASE_SEQUENCING_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
+    COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
-    PHASE12_DRIVER_PATH,
-    PHASE12_TEST_PATH,
-    PHASE12_SYNTAX_LAB_PATH,
+    PHASE12_VIRTIO_NET_DRIVER_PATH,
+    PHASE12_VIRTIO_NET_TEST_PATH,
+    PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH,
+    PHASE12_VIRTIO_SCSI_DRIVER_PATH,
+    PHASE12_VIRTIO_SCSI_TEST_PATH,
+    PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH,
     PHASE12_REPEATED_REPLAN_PATH,
     PHASE12_PACKET_PATH,
 ]
 
-FORBIDDEN_FILES = [
-    "scripts/zigux/validate-phase12.py",
-]
+FORBIDDEN_FILES = ["scripts/zigux/validate-phase12.py"]
 
 SCRIPTS_README_MARKERS = [
-    "Phase 12 flow -",
     "`check-build-only-phase12-surface.py`",
-    "`zigux/tests/phase12_build.zig`",
-    "`make -C zigux phase12-smoke`",
-    "`make -C zigux phase12`",
+    "`Documentation/zigux/phase12-release-sequencing.md`",
+    "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    "`Documentation/zigux/phase12-release-readiness-survey.md`",
+    "`Documentation/zigux/phase12-release-coordination-matrix.md`",
+    "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
+    "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
 ]
 
 TESTS_README_MARKERS = [
     "`scripts/zigux/check-build-only-phase12-surface.py`",
     "`Documentation/zigux/phase12-release-sequencing.md`",
+    "`Documentation/zigux/phase12-release-closure-checklist.md`",
     "`Documentation/zigux/phase12-release-readiness-survey.md`",
     "`Documentation/zigux/phase12-release-coordination-matrix.md`",
-    "`.github/workflows/zigux-bootstrap.yml`",
-    "`zigux/tests/phase12_build.zig`",
+    "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+    "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
+    "`Documentation/zigux/phase12-virtio-net-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12-smoke`",
+    "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12`",
-    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`",
 ]
 
 RELEASE_READINESS_SURVEY_MARKERS = [
@@ -94,33 +114,50 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "the parked verify-shard note still governs the shared libbpf packet",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
-    "the next honest same-lane follow-through is a one-file review-checklist reread",
+    "the next honest same-lane follow-through is a one-file scripts-root reread",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
     "`PHASE12_STATUS=active`",
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
-    "shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
-    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
-    "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
-    "Current `master` already keeps the compact release-coordination matrix explicit",
+    "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+    "`make -C zigux phase12-smoke`",
+    "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "`make -C zigux phase12`",
+    "`Documentation/zigux/review-checklist.md` still overstates unpublished direct `zigux/tests/phase12_nvme_pci.zig`",
 ]
 
 RELEASE_COORDINATION_MATRIX_MARKERS = [
     "`PHASE12_STATUS=active`",
+    "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
-    "Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packet and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs;",
+    "shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
+    "`zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`",
     "rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording",
 ]
 
 RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "`PHASE12_STATUS=active`",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
-    "The bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill must remain described as lab-only reversible-delivery evidence rather than closure-ready runtime recovery.",
-    "Until then, release planning should name only the shipped smoke preflight routes, the shared build-and-make replay path, the narrow build-only contract checker, the shared fallback overview note, the shared libbpf anti-overlap companion, and the bounded storage rollback drill.",
-    "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain shared-tree raw-read anchors for the smoke-first packet rather than extra commit-pinned fallback artifacts.",
-    "current `master` already keeps `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned on the same smoke-first `virtio_scsi` packet",
-    "The next honest same-lane PMO follow-through now shifts to the shared review checklist instead: `Documentation/zigux/review-checklist.md` still overstates the shared Phase 12 packet",
+    "the bounded storage rollback drill",
+    "the shared build-and-make replay path",
+    "`Documentation/zigux/review-checklist.md` still overstates the shared Phase 12 packet",
+]
+
+COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
+    "`PHASE12_LANE=complex-driver-shared-release-packet`",
+    "Treat the current `virtio_net` family as a starter-present direct-replay packet",
+    "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are now present on `master`",
+    "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "starter-present `virtio_net` syntax-lab and direct contract packet",
+    "stops undercounting the newly landed `virtio_net` starter",
+]
+
+LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
+    "`PHASE12_STATUS=parked`",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "snapshot-only readback set",
 ]
 
 WORKFLOW_MARKERS = [
@@ -136,33 +173,43 @@ WORKFLOW_MARKERS = [
 
 MAKEFILE_MARKERS = [
     "phase12-smoke:",
+    "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py",
     "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
-    "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
-    "python3 scripts/zigux/check-build-only-phase12-surface.py",
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-smoke phase12-test",
 ]
 
 PHASE12_BUILD_MARKERS = [
+    '../../drivers/net/virtio_net.zig',
     '../../drivers/scsi/virtio_scsi.zig',
+    '"phase12_virtio_net.zig"',
+    '"phase12_virtio_net_syntax_lab.zig"',
     '"phase12_virtio_scsi.zig"',
     '"phase12_virtio_scsi_syntax_lab.zig"',
     '"phase12_virtio_scsi_repeated_replan_gate.zig"',
     '"phase12_virtio_scsi_packet.zig"',
+    '.name = "phase12-virtio-net-tests"',
+    '.name = "phase12-virtio-net-syntax-lab-tests"',
     '.name = "phase12-virtio-scsi-tests"',
     '.name = "phase12-virtio-scsi-syntax-lab-tests"',
     '.name = "phase12-virtio-scsi-repeated-replan-gate-tests"',
     '.name = "phase12-virtio-scsi-packet-tests"',
+    'run_virtio_net_contract_tests.setCwd(b.path("../.."));',
+    'run_virtio_net_syntax_tests.setCwd(b.path("../.."));',
     'run_contract_tests.setCwd(b.path("../.."));',
     'run_syntax_tests.setCwd(b.path("../.."));',
     'run_repeated_replan_tests.setCwd(b.path("../.."));',
     'run_packet_tests.setCwd(b.path("../.."));',
-    'const smoke_step = b.step("smoke", "Run Phase 12 virtio-scsi syntax smoke");',
+    'const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");',
+    'smoke_step.dependOn(&run_virtio_net_syntax_tests.step);',
     'smoke_step.dependOn(&run_syntax_tests.step);',
     'smoke_step.dependOn(&run_repeated_replan_tests.step);',
     'smoke_step.dependOn(&run_packet_tests.step);',
-    'const test_step = b.step("test", "Run Phase 12 virtio-scsi packet tests");',
+    'const test_step = b.step("test", "Run Phase 12 virtio packet tests");',
+    'test_step.dependOn(&run_virtio_net_contract_tests.step);',
+    'test_step.dependOn(&run_virtio_net_syntax_tests.step);',
     'test_step.dependOn(&run_contract_tests.step);',
     'test_step.dependOn(&run_syntax_tests.step);',
     'test_step.dependOn(&run_repeated_replan_tests.step);',
@@ -170,10 +217,10 @@ PHASE12_BUILD_MARKERS = [
 ]
 
 PHASE12_BUILD_EXACT_COUNTS = {
-    "b.addTest(.{": 4,
-    "setCwd(": 4,
-    "smoke_step.dependOn(": 3,
-    "test_step.dependOn(": 4,
+    "b.addTest(.{": 6,
+    "setCwd(": 6,
+    "smoke_step.dependOn(": 4,
+    "test_step.dependOn(": 6,
 }
 
 
@@ -217,170 +264,167 @@ def validate(root: Path) -> list[str]:
     if failures:
         return failures
 
-    ensure_contains(
-        failures,
-        "scripts_readme",
-        read_text(root, SCRIPTS_README_PATH),
-        SCRIPTS_README_MARKERS,
-    )
-    ensure_contains(
-        failures,
-        "tests_readme",
-        read_text(root, TESTS_README_PATH),
-        TESTS_README_MARKERS,
-    )
-    ensure_contains(
-        failures,
-        "release_readiness_survey",
-        read_text(root, RELEASE_READINESS_SURVEY_PATH),
-        RELEASE_READINESS_SURVEY_MARKERS,
-    )
-    ensure_contains(
-        failures,
-        "release_sequencing",
-        read_text(root, RELEASE_SEQUENCING_PATH),
-        RELEASE_SEQUENCING_MARKERS,
-    )
-    ensure_contains(
-        failures,
-        "release_coordination_matrix",
-        read_text(root, RELEASE_COORDINATION_MATRIX_PATH),
-        RELEASE_COORDINATION_MATRIX_MARKERS,
-    )
-    ensure_contains(
-        failures,
-        "release_closure_checklist",
-        read_text(root, RELEASE_CLOSURE_CHECKLIST_PATH),
-        RELEASE_CLOSURE_CHECKLIST_MARKERS,
-    )
-    ensure_contains(
-        failures, "workflow", read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS
-    )
-    ensure_contains(
-        failures, "makefile", read_text(root, MAKEFILE_PATH), MAKEFILE_MARKERS
-    )
+    checks = [
+        ("scripts_readme", SCRIPTS_README_PATH, SCRIPTS_README_MARKERS),
+        ("tests_readme", TESTS_README_PATH, TESTS_README_MARKERS),
+        (
+            "release_readiness_survey",
+            RELEASE_READINESS_SURVEY_PATH,
+            RELEASE_READINESS_SURVEY_MARKERS,
+        ),
+        ("release_sequencing", RELEASE_SEQUENCING_PATH, RELEASE_SEQUENCING_MARKERS),
+        (
+            "release_coordination_matrix",
+            RELEASE_COORDINATION_MATRIX_PATH,
+            RELEASE_COORDINATION_MATRIX_MARKERS,
+        ),
+        (
+            "release_closure_checklist",
+            RELEASE_CLOSURE_CHECKLIST_PATH,
+            RELEASE_CLOSURE_CHECKLIST_MARKERS,
+        ),
+        (
+            "complex_driver_lane_sequencing",
+            COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
+            COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
+        ),
+        (
+            "libbpf_verify_shard_note",
+            LIBBPF_VERIFY_SHARD_NOTE_PATH,
+            LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
+        ),
+        ("workflow", WORKFLOW_PATH, WORKFLOW_MARKERS),
+        ("makefile", MAKEFILE_PATH, MAKEFILE_MARKERS),
+        ("phase12_build", PHASE12_BUILD_PATH, PHASE12_BUILD_MARKERS),
+    ]
+    for label, rel_path, markers in checks:
+        ensure_contains(failures, label, read_text(root, rel_path), markers)
 
-    phase12_build = read_text(root, PHASE12_BUILD_PATH)
-    ensure_contains(failures, "phase12_build", phase12_build, PHASE12_BUILD_MARKERS)
     ensure_exact_counts(
-        failures, "phase12_build", phase12_build, PHASE12_BUILD_EXACT_COUNTS
+        failures,
+        "phase12_build",
+        read_text(root, PHASE12_BUILD_PATH),
+        PHASE12_BUILD_EXACT_COUNTS,
     )
 
     return failures
 
 
-def minimal_scripts_readme() -> str:
-    return "\n".join(["# scripts/zigux", *SCRIPTS_README_MARKERS, ""])
-
-
-def minimal_tests_readme() -> str:
-    return "\n".join(["# zigux/tests", *TESTS_README_MARKERS, ""])
-
-
-def minimal_release_readiness_survey() -> str:
-    return "\n".join(
-        ["# Phase 12 Release Readiness Survey", *RELEASE_READINESS_SURVEY_MARKERS, ""]
-    )
-
-
-def minimal_release_sequencing() -> str:
-    return "\n".join(["# Phase 12 Release Sequencing", *RELEASE_SEQUENCING_MARKERS, ""])
-
-
-def minimal_release_coordination_matrix() -> str:
-    return "\n".join(
-        ["# Phase 12 Release Coordination Matrix", *RELEASE_COORDINATION_MATRIX_MARKERS, ""]
-    )
-
-
-def minimal_release_closure_checklist() -> str:
-    return "\n".join(
-        ["# Phase 12 Release Closure Checklist", *RELEASE_CLOSURE_CHECKLIST_MARKERS, ""]
-    )
-
-
-def minimal_workflow() -> str:
-    return "\n".join(WORKFLOW_MARKERS) + "\n"
-
-
-def minimal_makefile() -> str:
-    return "\n".join(MAKEFILE_MARKERS) + "\n"
+def minimal_join(title: str, markers: list[str]) -> str:
+    return "\n".join([title, *markers, ""])
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const virtio_scsi_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/scsi/virtio_scsi.zig\"),
+    const virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    const virtio_scsi_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const virtio_net_contract_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_contract_root_module.addImport("virtio_net", virtio_net_module);
+
+    const virtio_net_syntax_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_syntax_lab.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_syntax_root_module.addImport("virtio_net", virtio_net_module);
 
     const contract_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
-    contract_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    contract_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const syntax_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_syntax_lab.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
         .target = target,
         .optimize = optimize,
     });
-    syntax_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    syntax_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const repeated_replan_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_repeated_replan_gate.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_repeated_replan_gate.zig"),
         .target = target,
         .optimize = optimize,
     });
-    repeated_replan_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    repeated_replan_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const packet_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_packet.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
         .target = target,
         .optimize = optimize,
     });
 
+    const virtio_net_contract_tests = b.addTest(.{
+        .name = "phase12-virtio-net-tests",
+        .root_module = virtio_net_contract_root_module,
+    });
+    const run_virtio_net_contract_tests = b.addRunArtifact(virtio_net_contract_tests);
+    run_virtio_net_contract_tests.setCwd(b.path("../.."));
+
+    const virtio_net_syntax_tests = b.addTest(.{
+        .name = "phase12-virtio-net-syntax-lab-tests",
+        .root_module = virtio_net_syntax_root_module,
+    });
+    const run_virtio_net_syntax_tests = b.addRunArtifact(virtio_net_syntax_tests);
+    run_virtio_net_syntax_tests.setCwd(b.path("../.."));
+
     const contract_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-tests\",
+        .name = "phase12-virtio-scsi-tests",
         .root_module = contract_root_module,
     });
     const run_contract_tests = b.addRunArtifact(contract_tests);
-    run_contract_tests.setCwd(b.path(\"../..\"));
+    run_contract_tests.setCwd(b.path("../.."));
 
     const syntax_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-syntax-lab-tests\",
+        .name = "phase12-virtio-scsi-syntax-lab-tests",
         .root_module = syntax_root_module,
     });
     const run_syntax_tests = b.addRunArtifact(syntax_tests);
-    run_syntax_tests.setCwd(b.path(\"../..\"));
+    run_syntax_tests.setCwd(b.path("../.."));
 
     const repeated_replan_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-repeated-replan-gate-tests\",
+        .name = "phase12-virtio-scsi-repeated-replan-gate-tests",
         .root_module = repeated_replan_root_module,
     });
     const run_repeated_replan_tests = b.addRunArtifact(repeated_replan_tests);
-    run_repeated_replan_tests.setCwd(b.path(\"../..\"));
+    run_repeated_replan_tests.setCwd(b.path("../.."));
 
     const packet_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-packet-tests\",
+        .name = "phase12-virtio-scsi-packet-tests",
         .root_module = packet_root_module,
     });
     const run_packet_tests = b.addRunArtifact(packet_tests);
-    run_packet_tests.setCwd(b.path(\"../..\"));
+    run_packet_tests.setCwd(b.path("../.."));
 
-    const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio-scsi syntax smoke\");
+    const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");
+    smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_packet_tests.step);
 
-    const test_step = b.step(\"test\", \"Run Phase 12 virtio-scsi packet tests\");
+    const test_step = b.step("test", "Run Phase 12 virtio packet tests");
+    test_step.dependOn(&run_virtio_net_contract_tests.step);
+    test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
     test_step.dependOn(&run_repeated_replan_tests.step);
@@ -390,24 +434,36 @@ pub fn build(b: *std.Build) void {
 
 
 def placeholder_for(rel_path: str) -> str:
-    if rel_path == SCRIPTS_README_PATH:
-        return minimal_scripts_readme()
-    if rel_path == TESTS_README_PATH:
-        return minimal_tests_readme()
-    if rel_path == RELEASE_READINESS_SURVEY_PATH:
-        return minimal_release_readiness_survey()
-    if rel_path == RELEASE_SEQUENCING_PATH:
-        return minimal_release_sequencing()
-    if rel_path == RELEASE_COORDINATION_MATRIX_PATH:
-        return minimal_release_coordination_matrix()
-    if rel_path == RELEASE_CLOSURE_CHECKLIST_PATH:
-        return minimal_release_closure_checklist()
-    if rel_path == WORKFLOW_PATH:
-        return minimal_workflow()
-    if rel_path == MAKEFILE_PATH:
-        return minimal_makefile()
-    if rel_path == PHASE12_BUILD_PATH:
-        return minimal_phase12_build()
+    mapping = {
+        SCRIPTS_README_PATH: minimal_join("# scripts/zigux", SCRIPTS_README_MARKERS),
+        TESTS_README_PATH: minimal_join("# zigux/tests", TESTS_README_MARKERS),
+        RELEASE_READINESS_SURVEY_PATH: minimal_join(
+            "# Phase 12 Release Readiness Survey", RELEASE_READINESS_SURVEY_MARKERS
+        ),
+        RELEASE_SEQUENCING_PATH: minimal_join(
+            "# Phase 12 Release Sequencing", RELEASE_SEQUENCING_MARKERS
+        ),
+        RELEASE_COORDINATION_MATRIX_PATH: minimal_join(
+            "# Phase 12 Release Coordination Matrix",
+            RELEASE_COORDINATION_MATRIX_MARKERS,
+        ),
+        RELEASE_CLOSURE_CHECKLIST_PATH: minimal_join(
+            "# Phase 12 Release Closure Checklist",
+            RELEASE_CLOSURE_CHECKLIST_MARKERS,
+        ),
+        COMPLEX_DRIVER_LANE_SEQUENCING_PATH: minimal_join(
+            "# Phase 12 Complex-Driver Lane Sequencing",
+            COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
+        ),
+        LIBBPF_VERIFY_SHARD_NOTE_PATH: minimal_join(
+            "# Phase 12 Libbpf Verify Shard Note", LIBBPF_VERIFY_SHARD_NOTE_MARKERS
+        ),
+        WORKFLOW_PATH: minimal_join("name: zigux-bootstrap", WORKFLOW_MARKERS),
+        MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
+        PHASE12_BUILD_PATH: minimal_phase12_build(),
+    }
+    if rel_path in mapping:
+        return mapping[rel_path]
     if rel_path.endswith(".zig"):
         return "// phase12 placeholder\n"
     return ""
@@ -434,183 +490,41 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        tests_readme_path = base / TESTS_README_PATH
-        release_readiness_survey_path = base / RELEASE_READINESS_SURVEY_PATH
-        release_sequencing_path = base / RELEASE_SEQUENCING_PATH
-        release_coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
-        release_closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
-        libbpf_verify_shard_note_path = base / LIBBPF_VERIFY_SHARD_NOTE_PATH
-        phase12_packet_path = base / PHASE12_PACKET_PATH
-        workflow_path = base / WORKFLOW_PATH
-        makefile_path = base / MAKEFILE_PATH
-        phase12_build_path = base / PHASE12_BUILD_PATH
-
-        libbpf_verify_shard_note_path.unlink()
-        expect_failure(
-            base,
-            f"missing_file:{LIBBPF_VERIFY_SHARD_NOTE_PATH}",
-        )
+        (base / PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH}")
 
         write_fixture_tree(base)
-        phase12_packet_path.unlink()
-        expect_failure(
-            base,
-            f"missing_file:{PHASE12_PACKET_PATH}",
-        )
-
-        write_fixture_tree(base)
-        tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8").replace(
-                TESTS_README_MARKERS[2], "", 1
+        lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
+        lane_note_path.write_text(
+            lane_note_path.read_text(encoding="utf-8").replace(
+                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[5], "", 1
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            f"tests_readme:{TESTS_README_MARKERS[2]}",
+            f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[5]}",
         )
 
         write_fixture_tree(base)
-        release_readiness_survey_path.write_text(
-            release_readiness_survey_path.read_text(encoding="utf-8").replace(
-                RELEASE_READINESS_SURVEY_MARKERS[3], "", 1
+        build_path = base / PHASE12_BUILD_PATH
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
+                'smoke_step.dependOn(&run_virtio_net_syntax_tests.step);\n',
+                "",
+                1,
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[3]}",
+            "phase12_build:smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
         )
 
         write_fixture_tree(base)
-        release_readiness_survey_path.write_text(
-            release_readiness_survey_path.read_text(encoding="utf-8").replace(
-                RELEASE_READINESS_SURVEY_MARKERS[6], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[6]}",
-        )
-
-        write_fixture_tree(base)
-        release_sequencing_path.write_text(
-            release_sequencing_path.read_text(encoding="utf-8").replace(
-                RELEASE_SEQUENCING_MARKERS[4], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[4]}",
-        )
-
-        write_fixture_tree(base)
-        release_coordination_matrix_path.write_text(
-            release_coordination_matrix_path.read_text(encoding="utf-8").replace(
-                RELEASE_COORDINATION_MATRIX_MARKERS[2], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[2]}",
-        )
-
-        write_fixture_tree(base)
-        release_closure_checklist_path.write_text(
-            release_closure_checklist_path.read_text(encoding="utf-8").replace(
-                RELEASE_CLOSURE_CHECKLIST_MARKERS[2], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[2]}",
-        )
-
-        write_fixture_tree(base)
-        release_closure_checklist_path.write_text(
-            release_closure_checklist_path.read_text(encoding="utf-8").replace(
-                RELEASE_CLOSURE_CHECKLIST_MARKERS[4], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[4]}",
-        )
-
-        write_fixture_tree(base)
-        release_closure_checklist_path.write_text(
-            release_closure_checklist_path.read_text(encoding="utf-8").replace(
-                RELEASE_CLOSURE_CHECKLIST_MARKERS[5], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[5]}",
-        )
-
-        write_fixture_tree(base)
-        release_closure_checklist_path.write_text(
-            release_closure_checklist_path.read_text(encoding="utf-8").replace(
-                RELEASE_CLOSURE_CHECKLIST_MARKERS[6], "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[6]}",
-        )
-
-        write_fixture_tree(base)
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "make -C zigux phase12-smoke", "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow:make -C zigux phase12-smoke")
-
-        write_fixture_tree(base)
-        makefile_path.write_text(
-            makefile_path.read_text(encoding="utf-8").replace(
-                "phase12: phase12-smoke phase12-test", "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "makefile:phase12: phase12-smoke phase12-test")
-
-        write_fixture_tree(base)
-        phase12_build_path.write_text(
-            phase12_build_path.read_text(encoding="utf-8").replace(
-                'test_step.dependOn(&run_contract_tests.step);\n', "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "phase12_build:test_step.dependOn(&run_contract_tests.step);",
-        )
-
-        write_fixture_tree(base)
-        phase12_build_path.write_text(
-            phase12_build_path.read_text(encoding="utf-8").replace(
-                'smoke_step.dependOn(&run_packet_tests.step);\n', "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "phase12_build:smoke_step.dependOn(&run_packet_tests.step);",
-        )
-
-        write_fixture_tree(base)
-        phase12_build_path.write_text(
-            phase12_build_path.read_text(encoding="utf-8").replace(
+        build_path = base / PHASE12_BUILD_PATH
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
                 'const packet_tests = b.addTest(.{',
                 'const packet_tests = b.addExecutable(.{',
                 1,
@@ -619,11 +533,11 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            "phase12_build_exact_count:b.addTest(.{:expected=4:actual=3",
+            "phase12_build_exact_count:b.addTest(.{:expected=6:actual=5",
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=4")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -633,7 +547,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
-            "shipped virtio-scsi smoke and tranche replay."
+            "starter-present virtio-net packet, the shipped virtio-scsi smoke route, "
+            "and the shared complex-driver release reminders."
         )
     )
     parser.add_argument(
@@ -669,6 +584,8 @@ def main() -> int:
         + len(RELEASE_SEQUENCING_MARKERS)
         + len(RELEASE_COORDINATION_MATRIX_MARKERS)
         + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
+        + len(COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS)
+        + len(LIBBPF_VERIFY_SHARD_NOTE_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(PHASE12_BUILD_MARKERS)
