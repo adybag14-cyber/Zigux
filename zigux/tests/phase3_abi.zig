@@ -62,8 +62,57 @@ test "phase3 abi keeps exported constants and family markers present" {
         abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
     );
     try std.testing.expectEqual(
+        @as(u32, 1),
+        abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+    );
+
+    try std.testing.expectEqual(
         @as(usize, 12),
         @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"),
     );
     try std.testing.expectEqual(
         @as(usize, 12),
