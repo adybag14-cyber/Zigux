@@ -93,6 +93,9 @@ Key entrypoints
   * `zigux/tests/fixtures/phase7_rbtree.json`
   * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
   * `zigux/tests/phase8_build.zig`
+  * `Documentation/zigux/phase8-help-slice.md`
+  * `Documentation/zigux/phase8-kallsyms-slice.md`
+  * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
   * `zigux/tests/phase8_exec_cmd.zig`
   * `zigux/tests/phase8_exec_cmd_only_build.zig`
   * `zigux/tests/phase8_help.zig`
@@ -114,6 +117,8 @@ Key entrypoints
   * `scripts/zigux/check-phase8-tests-readme-alignment.py`
   * `scripts/zigux/check-phase8-help-kallsyms-packet.py`
   * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+  * `make -C zigux phase8-validate`
+  * `make -C zigux phase8-exec-cmd-test`
   * `make -C zigux phase8-help-test`
   * `make -C zigux phase8-help-kallsyms-test`
   * `make -C zigux phase8-kallsyms-test`
@@ -121,6 +126,8 @@ Key entrypoints
   * `make -C zigux phase8-file-path-handle-bridge-test`
   * `make -C zigux phase8-libbpf-segments-test`
   * `make -C zigux phase8-perf-buffer-poll-test`
+  * `make -C zigux phase8-test`
+  * `make -C zigux phase8`
   * `zigux/tests/phase9_build.zig`
   * `zigux/tests/runtime_atomic64_survey.zig`
   * `zigux/tests/runtime_bitmap_survey.zig`
