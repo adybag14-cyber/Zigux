@@ -57,7 +57,7 @@ MAKEFILE_LINES = (
 SCRIPTS_README_MARKERS = (
     "check-phase2-kconfig-readme-alignment.py --self-test",
     "dedicated kconfig bridge checker packet documented through the shared Phase 2 reminder surface",
-    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, and `check-phase2-tool-manifest-packets.py` are the live shared scripts-root Phase 2 helpers on current `master`",
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, `check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, `check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, `check-phase2-cross-selftest-alignment.py`, and `check-phase2-kconfig-selftest-alignment.py` are the live shared scripts-root Phase 2 helpers on current `master`",
 )
 
 TESTS_README_MARKERS = (
@@ -291,7 +291,7 @@ def run_self_test() -> int:
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[2]) in issues
         checks_run += 1
 
-        build_self_test_root(root)
+        build_self_test_ROOT(root)
         path = resolve_path(root, WORKFLOW)
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
