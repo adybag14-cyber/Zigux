@@ -78,7 +78,10 @@ REQUIRED_TEST_SNIPPETS = (
     'mmio.write64(base, 5, 0xfedc_ba98_7654_3210);',
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
+    'atomic.store(u32, &handoff_value, 41, .release);',
+    'atomic.load(u32, &handoff_value, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
+    'barrier.acquireRelease();',
     'allocator_policy.requiresExplicitCallerInteropPolicy(caller_abort_policy)',
     'panic_policy.actionForInteropPolicy(heap_bug_policy)',
 )
@@ -217,6 +220,26 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing barrier handoff replay failure")
+            return 1
+
+        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            TEST_REL,
+            (root / TEST_REL).read_text(encoding="utf-8").replace(
+                'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == 'missing_test_snippet:atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing ordered weak compare-exchange replay failure")
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
