@@ -34,6 +34,7 @@ REQUIRED_MARKERS = (
     "scripts/zigux/run-phase3-checks.py",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
@@ -52,6 +53,7 @@ REQUIRED_MARKERS = (
     "shipped helper entrypoints on current `master`",
 )
 REQUIRED_CURRENT_PACKET_MARKERS = (
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
@@ -64,6 +66,7 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
 REQUIRED_REVIEW_BOUNDARY_MARKERS = (
     "Documentation/zigux/phase3-validator-support-surface.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "closed together when either note drifts",
 )
@@ -71,6 +74,7 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
