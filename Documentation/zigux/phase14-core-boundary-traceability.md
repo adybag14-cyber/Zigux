@@ -24,7 +24,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
   * survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
   * lane key: `P14-L06`
   * surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`
-  * ready-next gap: `phase14-ring-buffer-tracefs-reader-serialization-followup`
+  * ready-next gap: none currently recorded
   * blocked gap: `phase14-ring-buffer-zig-port-blocker`
   * retained-in-C boundary: reserve or commit publication, reader-page handoff and consume serialization, exported-page forced-copy decisions, remote-reader metadata and guarded reader-page import, wakeup or watermark publication, tracefs reader competition, mapped-reader limitations, tracefs splice or resize lockouts, and mapped-reader lifetime teardown still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, `reader_lock` arbitration, and `resize_disabled` ownership.
 ### Skbuff
