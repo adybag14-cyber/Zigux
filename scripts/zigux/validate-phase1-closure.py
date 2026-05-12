@@ -13,6 +13,7 @@ SELF_PATH = Path(__file__).resolve()
 DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 VALIDATE_PHASE1_REL = Path("scripts/zigux/validate-phase1.py")
 STRING_HELPER_REL = Path("tools/lib/string.zig")
+FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -177,7 +178,7 @@ EXPECTED_BITMAP_MANIFEST = {
     "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
     "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
     "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
-    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
+    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, and Linux-style alias behavior review-visible on current master",
     "parity_fixture_keys": [
         "alloc_words",
         "zalloc_words",
@@ -397,7 +398,7 @@ def collect_bitmap_manifest_markers(manifest: Any) -> list[str]:
     return missing
 
 
-def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
+def collect_find_bit_manifest_markers(root: Path, manifest: Any) -> list[str]:
     if not isinstance(manifest, dict):
         return ["find_bit_manifest:json_object"]
     review_anchors = manifest.get("review_anchors")
@@ -407,8 +408,19 @@ def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
     if not isinstance(find_bit_anchors, dict):
         return ["find_bit_manifest:tools/lib/find_bit.zig"]
 
+    try:
+        helper_tests = extract_zig_test_names(load_text(root, str(FIND_BIT_HELPER_REL)))
+    except FileNotFoundError:
+        return ["find_bit_manifest:helper_test_anchors"]
+    if not helper_tests:
+        return ["find_bit_manifest:helper_test_anchors"]
+
     missing: list[str] = []
+    if find_bit_anchors.get("helper_test_anchors") != helper_tests:
+        missing.append("find_bit_manifest:helper_test_anchors")
     for key, expected in EXPECTED_FIND_BIT_MANIFEST.items():
+        if key == "helper_test_anchors":
+            continue
         if find_bit_anchors.get(key) != expected:
             missing.append(f"find_bit_manifest:{key}")
     return missing
@@ -502,7 +514,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(require_markers(build_zig, "build", BUILD_MARKERS))
     missing.extend(collect_bench_markers(bench))
     missing.extend(collect_bitmap_manifest_markers(manifest))
-    missing.extend(collect_find_bit_manifest_markers(manifest))
+    missing.extend(collect_find_bit_manifest_markers(root, manifest))
     missing.extend(collect_rbtree_manifest_markers(manifest))
     missing.extend(collect_string_manifest_markers(root, manifest))
     return missing
@@ -514,7 +526,7 @@ def write_text(root: Path, relative_path: str, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def make_string_fixture_source(test_names: list[str]) -> str:
+def make_zig_fixture_source(test_names: list[str]) -> str:
     return "\n".join(f"{name} {{}}" for name in test_names) + "\n"
 
 
@@ -530,7 +542,8 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(LEDGER_MARKERS) + "\n")
     write_text(root, "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root, "zigux/tests/build.zig", "\n".join(BUILD_MARKERS) + "\n")
-    write_text(root, str(STRING_HELPER_REL), make_string_fixture_source(EXPECTED_STRING_HELPER_TESTS))
+    write_text(root, str(STRING_HELPER_REL), make_zig_fixture_source(EXPECTED_STRING_HELPER_TESTS))
+    write_text(root, str(FIND_BIT_HELPER_REL), make_zig_fixture_source(EXPECTED_FIND_BIT_MANIFEST["helper_test_anchors"]))
     write_text(root, "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(EXPECTED_BENCH, indent=2) + "\n")
     write_text(
         root,
@@ -622,6 +635,19 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "find_bit_manifest:tail_word_inclusive_boundary_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        find_bit_path = root / FIND_BIT_HELPER_REL
+        find_bit_path.write_text(
+            find_bit_path.read_text(encoding="utf-8").replace(
+                f"{EXPECTED_FIND_BIT_MANIFEST['helper_test_anchors'][-1]} {{}}\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert "find_bit_manifest:helper_test_anchors" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
