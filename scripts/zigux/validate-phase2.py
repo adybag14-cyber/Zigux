@@ -102,7 +102,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 6
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 7
 
 
 def build_validation_commands(
@@ -205,6 +205,20 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=19:expected=18",
                 "phase2_validation_commands:duplicate_command_tail",
+            ],
+        ),
+        (
+            "command_inventory_missing_tool_manifest_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_COMMAND_SPECS
+                    if spec != (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=17:expected=18",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
             ],
         ),
         (
