@@ -530,6 +530,10 @@ pub fn first(root: *const Root) ?*Node {
     return minimum(node);
 }
 
+pub fn rb_first(root: *const Root) ?*Node {
+    return first(root);
+}
+
 pub fn firstCached(root: *const RootCached) ?*Node {
     return root.leftmost;
 }
@@ -541,6 +545,10 @@ pub fn rb_first_cached(root: *const RootCached) ?*Node {
 pub fn last(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return maximum(node);
+}
+
+pub fn rb_last(root: *const Root) ?*Node {
+    return last(root);
 }
 
 pub fn next(node: *const Node) ?*Node {
@@ -562,6 +570,10 @@ pub fn next(node: *const Node) ?*Node {
     return parent;
 }
 
+pub fn rb_next(node: *const Node) ?*Node {
+    return next(node);
+}
+
 pub fn prev(node: *const Node) ?*Node {
     if (emptyNode(node)) {
         return null;
@@ -579,6 +591,10 @@ pub fn prev(node: *const Node) ?*Node {
     }
 
     return parent;
+}
+
+pub fn rb_prev(node: *const Node) ?*Node {
+    return prev(node);
 }
 
 pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
@@ -602,6 +618,10 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     } else {
         parent.?.right = new;
     }
+}
+
+pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {
+    replaceNode(victim, new, root);
 }
 
 pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
@@ -737,6 +757,107 @@ test "rbtree erase and replace keep traversal consistent" {
     }
 
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var primary_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var primary_replacement = Entry{ .key = 10 };
+    var alias_replacement = Entry{ .key = 10 };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+
+    for (&primary_entries, &alias_entries) |*primary_entry, *alias_entry| {
+        add(&primary_entry.node, &primary_root, less);
+        add(&alias_entry.node, &alias_root, less);
+    }
+
+    var primary_forward: [4]i32 = undefined;
+    var alias_forward: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&primary_root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_forward[count] = entry.key;
+        count += 1;
+    }
+
+    var alias_count: usize = 0;
+    current = rb_first(&alias_root);
+    while (current) |node| : (current = rb_next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_forward[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+
+    var primary_reverse: [4]i32 = undefined;
+    var alias_reverse: [4]i32 = undefined;
+    count = 0;
+    current = last(&primary_root);
+    while (current) |node| : (current = prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_reverse[count] = entry.key;
+        count += 1;
+    }
+
+    alias_count = 0;
+    current = rb_last(&alias_root);
+    while (current) |node| : (current = rb_prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_reverse[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_reverse[0..count], alias_reverse[0..alias_count]);
+
+    replaceNode(&primary_entries[0].node, &primary_replacement.node, &primary_root);
+    rb_replace_node(&alias_entries[0].node, &alias_replacement.node, &alias_root);
+
+    count = 0;
+    current = first(&primary_root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_forward[count] = entry.key;
+        count += 1;
+    }
+
+    alias_count = 0;
+    current = rb_first(&alias_root);
+    while (current) |node| : (current = rb_next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_forward[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
 }
 
 test "rbtree eraseInit detaches erased node" {
