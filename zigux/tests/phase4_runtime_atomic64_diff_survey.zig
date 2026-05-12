@@ -213,6 +213,9 @@ test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence e
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null,
     );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "shared CI perf promotion") != null,
+    );
 }
 
 test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper" {
