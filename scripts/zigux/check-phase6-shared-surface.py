@@ -124,6 +124,7 @@ REQUIRED_SNIPPETS = {
         "- `check-phase6-shared-surface.py`",
         "- `check-phase6-hexdump-packet.py`",
         "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+        "- `check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
         "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
         "- `make -C zigux phase6-hexdump-review` keeps the dedicated hexdump packet checker, focused helper replay, and helper-local perf gate aligned on the same Linux-style wrapper route.",
@@ -180,6 +181,7 @@ REQUIRED_SNIPPETS = {
         "\"id\": \"bsearch\"",
         "\"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig\"",
         "\"zigux/tests/phase6_bsearch_c_abi_budget.zig\"",
+        "\"corpus_evidence_checker\": \"scripts/zigux/check-phase6-bsearch-corpus-evidence.py\"",
         "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
         "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
@@ -407,7 +409,7 @@ def scaffold_repo(root: Path) -> None:
                 "surveyed_commit": "277b3ab",
                 "helpers": [
                     {"id": "base64", "helper": "lib/base64.zig", "tests": ["zigux/tests/phase6_base64.zig", "zigux/tests/phase6_base64_c_parity.zig", "zigux/tests/phase6_base64_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_base64_vectors.zig", "zigux/tests/fixtures/phase6_base64_c_harness.c"], "slice_note": "Documentation/zigux/phase6-base64-slice.md", "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py"},
-                    {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"},
+                    {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md", "corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"},
                     {"id": "checksum", "helper": "lib/checksum.zig", "tests": ["zigux/tests/phase6_checksum.zig", "zigux/tests/phase6_checksum_perf.zig", "zigux/tests/phase6_checksum_c_parity.zig"], "fixtures": ["zigux/tests/fixtures/phase6_checksum_vectors.zig", "zigux/tests/fixtures/phase6_checksum_c_harness.c"], "slice_note": "Documentation/zigux/phase6-checksum-slice.md", "external_parity": "scripts/zigux/check-phase6-checksum-c-parity.py"},
                     {"id": "hexdump", "helper": "lib/hexdump.zig", "tests": ["zigux/tests/phase6_hexdump.zig", "zigux/tests/phase6_hexdump_perf.zig", "zigux/tests/phase6_hexdump_perf_matrix.zig"], "fixtures": ["zigux/tests/fixtures/phase6_hexdump_vectors.zig"], "slice_note": "Documentation/zigux/phase6-hexdump-slice.md", "packet_checker": "scripts/zigux/check-phase6-hexdump-packet.py", "linux_review_route": "make -C zigux phase6-hexdump-review"},
                 ],
@@ -516,6 +518,7 @@ def run_self_test() -> None:
         removed_path.unlink()
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `277b3ab`", "- surveyed head: `deadbeef`")
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "277b3ab",', '"surveyed_commit": "",')
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"', '"corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-proof.py"')
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-bsearch-corpus-evidence.py --self-test', 'check-phase6-bsearch-corpus-proof.py --self-test')
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-perf-threshold-markers.py --self-test', 'check-phase6-perf-threshold-proof.py --self-test')
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"zigux/tests/phase6_hexdump_perf_matrix.zig"', '"zigux/tests/phase6_hexdump_matrix.zig"')
@@ -529,6 +532,7 @@ def run_self_test() -> None:
         assert_failure(root, "Documentation/zigux/phase6-perf-gate-survey.md", "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route", "- bsearch review-surface posture: drifted")
         assert_failure(root, "Documentation/zigux/phase6-hexdump-slice.md", "- `zigux/tests/phase6_hexdump_perf_matrix.zig`", "- `zigux/tests/phase6_hexdump_perf_gate.zig`")
         assert_failure(root, "Documentation/zigux/phase6-hexdump-slice.md", "- a dedicated hexdump-only build step now reruns the focused helper replay while the helper-local perf gate keeps its threshold matrix preflight beside the ReleaseSafe slowdown replay", "- a dedicated hexdump-only build step now reruns the focused helper replay")
+        assert_failure(root, "scripts/zigux/README.md", '`check-phase6-bsearch-corpus-evidence.py`', '`check-phase6-bsearch-corpus-proof.py`')
         assert_failure(root, "scripts/zigux/README.md", '`make -C zigux phase6-hexdump-review` keeps the dedicated hexdump packet checker, focused helper replay, and helper-local perf gate aligned on the same Linux-style wrapper route.', '`make -C zigux phase6-hexdump-test` keeps the focused hexdump replay explicit.')
         assert_failure(root, "zigux/tests/phase6_hexdump_perf_matrix.zig", 'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {', 'test "phase 6 hexdump perf matrix drifted" {')
         assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
