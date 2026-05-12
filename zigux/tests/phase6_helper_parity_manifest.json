@@ -48,7 +48,8 @@
       "helper": "lib/hexdump.zig",
       "tests": [
         "zigux/tests/phase6_hexdump.zig",
-        "zigux/tests/phase6_hexdump_perf.zig"
+        "zigux/tests/phase6_hexdump_perf.zig",
+        "zigux/tests/phase6_hexdump_perf_matrix.zig"
       ],
       "fixtures": [
         "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
