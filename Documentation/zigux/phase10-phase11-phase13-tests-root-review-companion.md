@@ -102,6 +102,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_hvc_console_modem_control_split.zig`
@@ -117,7 +118,7 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `make -C zigux phase11-hvc-survey`
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated archival `hvc_console` teardown note plus the validation matrix, manifest-backed survey gate, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` plus `make -C zigux phase11-hvc-survey` checker-backed replay route, modem-control split, poll-retry split, and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
+- Do the docs-root notes, checker split, shared summary-surface checker, tests-root packet, and Linux-style make routes still describe the same shared-versus-dedicated simple-driver packet, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated archival `hvc_console` teardown note plus the bounded cleanup handoff, the validation matrix, manifest-backed survey gate, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` plus `make -C zigux phase11-hvc-survey` checker-backed replay route, modem-control split, poll-retry split, and sysrq-helper boundary, and the focused header-boundary survey packet without implying a removed `validate-phase11.py`, a missing build-inventory fixture, or a broader checker stack than current `master` ships?
 
 ## Phase 13 tests-root packet
 
