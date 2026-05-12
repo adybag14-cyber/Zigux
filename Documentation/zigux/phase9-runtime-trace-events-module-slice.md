@@ -37,7 +37,7 @@ Current `master` also still exposes the adjacent shared loader-facing packet:
 - `zigux/tests/phase9_build.zig`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
-That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, and still leaves the broader runtime-substrate handoff as a separate blocked step.
+That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, and still leaves the broader runtime-substrate handoff as a separate blocked step. That blocked handoff still stops before `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state; those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.
 
 ## What this slice owns
 
@@ -45,7 +45,7 @@ This module-slice note owns the narrow trace-events family statement that sits b
 
 1. Keep the Phase 9 trace-events family tied to `samples/trace_events/trace-events-sample.c` and the runtime-pilot roadmap only.
 2. Keep the shared loader packet separate from family-local implementation claims. The shared loader files prove reviewable handoff behavior, not completed tracepoint-registration parity.
-3. Keep the real blocker explicit: the family-local packet is reviewable on current `master`, but runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate. In other words, the live runtime substrate is still missing.
+3. Keep the real blocker explicit: the family-local packet is reviewable on current `master`, but runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate. The same blocked boundary also still includes `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state, which remain outside both the family-local trace-events packet and the adjacent shared loader handoff.
 4. Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.
 5. Keep earlier-phase references in their own lanes: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
 
