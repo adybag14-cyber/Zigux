@@ -58,6 +58,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split_manifest.json",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
@@ -248,6 +249,13 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase7-build-wiring.py",
             "",
             "Documentation/zigux/review-checklist.md: scripts/zigux/check-phase7-build-wiring.py",
+        ),
+        (
+            "review_checklist_manifest_marker",
+            "Documentation/zigux/review-checklist.md",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "",
+            "Documentation/zigux/review-checklist.md: zigux/tests/phase7_argv_split_manifest.json",
         ),
         (
             "slice_checker_marker",
