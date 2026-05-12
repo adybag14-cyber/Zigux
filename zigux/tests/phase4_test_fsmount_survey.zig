@@ -128,6 +128,29 @@ test "phase4 test_fsmount survey keeps shared validation matrix aligned" {
     );
 }
 
+test "phase4 test_fsmount survey keeps the shared review checklist aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "make -C zigux phase4-test-fsmount-survey",
+    );
+}
+
 test "phase4 test_fsmount survey keeps the tests-root reminder aligned" {
     try requireRepoMarker(
         "zigux/tests/README.md",
