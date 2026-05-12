@@ -37,7 +37,7 @@ This document tracks the bounded Phase 10 MMIO lane around `drivers/virtio/virti
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary lab-driver anchor and requires MMIO wrappers plus VM-friendly validation before riskier transport work.
 
-Current `master` still keeps the shared Phase 10 closure packet, this MMIO survey note, and the broader freeze-map reminder surfaces explicit. Fresh authenticated contents reads for `scripts/zigux/check-phase10-mmio-freeze-boundary.py` and `zigux/tests/phase10_virtio_mmio_manifest.json` now return 404 on current `master`, so this note must treat those two paths as packet references or repo-reality gaps rather than directly materialized shipped evidence. Tightening that wording keeps the MMIO lane reviewable again without claiming new helper behavior.
+Current `master` still keeps the shared Phase 10 closure packet, this MMIO survey note, and the broader freeze-map reminder surfaces explicit. Fresh authenticated contents reads for `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, and `zigux/tests/phase10_virtio_mmio_manifest.json` now return 404 on current `master`, so this note must treat those three paths as packet references or repo-reality gaps rather than directly materialized shipped evidence. Tightening that wording keeps the MMIO lane reviewable again without claiming new helper behavior.
 
 ## Survey findings
 
@@ -45,7 +45,8 @@ Current `master` still keeps the shared Phase 10 closure packet, this MMIO surve
 - the live shared Phase 10 closure packet still records MMIO wrappers as `starter_landed` through `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and this survey note, while the packet-local `zigux/tests/phase10_virtio_mmio_manifest.json` reference could not be materialized through the authenticated contents bridge on current `master`
 - the shared closure manifest still keeps the landed MMIO helper ladder explicit through `phase10-mmio-register-window-helper`, `phase10-mmio-queue-size-helper`, `phase10-mmio-feature-word-selector-helper`, `phase10-mmio-feature-negotiation-summary-helper`, `phase10-mmio-config-window-helper`, `phase10-mmio-config-write-plan-helper`, `phase10-mmio-transport-identity-helper`, `phase10-mmio-probe-preflight-helper`, `phase10-mmio-config-write-disposition-helper`, and `phase10-mmio-selected-queue-readiness-helper`
 - the same closure packet keeps the honest blocked transport-facing follow-through explicit through `phase10-mmio-lifecycle-and-irq-paths`, so the current MMIO lane is a bounded wrapper and lab-validation packet rather than a claim of queue reset execution, IRQ parity, or full probe/remove lifecycle closure
-- the directly shipped shared reminder surfaces still keep `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit beside the dedicated MMIO packet wording and the focused MMIO replay pair
+- the directly shipped shared reminder surfaces still keep `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit beside the dedicated MMIO wording and the focused MMIO replay pair
+- the dedicated MMIO packet checker path `scripts/zigux/check-phase10-mmio-packet.py` is still named by the shared reminder packet, but it is not currently materialized through authenticated contents reads on current `master` and should be treated as a repo-reality gap until a future same-lane step restores it or confirms a new authoritative path
 - the dedicated freeze-boundary checker path `scripts/zigux/check-phase10-mmio-freeze-boundary.py` is still named by the shared reminder packet, but it is not currently materialized through authenticated contents reads on current `master` and should be treated as a repo-reality gap until a future same-lane step restores it or confirms a new authoritative path
 
 ## Recorded gaps
@@ -62,11 +63,12 @@ This survey keeps the MMIO lane concrete without overstating progress:
 - the landed `phase10-mmio-probe-preflight-helper`
 - the landed `phase10-mmio-config-write-disposition-helper`
 - the landed `phase10-mmio-selected-queue-readiness-helper`
+- the repo-reality gap at `scripts/zigux/check-phase10-mmio-packet.py`
 - the repo-reality gap at `zigux/tests/phase10_virtio_mmio_manifest.json`
 - the repo-reality gap at `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
-That keeps the MMIO lane aligned with the current closure packet: the wrapper ladder and lab-validation evidence are real, the packet-local manifest and dedicated freeze-boundary checker need a later same-lane restore or readback step, and IRQ plus lifecycle claims remain explicitly blocked.
+That keeps the MMIO lane aligned with the current closure packet: the wrapper ladder and lab-validation evidence are real, the packet-local manifest and both dedicated MMIO checker paths need a later same-lane restore or readback step, and IRQ plus lifecycle claims remain explicitly blocked.
 
 ## Freeze Boundary
 
@@ -101,7 +103,7 @@ This survey slice does not claim:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-3. treat the dedicated MMIO packet and freeze-boundary checker paths as follow-through targets, not directly runnable shipped gates, until `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, and `zigux/tests/phase10_virtio_mmio_manifest.json` are restored or directly re-readable on current `master`
+3. treat the dedicated MMIO packet checker, dedicated freeze-boundary checker, and packet-local MMIO manifest as follow-through targets, not directly runnable shipped gates, until `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, and `zigux/tests/phase10_virtio_mmio_manifest.json` are restored or directly re-readable on current `master`
 
 Taken together, these gates keep the bounded MMIO wrapper and VM-friendly validation packet reviewable without implying risky transport closure.
 
