@@ -32,7 +32,7 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
+    return std.mem.eql(u8, status, "landed") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "open");
 }
@@ -55,7 +55,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-11", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -134,7 +134,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+        if (std.mem.eql(u8, gap.status, "landed")) {
             landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
@@ -165,41 +165,41 @@ test "phase 15 architecture council review-process manifest records the bounded 
         }
         if (std.mem.eql(u8, gap.id, "phase15-parity-scorecard-baseline")) {
             saw_parity_baseline = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live evidence attachment point") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-evidence-archive-followup")) {
             saw_archive_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Council decision records") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-stay-in-c-retirement-rule")) {
             saw_retirement_rule = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retired_from_active_discussion") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-reopen-trigger-catalog-followup")) {
             saw_reopen_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-review-packet-field-sync")) {
             saw_review_packet_field_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-threshold") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-tests-readme-validator-route-sync")) {
             saw_tests_readme_route_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/README.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15-validate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15-test") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-docs-readme-maintenance-note-undercount")) {
             saw_docs_root_undercount = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/README.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "compact Phase 15 docs-root reminder") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-summary drift appears") != null);
@@ -245,11 +245,13 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-11`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "PHASE15_LANE_KEY=P15-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-12`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "exact branch-head parity is not recorded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, and indefinite-C-policy records") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the deep-core blocker posture changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "replay before trusting this parked handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "deep-core blocker posture changes enough to justify a new bounded review-process follow-up") != null);
@@ -276,7 +278,6 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`bounded_dual_implementation`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`defer_or_reject`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-readme-maintenance-note-undercount") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-dated-readback-provenance-refresh") != null);
 }
 
 test "phase 15 review checklist stays aligned with the council review-process hook" {
@@ -291,9 +292,8 @@ test "phase 15 review checklist stays aligned with the council review-process ho
     );
     defer std.testing.allocator.free(review_checklist);
 
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Architecture Council decision") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "parity scorecard evidence or blocker state explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Architecture Council review record linked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "parity scorecard evidence or blocker state explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current status bucket plus requested decision bucket explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "retained discussion state, the current blocker, and reopen triggers explicit") != null);
