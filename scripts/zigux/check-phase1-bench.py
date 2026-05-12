@@ -267,6 +267,22 @@ def print_command_output(label: str, output: str | None) -> None:
     print(f'{label}_END')
 
 
+def self_test_case_count() -> int:
+    source = Path(__file__).read_text(encoding='utf-8')
+    start = source.index("def run_self_test() -> None:\n")
+    end = source.index("\n\ndef main() -> int:\n", start)
+    body = source[start:end]
+    return sum(
+        body.count(marker)
+        for marker in (
+            "kind, _ = validate_output(",
+            "kind, payload = validate_output(",
+            "kind, _ = validate_expectations(",
+            "kind, payload = validate_expectations(",
+        )
+    )
+
+
 def run_self_test() -> None:
     expectations = {
         'status': 'pass',
@@ -422,7 +438,7 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
         f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM'] + 1}",
-        'PHASE1_BENCH_STRING_CHECKSUM=100000',
+        f"PHASE1_BENCH_STRING_CHECKSUM={full_exact_checksums['PHASE1_BENCH_STRING_CHECKSUM']}",
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
         f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
@@ -440,7 +456,7 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=2260000',
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
-        'PHASE1_BENCH_STRING_CHECKSUM=100000',
+        f"PHASE1_BENCH_STRING_CHECKSUM={full_exact_checksums['PHASE1_BENCH_STRING_CHECKSUM']}",
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
         f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
@@ -459,7 +475,7 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
         f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
-        'PHASE1_BENCH_STRING_CHECKSUM=100000',
+        f"PHASE1_BENCH_STRING_CHECKSUM={full_exact_checksums['PHASE1_BENCH_STRING_CHECKSUM']}",
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
         f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM'] + 1}",
@@ -478,7 +494,7 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
         f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
-        'PHASE1_BENCH_STRING_CHECKSUM=100000',
+        f"PHASE1_BENCH_STRING_CHECKSUM={full_exact_checksums['PHASE1_BENCH_STRING_CHECKSUM']}",
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
         f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
     ])
@@ -762,7 +778,7 @@ def run_self_test() -> None:
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'str')
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=36')
+    print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={self_test_case_count()}')
 
 
 def main() -> int:
