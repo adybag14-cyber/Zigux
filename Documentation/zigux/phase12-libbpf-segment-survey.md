@@ -5,7 +5,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
-- scope: Phase 12 roadmap comparison, shared survey truthfulness, the publicly present libbpf reviewability companions, and the boundary between the landed helper-first segment footing and the still-unadopted shared replay packet
+- scope: Phase 12 roadmap comparison, shared survey truthfulness, the parked libbpf reviewability companions, and the boundary between the landed helper-first segment footing and the still-unadopted shared replay packet
 - product boundary:
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
   - `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
@@ -20,32 +20,32 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 ## Why this slice exists
 The roadmap places `tools/lib/bpf/libbpf.c` in Phase 12 alongside the other high-risk production-facing consumers because the file is both large and semantically dense even though it lives under `tools/`.
 
-That matters because current `master` already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, dense type-name tables, a CPU-mask helper with the deferred chunk-reader path for sysfs-style buffered input, a bounded logging helper, bounded bpffs pin-path helpers, a bounded perf-buffer poll helper for wait-result normalization and ready-buffer bookkeeping, a shared file-path bridge packet that now carries helper-only fdinfo parsing, reused-map compatibility shaping, and token-path readiness planning, and a dedicated `verify.zig` shard that keeps those landed helper surfaces compile-reachable together.
+That matters because current `master` still has real helper-first progress under `tools/lib/bpf/zigux_segments/`: dense type-name tables, a CPU-mask helper with the deferred chunk-reader path for sysfs-style buffered input, a bounded logging helper, bounded bpffs pin-path helpers, a bounded perf-buffer poll helper for wait-result normalization and ready-buffer bookkeeping, and a shared file-path bridge packet that now carries helper-only fdinfo parsing, reused-map compatibility shaping, and token-path readiness planning.
 
-Those are useful footholds, but the live Phase 12 survey has to explain how they fit the heavy-helper roadmap without overstating the current replay packet. The helper footing is real, while the shared Phase 12 smoke-and-test order is still narrower than the present libbpf reviewability packet described beside it.
+Those are useful footholds, but the live Phase 12 survey has to explain how they fit the heavy-helper roadmap without overstating the current replay packet. The helper footing is real, while the parked libbpf reviewability packet now has to stay described through the survey, verify-shard, and anti-overlap notes until the shared replay order actually adopts it.
 
 ## Survey findings
 - `tools/lib/bpf/libbpf.c` is present on `master` at 14,771 lines, which is large enough to cross helper, bridge, queue-routing, object-model, relocation, and verifier-facing concerns in one file.
-- the live repo still carries the older Phase 8 rooted segment catalog at `tools/lib/bpf/zigux_segments/manifest.json`, and that file remains useful as legacy helper-first scaffolding beside the landed helper-first surfaces in `type_names.zig`, `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `perf_buffer_poll.zig`, `file_path_handle_bridge.zig`, and the dedicated `verify.zig` compile-reachability shard.
-- the dedicated Phase 12 libbpf reviewability companions are present on current `master` and still tracked by `zigux/tests/fixtures/phase12_libbpf_snapshot.json`. `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and `tools/lib/bpf/zigux_segments/verify.zig` therefore need to stay described as present reviewability evidence on head while also remaining outside the shared shipped replay order.
-- the shared shipped replay order is still narrower than that reviewability packet. Current `zigux/tests/phase12_build.zig` wires only the `virtio_net` and `virtio_scsi` Phase 12 shards, and current `zigux/Makefile` keeps `phase12-smoke`, `phase12-test`, and `phase12` tied to that same build file.
-- `scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.
-- the landed helper footing is still the honest roadmap-aligned progress here: helper-first segmentation already proved useful for libbpf, while the heavier file-path-and-handle bridge, perf-buffer online-CPU routing, skeleton population, object loading, and verifier-facing relocation buckets still stay deferred or blocked as their own later risks.
-- the current lane therefore needs survey truthfulness more than a new helper claim. The real boundary is no longer "libbpf is missing" versus "libbpf is landed"; it is "helper-first segment footing is real and the direct reviewability files are present on head" versus "the shared shipped replay order has not adopted that packet into the active smoke-first route."
+- the live repo still carries meaningful helper-first libbpf footing under `tools/lib/bpf/zigux_segments/`, and those helper-local surfaces remain useful scaffolding for the Phase 12 heavy-consumer packet even though the broader replay order stays narrower.
+- the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/verify.zig` stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`; the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor keeps that parked reviewability packet visible without promoting it into the shared shipped replay order.
+- the shared shipped replay order is still narrower than that parked reviewability packet. Current `zigux/tests/phase12_build.zig` wires only the `virtio_net` and `virtio_scsi` Phase 12 shards, and current `zigux/Makefile` keeps `phase12-smoke`, `phase12-test`, and `phase12` tied to that same build file.
+- `scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.
+- The helper footing is real, while the shared Phase 12 smoke-and-test order is still narrower than the parked libbpf reviewability packet described only through those note-owned boundaries.
+- the current lane therefore needs survey truthfulness more than a new helper claim. The real boundary is no longer "libbpf is missing" versus "libbpf is landed"; it is "helper-first segment footing is real" versus "the shared shipped replay order has not adopted the parked libbpf reviewability packet into the active smoke-first route."
 
 ## Recorded gap
 The highest-value honest gap is the survey boundary itself.
 
-Current `master` still has the helper-first segment footing, and it still has the direct Phase 12 reviewability packet on head through the tracked snapshot and the paired anti-overlap notes, but the shared shipped replay packet still stops at `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the active driver-facing release order described by the Phase 12 PMO notes.
+Current `master` still has the helper-first segment footing, and it still has the snapshot anchor plus the paired survey, verify-shard, and anti-overlap notes, but the shared shipped replay packet still stops at `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the active driver-facing release order described by the Phase 12 PMO notes.
 
 That means this survey should keep three facts explicit at the same time:
 - the helper-first libbpf footing is real and roadmap-relevant Phase 12 progress
-- the direct reviewability packet is present on current `master` and tracked by the snapshot plus the paired survey, verify-shard, and anti-overlap notes
-- the shared Phase 12 smoke and test routes still do not exercise that packet directly
+- the parked libbpf reviewability packet is still carried through `zigux/tests/fixtures/phase12_libbpf_snapshot.json` plus the survey, verify-shard, and anti-overlap notes instead of through the shipped `phase12_build.zig` replay order
+- the shared Phase 12 smoke and test routes still do not exercise that parked packet directly
 
-Keeping those three facts aligned is the bounded roadmap gap for this lane. It prevents Phase 12 libbpf wording from collapsing back into stale Phase 8 framing, and it also prevents the release-facing Phase 12 packet from quietly promoting the present libbpf reviewability files into shipped replay evidence before `zigux/tests/phase12_build.zig` or `zigux/Makefile` actually adopt them.
+Keeping those three facts aligned is the bounded roadmap gap for this lane. It prevents Phase 12 libbpf wording from collapsing back into stale Phase 8 framing, and it also prevents the release-facing Phase 12 packet from quietly promoting the present libbpf reviewability story into shipped replay evidence before `zigux/tests/phase12_build.zig` or `zigux/Makefile` actually adopt it.
 
-The same boundary applies to `tools/lib/bpf/zigux_segments/manifest.json`: current repo reality still treats that file as a legacy Phase 8 rooted helper catalog, so Phase 12 wording should keep naming it as scaffolding beside the direct reviewability packet instead of treating it like a current Phase 12 lane-keyed replay artifact.
+The same boundary applies to the older `tools/lib/bpf/zigux_segments/manifest.json` story: current Phase 12 wording should keep treating it as legacy helper scaffolding inside the parked libbpf reviewability packet instead of as a current shared replay artifact.
 
 ## Non-goals
 This survey slice does not claim:
@@ -75,4 +75,4 @@ This survey slice does not claim:
 ## Next bounded step
 Keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` aligned around the same present-versus-shipped boundary.
 
-If this lane reopens, prefer the next one-file truthfulness repair that keeps the helper-first libbpf footing explicit while also keeping clear that `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and `tools/lib/bpf/zigux_segments/verify.zig` are present on current `master` but not yet adopted into the shared `zigux/tests/phase12_build.zig` or `zigux/Makefile` replay packet.
+If this lane reopens, prefer the next one-file truthfulness repair that keeps the helper-first libbpf footing explicit while also keeping clear that the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/verify.zig` stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`.
