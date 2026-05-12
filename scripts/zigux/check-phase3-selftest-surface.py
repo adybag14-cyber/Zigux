@@ -36,6 +36,13 @@ CHECKLIST_MARKERS = (
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
 )
+CHECKLIST_PHASE3_REMINDER_PREFIX = (
+    "  * if the change touches the shared Phase 3 ABI/runtime packet, do "
+)
+CHECKLIST_PHASE3_REMINDER_NEXT_PREFIX = (
+    "  * if the change touches the shared Phase 4 validation packet, do "
+)
+CHECKLIST_PHASE3_REMINDER_MARKER_COUNTS = {marker: 1 for marker in CHECKLIST_MARKERS}
 NOTE_POLICY_MARKERS = (
     "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
     "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
@@ -195,6 +202,16 @@ def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
     )
 
 
+def _check_review_checklist_phase3_reminder(path: Path) -> list[str]:
+    return _check_section_marker_counts(
+        path,
+        CHECKLIST_PHASE3_REMINDER_PREFIX,
+        CHECKLIST_PHASE3_REMINDER_NEXT_PREFIX,
+        CHECKLIST_PHASE3_REMINDER_MARKER_COUNTS,
+        "review checklist Phase 3 reminder",
+    )
+
+
 def _check_note_next_step(path: Path) -> list[str]:
     return _check_section_marker_counts(
         path,
@@ -222,6 +239,9 @@ def validate_repo(repo_root: Path) -> list[str]:
         _check_markers(
             repo_root / CHECKLIST_PATH, CHECKLIST_MARKERS, "review checklist"
         )
+    )
+    issues.extend(
+        _check_review_checklist_phase3_reminder(repo_root / CHECKLIST_PATH)
     )
     issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
     issues.extend(
@@ -285,7 +305,18 @@ def _populate_repo(root: Path) -> None:
         )
         + "\n",
     )
-    _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
+    _write(
+        root / CHECKLIST_PATH,
+        "\n".join(
+            (
+                "## Validation",
+                CHECKLIST_PHASE3_REMINDER_PREFIX,
+                *CHECKLIST_PHASE3_REMINDER_MARKER_COUNTS.keys(),
+                CHECKLIST_PHASE3_REMINDER_NEXT_PREFIX,
+            )
+        )
+        + "\n",
+    )
     _write(
         root / NOTE_PATH,
         "\n".join(
@@ -372,17 +403,25 @@ def run_self_test() -> int:
         checklist_path = root / CHECKLIST_PATH
         checklist_path.write_text(
             _read(checklist_path).replace(
-                "zigux/uapi/dev_t.zig",
-                "",
+                "Documentation/zigux/phase3-abi-header-family-survey.md",
+                CHECKLIST_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-abi-header-family-survey.md",
                 1,
             ),
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = "missing review checklist marker: zigux/uapi/dev_t.zig"
+        expected = (
+            "review checklist Phase 3 reminder marker count drift: "
+            "Documentation/zigux/phase3-abi-header-family-survey.md "
+            "(expected 1, found 0)"
+        )
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected missing review checklist dev_t marker was not reported")
+            print(
+                "expected review checklist Phase 3 section-scoped drift was not reported"
+            )
             return 1
 
         _populate_repo(root)
