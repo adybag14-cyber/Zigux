@@ -55,7 +55,8 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`make -C zigux phase11-hvc-survey`",
-        "while `zigux/tests/phase11_hvc_cleanup.zig` and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "while `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -71,6 +72,7 @@ MARKERS = {
         "`make -C zigux phase11-hvc-survey`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`zigux/tests/phase11_hvc_console.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "framed as repo-reality gaps rather than shipped current-`master` evidence",
     ],
@@ -85,10 +87,12 @@ FORBIDDEN_MARKERS = {
     ],
     "tests_root": [
         "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
+        "  * `zigux/tests/phase11_hvc_cleanup.zig`",
+        "  * `zigux/tests/phase11_hvc_console.zig`",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 25
 
 
 class CheckError(RuntimeError):
@@ -161,12 +165,14 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][11]),
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][13]),
+            (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][8]),
             (FILES["tests_companion"], MARKERS["tests_companion"][9]),
             (FILES["tests_companion"], MARKERS["tests_companion"][12]),
             (FILES["tests_companion"], MARKERS["tests_companion"][13]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][14]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
@@ -181,12 +187,14 @@ def run_self_test() -> None:
 
         forbidden_cases = [
             ("tests_root", FORBIDDEN_MARKERS["tests_root"][0]),
+            ("tests_root", FORBIDDEN_MARKERS["tests_root"][1]),
+            ("tests_root", FORBIDDEN_MARKERS["tests_root"][2]),
             ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
             ("review_checklist", FORBIDDEN_MARKERS["review_checklist"][0]),
         ]
 
         for label, marker in forbidden_cases:
-            forbidden_case_root = tmpdir / f"case_forbidden_{label}"
+            forbidden_case_root = tmpdir / f"case_forbidden_{label}_{abs(hash(marker))}"
             shutil.copytree(fixture_root, forbidden_case_root, dirs_exist_ok=True)
             forbidden_path = forbidden_case_root / FILES[label]
             forbidden_path.write_text(
