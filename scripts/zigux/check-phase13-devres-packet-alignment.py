@@ -21,6 +21,7 @@ SURVEYED_COMMIT_PREFIX = "reviewed against live `master` `"
 STALE_CHECKER_WARNING = (
     "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift"
 )
+CURRENT_CHECKER_MARKER = "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
 
 MANIFEST_TO_SURVEY_MARKERS = {
     '"id": "phase13-devres-live-scatterlist-ownership"': "helper-only DMA/scatterlist boundary",
@@ -52,6 +53,8 @@ IOUNMAP_REPLAY_MARKERS = [
 REVIEWABILITY_MARKERS = [
     "manifest.survey_summary.preexisting_phase13_devres_test_present",
     "manifest.survey_summary.preexisting_phase13_devres_reviewability_present",
+    "manifest.survey_summary.preexisting_phase13_devres_survey_present",
+    "manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present",
     '"phase13-devres-test-gate",',
     '"phase13-devres-reviewability-gate",',
     '"phase13-devres-dma-coherent-replay",',
@@ -149,6 +152,7 @@ def validate(root: Path) -> list[str]:
             "preexisting_phase13_build_present",
             "preexisting_phase13_devres_test_present",
             "preexisting_phase13_devres_reviewability_present",
+            "preexisting_phase13_devres_survey_present",
         ):
             value = summary.get(key)
             if not isinstance(value, bool):
@@ -166,6 +170,8 @@ def validate(root: Path) -> list[str]:
 
     if STALE_CHECKER_WARNING not in survey_text:
         errors.append("survey:missing_stale_checker_warning")
+    if CURRENT_CHECKER_MARKER not in survey_text:
+        errors.append("survey:missing_current_checker_marker")
 
     require_markers(slice_text, "slice", IOUNMAP_SLICE_MARKERS, errors)
     require_markers(survey_text, "survey", IOUNMAP_SURVEY_MARKERS, errors)
@@ -193,6 +199,7 @@ def seed_fixture_tree(root: Path) -> None:
                     "preexisting_phase13_build_present": False,
                     "preexisting_phase13_devres_test_present": True,
                     "preexisting_phase13_devres_reviewability_present": True,
+                    "preexisting_phase13_devres_survey_present": True,
                 },
                 "gaps": [
                     {"id": "phase13-devres-live-scatterlist-ownership"},
@@ -221,6 +228,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                 "- `devm_iounmap()` stays helper-first",
                 "- keep the helper-only DMA/scatterlist boundary explicit",
+                "- `scripts/zigux/check-phase13-devres-packet-alignment.py` keeps the packet truthfulness guard explicit",
                 "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
             ]
         )
@@ -268,6 +276,8 @@ def seed_fixture_tree(root: Path) -> None:
                 '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                 "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
                 "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
+                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
+                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
                 '        "phase13-devres-test-gate",',
                 '        "phase13-devres-reviewability-gate",',
                 '        "phase13-devres-dma-coherent-replay",',
@@ -284,6 +294,7 @@ def seed_fixture_tree(root: Path) -> None:
                 'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
                 'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": true");',
                 'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
+                'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": true");',
                 'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
                 'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
                 'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
@@ -319,6 +330,7 @@ def run_self_test() -> int:
                 "survey:stale_slice_label",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
                 "survey:missing_stale_checker_warning",
+                "survey:missing_current_checker_marker",
                 "survey:missing_marker:devm_iounmap()",
             ],
             "stale_slice_label_failed",
@@ -332,6 +344,8 @@ def run_self_test() -> int:
                 [
                     '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
                     '        "phase13-devres-test-gate",',
                     '        "phase13-devres-reviewability-gate",',
                     '        "phase13-devres-dma-coherent-replay",',
@@ -350,12 +364,85 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / REVIEWABILITY_PATH,
+            "\n".join(
+                [
+                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
+                    '        "phase13-devres-test-gate",',
+                    '        "phase13-devres-reviewability-gate",',
+                    '        "phase13-devres-dma-coherent-replay",',
+                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
+                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["reviewability:missing_marker:manifest.survey_summary.preexisting_phase13_devres_survey_present"],
+            "reviewability_survey_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REVIEWABILITY_PATH,
+            "\n".join(
+                [
+                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
+                    '        "phase13-devres-test-gate",',
+                    '        "phase13-devres-reviewability-gate",',
+                    '        "phase13-devres-dma-coherent-replay",',
+                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
+                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["reviewability:missing_marker:manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present"],
+            "reviewability_dma_coherent_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(
+                [
+                    "# Phase 13 devres Survey",
+                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                    "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
+                    "- `devm_iounmap()` stays helper-first",
+                    "- keep the helper-only DMA/scatterlist boundary explicit",
+                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["survey:missing_current_checker_marker"],
+            "current_checker_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / DMA_REPLAY_PATH,
             "\n".join(
                 [
                     'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
                     'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": false");',
                     'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
+                    'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": true");',
                     'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
                     'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
                     'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
@@ -369,6 +456,31 @@ def run_self_test() -> int:
             validate(root),
             ["dma_replay:preexisting_phase13_devres_test_present_mismatch:True"],
             "dma_replay_bool_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / DMA_REPLAY_PATH,
+            "\n".join(
+                [
+                    'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
+                    'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": true");',
+                    'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
+                    'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": false");',
+                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
+                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
+                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
+                    'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
+                    'try requireContains(survey, "helper-first packet");',
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["dma_replay:preexisting_phase13_devres_survey_present_mismatch:True"],
+            "dma_replay_survey_bool_failed",
         )
         case_count += 1
 
