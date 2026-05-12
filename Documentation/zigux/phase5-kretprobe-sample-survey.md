@@ -65,7 +65,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - the in-memory sample keeps a single private entry-timestamp record so the Linux `struct my_data` anchor shape stays explicit as one `i64`-sized word
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
 - `runRecoveryReplay()` rejects `exit()` while a tracked instance is still armed, rejects a return timestamp of `199` after an entry timestamp of `200`, then accepts `260` and reports duration `60 ns` before making the post-exit `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejections explicit
-- `maxactiveBudget()` keeps the Linux `maxactive` cue fixed at `20` while the anchor and ownership replays keep that budget visible without claiming registration-pressure handling
+- `runAnchorReplay()` records `maxactiveBudget()` at `20` while `runOwnershipReplay()` separately keeps the lifecycle snapshots explicit, so the fixed Linux `maxactive` cue stays reviewable without implying registration-pressure handling
 - `runLifecycleGuardReplay()` rejects pre-init `runAnchorReplay()` and `exit()`, rejects double `init()`, and rejects post-init retarget attempts while leaving the sample initialized with one `init()` run
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `runOwnershipReplay()` keeps the lifecycle snapshots, skipped-kernel-thread path, replay return value `42`, replay duration `75 ns`, and exited-state teardown boundary explicit
@@ -99,10 +99,11 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
     - `All 2 tests passed.`
 - this lane-local refresh used a focused survey-packet scratch replay with the directly coupled note, manifest, shared sample-root catalog, shared tests-root guide, top-level docs-root guide, shared review checklist, shared Phase 5 guide, and workflow route; no live repo checkout was available for a fresh `zig test samples/zigux/kretprobe_example.zig` or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay in this run
 - that focused survey-packet scratch replay still confirms the same contributor-facing contract:
-  - pre-init retargeting still uses `do_sys_openat2`
-  - `runRecoveryReplay()` still keeps the armed-exit, timestamp-order, recovery, and post-exit rejection boundaries explicit
-  - `runOwnershipReplay()` still keeps the exited teardown boundary and lifecycle snapshots explicit
-  - `runLifecycleGuardReplay()` still keeps the pre-init `runAnchorReplay()` and `exit()` rejection plus double `init()` and post-init retarget rejection explicit in the review packet
+  - `runRetargetReplay("do_sys_openat2")` still keeps the default symbol `kernel_clone`, rejects an empty retarget request, reaches the initialized stage with one `init()` run, and rejects post-init retargeting
+  - `runAnchorReplay()` still moves the sample from initialized to replay_complete while recording the skipped-kernel-thread path, one `i64`-sized private timestamp record, return value `42`, duration `75 ns`, `nmissed = 1`, and `maxactiveBudget() = 20`
+  - `runOwnershipReplay()` still keeps the lifecycle snapshots `cold -> initialized -> armed -> replay_complete -> exited` explicit, with the outstanding entry timestamp armed only for the armed snapshot and cleared before exit
+  - `runRecoveryReplay()` still keeps the armed-exit rejection, timestamp-order rejection at `199` after `200`, recovery at `260` for `60 ns`, and post-exit `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejections explicit
+  - `runLifecycleGuardReplay()` still keeps the pre-init `runAnchorReplay()` and `exit()` rejection, double `init()` rejection, post-init retarget rejection, and one-run initialized state explicit in the review packet
 - the focused `zigux/tests/phase5_kretprobe_example.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note now records the current survey-packet alignment pass while leaving that broader shared-build replay contract unchanged.
 
 ## Contributor refresh prompts for the landed sample
