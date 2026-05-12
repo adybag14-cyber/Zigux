@@ -1,7 +1,7 @@
 const std = @import("std");
 const virtio_net = @import("virtio_net");
 
-test "phase12 virtio net syntax lab keeps queue-topology, refill, and recovery exports reachable" {
+test "phase12 virtio net syntax lab keeps queue-topology, refill, recovery, and control sequencing exports reachable" {
     _ = virtio_net.ModuleDescriptor;
     _ = virtio_net.ProbeRequest;
     _ = virtio_net.ProbeSnapshot;
@@ -17,6 +17,7 @@ test "phase12 virtio net syntax lab keeps queue-topology, refill, and recovery e
     _ = virtio_net.RecoveryAction;
     _ = virtio_net.RecoverySummary;
     _ = virtio_net.RecoveryQueuePlan;
+    _ = virtio_net.ControlQueueSequencingSummary;
 
     var lab = virtio_net.VirtioNetProbeLab.init();
     const snapshot = lab.captureProbeSnapshot(.{
@@ -67,9 +68,53 @@ test "phase12 virtio net syntax lab keeps queue-topology, refill, and recovery e
     try std.testing.expectEqual(virtio_net.RecoveryAction.freeze, frozen.action);
     try std.testing.expect(frozen.receive_buffer_refill_required);
 
+    const sequencing = try lab.summarizeControlQueueSequencing();
+    try std.testing.expect(!sequencing.control_queue_present);
+    try std.testing.expectEqual(@as(?u16, null), sequencing.control_queue_index);
+    try std.testing.expect(!sequencing.restore_control_before_receive);
+    try std.testing.expect(!sequencing.restore_control_before_transmit);
+    try std.testing.expect(!sequencing.refill_after_control_restore);
+    try std.testing.expect(sequencing.runtime_control_commands_blocked);
+
     const restored = try lab.restoreAfterReset();
     try std.testing.expectEqual(virtio_net.RecoveryAction.restore, restored.action);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+}
+
+test "phase12 virtio net syntax lab keeps control queue restore separate from runtime commands" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 5000,
+        .existing_room_bytes = 0,
+        .headroom_bytes = 128,
+        .mergeable_rx_bufs = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const sequencing = try lab.summarizeControlQueueSequencing();
+    try std.testing.expect(sequencing.control_queue_present);
+    try std.testing.expectEqual(@as(?u16, 4), sequencing.control_queue_index);
+    try std.testing.expect(sequencing.restore_control_before_receive);
+    try std.testing.expect(sequencing.restore_control_before_transmit);
+    try std.testing.expect(sequencing.refill_after_control_restore);
+    try std.testing.expectEqual(@as(u16, 0), sequencing.recovery_generation);
+    try std.testing.expect(sequencing.runtime_control_commands_blocked);
 }
 
 test "phase12 virtio net syntax lab keeps mergeable path and recycled room distinct through refill and recovery" {
@@ -107,6 +152,9 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
     const mergeable = try mergeable_lab.recoveryQueuePlan();
     try std.testing.expect(mergeable.requires_receive_buffer_refill);
     try std.testing.expect(mergeable.requires_mergeable_buffer_refill);
+    const mergeable_sequence = try mergeable_lab.summarizeControlQueueSequencing();
+    try std.testing.expect(mergeable_sequence.control_queue_present);
+    try std.testing.expect(mergeable_sequence.refill_after_control_restore);
 
     var recycled_lab = virtio_net.VirtioNetProbeLab.init();
     _ = recycled_lab.captureProbeSnapshot(.{
@@ -142,4 +190,7 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
     const recycled = try recycled_lab.recoveryQueuePlan();
     try std.testing.expect(recycled.requires_receive_buffer_refill);
     try std.testing.expect(!recycled.requires_mergeable_buffer_refill);
+    const recycled_sequence = try recycled_lab.summarizeControlQueueSequencing();
+    try std.testing.expect(!recycled_sequence.control_queue_present);
+    try std.testing.expect(!recycled_sequence.refill_after_control_restore);
 }
