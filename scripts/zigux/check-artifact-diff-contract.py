@@ -70,6 +70,12 @@ EXPECTED_SELF_TEST_CASES = [
     "review_note_marker_round_trip",
     "review_note_owner_marker_drift",
     "review_note_marker_drift",
+    "cli_help_round_trip",
+    "cli_help_line_drift",
+    "cli_missing_argument_parser_round_trip",
+    "cli_missing_argument_parser_stderr_drift",
+    "cli_invalid_mode_parser_round_trip",
+    "cli_invalid_mode_parser_stderr_drift",
     "helper_summary_round_trip",
     "contract_summary_round_trip",
     "helper_summary_status_drift",
@@ -146,18 +152,17 @@ def run_error_contract_case(
             raise AssertionError(
                 f"attempt {attempt}: expected exit {expected_exit}, got {completed.returncode}: stdout={stdout_lines} stderr={stderr_lines}"
             )
-        if stdout_lines != expected_stdout_lines:
-            raise AssertionError(
-                f"attempt {attempt}: unexpected stdout lines: {stdout_lines}"
-            )
+        assert_output_lines(stdout_lines, expected_stdout_lines, f"attempt {attempt} parser")
         if not stderr_lines:
             raise AssertionError(
                 f"attempt {attempt}: expected parser stderr output, got none"
             )
-        if normalized_stderr != expected_stderr_normalized:
-            raise AssertionError(
-                f"attempt {attempt}: unexpected normalized parser stderr: expected {expected_stderr_normalized!r}, got {normalized_stderr!r}"
-            )
+        assert_parser_error_contract(
+            stdout_lines,
+            normalized_stderr,
+            expected_stderr_normalized=expected_stderr_normalized,
+            label=f"attempt {attempt} parser",
+        )
 
 
 def assert_contract_catalog_shape() -> None:
@@ -218,6 +223,59 @@ def helper_self_test_expected_lines() -> list[str]:
             "sha256_missing_both,invalid_mode_rejected"
         ),
     ]
+
+
+def expected_help_lines() -> list[str]:
+    return [
+        "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]",
+        "                        [expected] [actual]",
+        "",
+        "Compare two artifacts in a stable mode.",
+        "",
+        "positional arguments:",
+        "  expected",
+        "  actual",
+        "",
+        "options:",
+        "  -h, --help            show this help message and exit",
+        "  --mode {text,json,sha256}",
+        "  --self-test           Run built-in deterministic comparison checks.",
+    ]
+
+
+MISSING_ARGUMENT_ERROR_NORMALIZED = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
+    "are required unless --self-test is set"
+)
+
+INVALID_MODE_ERROR_NORMALIZED = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
+    "choice: 'yaml' (choose from text, json, sha256)"
+)
+
+
+def assert_output_lines(lines: list[str], expected_lines: list[str], label: str) -> None:
+    if lines != expected_lines:
+        raise AssertionError(
+            f"unexpected {label} lines: expected {expected_lines}, got {lines}"
+        )
+
+
+
+def assert_parser_error_contract(
+    stdout_lines: list[str],
+    normalized_stderr: str,
+    *,
+    expected_stderr_normalized: str,
+    label: str,
+) -> None:
+    assert_output_lines(stdout_lines, [], f"{label} stdout")
+    if normalized_stderr != expected_stderr_normalized:
+        raise AssertionError(
+            f"unexpected {label} stderr: expected {expected_stderr_normalized!r}, got {normalized_stderr!r}"
+        )
 
 
 def extract_output_value(lines: list[str], prefix: str) -> str:
@@ -335,6 +393,58 @@ def run_self_test() -> int:
         lambda: assert_review_note_markers("\n".join(REQUIRED_REVIEW_NOTE_MARKERS[:3] + REQUIRED_REVIEW_NOTE_MARKERS[4:])),
     )
     covered_cases.append("review_note_marker_drift")
+
+    assert_output_lines(expected_help_lines(), expected_help_lines(), "cli_help")
+    covered_cases.append("cli_help_round_trip")
+
+    bad_help_lines = expected_help_lines()
+    bad_help_lines[11] = "  --mode {text,json}"
+    expect_assertion(
+        "cli_help_line_drift",
+        lambda: assert_output_lines(bad_help_lines, expected_help_lines(), "cli_help"),
+    )
+    covered_cases.append("cli_help_line_drift")
+
+    assert_parser_error_contract(
+        [],
+        MISSING_ARGUMENT_ERROR_NORMALIZED,
+        expected_stderr_normalized=MISSING_ARGUMENT_ERROR_NORMALIZED,
+        label="cli_missing_argument_parser",
+    )
+    covered_cases.append("cli_missing_argument_parser_round_trip")
+
+    expect_assertion(
+        "cli_missing_argument_parser_stderr_drift",
+        lambda: assert_parser_error_contract(
+            [],
+            MISSING_ARGUMENT_ERROR_NORMALIZED.replace(
+                "unless --self-test is set",
+                "unless --self-test is passed",
+            ),
+            expected_stderr_normalized=MISSING_ARGUMENT_ERROR_NORMALIZED,
+            label="cli_missing_argument_parser",
+        ),
+    )
+    covered_cases.append("cli_missing_argument_parser_stderr_drift")
+
+    assert_parser_error_contract(
+        [],
+        INVALID_MODE_ERROR_NORMALIZED,
+        expected_stderr_normalized=INVALID_MODE_ERROR_NORMALIZED,
+        label="cli_invalid_mode_parser",
+    )
+    covered_cases.append("cli_invalid_mode_parser_round_trip")
+
+    expect_assertion(
+        "cli_invalid_mode_parser_stderr_drift",
+        lambda: assert_parser_error_contract(
+            [],
+            INVALID_MODE_ERROR_NORMALIZED.replace("choice", "option"),
+            expected_stderr_normalized=INVALID_MODE_ERROR_NORMALIZED,
+            label="cli_invalid_mode_parser",
+        ),
+    )
+    covered_cases.append("cli_invalid_mode_parser_stderr_drift")
 
     assert_helper_self_test_output(helper_self_test_expected_lines())
     covered_cases.append("helper_summary_round_trip")
@@ -514,21 +624,7 @@ def main() -> int:
     run_contract_case(
         ["-h"],
         0,
-        [
-            "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]",
-            "                        [expected] [actual]",
-            "",
-            "Compare two artifacts in a stable mode.",
-            "",
-            "positional arguments:",
-            "  expected",
-            "  actual",
-            "",
-            "options:",
-            "  -h, --help            show this help message and exit",
-            "  --mode {text,json,sha256}",
-            "  --self-test           Run built-in deterministic comparison checks.",
-        ],
+        expected_help_lines(),
         repeat_count=2,
     )
     covered_cases.append("cli_help_output")
@@ -538,7 +634,7 @@ def main() -> int:
         [],
         2,
         [],
-        expected_stderr_normalized="usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set",
+        expected_stderr_normalized=MISSING_ARGUMENT_ERROR_NORMALIZED,
         repeat_count=2,
     )
     covered_cases.append("cli_missing_required_args")
@@ -564,7 +660,7 @@ def main() -> int:
             ["--mode", "text", str(expected)],
             2,
             [],
-            expected_stderr_normalized="usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set",
+            expected_stderr_normalized=MISSING_ARGUMENT_ERROR_NORMALIZED,
             repeat_count=2,
         )
         covered_cases.append("cli_missing_actual_operand")
@@ -573,7 +669,7 @@ def main() -> int:
             ["--mode", "yaml", str(expected), str(actual)],
             2,
             [],
-            expected_stderr_normalized="usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: argument --mode: invalid choice: 'yaml' (choose from text, json, sha256)",
+            expected_stderr_normalized=INVALID_MODE_ERROR_NORMALIZED,
             repeat_count=2,
         )
         covered_cases.append("cli_invalid_mode")
