@@ -21,6 +21,7 @@ REQUIRED_MARKERS = [
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`\n* survey owner: `Validation and Perf Team`",
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+    "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
     "### `samples/zigux/test_fsmount.zig`",
     "* current C anchor: `samples/vfs/test-fsmount.c`",
     "* current replay path: `make M=samples/vfs`",
@@ -28,6 +29,7 @@ REQUIRED_MARKERS = [
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+    "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
     "### `Phase 4 perf thresholds`",
     "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
     "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
@@ -46,11 +48,13 @@ SELF_TEST_CASES = [
     "kprobe_wrapper_drift",
     "kprobe_owner_drift",
     "kprobe_rollback_owner_drift",
+    "kprobe_next_step_drift",
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
     "test_fsmount_validation_entrypoint_drift",
     "test_fsmount_rollback_owner_drift",
+    "test_fsmount_next_step_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
     "perf_limit_status_drift",
@@ -100,6 +104,7 @@ def build_fixture_text() -> str:
             "* survey owner: `Validation and Perf Team`",
             "* rollback owner: `Validation and Perf Team`",
             "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+            "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
             "### `samples/zigux/test_fsmount.zig`",
             "* current C anchor: `samples/vfs/test-fsmount.c`",
             "* current replay path: `make M=samples/vfs`",
@@ -108,6 +113,7 @@ def build_fixture_text() -> str:
             "* survey owner: `Validation and Perf Team`",
             "* rollback owner: `Validation and Perf Team`",
             "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+            "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
             "### `Phase 4 perf thresholds`",
             "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
             "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
@@ -236,6 +242,23 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a wider replay promotion beyond today's parked-gap packet",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("kprobe next-step drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
                 "samples/vfs/test-fsmount.c",
                 "samples/vfs/test-fsmount-drift.c",
             ),
@@ -314,6 +337,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount rollback-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the shared replay surface rather than reopening measurability wording alone",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount next-step drift case did not fail closed")
             return 1
         case_count += 1
 
