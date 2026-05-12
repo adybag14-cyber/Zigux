@@ -50,6 +50,8 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 1. keep the dedicated cmdline survey gate reviewable
 
 * `zigux/tests/phase7_cmdline_survey.zig`
+* `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all`
+* `make -C zigux phase7-cmdline-survey`
 
 2. keep the machine-readable review record explicit
 
@@ -75,7 +77,7 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 
 ## Current parity surface
 
-The current landed slice covers the bounded cmdline review packet under `lib/cmdline.zig`, the dedicated `zigux/tests/phase7_cmdline.zig` helper replay, the dedicated `zigux/tests/phase7_cmdline_survey.zig` survey gate, the committed `zigux/tests/phase7_cmdline_manifest.json` review record, and the committed serialized `next_arg()` edge fixtures under `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
+The current landed slice covers the bounded cmdline review packet under `lib/cmdline.zig`, the dedicated `zigux/tests/phase7_cmdline.zig` helper replay, the dedicated `zigux/tests/phase7_cmdline_survey.zig` survey gate, the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all` compile-check handoff, the committed `zigux/tests/phase7_cmdline_manifest.json` review record, and the committed serialized `next_arg()` edge fixtures under `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
 
 The current tests keep these packet edges explicit:
 
@@ -87,7 +89,7 @@ The current tests keep these packet edges explicit:
 * empty-input handling keeps `param` and `rest` borrowed from the caller slice
 * leading-whitespace handling keeps the Linux-style empty sentinel token
 * serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-* the dedicated survey gate, the committed manifest packet, the committed fixture packet, the shared validator-first packet, the parked make-wrapper alignment note, and the no-sample boundary note stay reviewable together instead of drifting into separate ad hoc reminders
+* the dedicated survey gate, the dedicated `phase7-cmdline-survey` compile-check replay, the committed manifest packet, the committed fixture packet, the shared validator-first packet, the parked make-wrapper alignment note, and the no-sample boundary note stay reviewable together instead of drifting into separate ad hoc reminders
 
 The helper entrypoints remain explicit:
 
@@ -109,6 +111,6 @@ This slice still does not yet claim:
 
 Keep this slice parked unless fresh repo inspection finds one concrete cmdline parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
 The earlier docs-root follow-through is now closed: current `master` already keeps the fuller Phase 5 no-cmdline-sample packet explicit from `Documentation/zigux/README.md`, including `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` beside the landed cmdline helper, survey, manifest, fixture, and shared build entrypoint.
-If the family reopens after that docs-root sync, prefer one tiny same-packet follow-through around the already-landed oversized-wrap replay, the `nextArg()` caller-slice ownership packet, the serialized edge fixtures, or another shared review-surface wording repair before widening into broader parsing policy or another lane.
+If the family reopens after that docs-root sync, prefer one tiny same-packet follow-through around the dedicated `phase7-cmdline-survey` compile-check replay, the already-landed oversized-wrap replay, the `nextArg()` caller-slice ownership packet, the serialized edge fixtures, or another shared review-surface wording repair before widening into broader parsing policy or another lane.
 
 ## Footer
