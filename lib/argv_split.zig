@@ -182,6 +182,13 @@ const whitespace_expected = [_][]const u8{
     "gamma",
 };
 
+const ascii_control_whitespace_expected = [_][]const u8{
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+};
+
 const blank_expected = [_][]const u8{};
 
 const leading_nul_expected = [_][]const u8{};
@@ -225,6 +232,10 @@ test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = " alpha  beta\tgamma\n",
         .expected = &whitespace_expected,
+    });
+    try expectFixture(.{
+        .input = "\ralpha\x0bbeta\x0cgamma\r\n\tdelta",
+        .expected = &ascii_control_whitespace_expected,
     });
     try expectFixture(.{
         .input = "  \t\n",
@@ -288,6 +299,22 @@ test "argvSplit zeroes copied whitespace separators across the tokenized buffer"
     try std.testing.expectEqualStrings("alpha", split.argv[0]);
     try std.testing.expectEqualStrings("beta", split.argv[1]);
     try std.testing.expectEqualStrings("gamma", split.argv[2]);
+}
+
+test "argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too" {
+    var split = try argvSplit(std.testing.allocator, "\ralpha\x0bbeta\x0cgamma\r\n\tdelta");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[0]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[11]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[17]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[18]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[19]);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("gamma", split.argv[2]);
+    try std.testing.expectEqualStrings("delta", split.argv[3]);
 }
 
 test "argvSplit preserves C-string termination for the final token and argv vector" {
