@@ -360,6 +360,38 @@ test "base64 reports exact destination-too-small errors" {
     try std.testing.expectEqual(@as(u8, 0xdd), decoded[0]);
 }
 
+test "base64 rejects non-canonical tail bits for padded and unpadded input" {
+    var out: [8]u8 = undefined;
+
+    const one_byte_padded = try decode(out[0..], "AQ==", true, .std);
+    try std.testing.expectEqual(@as(usize, 1), one_byte_padded);
+    try std.testing.expectEqualSlices(u8, &[_]u8{0x01}, out[0..one_byte_padded]);
+    try std.testing.expectEqual(@as(usize, 1), try bytes("AQ==", true, .std));
+    try std.testing.expectError(error.InvalidInput, bytes("AR==", true, .std));
+    try std.testing.expectError(error.InvalidInput, decode(out[0..], "AR==", true, .std));
+
+    const one_byte_unpadded = try decode(out[0..], "AQ", false, .std);
+    try std.testing.expectEqual(@as(usize, 1), one_byte_unpadded);
+    try std.testing.expectEqualSlices(u8, &[_]u8{0x01}, out[0..one_byte_unpadded]);
+    try std.testing.expectEqual(@as(usize, 1), try bytes("AQ", false, .std));
+    try std.testing.expectError(error.InvalidInput, bytes("AR", false, .std));
+    try std.testing.expectError(error.InvalidInput, decode(out[0..], "AR", false, .std));
+
+    const two_byte_padded = try decode(out[0..], "aGk=", true, .std);
+    try std.testing.expectEqual(@as(usize, 2), two_byte_padded);
+    try std.testing.expectEqualStrings("hi", out[0..two_byte_padded]);
+    try std.testing.expectEqual(@as(usize, 2), try bytes("aGk=", true, .std));
+    try std.testing.expectError(error.InvalidInput, bytes("aGl=", true, .std));
+    try std.testing.expectError(error.InvalidInput, decode(out[0..], "aGl=", true, .std));
+
+    const two_byte_unpadded = try decode(out[0..], "aGk", false, .std);
+    try std.testing.expectEqual(@as(usize, 2), two_byte_unpadded);
+    try std.testing.expectEqualStrings("hi", out[0..two_byte_unpadded]);
+    try std.testing.expectEqual(@as(usize, 2), try bytes("aGk", false, .std));
+    try std.testing.expectError(error.InvalidInput, bytes("aGl", false, .std));
+    try std.testing.expectError(error.InvalidInput, decode(out[0..], "aGl", false, .std));
+}
+
 test "base64 rejects malformed tails and variant drift through bytes and decode" {
     var out: [8]u8 = undefined;
     try std.testing.expectError(error.InvalidInput, bytes("A", false, .std));
