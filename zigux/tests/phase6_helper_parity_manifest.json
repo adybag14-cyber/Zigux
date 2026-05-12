@@ -1,10 +1,18 @@
 {
   "phase": "Phase 6",
   "tranche": "leaf-helper-parity",
+  "status": "parked",
+  "roadmap_anchors": [
+    "lib/base64.c",
+    "lib/bsearch.c",
+    "lib/checksum.c",
+    "lib/hexdump.c"
+  ],
   "surveyed_commit": "663d05b",
   "helpers": [
     {
       "id": "base64",
+      "roadmap_anchor": "lib/base64.c",
       "helper": "lib/base64.zig",
       "tests": [
         "zigux/tests/phase6_base64.zig",
@@ -20,6 +28,7 @@
     },
     {
       "id": "bsearch",
+      "roadmap_anchor": "lib/bsearch.c",
       "helper": "lib/bsearch.zig",
       "tests": [
         "zigux/tests/phase6_bsearch.zig",
@@ -30,6 +39,7 @@
     },
     {
       "id": "checksum",
+      "roadmap_anchor": "lib/checksum.c",
       "helper": "lib/checksum.zig",
       "tests": [
         "zigux/tests/phase6_checksum.zig",
@@ -45,6 +55,7 @@
     },
     {
       "id": "hexdump",
+      "roadmap_anchor": "lib/hexdump.c",
       "helper": "lib/hexdump.zig",
       "tests": [
         "zigux/tests/phase6_hexdump.zig",
