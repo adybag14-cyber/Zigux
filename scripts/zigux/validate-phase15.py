@@ -109,8 +109,15 @@ TESTS_README_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 15 governance packet",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_readiness_gate.zig",
@@ -347,6 +354,43 @@ def run_self_test() -> int:
             [],
             [f"docs_readme:{missing_docs_test_marker}"],
             "docs_test_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        checklist_rel = "Documentation/zigux/review-checklist.md"
+        checklist_text = _read(root, checklist_rel)
+        missing_checklist_lane_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+        _write(root, checklist_rel, checklist_text.replace(missing_checklist_lane_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"review_checklist:{missing_checklist_lane_marker}"],
+            "review_checklist_lane_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        checklist_text = _read(root, checklist_rel)
+        missing_handoff_manifest_marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+        _write(root, checklist_rel, checklist_text.replace(missing_handoff_manifest_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"review_checklist:{missing_handoff_manifest_marker}"],
+            "review_checklist_handoff_manifest_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        checklist_text = _read(root, checklist_rel)
+        missing_readiness_manifest_marker = "zigux/tests/phase15_readiness_gate_manifest.json"
+        _write(root, checklist_rel, checklist_text.replace(missing_readiness_manifest_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"review_checklist:{missing_readiness_manifest_marker}"],
+            "review_checklist_readiness_manifest_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
