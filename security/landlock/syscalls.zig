@@ -250,6 +250,18 @@ test "landlock restrict-self planning accepts no-new-privs callers" {
     try std.testing.expectEqual(@as(u32, 0), plan.handled_flags);
 }
 
+test "landlock restrict-self planning accepts CAP_SYS_ADMIN override callers" {
+    const plan = try SyscallsHelperLab.planRestrictSelf(.{
+        .ruleset_fd = 11,
+        .caller_has_cap_sys_admin = true,
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expectEqual(@as(i32, 11), plan.ruleset_fd);
+    try std.testing.expectEqual(CredentialGate.cap_sys_admin_override, plan.credential_gate);
+    try std.testing.expectEqual(@as(u32, 0), plan.handled_flags);
+}
+
 test "landlock add-rule planning keeps write-fd and path handoff explicit" {
     const plan = try SyscallsHelperLab.planAddRule(.{
         .ruleset_fd = 9,
@@ -266,6 +278,24 @@ test "landlock add-rule planning keeps write-fd and path handoff explicit" {
     try std.testing.expectEqual(@as(u64, 0x7), plan.handled_access);
     try std.testing.expectEqual(@as(u64, 0x3), plan.requested_access);
     try std.testing.expectEqual(@as(i32, 42), plan.parent_fd);
+}
+
+test "landlock add-rule planning keeps net-port handoff explicit" {
+    const plan = try SyscallsHelperLab.planAddRule(.{
+        .ruleset_fd = 13,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_net_port,
+        .handled_access_net = 0x30,
+        .net_allowed_access = 0x10,
+        .port = 443,
+    });
+
+    try std.testing.expectEqual(AddRuleAction.net_port, plan.action);
+    try std.testing.expect(plan.requires_ruleset_write_access);
+    try std.testing.expect(!plan.requires_path_lookup);
+    try std.testing.expectEqual(@as(u64, 0x30), plan.handled_access);
+    try std.testing.expectEqual(@as(u64, 0x10), plan.requested_access);
+    try std.testing.expectEqual(@as(?u16, 443), plan.port);
 }
 
 test "landlock ruleset release planning rejects missing file or ruleset state" {
