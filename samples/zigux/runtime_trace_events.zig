@@ -69,6 +69,7 @@ pub const RuntimeTraceEventsSummary = struct {
     total_events: usize,
     last_main_emitted_events: ?usize,
     last_fn_emitted_events: ?usize,
+    last_main_conditional_event_count: ?usize,
     init_runs: usize,
     selftest_runs: usize,
     exit_runs: usize,
@@ -107,6 +108,7 @@ pub const RuntimeTraceEventsSample = struct {
     total_events: usize = 0,
     last_main_emitted_events: ?usize = null,
     last_fn_emitted_events: ?usize = null,
+    last_main_conditional_event_count: ?usize = null,
     init_runs: usize = 0,
     selftest_runs: usize = 0,
     exit_runs: usize = 0,
@@ -146,6 +148,7 @@ pub const RuntimeTraceEventsSample = struct {
             .total_events = self.total_events,
             .last_main_emitted_events = self.last_main_emitted_events,
             .last_fn_emitted_events = self.last_fn_emitted_events,
+            .last_main_conditional_event_count = self.last_main_conditional_event_count,
             .init_runs = self.init_runs,
             .selftest_runs = self.selftest_runs,
             .exit_runs = self.exit_runs,
@@ -191,6 +194,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.total_events = 0;
         self.last_main_emitted_events = null;
         self.last_fn_emitted_events = null;
+        self.last_main_conditional_event_count = null;
         self.last_main_count = -1;
         self.last_fn_count = -1;
         self.saw_vararg_payload = false;
@@ -237,11 +241,15 @@ pub const RuntimeTraceEventsSample = struct {
         return if (@mod(count, 8) == 0) "prints other times" else null;
     }
 
+    fn mainThreadConditionalEventCountForCount(count: i32) usize {
+        var conditional_events: usize = 0;
+        if (conditionalMessageForCount(count) != null) conditional_events += 1;
+        if (templateConditionalMessageForCount(count) != null) conditional_events += 1;
+        return conditional_events;
+    }
+
     fn mainThreadEventCountForCount(count: i32) usize {
-        var emitted: usize = 4;
-        if (conditionalMessageForCount(count) != null) emitted += 1;
-        if (templateConditionalMessageForCount(count) != null) emitted += 1;
-        return emitted;
+        return 4 + mainThreadConditionalEventCountForCount(count);
     }
 
     pub fn emitMainIteration(self: *Self, count: i32) !usize {
@@ -249,6 +257,7 @@ pub const RuntimeTraceEventsSample = struct {
 
         const conditional_message = conditionalMessageForCount(count);
         const template_cond_message = templateConditionalMessageForCount(count);
+        const conditional_events = mainThreadConditionalEventCountForCount(count);
         const emitted_events = mainThreadEventCountForCount(count);
 
         self.main_iterations += 1;
@@ -271,6 +280,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.main_thread_events += emitted_events;
         self.total_events += emitted_events;
         self.last_main_emitted_events = emitted_events;
+        self.last_main_conditional_event_count = conditional_events;
         return emitted_events;
     }
 
@@ -341,6 +351,7 @@ test "count-gated main-thread replay matches the Linux sample conditions" {
     try std.testing.expectEqual(@as(usize, 4), replay.total_events);
     try std.testing.expectEqual(@as(?usize, 4), replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), replay.last_main_conditional_event_count);
     try std.testing.expect(!replay.saw_conditional_path);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_conditional_message);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_template_cond_message);
@@ -359,6 +370,7 @@ test "selftest path still records both conditional families at count zero" {
     const replay = module.summary();
     try std.testing.expectEqual(@as(?usize, 6), replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), replay.last_main_conditional_event_count);
     try std.testing.expect(replay.saw_conditional_path);
     try std.testing.expectEqualStrings("Some times print", replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -407,6 +419,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(i32, -1), initialized_summary.last_fn_count);
     try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_main_conditional_event_count);
 
     _ = try module.emitMainIteration(7);
     try module.registerFunctionThread();
@@ -438,6 +451,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(usize, 20), selftest_complete_summary.total_events);
     try std.testing.expectEqual(@as(?usize, 4), selftest_complete_summary.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), selftest_complete_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), selftest_complete_summary.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), selftest_complete_summary.exit_runs);
@@ -466,6 +480,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
     try std.testing.expectEqual(selftest_complete_summary.last_main_emitted_events, exited_summary.last_main_emitted_events);
     try std.testing.expectEqual(selftest_complete_summary.last_fn_emitted_events, exited_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(selftest_complete_summary.last_main_conditional_event_count, exited_summary.last_main_conditional_event_count);
     try std.testing.expectEqual(selftest_complete_summary.last_main_count, exited_summary.last_main_count);
     try std.testing.expectEqual(selftest_complete_summary.last_fn_count, exited_summary.last_fn_count);
     try std.testing.expectEqualStrings(selftest_complete_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload, exited_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -502,6 +517,7 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);
     try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
@@ -536,6 +552,7 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_conditional_event_count, after_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
