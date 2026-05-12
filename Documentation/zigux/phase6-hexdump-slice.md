@@ -12,6 +12,7 @@
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
+- `lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface, including mixed-case decode, malformed-input rejection, and lowercase re-encode checks
 - the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
 - a dedicated hexdump-only build step now reruns the focused helper replay while the helper-local perf gate keeps its threshold matrix preflight beside the ReleaseSafe slowdown replay
 - the preserved grouped-ASCII ceiling rationale now stays helper-local through `Documentation/zigux/phase6-hexdump-perf-refresh.md`, so any reopen must keep that note aligned with the same hexdump-owned review packet instead of handing it back to a shared Phase 6 perf lane
@@ -24,4 +25,4 @@
 - the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract
 
 ## Next Step
-Leave this slice parked unless a fresh hexdump packet reread shows drift across the helper-local serialized `length_cases` packet, the focused helper replay, or the exact four-case perf packet. If it reopens, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test` first, then keep the repair to one same-packet surface only.
+Leave this slice parked unless a fresh hexdump packet reread shows drift across the helper-local serialized `length_cases` packet, the focused helper replay, the exact four-case perf packet, or the newly landed same-file hex conversion helpers. If it reopens, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test` first, then keep the repair to one same-packet surface only.
