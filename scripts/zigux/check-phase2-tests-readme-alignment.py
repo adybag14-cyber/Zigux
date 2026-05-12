@@ -151,6 +151,12 @@ FORBIDDEN_FILE_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-mk-elfconfig-diff.py",
+    ],
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "scripts/zigux/check-kconfig-bridge.py",
