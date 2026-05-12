@@ -37,6 +37,13 @@ test "phase 9 runtime bitmap module gate keeps the shipped sample and loader pac
     );
     defer std.testing.allocator.free(runtime_bitmap_top_bit);
 
+    const runtime_bitmap_diff = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_bitmap_diff.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_diff);
+
     const module_slice = try readRepoFileAlloc(
         std.testing.allocator,
         "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
@@ -70,16 +77,27 @@ test "phase 9 runtime bitmap module gate keeps the shipped sample and loader pac
     try expectContains(runtime_bitmap_top_bit, "test \"runtime bitmap top-bit contract keeps the highest valid bit explicit\"");
     try expectContains(runtime_bitmap_top_bit, "test \"runtime bitmap top-bit contract keeps exit-path lifecycle parity explicit\"");
 
+    try expectContains(runtime_bitmap_diff, "test \"runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations\"");
+    try expectContains(runtime_bitmap_diff, "test \"runtime bitmap diff gate keeps copy parity and cleared tail semantics explicit\"");
+
     try expectContains(module_slice, "`samples/zigux/runtime_bitmap.zig`");
     try expectContains(module_slice, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(module_slice, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
+    try expectContains(module_slice, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
+    try expectContains(module_slice, "`zigux/tests/runtime_bitmap_manifest.json`");
+    try expectContains(module_slice, "`zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`");
+    try expectContains(module_slice, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(module_slice, "The live runtime substrate is still missing");
 
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_module.zig\")");
+    try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_diff.zig\")");
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_survey.zig\")");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
 }
