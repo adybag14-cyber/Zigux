@@ -38,7 +38,7 @@
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "starter_recovery_summary_present_runtime_execution_missing",
-      "current_surface": "The current starter proves bounded transport-reset recovery planning and event-buffer ownership reviewability without claiming live reset execution, host-scan runtime work, or measured throughput behavior.",
+      "current_surface": "The current starter proves bounded transport-reset recovery planning, event-buffer ownership, and host-scan restore-order reviewability without claiming live reset execution, host-scan runtime work, or measured throughput behavior.",
       "blocked_by": "No throughput benchmark, no runtime reset replay, and no transport-backed host-scan execution are landed yet."
     },
     "segmented_rollout": {
@@ -124,7 +124,7 @@
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded io-map and recovery summaries through captureIoQueueMapSummary(), recoveryQueuePlan(), recoveryIoQueueMapSummary(), and recoveryEventBufferOwnershipSummary() without claiming runtime queue execution."
+      "why_now": "Current master now carries bounded io-map and recovery summaries through captureIoQueueMapSummary(), recoveryQueuePlan(), recoveryIoQueueMapSummary(), recoveryEventBufferOwnershipSummary(), and recoveryHostScanSummary() without claiming runtime queue execution."
     },
     {
       "id": "phase12-virtio-scsi-runtime-request-flow",
