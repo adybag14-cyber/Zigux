@@ -19,6 +19,7 @@ REQUIRED_FILES = [
 ]
 
 DOCS_ROOT_MARKERS = [
+    "while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
     "`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.",
 ]
 
@@ -170,10 +171,26 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        (root / "Documentation/zigux/README.md").write_text("", encoding="utf-8")
+        (root / "Documentation/zigux/README.md").writeText("", encoding="utf-8")
         missing = collect_missing_markers(root)
         assert (
+            "docs_root:while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
+            in missing
+        )
+        assert (
             "docs_root:`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "docs_root:while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
             in missing
         )
         case_count += 1
