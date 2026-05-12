@@ -57,6 +57,8 @@ REVIEW_CHECKLIST_MARKERS = [
 CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
+    "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
+    "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
@@ -66,6 +68,11 @@ CLOSURE_EXACT_MARKERS = [
     (
         "phase1_closure_installer_checker_anchor",
         "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        1,
+    ),
+    (
+        "phase1_closure_installer_companion_checker_anchor",
+        "- `scripts/zigux/check-phase1-installer-companion-checks.py`",
         1,
     ),
 ]
@@ -252,7 +259,35 @@ def run_self_test() -> int:
         expect(
             validate_root(root),
             "phase1_closure_installer_checker_anchor:expected=1:actual=0",
+            "phase1_closure_installer_companion_checker_anchor:expected=1:actual=0",
             "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0",
+        )
+        build_self_test_root(root)
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        write_text(
+            closure_path,
+            closure_text.replace("- `scripts/zigux/check-phase1-installer-companion-checks.py`\n", "", 1),
+        )
+        expect(
+            validate_root(root),
+            "phase1_closure_installer_companion_checker_anchor:expected=1:actual=0",
+        )
+        build_self_test_root(root)
+
+        closure_text = closure_path.read_text(encoding="utf-8")
+        write_text(
+            closure_path,
+            closure_text.replace(
+                "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`\n",
+                "",
+                1,
+            ),
+        )
+        expect(
+            validate_root(root),
+            "phase1_closure_installer_packet:- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected>=1:actual=0",
         )
         build_self_test_root(root)
 
