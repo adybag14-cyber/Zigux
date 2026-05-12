@@ -58,12 +58,17 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 
 Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay recorded as the remaining repo-reality gaps rather than shared proof.
 
-The DesignWare watchdog lane is still parked on a planning checkpoint beside that shared route:
+The DesignWare watchdog lane now keeps its landed bounded evidence explicit beside that shared route:
 
 * `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-dw-wdt-survey.md`
+* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 * `scripts/zigux/check-phase11-dw-wdt-packet.py`
+* `zigux/tests/phase11_dw_wdt_manifest.json`
+* `zigux/tests/phase11_dw_wdt_survey.zig`
 
-Treat that plan note together with the dedicated packet checker as the current DesignWare lane evidence on `master`: they keep the next bounded platform-registration scaffold explicit while the repository still does not materialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `drivers/watchdog/dw_wdt_verify.zig`.
+Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the current DesignWare lane evidence on `master`: they keep the landed starter, registration-order scaffold, survey gate, teardown-parity replay, and matrix-backed review packet explicit while the next bounded step remains the later platform-registration scaffold rather than live platform-backed execution.
 
 The shared header-boundary evidence also stays explicit beside that shared route:
 
@@ -83,4 +88,4 @@ The remaining bcm2835 and gpio watchdog evidence stays with the corresponding pa
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the parked DesignWare planning note, and the shared header-boundary evidence remain aligned with live `master`.
+Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the landed DesignWare packet, and the shared header-boundary evidence remain aligned with live `master`.
