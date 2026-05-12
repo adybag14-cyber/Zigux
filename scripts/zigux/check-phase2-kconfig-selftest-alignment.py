@@ -38,6 +38,8 @@ CLOSURE_VALIDATOR_MARKERS = (
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-phase2.py",
     "run: python3 scripts/zigux/validate-phase2-closure.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 )
@@ -46,6 +48,8 @@ MAKEFILE_LINES = (
     "phase2-kconfig: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 )
@@ -296,9 +300,16 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, MAKEFILE)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), MAKEFILE_LINES[0], "phase2-kconfig:"), encoding="utf-8")
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                MAKEFILE_LINES[3],
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test",
+            ),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
-        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[0]) in issues
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[3]) in issues
         checks_run += 1
 
         build_self_test_root(root)
