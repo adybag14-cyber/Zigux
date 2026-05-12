@@ -13,6 +13,8 @@ NEXT_STEP_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.
 README_PATH = Path("scripts/zigux/README.md")
 
 REQUIRED_FILES = (
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
@@ -36,12 +38,16 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
 )
 
 SLICE_NOTE_MARKERS = (
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/linux/zigux.h",
@@ -62,6 +68,7 @@ SLICE_NOTE_MARKERS = (
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -87,9 +94,12 @@ NEXT_STEP_NOTE_MARKERS = (
 )
 
 README_MARKERS = (
+    "validate-phase3-export-uapi-survey.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-validator-support-surface.py",
     "validate-phase3-abi-bindings-syntax.py",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/version.zig",
@@ -176,6 +186,24 @@ def run_self_test() -> int:
         if expected_slice_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing slice marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(
+            root / SLICE_NOTE_PATH,
+            _read(root / SLICE_NOTE_PATH).replace(
+                "Documentation/zigux/phase3-export-uapi-boundary-survey.md\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_export_uapi_marker = (
+            "missing slice marker: Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+        )
+        if expected_export_uapi_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing export-uapi slice marker was not reported")
             return 1
         case_count += 1
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
