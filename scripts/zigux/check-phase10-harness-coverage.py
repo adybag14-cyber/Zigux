@@ -80,6 +80,8 @@ DOC_README_MARKERS = [
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
     "`drivers/virtio/virtio_ring.zig`",
+    "`drivers/virtio/virtio_ring_verify.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`zigux/tests/phase10_virtio_ring_manifest.json`",
     "`make -C zigux phase10-validate`",
     "`make -C zigux phase10-test`",
@@ -464,6 +466,36 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_ring_verify.zig`",
+                "`drivers/virtio/virtio_ring_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_ring_verify_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio_ring_verify.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_ring_reset_reuse_entry",
+            root,
+            "doc_readme:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -644,7 +676,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
