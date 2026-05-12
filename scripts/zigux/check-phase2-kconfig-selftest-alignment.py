@@ -24,8 +24,8 @@ VALIDATOR_MARKERS = (
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19",
 )
 VALIDATOR_EXACT_COUNTS = {
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 1,
+    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 2,
+    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19": 1,
 }
 
@@ -184,7 +184,15 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(VALIDATOR_MARKERS) + "\n")
+    validator_lines = [
+        VALIDATOR_MARKERS[0],
+        VALIDATOR_MARKERS[1],
+        VALIDATOR_MARKERS[1],
+        VALIDATOR_MARKERS[2],
+        VALIDATOR_MARKERS[2],
+        VALIDATOR_MARKERS[3],
+    ]
+    write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
@@ -256,7 +264,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "DUPLICATE_VALIDATOR_MARKERS",
-            f'{VALIDATOR_MARKERS[1]}:count=2:expected=1',
+            f'{VALIDATOR_MARKERS[1]}:count=3:expected=2',
         ) in issues
         checks_run += 1
 
