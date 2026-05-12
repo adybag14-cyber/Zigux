@@ -63,10 +63,13 @@ test "phase4 perf baseline survey keeps the bitmap companion and pending promoti
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
 }
 
-test "phase4 perf baseline survey keeps coordination owners, both wrapper routes, and bitmap limits explicit" {
+test "phase4 perf baseline survey keeps coordination owners, the dedicated survey wrapper, both surface wrappers, and bitmap limits explicit" {
     try requireMarker("\"coordination_owners\": [");
     try requireMarker("\"ABI and Runtime Team\"");
     try requireMarker("\"Shared Subsystems Pod\"");
+    try requireMarker(
+        "\"dedicated_local_survey_wrapper\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"",
+    );
     try requireMarkerCount(
         "\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"",
         2,
