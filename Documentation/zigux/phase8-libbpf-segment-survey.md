@@ -15,17 +15,17 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 That plan only stays reviewable if the repo's public survey surfaces truthfully describe what is actually present on `master`.
 
 ## Current public-tree readback
-Public default-branch exact readback on 2026-05-11 showed:
+Public default-branch exact readback on 2026-05-12 still showed:
 - `Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.
 - `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet through `phase8_cpu_mask.zig`, `phase8_logging.zig`, `phase8_pin_path.zig`, `phase8_bpf_type_names.zig`, `phase8_file_path_handle_bridge.zig`, `phase8_perf_buffer_poll.zig`, `phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/verify.zig`.
-- targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`, so the pin-path shard should stay framed as a mixed review-surface split rather than a removed helper packet.
+- same-day mixed authenticated readback still shows targeted readable helper blobs include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`, so the pin-path shard should stay framed as a mixed review-surface split rather than a removed helper packet.
 - the manifest-backed bridge packet still keeps the roadmap boundary explicit: `fdinfo-map-info-helpers` and `map-reuse-compatibility` are already landed inside `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, while the broader `file-path-and-handle-bridge` resource boundary stays deferred.
-- authenticated contents reads remain inconsistent for some paired Phase 8 docs and tests paths from this environment, so exact readable blob content and public tree evidence should outweigh older absent-file assumptions when choosing the next bounded step.
+- authenticated contents reads remain inconsistent for some paired Phase 8 docs and helper paths from this environment, so exact readable blob content and public tree evidence should outweigh older absent-file assumptions when choosing the next bounded step.
 
 ## Current bounded gap
 The real current gap is still reviewability truthfulness, not a helper-behavior claim.
 
-The survey had been overstating the pin-path readback by naming `tools/lib/bpf/zigux_segments/pin_path.zig` as directly readable from this environment. Current Phase 8 evidence is narrower and mixed: the shared build plus tests-root shard still show the helper-first pin-path packet is present on `master`, but the paired docs-plus-source note and helper blob remain unreadable through the authenticated contents route used here. This survey should keep that split explicit without collapsing back into the heavier deferred bridge or routing work.
+Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed: the shared build plus tests-root shard still show the helper-first pin-path packet is present on `master`, but the paired docs-plus-source note and helper blob remain unreadable through the authenticated contents route used here. This survey should keep that split explicit without collapsing back into the heavier deferred bridge or routing work.
 
 ## Non-goals
 This survey does not claim:
