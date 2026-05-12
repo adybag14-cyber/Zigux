@@ -70,6 +70,9 @@ DOCS_README_MARKERS = [
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
@@ -241,7 +244,7 @@ def _baseline_docs_readme() -> str:
     return "\n".join(
         (
             "# Zigux Documentation",
-            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `zigux/tests/phase15_build.zig` - `make -C zigux phase15-validate` - `make -C zigux phase15-test` - `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, and stay-in-C governance packet reviewable through the shipped validator-first route, the shared build replay, and the full Linux-style Phase 15 lane instead of widening into ad hoc deep-core status claims.",
+            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `Documentation/zigux/phase15-readiness-gate-survey.md` - `Documentation/zigux/phase15-handoff-next-steps-survey.md` - `Documentation/zigux/phase15-governance-lane-sequencing.md` - `zigux/tests/phase15_build.zig` - `make -C zigux phase15-validate` - `make -C zigux phase15-test` - `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, the parked readiness-gate survey, the parked handoff-next-steps survey, the governance-lane owner map, and the stay-in-C governance packet reviewable through the shipped validator-first route, the shared build replay, and the full Linux-style Phase 15 lane instead of widening into ad hoc deep-core status claims.",
             "- the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.",
             "",
         )
@@ -354,6 +357,42 @@ def run_self_test() -> int:
             [],
             [f"docs_readme:{missing_docs_test_marker}"],
             "docs_test_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        missing_docs_readiness_marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
+        _write(root, docs_rel, docs_text.replace(missing_docs_readiness_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"docs_readme:{missing_docs_readiness_marker}"],
+            "docs_readiness_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        missing_docs_handoff_marker = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
+        _write(root, docs_rel, docs_text.replace(missing_docs_handoff_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"docs_readme:{missing_docs_handoff_marker}"],
+            "docs_handoff_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        missing_docs_lane_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+        _write(root, docs_rel, docs_text.replace(missing_docs_lane_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"docs_readme:{missing_docs_lane_marker}"],
+            "docs_lane_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
