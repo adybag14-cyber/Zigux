@@ -26,6 +26,18 @@
     "blocked_deliverable": "loadable Phase 9 runtime kretprobe pilot module parity",
     "next_gate": "keep the loader scaffold and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan"
   },
+  "rollback_boundary_summary": {
+    "release_without_substrate_path": "samples/zigux/runtime_kretprobe_loader.zig",
+    "release_without_substrate_api": "releaseSharedWithoutSubstrate",
+    "release_without_substrate_state": "released_without_substrate",
+    "failed_exit_state_retained_until_drain": true,
+    "maxactive_overflow_retained_until_drain": true,
+    "live_registration_surfaces": [
+      "register_kretprobe",
+      "unregister_kretprobe"
+    ],
+    "blocked_parity_status": "review_only_until_runtime_substrate"
+  },
   "gaps": [
     {
       "id": "runtime-kretprobe-loader-plan",
