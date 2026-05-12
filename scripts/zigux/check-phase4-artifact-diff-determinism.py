@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 ARTIFACT_DIFF_CONTRACT = ROOT / "scripts" / "zigux" / "check-artifact-diff-contract.py"
 ARTIFACT_DIFF_NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
+ARTIFACT_DIFF_TOOLING_SURVEY = (
+    ROOT / "Documentation" / "zigux" / "phase4-artifact-diff-tooling-survey.md"
+)
 DOCS_ROOT_NOTE = ROOT / "Documentation" / "zigux" / "README.md"
 SCRIPTS_ROOT_NOTE = ROOT / "scripts" / "zigux" / "README.md"
 
@@ -89,6 +92,8 @@ EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "phase4_use_marker_round_trip",
     "phase4_use_marker_drift",
+    "survey_note_marker_round_trip",
+    "survey_note_marker_drift",
     "review_note_marker_round_trip",
     "review_note_marker_drift",
     "docs_root_marker_round_trip",
@@ -110,6 +115,15 @@ REQUIRED_PHASE4_USE_MARKERS = [
     "- `scripts/zigux/artifact_diff.py` stays the shared host-side comparison helper behind the committed artifact-check packets.",
     "- `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-actual-operand, and invalid-mode parser coverage plus the text, JSON, SHA-256, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.",
     "- `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.",
+]
+REQUIRED_SURVEY_NOTE_MARKERS = [
+    "- `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`",
+    "- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=21`",
 ]
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
@@ -238,6 +252,16 @@ def run_self_test() -> int:
         lambda: assert_markers(REQUIRED_PHASE4_USE_MARKERS[0], REQUIRED_PHASE4_USE_MARKERS, "phase4_use"),
     )
     covered_cases.append("phase4_use_marker_drift")
+
+    survey_note_text = "\n".join(REQUIRED_SURVEY_NOTE_MARKERS)
+    assert_markers(survey_note_text, REQUIRED_SURVEY_NOTE_MARKERS, "survey_note")
+    covered_cases.append("survey_note_marker_round_trip")
+
+    expect_assertion(
+        "survey_note_marker_drift",
+        lambda: assert_markers(REQUIRED_SURVEY_NOTE_MARKERS[0], REQUIRED_SURVEY_NOTE_MARKERS, "survey_note"),
+    )
+    covered_cases.append("survey_note_marker_drift")
 
     review_note_text = "\n".join(REQUIRED_REVIEW_NOTE_MARKERS)
     assert_markers(review_note_text, REQUIRED_REVIEW_NOTE_MARKERS, "review_note")
@@ -420,6 +444,9 @@ def main() -> int:
     note_text = ARTIFACT_DIFF_NOTE.read_text(encoding="utf-8")
     assert_markers(note_text, REQUIRED_PHASE4_USE_MARKERS, "phase4_use")
     assert_markers(note_text, REQUIRED_REVIEW_NOTE_MARKERS, "review_note")
+
+    survey_note_text = ARTIFACT_DIFF_TOOLING_SURVEY.read_text(encoding="utf-8")
+    assert_markers(survey_note_text, REQUIRED_SURVEY_NOTE_MARKERS, "survey_note")
 
     docs_root_text = DOCS_ROOT_NOTE.read_text(encoding="utf-8")
     assert_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "docs_root")
