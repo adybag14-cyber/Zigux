@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 * `PHASE7_STATUS=parked`
 * `PHASE7_SLICE=cmdline-runtime-leaf`
-* `PHASE7_LANE_KEY=P7-Y06`
+* `PHASE7_LANE_KEY=P7-L05`
 * scope: first low-risk runtime-safe parsing helpers only
 * lane state: the slice note, dedicated test, dedicated survey, and committed manifest packet remain visible on current `master`, but direct current reads no longer prove `lib/cmdline.zig` or `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`; treat the cmdline packet as review-drifted until that helper-plus-fixture pair is restored or the remaining packet surfaces are rewritten to a blocked posture
 * product boundary:
@@ -102,6 +102,7 @@ Current `master` does not presently expose the full helper packet:
 
 That means the dedicated survey and dedicated helper test still describe the intended bounded packet, but they do not currently prove a replayable cmdline helper lane on their own.
 The survey source still names the missing fixture module, and the survey body still reads `lib/cmdline.zig`, so the surviving review surfaces should be treated as drifted until the missing helper-plus-fixture pair returns or the surrounding packet is rewritten to a blocked posture.
+Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep cmdline-local restoration or blocked-posture rewrites under `P7-L05` instead of reusing the shared sequencing lane.
 
 The surviving review text and tests still document these intended packet edges:
 
@@ -138,6 +139,6 @@ Stay in this cmdline lane and do one of two bounded things on a fresh `master` b
 * restore `lib/cmdline.zig` together with `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` so the surviving dedicated test, survey, manifest, and shared Phase 7 routes become replayable again
 * or, if that helper-plus-fixture pair is not meant to ship on current `master`, rewrite the remaining cmdline-local review packet so it explicitly records the blocked state instead of reading like a fully landed helper slice
 
-Do not widen this follow-through into broader Phase 7 helper-family cleanup until the cmdline-local helper-versus-review drift is settled.
+Shared helper-lane coordination now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; do not reuse `P7-Y06` for cmdline-local follow-through.
 
 ## Footer
