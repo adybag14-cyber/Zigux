@@ -6,8 +6,8 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L20`
-- `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
+- `PHASE5_LANE_KEY=P5-L24`
+- `PHASE5_SURVEYED_COMMIT=beb1065024e41b266c1492d7be5a446c04e42368`
 - scope: roadmap-vs-repo sample delivery, approved payload, callback, and ownership-lifetime idiom guidance, and exact bounded checks for the first `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -121,7 +121,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux trace-events sample
-   - `rg -n "samples/trace_events/trace-events-sample.c|PHASE5_LANE_KEY=P5-L20|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5" Documentation/zigux samples/zigux zigux/tests`
+   - `rg -n "samples/trace_events/trace-events-sample.c|PHASE5_LANE_KEY=P5-L24|PHASE5_SURVEYED_COMMIT=beb1065024e41b266c1492d7be5a446c04e42368|Phase 5" Documentation/zigux samples/zigux zigux/tests`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 trace-events lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "trace_events_sample|runtime_trace_events"`
 3. run the exact bounded Phase 5 sample checks
