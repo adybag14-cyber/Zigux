@@ -127,7 +127,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
 
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-11", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -180,7 +180,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L04");
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(governance_note, "current-master-readback-2026-05-11");
+    try expectContains(governance_note, "current-master-readback-2026-05-12");
     try expectContains(governance_note, "previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` no longer matched current `master`");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
