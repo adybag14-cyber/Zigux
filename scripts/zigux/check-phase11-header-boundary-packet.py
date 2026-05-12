@@ -93,7 +93,23 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
+    "layout_assert.assertAlign(WatchdogInfo, 4);",
+    'layout_assert.assertFieldType(WatchdogInfo, "options", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "firmware_version", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "identity", [32]u8);',
+    'layout_assert.assertOffset(WatchdogInfo, "options", 0);',
+    'layout_assert.assertOffset(WatchdogInfo, "firmware_version", 4);',
+    'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
     "layout_assert.assertSize(WinSize, 8);",
+    "layout_assert.assertAlign(WinSize, 2);",
+    'layout_assert.assertFieldType(WinSize, "ws_row", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_col", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
+    'layout_assert.assertOffset(WinSize, "ws_row", 0);',
+    'layout_assert.assertOffset(WinSize, "ws_col", 2);',
+    'layout_assert.assertOffset(WinSize, "ws_xpixel", 4);',
+    'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     "layout_assert.assertSize(HvOps, 72);",
     "layout_assert.assertAlign(HvOps, 8);",
     'layout_assert.assertOffset(HvOps, "get_chars", 0);',
@@ -291,6 +307,20 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
+            'layout_assert.assertOffset(WatchdogInfo, "identity", 12);',
+            "survey missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
+            'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
+            "survey missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
             'layout_assert.assertOffset(HvOps, "notifier_hangup", 44);',
             "survey missing markers",
@@ -338,7 +368,7 @@ def run_self_test() -> int:
             "zigux_destination mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=9")
+    print("phase11-header-boundary-packet: self-test cases=11")
     return 0
 
 
