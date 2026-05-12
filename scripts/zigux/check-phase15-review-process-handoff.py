@@ -14,6 +14,8 @@ POLICY_PATH = "Documentation/zigux/phase15-indefinite-c-policy.md"
 MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 LANE_NOTE_PATH = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"
+DOCS_README_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 
@@ -52,13 +54,33 @@ LANE_NOTE_MARKERS = (
     "zigux/tests/README.md",
 )
 
-VALIDATOR_MARKERS = (
-    "scripts/zigux/check-phase15-review-process-handoff.py",
+VALIDATOR_MARKERS = ("scripts/zigux/check-phase15-review-process-handoff.py",)
+
+DOCS_README_MARKERS = (
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15",
+    "no Architecture Council approval is recorded yet",
+    "named reopen trigger",
+    "deep-core blocker-posture change",
 )
 
-SCRIPTS_README_MARKERS = (
-    "check-phase15-review-process-handoff.py",
+REVIEW_CHECKLIST_MARKERS = (
+    "Architecture Council decision",
+    "parity scorecard evidence or blocker state explicit",
+    "Architecture Council review record linked",
+    "current status bucket plus requested decision bucket explicit",
+    "decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit",
+    "retained discussion state, the current blocker, and reopen triggers explicit",
 )
+
+SCRIPTS_README_MARKERS = ("check-phase15-review-process-handoff.py",)
 
 TESTS_README_PACKET_MARKERS = (
     "Documentation/zigux/freeze-map.md",
@@ -189,6 +211,8 @@ def validate(root: Path) -> list[str]:
         MANIFEST_PATH,
         LANE_NOTE_PATH,
         VALIDATOR_PATH,
+        DOCS_README_PATH,
+        REVIEW_CHECKLIST_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
     )
@@ -202,6 +226,8 @@ def validate(root: Path) -> list[str]:
     _require_text_markers(_read(root / POLICY_PATH), POLICY_MARKERS, "policy", issues)
     _require_text_markers(_read(root / LANE_NOTE_PATH), LANE_NOTE_MARKERS, "lane_note", issues)
     _require_text_markers(_read(root / VALIDATOR_PATH), VALIDATOR_MARKERS, "validator", issues)
+    _require_text_markers(_read(root / DOCS_README_PATH), DOCS_README_MARKERS, "docs_readme", issues)
+    _require_text_markers(_read(root / REVIEW_CHECKLIST_PATH), REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
     _require_text_markers(_read(root / SCRIPTS_README_PATH), SCRIPTS_README_MARKERS, "scripts_readme", issues)
     _require_text_markers(_read(root / TESTS_README_PATH), TESTS_README_PACKET_MARKERS, "tests_readme", issues)
 
@@ -262,30 +288,12 @@ def validate(root: Path) -> list[str]:
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(
-        root / NOTE_PATH,
-        "\n".join(
-            (
-                "# Phase 15 Architecture Council Review Process Survey",
-                "## Trigger Conditions",
-                "## Required Review Packet",
-                "## Decision Buckets",
-                "## Reopen Trigger Catalog",
-                "no Architecture Council approval is currently recorded for a freeze-map status change",
-                "Keep the Phase 15 governance lane in maintenance mode.",
-                "Documentation/zigux/phase15-readiness-gate-survey.md",
-                "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-                "Documentation/zigux/phase15-governance-lane-sequencing.md",
-                "## Next bounded step",
-                "shared-summaries",
-                "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
-            )
-        )
-        + "\n",
-    )
+    _write(root / NOTE_PATH, "\n".join(NOTE_MARKERS) + "\n")
     _write(root / POLICY_PATH, "\n".join(POLICY_MARKERS) + "\n")
     _write(root / LANE_NOTE_PATH, "\n".join(LANE_NOTE_MARKERS) + "\n")
     _write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_MARKERS) + "\n")
+    _write(root / DOCS_README_PATH, "\n".join(DOCS_README_MARKERS) + "\n")
+    _write(root / REVIEW_CHECKLIST_PATH, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / TESTS_README_PATH, "\n".join(TESTS_README_PACKET_MARKERS) + "\n")
     _write(
@@ -326,45 +334,46 @@ def run_self_test() -> int:
         case_count += 1
 
         note_path = root / NOTE_PATH
-        note_text = _read(note_path)
-        _write(note_path, note_text.replace("## Decision Buckets\n", "", 1))
+        _write(note_path, _read(note_path).replace("## Decision Buckets\n", "", 1))
         _assert_only(validate(root), ["note:missing:## Decision Buckets"], "missing_note_marker")
         _seed_fixture_tree(root)
         case_count += 1
 
+        docs_readme_path = root / DOCS_README_PATH
+        _write(
+            docs_readme_path,
+            _read(docs_readme_path).replace("Documentation/zigux/phase15-readiness-gate-survey.md\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:Documentation/zigux/phase15-readiness-gate-survey.md"],
+            "missing_docs_readme_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        _write(
+            review_checklist_path,
+            _read(review_checklist_path).replace("Architecture Council review record linked\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:Architecture Council review record linked"],
+            "missing_review_checklist_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         tests_readme_path = root / TESTS_README_PATH
-        tests_readme_text = _read(tests_readme_path)
-        _write(tests_readme_path, tests_readme_text.replace("Documentation/zigux/freeze-map.md\n", "", 1))
+        _write(
+            tests_readme_path,
+            _read(tests_readme_path).replace("Documentation/zigux/freeze-map.md\n", "", 1),
+        )
         _assert_only(
             validate(root),
             ["tests_readme:missing:Documentation/zigux/freeze-map.md"],
-            "missing_tests_freeze_map",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        tests_readme_text = _read(root / TESTS_README_PATH)
-        _write(
-            root / TESTS_README_PATH,
-            tests_readme_text.replace("Documentation/zigux/phase15-freeze-map-governance.md\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["tests_readme:missing:Documentation/zigux/phase15-freeze-map-governance.md"],
-            "missing_tests_freeze_governance",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        tests_readme_text = _read(root / TESTS_README_PATH)
-        _write(
-            root / TESTS_README_PATH,
-            tests_readme_text.replace("Documentation/zigux/phase15-parity-scorecard.md\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["tests_readme:missing:Documentation/zigux/phase15-parity-scorecard.md"],
-            "missing_tests_parity_scorecard",
+            "missing_tests_readme_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -391,11 +400,22 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
-        (root / TESTS_README_PATH).unlink()
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace("Documentation/zigux/review-checklist.md ", "", 1)
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
             validate(root),
-            [f"missing_file:{TESTS_README_PATH}"],
-            "missing_tests_file",
+            ["manifest_handoff_next_step:missing:Documentation/zigux/review-checklist.md"],
+            "missing_handoff_review_checklist_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        (root / REVIEW_CHECKLIST_PATH).unlink()
+        _assert_only(
+            validate(root),
+            [f"missing_file:{REVIEW_CHECKLIST_PATH}"],
+            "missing_review_checklist_file",
         )
         case_count += 1
 
@@ -427,7 +447,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS)}"
+        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS)}"
     )
     return 0
 
