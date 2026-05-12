@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 REQUIRED_FILES = {
+    "helper_source": "lib/hexdump.zig",
     "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
     "catalog": "Documentation/zigux/phase6-helper-parity-catalog.md",
     "perf_survey": "Documentation/zigux/phase6-perf-gate-survey.md",
@@ -20,6 +21,17 @@ REQUIRED_FILES = {
     "perf_matrix_test": "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "fixtures": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
 }
+
+HELPER_SOURCE_MARKERS = [
+    "pub const HexError = error{",
+    "pub fn hexDumpLineLength(",
+    "pub fn hexDumpToBuffer(",
+    "if (len == 0) {",
+    "linebuf[0] = 0;",
+    "fn normalizedRowsize(rowsize_input: usize) usize {",
+    "fn normalizedGroupsize(len: usize, groupsize_input: usize) usize {",
+    'test "hexdump grouped plain output stays exact at full and truncated buffer capacity" {',
+]
 
 SLICE_NOTE_MARKERS = [
     "`PHASE6_SLICE=hexdump-leaf-helper`",
@@ -116,11 +128,11 @@ PERF_MATRIX_MARKERS = [
     '.label = "32B-ascii-g2"',
     '.label = "16B-ascii-g4"',
     '.label = "16B-ascii-g8"',
-    'return error.HexdumpPerfMatrixMismatch;',
+    "return error.HexdumpPerfMatrixMismatch;",
     'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 18
 
 
 class CheckError(RuntimeError):
@@ -141,6 +153,7 @@ def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
 
 
 def run_check(root: Path) -> None:
+    expect_markers(REQUIRED_FILES["helper_source"], read_text(root, REQUIRED_FILES["helper_source"]), HELPER_SOURCE_MARKERS)
     expect_markers(REQUIRED_FILES["slice_note"], read_text(root, REQUIRED_FILES["slice_note"]), SLICE_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["catalog"], read_text(root, REQUIRED_FILES["catalog"]), CATALOG_MARKERS)
     expect_markers(REQUIRED_FILES["perf_survey"], read_text(root, REQUIRED_FILES["perf_survey"]), PERF_SURVEY_MARKERS)
@@ -159,6 +172,7 @@ def write(path: Path, text: str) -> None:
 
 
 def build_self_test_fixture(root: Path) -> None:
+    write(root / REQUIRED_FILES["helper_source"], "\n".join(HELPER_SOURCE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["catalog"], "\n".join(CATALOG_MARKERS) + "\n")
     write(root / REQUIRED_FILES["perf_survey"], "\n".join(PERF_SURVEY_MARKERS) + "\n")
@@ -187,23 +201,48 @@ def run_self_test() -> None:
         build_self_test_fixture(tmpdir)
         run_check(tmpdir)
 
+        helper_source = tmpdir / REQUIRED_FILES["helper_source"]
+        helper_source.write_text(
+            helper_source.read_text(encoding="utf-8").replace("pub fn hexDumpToBuffer(\n", ""),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "pub fn hexDumpToBuffer(")
+
+        build_self_test_fixture(tmpdir)
+        helper_source = tmpdir / REQUIRED_FILES["helper_source"]
+        helper_source.unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["helper_source"])
+
+        build_self_test_fixture(tmpdir)
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
-        slice_note.write_text(slice_note.read_text(encoding="utf-8").replace("`make -C zigux phase6-hexdump-review`\n", ""), encoding="utf-8")
+        slice_note.write_text(
+            slice_note.read_text(encoding="utf-8").replace("`make -C zigux phase6-hexdump-review`\n", ""),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, "`make -C zigux phase6-hexdump-review`")
 
         build_self_test_fixture(tmpdir)
         catalog = tmpdir / REQUIRED_FILES["catalog"]
-        catalog.write_text(catalog.read_text(encoding="utf-8").replace("`python3 scripts/zigux/check-phase6-hexdump-packet.py`\n", ""), encoding="utf-8")
+        catalog.write_text(
+            catalog.read_text(encoding="utf-8").replace("`python3 scripts/zigux/check-phase6-hexdump-packet.py`\n", ""),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, "`python3 scripts/zigux/check-phase6-hexdump-packet.py`")
 
         build_self_test_fixture(tmpdir)
         perf_survey = tmpdir / REQUIRED_FILES["perf_survey"]
-        perf_survey.write_text(perf_survey.read_text(encoding="utf-8").replace("`PYTHON ?= python3` and `ZIG ?= zig`", "`PYTHON` only"), encoding="utf-8")
+        perf_survey.write_text(
+            perf_survey.read_text(encoding="utf-8").replace("`PYTHON ?= python3` and `ZIG ?= zig`", "`PYTHON` only"),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, "`PYTHON ?= python3` and `ZIG ?= zig`")
 
         build_self_test_fixture(tmpdir)
         manifest = tmpdir / REQUIRED_FILES["manifest"]
-        manifest.write_text(manifest.read_text(encoding="utf-8").replace('"make -C zigux phase6-hexdump-review"\n', ""), encoding="utf-8")
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace('"make -C zigux phase6-hexdump-review"\n', ""),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, '"make -C zigux phase6-hexdump-review"')
 
         build_self_test_fixture(tmpdir)
@@ -216,12 +255,21 @@ def run_self_test() -> None:
 
         build_self_test_fixture(tmpdir)
         build_file = tmpdir / REQUIRED_FILES["build_file"]
-        build_file.write_text(build_file.read_text(encoding="utf-8").replace("phase6-hexdump-perf", "phase6-hexdump-perf-missing", 1), encoding="utf-8")
+        build_file.write_text(
+            build_file.read_text(encoding="utf-8").replace("phase6-hexdump-perf", "phase6-hexdump-perf-missing", 1),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, "phase6-hexdump-perf")
 
         build_self_test_fixture(tmpdir)
         makefile = tmpdir / REQUIRED_FILES["makefile"]
-        makefile.write_text(makefile.read_text(encoding="utf-8").replace("$(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py", "$(PYTHON) scripts/zigux/check-phase6-hexdump-review.py"), encoding="utf-8")
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "$(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
+                "$(PYTHON) scripts/zigux/check-phase6-hexdump-review.py",
+            ),
+            encoding="utf-8",
+        )
         expect_failure(tmpdir, "scripts/zigux/check-phase6-hexdump-packet.py")
 
         build_self_test_fixture(tmpdir)
@@ -244,8 +292,8 @@ def run_self_test() -> None:
         perf_test = tmpdir / REQUIRED_FILES["perf_test"]
         perf_test.write_text(
             perf_test.read_text(encoding="utf-8").replace(
-                'PHASE6_HEXDUMP_PERF_CASE_COUNT',
-                'PHASE6_HEXDUMP_PERF_CASE_TOTAL',
+                "PHASE6_HEXDUMP_PERF_CASE_COUNT",
+                "PHASE6_HEXDUMP_PERF_CASE_TOTAL",
                 1,
             ),
             encoding="utf-8",
