@@ -474,7 +474,7 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
-        release_closure_checklist_path.writeText(
+        release_closure_checklist_path.write_text(
             release_closure_checklist_path.read_text(encoding="utf-8").replace(
                 RELEASE_CLOSURE_CHECKLIST_MARKERS[2], "", 1
             ),
