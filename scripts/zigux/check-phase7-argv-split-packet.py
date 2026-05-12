@@ -55,6 +55,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "there is no standalone `samples/zigux/*argv*` reference sample",
         "lib/argv_split.zig",
+        "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
@@ -256,6 +257,20 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/validate-phase7.py",
+            "",
+            "review_checklist_validate_phase7_marker",
+        )
+        expect_missing_marker(
+            "review_checklist_validate_phase7_marker",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: scripts/zigux/validate-phase7.py",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/review-checklist.md",
             "there is no standalone `samples/zigux/*argv*` reference sample",
             "",
             "review_checklist_no_sample_boundary_marker",
@@ -379,7 +394,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 10
+    case_count = 11
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
