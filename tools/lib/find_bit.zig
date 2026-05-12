@@ -47,13 +47,31 @@ fn bitIndex(idx: usize, value: Word, nbits: usize) usize {
     return if (bit < nbits) bit else nbits;
 }
 
+fn singleWordMask(nbits: usize, start: usize) Word {
+    std.debug.assert(nbits <= bits_per_long);
+    return firstWordMask(start) & lastWordMask(nbits);
+}
+
+fn singleWordBitIndex(value: Word, nbits: usize, start: usize) usize {
+    const masked = value & singleWordMask(nbits, start);
+    return if (masked != 0) bitIndex(0, masked, nbits) else nbits;
+}
+
 fn lastBitIndex(idx: usize, value: Word) usize {
     const bit = bits_per_long - 1 - @as(usize, @intCast(@clz(value)));
     return idx * bits_per_long + bit;
 }
 
 pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
+    if (nbits == 0) {
+        return 0;
+    }
+
     assertBitmapLen(addr, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(addr[0], nbits, 0);
+    }
 
     var idx: usize = 0;
     while (idx * bits_per_long < nbits) : (idx += 1) {
@@ -75,8 +93,16 @@ pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {
 }
 
 pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
+    if (nbits == 0) {
+        return 0;
+    }
+
     assertBitmapLen(addr1, nbits);
     assertBitmapLen(addr2, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(addr1[0] & addr2[0], nbits, 0);
+    }
 
     var idx: usize = 0;
     while (idx * bits_per_long < nbits) : (idx += 1) {
@@ -98,7 +124,15 @@ pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usiz
 }
 
 pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
+    if (nbits == 0) {
+        return 0;
+    }
+
     assertBitmapLen(addr, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(~addr[0], nbits, 0);
+    }
 
     var idx: usize = 0;
     while (idx * bits_per_long < nbits) : (idx += 1) {
@@ -125,6 +159,10 @@ pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     assertBitmapLen(addr, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(addr[0], nbits, start);
+    }
 
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, addr[idx], nbits) & firstWordMask(start);
@@ -156,6 +194,10 @@ pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, st
     assertBitmapLen(addr1, nbits);
     assertBitmapLen(addr2, nbits);
 
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(addr1[0] & addr2[0], nbits, start);
+    }
+
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, addr1[idx] & addr2[idx], nbits) & firstWordMask(start);
 
@@ -184,6 +226,10 @@ pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     assertBitmapLen(addr, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(~addr[0], nbits, start);
+    }
 
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, ~addr[idx], nbits) & firstWordMask(start);
@@ -342,6 +388,39 @@ test "single-word next scans honor start masks" {
     try std.testing.expectEqual(nbits, findNextBit(&set_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextZeroBit(&zero_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextAndBit(&and_lhs, &and_rhs, nbits, nbits));
+}
+
+test "single-word first scans clamp to the declared bit window" {
+    const nbits = 11;
+    const in_range_set = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << 13)};
+    const out_of_range_set = [_]Word{@as(Word, 1) << 13};
+    const in_range_zero = [_]Word{lastWordMask(nbits) & ~(@as(Word, 1) << 5)};
+    const out_of_range_zero = [_]Word{lastWordMask(nbits)};
+    const in_range_and_lhs = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 13)};
+    const in_range_and_rhs = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 13)};
+    const out_of_range_and = [_]Word{@as(Word, 1) << 13};
+
+    try std.testing.expectEqual(@as(usize, 2), findFirstBit(&in_range_set, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findFirstBit(&out_of_range_set, nbits));
+    try std.testing.expectEqual(@as(usize, 5), findFirstZeroBit(&in_range_zero, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findFirstZeroBit(&out_of_range_zero, nbits));
+    try std.testing.expectEqual(@as(usize, 4), findFirstAndBit(&in_range_and_lhs, &in_range_and_rhs, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findFirstAndBit(&out_of_range_and, &out_of_range_and, nbits));
+}
+
+test "single-word next scans clamp partial windows before returning nbits" {
+    const nbits = 11;
+    const set_map = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 13)};
+    const zero_map = [_]Word{lastWordMask(nbits) & ~(@as(Word, 1) << 7)};
+    const and_lhs = [_]Word{(@as(Word, 1) << 3) | (@as(Word, 1) << 8) | (@as(Word, 1) << 13)};
+    const and_rhs = [_]Word{(@as(Word, 1) << 3) | (@as(Word, 1) << 8) | (@as(Word, 1) << 13)};
+
+    try std.testing.expectEqual(@as(usize, 4), findNextBit(&set_map, nbits, 4));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_map, nbits, 5));
+    try std.testing.expectEqual(@as(usize, 7), findNextZeroBit(&zero_map, nbits, 7));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_map, nbits, 8));
+    try std.testing.expectEqual(@as(usize, 8), findNextAndBit(&and_lhs, &and_rhs, nbits, 4));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&and_lhs, &and_rhs, nbits, 9));
 }
 
 test "word-boundary next scans start fresh on the next word" {
