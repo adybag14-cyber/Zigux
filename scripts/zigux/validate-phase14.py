@@ -490,7 +490,7 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_makefile_release_boundary_route_gap_markers")
         print("SELF_TEST_MARKERS_START")
         for item in exact_line_missing:
-        print(item)
+            print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
