@@ -97,6 +97,18 @@ pub const RecoveryIoQueueMapSummary = struct {
     requires_poll_map_restore: bool,
 };
 
+pub const RecoveryEventBufferOwnershipSummary = struct {
+    anchor: []const u8,
+    event_queue_index: u16,
+    remembered_event_buffer_count: u16,
+    request_queue_count: u16,
+    poll_queue_count: u16,
+    event_buffers_reserved_for_event_queue: bool,
+    request_queues_can_borrow_event_buffers: bool,
+    requires_device_ready_before_event_rearm: bool,
+    requires_event_rearm_before_request_queue_reuse: bool,
+};
+
 pub const ProbeRequest = struct {
     num_queues: u16,
     requested_poll_queues: u16 = 0,
@@ -452,6 +464,25 @@ pub const VirtioScsiQueueLab = struct {
             .requires_blk_mq_map_restore = true,
             .requires_virtio_affinity_restore = layout.default_queues > 0,
             .requires_poll_map_restore = layout.poll_queues > 0,
+        };
+    }
+
+    pub fn recoveryEventBufferOwnershipSummary(self: *const Self) !RecoveryEventBufferOwnershipSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .event_queue_index = layout.event_queue_index,
+            .remembered_event_buffer_count = layout.event_buffer_count,
+            .request_queue_count = layout.request_queues,
+            .poll_queue_count = layout.poll_queues,
+            .event_buffers_reserved_for_event_queue = true,
+            .request_queues_can_borrow_event_buffers = false,
+            .requires_device_ready_before_event_rearm = true,
+            .requires_event_rearm_before_request_queue_reuse = true,
         };
     }
 
