@@ -126,6 +126,27 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
     try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));
 }
 
+test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
+    try requireMarker(
+        "\"reversible_delivery_evidence\": \"keep zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
+    );
+    try requireMarker(
+        "the dedicated local-only perf packet, the shared rollback-ownership matrix, the exact-readback note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
+    );
+    try requireMarker(
+        "current decision owner, coordination owners, approved local-only acceptable limits, and still-pending shared-CI promotion posture measurable and reversible on the current head.",
+    );
+}
+
+test "phase4 perf baseline survey keeps the bounded next step explicit" {
+    try requireMarker(
+        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/validate-phase4.py, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
+    );
+    try requireMarker(
+        "decision-owner, coordination-owner, acceptable-limit, and shared-CI-pending promotion markers; only widen beyond that packet if a later bounded Phase 4 lane intentionally approves broader shared CI perf coverage.",
+    );
+}
+
 test "phase4 perf baseline survey keeps the shared matrix perf-governance packet aligned" {
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
