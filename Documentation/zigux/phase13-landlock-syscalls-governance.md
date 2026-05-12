@@ -10,15 +10,15 @@ Current `master` materializes a small `security/landlock/syscalls.zig` helper st
 
 Current `master` still does not materialize direct helper-local companions such as:
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
-Keep those absent paths framed as repo-reality gaps until they actually land instead of treating this note or broader shared Phase 13 reminder surfaces as substitute proof that the helper-local replay packet already exists.
+Keep those absent paths framed as repo-reality gaps until they actually land instead of treating this note, the paired survey note, or broader shared Phase 13 reminder surfaces as substitute proof that the helper-local replay packet already exists.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md` for the direct helper-local roadmap survey tied to the current `security/landlock/syscalls.zig` starter
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` for the broader Phase 13 owner split and lane routing
 - `Documentation/zigux/phase13-contributor-workflow-guide.md` for the contributor-facing workflow packet
 - adjacent notifier evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/bindings/notifier_abi.zig`, and `include/zigux/abi.h`; if direct notifier companions such as `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, or `drivers/tty/hvc/hvc_console.h` are still absent on current `master`, keep them framed as repo-reality gaps rather than adjacent shipped evidence
@@ -27,6 +27,8 @@ Keep these neighboring surfaces distinct:
 
 When contributors touch the syscall-facing Landlock packet, keep this note aligned with:
 - `security/landlock/syscalls.zig`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -38,7 +40,7 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-The lane-local review surface on current `master` is still just `security/landlock/syscalls.zig` plus this governance note. Treat broader shared reminder surfaces as cross-packet routing aids, not as replacement proof that a dedicated syscall replay, reviewability gate, manifest, slice note, or survey note is already shipped.
+The lane-local review surface on current `master` is now `security/landlock/syscalls.zig` plus this governance note and the paired survey note. Treat broader shared reminder surfaces as cross-packet routing aids, not as replacement proof that a dedicated syscall replay, reviewability gate, manifest, or slice note is already shipped.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -51,6 +53,7 @@ Use this note to keep these boundaries explicit:
 - the shipped helper packet keeps the credential-gate split explicit through `CredentialGate.no_new_privs` and `CredentialGate.cap_sys_admin_override` while staying planning-only rather than mutating live credentials
 - the shipped add-rule packet keeps the `path_beneath` versus `net_port` split explicit through `AddRuleAction`, ruleset-write access validation, access-mask handling checks, and the distinct parent-fd versus port handoff cues
 - the shipped release-side helper packet is still bounded helper evidence: it keeps `fop_ruleset_release()`, `FMODE_CAN_READ`, `FMODE_CAN_WRITE`, and the shared `-EINVAL` read or write contract explicit without wiring real file operations or FD ownership
+- the paired survey note owns the current roadmap-gap readback for this same helper packet and should stay aligned with this note whenever the shipped helper surface changes
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
 
 Keep this packet parked unless a future lane can add another equally bounded planner.
@@ -58,11 +61,11 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 ## Review Prompts
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
-- the broad Phase 13 reminder surfaces keep this governance note explicit beside the ruleset-ownership note and the adjacent notifier evidence packet
+- the broad Phase 13 reminder surfaces keep this governance note explicit beside the paired survey note, the ruleset-ownership note, and the adjacent notifier evidence packet
 - no wording here implies extra shared replay steps beyond the shipped validator-first Phase 13 route
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - helper-owned wording still matches `SyscallsHelperLab.descriptor()`, including the bounded release-side `ruleset_fops` planning surface and the false live-state flags
 - helper-owned wording still keeps the `no_new_privs` versus `CAP_SYS_ADMIN` credential-gate split and the `path_beneath` versus `net_port` add-rule split explicit
 - helper-owned wording still frames the packet as planning-only helper work rather than live syscall enforcement
-- direct helper-local companions that are still absent on current `master` stay framed as repo-reality gaps instead of being implied to exist through this note or other shared reminder surfaces
+- direct helper-local companions that are still absent on current `master` stay framed as repo-reality gaps instead of being implied to exist through this note, the paired survey note, or other shared reminder surfaces
