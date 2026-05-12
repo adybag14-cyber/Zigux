@@ -255,11 +255,14 @@ static void run_string_section(void)
 	char trim_buf[] = " \thi \n";
 	char remove_buf[] = "a b c";
 	char replace_buf[] = "a-b";
+	char replace_cstr_buf[] = { 'a', '-', 0, '-', 'z' };
 	char *replace_end;
+	char *replace_cstr_end;
 	char *skip = skip_spaces("   hello");
 	char *trimmed = strim(trim_buf);
 	remove_spaces(remove_buf);
 	replace_end = strreplace(replace_buf, '-', '_');
+	replace_cstr_end = strreplace(replace_cstr_buf, '-', '_');
 	void *memchr_hit = memchr_inv("aaaaXaaa", 'a', 8);
 	void *memchr_none = memchr_inv("bbbb", 'b', 4);
  
@@ -280,6 +283,13 @@ static void run_string_section(void)
 	printf("\"remove_spaces\":\"%s\",", remove_buf);
 	printf("\"replace_char\":\"%s\",", replace_buf);
 	printf("\"replace_char_end\":%td,", (ptrdiff_t)(replace_end - replace_buf));
+	printf("\"replace_char_cstr_end\":%td,", (ptrdiff_t)(replace_cstr_end - replace_cstr_buf));
+	printf("\"replace_char_cstr_bytes\":[%u,%u,%u,%u,%u],",
+		(unsigned int)(unsigned char)replace_cstr_buf[0],
+		(unsigned int)(unsigned char)replace_cstr_buf[1],
+		(unsigned int)(unsigned char)replace_cstr_buf[2],
+		(unsigned int)(unsigned char)replace_cstr_buf[3],
+		(unsigned int)(unsigned char)replace_cstr_buf[4]);
 	printf("\"memchr_inv_index\":%td,", (ptrdiff_t)((const char *)memchr_hit - "aaaaXaaa"));
 	printf("\"memchr_inv_none\":%s", memchr_none ? "false" : "true");
 	printf("}");
