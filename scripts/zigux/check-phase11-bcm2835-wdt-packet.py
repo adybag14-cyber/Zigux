@@ -38,7 +38,7 @@ VALIDATION_MATRIX_MARKERS = [
     "phase11-bcm2835-wdt-verify-tests",
     "phase11-bcm2835-wdt-survey-tests",
     "drivers/watchdog/bcm2835_wdt_verify.zig",
-    "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`",
+    "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`",
 ]
 
 SHARED_CONTRACT_MARKERS = [
@@ -47,13 +47,13 @@ SHARED_CONTRACT_MARKERS = [
 ]
 
 CLOSURE_NOTE_MARKERS = [
-    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
-    "* no dedicated shared `validate-phase11.py` beyond the landed shared contract checker and the dedicated bcm2835, DesignWare, header-boundary, and HVC packet checkers",
+    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`,",
+    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
 ]
 
 LANE_NOTE_MARKERS = [
-    "- bcm2835 lane `P11-L03` owns `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
-    "- bcm2835 packet review owns `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper",
+    "- bcm2835 lane `P11-L08` owns `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -63,8 +63,10 @@ SCRIPTS_README_MARKERS = [
 ]
 
 DOCS_README_MARKERS = [
-    "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`",
-    "`Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet, including `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the dedicated `Documentation/zigux/phase11-hvc-console-survey.md` boundary beside the shared replay route.",
+    "Phase 11 notes",
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`",
+    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
 ]
 
 TESTS_README_MARKERS = [
@@ -209,7 +211,7 @@ def run_self_test() -> None:
         validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
         validation_matrix_path.write_text(
             validation_matrix_path.read_text(encoding="utf-8").replace(
-                "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`\n",
+                "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`\n",
                 "",
                 1,
             ),
@@ -217,7 +219,7 @@ def run_self_test() -> None:
         )
         expect_failure(
             tmpdir,
-            "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`",
+            "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`",
         )
 
         build_self_test_fixture(tmpdir)
@@ -236,13 +238,13 @@ def run_self_test() -> None:
         lane_note_path = tmpdir / REQUIRED_FILES["lane_note"]
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
-                "- bcm2835 packet review owns `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper\n",
+                "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "- bcm2835 packet review owns `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`")
+        expect_failure(tmpdir, "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`")
 
         build_self_test_fixture(tmpdir)
         tests_readme_path = tmpdir / REQUIRED_FILES["tests_readme"]
@@ -272,13 +274,13 @@ def run_self_test() -> None:
         docs_readme_path = tmpdir / REQUIRED_FILES["docs_readme"]
         docs_readme_path.write_text(
             docs_readme_path.read_text(encoding="utf-8").replace(
-                "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`\n",
+                "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`")
+        expect_failure(tmpdir, "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`")
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree((tmpdir / "drivers"), ignore_errors=True)
