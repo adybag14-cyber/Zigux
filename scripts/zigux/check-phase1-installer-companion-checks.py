@@ -247,6 +247,54 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_PHASE1_BLOCK_START,
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"review_checklist_phase1_block:missing_start:{REVIEW_CHECKLIST_PHASE1_BLOCK_START}"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_PHASE1_BLOCK_END,
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"review_checklist_phase1_block:missing_end:{REVIEW_CHECKLIST_PHASE1_BLOCK_END}"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0] + " " + REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"review_checklist_phase1_route_split:{REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0]}:expected=1:actual=2"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
         (root / "Documentation/zigux/README.md").write_text("", encoding="utf-8")
         missing = collect_missing_markers(root)
         assert (
