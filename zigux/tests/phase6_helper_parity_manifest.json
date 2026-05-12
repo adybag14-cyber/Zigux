@@ -35,7 +35,8 @@
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
       ],
-      "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"
+      "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+      "corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
     },
     {
       "id": "checksum",
