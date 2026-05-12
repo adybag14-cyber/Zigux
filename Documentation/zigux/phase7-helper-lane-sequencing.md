@@ -78,7 +78,7 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
 Fresh repo-first inspection shows four different helper states on current `master`.
 
 - `string_helpers` is parked in a blocker posture because `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are missing from the live tree even though the survey, manifest, and no-sample boundary packet remain visible.
-- `cmdline` is parked as a partial review packet because the slice note, dedicated test, dedicated survey, and manifest remain visible while direct current-path reads still do not prove `lib/cmdline.zig` or `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
+- `cmdline` is parked as a landed helper-local packet because the slice note, helper, dedicated test, dedicated survey, committed manifest packet, and committed `nextArg()` fixture remain visible on current `master` even while the broader shared `phase7_build.zig` replay stays parked behind the missing sibling string-helpers pair.
 - `argv_split` is parked as a landed helper-local packet with its helper, survey, manifest, and fixture module still visible.
 - `rbtree` is parked as a landed helper-local packet with its helper, survey, manifest, parity packet, and parity checker still visible.
 
@@ -92,7 +92,7 @@ The docs root now needs its own bounded backlog lane because `Documentation/zigu
 - Do not let helper-local slice notes reuse `P7-Y06`; helper-local notes must keep their own helper lane keys.
 - `P7-Y08` owns only `Documentation/zigux/README.md` truthfulness for the current Phase 7 tranche summary; it does not own helper-local slices, validators, Makefile routes, or `zigux/tests/phase7_build.zig`.
 - `P7-L04` owns only the bounded string-helpers truthfulness packet until the missing helper-plus-test pair is restored.
-- `P7-L05` owns only the cmdline helper packet: restore the helper-plus-fixture pair or rewrite the remaining cmdline-local review packet into an explicit blocked posture.
+- `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift; the helper and committed `nextArg()` fixture are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
 - `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.
 - `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.
 - `P7-Y05` owns only shared validator, make-wrapper, build-route, and shared reminder truthfulness.
