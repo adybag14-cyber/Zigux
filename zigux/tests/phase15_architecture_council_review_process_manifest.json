@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-11",
+  "surveyed_commit": "current-master-readback-2026-05-12",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -73,84 +73,84 @@
   "gaps": [
     {
       "id": "phase15-architecture-council-review-process-doc",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The roadmap names an Architecture Council review process, but the live repo lacked a reviewable process note that says when council review is required and what packet it must carry."
     },
     {
       "id": "phase15-architecture-council-review-process-manifest",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
       "why_now": "A dedicated manifest keeps the new governance slice explicit and machine-checkable instead of burying the scope inside prose."
     },
     {
       "id": "phase15-architecture-council-review-process-test",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
       "why_now": "The Phase 15 review-process note should stay runnable so future edits do not quietly drop required trigger, packet, or decision-bucket language."
     },
     {
       "id": "phase15-review-checklist-hook",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
       "why_now": "The live review checklist needed one explicit prompt that links freeze-map status-change requests back to the Architecture Council review record and decision bucket."
     },
     {
       "id": "phase15-build-gate-review-process",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_build.zig",
       "why_now": "The shared Phase 15 build gate should run the review-process test alongside the existing freeze-map governance test so the governance lane stays coherent."
     },
     {
       "id": "phase15-parity-scorecard-baseline",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The landed Phase 15 parity scorecard is now the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
     },
     {
       "id": "phase15-evidence-archive-followup",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The review-process packet now standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
     },
     {
       "id": "phase15-stay-in-c-retirement-rule",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The review-process note now records the retained `retired_from_active_discussion` closeout state and the reopen triggers that keep a stay-in-C outcome reviewable without implying approval."
     },
     {
       "id": "phase15-reopen-trigger-catalog-followup",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The review-process note now names the bounded reopen-trigger catalog so later exception records and scorecard updates reuse the same stay-in-C reopen vocabulary."
     },
     {
       "id": "phase15-review-packet-field-sync",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The shared checklist and freeze map already required the approver-set, rollback-threshold, and indefinite-C-policy fields, so the review-process note and its manifest needed a bounded sync to keep the Architecture Council packet truthful."
     },
     {
       "id": "phase15-tests-readme-validator-route-sync",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "zigux/tests/README.md",
       "why_now": "The broader Phase 15 tests-root reminder now keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes on current master, so this follow-through is closed unless repo reality drifts again."
     },
     {
       "id": "phase15-docs-readme-maintenance-note-undercount",
-      "status": "starter_landed",
+      "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/README.md",
       "why_now": "The compact Phase 15 docs-root reminder now keeps `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` explicit on current master, so this narrower docs-root maintenance follow-through is closed unless a new shared-summary drift appears."
