@@ -177,7 +177,6 @@ def run_self_test() -> None:
 
         for marker in MAKEFILE_MARKERS:
             make_fixture_root(root)
-            makefile.writeText = None
             makefile.write_text(
                 makefile.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
                 encoding="utf-8",
