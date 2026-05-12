@@ -3,6 +3,7 @@ const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
+const phase4_runtime_atomic64_diff_survey_source = @embedFile("phase4_runtime_atomic64_diff_survey.zig");
 const phase4_perf_baseline_manifest_source = @embedFile("phase4_perf_baseline_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
@@ -242,6 +243,23 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
 }
 
+test "atomic64 diff wrapper keeps the paired survey contract explicit" {
+    try expectOrderedMarkersInSection(
+        phase4_runtime_atomic64_diff_survey_source,
+        "test \"phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit\" {",
+        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper\" {",
+        &.{
+            "test \"phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit\" {",
+            "test \"phase 4 atomic64 survey keeps the current roadmap gap summary reviewable\" {",
+            "test \"phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit\" {",
+        },
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper\" {",
+    );
+}
+
 test "atomic64 diff wrapper keeps the current roadmap gap summary reviewable" {
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
@@ -352,6 +370,14 @@ test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
     try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
+    try expectMarker(
+        validate_phase4_source,
+        "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable",
+    );
+    try expectMarker(
+        validate_phase4_source,
+        "phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit",
+    );
     try expectMarker(validate_phase4_source, "run_phase4_runtime_atomic64_packet_check");
     try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
 }
@@ -485,32 +511,32 @@ test "atomic64 diff wrapper keeps its local-only perf-baseline governance explic
 test "atomic64 diff wrapper keeps the adjacent test_fsmount gap packet explicit" {
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_manifest.json",
-        "\"sample_path\": \"samples/zigux/test_fsmount.zig\"",
+        "\"c_anchor\": \"samples/vfs/test-fsmount.c\"",
         1,
     );
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_manifest.json",
-        "\"shared_gate_evidence_packet_present\": false",
+        "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"",
         1,
     );
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "phase4 test_fsmount gap manifest keeps the parked survey explicit",
+        "phase4 test_fsmount survey keeps the parked gap packet explicit",
         1,
     );
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "phase4 test_fsmount survey keeps threshold posture explicit",
         1,
     );
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "`samples/zigux/test_fsmount.zig` is still absent",
+        "phase4 test_fsmount survey keeps reversible-delivery evidence explicit",
         1,
     );
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "phase4 test_fsmount survey keeps the bounded next step explicit",
         1,
     );
 }
