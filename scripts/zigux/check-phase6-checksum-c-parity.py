@@ -18,60 +18,37 @@ FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vector
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
     [
-        "compute\tempty\t0xffff",
-        "compute\ttwo-byte word\t0xfffe",
-        "compute\todd payload\t0xd638",
-        "compute\tcarry-heavy payload\t0x80ff",
-        "ip-fast-csum\tipv4 header\t0x9c5d",
-        "partial\todd payload with saturated seed\t0x000029c7",
-        "partial\tcarry-heavy payload with unfolded seed\t0x00007f00",
-        "partial\tipv4 fragment with arbitrary seed\t0x00004d50",
+        "carry-discipline\tall-ones even payload with zero seed\t0x0000",
+        "carry-discipline\tall-ones odd payload with saturated seed\t0x00ff",
+        "carry-discipline\tsingle-byte no-carry seed stays one step below overflow\t0x0004",
+        "carry-discipline\ttwo-byte no-carry seed stays one step below overflow\t0x0404",
         "compose\teven split\t0x00000e7b",
         "compose\todd split\t0x00000e7b",
-        "tcpudp-nofold\tudp pseudo header\t0x000085e4",
-        "tcpudp-magic\tudp pseudo header\t0x7a1b",
-        "tcpudp-v6-nofold\tudp pseudo header v6\t0x0000c388",
-        "tcpudp-v6-magic\tudp pseudo header v6\t0x3c77",
-        "negate\tzero stays zero\t0x00000000",
-        "negate\tone negates to all ones\t0xffffffff",
-        "negate\tall ones negates to one\t0x00000001",
-        "negate\tmixed payload preserves ones complement carry\t0x21524110",
-        "from32to16\tzero\t0x0000",
-        "fold\tzero\t0xffff",
-        "from32to16\tsingle carry into the low word\t0x0001",
-        "fold\tsingle carry into the low word\t0xfffe",
-        "from32to16\tdouble carry collapse\t0x0001",
-        "fold\tdouble carry collapse\t0xfffe",
-        "from32to16\tall ones saturates to sixteen bits\t0xffff",
-        "fold\tall ones saturates to sixteen bits\t0x0000",
-        "from32to16\tmixed words preserve the remaining payload\t0x68ac",
-        "fold\tmixed words preserve the remaining payload\t0x9753",
-        "unfold\tzero\t0x00000000",
-        "unfold\tone\t0x00000001",
-        "unfold\tipv4 header checksum word\t0x00009c5d",
-        "unfold\tall ones\t0x0000ffff",
-        "add16\tsaturated plus one wraps with carry\t0x0001",
-        "add16\tsaturated plus zero stays saturated\t0xffff",
-        "add16\tsaturated plus saturated preserves ones complement\t0xffff",
-        "sub16\tzero minus one borrows across ones complement\t0xfffe",
-        "sub16\tsubtracting a prior addend recovers the original word\t0x1234",
+        "compute\tcarry-heavy payload\t0x80ff",
+        "compute\tempty\t0xffff",
+        "compute\tipv4 header\t0x9c5d",
+        "compute\todd payload\t0xd638",
+        "compute\ttwo-byte word\t0xfffe",
+        "partial\tcarry-heavy payload with unfolded seed\t0x00007f00",
+        "partial\tipv4 fragment with arbitrary seed\t0x00004d50",
+        "partial\todd payload with saturated seed\t0x000029c7",
         "replace\tpayload-word\t0xffffd8dd",
         "replace-by-diff\tipv4-total-length\t0x9c59",
         "replace2\tipv4-total-length\t0x9c59",
         "replace4\tipv4-saddr\t0x9c58",
+        "tcpudp-nofold\tudp pseudo header\t0x000085e4",
+        "tcpudpv6-nofold\ticmpv6 preserves upper declared length bits\t0x00007e10",
+        "tcpudpv6-nofold\ttcp carry payload even\t0x0000b842",
+        "tcpudpv6-nofold\tudp doc payload odd\t0x0000f876",
     ]
 )
 FIXTURE_COMPUTE_CASE_MARKER = "pub const compute_cases = [_]ComputeCase"
 FIXTURE_COMPOSITION_CASE_MARKER = "pub const composition_cases = [_]CompositionCase"
 FIXTURE_SEEDED_CASE_MARKER = "pub const seeded_cases = [_]SeededCase"
 FIXTURE_PSEUDO_HEADER_CASE_MARKER = "pub const pseudo_header_cases = [_]PseudoHeaderCase"
-FIXTURE_NEGATE_CASE_MARKER = "pub const negate_cases = [_]NegateCase"
-FIXTURE_FOLD_CASE_MARKER = "pub const fold_cases = [_]FoldCase"
-FIXTURE_ADD16_CASE_MARKER = "pub const add16_cases = [_]Add16Case"
-FIXTURE_SUB16_CASE_MARKER = "pub const sub16_cases = [_]Sub16Case"
+FIXTURE_IPV6_PSEUDO_HEADER_CASE_MARKER = "pub const ipv6_pseudo_header_cases = [_]Ipv6PseudoHeaderCase"
+FIXTURE_CARRY_DISCIPLINE_CASE_MARKER = "pub const carry_discipline_cases = [_]CarryDisciplineCase"
 FIXTURE_CASE_NAME_MARKER = ".name = "
-FIXED_IPV6_WRAPPER_CASE_COUNT = 2
-FIXED_UNFOLD_CASE_COUNT = 4
 FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT = 4
 
 
@@ -133,26 +110,23 @@ def expected_fixture_case_count(fixture_text: str) -> int:
     composition_cases = extract_named_case_count(fixture_text, FIXTURE_COMPOSITION_CASE_MARKER, "composition-cases")
     seeded_cases = extract_named_case_count(fixture_text, FIXTURE_SEEDED_CASE_MARKER, "seeded-cases")
     pseudo_header_cases = extract_named_case_count(fixture_text, FIXTURE_PSEUDO_HEADER_CASE_MARKER, "pseudo-header-cases")
-    negate_cases = extract_named_case_count(fixture_text, FIXTURE_NEGATE_CASE_MARKER, "negate-cases")
-    fold_cases = extract_named_case_count(fixture_text, FIXTURE_FOLD_CASE_MARKER, "fold-cases")
-    add16_cases = extract_named_case_count(fixture_text, FIXTURE_ADD16_CASE_MARKER, "add16-cases")
-    sub16_cases = extract_named_case_count(fixture_text, FIXTURE_SUB16_CASE_MARKER, "sub16-cases")
+    ipv6_pseudo_header_cases = extract_named_case_count(
+        fixture_text, FIXTURE_IPV6_PSEUDO_HEADER_CASE_MARKER, "ipv6-pseudo-header-cases"
+    )
+    carry_discipline_cases = extract_named_case_count(
+        fixture_text, FIXTURE_CARRY_DISCIPLINE_CASE_MARKER, "carry-discipline-cases"
+    )
 
     if compute_cases < 1:
         raise SystemExit("phase6-checksum-c-parity:compute-cases:expected_at_least_one_case")
 
     return (
-        (compute_cases - 1)
-        + 1
+        compute_cases
         + seeded_cases
         + composition_cases
-        + (pseudo_header_cases * 2)
-        + FIXED_IPV6_WRAPPER_CASE_COUNT
-        + negate_cases
-        + (fold_cases * 2)
-        + FIXED_UNFOLD_CASE_COUNT
-        + add16_cases
-        + sub16_cases
+        + pseudo_header_cases
+        + ipv6_pseudo_header_cases
+        + carry_discipline_cases
         + FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT
     )
 
@@ -302,32 +276,21 @@ def run_self_test() -> int:
         pub const pseudo_header_cases = [_]PseudoHeaderCase{
             .{ .name = "udp pseudo header" },
         };
-        pub const negate_cases = [_]NegateCase{
-            .{ .name = "zero stays zero" },
-            .{ .name = "one negates to all ones" },
-            .{ .name = "all ones negates to one" },
-            .{ .name = "mixed payload preserves ones complement carry" },
+        pub const ipv6_pseudo_header_cases = [_]Ipv6PseudoHeaderCase{
+            .{ .name = "udp doc payload odd" },
+            .{ .name = "tcp carry payload even" },
+            .{ .name = "icmpv6 preserves upper declared length bits" },
         };
-        pub const fold_cases = [_]FoldCase{
-            .{ .name = "zero" },
-            .{ .name = "single carry into the low word" },
-            .{ .name = "double carry collapse" },
-            .{ .name = "all ones saturates to sixteen bits" },
-            .{ .name = "mixed words preserve the remaining payload" },
-        };
-        pub const add16_cases = [_]Add16Case{
-            .{ .name = "saturated plus one wraps with carry" },
-            .{ .name = "saturated plus zero stays saturated" },
-            .{ .name = "saturated plus saturated preserves ones complement" },
-        };
-        pub const sub16_cases = [_]Sub16Case{
-            .{ .name = "zero minus one borrows across ones complement" },
-            .{ .name = "subtracting a prior addend recovers the original word" },
+        pub const carry_discipline_cases = [_]CarryDisciplineCase{
+            .{ .name = "all-ones odd payload with saturated seed" },
+            .{ .name = "all-ones even payload with zero seed" },
+            .{ .name = "single-byte no-carry seed stays one step below overflow" },
+            .{ .name = "two-byte no-carry seed stays one step below overflow" },
         };
         """
     )
     expected_case_count = expected_fixture_case_count(fixture_text)
-    assert_equal("expected_surface_case_count", expected_case_count, 41)
+    assert_equal("expected_surface_case_count", expected_case_count, 22)
     assert_equal(
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
