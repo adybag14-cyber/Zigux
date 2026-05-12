@@ -112,6 +112,22 @@ test "transaction release planning leaves the null-private-data no-op path expli
     try std.testing.expect(plan.returns_zero);
 }
 
+test "transaction publish planning validates response size and publish bookkeeping" {
+    const plan = try libfs.LibfsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit, true);
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.requested_response_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.transaction_limit);
+    try std.testing.expect(plan.requires_private_data);
+    try std.testing.expect(plan.publishes_after_barrier);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.published_response_size);
+
+    const empty = try libfs.LibfsHelperLab.simpleTransactionSetPlan(0, true);
+    try std.testing.expectEqual(@as(usize, 0), empty.published_response_size);
+
+    try std.testing.expectError(error.InputTooLarge, libfs.LibfsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1, true));
+    try std.testing.expectError(error.MissingPrivateData, libfs.LibfsHelperLab.simpleTransactionSetPlan(8, false));
+}
+
 test "offset rename planning keeps managed destinations and sentinel rejection explicit" {
     const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_min + 7);
     const missing_destination = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, null);
@@ -155,20 +171,25 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 }
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L01\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L02\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-inode-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
+    try expectContains(manifest_text, "\"status\": \"ready_next\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
     try expectContains(manifest_text, "simple directory emptiness");
+    try expectContains(manifest_text, "transaction publish planning");
+    try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
     try expectContains(manifest_text, "live dcache entry insertion");
 }
