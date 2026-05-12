@@ -110,7 +110,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
-Shared no-extra-sample reminders for `bitmap`, `string`, `cmdline`, `argv_split`, and `rbtree` live in the shared Phase 5 guide plus the docs, sample, scripts, and tests root indexes. This sample-local prompt list stays focused on the bytestream FIFO packet itself.
+Shared no-extra-sample reminders for `bitmap`, `string`, `cmdline`, `argv_split`, and `rbtree` live in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `samples/zigux/README.md`. This sample-local prompt list stays focused on the bytestream FIFO packet itself.
 
 * does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 * does the same sample packet still keep `StorageBacking.embedded_fixed_buffer` explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue?
