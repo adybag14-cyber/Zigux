@@ -8,6 +8,7 @@
   ],
   "shared_ci_perf_promotion_status": "pending",
   "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
   "surfaces": [
     {
       "surface": "zigux/tests/atomic64_diff.zig",
