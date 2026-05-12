@@ -66,14 +66,14 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
-- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-survey.md`
-- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
@@ -84,8 +84,11 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 - `make -C zigux phase11-hvc-survey`
 
 Contributor reminder:
-- keep the shared replay split explicit instead of collapsing bcm2835, DesignWare, HVC, and header-boundary evidence into one generic driver note
-- keep the bounded `hvc_cleanup()` teardown handoff and the dedicated DesignWare teardown companion explicit
+- keep the shared replay split explicit instead of collapsing bcm2835, gpio, DesignWare, HVC, and header-boundary evidence into one generic driver note
+- treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`
+- keep the removed DesignWare reminder-note family `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md` framed as no longer shipped contributor-facing evidence on current `master`
+- keep the landed HVC archival packet explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey`
+- keep direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` framed as repo-reality gaps rather than contributor-facing shipped evidence
 
 ## Phase 13 contributor packet
 
