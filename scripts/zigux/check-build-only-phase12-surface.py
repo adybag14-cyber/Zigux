@@ -40,6 +40,7 @@ LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH = (
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
+LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
@@ -65,6 +66,7 @@ REQUIRED_FILES = [
     COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
     LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    LIBBPF_SEGMENT_SURVEY_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
@@ -145,6 +147,7 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
     "shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
     "starter-present `virtio_net` packet while that family still lacks a separate slice note",
+    "the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` stay recorded only through the parked verify-shard packet until those files land again on current `master`.",
     "rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording",
 ]
 
@@ -171,13 +174,22 @@ LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS = [
     "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
+    "treat the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` as parked note-owned boundaries until they land again on current `master`.",
     "There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`.",
 ]
 
 LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
     "`PHASE12_STATUS=parked`",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
-    "public verify-shard file set plus snapshot anchor as the truthful bounded signal",
+    "the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/verify.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
+    "the snapshot anchor remains the truthful bounded signal here while those direct replay files stay absent from the shipped checkout",
+]
+
+LIBBPF_SEGMENT_SURVEY_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/verify.zig` stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`",
+    "The helper footing is real, while the shared Phase 12 smoke-and-test order is still narrower than the parked libbpf reviewability packet described only through those note-owned boundaries.",
 ]
 
 RAW_GITHUB_COVERAGE_SURVEY_MARKERS = [
@@ -323,6 +335,11 @@ def validate(root: Path) -> list[str]:
             "libbpf_verify_shard_note",
             LIBBPF_VERIFY_SHARD_NOTE_PATH,
             LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
+        ),
+        (
+            "libbpf_segment_survey",
+            LIBBPF_SEGMENT_SURVEY_PATH,
+            LIBBPF_SEGMENT_SURVEY_MARKERS,
         ),
         (
             "raw_github_coverage_survey",
@@ -498,6 +515,9 @@ def placeholder_for(rel_path: str) -> str:
         LIBBPF_VERIFY_SHARD_NOTE_PATH: minimal_join(
             "# Phase 12 Libbpf Verify Shard Note", LIBBPF_VERIFY_SHARD_NOTE_MARKERS
         ),
+        LIBBPF_SEGMENT_SURVEY_PATH: minimal_join(
+            "# Phase 12 Libbpf Segment Survey", LIBBPF_SEGMENT_SURVEY_MARKERS
+        ),
         RAW_GITHUB_COVERAGE_SURVEY_PATH: minimal_join(
             "# Phase 12 Raw GitHub Coverage Survey",
             RAW_GITHUB_COVERAGE_SURVEY_MARKERS,
@@ -612,14 +632,40 @@ def run_self_test() -> int:
         libbpf_lane_path = base / LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
         libbpf_lane_path.write_text(
             libbpf_lane_path.read_text(encoding="utf-8").replace(
-                LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[3], "", 1
+                LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[4], "", 1
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
             "libbpf_heavy_consumer_lane_sequencing:"
-            f"{LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[3]}",
+            f"{LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[4]}",
+        )
+
+        write_fixture_tree(base)
+        verify_note_path = base / LIBBPF_VERIFY_SHARD_NOTE_PATH
+        verify_note_path.write_text(
+            verify_note_path.read_text(encoding="utf-8").replace(
+                LIBBPF_VERIFY_SHARD_NOTE_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"libbpf_verify_shard_note:{LIBBPF_VERIFY_SHARD_NOTE_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        survey_path = base / LIBBPF_SEGMENT_SURVEY_PATH
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                LIBBPF_SEGMENT_SURVEY_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"libbpf_segment_survey:{LIBBPF_SEGMENT_SURVEY_MARKERS[2]}",
         )
 
         write_fixture_tree(base)
@@ -653,7 +699,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -703,6 +749,7 @@ def main() -> int:
         + len(COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS)
         + len(LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS)
         + len(LIBBPF_VERIFY_SHARD_NOTE_MARKERS)
+        + len(LIBBPF_SEGMENT_SURVEY_MARKERS)
         + len(RAW_GITHUB_COVERAGE_SURVEY_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(MAKEFILE_MARKERS)
