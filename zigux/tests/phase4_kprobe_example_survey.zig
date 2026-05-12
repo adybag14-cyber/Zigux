@@ -16,9 +16,6 @@ test "phase4 kprobe survey keeps the parked gap packet explicit" {
         "\"current_linux_replay\": \"make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m\"",
     );
     try requireMarker(
-        "\"dedicated_local_survey_wrapper\": \"make -C zigux phase4-kprobe-example-survey\"",
-    );
-    try requireMarker(
         "\"validation_entrypoint\": \"zig test zigux/tests/phase4_kprobe_example_survey.zig\"",
     );
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
@@ -28,14 +25,23 @@ test "phase4 kprobe survey keeps the parked gap packet explicit" {
     );
 }
 
+test "phase4 kprobe survey keeps the local lab replay explicit" {
+    try requireMarker(
+        "\"local_lab_replay\": \"make -C zigux phase4-kprobe-example-survey\"",
+    );
+    try requireMarker(
+        "\"dedicated_local_survey_wrapper\": \"make -C zigux phase4-kprobe-example-survey\"",
+    );
+}
+
 test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
+        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
     );
 }
 
 test "phase4 kprobe survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
+        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 validation packet, the explicit local_lab_replay marker, and the dedicated local survey wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
     );
 }
