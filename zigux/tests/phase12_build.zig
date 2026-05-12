@@ -4,11 +4,31 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const virtio_scsi_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    const virtio_net_contract_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_contract_root_module.addImport("virtio_net", virtio_net_module);
+
+    const virtio_net_syntax_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_syntax_lab.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_syntax_root_module.addImport("virtio_net", virtio_net_module);
 
     const contract_root_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_scsi.zig"),
@@ -36,6 +56,20 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    const virtio_net_contract_tests = b.addTest(.{
+        .name = "phase12-virtio-net-tests",
+        .root_module = virtio_net_contract_root_module,
+    });
+    const run_virtio_net_contract_tests = b.addRunArtifact(virtio_net_contract_tests);
+    run_virtio_net_contract_tests.setCwd(b.path("../.."));
+
+    const virtio_net_syntax_tests = b.addTest(.{
+        .name = "phase12-virtio-net-syntax-lab-tests",
+        .root_module = virtio_net_syntax_root_module,
+    });
+    const run_virtio_net_syntax_tests = b.addRunArtifact(virtio_net_syntax_tests);
+    run_virtio_net_syntax_tests.setCwd(b.path("../.."));
 
     const contract_tests = b.addTest(.{
         .name = "phase12-virtio-scsi-tests",
@@ -65,12 +99,15 @@ pub fn build(b: *std.Build) void {
     const run_packet_tests = b.addRunArtifact(packet_tests);
     run_packet_tests.setCwd(b.path("../.."));
 
-    const smoke_step = b.step("smoke", "Run Phase 12 virtio-scsi syntax smoke");
+    const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");
+    smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_packet_tests.step);
 
-    const test_step = b.step("test", "Run Phase 12 virtio-scsi packet tests");
+    const test_step = b.step("test", "Run Phase 12 virtio packet tests");
+    test_step.dependOn(&run_virtio_net_contract_tests.step);
+    test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
     test_step.dependOn(&run_repeated_replan_tests.step);
