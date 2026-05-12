@@ -16,15 +16,17 @@ FILES = {
 
 MARKERS = {
     "docs_root": [
-        "Phase 11 notes -",
-        "`Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet",
+        "Phase 11 flow -",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`scripts/zigux/check-phase11-shared-replay-contract.py`",
         "`zigux/tests/phase11_build.zig`",
         "`make -C zigux phase11`",
+        "the landed HVC archival packet is the survey gate, modem-control split, poll-retry split, sysrq helper, teardown note, validation matrix, and dedicated `phase11-hvc-survey` route",
     ],
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet",
         "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`zigux/tests/phase11_build.zig`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "`make -C zigux phase11`",
@@ -58,7 +60,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 7
 
 
 class CheckError(RuntimeError):
@@ -110,8 +112,9 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         cases = [
-            (FILES["docs_root"], MARKERS["docs_root"][1]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][3]),
+            (FILES["docs_root"], MARKERS["docs_root"][5]),
+            (FILES["review_checklist"], MARKERS["review_checklist"][2]),
+            (FILES["review_checklist"], MARKERS["review_checklist"][4]),
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
             (FILES["tests_root"], MARKERS["tests_root"][6]),
