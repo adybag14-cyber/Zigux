@@ -682,6 +682,29 @@ def run_self_test() -> int:
         _populate_repo(root)
         survey_path.write_text(
             _read(survey_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "## Future follow-through\n"
+                + "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print(
+                "expected next-step-note shared-reminder section drift was not reported"
+            )
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
                 "should stay anchored in this dedicated survey and the paired next-step note",
                 "## Future follow-through\n"
                 + "should stay anchored in this dedicated survey and the paired next-step note",
