@@ -10,7 +10,13 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "drivers/net/virtio_net.zig",
     "drivers/scsi/virtio_scsi.zig",
+    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_survey.zig",
+    "zigux/tests/phase12_virtio_net_manifest.json",
     "zigux/tests/phase12_virtio_scsi.zig",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
@@ -20,6 +26,16 @@ REQUIRED_FILES = [
 
 REQUIRED_MARKERS = {
     "zigux/tests/phase12_build.zig": [
+        "../../drivers/net/virtio_net.zig",
+        "\"phase12_virtio_net.zig\"",
+        "\"phase12_virtio_net_syntax_lab.zig\"",
+        "phase12-virtio-net-tests",
+        "phase12-virtio-net-syntax-lab-tests",
+        "run_virtio_net_contract_tests.setCwd(b.path(\"../..\"));",
+        "run_virtio_net_syntax_tests.setCwd(b.path(\"../..\"));",
+        "smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
+        "test_step.dependOn(&run_virtio_net_contract_tests.step);",
+        "test_step.dependOn(&run_virtio_net_syntax_tests.step);",
         "../../drivers/scsi/virtio_scsi.zig",
         "\"phase12_virtio_scsi.zig\"",
         "\"phase12_virtio_scsi_syntax_lab.zig\"",
@@ -32,21 +48,32 @@ REQUIRED_MARKERS = {
         "run_repeated_replan_tests.setCwd(b.path(\"../..\"));",
         "smoke_step.dependOn(&run_repeated_replan_tests.step);",
         "test_step.dependOn(&run_repeated_replan_tests.step);",
-        "b.step(\"smoke\", \"Run Phase 12 virtio-scsi syntax smoke\")",
-        "b.step(\"test\", \"Run Phase 12 virtio-scsi tranche tests\")",
+        "b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\")",
+        "b.step(\"test\", \"Run Phase 12 virtio packet tests\")",
     ],
     "scripts/zigux/validate-phase12.py": [
         "--self-test",
         "PHASE12_VALIDATION=pass",
         "PHASE12_VALIDATOR_SELF_TEST=pass",
         "phase12_build.zig",
+        "phase12_virtio_net.zig",
+        "phase12_virtio_net_syntax_lab.zig",
+        "phase12_virtio_net_survey.zig",
+        "phase12_virtio_net_manifest.json",
+        "phase12-virtio-net-survey.md",
         "phase12_virtio_scsi_syntax_lab.zig",
         "phase12_virtio_scsi_repeated_replan_gate.zig",
     ],
 }
 
 FIXTURE_OVERRIDES = {
+    "drivers/net/virtio_net.zig": "// fixture\n",
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
+    "Documentation/zigux/phase12-virtio-net-survey.md": "# fixture\n",
+    "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_net_survey.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_net_manifest.json": "{}\n",
     "zigux/tests/phase12_virtio_scsi.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
@@ -55,6 +82,7 @@ FIXTURE_OVERRIDES = {
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 
 def collect_missing_markers(root: Path) -> list[str]:
@@ -67,11 +95,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
     return [], collect_missing_markers(root)
+
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -85,16 +115,19 @@ def write_fixture_root(tmp_root: Path) -> None:
         path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
 
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
 
 
+
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [marker], case
+
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -105,8 +138,27 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     path.write_text(updated, encoding="utf-8")
 
 
+
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_phase12_virtio_net_driver", "drivers/net/virtio_net.zig"),
+        (
+            "missing_phase12_virtio_net_survey_note",
+            "Documentation/zigux/phase12-virtio-net-survey.md",
+        ),
+        ("missing_phase12_virtio_net_contract_test", "zigux/tests/phase12_virtio_net.zig"),
+        (
+            "missing_phase12_virtio_net_syntax_lab",
+            "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+        ),
+        (
+            "missing_phase12_virtio_net_survey_gate",
+            "zigux/tests/phase12_virtio_net_survey.zig",
+        ),
+        (
+            "missing_phase12_virtio_net_manifest",
+            "zigux/tests/phase12_virtio_net_manifest.json",
+        ),
         ("missing_phase12_driver", "drivers/scsi/virtio_scsi.zig"),
         ("missing_phase12_contract_test", "zigux/tests/phase12_virtio_scsi.zig"),
         (
@@ -121,6 +173,41 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
+        (
+            "missing_phase12_build_virtio_net_driver_anchor",
+            "zigux/tests/phase12_build.zig",
+            "../../drivers/net/virtio_net.zig",
+            "../../drivers/net/virtio_net_missing.zig",
+            "zigux/tests/phase12_build.zig: ../../drivers/net/virtio_net.zig",
+        ),
+        (
+            "missing_phase12_build_virtio_net_contract_source",
+            "zigux/tests/phase12_build.zig",
+            "\"phase12_virtio_net.zig\"",
+            "\"phase12_virtio_net_missing.zig\"",
+            "zigux/tests/phase12_build.zig: \"phase12_virtio_net.zig\"",
+        ),
+        (
+            "missing_phase12_build_virtio_net_syntax_source",
+            "zigux/tests/phase12_build.zig",
+            "\"phase12_virtio_net_syntax_lab.zig\"",
+            "\"phase12_virtio_net_syntax_lab_missing.zig\"",
+            "zigux/tests/phase12_build.zig: \"phase12_virtio_net_syntax_lab.zig\"",
+        ),
+        (
+            "missing_phase12_build_virtio_net_smoke_dependency",
+            "zigux/tests/phase12_build.zig",
+            "smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
+            "smoke_step.dependOn(&run_virtio_net_syntax_gate.step);",
+            "zigux/tests/phase12_build.zig: smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
+        ),
+        (
+            "missing_phase12_build_virtio_net_test_dependency",
+            "zigux/tests/phase12_build.zig",
+            "test_step.dependOn(&run_virtio_net_contract_tests.step);",
+            "test_step.dependOn(&run_virtio_net_contract_gate.step);",
+            "zigux/tests/phase12_build.zig: test_step.dependOn(&run_virtio_net_contract_tests.step);",
+        ),
         (
             "missing_phase12_build_driver_anchor",
             "zigux/tests/phase12_build.zig",
@@ -164,6 +251,13 @@ def run_self_test() -> None:
             "zigux/tests/phase12_build.zig: test_step.dependOn(&run_repeated_replan_tests.step);",
         ),
         (
+            "missing_validator_virtio_net_manifest_marker",
+            "scripts/zigux/validate-phase12.py",
+            "phase12_virtio_net_manifest.json",
+            "phase12_virtio_net_manifest_missing.json",
+            "scripts/zigux/validate-phase12.py: phase12_virtio_net_manifest.json",
+        ),
+        (
             "missing_validator_self_test_flag",
             "scripts/zigux/validate-phase12.py",
             "--self-test",
@@ -194,7 +288,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 12 virtio-scsi tranche build surface."
+        description="Validate the Phase 12 virtio build surface for current tranche files."
     )
     parser.add_argument(
         "--self-test",
