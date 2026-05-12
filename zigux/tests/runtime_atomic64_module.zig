@@ -18,6 +18,7 @@ test "runtime atomic64 sample keeps lifecycle snapshot replay explicit at the mo
     try std.testing.expectEqual(@as(usize, 0), cold_snapshot.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), cold_snapshot.exit_runs);
     try std.testing.expect(!cold_snapshot.allows_counter_ops);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
 
     try module.init(7);
     const initialized_snapshot = module.lifecycleSnapshot();
@@ -42,6 +43,7 @@ test "runtime atomic64 sample keeps lifecycle snapshot replay explicit at the mo
     try std.testing.expectEqual(@as(usize, 1), exited_snapshot.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
     try std.testing.expect(!exited_snapshot.allows_counter_ops);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(9));
 }
 
 test "runtime atomic64 sample keeps post-selftest mutation replay explicit at the module boundary" {
