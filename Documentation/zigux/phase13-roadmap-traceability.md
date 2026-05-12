@@ -24,6 +24,13 @@ That adjacent evidence packet should stay explicit through:
 
 Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, and the read-only traversal helper `zigux/helpers/notifier_chain_view.zig`, so keep those paths explicit without counting them as extra shared replay steps.
 
+Current `master` also materializes three manifest-backed helper anchors that keep the roadmap packet concrete even while the older shared build bundle stays absent:
+- `zigux/tests/phase13_libfs_manifest.json`
+- `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+
+Keep those three manifests explicit as the currently materialized helper-anchor set, while `zigux/tests/phase13_build.zig` and `zigux/tests/phase13_landlock_syscalls_manifest.json` stay framed as repo-reality gaps until current `master` materializes them again.
+
 If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, or `drivers/tty/hvc/hvc_console.h` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped evidence.
 
 ## Traceability Map
