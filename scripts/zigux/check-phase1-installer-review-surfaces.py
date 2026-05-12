@@ -90,6 +90,16 @@ WORKFLOW_MARKERS = [
         "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py",
         1,
     ),
+    (
+        "workflow_phase1_installer_companion_selftest",
+        "run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_installer_companion_check",
+        "run: python3 scripts/zigux/check-phase1-installer-companion-checks.py",
+        1,
+    ),
 ]
 
 MAKEFILE_MARKERS = [
@@ -102,6 +112,16 @@ MAKEFILE_MARKERS = [
     (
         "makefile_phase1_installer_check",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-review-surfaces.py",
+        1,
+    ),
+    (
+        "makefile_phase1_installer_companion_selftest",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_installer_companion_check",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py",
         1,
     ),
 ]
@@ -298,6 +318,24 @@ def run_self_test() -> int:
             validate_root(root),
             "workflow_phase1_installer_selftest:expected=1:actual=0",
             "workflow_phase1_installer_check:expected=1:actual=0",
+            "workflow_phase1_installer_companion_selftest:expected=1:actual=0",
+            "workflow_phase1_installer_companion_check:expected=1:actual=0",
+        )
+        build_self_test_root(root)
+
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        write_text(
+            workflow_path,
+            workflow_text.replace(
+                "run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        expect(
+            validate_root(root),
+            "workflow_phase1_installer_companion_selftest:expected=1:actual=0",
         )
         build_self_test_root(root)
 
@@ -307,6 +345,24 @@ def run_self_test() -> int:
             "makefile_phase1_validate_target:expected=1:actual=0",
             "makefile_phase1_installer_selftest:expected=1:actual=0",
             "makefile_phase1_installer_check:expected=1:actual=0",
+            "makefile_phase1_installer_companion_selftest:expected=1:actual=0",
+            "makefile_phase1_installer_companion_check:expected=1:actual=0",
+        )
+        build_self_test_root(root)
+
+        makefile_path = root / "zigux/Makefile"
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        write_text(
+            makefile_path,
+            makefile_text.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        expect(
+            validate_root(root),
+            "makefile_phase1_installer_companion_selftest:expected=1:actual=0",
         )
         build_self_test_root(root)
 
