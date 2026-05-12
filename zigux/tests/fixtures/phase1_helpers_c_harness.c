@@ -90,10 +90,21 @@ static void run_find_bit_section(void)
 	unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};
 	unsigned long tail_last_bitmap[2] = {0, (1UL << 3) | (1UL << 10)};
 	unsigned long tail_empty_last_bitmap[2] = {0, 1UL << 10};
+	unsigned long clump_bitmap[2] = {0, 0};
+	unsigned long tail_clump_bitmap[2] = {0, 1UL << 3};
+	unsigned long empty_clump_bitmap[1] = {0};
+	unsigned long first_clump = 0;
+	unsigned long next_clump = 0;
+	unsigned long tail_clump = 0;
+	unsigned long empty_first_clump = 0xaa;
+	unsigned long empty_next_clump = 0xaa;
 
 	bitmap[0] |= 1UL << 5;
 	bitmap[1] |= 1UL << 3;
 	bitmap[2] |= 1UL << 7;
+	clump_bitmap[0] |= 1UL << 9;
+	clump_bitmap[0] |= 1UL << 14;
+	clump_bitmap[1] |= 1UL << 8;
 
 	printf("\"find_bit\":{");
 	printf("\"bits_per_long\":%d,", BITS_PER_LONG);
@@ -118,7 +129,17 @@ static void run_find_bit_section(void)
 	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail_bitmap, tail_bitmap, tail_nbits));
 	printf("\"tail_and_clamped_next\":%lu,", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_clamped_last\":%lu,", find_last_bit(tail_last_bitmap, tail_nbits));
-	printf("\"tail_clamped_empty_last\":%lu", find_last_bit(tail_empty_last_bitmap, tail_nbits));
+	printf("\"tail_clamped_empty_last\":%lu,", find_last_bit(tail_empty_last_bitmap, tail_nbits));
+	printf("\"first_clump_offset\":%lu,", find_first_clump8(&first_clump, clump_bitmap, BITS_PER_LONG * 2));
+	printf("\"first_clump_value\":%lu,", first_clump);
+	printf("\"next_clump_offset\":%lu,", find_next_clump8(&next_clump, clump_bitmap, BITS_PER_LONG * 2, 10));
+	printf("\"next_clump_value\":%lu,", next_clump);
+	printf("\"tail_clump_offset\":%lu,", find_first_clump8(&tail_clump, tail_clump_bitmap, tail_nbits));
+	printf("\"tail_clump_value\":%lu,", tail_clump);
+	printf("\"empty_clump_first_offset\":%lu,", find_first_clump8(&empty_first_clump, empty_clump_bitmap, 8));
+	printf("\"empty_clump_first_value\":%lu,", empty_first_clump);
+	printf("\"empty_clump_next_offset\":%lu,", find_next_clump8(&empty_next_clump, empty_clump_bitmap, 8, 4));
+	printf("\"empty_clump_next_value\":%lu", empty_next_clump);
 	printf("}");
 }
 
