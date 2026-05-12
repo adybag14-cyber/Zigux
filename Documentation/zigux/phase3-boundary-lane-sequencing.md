@@ -42,6 +42,7 @@ The active Phase 3 packet already spans a shared ABI summary, starter kernel rel
   - `zigux/helpers/atomic.zig`
   - `zigux/helpers/barrier.zig`
   - the direct range and raw access surfaces inside `zigux/helpers/mmio.zig`
+  - `zigux/tests/phase3_low_level_wrappers_build.zig`
   - `zigux/tests/phase3_low_level_wrappers.zig`
   - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - validator-support packet:
@@ -63,7 +64,7 @@ The active Phase 3 packet already spans a shared ABI summary, starter kernel rel
 - shared ABI and bindings owns manifest-backed packet accounting, the broad ABI slice summary, compile and dump route wording, and shared binding or header-lift truthfulness that affects the whole substrate packet
 - kernel-facing starter boundary owns the dedicated export-shim governance note, the starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family
 - policy and unsafe owns interop-policy admission drift, reserved-byte or typed-policy decoding drift, and the narrow unsafe-scope boundary, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, and `read*InteropPolicy*` or `write*InteropPolicy*` MMIO policy relays
-- low-level wrapper owns direct helper-surface and focused replay drift for atomic, barrier, and MMIO behavior, including `range()`, direct `read*()` and `write*()` accessors, width coverage, alignment rules, odd-offset behavior, and the directly coupled focused replay wording
+- low-level wrapper owns direct helper-surface, focused build-route, and focused replay drift for atomic, barrier, and MMIO behavior, including `range()`, direct `read*()` and `write*()` accessors, width coverage, alignment rules, odd-offset behavior, and the directly coupled focused replay wording
 - validator-support owns shared scripts-root, docs-sync, self-test, catalog, wrapper-generation, and runner-route truthfulness for the current Phase 3 packet without claiming helper or header behavior on its own
 
 ## Anti-overlap rules
