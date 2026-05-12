@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase1-installer-review-surfaces.py",
     "scripts/zigux/check-phase1-installer-companion-checks.py",
+    "scripts/zigux/check-phase1-direct-owner-markers.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -100,6 +101,8 @@ MAKEFILE_MARKERS = [
     ("makefile_phase1_installer_check", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-review-surfaces.py", 1),
     ("makefile_phase1_installer_companion_selftest", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test", 1),
     ("makefile_phase1_installer_companion_check", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py", 1),
+    ("makefile_phase1_direct_owner_selftest", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py --self-test", 1),
+    ("makefile_phase1_direct_owner_check", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py", 1),
 ]
 
 REVIEW_CHECKLIST_PACKET_MARKERS = [
@@ -368,6 +371,26 @@ def run_self_test() -> int:
             makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n", "", 1),
         )
         expect(validate_root(root), "makefile_phase1_installer_companion_selftest:expected=1:actual=0")
+        build_self_test_root(root)
+
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        write_text(
+            makefile_path,
+            makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py --self-test\n", "", 1),
+        )
+        expect(validate_root(root), "makefile_phase1_direct_owner_selftest:expected=1:actual=0")
+        build_self_test_root(root)
+
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        write_text(
+            makefile_path,
+            makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py\n", "", 1),
+        )
+        expect(validate_root(root), "makefile_phase1_direct_owner_check:expected=1:actual=0")
+        build_self_test_root(root)
+
+        (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink()
+        expect(validate_root(root), "missing_file:scripts/zigux/check-phase1-direct-owner-markers.py")
         build_self_test_root(root)
 
         (root / "scripts/zigux/check-phase1-installer-companion-checks.py").unlink()
