@@ -61,6 +61,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_rbtree_survey.zig",
     ],
     "zigux/Makefile": [
+        "PHONY += phase7-validate phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7-test phase7",
         "phase7-string-helpers-survey:",
         "phase7-string-helpers-sample-boundary:",
         "phase7-cmdline-survey:",
@@ -335,6 +336,13 @@ def run_self_test() -> None:
             "make -C zigux phase7-rbtree-survey",
             "",
             "scripts/zigux/README.md: make -C zigux phase7-rbtree-survey",
+        ),
+        (
+            "makefile_phase7_phony_packet",
+            "zigux/Makefile",
+            "PHONY += phase7-validate phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7-test phase7",
+            "PHONY += phase7-validate phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7",
+            "zigux/Makefile: PHONY += phase7-validate phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7-test phase7",
         ),
         (
             "makefile_string_helpers_survey_route",
