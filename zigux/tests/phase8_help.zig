@@ -102,7 +102,7 @@ test "phase 8 help slice covers command-list ownership, filtering, exclusion, te
     try std.testing.expectEqual(@as(usize, 9), env_layout.spacing);
 
     const empty_layout = help.planPrettyPrint(0, 8, 41);
-    try std.testing.expectEqual(@as(usize, 1), empty_layout.cols);
+    try std.testing.expectEqual(@as(usize, 4), empty_layout.cols);
     try std.testing.expectEqual(@as(usize, 0), empty_layout.rows);
     try std.testing.expectEqual(@as(usize, 9), empty_layout.spacing);
 }
@@ -265,9 +265,13 @@ test "phase 8 help empty PATH fallback keeps section suppression and output stab
 
     const other_rule = [_]u8{'-'} ** 43;
     const expected = std.fmt.comptimePrint(
-        "perf available from elsewhere on your $PATH\n{s}\n" ++
-            "  report stat\n" ++
-            "\n",
+        "perf available from elsewhere on your $PATH
+{s}
+" ++
+            " report stat
+" ++
+            "
+",
         .{other_rule[0..]},
     );
 
@@ -301,9 +305,12 @@ test "phase 8 help output emission keeps column-major pretty-printing pure and t
     );
 
     try std.testing.expectEqualStrings(
-        " annotate report\n" ++
-            " bench stat\n" ++
-            " diff\n",
+        " annotate report
+" ++
+            " bench stat
+" ++
+            " diff
+",
         rendered.writer.buffered(),
     );
 }
@@ -335,14 +342,21 @@ test "phase 8 help section rendering keeps the stable main and PATH headings rev
     );
 
     try std.testing.expectEqualStrings(
-        "available tools in '/opt/perf/bin'\n" ++
-            "----------------------------------\n" ++
-            " stat top\n" ++
-            "\n" ++
-            "tools available from elsewhere on your $PATH\n" ++
-            "--------------------------------------------\n" ++
-            " annotate\n" ++
-            "\n",
-        rendered.writer.buffered(),
-    );
+        "available tools in '/opt/perf/bin'
+" ++
+            "----------------------------------
+" ++
+            " stat top
+" ++
+            "
+" ++
+            "tools available from elsewhere on your $PATH
+" ++
+            "--------------------------------------------
+" ++
+            " annotate
+" ++
+            "
+",
+        rendered.writer.buffered());
 }
