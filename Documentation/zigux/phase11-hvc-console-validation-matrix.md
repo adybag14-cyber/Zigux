@@ -10,6 +10,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 - archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 - scope: keep the current archived HVC packet honest about what is already reviewable, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
+  - `drivers/tty/hvc/hvc_console.zig`
   - `zigux/tests/phase11_hvc_console_survey.zig`
   - `zigux/tests/phase11_hvc_console_manifest.json`
   - `zigux/tests/phase11_hvc_console_modem_control_split.zig`
@@ -28,7 +29,7 @@ Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_
 
 ## Why This Exists
 
-The bounded archival packet now keeps the final-close teardown summary, the `hvc_cleanup()` tty-port release handoff, the notifier-add open handoff, the `hvc_remove()` handoff summary, the `hvc_kick()` wakeup cue, the targetless notifier no-unregister edge, and the sysrq handoff-versus-literal fallback split reviewable through the survey gate, manifest-backed survey note, teardown note, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
+The bounded archival packet now keeps the direct `drivers/tty/hvc/hvc_console.zig` starter, the final-close teardown summary, the `hvc_cleanup()` tty-port release handoff, the notifier-add open handoff, the `hvc_remove()` handoff summary, the `hvc_kick()` wakeup cue, the targetless notifier no-unregister edge, and the sysrq handoff-versus-literal fallback split reviewable through the survey gate, manifest-backed survey note, teardown note, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
 
 This matrix keeps one reviewable note that explains:
 
