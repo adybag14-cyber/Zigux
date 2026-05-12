@@ -6,6 +6,8 @@ This note preserves one bounded Phase 6 hexdump perf-gate finding so the `lib/he
 
 - roadmap family: `lib/hexdump.c` -> `lib/hexdump.zig`
 - packet type: helper-local perf evidence only
+- owner lane: `P6-Y09`
+- review-surface owner: this preserved replay note stays helper-local to the `lib/hexdump.zig` packet and must remain aligned with `Documentation/zigux/phase6-hexdump-slice.md` plus `scripts/zigux/check-phase6-hexdump-packet.py`, not a shared Phase 6 perf-governance lane
 - freeze-map posture: no runtime-core expansion, no helper semantic change, no workflow-policy widening
 
 ## Last Successful Focused Replay
