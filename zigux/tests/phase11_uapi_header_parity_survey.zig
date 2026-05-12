@@ -158,6 +158,15 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
 test "phase11 shared header parity survey keeps a bounded hv_ops callback-table layout proof" {
     layout_assert.assertSize(HvOps, 72);
     layout_assert.assertAlign(HvOps, 8);
+    layout_assert.assertFieldType(HvOps, "get_chars", ?*const fn (vtermno: u32, buf: [*]u8, count: c_int) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "put_chars", ?*const fn (vtermno: u32, buf: [*]const u8, count: c_int) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "flush", ?*const fn (vtermno: u32, wait: bool) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "notifier_add", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "notifier_del", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void);
+    layout_assert.assertFieldType(HvOps, "notifier_hangup", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void);
+    layout_assert.assertFieldType(HvOps, "tiocmget", ?*const fn (hp: *HvcStruct) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "tiocmset", ?*const fn (hp: *HvcStruct, set: c_uint, clear: c_uint) callconv(.c) c_int);
+    layout_assert.assertFieldType(HvOps, "dtr_rts", ?*const fn (hp: *HvcStruct, active: bool) callconv(.c) void);
     layout_assert.assertOffset(HvOps, "get_chars", 0);
     layout_assert.assertOffset(HvOps, "put_chars", 8);
     layout_assert.assertOffset(HvOps, "flush", 16);
