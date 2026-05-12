@@ -8,6 +8,7 @@ This note records only the Phase 10 virtio closure evidence that this runtime co
 - `PHASE10_TRANCHE=virtio-lab-bundle`
 - `PHASE10_CLOSURE_POSTURE=truthfulness_recheck`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
 - scope: keep the shared Phase 10 closure note aligned with live, directly readable repo artifacts instead of repeating older inventories that this runtime could not confirm on `master`
@@ -39,7 +40,7 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - `scripts/zigux/check-phase10-harness-coverage.py` still fails closed unless the shared docs-root, scripts-root, tests-root, workflow, make-route, closure-manifest, and focused harness replay reminders stay aligned around the current Phase 10 ring, input, and MMIO lab-validation packet.
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` still fails closed unless the broad Phase 10 tests-root packet keeps `drivers/virtio/virtio.zig` plus `drivers/virtio/virtio_driver_id.zig` explicit beside the same closure-manifest-backed packet.
 - `zigux/tests/README.md` still explicitly carries `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_ring_reset_reuse.zig` beside the shared closure-manifest, validator, checker, and build-route surfaces.
-- `zigux/tests/phase10_closure_manifest.json` still records the allowed destination families, the blocked risky-transport posture, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane.
+- `zigux/tests/phase10_closure_manifest.json` still records the allowed destination families, the blocked risky-transport posture, the roadmap-required `dual_implementations_for_risky_areas` scoreboard as `blocked_on_risky_transport`, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane, so the current shipped Phase 10 proof remains wrapper-first and lab-validation-first rather than claiming direct risky-transport dual implementations.
 - the same closure manifest still keeps the landed MMIO helper ladder explicit through `phase10-mmio-register-window-helper`, `phase10-mmio-queue-size-helper`, `phase10-mmio-feature-word-selector-helper`, `phase10-mmio-feature-negotiation-summary-helper`, `phase10-mmio-config-window-helper`, `phase10-mmio-config-write-plan-helper`, `phase10-mmio-transport-identity-helper`, `phase10-mmio-probe-preflight-helper`, `phase10-mmio-config-write-disposition-helper`, and `phase10-mmio-selected-queue-readiness-helper`.
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md` still records the current core, ring, input, and MMIO lane-owner split and keeps the ring lane explicit through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `drivers/virtio/virtio_ring_verify.zig`, and `scripts/zigux/check-phase10-ring-packet.py`.
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` still keeps the bounded virtio closure packet explicit through the shared reminder surfaces, the ring drained-reset reuse replay, the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig`, the blocked risky-transport posture, and the Phase 14 study-only ownership cues.
@@ -71,7 +72,7 @@ The remaining broader shared-summary drift is now concentrated in the scripts-ro
 - `zigux/tests/README.md` no longer carries that missing-slice overclaim and already keeps the direct `drivers/virtio/virtio_ring.zig` ring surface explicit beside `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
 - `Documentation/zigux/README.md` already records those missing slice-note paths as repo-reality gaps instead of live docs-root evidence.
 
-The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should stay inside one shared summary surface at a time and start with the scripts-root summary instead of replaying an already-cleared review-checklist target.
+The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, the roadmap's dual-implementation requirement remains parked at the same blocked risky-transport boundary recorded in the closure manifest, and the next same-lane follow-through should stay inside one shared summary surface at a time and start with the scripts-root summary instead of replaying an already-cleared review-checklist target.
 
 ## Parked Boundary
 
@@ -79,6 +80,7 @@ The roadmap posture remains unchanged:
 
 - Phase 10 stays inside virtio driver ports, queue handling, and harness coverage.
 - risky transport work remains blocked until a narrower, directly reviewable packet lands or an Architecture Council reopen explicitly widens the tranche.
+- the roadmap's required dual-implementation posture for risky areas remains parked behind that same blocked risky-transport boundary, so current shipped evidence stays wrapper-first and lab-validation-first rather than transport-parity-complete.
 - `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain separate Phase 14 study-only anchors rather than Phase 10 closure evidence.
 
 ## Next Bounded Step
