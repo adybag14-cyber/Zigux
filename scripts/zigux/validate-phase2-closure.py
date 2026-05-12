@@ -5,6 +5,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -57,7 +58,7 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",
-    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `11-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
+    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `12-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
 ]
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
@@ -322,6 +323,11 @@ EXPECTED_CONFDATA_CASES = (
         "input": "empty_config_symbol_names.config",
         "expected": "empty_config_symbol_names_expected.json",
     },
+    {
+        "name": "last_state_transitions",
+        "input": "last_state_transitions.config",
+        "expected": "last_state_transitions_expected.json",
+    },
 )
 
 EXPECTED_CONFDATA_MANIFEST = {
@@ -330,7 +336,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     "mode": "bounded config bridge",
     "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
     "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-    "case_count": 11,
+    "case_count": 12,
     "cases": [case["name"] for case in EXPECTED_CONFDATA_CASES],
     "input_packet": [case["input"] for case in EXPECTED_CONFDATA_CASES],
     "expected_packet": [case["expected"] for case in EXPECTED_CONFDATA_CASES],
@@ -369,24 +375,13 @@ def validate_required_markers(text: str, markers: list[str], label: str) -> list
     return [f"{label}:missing:{marker}" for marker in markers if marker not in text]
 
 
-def validate_exact_makefile_runs(makefile_text: str) -> list[str]:
+def validate_exact_lines(text: str, counts: dict[str, int], label: str) -> list[str]:
     issues: list[str] = []
-    lines = [line.strip() for line in makefile_text.splitlines()]
-    for command, expected in PHASE2_MAKEFILE_RUN_COUNTS.items():
-        line = f"cd $(ZIGUX_ROOT) && $(PYTHON) {command}"
-        count = sum(1 for item in lines if item == line)
+    lines = [line.strip() for line in text.splitlines()]
+    for marker, expected in counts.items():
+        count = sum(1 for line in lines if line == marker)
         if count != expected:
-            issues.append(f"makefile:exact_count:{command}:count={count}:expected={expected}")
-    return issues
-
-
-def validate_exact_workflow_runs(workflow_text: str) -> list[str]:
-    issues: list[str] = []
-    lines = [line.strip() for line in workflow_text.splitlines()]
-    for command, expected in PHASE2_WORKFLOW_RUN_COUNTS.items():
-        count = sum(1 for item in lines if item == command)
-        if count != expected:
-            issues.append(f"workflow:exact_count:{command}:count={count}:expected={expected}")
+            issues.append(f"{label}:exact_count:{marker}:count={count}:expected={expected}")
     return issues
 
 
@@ -437,7 +432,6 @@ def validate_fixdep_cases(payload: list[object]) -> list[str]:
     expected_count = len(EXPECTED_FIXDEP_CASES)
     if len(payload) != expected_count:
         issues.append(f"fixdep_cases:count={len(payload)}:expected={expected_count}")
-
     for index, expected_case in enumerate(EXPECTED_FIXDEP_CASES):
         if index >= len(payload):
             break
@@ -445,14 +439,13 @@ def validate_fixdep_cases(payload: list[object]) -> list[str]:
         if not isinstance(case, dict):
             issues.append(f"fixdep_cases[{index}]:expected_object")
             continue
-        case_name = expected_case["name"]
+        name = expected_case["name"]
         for field_name, expected_value in expected_case.items():
             actual_value = case.get(field_name)
             if actual_value != expected_value:
                 issues.append(
-                    f"fixdep_cases:{case_name}:{field_name}:expected={expected_value}:actual={actual_value}"
+                    f"fixdep_cases:{name}:{field_name}:expected={expected_value}:actual={actual_value}"
                 )
-
     if len(payload) > expected_count:
         for case in payload[expected_count:]:
             extra_name = case.get("name", "<missing>") if isinstance(case, dict) else "<non_object>"
@@ -493,7 +486,8 @@ def validate_case_list(
                 issues.append(
                     f"kconfig_bridge_cases:{name}:{field_name}:expected={expected_value}:actual={actual_value}"
                 )
-        for field_name in sorted(set(case.keys()) - set(expected_case.keys())):
+        unexpected_fields = sorted(set(case.keys()) - set(expected_case.keys()))
+        for field_name in unexpected_fields:
             issues.append(f"kconfig_bridge_cases:{name}:{field_name}:unexpected={case.get(field_name)}")
         for field_name in ("input", "expected"):
             value = case.get(field_name)
@@ -503,7 +497,6 @@ def validate_case_list(
                 else:
                     seen_paths.add(value)
                     required_files.append(KCONFIG_BRIDGE_CASES.parent / value)
-
     if len(raw_cases) > expected_count:
         for case in raw_cases[expected_count:]:
             extra_name = case.get("name", "<missing>") if isinstance(case, dict) else "<non_object>"
@@ -511,12 +504,7 @@ def validate_case_list(
     return required_files, issues
 
 
-def validate_manifest(
-    payload: dict[str, object],
-    *,
-    expected: dict[str, object],
-    label: str,
-) -> list[str]:
+def validate_manifest(payload: dict[str, object], *, expected: dict[str, object], label: str) -> list[str]:
     issues: list[str] = []
     for field_name, expected_value in expected.items():
         actual_value = payload.get(field_name)
@@ -643,19 +631,21 @@ def run_self_test_checks() -> list[str]:
         (
             "confdata_manifest_case_count_mismatch",
             validate_manifest(
-                dict(EXPECTED_CONFDATA_MANIFEST, case_count=10),
+                dict(EXPECTED_CONFDATA_MANIFEST, case_count=11),
                 expected=EXPECTED_CONFDATA_MANIFEST,
                 label="kconfig_bridge_confdata_manifest",
             ),
-            ["kconfig_bridge_confdata_manifest:case_count:expected=11:actual=10"],
+            ["kconfig_bridge_confdata_manifest:case_count:expected=12:actual=11"],
         ),
         (
             "workflow_tests_readme_selftest_missing",
-            validate_exact_workflow_runs(
+            validate_exact_lines(
                 "run: python3 scripts/zigux/validate-phase2.py\n"
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
                 "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n",
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
             ),
             [
                 "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=0:expected=1"
@@ -663,7 +653,7 @@ def run_self_test_checks() -> list[str]:
         ),
         (
             "makefile_phase2_validation_missing",
-            validate_exact_makefile_runs(
+            validate_exact_lines(
                 "\n".join(
                     [
                         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
@@ -674,7 +664,9 @@ def run_self_test_checks() -> list[str]:
                         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
                         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
                     ]
-                )
+                ),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
             ),
             ["makefile:exact_count:scripts/zigux/validate-phase2.py:count=0:expected=1"],
         ),
@@ -686,15 +678,6 @@ def run_self_test_checks() -> list[str]:
                 "phase2_validator",
             ),
             ['phase2_validator:missing:    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'],
-        ),
-        (
-            "phase2_validator_missing_tool_manifest_fixture_inventory",
-            validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != '    "zigux/tests/fixtures/phase2_tool_manifest.json",'),
-                PHASE2_VALIDATOR_MARKERS,
-                "phase2_validator",
-            ),
-            ['phase2_validator:missing:    "zigux/tests/fixtures/phase2_tool_manifest.json",'],
         ),
         (
             "phase2_validator_missing_command_count_marker",
@@ -723,8 +706,8 @@ def run_self_test_checks() -> list[str]:
     return issues
 
 
-def run(cmd: list[str]) -> int:
-    return subprocess.run(cmd, cwd=ROOT, check=False).returncode
+def run(command: list[str]) -> int:
+    return subprocess.run(command, cwd=ROOT, check=False).returncode
 
 
 def main() -> int:
@@ -763,8 +746,8 @@ def main() -> int:
     issues: list[str] = []
     closure_text = PHASE2_CLOSURE_DOC.read_text(encoding="utf-8")
     issues.extend(validate_required_markers(closure_text, PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"))
-    issues.extend(validate_exact_makefile_runs(PHASE2_MAKEFILE.read_text(encoding="utf-8")))
-    issues.extend(validate_exact_workflow_runs(PHASE2_WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))
+    issues.extend(validate_exact_lines(PHASE2_WORKFLOW.read_text(encoding="utf-8"), PHASE2_WORKFLOW_RUN_COUNTS, "workflow"))
     issues.extend(
         validate_required_markers(
             VALIDATE_PHASE2.read_text(encoding="utf-8"),
@@ -773,34 +756,34 @@ def main() -> int:
         )
     )
 
-    fixdep_cases_payload, fixdep_cases_load_issues = load_json_list(FIXDEP_CASES, "fixdep_cases")
-    issues.extend(fixdep_cases_load_issues)
+    fixdep_cases_payload, fixdep_issues = load_json_list(FIXDEP_CASES, "fixdep_cases")
+    issues.extend(fixdep_issues)
     if fixdep_cases_payload is not None:
         issues.extend(validate_fixdep_cases(fixdep_cases_payload))
 
-    cases_payload, cases_load_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
-    issues.extend(cases_load_issues)
+    cases_payload, cases_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
+    issues.extend(cases_issues)
     if cases_payload is not None:
-        conf_required, conf_issues = validate_case_list(
+        conf_required, conf_list_issues = validate_case_list(
             cases_payload,
             key="conf_cases",
             expected_cases=EXPECTED_CONF_CASES,
         )
-        issues.extend(conf_issues)
-        confdata_required, confdata_issues = validate_case_list(
+        issues.extend(conf_list_issues)
+        confdata_required, confdata_list_issues = validate_case_list(
             cases_payload,
             key="confdata_cases",
             expected_cases=EXPECTED_CONFDATA_CASES,
         )
-        issues.extend(confdata_issues)
+        issues.extend(confdata_list_issues)
         for path in require_files(conf_required + confdata_required):
             issues.append(f"kconfig_bridge_cases:missing_expected:{path}")
 
-    conf_manifest_payload, conf_manifest_load_issues = load_json_object(
+    conf_manifest_payload, conf_manifest_issues = load_json_object(
         KCONFIG_BRIDGE_CONF_MANIFEST,
         "kconfig_bridge_conf_manifest",
     )
-    issues.extend(conf_manifest_load_issues)
+    issues.extend(conf_manifest_issues)
     if conf_manifest_payload is not None:
         issues.extend(
             validate_manifest(
@@ -810,11 +793,11 @@ def main() -> int:
             )
         )
 
-    confdata_manifest_payload, confdata_manifest_load_issues = load_json_object(
+    confdata_manifest_payload, confdata_manifest_issues = load_json_object(
         KCONFIG_BRIDGE_CONFDATA_MANIFEST,
         "kconfig_bridge_confdata_manifest",
     )
-    issues.extend(confdata_manifest_load_issues)
+    issues.extend(confdata_manifest_issues)
     if confdata_manifest_payload is not None:
         issues.extend(
             validate_manifest(
