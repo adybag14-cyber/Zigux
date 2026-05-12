@@ -61,6 +61,9 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
         "- `scripts/zigux/check-phase6-base64-c-parity.py`",
         "- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+        "- the checker-generated `zigux/tests/fixtures/phase6_base64_c_generated_cases.inc` include remains transient parity-run output from `zigux/tests/phase6_base64_c_casegen.zig` instead of a committed fixture, so the shipped direct C parity surface stays repo-truthful without storing generated case files on `master`",
+        "- `zigux/tests/fixtures/phase6_base64_vectors.zig` owns the current slowdown corpus boundary through `perfReferenceSupportedVariant()`, so the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands",
+        "- the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs",
     ],
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
@@ -522,6 +525,8 @@ def run_self_test() -> None:
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", 'check-phase6-perf-threshold-markers.py --self-test', 'check-phase6-perf-threshold-proof.py --self-test')
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"zigux/tests/phase6_hexdump_perf_matrix.zig"', '"zigux/tests/phase6_hexdump_matrix.zig"')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
+        assert_failure(root, "Documentation/zigux/phase6-base64-slice.md", "phase6_base64_c_generated_cases.inc", "phase6_base64_c_generated_vectors.inc")
+        assert_failure(root, "Documentation/zigux/phase6-base64-slice.md", "perfReferenceSupportedVariant()", "perfReferenceVariant()")
         assert_failure(root, "scripts/zigux/check-phase6-bsearch-corpus-evidence.py", 'BSEARCH_PATH = Path("zigux/tests/phase6_bsearch.zig")', 'BSEARCH_PATH = Path("zigux/tests/phase6_bsearch_probe.zig")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-hexdump-packet.py", '"linux_review_route": "make -C zigux phase6-hexdump-review"', '"linux_review_route": "make -C zigux phase6-hexdump-test"')
