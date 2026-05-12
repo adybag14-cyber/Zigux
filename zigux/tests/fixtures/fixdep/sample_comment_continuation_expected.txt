@@ -1,0 +1,10 @@
+savedcmd_sample_comment_continuation.o := clang -c zigux/tests/fixtures/fixdep/sample_comment_continuation_source.c -o sample_comment_continuation.o
+
+source_sample_comment_continuation.o := zigux/tests/fixtures/fixdep/sample_comment_continuation_source.rmeta
+
+deps_sample_comment_continuation.o := \
+  zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so \
+
+sample_comment_continuation.o: $(deps_sample_comment_continuation.o)
+
+$(deps_sample_comment_continuation.o):
