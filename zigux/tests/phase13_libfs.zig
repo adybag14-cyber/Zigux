@@ -1,5 +1,10 @@
 const std = @import("std");
 const libfs = @import("libfs");
+const manifest_text = @embedFile("phase13_libfs_manifest.json");
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
 
 test "positive child classification stays bounded" {
     try std.testing.expect(!libfs.LibfsHelperLab.isPositiveEntry(.{ .kind = .dot }));
@@ -147,4 +152,23 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, reserved_destination.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, reserved_destination.destination_slot_class);
     try std.testing.expect(!reserved_destination.swaps_recorded_offsets);
+}
+
+test "phase13 libfs manifest records the current helper-first filesystem packet" {
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L01\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
+    try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
+    try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
+    try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-inode-state\"");
+    try expectContains(manifest_text, "\"status\": \"starter_landed\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
+    try expectContains(manifest_text, "simple directory emptiness");
+    try expectContains(manifest_text, "offset-based rename planning");
+    try expectContains(manifest_text, "live dcache entry insertion");
 }
