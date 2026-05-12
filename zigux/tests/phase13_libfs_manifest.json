@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L02",
+  "lane_key": "P13-L05",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-12",
   "anchor": "fs/libfs.c",
@@ -32,6 +32,13 @@
       "why_now": "Current master ships helper-only offset-based rename planning that keeps reserved dot-window and end-of-directory slots explicit without mutating live directory maps."
     },
     {
+      "id": "phase13-libfs-transaction-acquire-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models pure simple_transaction_get() transaction acquire planning, including the page-bounded write limit, zeroed page allocation, one-write-per-open staging, and explicit private-data handoff without claiming live readback, dentry mutation, or pseudo-filesystem state."
+    },
+    {
       "id": "phase13-libfs-transaction-publish-helper",
       "status": "starter_landed",
       "kind": "helper_surface",
@@ -39,18 +46,11 @@
       "why_now": "The libfs helper lab now models the pure simple_transaction_set() publish path, including the response-size limit, the required private-data handoff, the publish barrier, and published response-size bookkeeping before any live readback or release state is claimed."
     },
     {
-      "id": "phase13-libfs-transaction-acquire-helper",
-      "status": "ready_next",
-      "kind": "helper_surface",
-      "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest transaction-family step is a tiny simple_transaction_get() planner that keeps the work in page-bounded buffer acquisition and one-write-per-open staging before any live readback, dentry, or pseudo-filesystem state is modeled."
-    },
-    {
       "id": "phase13-libfs-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability replay keeps the current libfs helper surface explicit, including the rename planners that were already landed in fs/libfs.zig."
+      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the bounded simple_transaction_get() acquire planner plus the already-landed rename planners in fs/libfs.zig."
     },
     {
       "id": "phase13-libfs-survey-note",
