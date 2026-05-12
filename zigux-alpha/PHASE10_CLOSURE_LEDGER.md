@@ -18,12 +18,14 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_RING_SURVEY=Documentation/zigux/phase10-virtio-ring-survey.md`
 - `PHASE10_LEDGER_INPUT_SURVEY=Documentation/zigux/phase10-virtio-input-survey.md`
 - `PHASE10_LEDGER_MMIO_SURVEY=Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `PHASE10_LEDGER_REPO_REALITY_GAPS=Documentation/zigux/phase10-virtio-core-slice.md,Documentation/zigux/phase10-virtio-ring-slice.md,Documentation/zigux/phase10-virtio-input-slice.md,Documentation/zigux/phase10-virtio-input-module-slice.md,Documentation/zigux/phase10-virtio-mmio-slice.md,drivers/virtio/virtio_ring.zig,drivers/virtio/virtio_ring_verify.zig,zigux/tests/phase10_virtio_ring.zig,zigux/tests/phase10_virtio_ring_reset_reuse.zig,zigux/tests/phase10_virtio_ring_survey.zig,scripts/zigux/check-phase10-ring-packet.py`
+- `PHASE10_LEDGER_REPO_REALITY_GAPS=Documentation/zigux/phase10-virtio-core-slice.md,Documentation/zigux/phase10-virtio-ring-slice.md,Documentation/zigux/phase10-virtio-input-slice.md,Documentation/zigux/phase10-virtio-input-module-slice.md,Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `PHASE10_LEDGER_CONTENTS_BRIDGE_GAPS=drivers/virtio/virtio_ring.zig,drivers/virtio/virtio_ring_verify.zig,zigux/tests/phase10_virtio_ring.zig,zigux/tests/phase10_virtio_ring_reset_reuse.zig,zigux/tests/phase10_virtio_ring_survey.zig,scripts/zigux/check-phase10-ring-packet.py`
+- `PHASE10_LEDGER_PUBLIC_FALLBACK_CONFIRMED_RING_SURFACES=drivers/virtio/virtio_ring.zig,zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `PHASE10_LEDGER_CORE_LAB_GATE=zigux/tests/phase10_virtio_core.zig`
 - `PHASE10_LEDGER_CORE_RESET_QUEUE_REPLAY=zigux/tests/phase10_virtio_core_reset_queue.zig`
 - `PHASE10_LEDGER_CORE_SURVEY_GATE=zigux/tests/phase10_virtio_core_survey.zig`
 - `PHASE10_LEDGER_DRIVER_ID_REPLAY=zigux/tests/phase10_virtio_driver_id.zig`
-- `PHASE10_LEDGER_RING_SURVEY_GATE=repo_reality_gap:zigux/tests/phase10_virtio_ring_survey.zig`
+- `PHASE10_LEDGER_RING_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_ring_survey.zig`
 - `PHASE10_LEDGER_INPUT_QUEUE_CALLBACK_PREFLIGHT_REPLAY=zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 - `PHASE10_LEDGER_INPUT_STATUS_DRAIN_REPLAY=zigux/tests/phase10_virtio_input_status_drain.zig`
 - `PHASE10_LEDGER_INPUT_PROBE_PREFLIGHT_REPLAY=zigux/tests/phase10_virtio_input_probe_preflight.zig`
@@ -78,7 +80,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_13=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 - `PHASE10_LEDGER_EXACT_CHECK_14=make -C zigux phase10-test`
 - `PHASE10_LEDGER_EXACT_CHECK_15=make -C zigux phase10`
-- `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_shared_phase10_surfaces_stop_overclaiming_missing_direct_ring_files_or_a_smaller_input_or_mmio_followup_splits_off_cleanly`
+- `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_shared_phase10_surfaces_split_public_fallback_ring_readback_from_contents_bridge_gaps_more_cleanly_or_a_smaller_input_or_mmio_followup_splits_off_cleanly`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-queue-shape-bookkeeping-helper,phase10-config-generation-bookkeeping-helper,phase10-interrupt-ack-bookkeeping-helper,phase10-lifecycle-guard-bookkeeping-helper,phase10-driver-validation-narrowing-helper,phase10-reset-replay-bookkeeping-helper`
 - `PHASE10_LEDGER_LANDED_RING_HELPERS=phase10-virtqueue-shape-helper,phase10-used-buffer-polling-helper,phase10-callback-enable-helper,phase10-callback-delay-helper,phase10-notify-prepare-helper,phase10-notification-data-summary-helper,phase10-broken-queue-poll-guard,phase10-queue-reset-helper,phase10-queue-reset-readiness-helper,phase10-ring-verify-replay,phase10-virtio-ring-slice-note`
@@ -95,11 +97,11 @@ The ledger now also mirrors the exact supporting evidence lists for each roadmap
 
 The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes instead of leaving that tranche evidence implicit.
 
-The five older Phase 10 slice-note paths remain repo-reality gaps on current `master`, so this ledger now records them as gaps instead of presenting `Documentation/zigux/phase10-virtio-core-slice.md` or `Documentation/zigux/phase10-virtio-mmio-slice.md` as shipped closure evidence.
+The five older Phase 10 slice-note paths remain the true repo-reality gaps on current `master`, so this ledger keeps those note companions separate from readback-path flakiness instead of folding them together with authenticated contents misses.
 
-Fresh authenticated rereads now also show that the direct ring helper packet is no longer materialized on current `master`: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `scripts/zigux/check-phase10-ring-packet.py` all returned `404` through the same current-head GitHub contents reads used for this tranche review. This ledger therefore keeps the direct ring lane visible only through `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md` until the dedicated ring lane republishes a smaller direct packet.
+Fresh authenticated rereads still returned `404` for the broader direct ring packet through the GitHub contents bridge: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `scripts/zigux/check-phase10-ring-packet.py` all failed through that exact current-head read path. Public GitHub fallback rereads, however, still exposed at least `drivers/virtio/virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig` on current `master`. This ledger therefore records those ring paths as contents-bridge gaps rather than repo-reality gaps, while keeping the shared ring lane anchored to `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md` until a later run can re-read the broader direct ring packet through one consistent path.
 
-The shared closure manifest-backed helper ladders now stay explicit here for all four bounded Phase 10 lanes, so reviewers can recover the current core, ring, input, and MMIO starter packet directly from this tranche record instead of stopping at older shorthand. For the ring lane specifically, that helper ladder is retained here as manifest-carried tranche provenance rather than as a claim that the missing direct ring helper, verify, replay, or checker files are presently materialized on `master`. The exact replay packet for the current closure bundle is:
+The shared closure manifest-backed helper ladders now stay explicit here for all four bounded Phase 10 lanes, so reviewers can recover the current core, ring, input, and MMIO starter packet directly from this tranche record instead of stopping at older shorthand. For the ring lane specifically, that helper ladder is retained here as manifest-carried tranche provenance plus partial public-fallback confirmation, not as a claim that the entire direct ring helper, verify, survey, replay, and checker packet was freshly re-read through the authenticated contents bridge in this run. The exact replay packet for the current closure bundle is:
 
 1. `python3 scripts/zigux/validate-phase10.py`
 2. `python3 scripts/zigux/validate-phase10-closure.py`
