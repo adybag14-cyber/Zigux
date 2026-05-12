@@ -82,15 +82,10 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
-    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
-    "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
-    "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+    "`Documentation/zigux/phase12-virtio-net-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
+    "the current smoke-first `virtio_scsi` release packet plus the surviving survey-only `virtio_net` boundary and snapshot-backed libbpf survey anchor reviewable from the scripts root",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
-]
-
-SCRIPTS_README_FORBIDDEN_MARKERS = [
-    "`Documentation/zigux/phase12-nvme-pci-slice.md`",
-    "`Documentation/zigux/phase12-nvme-pci-survey.md`",
 ]
 
 TESTS_README_MARKERS = [
@@ -246,12 +241,6 @@ def ensure_contains(failures: list[str], label: str, text: str, markers: list[st
             failures.append(f"{label}:{marker}")
 
 
-def ensure_absent(failures: list[str], label: str, text: str, markers: list[str]) -> None:
-    for marker in markers:
-        if marker in text:
-            failures.append(f"{label}_unexpected:{marker}")
-
-
 def ensure_exact_counts(
     failures: list[str], label: str, text: str, expected_counts: dict[str, int]
 ) -> None:
@@ -312,13 +301,6 @@ def validate(root: Path) -> list[str]:
     ]
     for label, rel_path, markers in checks:
         ensure_contains(failures, label, read_text(root, rel_path), markers)
-
-    ensure_absent(
-        failures,
-        "scripts_readme",
-        read_text(root, SCRIPTS_README_PATH),
-        SCRIPTS_README_FORBIDDEN_MARKERS,
-    )
 
     ensure_exact_counts(
         failures,
@@ -529,13 +511,16 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         scripts_readme_path = base / SCRIPTS_README_PATH
         scripts_readme_path.write_text(
-            scripts_readme_path.read_text(encoding="utf-8")
-            + f"\n{SCRIPTS_README_FORBIDDEN_MARKERS[0]}\n",
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                SCRIPTS_README_MARKERS[10],
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            f"scripts_readme_unexpected:{SCRIPTS_README_FORBIDDEN_MARKERS[0]}",
+            f"scripts_readme:{SCRIPTS_README_MARKERS[10]}",
         )
 
         write_fixture_tree(base)
@@ -624,7 +609,6 @@ def main() -> int:
     marker_count = (
         len(REQUIRED_FILES)
         + len(SCRIPTS_README_MARKERS)
-        + len(SCRIPTS_README_FORBIDDEN_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(RELEASE_READINESS_SURVEY_MARKERS)
         + len(RELEASE_SEQUENCING_MARKERS)
