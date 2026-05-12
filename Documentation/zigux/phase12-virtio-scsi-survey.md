@@ -33,7 +33,7 @@ That anchor remains high value because `virtio_scsi.c` still covers virtqueue se
 
 - current `master` now carries `drivers/scsi/virtio_scsi.zig`
 - the current bounded starter exposes `planQueueLayout()`, `requestQueue()`, `captureProbeSnapshot()`, `captureHostLimitSummary()`, `captureQueueDepthSummary()`, and `captureIoQueueMapSummary()` so queue-family planning, host-limit clamping, queue-depth clamping, and io-map offsets stay reviewable without claiming live blk-mq traffic
-- the current bounded starter also exposes `freezeForTransportReset()`, `recoveryQueuePlan()`, `recoveryQueueDepthSummary()`, `recoveryIoQueueMapSummary()`, `recoveryEventBufferOwnershipSummary()`, and `restoreAfterTransportReset()` so transport-reset recovery order and event-buffer ownership stay reviewable without claiming runtime reset execution
+- the current bounded starter also exposes `freezeForTransportReset()`, `recoveryQueuePlan()`, `recoveryQueueDepthSummary()`, `recoveryIoQueueMapSummary()`, `recoveryEventBufferOwnershipSummary()`, `recoveryHostScanSummary()`, and `restoreAfterTransportReset()` so transport-reset recovery order, event-buffer ownership, and host-scan restore ordering stay reviewable without claiming runtime reset execution
 - current `master` now carries `zigux/tests/phase12_virtio_scsi.zig` as the direct bounded replay for this starter
 - current `master` now carries `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` as the dedicated syntax lab for this starter
 - current `master` now carries `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` so the second-cycle recovery boundary remains explicit
@@ -49,7 +49,7 @@ Those checks mean the current lane now has a truthful survey packet for the exis
 The truthful current boundary is:
 
 - the roadmap still wants a bounded `virtio_scsi` lane in Phase 12
-- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, host-limit, queue-depth, io-map, transport-reset, and event-buffer ownership reviewable
+- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, host-limit, queue-depth, io-map, transport-reset, event-buffer ownership, and host-scan restore ordering reviewable
 - current `master` now carries the direct test, syntax lab, repeated-replan gate, support packet, and this survey packet, so the starter is directly executable and reviewable through bounded driver-local surfaces
 - current `master` still does not claim live DMA-safe request submission, sg-list ownership, request completion handling, blk-mq tag wiring, `scsi_host` registration, TMF execution, event-queue runtime handling, or transport-backed host-scan recovery
 - current `master` still does not claim throughput parity, reset replay parity, or a live storage data path
