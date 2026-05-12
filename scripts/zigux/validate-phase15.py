@@ -105,7 +105,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_indefinite_c_lane_OWNER_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate.zig",
 ]
@@ -138,13 +138,21 @@ READINESS_SURVEY_MARKERS = [
     "shared replay route stays explicit through `zigux/tests/phase15_build.zig`",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15-test",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase15.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/README.md",
     "zigux/Makefile",
+    "`make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture",
     "no-approval-yet maintenance-mode blocker posture",
     "the remaining blocker is still `phase15-deep-core-status-change-blocker`",
+    "phase15-docs-root-summary-alignment",
     "Later repo movement still requires a fresh bounded provenance refresh",
 ]
 
@@ -459,6 +467,114 @@ def run_self_test() -> int:
             [],
             [f"readiness_survey:{missing_readiness_scope_marker}"],
             "readiness_scope_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_docs_root_marker = "Documentation/zigux/README.md"
+        _write(root, readiness_rel, readiness_text.replace(missing_docs_root_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_docs_root_marker}"],
+            "readiness_docs_root_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_handoff_note_marker = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
+        _write(root, readiness_rel, readiness_text.replace(missing_handoff_note_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_handoff_note_marker}"],
+            "readiness_handoff_note_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_lane_note_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+        _write(root, readiness_rel, readiness_text.replace(missing_lane_note_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_lane_note_marker}"],
+            "readiness_lane_note_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_scripts_alignment_marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+        _write(
+            root,
+            readiness_rel,
+            readiness_text.replace(missing_scripts_alignment_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_scripts_alignment_marker}"],
+            "readiness_scripts_alignment_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_handoff_checker_marker = "scripts/zigux/check-phase15-review-process-handoff.py"
+        _write(
+            root,
+            readiness_rel,
+            readiness_text.replace(missing_handoff_checker_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_handoff_checker_marker}"],
+            "readiness_handoff_checker_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_tests_readme_marker = "zigux/tests/README.md"
+        _write(root, readiness_rel, readiness_text.replace(missing_tests_readme_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_tests_readme_marker}"],
+            "readiness_tests_readme_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_phase15_make_marker = "`make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture"
+        _write(root, readiness_rel, readiness_text.replace(missing_phase15_make_marker, "", 1))
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_phase15_make_marker}"],
+            "readiness_phase15_make_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        missing_alignment_blocker_marker = "phase15-docs-root-summary-alignment"
+        _write(
+            root,
+            readiness_rel,
+            readiness_text.replace(missing_alignment_blocker_marker, "", 1),
+        )
+        _assert_result(
+            *validate(root),
+            [],
+            [f"readiness_survey:{missing_alignment_blocker_marker}"],
+            "readiness_alignment_blocker_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
