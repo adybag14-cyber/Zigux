@@ -35,6 +35,15 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
+fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+}
+
 fn gitBlobShaHex(source: []const u8) ![40]u8 {
     var header_buf: [64]u8 = undefined;
     const header = try std.fmt.bufPrint(&header_buf, "blob {}\x00", .{source.len});
@@ -58,6 +67,10 @@ fn gitBlobShaHex(source: []const u8) ![40]u8 {
 fn expectBlobShaMatchesSource(blob_sha: []const u8, source: []const u8) !void {
     const computed = try gitBlobShaHex(source);
     try std.testing.expectEqualStrings(computed[0..], blob_sha);
+}
+
+fn expectMarker(haystack: []const u8, marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
 }
 
 test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {
@@ -117,6 +130,30 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared CI perf promotion") != null);
+}
+
+test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    const wrapper_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/atomic64_diff.zig",
+    );
+    defer std.testing.allocator.free(wrapper_source);
+
+    const wrapper_blob_sha = try gitBlobShaHex(wrapper_source);
+    const marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_ATOMIC64_DIFF_BLOB_SHA={s}",
+        .{wrapper_blob_sha},
+    );
+    defer std.testing.allocator.free(marker);
+
+    try expectMarker(gate_evidence_source, marker);
 }
 
 // runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
