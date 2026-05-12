@@ -1,0 +1,28 @@
+{
+  "lane_key": "complex-drivers-infra",
+  "phase": "Phase 12",
+  "surveyed_commit": "4b5b0667d4651364ccd4b388d84c3107b64fdd6a",
+  "packet": "phase12-virtio-scsi-support",
+  "status": "bounded infra prep",
+  "anchor": "drivers/scsi/virtio_scsi.c",
+  "shipped_paths": [
+    "drivers/scsi/virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+    "zigux/tests/phase12_build.zig",
+    "zigux/tests/phase12_virtio_scsi_packet.zig",
+    "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json",
+    "scripts/zigux/check-phase12-virtio-scsi-packet.py",
+    "Documentation/zigux/phase12-virtio-scsi-slice.md"
+  ],
+  "repo_gaps": [
+    "drivers/net/virtio_net.zig",
+    "drivers/nvme/host/pci.zig",
+    "Documentation/zigux/phase12-closure.md"
+  ],
+  "validation": [
+    "zig test zigux/tests/phase12_virtio_scsi_packet.zig",
+    "python3 scripts/zigux/check-phase12-virtio-scsi-packet.py"
+  ]
+}
