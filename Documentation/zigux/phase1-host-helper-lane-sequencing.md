@@ -65,6 +65,20 @@ When this lane reopens, stay inside one bounded step only.
 - Do not treat bitmap-only validator or closure-note follow-through as the default Phase 1 reopen path now that the live owner map spans all thirteen helpers.
 - Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 
+## Direct-Anchor Owner Map
+
+Current `master` also needs one helper-specific owner map for the four direct-anchor helpers so nearby lanes do not keep reaching for the same shared follow-up surface from different helper families.
+
+- `tools/lib/bitmap.zig` owns only its helper-local bitmap anchors plus the already-committed bitmap replay keys in `zigux/tests/fixtures/phase1_helpers.json`. Do not use bitmap to reopen shared validator or manifest work for `find_bit`, `rbtree`, or `string`.
+- `tools/lib/find_bit.zig` owns only its helper-local start-mask, boundary, zero-window, past-`nbits`, alias, and tail-word anchors plus the committed `find_bit` replay fields already emitted by `zigux/tests/fixtures/phase1_helpers_c_harness.c` and consumed by `zigux/tests/fixtures/phase1_helpers.json`. Reopen shared replay only if that committed `find_bit` packet drifts.
+- `tools/lib/rbtree.zig` keeps iterator and cached-root coverage helper-local until `master` ships exactly one dedicated shared iterator or cached-root leftmost-return fixture key. Do not batch both widenings into one reopen step.
+- `tools/lib/string.zig` already keeps the shared string helper-manifest anchor lists aligned through `scripts/zigux/validate-phase1-closure.py`, so the next honest string reopen is direct helper-local anchor drift or committed shared replay drift, not a generic closure-validator tightening pass.
+
+- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns`
+- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local anchors plus the committed find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`
+- `PHASE1_RBTREE_DIRECT_OWNER=rbtree iterator and cached-root coverage stay helper-local until exactly one dedicated shared iterator or cached-root leftmost-return fixture key lands`
+- `PHASE1_STRING_DIRECT_OWNER=string already has shared helper-manifest anchor validation in validate-phase1-closure.py, so reopen only for direct anchor drift or committed shared replay drift`
+
 ## Next Bounded Step
 
 Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helper family only.
