@@ -75,7 +75,7 @@ MAKEFILE_REQUIRED = (
 HANDOFF_CHECKER_MARKERS = (
     'NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"',
     'MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"',
-    '"scripts-root validator path"',
+    'VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"',
     'print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")',
 )
 
@@ -277,7 +277,7 @@ def _baseline_handoff_checker() -> str:
             '#!/usr/bin/env python3',
             'NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"',
             'MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"',
-            'OPTIONAL = "scripts-root validator path"',
+            'VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"',
             'print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")',
             "",
         )
@@ -460,6 +460,18 @@ def run_self_test() -> int:
             validate(root),
             ['handoff_checker:missing:MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"'],
             "missing_handoff_marker_guard_failed",
+        )
+        _write(root / HANDOFF_CHECKER_REL, baseline_checker)
+        case_count += 1
+
+        _write(
+            root / HANDOFF_CHECKER_REL,
+            baseline_checker.replace('VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"\n', "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ['handoff_checker:missing:VALIDATOR_PATH = "scripts/zigux/validate-phase15.py"'],
+            "missing_handoff_validator_marker_guard_failed",
         )
         _write(root / HANDOFF_CHECKER_REL, baseline_checker)
         case_count += 1
