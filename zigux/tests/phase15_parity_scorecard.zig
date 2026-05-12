@@ -8,6 +8,7 @@ const ScorecardPosture = struct {
 const ScorecardMetrics = struct {
     active_freeze_in_c_anchor_count: usize,
     blocked_status_change_anchor_count: usize,
+    phase15_governance_only_blocker_anchor_count: usize,
     phase14_coupled_blocker_anchor_count: usize,
     anchors_still_blocked_on_prior_phase_bridge_evidence: usize,
     study_only_anchors_tracked_outside_scorecard: usize,
@@ -85,6 +86,10 @@ fn countPhase14CoupledAnchors(anchors: []const Anchor) usize {
     return count;
 }
 
+fn countPhase15GovernanceOnlyAnchors(anchors: []const Anchor) usize {
+    return anchors.len - countPhase14CoupledAnchors(anchors);
+}
+
 test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -104,6 +109,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", manifest.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.active_freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.blocked_status_change_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.metrics.phase15_governance_only_blocker_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.metrics.phase14_coupled_blocker_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
     try std.testing.expectEqual(@as(usize, 2), manifest.metrics.study_only_anchors_tracked_outside_scorecard);
@@ -122,12 +128,20 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
         manifest.anchors.len,
     );
     try std.testing.expectEqual(
+        manifest.metrics.phase15_governance_only_blocker_anchor_count,
+        countPhase15GovernanceOnlyAnchors(manifest.anchors),
+    );
+    try std.testing.expectEqual(
         manifest.metrics.phase14_coupled_blocker_anchor_count,
         countPhase14CoupledAnchors(manifest.anchors),
     );
     try std.testing.expectEqual(
         manifest.metrics.phase14_coupled_blocker_anchor_count,
         manifest.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence,
+    );
+    try std.testing.expectEqual(
+        manifest.metrics.phase15_governance_only_blocker_anchor_count + manifest.metrics.phase14_coupled_blocker_anchor_count,
+        manifest.metrics.blocked_status_change_anchor_count,
     );
 
     const sched = manifest.anchors[0];
@@ -179,6 +193,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "current-master-readback-2026-05-12");
     try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
     try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
+    try expectMetricLine(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence", parsed.value.metrics.phase15_governance_only_blocker_anchor_count);
     try expectMetricLine(scorecard_doc, "Phase 14 coupled blocker anchor count", parsed.value.metrics.phase14_coupled_blocker_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors still blocked on prior-phase bridge evidence", parsed.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
