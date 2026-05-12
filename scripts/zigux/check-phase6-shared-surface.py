@@ -39,9 +39,6 @@ ABSENT_PATHS = [
     Path("zigux/tests/phase6_checksum.zig"),
     Path("zigux/tests/phase6_checksum_perf.zig"),
     Path("zigux/tests/fixtures/phase6_checksum_vectors.zig"),
-    Path("zigux/tests/phase6_hexdump.zig"),
-    Path("zigux/tests/phase6_hexdump_perf.zig"),
-    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"),
 ]
 
 PRESENT_PATHS = [
@@ -60,6 +57,9 @@ PRESENT_PATHS = [
     HEXDUMP_PACKET_SCRIPT_PATH,
     PERF_THRESHOLD_SCRIPT_PATH,
     HEXDUMP_REFRESH_PATH,
+    Path("zigux/tests/phase6_hexdump.zig"),
+    Path("zigux/tests/phase6_hexdump_perf.zig"),
+    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"),
     HEXDUMP_MATRIX_PATH,
 ]
 
@@ -314,7 +314,13 @@ def scaffold_repo(root: Path) -> None:
     if "- surveyed head: `a0f4d7e`" not in catalog_text:
         write(root / CATALOG_PATH, catalog_text + "- surveyed head: `a0f4d7e`\n")
     write(root / HEXDUMP_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n\nhelper-local perf refresh note\n")
-    write(root / HEXDUMP_MATRIX_PATH, 'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {}\n')
+    write(root / Path("zigux/tests/phase6_hexdump.zig"), 'test "phase6 hexdump packet placeholder" {}\n')
+    write(root / Path("zigux/tests/phase6_hexdump_perf.zig"), 'pub fn main() void {}\n')
+    write(root / Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"), "pub const cases = .{};\n")
+    write(
+        root / HEXDUMP_MATRIX_PATH,
+        'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {}\n',
+    )
 
 
 def assert_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -376,6 +382,16 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected absent-path failure")
         present_should_be_absent.unlink()
+        required_should_be_present = root / Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+        required_should_be_present.unlink()
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_hexdump_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected present-path failure: {exc}") from exc
+        else:
+            raise AssertionError("expected present-path failure")
+        write(required_should_be_present, "pub const cases = .{};\n")
         assert_failure(
             root,
             BASE64_PARITY_SCRIPT_PATH,
