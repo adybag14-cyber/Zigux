@@ -1,10 +1,11 @@
 const std = @import("std");
 const virtio_net = @import("virtio_net");
 
-test "phase12 virtio net syntax lab keeps mergeable buffer exports reachable" {
+test "phase12 virtio net syntax lab keeps queue-topology and mergeable-buffer exports reachable" {
     _ = virtio_net.ModuleDescriptor;
     _ = virtio_net.ProbeRequest;
     _ = virtio_net.ProbeSnapshot;
+    _ = virtio_net.QueueTopologySummary;
     _ = virtio_net.MergeableReceiveBufferRequest;
     _ = virtio_net.MergeableReceiveBufferPlan;
     _ = virtio_net.QueueFallbackReason;
@@ -25,6 +26,17 @@ test "phase12 virtio net syntax lab keeps mergeable buffer exports reachable" {
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.device_single_queue, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.HeaderShape.legacy, snapshot.header_shape);
     try std.testing.expectEqual(@as(u16, virtio_net.default_headroom_bytes), snapshot.hdr_len_bytes);
+
+    const topology = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 0,
+        .device_queue_pairs = 0,
+        .has_control_vq = false,
+        .has_rss = true,
+    });
+    try std.testing.expectEqual(@as(u16, 2), topology.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), topology.first_control_queue_index);
+    try std.testing.expect(!topology.multi_queue);
+    try std.testing.expect(!topology.rss_enabled);
 
     const single_page_plan = try lab.planMergeableReceiveBuffer(.{
         .packet_bytes = 1500,
