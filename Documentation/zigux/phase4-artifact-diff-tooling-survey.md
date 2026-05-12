@@ -19,7 +19,7 @@ Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` calls for artifact-diff checks 
 
 Current `master` already closes the deterministic-check slice of that requirement:
 - `scripts/zigux/artifact_diff.py` ships the bounded text, JSON, and SHA-256 comparison helper plus a deterministic `--self-test` packet.
-- `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including missing-argument, invalid-mode, missing-path, malformed-JSON, help-output, and repeat-run cases.
+- `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including missing-argument, invalid-mode, missing-path, malformed-JSON, help-output, and repeat-run cases, and it also keeps the isolated checker self-test entrypoint reviewable beside the live contract replay.
 - `scripts/zigux/check-phase4-artifact-diff-determinism.py` separately rechecks the helper self-test catalog, the contract self-test catalog, the base-case catalog, the repeat-case catalog, the full contract catalog, and this roadmap-facing survey packet so case-count or reminder-surface drift fails closed.
 - `scripts/zigux/validate-phase4.py` already treats both artifact-diff checkers as part of the shared Phase 4 validator-first route before the Zig rollback gates run.
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` already expose the same validator-first replay surface through `make -C zigux phase4-validate` and the bootstrap workflow.
@@ -38,6 +38,8 @@ Current `master` already closes the deterministic-check slice of that requiremen
 The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts so `scripts/zigux/check-phase4-artifact-diff-determinism.py` can reject roadmap-note drift before the broader Phase 4 validator-first route runs.
 
 ## Direct Replay Surface
+- `python3 scripts/zigux/artifact_diff.py --self-test`
+- `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`
 - `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
 - `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
 - `python3 scripts/zigux/check-artifact-diff-contract.py`
