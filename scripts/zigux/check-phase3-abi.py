@@ -34,6 +34,8 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
@@ -74,6 +76,9 @@ RUNNER_MARKERS = (
 CHECK_LIB_MARKERS = (
     'if slug == "abi":',
     '(sys.executable, "scripts/zigux/check-phase3-abi.py"),',
+    '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),',
+    '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),',
+    '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),',
     '("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),',
     '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),',
     "def run_phase3_slice_entry(",
@@ -217,6 +222,17 @@ def run_self_test() -> int:
             case_count += 1
             _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
 
+        mmio_consumer_rel = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
+        (root / mmio_consumer_rel).unlink()
+        issues = validate_repo(root)
+        expected_mmio_consumer_missing = f"missing repo file: {mmio_consumer_rel.as_posix()}"
+        if expected_mmio_consumer_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing policy/unsafe mmio-consumer checker was not reported")
+            return 1
+        case_count += 1
+        _write(root / mmio_consumer_rel)
+
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
         issues = validate_repo(root)
@@ -254,6 +270,27 @@ def run_self_test() -> int:
         if expected_helper_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing shared helper marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
+        _write(
+            root / CHECK_LIB_PATH,
+            "\n".join(
+                marker
+                for marker in CHECK_LIB_MARKERS
+                if marker != '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),'
+            )
+            + "\n",
+        )
+        issues = validate_repo(root)
+        expected_helper_marker = (
+            'missing shared helper marker: '
+            '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),'
+        )
+        if expected_helper_marker not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing mmio-consumer shared helper marker was not reported")
             return 1
         case_count += 1
 
