@@ -22,6 +22,8 @@ fn requireMarkerCount(marker: []const u8, expected_count: usize) !void {
 
 test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
     try requireMarker("\"lane_key\": \"P4-L20\"");
+    try requireMarker("\"owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
     try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
     try requireMarker("\"surface\": \"zigux/tests/atomic64_diff.zig\"");
     try requireMarker("\"gate_owner\": \"ABI and Runtime Team\"");
@@ -35,6 +37,11 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try requireMarker("\"median_elapsed_ns\"");
     try requireMarker("seven monotonic samples");
     try requireMarker("shared CI perf promotion");
+}
+
+test "phase4 perf baseline survey keeps the dedicated packet owner and rollback owner explicit" {
+    try requireMarkerCount("\"owner\": \"Validation and Perf Team\"", 2);
+    try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
 }
 
 test "phase4 perf baseline survey keeps the approved local-only atomic64 limits explicit" {
