@@ -1,8 +1,64 @@
-# Phase 9 Runtime Atomic64 Module Slice This document tracks the first bounded Phase 9 runtime atomic64 starter under `samples/zigux/`.
-## Status - `PHASE9_STATUS=active` - `PHASE9_SLICE=runtime-atomic64-module-starter` - `PHASE9_LANE_KEY=P9-L04` - `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839` - scope: lifecycle starter, direct sample, module, diff, and loader shared-build wiring, adjacent loader scaffold, prepared loader-summary snapshot replay, shared loader-request binding, shared runtime-loader facade plus allocator/init-flow contract replay, selftest summary, and survey-manifest closure only - product boundary: - `samples/zigux/runtime_atomic64.zig` - `samples/zigux/runtime_atomic64_loader.zig` - `zigux/tests/runtime_atomic64_module.zig` - `zigux/tests/runtime_atomic64_manifest.json` - `zigux/tests/phase9_build.zig` - `zigux/kernel/runtime_loader.zig` ## Why this slice exists The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtime pilot anchor, but it still stopped at a survey-only state.
-This slice lands the smallest honest runtime-facing follow-on step: a sample-backed lifecycle scaffold that reuses the existing atomic helper wrappers without claiming loadable-module parity. The adjacent shared runtime-loader facade, contract, and allocator/init-flow replay still remain review-only underneath the freeze map's study boundary.
-`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this starter may describe the bounded in-memory sample, the sample-side loader scaffold, the shared loader-request binding, and the shared runtime-loader contract replay, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor. No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet.
-The reviewable evidence here remains limited to the shipped starter, its direct sample, module, diff, and loader build legs, the shared loader-request binding, the shared runtime-loader facade plus allocator/init-flow contract replay, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
-## Landed starter surface - module descriptor metadata naming the `lib/atomic64_test.c` anchor - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited` - a 64-bit counter path using `zigux/helpers/atomic.zig` - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families - a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit - bounded guard-operation coverage through `add_unless`, plus explicit post-selftest replay checks that keep the sample and module lifecycle packet truthful about the currently shipped surface - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and add-unless expectations drawn from `lib/atomic64_test.c` - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` - a prepared loader-summary snapshot replay that freezes the four-field `RuntimeAtomic64Summary` handoff before later sample mutation and keeps that same snapshot explicit through both `waiting_on_runtime_substrate` and `released_without_substrate` review paths - a bounded shared `command_name` preservation check in `samples/zigux/runtime_atomic64_loader.zig` that keeps a synthetic non-null loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution - dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-loader-tests` legs, plus a `make -C zigux phase9` entry ## Non-goals This slice does not yet claim: - a kernel-loadable Zigux module - runtime module init and exit macro parity - boot-time or module-load execution - parity or ownership for `kernel/workqueue.c` - any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision ## Gates 1.
-run the dedicated Phase 9 build - `zig build test --build-file zigux/tests/phase9_build.zig` - this shared build includes the direct `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks 2.
-run the convenience target - `make -C zigux phase9` ## Next bounded step Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter, loader-request, prepared-summary, or differential scaffolds.
+# Phase 9 Runtime Atomic64 Module Slice
+
+This note tracks the current bounded Phase 9 runtime atomic64 review packet on `master`.
+
+## Status
+
+- `PHASE9_STATUS=active`
+- `PHASE9_SLICE=runtime-atomic64-review-packet`
+- `PHASE9_LANE_KEY=P9-L04`
+- scope: atomic64 family-local loader scaffold, manifest-backed reminder surfaces, and adjacent shared loader-handoff evidence only
+
+## Current review surface
+
+Current `master` keeps these atomic64 family-local surfaces visible:
+
+- `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
+- `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+- `zigux/tests/runtime_atomic64_manifest.json`
+- `samples/zigux/runtime_atomic64_loader.zig`
+
+Current `master` also keeps the adjacent shared loader-facing packet visible:
+
+- `zigux/kernel/runtime_loader.zig`
+- `zigux/kernel/runtime_loader_contract.zig`
+- `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/tests/phase9_build.zig`
+- `zigux/Makefile`
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+
+Direct atomic64 starter files do not currently materialize on `master`:
+
+- `samples/zigux/runtime_atomic64.zig`
+- `zigux/tests/runtime_atomic64_module.zig`
+- `zigux/tests/runtime_atomic64_diff.zig`
+- `zigux/tests/runtime_atomic64_survey.zig`
+
+That means the honest current slice is a partial atomic64 reminder packet plus the shared loader-handoff packet, not a fully materialized atomic64 sample, module, diff, and survey bundle.
+
+## Why this slice exists
+
+The Phase 9 roadmap still uses `lib/atomic64_test.c` as the atomic64 pilot anchor and still expects first loadable Zigux runtime modules, selftest hooks, and runtime module lifecycle parity under `samples/zigux/runtime_*` and `zigux/tests/runtime_*`.
+
+Current `master` does not close that full starter yet. The family-local proof that remains visible is the bounded loader scaffold plus the manifest-backed reminder surfaces, while the broader shared runtime-loader substrate is still the real blocker for loadable runtime parity.
+
+This note exists to keep that smaller review packet explicit without pretending that the missing direct starter files or the live runtime substrate are already landed.
+
+## Truthfulness rules
+
+1. Keep the atomic64 family described as a partial Phase 9 review packet, not as completed loadable runtime module parity.
+2. Keep the shared loader-facing packet adjacent but separate. If `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, or the shared sequencing note drift, record that in the shared Phase 9 loader lane instead of claiming the atomic64 family covers it alone.
+3. Do not claim that the direct atomic64 sample, module, diff, or survey files are present on `master` until those files can be read directly again.
+4. Do not invent a dedicated `validate-phase9.py` route, a separate atomic64-only validator, or a cleared runtime-substrate handoff on current `master`.
+
+## Active blocker posture
+
+The family-local blocker on current `master` is still the missing direct atomic64 starter packet.
+
+The loader scaffold, manifest, and reminder notes are present, but the direct atomic64 sample, module gate, diff gate, and dedicated survey gate do not currently materialize. Until they do, this slice should stay described as partial atomic64 review evidence only.
+
+The broader shared runtime substrate also remains blocked. Until that shared substrate lands, the atomic64 family should stay framed as loader-handoff evidence rather than completed runtime module lifecycle parity.
+
+## Next bounded step
+
+Keep future follow-through literal and lane-local: either restore one missing direct atomic64 starter file at a time or continue trimming overstated atomic64 wording so each family-local note matches the live repo packet exactly.
