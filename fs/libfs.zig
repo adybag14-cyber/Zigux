@@ -17,6 +17,7 @@ pub const ModuleDescriptor = struct {
     provides_directory_emptiness_planning: bool,
     provides_lookup_planning: bool,
     provides_transaction_release_planning: bool,
+    provides_transaction_publish_planning: bool,
     provides_offset_seek_planning: bool,
     provides_offset_readdir_planning: bool,
     provides_offset_rename_planning: bool,
@@ -63,6 +64,15 @@ pub const TransactionReleasePlan = struct {
     frees_page_backed_private_data: bool,
     clears_private_data: bool,
     returns_zero: bool,
+};
+
+pub const TransactionBufferPublishPlan = struct {
+    anchor: []const u8,
+    requested_response_size: usize,
+    transaction_limit: usize,
+    requires_private_data: bool,
+    publishes_after_barrier: bool,
+    published_response_size: usize,
 };
 
 pub const OffsetSeekWhence = enum {
@@ -171,6 +181,7 @@ pub const LibfsHelperLab = struct {
             .provides_directory_emptiness_planning = true,
             .provides_lookup_planning = true,
             .provides_transaction_release_planning = true,
+            .provides_transaction_publish_planning = true,
             .provides_offset_seek_planning = true,
             .provides_offset_readdir_planning = true,
             .provides_offset_rename_planning = true,
@@ -229,6 +240,24 @@ pub const LibfsHelperLab = struct {
             .frees_page_backed_private_data = private_data_present,
             .clears_private_data = private_data_present,
             .returns_zero = true,
+        };
+    }
+
+    pub fn simpleTransactionSetPlan(response_size: usize, has_private_data: bool) !TransactionBufferPublishPlan {
+        if (response_size > simple_transaction_limit) {
+            return error.InputTooLarge;
+        }
+        if (!has_private_data) {
+            return error.MissingPrivateData;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_response_size = response_size,
+            .transaction_limit = simple_transaction_limit,
+            .requires_private_data = true,
+            .publishes_after_barrier = true,
+            .published_response_size = response_size,
         };
     }
 
@@ -408,6 +437,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
     try std.testing.expect(descriptor.provides_lookup_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
+    try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
@@ -481,6 +511,23 @@ test "transaction release planner keeps the no-private-data path explicit" {
     try std.testing.expect(!plan.frees_page_backed_private_data);
     try std.testing.expect(!plan.clears_private_data);
     try std.testing.expect(plan.returns_zero);
+}
+
+test "transaction publish planner keeps response-size validation and publish bookkeeping explicit" {
+    const plan = try LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit, true);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(simple_transaction_limit, plan.requested_response_size);
+    try std.testing.expectEqual(simple_transaction_limit, plan.transaction_limit);
+    try std.testing.expect(plan.requires_private_data);
+    try std.testing.expect(plan.publishes_after_barrier);
+    try std.testing.expectEqual(simple_transaction_limit, plan.published_response_size);
+
+    const empty = try LibfsHelperLab.simpleTransactionSetPlan(0, true);
+    try std.testing.expectEqual(@as(usize, 0), empty.published_response_size);
+
+    try std.testing.expectError(error.InputTooLarge, LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit + 1, true));
+    try std.testing.expectError(error.MissingPrivateData, LibfsHelperLab.simpleTransactionSetPlan(8, false));
 }
 
 test "offset seek plan accepts SEEK_SET positions into the real-entry window" {
