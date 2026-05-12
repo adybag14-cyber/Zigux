@@ -161,12 +161,13 @@ pub const RuntimeAtomic64Loader = struct {
         }
         _ = try runtime_loader.prepareRequest(shared_request.plan);
 
-        const plan = try self.requestRuntimeLoad();
-        const shared_plan = try shared_request.requestRuntimeLoad();
-        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
+        const plan = self.cached_plan orelse return error.MissingLoadPlan;
+        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_request.plan)) {
             return error.SharedLoadPlanDrift;
         }
-        return shared_plan;
+
+        _ = try self.requestRuntimeLoad();
+        return shared_request.requestRuntimeLoad();
     }
 
     pub fn releaseWithoutSubstrate(self: *Self) !void {
