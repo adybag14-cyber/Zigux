@@ -16,6 +16,8 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_SHARED_BUILD_PATH=zigux/tests/build.zig`
 - `PHASE3_SHARED_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_SHARED_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
+- `PHASE3_SHARED_INTEROP_ROUTE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
+- `PHASE3_SHARED_INTEROP_MAKE=make -C zigux phase3-interop`
 - `PHASE3_SHARED_MAKEFILE_PATH=zigux/Makefile`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `PHASE3_EXPORT_UAPI_WORKFLOW_PATH=.github/workflows/zigux-bootstrap.yml`
@@ -28,14 +30,14 @@ The blob markers above are the packet-local evidence for the currently shipped s
 - `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through canonical-versus-future-compatible helpers, accepted-header classification, explicit requested-extra-byte accounting for accepted headers, and canonicalization logic without widening into a deeper runtime-owned ABI claim.
 - `zigux/uapi/dev_t.zig` is now part of the shipped starter UAPI packet on current `master`, keeping the bounded chrdev encode, decode, and range checks readable beside the shared `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` contract.
 - `zigux/tests/phase3_abi_dump.zig` together with `zig build phase3-dump --build-file zigux/tests/build.zig` keeps the shared ABI dump readable beside this starter export/UAPI packet, so reviewers can still inspect the current boundary without reviving the removed export/UAPI-only replay files.
-- `zig build phase3-test --build-file zigux/tests/build.zig`, `zig build phase3-dump --build-file zigux/tests/build.zig`, `make -C zigux phase3-abi`, and `make -C zigux phase3` remain the shared compile, dump, and replay routes that cover this starter export/UAPI packet on live `master`.
+- `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `zig build phase3-test --build-file zigux/tests/build.zig`, `zig build phase3-dump --build-file zigux/tests/build.zig`, `make -C zigux phase3-abi`, `make -C zigux phase3-interop`, and `make -C zigux phase3` remain the shared interop, compile, dump, and replay routes that cover this starter export/UAPI packet on live `master`.
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` is the dedicated packet-local checker that keeps this survey aligned with the shipped starter boundary files and the shared replay route.
 
 ## Review Ownership
 
 The Phase 3 roadmap still wants a narrow and explicit permanent C/Zigux boundary. On current `master`, this packet stays honest only if the export/UAPI lane owns the starter wording without implying dedicated packet-local replay files that are not part of the live manifest-backed ABI packet.
 
-- the export/UAPI packet owns this survey note, its packet-local validator, and the wording that points reviewers at the shared `phase3-test` and `phase3-dump` routes for the currently shipped starter surface.
+- the export/UAPI packet owns this survey note, its packet-local validator, and the wording that points reviewers at the shared `phase3-interop`, `phase3-test`, and `phase3-dump` routes for the currently shipped starter surface.
 - the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.
 - any future top-level export or UAPI growth should land with a refreshed survey and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.
 
@@ -44,9 +46,9 @@ The Phase 3 roadmap still wants a narrow and explicit permanent C/Zigux boundary
 The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, no direct same-lane export/UAPI survey gap is visible between that roadmap target and the shipped reminder packet.
 
 - current `master` already ships `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, packet-local validator, shared ABI slice, header-family survey, docs-root reminder, and manifest-backed inventory now keep that starter packet aligned, including the explicit accepted-header extension-byte accounting exposed through the starter version helper and export shim relay.
-- the remaining lane rule is to keep the shared build and shared dump wording accurate and to avoid claiming dedicated `phase3_export_uapi*` replay files unless those files actually land alongside the shared ABI packet and its reminder surfaces.
+- the remaining lane rule is to keep the shared interop, build, and dump wording accurate and to avoid claiming dedicated `phase3_export_uapi*` replay files unless those files actually land alongside the shared ABI packet and its reminder surfaces.
 - if a future run grows this packet again, reopen the lane only for that concrete starter-boundary change and refresh this survey plus one shared reminder surface in the same bounded step.
 
 ## Scope
 
-This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, the shared `zigux/tests/phase3_abi_dump.zig` dump anchor, and the shared Phase 3 compile and dump routes that currently exercise them. It does not claim broader header-governance growth, a larger UAPI family, dedicated export/UAPI-only replay files, or deeper runtime ownership beyond the readable starter packet on the current inspected head.
+This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, the shared `zigux/tests/phase3_abi_dump.zig` dump anchor, and the shared Phase 3 interop, compile, and dump routes that currently exercise them. It does not claim broader header-governance growth, a larger UAPI family, dedicated export/UAPI-only replay files, or deeper runtime ownership beyond the readable starter packet on the current inspected head.
