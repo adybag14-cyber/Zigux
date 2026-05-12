@@ -27,23 +27,29 @@ VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
+    '"zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"',
+    '"zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"',
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21": 1,
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
     'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `11-case` confdata fixture replay",
+    "16-case` conf bridge plus `12-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-phase2.py",
     "run: python3 scripts/zigux/validate-phase2-closure.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 )
@@ -52,6 +58,8 @@ MAKEFILE_LINES = (
     "phase2-kconfig: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 )
@@ -89,7 +97,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -199,6 +207,9 @@ def build_self_test_root(root: Path) -> None:
         VALIDATOR_MARKERS[2],
         VALIDATOR_MARKERS[2],
         VALIDATOR_MARKERS[3],
+        VALIDATOR_MARKERS[4],
+        VALIDATOR_MARKERS[5],
+        VALIDATOR_MARKERS[6],
     ]
     write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
@@ -250,7 +261,7 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[3],
+                VALIDATOR_MARKERS[5],
                 "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 14",
             ),
             encoding="utf-8",
@@ -259,6 +270,23 @@ def run_self_test() -> int:
         assert (
             "MISSING_VALIDATOR_MARKERS",
             "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_VALIDATOR)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                VALIDATOR_MARKERS[6],
+                "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "MISSING_VALIDATOR_MARKERS",
+            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29",
         ) in issues
         checks_run += 1
 
@@ -308,9 +336,16 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, MAKEFILE)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), MAKEFILE_LINES[0], "phase2-kconfig:"), encoding="utf-8")
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                MAKEFILE_LINES[3],
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test",
+            ),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
-        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[0]) in issues
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[3]) in issues
         checks_run += 1
 
         build_self_test_root(root)
