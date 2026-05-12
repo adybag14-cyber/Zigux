@@ -157,6 +157,7 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "the bounded storage rollback drill",
     "the shared build-and-make replay path",
     "the active shipped build packet on current `master` is the starter-present `virtio_net` plus smoke-first `virtio_scsi` replay",
+    "The current driver-local doc split must stay explicit too: `virtio_scsi` still ships the dedicated `Documentation/zigux/phase12-virtio-scsi-slice.md` plus `Documentation/zigux/phase12-virtio-scsi-survey.md` pair, while `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the truthful `nvme_pci` boundary until live `master` actually lands dedicated `Documentation/zigux/phase12-nvme-pci-slice.md` and `Documentation/zigux/phase12-nvme-pci-survey.md` surfaces, and `Documentation/zigux/phase12-virtio-net-survey.md` plus the direct `virtio_net` replay files now form a starter-present packet even though a separate `Documentation/zigux/phase12-virtio-net-slice.md` surface still does not exist on current `master`.",
     "There is still no shipped shared `make -C zigux phase12-validate` route, even though `scripts/zigux/validate-phase12.py` now exists as an unwired helper on current `master`.",
 ]
 
@@ -368,114 +369,114 @@ def minimal_join(title: str, markers: list[str]) -> str:
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const virtio_net_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_scsi_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/scsi/virtio_scsi.zig\"),
+        .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_net_contract_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net.zig\"),
+        .root_source_file = b.path("phase12_virtio_net.zig"),
         .target = target,
         .optimize = optimize,
     });
-    virtio_net_contract_root_module.addImport(\"virtio_net\", virtio_net_module);
+    virtio_net_contract_root_module.addImport("virtio_net", virtio_net_module);
 
     const virtio_net_syntax_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_syntax_lab.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_syntax_lab.zig"),
         .target = target,
         .optimize = optimize,
     });
-    virtio_net_syntax_root_module.addImport(\"virtio_net\", virtio_net_module);
+    virtio_net_syntax_root_module.addImport("virtio_net", virtio_net_module);
 
     const contract_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi.zig"),
         .target = target,
         .optimize = optimize,
     });
-    contract_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    contract_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const syntax_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_syntax_lab.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
         .target = target,
         .optimize = optimize,
     });
-    syntax_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    syntax_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const repeated_replan_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_repeated_replan_gate.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_repeated_replan_gate.zig"),
         .target = target,
         .optimize = optimize,
     });
-    repeated_replan_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
+    repeated_replan_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
     const packet_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_scsi_packet.zig\"),
+        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_net_contract_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-tests\",
+        .name = "phase12-virtio-net-tests",
         .root_module = virtio_net_contract_root_module,
     });
     const run_virtio_net_contract_tests = b.addRunArtifact(virtio_net_contract_tests);
-    run_virtio_net_contract_tests.setCwd(b.path(\"../..\"));
+    run_virtio_net_contract_tests.setCwd(b.path("../.."));
 
     const virtio_net_syntax_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-syntax-lab-tests\",
+        .name = "phase12-virtio-net-syntax-lab-tests",
         .root_module = virtio_net_syntax_root_module,
     });
     const run_virtio_net_syntax_tests = b.addRunArtifact(virtio_net_syntax_tests);
-    run_virtio_net_syntax_tests.setCwd(b.path(\"../..\"));
+    run_virtio_net_syntax_tests.setCwd(b.path("../.."));
 
     const contract_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-tests\",
+        .name = "phase12-virtio-scsi-tests",
         .root_module = contract_root_module,
     });
     const run_contract_tests = b.addRunArtifact(contract_tests);
-    run_contract_tests.setCwd(b.path(\"../..\"));
+    run_contract_tests.setCwd(b.path("../.."));
 
     const syntax_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-syntax-lab-tests\",
+        .name = "phase12-virtio-scsi-syntax-lab-tests",
         .root_module = syntax_root_module,
     });
     const run_syntax_tests = b.addRunArtifact(syntax_tests);
-    run_syntax_tests.setCwd(b.path(\"../..\"));
+    run_syntax_tests.setCwd(b.path("../.."));
 
     const repeated_replan_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-repeated-replan-gate-tests\",
+        .name = "phase12-virtio-scsi-repeated-replan-gate-tests",
         .root_module = repeated_replan_root_module,
     });
     const run_repeated_replan_tests = b.addRunArtifact(repeated_replan_tests);
-    run_repeated_replan_tests.setCwd(b.path(\"../..\"));
+    run_repeated_replan_tests.setCwd(b.path("../.."));
 
     const packet_tests = b.addTest(.{
-        .name = \"phase12-virtio-scsi-packet-tests\",
+        .name = "phase12-virtio-scsi-packet-tests",
         .root_module = packet_root_module,
     });
     const run_packet_tests = b.addRunArtifact(packet_tests);
-    run_packet_tests.setCwd(b.path(\"../..\"));
+    run_packet_tests.setCwd(b.path("../.."));
 
-    const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\");
+    const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");
     smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_packet_tests.step);
 
-    const test_step = b.step(\"test\", \"Run Phase 12 virtio packet tests\");
+    const test_step = b.step("test", "Run Phase 12 virtio packet tests");
     test_step.dependOn(&run_virtio_net_contract_tests.step);
     test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
@@ -616,6 +617,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
+        closure_checklist_path.write_text(
+            closure_checklist_path.read_text(encoding="utf-8").replace(
+                RELEASE_CLOSURE_CHECKLIST_MARKERS[5], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[5]}",
+        )
+
+        write_fixture_tree(base)
         lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
@@ -687,8 +701,8 @@ def run_self_test() -> int:
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
-                'const packet_tests = b.addTest(.{',
-                'const packet_tests = b.addExecutable(.{',
+                "const packet_tests = b.addTest(.{",
+                "const packet_tests = b.addExecutable(.{",
                 1,
             ),
             encoding="utf-8",
@@ -699,7 +713,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
