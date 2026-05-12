@@ -38,9 +38,9 @@ NOTE_REPLAY_ROUTE_MARKERS = (
 )
 
 NOTE_MAINTENANCE_PACKET_MARKERS = (
-    "Documentation/zigux/review-checklist.md",
-    "phase15-review-checklist-maintenance-packet-undercount",
-    "The older compact docs-root omission remains a broader shared-summaries follow-up only",
+    "Documentation/zigux/README.md",
+    "phase15-docs-readme-maintenance-note-undercount",
+    "The review-checklist maintenance packet is already closed",
 )
 
 POLICY_FIELD_SYNC_MARKERS = (
@@ -119,10 +119,10 @@ CURRENT_REPO_HANDOFF_MARKERS = (
 )
 
 NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS = (
-    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
 )
 
 
@@ -261,9 +261,9 @@ def _seed_fixture_tree(root: Path) -> None:
                 "- make -C zigux phase15",
                 "- no Architecture Council approval is currently recorded for a freeze-map status change",
                 "- Keep the Phase 15 governance lane in maintenance mode.",
-                "- Documentation/zigux/review-checklist.md",
-                "- phase15-review-checklist-maintenance-packet-undercount",
-                "- The older compact docs-root omission remains a broader shared-summaries follow-up only",
+                "- Documentation/zigux/README.md",
+                "- phase15-docs-readme-maintenance-note-undercount",
+                "- The review-checklist maintenance packet is already closed",
                 "",
             )
         ),
@@ -327,9 +327,9 @@ def _seed_fixture_tree(root: Path) -> None:
                     "replay_commands": list(HANDOFF_ROUTE_MARKERS),
                     "next_step": (
                         "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; "
-                        "if one same-lane reviewer-facing truthfulness repair is still needed before then, start with Documentation/zigux/review-checklist.md, "
-                        "because the compact shared Phase 15 maintenance packet there still undercounts Documentation/zigux/phase15-governance-lane-sequencing.md "
-                        "together with zigux/tests/phase15_handoff_next_steps_manifest.json and zigux/tests/phase15_readiness_gate_manifest.json"
+                        "if one same-lane reviewer-facing truthfulness repair is still needed before then, start with Documentation/zigux/README.md, "
+                        "because the compact Phase 15 docs-root reminder there still omits Documentation/zigux/phase15-readiness-gate-survey.md, "
+                        "Documentation/zigux/phase15-handoff-next-steps-survey.md, and Documentation/zigux/phase15-governance-lane-sequencing.md"
                     ),
                 },
             },
@@ -386,7 +386,7 @@ def run_self_test() -> int:
         _write(root / NOTE_PATH, note_text)
         case_count += 1
 
-        missing_note_packet_marker = "Documentation/zigux/review-checklist.md"
+        missing_note_packet_marker = "Documentation/zigux/README.md"
         _write(root / NOTE_PATH, note_text.replace(f"- {missing_note_packet_marker}\n", "", 1))
         _assert_only(
             validate(root),
@@ -443,22 +443,52 @@ def run_self_test() -> int:
 
         manifest_data = json.loads(_read(root / MANIFEST_PATH))
         manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/review-checklist.md, ",
+            "Documentation/zigux/README.md, ",
             "",
             1,
         )
         _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/review-checklist.md"],
-            "missing_review_checklist_next_step_guard_failed",
+            ["manifest_handoff_next_step:missing:Documentation/zigux/README.md"],
+            "missing_docs_readme_next_step_guard_failed",
         )
         _seed_fixture_tree(root)
         case_count += 1
 
         manifest_data = json.loads(_read(root / MANIFEST_PATH))
         manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/phase15-governance-lane-sequencing.md ",
+            "Documentation/zigux/phase15-readiness-gate-survey.md, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-readiness-gate-survey.md"],
+            "missing_readiness_next_step_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest_data = json.loads(_read(root / MANIFEST_PATH))
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "Documentation/zigux/phase15-handoff-next-steps-survey.md, and ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
+            "missing_handoff_next_step_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest_data = json.loads(_read(root / MANIFEST_PATH))
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "Documentation/zigux/phase15-governance-lane-sequencing.md",
             "",
             1,
         )
