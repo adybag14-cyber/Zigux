@@ -16,25 +16,25 @@
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
-    "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
-    "missing_capability": "shared runtime substrate that can turn the bounded atomic64 loader scaffold into a real loadable module path",
-    "blocked_deliverable": "loadable Phase 9 runtime atomic64 pilot module parity",
-    "next_gate": "keep the loader scaffold and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan"
+    "landed_pilot_state": "starter_landed_with_missing_shared_loader_files",
+    "missing_capability": "readable shared runtime-loader files on current master before the bounded atomic64 loader scaffold can be replayed honestly",
+    "blocked_deliverable": "replayable Phase 9 shared-loader-backed atomic64 pilot packet",
+    "next_gate": "keep the direct atomic64 starter packet explicit and fail closed on missing shared runtime-loader files until that packet is readable again"
   },
   "gaps": [
     {
       "id": "phase9-build-gate",
-      "status": "starter_landed",
+      "status": "blocked_on_missing_shared_loader_files",
       "kind": "shared_build_route",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build route keeps the exact `phase9-runtime-atomic64-tests` replay and the shared loader shard reviewable while the runtime substrate stays blocked."
+      "why_now": "The shared Phase 9 build route file is still present, but current master is missing readable `zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig`, so this build surface is an adjacent stale scaffold rather than an honest replayable gate for the atomic64 packet."
     },
     {
       "id": "runtime-atomic64-survey-gate",
       "status": "starter_landed",
       "kind": "survey_gate",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The dedicated runtime survey gate fails closed on the survey note, manifest, and direct sample packet so the lane can keep the loader-backed review surface explicit without claiming live runtime parity."
+      "why_now": "The dedicated runtime survey gate keeps the direct sample packet and the current missing shared-loader readback fail-closed instead of implying live runtime parity."
     },
     {
       "id": "runtime-atomic64-sample-module",
@@ -66,17 +66,17 @@
     },
     {
       "id": "runtime-atomic64-loader-scaffold",
-      "status": "starter_landed",
+      "status": "blocked_on_missing_shared_loader_files",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded loader scaffold keeps `requires_runtime_substrate`, `toSharedLoadPlan()`, `runtime_loader.prepareRequest()`, and shared-request lifecycle proofs reviewable without implying live runtime registration parity."
+      "why_now": "A bounded loader scaffold still keeps the atomic64 entry symbol, exit symbol, and handoff-plan shape reviewable, but current master no longer exposes readable `zigux/kernel/runtime_loader.zig` or `zigux/kernel/runtime_loader_contract.zig`, so the scaffold cannot currently support an honest shared-loader replay claim."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
-      "status": "blocked_on_runtime_substrate",
+      "status": "blocked_on_missing_shared_loader_files",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's full runtime module lifecycle parity still depends on shared runtime-loader support before any honest claim of live atomic64 module binding."
+      "why_now": "The roadmap's full runtime module lifecycle parity cannot be claimed while current master is missing readable shared runtime-loader files, so the atomic64 lane must stay in a direct-starter-only posture before any deeper runtime-substrate follow-through."
     }
   ]
 }
