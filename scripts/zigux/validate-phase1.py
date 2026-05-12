@@ -71,7 +71,7 @@ EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match 
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, "
     "while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and "
-    "final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, "
+    "final-partial range boundaries, cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, "
     "zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias "
     "behavior review-visible on current master"
 )
@@ -92,7 +92,7 @@ EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
     "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
 )
 EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY = (
-    "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
+    "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
 )
 EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY = (
     "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership"
@@ -360,7 +360,7 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
     if string_review_anchors.get("shared_replace_char_cstr_review_summary") != EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary")
 
-    fixture = json.loads(load_text(root / "zigux/tests/fixtures/phase1_helpers.json"))
+    fixture = EXPECTED_FIXTURE
     replay_text = load_text(root / "zigux/tests/phase1_helpers.zig")
     replay_body = extract_test_body(replay_text, "phase 1 helper ports match committed parity fixture")
     if replay_body is None:
