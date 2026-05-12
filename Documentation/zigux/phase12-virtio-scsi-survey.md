@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=starter-present-queue-and-recovery-survey`
 - `PHASE12_SLICE=virtio-scsi-roadmap-gap-survey`
-- scope: verify the bounded `virtio_scsi` Zig starter around queue layout, probe snapshot, host-limit, queue-depth, io-map, and transport-reset recovery summaries without widening into live DMA-safe request flow, blk-mq execution, `scsi_host` registration, or transport-backed host-scan runtime work
+- scope: verify the bounded `virtio_scsi` Zig starter around queue layout, probe snapshot, host-limit, queue-depth, command-buffer ownership, io-map, and transport-reset recovery summaries without widening into live DMA-safe request flow, blk-mq execution, `scsi_host` registration, or transport-backed host-scan runtime work
 - verified on: `2026-05-12`
 - repo-truth boundary:
   - `drivers/scsi/virtio_scsi.zig`
@@ -32,7 +32,7 @@ That anchor remains high value because `virtio_scsi.c` still covers virtqueue se
 ## Current-master verification
 
 - current `master` now carries `drivers/scsi/virtio_scsi.zig`
-- the current bounded starter exposes `planQueueLayout()`, `requestQueue()`, `captureProbeSnapshot()`, `captureHostLimitSummary()`, `captureQueueDepthSummary()`, and `captureIoQueueMapSummary()` so queue-family planning, host-limit clamping, queue-depth clamping, and io-map offsets stay reviewable without claiming live blk-mq traffic
+- the current bounded starter exposes `planQueueLayout()`, `requestQueue()`, `captureProbeSnapshot()`, `captureHostLimitSummary()`, `captureQueueDepthSummary()`, `captureCommandBufferOwnershipSummary()`, and `captureIoQueueMapSummary()` so queue-family planning, host-limit clamping, queue-depth clamping, command and sense-buffer ownership planning, and io-map offsets stay reviewable without claiming live blk-mq traffic
 - the current bounded starter also exposes `freezeForTransportReset()`, `recoveryQueuePlan()`, `recoveryQueueDepthSummary()`, `recoveryIoQueueMapSummary()`, `recoveryEventBufferOwnershipSummary()`, `recoveryHostScanSummary()`, and `restoreAfterTransportReset()` so transport-reset recovery order, event-buffer ownership, and host-scan restore ordering stay reviewable without claiming runtime reset execution
 - current `master` now carries `zigux/tests/phase12_virtio_scsi.zig` as the direct bounded replay for this starter
 - current `master` now carries `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` as the dedicated syntax lab for this starter
@@ -49,7 +49,7 @@ Those checks mean the current lane now has a truthful survey packet for the exis
 The truthful current boundary is:
 
 - the roadmap still wants a bounded `virtio_scsi` lane in Phase 12
-- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, host-limit, queue-depth, io-map, transport-reset, event-buffer ownership, and host-scan restore ordering reviewable
+- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, host-limit, queue-depth, command-buffer ownership, io-map, transport-reset, event-buffer ownership, and host-scan restore ordering reviewable
 - current `master` now carries the direct test, syntax lab, repeated-replan gate, support packet, and this survey packet, so the starter is directly executable and reviewable through bounded driver-local surfaces
 - current `master` still does not claim live DMA-safe request submission, sg-list ownership, request completion handling, blk-mq tag wiring, `scsi_host` registration, TMF execution, event-queue runtime handling, or transport-backed host-scan recovery
 - current `master` still does not claim throughput parity, reset replay parity, or a live storage data path
@@ -70,8 +70,8 @@ The next honest same-lane move is a bounded request-submit sequencing follow-up,
 
 The next bounded step is:
 
-1. keep the current starter focused on queue layout, host-limit, queue-depth, io-map, and transport-reset recovery summaries instead of widening into live DMA or host-registration code
-2. reland one request-submit or command-buffer ownership follow-up beside the current `virtio_scsi` starter so the next queue-facing contract becomes reviewable without overclaiming runtime behavior
+1. keep the current starter focused on queue layout, host-limit, queue-depth, command-buffer ownership, io-map, and transport-reset recovery summaries instead of widening into live DMA or host-registration code
+2. reland one request-submit sequencing follow-up beside the current `virtio_scsi` starter so the next queue-facing contract becomes reviewable without overclaiming runtime behavior
 3. revisit broader Phase 12 bundle wiring only after that follow-up exists and still fits the bounded complex-driver packet
 
 Until then, treat the current `virtio_scsi` starter as a real but deliberately small Phase 12 queue-and-recovery survey packet, not as a live storage-driver proof.
