@@ -14,7 +14,7 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 14
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 16
 
 REQUIRED_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
@@ -120,6 +120,19 @@ def collect_duplicate_binding_constants(path: Path) -> list[str]:
     return issues
 
 
+def collect_duplicate_exact_markers(path: Path, markers: tuple[str, ...], issue_kind: str) -> list[str]:
+    seen: dict[str, list[int]] = {}
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.strip()
+        if stripped in markers:
+            seen.setdefault(stripped, []).append(line_no)
+    issues: list[str] = []
+    for marker, lines in seen.items():
+        if len(lines) > 1:
+            issues.append(f"{path}:{issue_kind}:{marker}:{','.join(str(line) for line in lines)}")
+    return issues
+
+
 def validate_constant_parity(
     header_path: Path,
     bindings_path: Path,
@@ -127,7 +140,20 @@ def validate_constant_parity(
     harness_path: Path,
     expected_path: Path,
 ) -> list[str]:
-    issues = [*collect_duplicate_header_constants(header_path), *collect_duplicate_binding_constants(bindings_path)]
+    issues = [
+        *collect_duplicate_header_constants(header_path),
+        *collect_duplicate_binding_constants(bindings_path),
+        *collect_duplicate_exact_markers(
+            header_path,
+            tuple(header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS),
+            "duplicate_header_type_marker",
+        ),
+        *collect_duplicate_exact_markers(
+            bindings_path,
+            tuple(bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS),
+            "duplicate_binding_type_marker",
+        ),
+    ]
     header_constants = parse_header_constants(header_path)
     binding_constants = parse_binding_constants(bindings_path)
     dump_source = dump_path.read_text(encoding="utf-8")
@@ -397,6 +423,34 @@ def run_self_test() -> int:
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
+                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n" + REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:duplicate_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}:18,19" in issues
+        case_count += 1
+
+        reset_all()
+        bindings.write_text(
+            bindings.read_text(encoding="utf-8").replace(
+                REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n",
+                REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n" + REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{bindings}:duplicate_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][1]}:18,19" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
