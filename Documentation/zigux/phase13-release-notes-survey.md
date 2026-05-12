@@ -86,7 +86,7 @@ Keep Phase 13 release wording inside these boundaries:
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
-- adjacent notifier wording should keep both shipped notifier packet checkers explicit when that packet changes
+- adjacent notifier wording should keep the shipped `scripts/zigux/check-phase13-notifier-priority-signal.py` guard explicit and treat the older `scripts/zigux/check-phase13-notifier-packet.py` path as a repo-reality gap until current `master` materializes it again
 
 ## Where To Re-Read Before Updating Release Wording
 
