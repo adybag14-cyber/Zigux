@@ -26,8 +26,8 @@ REQUIRED_LOW_LEVEL_SURVEY_MARKERS = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "`zigux/helpers/mmio.zig` now routes shared policy-aware MMIO through decoded `interop_policy.DecodedInteropPolicy` inputs plus `readScopedWithPolicy`, `writeScopedWithPolicy`, width-specific `read*Scoped` and `write*Scoped` helpers, and the `read*Policy` and `write*Policy` relay family",
-    "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard",
+    "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.",
+    "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.",
 )
 
 REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS = (
@@ -94,12 +94,27 @@ def validate(root: Path) -> list[str]:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
         _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
     if low_level_survey:
-        _check_snippets(low_level_survey, REQUIRED_LOW_LEVEL_SURVEY_MARKERS, "missing_low_level_survey_marker", issues)
-        _check_snippets(low_level_survey, REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS, "missing_low_level_survey_snippet", issues)
+        _check_snippets(
+            low_level_survey,
+            REQUIRED_LOW_LEVEL_SURVEY_MARKERS,
+            "missing_low_level_survey_marker",
+            issues,
+        )
+        _check_snippets(
+            low_level_survey,
+            REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS,
+            "missing_low_level_survey_snippet",
+            issues,
+        )
     if mmio:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
     if low_level_test:
-        _check_snippets(low_level_test, REQUIRED_LOW_LEVEL_TEST_SNIPPETS, "missing_low_level_test_snippet", issues)
+        _check_snippets(
+            low_level_test,
+            REQUIRED_LOW_LEVEL_TEST_SNIPPETS,
+            "missing_low_level_test_snippet",
+            issues,
+        )
     return issues
 
 
@@ -113,14 +128,30 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_unsafe_mmio_consumer_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(root, LOW_LEVEL_SURVEY_REL, "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n",
+        )
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
         assert validate(root) == []
 
-        _write(root, LOW_LEVEL_TEST_REL, "\n".join(snippet for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS if "write64InteropPolicy" not in snippet) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
+                if "write64InteropPolicy" not in snippet
+            )
+            + "\n",
+        )
         issues = validate(root)
-        assert "missing_low_level_test_snippet:try mmio.write64InteropPolicy(base, 8, 0x0123_4567_89ab_cdef, mmio_policy);" in issues
+        assert (
+            "missing_low_level_test_snippet:try mmio.write64InteropPolicy(base, 8, 0x0123_4567_89ab_cdef, mmio_policy);"
+            in issues
+        )
 
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS[:-1]) + "\n")
@@ -128,14 +159,35 @@ def run_self_test() -> int:
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}" in issues
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(root, LOW_LEVEL_SURVEY_REL, "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS[:-1] + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS[:-1] + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n",
+        )
         issues = validate(root)
         assert f"missing_low_level_survey_marker:{REQUIRED_LOW_LEVEL_SURVEY_MARKERS[-1]}" in issues
 
-        _write(root, LOW_LEVEL_SURVEY_REL, "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n")
-        _write(root, MMIO_REL, "\n".join(snippet for snippet in REQUIRED_MMIO_SNIPPETS if snippet != 'pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u64 {') + "\n")
+        _write(
+            root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u64 {"
+            )
+            + "\n",
+        )
         issues = validate(root)
-        assert 'missing_mmio_snippet:pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u64 {' in issues
+        assert (
+            "missing_mmio_snippet:pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u64 {"
+            in issues
+        )
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=5")
@@ -143,7 +195,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate that the Phase 3 policy/unsafe packet still records and tests the live MMIO policy consumer surface.")
+    parser = argparse.ArgumentParser(
+        description="Validate that the Phase 3 policy/unsafe packet still records and tests the live MMIO policy consumer surface."
+    )
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage.")
     parser.add_argument("root", nargs="?", help="Optional repo root override.")
     args = parser.parse_args()
