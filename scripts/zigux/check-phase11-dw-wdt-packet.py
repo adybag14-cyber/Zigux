@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the bounded Phase 11 DesignWare watchdog planning packet."""
+"""Fail-closed checker for the bounded Phase 11 DesignWare watchdog ownership packet."""
 
 from __future__ import annotations
 
@@ -12,44 +12,50 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
-    "shared_contract": "Documentation/zigux/phase11-shared-replay-contract.md",
-    "closure_note": "Documentation/zigux/phase11-closure-note.md",
-    "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "validation_matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "survey_note": "Documentation/zigux/phase11-dw-wdt-survey.md",
+    "teardown_note": "Documentation/zigux/phase11-dw-wdt-teardown-note.md",
+    "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
 }
 
 MARKERS = {
     "plan_note": [
         "# Phase 11 DesignWare Watchdog Platform Registration Plan",
-        "The live repository does not currently ship a `dw_wdt` test packet, manifest, or driver-local replay surface under `zigux/tests/` or `drivers/watchdog/`.",
-        "Keep the next implementation bounded to a single scaffolding surface that makes clock or reset acquisition reviewable without claiming a full probe path.",
-        "1. model timer-clock acquisition and optional APB clock acquisition as explicit outcome-bearing steps",
-        "2. model reset-control availability and reset-release intent as explicit outcome-bearing steps",
-        "3. preserve the intended ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`",
-        "4. keep imported-running-state handoff reviewable when the timer starts hot",
-        "- focused Zig tests for the new acquisition-order summary or summaries",
-        "- survey or manifest update only if the new scaffold actually lands",
-        "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
-        "- `zigux/tests/README.md`",
-        "If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step.",
+        "This note records the next bounded follow-up for the landed Phase 11 DesignWare watchdog packet on current `master`.",
+        "The live repository already ships a bounded `dw_wdt` packet under the DesignWare lane:",
+        "`drivers/watchdog/dw_wdt.zig` keeps fixed and custom TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and the registration-facing handoff reviewable",
+        "That means the honest next step is no longer to invent a first DesignWare packet.",
+        "Keep the next implementation bounded to one acquisition-facing scaffold inside the existing DesignWare packet without claiming a full probe path.",
+        "3. reuse the existing ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`",
+        "- `drivers/watchdog/dw_wdt.zig`",
+        "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "If neither acquisition branch lands yet, keep this note aligned with the already-landed DesignWare packet instead of reopening shared Phase 11 reminder surfaces.",
     ],
-    "shared_contract": [
-        "The DesignWare watchdog lane is still parked on a planning checkpoint beside that shared route:",
-        "* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "* `scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "Treat that plan note together with the dedicated packet checker as the current DesignWare lane evidence on `master`: they keep the next bounded platform-registration scaffold explicit while the repository still does not materialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `drivers/watchdog/dw_wdt_verify.zig`.",
+    "validation_matrix": [
+        "# Phase 11 DesignWare Watchdog Validation Matrix",
+        "active watchdog continuity for this matrix and its coupled survey packet is `P11-L05`",
+        "registration-facing and pre-registration platform handoff",
+        "keep this handoff truthful while the next step stays limited to one platform-backed registration scaffold that reuses this matrix as the hardware-validation plan",
     ],
-    "closure_note": [
-        "* DesignWare watchdog continuity stays with `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`, while `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as remaining repo-reality gaps rather than shared closure evidence",
+    "survey_note": [
+        "# Phase 11 DesignWare Watchdog Survey",
+        "The remaining simple-driver gap is the next ready step already hinted at by the starter: attach the bounded registration-facing handoff and its already-recorded registration-order scaffold to platform-backed registration scaffolding",
+        "This cleanup packet now carries lane identity `P11-L05`",
     ],
-    "lane_note": [
-        "- DesignWare lane `P11-L05` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`; `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as the intended first scaffold packet rather than shipped current-`master` evidence",
-        "- DesignWare packet review stays parked on `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`; `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as repo-reality gaps until the first scaffold lands",
-        "Keep the DesignWare lane honest: on current `master` the landed DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` plus `scripts/zigux/check-phase11-dw-wdt-packet.py`, while `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` remain repo-reality gaps rather than a landed packet.",
+    "teardown_note": [
+        "# Phase 11 DesignWare Watchdog Teardown Note",
+        "`stop()` owns the reset-control split",
+        "keep this note tied only to `drivers/watchdog/dw_wdt.zig` and its directly coupled remove or teardown checks in `zigux/tests/phase11_dw_wdt.zig` and `drivers/watchdog/dw_wdt_verify.zig`",
+    ],
+    "manifest": [
+        '"lane_key": "P11-L05"',
+        '"id": "phase11-dw-wdt-platform-registration-scaffold"',
+        '"status": "ready_next"',
+        '"zigux_destination": "drivers/watchdog/dw_wdt.zig"',
     ],
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 8
 
 
 class CheckError(RuntimeError):
@@ -106,15 +112,13 @@ def run_self_test() -> None:
 
         cases = [
             (FILES["plan_note"], MARKERS["plan_note"][1]),
-            (FILES["plan_note"], MARKERS["plan_note"][5]),
-            (FILES["shared_contract"], MARKERS["shared_contract"][0]),
-            (FILES["shared_contract"], MARKERS["shared_contract"][3]),
-            (FILES["closure_note"], MARKERS["closure_note"][0]),
-            (FILES["lane_note"], MARKERS["lane_note"][0]),
-            (FILES["lane_note"], MARKERS["lane_note"][1]),
-            (FILES["lane_note"], MARKERS["lane_note"][2]),
-            (FILES["plan_note"], MARKERS["plan_note"][12]),
-            (FILES["plan_note"], "- `zigux/tests/README.md`"),
+            (FILES["plan_note"], MARKERS["plan_note"][6]),
+            (FILES["validation_matrix"], MARKERS["validation_matrix"][3]),
+            (FILES["survey_note"], MARKERS["survey_note"][1]),
+            (FILES["teardown_note"], MARKERS["teardown_note"][2]),
+            (FILES["manifest"], MARKERS["manifest"][0]),
+            (FILES["manifest"], MARKERS["manifest"][1]),
+            (FILES["manifest"], MARKERS["manifest"][2]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
@@ -126,11 +130,6 @@ def run_self_test() -> None:
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
-
-        missing_file_root = tmpdir / "missing_file"
-        shutil.copytree(fixture_root, missing_file_root, dirs_exist_ok=True)
-        (missing_file_root / FILES["shared_contract"]).unlink()
-        expect_failure(missing_file_root, FILES["shared_contract"])
 
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
