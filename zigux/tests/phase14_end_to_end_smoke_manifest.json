@@ -54,7 +54,7 @@
       "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "ready_next_gap": "phase14-ring-buffer-tracefs-reader-serialization-followup",
+      "ready_next_gap": "",
       "blocked_gap": "phase14-ring-buffer-zig-port-blocker"
     },
     {
