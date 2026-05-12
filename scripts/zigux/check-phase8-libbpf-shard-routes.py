@@ -61,8 +61,8 @@ REQUIRED_MARKERS = {
         "### 4. Shared wording lane",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.",
-        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
-        "Keep the next reopen scoped to that one shared wording repair inside `Documentation/zigux/review-checklist.md`; do not reopen docs-root, scripts-root, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
+        "The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
+        "Keep the next reopen scoped to that one shared wording repair inside `scripts/zigux/README.md`; do not reopen docs-root, review-checklist, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
@@ -309,16 +309,16 @@ def run_self_test() -> None:
         (
             "lane_note_next_step_truthful_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
             "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
-            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`:",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
         ),
         (
             "lane_note_shared_repair_scope_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "Keep the next reopen scoped to that one shared wording repair inside `Documentation/zigux/review-checklist.md`; do not reopen docs-root, scripts-root, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
-            "Keep the next reopen scoped to one shared wording repair inside `Documentation/zigux/README.md`; do not reopen docs-root, scripts-root, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Keep the next reopen scoped to that one shared wording repair inside `Documentation/zigux/review-checklist.md`; do not reopen docs-root, scripts-root, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
+            "Keep the next reopen scoped to that one shared wording repair inside `scripts/zigux/README.md`; do not reopen docs-root, review-checklist, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
+            "Keep the next reopen scoped to one shared wording repair inside `Documentation/zigux/README.md`; do not reopen docs-root, review-checklist, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Keep the next reopen scoped to that one shared wording repair inside `scripts/zigux/README.md`; do not reopen docs-root, review-checklist, tests-root, Makefile, command, symbol, or helper-local lanes unless a fresh same-lane drift appears.",
         ),
         (
             "segment_survey_build_anchor",
