@@ -49,6 +49,14 @@ MARKERS = {
         "`make -C zigux phase11`",
         "five shipped Phase 11 checker scripts on `master`",
         "the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+        "`zigux/tests/phase11_hvc_console_manifest.json`",
+        "`zigux/tests/phase11_hvc_console_survey.zig`",
+        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
+        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -62,7 +70,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 15
 
 
 class CheckError(RuntimeError):
@@ -110,8 +118,9 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_shared_summary_"))
     try:
-        build_self_test_fixture(tmpdir)
-        run_check(tmpdir)
+        fixture_root = tmpdir / "fixture"
+        build_self_test_fixture(fixture_root)
+        run_check(fixture_root)
 
         cases = [
             (FILES["docs_root"], MARKERS["docs_root"][5]),
@@ -120,15 +129,20 @@ def run_self_test() -> None:
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["scripts_root"], MARKERS["scripts_root"][6]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
-            (FILES["tests_root"], MARKERS["tests_root"][6]),
+            (FILES["tests_root"], MARKERS["tests_root"][7]),
+            (FILES["tests_root"], MARKERS["tests_root"][9]),
+            (FILES["tests_root"], MARKERS["tests_root"][12]),
+            (FILES["tests_root"], MARKERS["tests_root"][13]),
+            (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][4]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][5]),
             (FILES["tests_companion"], MARKERS["tests_companion"][7]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
             case_root = tmpdir / f"case_{idx}"
-            shutil.copytree(tmpdir, case_root, dirs_exist_ok=True)
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             path.write_text(
                 path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
