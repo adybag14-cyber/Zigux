@@ -156,6 +156,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
+    try expectContains(helper_tests, "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer");
+    try expectContains(helper_tests, "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
@@ -175,11 +177,16 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
 
-    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\",");
-    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\",",
+    );
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\",",
+    );
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\",",
+    );
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\",",
+    );
+    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",",
+    );
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
