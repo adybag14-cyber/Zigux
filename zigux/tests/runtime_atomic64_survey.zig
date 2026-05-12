@@ -45,6 +45,17 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectMissingRepoFile(path: []const u8) !void {
+    const maybe_bytes = readRepoFileAlloc(std.testing.allocator, path, 1024);
+    if (maybe_bytes) |bytes| {
+        defer std.testing.allocator.free(bytes);
+        return error.ExpectedMissingRepoFile;
+    } else |err| switch (err) {
+        error.FileNotFound => {},
+        else => return err,
+    }
+}
+
 fn isLowerHexCommit(commit: []const u8) bool {
     if (commit.len != 40) return false;
     for (commit) |char| {
@@ -130,21 +141,27 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
         manifest.roadmap_gap_summary.roadmap_phase_goal,
     );
     try std.testing.expectEqualStrings(
-        "starter_landed_without_loadable_runtime_substrate",
+        "starter_landed_with_missing_shared_loader_files",
         manifest.roadmap_gap_summary.landed_pilot_state,
     );
     try std.testing.expectEqualStrings(
-        "shared runtime substrate that can turn the bounded atomic64 loader scaffold into a real loadable module path",
+        "readable shared runtime-loader files on current master before the bounded atomic64 loader scaffold can be replayed honestly",
         manifest.roadmap_gap_summary.missing_capability,
     );
     try std.testing.expectEqualStrings(
-        "loadable Phase 9 runtime atomic64 pilot module parity",
+        "replayable Phase 9 shared-loader-backed atomic64 pilot packet",
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
-        "keep the loader scaffold and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
+        "keep the direct atomic64 starter packet explicit and fail closed on missing shared runtime-loader files until that packet is readable again",
         manifest.roadmap_gap_summary.next_gate,
     );
+
+    const build_gap = findGap(manifest.gaps, "phase9-build-gate") orelse return error.MissingBuildGap;
+    try std.testing.expectEqualStrings("blocked_on_missing_shared_loader_files", build_gap.status);
+    try std.testing.expectEqualStrings("shared_build_route", build_gap.kind);
+    try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", build_gap.zigux_destination);
+    try expectContains(build_gap.why_now, "missing readable `zigux/kernel/runtime_loader.zig`");
 
     const survey_gap = findGap(manifest.gaps, "runtime-atomic64-survey-gate") orelse return error.MissingSurveyGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gap.status);
@@ -152,41 +169,47 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_survey.zig", survey_gap.zigux_destination);
 
     const loader_gap = findGap(manifest.gaps, "runtime-atomic64-loader-scaffold") orelse return error.MissingLoaderGap;
-    try std.testing.expectEqualStrings("starter_landed", loader_gap.status);
+    try std.testing.expectEqualStrings("blocked_on_missing_shared_loader_files", loader_gap.status);
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_gap.kind);
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", loader_gap.zigux_destination);
+    try expectContains(loader_gap.why_now, "cannot currently support an honest shared-loader replay claim");
 
     const substrate_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingSubstrateGap;
-    try std.testing.expectEqualStrings("blocked_on_runtime_substrate", substrate_gap.status);
+    try std.testing.expectEqualStrings("blocked_on_missing_shared_loader_files", substrate_gap.status);
     try std.testing.expectEqualStrings("runtime_substrate", substrate_gap.kind);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", substrate_gap.zigux_destination);
+
+    try expectMissingRepoFile("zigux/kernel/runtime_loader.zig");
+    try expectMissingRepoFile("zigux/kernel/runtime_loader_contract.zig");
 
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_SLICE=runtime-atomic64-survey`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L04`");
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`samples/zigux/runtime_atomic64.zig`");
+    try expectContains(survey_note, "`samples/zigux/runtime_atomic64_loader.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_atomic64_module.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_atomic64_diff.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_atomic64_survey.zig`");
-    try expectContains(survey_note, "`samples/zigux/runtime_atomic64_loader.zig`");
+    try expectContains(survey_note, "`zigux/tests/runtime_atomic64_manifest.json`");
+    try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
+    try expectContains(survey_note, "`zigux/Makefile`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader_contract.zig`");
-    try expectContains(survey_note, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
-    try expectContains(survey_note, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
-    try expectContains(survey_note, "`make -C zigux phase9-runtime-loader-shared-tests`");
-    try expectContains(survey_note, "`make -C zigux phase9`");
-    try expectContains(survey_note, "adjacent review-only shared loader-facing packet");
-    try expectContains(survey_note, "not a completed loadable runtime-module path");
+    try expectContains(survey_note, "return missing-file results");
+    try expectContains(survey_note, "stale adjacent shared-loader scaffolds");
+    try expectContains(survey_note, "not a replayable shared-loader route");
 
     try expectContains(module_slice, "`PHASE9_LANE_KEY=P9-L04`");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
+    try expectContains(module_slice, "## Direct Packet");
+    try expectContains(module_slice, "## Adjacent Stale Shared Loader-Facing Scaffolds");
     try expectContains(module_slice, "`samples/zigux/runtime_atomic64_loader.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
-    try expectContains(module_slice, "`zigux/kernel/runtime_loader.zig`");
-    try expectContains(module_slice, "`zigux/kernel/runtime_loader_contract.zig`");
-    try expectContains(module_slice, "`make -C zigux phase9-runtime-loader-shared-tests`");
-    try expectContains(module_slice, "shared request path explicit without implying scheduler-facing substrate closure");
+    try expectContains(module_slice, "`zigux/tests/phase9_build.zig`");
+    try expectContains(module_slice, "`zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig` return missing-file results");
+    try expectContains(module_slice, "not a replayable shared-loader route");
 
     try expectContains(
         runtime_atomic64_loader,
@@ -208,22 +231,10 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
         runtime_atomic64_loader,
         "test \"runtime atomic64 loader keeps shared release failures from desynchronizing loader state\"",
     );
-    try expectContains(
-        runtime_atomic64_loader,
-        "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);",
-    );
-    try expectContains(
-        runtime_atomic64_loader,
-        "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);",
-    );
 
     try expectContains(
         runtime_loader_allocator_init_flow,
         "\"runtime_atomic64\", \"lib/atomic64_test.c\", \"zigux_runtime_atomic64_init\", \"zigux_runtime_atomic64_exit\", .caller_provided",
-    );
-    try expectContains(
-        runtime_loader_allocator_init_flow,
-        "test \"phase 9 runtime loader allocator/init-flow replay keeps initialized prepared snapshots stable even if later live state would look exited\"",
     );
     try expectContains(
         runtime_loader_allocator_init_flow,
@@ -232,8 +243,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
 
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
+    try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
+    try expectContains(phase9_build, "../kernel/runtime_loader.zig");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
-    try expectContains(phase9_build, "runtime_atomic64_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);");
-    try expectContains(phase9_build, "runtime_atomic64_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);");
 }
