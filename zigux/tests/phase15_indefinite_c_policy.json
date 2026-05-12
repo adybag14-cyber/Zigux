@@ -1,7 +1,9 @@
 {
   "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "7b5519444e8f73f84c68dc3e63580fcaef06ffb6",
+  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit_mode_reason": "This indefinite-C packet now uses a dated master-readback marker because the previously recorded exact head drifted behind current master while the stay-in-C posture itself remained unchanged.",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -141,6 +143,13 @@
       "kind": "truthfulness_repair",
       "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
       "why_now": "The packet must keep its lane key, supporting artifact list, and landed-versus-blocked records aligned with the live policy note so exception and blocker posture do not drift silently."
+    },
+    {
+      "id": "phase15-indefinite-c-dated-readback-provenance-refresh",
+      "status": "landed",
+      "kind": "provenance_refresh",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The previously recorded exact head drifted behind current master, so this packet now records a dated readback marker instead of implying fresh exact-head parity."
     },
     {
       "id": "phase15-indefinite-c-maintenance-handoff",
