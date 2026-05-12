@@ -1,4 +1,6 @@
 {
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit": "current-master-readback-2026-05-11",
   "repo_evidence": {
     "phase15_validate_target_present": true,
     "phase15_test_target_present": true,
