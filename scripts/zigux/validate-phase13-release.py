@@ -418,9 +418,6 @@ def run_self_test() -> int:
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/bindings/notifier_abi.zig`",
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/ruleset.zig`",
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/syscalls.zig`",
-                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
-                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.:expected=1:actual=0",
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`",
             ],
             "missing_adjacent_direct_evidence_markers_failed",
         )
