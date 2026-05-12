@@ -25,7 +25,7 @@ VALIDATOR_MARKERS = (
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 1,
+    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18": 1,
 }
 
@@ -53,7 +53,7 @@ MAKEFILE_LINES = (
 SCRIPTS_README_MARKERS = (
     "check-phase2-kconfig-readme-alignment.py --self-test",
     "dedicated kconfig bridge checker packet documented through the shared Phase 2 reminder surface",
-    "check-phase2-kconfig-selftest-alignment.py",
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, and `check-phase2-tool-manifest-packets.py` are the live shared scripts-root Phase 2 helpers on current `master`",
 )
 
 TESTS_README_MARKERS = (
@@ -73,7 +73,7 @@ REVIEW_CHECKLIST_MARKERS = (
 PHASE2_CLOSURE_DOC_MARKERS = (
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "direct Zig replays: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/genksyms_crc.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, `zig test scripts/zigux/kconfig/confdata_bridge.zig`, and `zig test scripts/zigux/mk_elfconfig.zig`",
+    "direct replay owners stay split on current `master`: `zig test scripts/zigux/fixdep.zig` remains the shipped direct Phase 2 Zig replay, while the broader fixdep, genksyms, artifact-tools, and kconfig bridge evidence stays documented through `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `zigux/tests/README.md`, and `zigux/Makefile` instead of implying unshipped direct bridge or artifact replay entrypoints on current `master`",
 )
 
 PHASE2_BOOTSTRAP_NOTES_MARKERS = (
