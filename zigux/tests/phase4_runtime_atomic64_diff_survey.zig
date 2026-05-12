@@ -102,15 +102,33 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try expectBlobShaMatchesSource(manifest.phase4_build_blob_sha, phase4_build_source);
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("eea5b7d67d6e99f8838a0550d5aa950d1f4cff30", manifest.phase4_validator_blob_sha);
+    const validate_phase4_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(validate_phase4_source);
+    try expectBlobShaMatchesSource(manifest.phase4_validator_blob_sha, validate_phase4_source);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("7f855cce2b91c156d5c0373b3b0fa096eab0aeda", manifest.phase9_build_blob_sha);
     try expectBlobShaMatchesSource(manifest.phase9_build_blob_sha, phase9_build_source);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("1ec1d3f4f98c4ed1fa324af1c0e6d26489320fa4", manifest.phase4_review_checklist_blob_sha);
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
+    try expectBlobShaMatchesSource(
+        manifest.phase4_validation_matrix_blob_sha,
+        phase4_validation_matrix_source,
+    );
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+    try expectBlobShaMatchesSource(manifest.phase4_review_checklist_blob_sha, review_checklist_source);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
