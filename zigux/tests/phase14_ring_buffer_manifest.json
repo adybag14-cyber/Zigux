@@ -22,6 +22,14 @@
     "preexisting_phase14_ring_buffer_survey_test_present": true,
     "preexisting_phase14_ring_buffer_survey_note_present": true
   },
+  "study_only_governance": {
+    "status_bucket": "study_only",
+    "ready_next_gap": "",
+    "last_closed_followup": "phase14-ring-buffer-tracefs-reader-serialization-followup",
+    "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
+    "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
+    "why_now": "The ring-buffer packet already lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, so the next honest posture is parked study-only governance rather than another invented review-only follow-up."
+  },
   "decision_checklist": [
     {
       "id": "reserve-commit-publication",
