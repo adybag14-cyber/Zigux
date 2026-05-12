@@ -77,12 +77,18 @@ MARKERS = {
 }
 
 FORBIDDEN_MARKERS = {
+    "review_checklist": [
+        "the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated `hvc_console` teardown and verify boundary",
+    ],
+    "scripts_root": [
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`",
+    ],
     "tests_root": [
         "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -173,16 +179,21 @@ def run_self_test() -> None:
             )
             expect_failure(case_root, marker)
 
-        forbidden_case_root = tmpdir / "case_forbidden"
-        shutil.copytree(fixture_root, forbidden_case_root, dirs_exist_ok=True)
-        forbidden_path = forbidden_case_root / FILES["tests_root"]
-        forbidden_path.write_text(
-            forbidden_path.read_text(encoding="utf-8")
-            + FORBIDDEN_MARKERS["tests_root"][0]
-            + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(forbidden_case_root, FORBIDDEN_MARKERS["tests_root"][0])
+        forbidden_cases = [
+            ("tests_root", FORBIDDEN_MARKERS["tests_root"][0]),
+            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
+            ("review_checklist", FORBIDDEN_MARKERS["review_checklist"][0]),
+        ]
+
+        for label, marker in forbidden_cases:
+            forbidden_case_root = tmpdir / f"case_forbidden_{label}"
+            shutil.copytree(fixture_root, forbidden_case_root, dirs_exist_ok=True)
+            forbidden_path = forbidden_case_root / FILES[label]
+            forbidden_path.write_text(
+                forbidden_path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            expect_failure(forbidden_case_root, marker)
 
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
         print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
