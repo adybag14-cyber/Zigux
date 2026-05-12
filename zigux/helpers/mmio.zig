@@ -22,7 +22,7 @@ fn writeValue(comptime T: type, base_addr: usize, offset: usize, value: T) void 
     pointerAt(T, base_addr, offset).* = value;
 }
 
-fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) MmioError!void {
+pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) MmioError!void {
     try narrow.requireVolatileMmioPolicyBytes(unsafe_scope, reserved);
 }
 
@@ -65,8 +65,16 @@ pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {
     return narrow.permitsVolatileMmioInteropPolicy(policy);
 }
 
+pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {
+    return allowsInteropPolicyBytes(unsafe_scope, 0);
+}
+
 pub fn requireInteropPolicy(policy: abi.InteropPolicy) MmioError!void {
     try narrow.requireVolatileMmioInteropPolicy(policy);
+}
+
+pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
 }
 
 pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) MmioError!Range {
@@ -264,9 +272,24 @@ test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {
 
     try std.testing.expect(allowsInteropPolicy(mmio_policy));
     try std.testing.expect(allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));
+    try std.testing.expect(allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio)));
     try std.testing.expect(!allowsInteropPolicy(none_policy));
     try std.testing.expect(!allowsInteropPolicy(raw_policy));
+    try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)));
+    try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)));
     try std.testing.expect(!allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1));
+
+    try requireInteropPolicy(mmio_policy);
+    try requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0);
+    try requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)),
+    );
 
     const desc = try rangeInteropPolicy(base, 16, 8, mmio_policy);
     try std.testing.expectEqual(@as(u32, 8), desc.stride);
