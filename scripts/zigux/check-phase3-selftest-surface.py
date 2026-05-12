@@ -41,6 +41,8 @@ NOTE_POLICY_MARKERS = (
     "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
     "export/UAPI packet actually grows",
 )
+NOTE_NEXT_STEP_PREFIX = "## Next bounded step"
+NOTE_NEXT_STEP_NEXT_PREFIX = "## Non-goals"
 HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
@@ -193,6 +195,16 @@ def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
     )
 
 
+def _check_note_next_step(path: Path) -> list[str]:
+    return _check_section_marker_counts(
+        path,
+        NOTE_NEXT_STEP_PREFIX,
+        NOTE_NEXT_STEP_NEXT_PREFIX,
+        {marker: 1 for marker in NOTE_POLICY_MARKERS},
+        "abi.h next-step note",
+    )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     docs_readme = repo_root / README_PATH
@@ -211,13 +223,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             repo_root / CHECKLIST_PATH, CHECKLIST_MARKERS, "review checklist"
         )
     )
-    issues.extend(
-        _check_markers(
-            repo_root / NOTE_PATH,
-            NOTE_POLICY_MARKERS,
-            "abi.h next-step note",
-        )
-    )
+    issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
     issues.extend(
         _check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH)
     )
@@ -280,7 +286,19 @@ def _populate_repo(root: Path) -> None:
         + "\n",
     )
     _write(root / CHECKLIST_PATH, "\n".join(CHECKLIST_MARKERS) + "\n")
-    _write(root / NOTE_PATH, "\n".join(NOTE_POLICY_MARKERS) + "\n")
+    _write(
+        root / NOTE_PATH,
+        "\n".join(
+            (
+                "## Current landed surface",
+                "current surface marker",
+                NOTE_NEXT_STEP_PREFIX,
+                *NOTE_POLICY_MARKERS,
+                NOTE_NEXT_STEP_NEXT_PREFIX,
+            )
+        )
+        + "\n",
+    )
     _write(
         root / SURVEY_PATH,
         "\n".join(
@@ -379,12 +397,35 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected = (
-            "missing abi.h next-step note marker: "
-            "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey"
+            "abi.h next-step note marker count drift: "
+            "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey "
+            "(expected 1, found 0)"
         )
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected abi.h next-step note policy drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        note_path.write_text(
+            _read(note_path).replace(
+                "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+                NOTE_NEXT_STEP_NEXT_PREFIX
+                + "\n"
+                + "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "abi.h next-step note marker count drift: "
+            "and next-step notes while leaving the narrower `zigux/uapi/version.zig` "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected abi.h next-step note section-scoped drift was not reported")
             return 1
 
         _populate_repo(root)
