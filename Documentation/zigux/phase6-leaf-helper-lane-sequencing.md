@@ -76,7 +76,7 @@ Treat `P6-Y06` and `P6-L13` as checksum parked-survey or closure-correction lane
 
 While current `master` still lacks the checksum-owned helper packet, keep helper restoration under those checksum lanes but treat shared route truthfulness as shared-lane work. That shared follow-up is limited to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the packet-level shared-route fields inside `zigux/tests/phase6_helper_parity_manifest.json` when they drift from the blocked checksum slice.
 
-### `P6-Y08` hexdump packet
+### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet
 
 Keep helper-local work under:
 
@@ -88,7 +88,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-Y08` as the hexdump perf-evidence or serialized empty-ASCII length-packet closure lane when the same helper-local review packet could otherwise overlap itself.
+Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane, and `P6-Y09` as the hexdump perf-refresh ownership lane when the same helper-local review packet could otherwise overlap itself.
 
 ## Anti-Overlap Rules
 - Do not treat a shared file as shared-lane work when the diff only changes one helper row.
