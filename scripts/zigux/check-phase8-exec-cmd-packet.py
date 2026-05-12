@@ -88,7 +88,9 @@ REQUIRED_MARKERS = {
     ),
     EXEC_CMD_TEST_PATH: (
         'test "phase 8 exec-cmd module imports cleanly" {',
+        'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {',
         'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
+        'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
     ),
     EXEC_CMD_SOURCE_PATH: (
@@ -180,6 +182,8 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
         )
