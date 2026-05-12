@@ -351,13 +351,17 @@ pub fn build(b: *std.Build) void {
 
     const runtime_trace_events_tests_step = b.step(
         "phase9-runtime-trace-events-tests",
-        "Run the focused Phase 9 runtime trace-events sample, module, loader, diff, and survey tests",
+        "Run the focused Phase 9 runtime trace-events sample, module, loader, diff, survey, and shared runtime-loader tests",
     );
     runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_sample_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_module_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_diff_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_loader_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_survey_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_kretprobe_tests_step = b.step(
         "phase9-runtime-kretprobe-tests",
