@@ -16,6 +16,7 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+PHASE2_CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
@@ -87,7 +88,20 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+PHASE2_CONFDATA_SURVEY_MARKERS = (
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 12 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, and `last_state_transitions`.",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 12-case packet, and names the current helper-local anchor list for the bridge tests.",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` now keep the already-landed confdata bridge packet reviewable through the shared Phase 2 reminder surface instead of reviving the older dedicated `check-kconfig-bridge.py` scaffold claim.",
+    "When a writable checkout and Zig toolchain are available, run `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test`, and `python3 scripts/zigux/validate-phase2-closure.py` together so the already-landed bridge packet stays replay-validated through the shared Phase 2 reminder surface.",
+)
+
+PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-kconfig-bridge.py`",
+    "11 fixture cases",
+    "same 11-case packet",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -116,6 +130,10 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     validator_text = read_text(resolve_path(root, PHASE2_VALIDATOR))
@@ -127,6 +145,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     closure_doc_text = read_text(resolve_path(root, PHASE2_CLOSURE_DOC))
     bootstrap_notes_text = read_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES))
+    confdata_survey_text = read_text(resolve_path(root, PHASE2_CONFDATA_SURVEY))
 
     issues.extend(collect_missing_markers(validator_text, VALIDATOR_MARKERS, "MISSING_VALIDATOR_MARKERS"))
     for marker, expected_count in VALIDATOR_EXACT_COUNTS.items():
@@ -164,6 +183,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(bootstrap_notes_text, PHASE2_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS")
+    )
+    issues.extend(
+        collect_missing_markers(confdata_survey_text, PHASE2_CONFDATA_SURVEY_MARKERS, "MISSING_CONFDATA_SURVEY_MARKERS")
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            confdata_survey_text,
+            PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS,
+            "FORBIDDEN_CONFDATA_SURVEY_MARKERS",
+        )
     )
     return issues
 
@@ -204,6 +233,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_CONFDATA_SURVEY), "\n".join(PHASE2_CONFDATA_SURVEY_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str) -> str:
@@ -363,6 +393,29 @@ def run_self_test() -> int:
         assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", PHASE2_BOOTSTRAP_NOTES_MARKERS[1]) in issues
         checks_run += 1
 
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_CONFDATA_SURVEY)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), PHASE2_CONFDATA_SURVEY_MARKERS[0], ""),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_CONFDATA_SURVEY_MARKERS", PHASE2_CONFDATA_SURVEY_MARKERS[0]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_CONFDATA_SURVEY)
+        path.write_text(
+            path.read_text(encoding="utf-8") + PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "FORBIDDEN_CONFDATA_SURVEY_MARKERS",
+            PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS[0],
+        ) in issues
+        checks_run += 1
+
         for rel_path in (
             PHASE2_VALIDATOR,
             PHASE2_CLOSURE_VALIDATOR,
@@ -370,6 +423,7 @@ def run_self_test() -> int:
             MAKEFILE,
             SCRIPTS_README,
             TESTS_README,
+            PHASE2_CONFDATA_SURVEY,
         ):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
