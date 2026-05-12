@@ -458,6 +458,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+            "",
+            "helper_argv_free_ownership_marker",
+        )
+        expect_missing_marker(
+            "helper_argv_free_ownership_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
             "deinit on one live non-blank result does not disturb another caller-owned split result",
             "",
@@ -470,7 +484,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 16
+    case_count = 17
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
