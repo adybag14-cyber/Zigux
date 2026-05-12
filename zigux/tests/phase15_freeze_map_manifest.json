@@ -28,7 +28,7 @@
       "id": "freeze-map-lane-ownership",
       "summary": "Every freeze-map lane must record owner, phase, status bucket, validation gate, and rollback owner.",
       "required_terms": [
-        "owner, phase, status bucket, validation gate, and rollback owner"
+        "owner, phase, status bucket, validation gate summary, and rollback owner"
       ]
     },
     {
@@ -155,7 +155,7 @@
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-core-boundary-traceability.md, where the shared Phase 14 owner map still records skbuff on lane P14-Y03 with blocked phase14-skbuff-live-ownership-blocker and no smaller ready-next gap.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-core-boundary-traceability.md, where the shared Phase 14 owner map still records skbuff on lane P14-L11 with blocked phase14-skbuff-live-ownership-blocker and no smaller ready-next gap.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
