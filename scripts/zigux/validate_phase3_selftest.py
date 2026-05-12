@@ -34,9 +34,18 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
 )
 SELFTEST_OUTPUT_MARKERS = {
+    Path("scripts/zigux/check-phase3-selftest-surface.py"): (
+        "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+    ),
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"): (
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=5",
+    ),
+    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"): (
+        "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"): (
+        "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
     ),
 }
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -305,7 +314,7 @@ def run_self_test() -> int:
             print("expected missing makefile self-test command was not reported")
             return 1
 
-        (root / MAKEFILE_PATH).write_text(
+        (root / MAKEFILE_PATH).writeText(
             _synthetic_makefile_text(),
             encoding="utf-8",
         )
@@ -440,44 +449,51 @@ def run_self_test() -> int:
             print("expected missing wrapper-check makefile command was not reported")
             return 1
 
-        (root / MAKEFILE_PATH).write_text(
-            _synthetic_makefile_text(),
-            encoding="utf-8",
-        )
-        mmio_consumer_path = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
-        (root / mmio_consumer_path).write_text(
-            _synthetic_selftest_script(mmio_consumer_path).replace(
-                "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
-                "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=stale",
+        for rel_path, expected_markers in SELFTEST_OUTPUT_MARKERS.items():
+            if not expected_markers:
+                continue
+            (root / MAKEFILE_PATH).write_text(
+                _synthetic_makefile_text(),
+                encoding="utf-8",
+            )
+            stale_script = _synthetic_selftest_script(rel_path).replace(
+                expected_markers[0],
+                expected_markers[0].replace("=pass", "=stale"),
                 1,
-            ),
-            encoding="utf-8",
-        )
-        buffer = io.StringIO()
-        with contextlib.redirect_stdout(buffer):
-            result = run_packet(root)
-        if result == 0:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing selftest output marker to fail the packet")
-            return 1
-        output = buffer.getvalue()
-        for marker in (
-            "PHASE3_VALIDATE_SELFTEST=fail",
-            "missing selftest output marker: scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py: PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
-            "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=stale",
-        ):
-            if marker not in output:
+            )
+            (root / rel_path).write_text(
+                stale_script,
+                encoding="utf-8",
+            )
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                result = run_packet(root)
+            if result == 0:
                 print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-                print(
-                    "expected missing selftest output marker coverage was not reported: "
-                    f"{marker}"
-                )
+                print("expected missing selftest output marker to fail the packet")
                 return 1
+            output = buffer.getvalue()
+            expected_missing_marker = (
+                f"missing selftest output marker: {rel_path.as_posix()}: {expected_markers[0]}"
+            )
+            expected_stale_marker = expected_markers[0].replace("=pass", "=stale")
+            for marker in (
+                "PHASE3_VALIDATE_SELFTEST=fail",
+                expected_missing_marker,
+                expected_stale_marker,
+            ):
+                if marker not in output:
+                    print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+                    print(
+                        "expected missing selftest output marker coverage was not reported: "
+                        f"{marker}"
+                    )
+                    return 1
+            (root / rel_path).write_text(
+                _synthetic_selftest_script(rel_path),
+                encoding="utf-8",
+            )
 
-        (root / mmio_consumer_path).write_text(
-            _synthetic_selftest_script(mmio_consumer_path),
-            encoding="utf-8",
-        )
         (root / MAKEFILE_PATH).write_text(
             _synthetic_makefile_text(),
             encoding="utf-8",
