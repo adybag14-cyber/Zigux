@@ -364,24 +364,28 @@ def run_self_test() -> int:
         return 1
 
     good_tests_readme = "\n".join(TESTS_README_MARKERS) + "\n"
-    missing_tests_readme_markers = [
-        marker
-        for marker in TESTS_README_MARKERS
-        if marker
-        not in good_tests_readme.replace(
-            "zigux/tests/phase14_workqueue_reviewability.zig",
-            "",
-            1,
-        )
-    ]
-    if missing_tests_readme_markers != ["zigux/tests/phase14_workqueue_reviewability.zig"]:
-        print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_marker_gap")
-        print("SELF_TEST_MARKERS_START")
-        for item in missing_tests_readme_markers:
-            print(item)
-        print("SELF_TEST_MARKERS_END")
-        return 1
+    for expected_missing_tests_readme_marker in TESTS_README_MARKERS:
+        missing_tests_readme_markers = [
+            marker
+            for marker in TESTS_README_MARKERS
+            if marker not in good_tests_readme.replace(
+                expected_missing_tests_readme_marker,
+                "",
+                1,
+            )
+        ]
+        if missing_tests_readme_markers != [expected_missing_tests_readme_marker]:
+            print("PHASE14_SELF_TEST=fail")
+            print("SELF_TEST_REASON=unexpected_tests_readme_marker_gap")
+            print(
+                "SELF_TEST_EXPECTED_MISSING_TESTS_README_MARKER="
+                f"{expected_missing_tests_readme_marker}"
+            )
+            print("SELF_TEST_MARKERS_START")
+            for item in missing_tests_readme_markers:
+                print(item)
+            print("SELF_TEST_MARKERS_END")
+            return 1
 
     good_phase14_make = "\n".join(["phase14-validate:", *MAKE_EXACT_LINES]) + "\n"
     exact_line_missing: list[str] = []
@@ -556,7 +560,10 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
-    print("PHASE14_SELF_TEST_MISSING_TESTS_README_MARKER=zigux/tests/phase14_workqueue_reviewability.zig")
+    print(
+        "PHASE14_SELF_TEST_TESTS_README_PACKET_MARKER_COUNT="
+        f"{len(TESTS_README_MARKERS)}"
+    )
     print("PHASE14_SELF_TEST_MISSING_DOCS_ROOT_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_ROUTE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py")
