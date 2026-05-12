@@ -30,6 +30,8 @@ FILES = [
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
+    "zigux/tests/phase15_freeze_map_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
@@ -157,6 +159,8 @@ READINESS_SURVEY_MARKERS = [
 ]
 
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
+FREEZE_MAP_MANIFEST_REL = "zigux/tests/phase15_freeze_map_manifest.json"
+PARITY_SCORECARD_REL = "zigux/tests/phase15_parity_scorecard.json"
 READINESS_CHECKERS = [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
@@ -167,6 +171,17 @@ READINESS_BOOL_FIELDS = [
     "shared_ci_phase15_present",
     "phase15_replay_green_on_current_master",
 ]
+EXPECTED_FREEZE_IN_C_TARGETS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+EXPECTED_STUDY_ONLY_TARGETS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+EXPECTED_BLOCKED_STATUS_CHANGE_COUNT = len(EXPECTED_FREEZE_IN_C_TARGETS)
 
 
 def _read(root: Path, rel: str) -> str:
@@ -185,6 +200,18 @@ def _require_markers(name: str, source: str, markers: list[str], missing: list[s
             missing.append(f"{name}:{marker}")
 
 
+def _load_json(root: Path, rel: str, label: str, missing: list[str]) -> dict | None:
+    try:
+        value = json.loads(_read(root, rel))
+    except json.JSONDecodeError:
+        missing.append(f"{label}:json_decode")
+        return None
+    if not isinstance(value, dict):
+        missing.append(f"{label}:root_object")
+        return None
+    return value
+
+
 def _validate_readiness_manifest(root: Path, missing: list[str]) -> None:
     manifest = json.loads(_read(root, READINESS_MANIFEST_REL))
     repo_evidence = manifest.get("repo_evidence")
@@ -199,6 +226,75 @@ def _validate_readiness_manifest(root: Path, missing: list[str]) -> None:
     checkers = manifest.get("phase15_validate_checkers")
     if checkers != READINESS_CHECKERS:
         missing.append("readiness_manifest:phase15_validate_checkers")
+
+
+def _validate_phase15_governance_manifests(root: Path, missing: list[str]) -> None:
+    freeze_manifest = _load_json(root, FREEZE_MAP_MANIFEST_REL, "phase15_freeze_map_manifest", missing)
+    parity_scorecard = _load_json(root, PARITY_SCORECARD_REL, "phase15_parity_scorecard", missing)
+    if freeze_manifest is None or parity_scorecard is None:
+        return
+
+    if freeze_manifest.get("freeze_in_c_targets") != EXPECTED_FREEZE_IN_C_TARGETS:
+        missing.append("phase15_freeze_map_manifest:freeze_in_c_targets")
+    if freeze_manifest.get("study_only_targets") != EXPECTED_STUDY_ONLY_TARGETS:
+        missing.append("phase15_freeze_map_manifest:study_only_targets")
+
+    blocker_ownership = freeze_manifest.get("blocker_ownership")
+    if not isinstance(blocker_ownership, list):
+        missing.append("phase15_freeze_map_manifest:blocker_ownership")
+        blocker_anchors: list[str | None] = []
+    else:
+        blocker_anchors = [item.get("anchor") if isinstance(item, dict) else None for item in blocker_ownership]
+        if blocker_anchors != EXPECTED_FREEZE_IN_C_TARGETS:
+            missing.append("phase15_freeze_map_manifest:blocker_ownership")
+
+    if freeze_manifest.get("surveyed_commit") != parity_scorecard.get("surveyed_commit"):
+        missing.append("phase15_governance_manifests:surveyed_commit")
+
+    posture = parity_scorecard.get("posture")
+    if not isinstance(posture, dict):
+        missing.append("phase15_parity_scorecard:posture")
+    else:
+        if posture.get("architecture_council_status_change_approval_recorded") is not False:
+            missing.append("phase15_parity_scorecard:posture.architecture_council_status_change_approval_recorded")
+
+    metrics = parity_scorecard.get("metrics")
+    if not isinstance(metrics, dict):
+        missing.append("phase15_parity_scorecard:metrics")
+    else:
+        if metrics.get("active_freeze_in_c_anchor_count") != len(EXPECTED_FREEZE_IN_C_TARGETS):
+            missing.append("phase15_parity_scorecard:metrics.active_freeze_in_c_anchor_count")
+        if metrics.get("blocked_status_change_anchor_count") != EXPECTED_BLOCKED_STATUS_CHANGE_COUNT:
+            missing.append("phase15_parity_scorecard:metrics.blocked_status_change_anchor_count")
+        if metrics.get("architecture_council_status_change_approval_count") != 0:
+            missing.append("phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count")
+
+    anchors = parity_scorecard.get("anchors")
+    if not isinstance(anchors, list):
+        missing.append("phase15_parity_scorecard:anchors")
+        return
+
+    anchor_paths = [item.get("path") if isinstance(item, dict) else None for item in anchors]
+    if anchor_paths != EXPECTED_FREEZE_IN_C_TARGETS:
+        missing.append("phase15_parity_scorecard:anchors")
+
+    if blocker_anchors == EXPECTED_FREEZE_IN_C_TARGETS and len(anchors) == len(blocker_ownership):
+        for score_anchor, freeze_anchor in zip(anchors, blocker_ownership):
+            if not isinstance(score_anchor, dict) or not isinstance(freeze_anchor, dict):
+                missing.append("phase15_governance_manifests:anchor_alignment")
+                break
+            evidence_archive = score_anchor.get("evidence_archive")
+            if not isinstance(evidence_archive, dict):
+                missing.append("phase15_governance_manifests:anchor_alignment")
+                break
+            if (
+                score_anchor.get("path") != freeze_anchor.get("anchor")
+                or score_anchor.get("required_approver_set") != freeze_anchor.get("required_approver_set")
+                or score_anchor.get("rollback_owner") != freeze_anchor.get("rollback_owner")
+                or evidence_archive.get("latest_blocker_disposition") != freeze_anchor.get("latest_blocker_disposition")
+            ):
+                missing.append("phase15_governance_manifests:anchor_alignment")
+                break
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -245,6 +341,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers,
     )
     _validate_readiness_manifest(root, missing_markers)
+    _validate_phase15_governance_manifests(root, missing_markers)
     return [], missing_markers
 
 
@@ -257,6 +354,92 @@ def _baseline_docs_readme() -> str:
             "",
         )
     )
+
+
+def _phase15_freeze_map_manifest_fixture() -> dict:
+    return {
+        "lane_key": "P15-L04",
+        "phase": "Phase 15",
+        "surveyed_commit": "current-master-readback-2026-05-11",
+        "surveyed_commit_mode": "dated_master_readback",
+        "anchor": "Documentation/zigux/freeze-map.md",
+        "freeze_in_c_targets": EXPECTED_FREEZE_IN_C_TARGETS,
+        "study_only_targets": EXPECTED_STUDY_ONLY_TARGETS,
+        "blocker_ownership": [
+            {
+                "anchor": "kernel/sched/core.c",
+                "required_approver_set": "Architecture Council + PMO / Release Management",
+                "rollback_owner": "Architecture Council + PMO / Release Management",
+                "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
+            },
+            {
+                "anchor": "mm/page_alloc.c",
+                "required_approver_set": "Architecture Council + Validation and Perf Team",
+                "rollback_owner": "Architecture Council + Validation and Perf Team",
+                "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
+            },
+            {
+                "anchor": "kernel/rcu/tree.c",
+                "required_approver_set": "Architecture Council + ABI and Runtime Team",
+                "rollback_owner": "Architecture Council + ABI and Runtime Team",
+                "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+            },
+            {
+                "anchor": "net/core/skbuff.c",
+                "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+                "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+            },
+        ],
+    }
+
+
+def _phase15_parity_scorecard_fixture() -> dict:
+    return {
+        "surveyed_commit": "current-master-readback-2026-05-11",
+        "posture": {
+            "architecture_council_status_change_approval_recorded": False,
+        },
+        "metrics": {
+            "active_freeze_in_c_anchor_count": len(EXPECTED_FREEZE_IN_C_TARGETS),
+            "blocked_status_change_anchor_count": EXPECTED_BLOCKED_STATUS_CHANGE_COUNT,
+            "architecture_council_status_change_approval_count": 0,
+        },
+        "anchors": [
+            {
+                "path": "kernel/sched/core.c",
+                "required_approver_set": "Architecture Council + PMO / Release Management",
+                "rollback_owner": "Architecture Council + PMO / Release Management",
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
+                },
+            },
+            {
+                "path": "mm/page_alloc.c",
+                "required_approver_set": "Architecture Council + Validation and Perf Team",
+                "rollback_owner": "Architecture Council + Validation and Perf Team",
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
+                },
+            },
+            {
+                "path": "kernel/rcu/tree.c",
+                "required_approver_set": "Architecture Council + ABI and Runtime Team",
+                "rollback_owner": "Architecture Council + ABI and Runtime Team",
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                },
+            },
+            {
+                "path": "net/core/skbuff.c",
+                "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+                "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+                },
+            },
+        ],
+    }
 
 
 def _seed_fixture_tree(root: Path) -> None:
@@ -324,6 +507,16 @@ def _seed_fixture_tree(root: Path) -> None:
             indent=2,
         )
         + "\n",
+    )
+    _write(
+        root,
+        FREEZE_MAP_MANIFEST_REL,
+        json.dumps(_phase15_freeze_map_manifest_fixture(), indent=2) + "\n",
+    )
+    _write(
+        root,
+        PARITY_SCORECARD_REL,
+        json.dumps(_phase15_parity_scorecard_fixture(), indent=2) + "\n",
     )
 
 
@@ -611,6 +804,66 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        freeze_manifest = _phase15_freeze_map_manifest_fixture()
+        freeze_manifest["freeze_in_c_targets"] = EXPECTED_FREEZE_IN_C_TARGETS[:-1]
+        _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(freeze_manifest, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_freeze_map_manifest:freeze_in_c_targets"],
+            "freeze_map_targets_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        freeze_manifest = _phase15_freeze_map_manifest_fixture()
+        freeze_manifest["blocker_ownership"][0]["anchor"] = "kernel/sched/core.zig"
+        _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(freeze_manifest, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_freeze_map_manifest:blocker_ownership"],
+            "freeze_map_blocker_ownership_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-10"
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_governance_manifests:surveyed_commit"],
+            "governance_surveyed_commit_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["architecture_council_status_change_approval_count"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
+            "parity_scorecard_approval_count_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["anchors"][0]["required_approver_set"] = "Architecture Council"
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_governance_manifests:anchor_alignment"],
+            "governance_anchor_alignment_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         missing_file = "zigux/tests/phase15_handoff_next_steps.zig"
         (root / missing_file).unlink()
         _assert_result(*validate(root), [missing_file], [], "missing_file")
@@ -663,6 +916,7 @@ def main() -> int:
             + len(READINESS_SURVEY_MARKERS)
             + len(READINESS_BOOL_FIELDS)
             + len(READINESS_CHECKERS)
+            + 8
         )
     )
     print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
