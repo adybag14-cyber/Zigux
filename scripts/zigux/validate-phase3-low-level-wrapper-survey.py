@@ -47,20 +47,31 @@ REQUIRED_BUILD_SNIPPETS = (
     '.root_source_file = b.path("../helpers/atomic.zig")',
     '.root_source_file = b.path("../helpers/barrier.zig")',
     '.root_source_file = b.path("../helpers/mmio.zig")',
+    '.root_source_file = b.path("../helpers/allocator_policy.zig")',
+    '.root_source_file = b.path("../helpers/panic_policy.zig")',
     '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
+    'allocator_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);',
+    'panic_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("atomic_helpers", atomic_helpers_module);',
     'root_module.addImport("barrier_helpers", barrier_helpers_module);',
     'root_module.addImport("mmio_helpers", mmio_helpers_module);',
     'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
+    'root_module.addImport("panic_policy_helpers", panic_policy_helpers_module);',
     '"phase3-low-level-wrappers-test"',
 )
 
 REQUIRED_TEST_SNIPPETS = (
+    'const allocator_policy = @import("allocator_policy_helpers");',
+    'const panic_policy = @import("panic_policy_helpers");',
     'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
+    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
+    'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
     'test "phase3 low-level wrappers keep barrier locality reviewable" {',
     'test "phase3 low-level wrappers keep barrier handoff reviewable" {',
+    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {',
     'mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);',
     'mmio.write16(base, 1, 0x1234);',
     'mmio.write32(base, 3, 0x89abcdef);',
@@ -68,6 +79,8 @@ REQUIRED_TEST_SNIPPETS = (
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
+    'allocator_policy.requiresExplicitCallerInteropPolicy(caller_abort_policy)',
+    'panic_policy.actionForInteropPolicy(heap_bug_policy)',
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -226,6 +239,26 @@ def run_self_test() -> int:
             return 1
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            BUILD_REL,
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+                'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == 'missing_build_snippet:root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing allocator policy build wiring failure")
+            return 1
+
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
         _write(
             root,
             SURVEY_REL,
