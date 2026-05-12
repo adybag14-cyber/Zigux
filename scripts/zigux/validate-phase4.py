@@ -183,6 +183,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/phase4_bitmap_diff_manifest.json",
     "zigux/tests/phase4_bitmap_diff_survey.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "pending shared-CI perf-promotion posture",
@@ -530,6 +531,7 @@ def _write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
         "zigux/tests/phase4_bitmap_diff_manifest.json",
         "zigux/tests/phase4_bitmap_diff_survey.zig",
+        "zigux/tests/phase4_bitmap_live_helper_replay.zig",
         "zigux/tests/phase4_perf_baseline_manifest.json",
         "zigux/tests/phase4_perf_baseline_survey.zig",
         "pending shared-CI perf-promotion posture",
@@ -758,6 +760,26 @@ def run_self_test() -> int:
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
             return 1
         matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "review_checklist:zigux/tests/phase4_bitmap_live_helper_replay.zig" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
         remaining_gap_checker_path = root / "scripts/zigux/check-phase4-remaining-gap-matrix.py"
         original_remaining_gap_checker = remaining_gap_checker_path.read_text(encoding="utf-8")
