@@ -241,6 +241,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps shared release failures from desynchronizing loader state\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader surfaces shared request drift before any live registration claim\"",
     );
     try expectContains(
