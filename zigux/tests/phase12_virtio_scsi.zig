@@ -194,6 +194,28 @@ test "phase12 virtio scsi recovery io queue map summary collapses without poll q
     try std.testing.expect(!summary.requires_poll_map_restore);
 }
 
+test "phase12 virtio scsi recovery host scan summary records restore ordering before rescan" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryHostScanSummary());
+
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryHostScanSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), summary.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), summary.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.recovery_generation);
+    try std.testing.expect(summary.requires_control_queue_restore_before_scan);
+    try std.testing.expect(summary.requires_event_rearm_before_scan);
+    try std.testing.expect(summary.requires_request_queue_restore_before_scan);
+    try std.testing.expect(summary.requires_async_scan_resume);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryHostScanSummary());
+}
+
 test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
