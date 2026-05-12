@@ -6,6 +6,14 @@ pub const fmode_can_write: u32 = 1 << 1;
 pub const rule_type_path_beneath: u32 = 1;
 pub const rule_type_net_port: u32 = 2;
 
+pub const landlock_restrict_self_log_same_exec_off: u32 = 1 << 0;
+pub const landlock_restrict_self_log_new_exec_on: u32 = 1 << 1;
+pub const landlock_restrict_self_log_subdomains_off: u32 = 1 << 2;
+pub const landlock_mask_restrict_self: u32 =
+    landlock_restrict_self_log_same_exec_off |
+    landlock_restrict_self_log_new_exec_on |
+    landlock_restrict_self_log_subdomains_off;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -16,6 +24,7 @@ pub const ModuleDescriptor = struct {
     validates_ruleset_fd: bool,
     validates_ruleset_write_access: bool,
     validates_restrict_self_flags: bool,
+    validates_restrict_self_logging: bool,
     validates_add_rule_flags: bool,
     validates_credential_gate: bool,
     touches_live_credentials: bool,
@@ -39,11 +48,20 @@ pub const RestrictSelfInput = struct {
     caller_has_cap_sys_admin: bool = false,
 };
 
+pub const RestrictSelfLogging = struct {
+    log_same_exec: bool,
+    log_new_exec: bool,
+    log_subdomains: bool,
+};
+
 pub const RestrictSelfPlan = struct {
     anchor: []const u8,
     ruleset_fd: i32,
     credential_gate: CredentialGate,
     handled_flags: u32,
+    requires_readable_ruleset_fd: bool,
+    creates_domain: bool,
+    logging: RestrictSelfLogging,
 };
 
 pub const AddRuleInput = struct {
@@ -104,6 +122,7 @@ pub const SyscallsHelperLab = struct {
             .validates_ruleset_fd = true,
             .validates_ruleset_write_access = true,
             .validates_restrict_self_flags = true,
+            .validates_restrict_self_logging = true,
             .validates_add_rule_flags = true,
             .validates_credential_gate = true,
             .touches_live_credentials = false,
@@ -112,10 +131,7 @@ pub const SyscallsHelperLab = struct {
     }
 
     pub fn planRestrictSelf(input: RestrictSelfInput) !RestrictSelfPlan {
-        if (input.ruleset_fd < 0) {
-            return error.InvalidRulesetFd;
-        }
-        if (input.flags != 0) {
+        if ((input.flags | landlock_mask_restrict_self) != landlock_mask_restrict_self) {
             return error.UnsupportedFlags;
         }
 
@@ -126,11 +142,26 @@ pub const SyscallsHelperLab = struct {
         else
             return error.MissingNoNewPrivs;
 
+        const logging: RestrictSelfLogging = .{
+            .log_same_exec = input.flags & landlock_restrict_self_log_same_exec_off == 0,
+            .log_new_exec = input.flags & landlock_restrict_self_log_new_exec_on != 0,
+            .log_subdomains = input.flags & landlock_restrict_self_log_subdomains_off == 0,
+        };
+        const detached_subdomain_log_update =
+            input.ruleset_fd == -1 and input.flags == landlock_restrict_self_log_subdomains_off;
+
+        if (!detached_subdomain_log_update and input.ruleset_fd < 0) {
+            return error.InvalidRulesetFd;
+        }
+
         return .{
             .anchor = descriptor().anchor,
             .ruleset_fd = input.ruleset_fd,
             .credential_gate = credential_gate,
             .handled_flags = input.flags,
+            .requires_readable_ruleset_fd = !detached_subdomain_log_update,
+            .creates_domain = !detached_subdomain_log_update,
+            .logging = logging,
         };
     }
 
@@ -232,6 +263,7 @@ test "landlock syscalls descriptor stays scoped to pure planning helpers" {
     try std.testing.expect(descriptor.validates_ruleset_fd);
     try std.testing.expect(descriptor.validates_ruleset_write_access);
     try std.testing.expect(descriptor.validates_restrict_self_flags);
+    try std.testing.expect(descriptor.validates_restrict_self_logging);
     try std.testing.expect(descriptor.validates_add_rule_flags);
     try std.testing.expect(descriptor.validates_credential_gate);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -248,6 +280,42 @@ test "landlock restrict-self planning accepts no-new-privs callers" {
     try std.testing.expectEqual(@as(i32, 7), plan.ruleset_fd);
     try std.testing.expectEqual(CredentialGate.no_new_privs, plan.credential_gate);
     try std.testing.expectEqual(@as(u32, 0), plan.handled_flags);
+    try std.testing.expect(plan.requires_readable_ruleset_fd);
+    try std.testing.expect(plan.creates_domain);
+    try std.testing.expect(plan.logging.log_same_exec);
+    try std.testing.expect(!plan.logging.log_new_exec);
+    try std.testing.expect(plan.logging.log_subdomains);
+}
+
+test "landlock restrict-self planning models detached subdomain log updates" {
+    const plan = try SyscallsHelperLab.planRestrictSelf(.{
+        .ruleset_fd = -1,
+        .flags = landlock_restrict_self_log_subdomains_off,
+        .caller_has_cap_sys_admin = true,
+    });
+
+    try std.testing.expectEqual(CredentialGate.cap_sys_admin_override, plan.credential_gate);
+    try std.testing.expectEqual(@as(i32, -1), plan.ruleset_fd);
+    try std.testing.expectEqual(landlock_restrict_self_log_subdomains_off, plan.handled_flags);
+    try std.testing.expect(!plan.requires_readable_ruleset_fd);
+    try std.testing.expect(!plan.creates_domain);
+    try std.testing.expect(plan.logging.log_same_exec);
+    try std.testing.expect(!plan.logging.log_new_exec);
+    try std.testing.expect(!plan.logging.log_subdomains);
+}
+
+test "landlock restrict-self planning keeps logging flag translation explicit" {
+    const plan = try SyscallsHelperLab.planRestrictSelf(.{
+        .ruleset_fd = 5,
+        .flags = landlock_restrict_self_log_same_exec_off | landlock_restrict_self_log_new_exec_on,
+        .no_new_privs_set = true,
+    });
+
+    try std.testing.expect(plan.requires_readable_ruleset_fd);
+    try std.testing.expect(plan.creates_domain);
+    try std.testing.expect(!plan.logging.log_same_exec);
+    try std.testing.expect(plan.logging.log_new_exec);
+    try std.testing.expect(plan.logging.log_subdomains);
 }
 
 test "landlock restrict-self planning accepts CAP_SYS_ADMIN override callers" {
@@ -260,6 +328,11 @@ test "landlock restrict-self planning accepts CAP_SYS_ADMIN override callers" {
     try std.testing.expectEqual(@as(i32, 11), plan.ruleset_fd);
     try std.testing.expectEqual(CredentialGate.cap_sys_admin_override, plan.credential_gate);
     try std.testing.expectEqual(@as(u32, 0), plan.handled_flags);
+    try std.testing.expect(plan.requires_readable_ruleset_fd);
+    try std.testing.expect(plan.creates_domain);
+    try std.testing.expect(plan.logging.log_same_exec);
+    try std.testing.expect(!plan.logging.log_new_exec);
+    try std.testing.expect(plan.logging.log_subdomains);
 }
 
 test "landlock add-rule planning keeps write-fd and path handoff explicit" {
