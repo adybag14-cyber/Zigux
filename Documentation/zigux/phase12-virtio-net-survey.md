@@ -4,36 +4,37 @@ This note records the current-master verification result for the bounded Phase 1
 
 ## Status
 
-- `PHASE12_STATUS=survey-only-driver-absent`
-- `PHASE12_SLICE=virtio-net-queue-recovery-survey`
-- scope: verify whether current `master` still carries a bounded `virtio_net` Zig starter beside the dedicated Phase 12 survey gate and the shared smoke-first Phase 12 packet
+- `PHASE12_STATUS=starter-present-buffer-planner`
+- `PHASE12_SLICE=virtio-net-mergeable-receive-buffer-starter`
+- scope: verify the bounded `virtio_net` Zig starter around probe fallback and mergeable receive-buffer planning without widening into live DMA, NAPI, XDP, XSK, control-virtqueue runtime commands, RSS table programming, or full `net_device` lifecycle work
 - verified on: `2026-05-12`
 - repo-truth boundary:
+  - `drivers/net/virtio_net.zig`
+  - `zigux/tests/phase12_virtio_net.zig`
+  - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
   - `Documentation/zigux/phase12-virtio-net-survey.md`
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
   - `zigux/tests/phase12_build.zig`
-  - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
-  - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
-- public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this `virtio_net` note is still a shared-tree survey rather than a commit-pinned raw GitHub fallback artifact.
 
 ## Why this lane still matters
 
 The Phase 12 roadmap still names `drivers/net/virtio_net.c` as a complex production-driver target.
 
-That anchor is still high value because `virtio_net.c` is a large production driver with probe-time negotiation, virtqueue management, recovery decisions, receive and transmit coordination, control-virtqueue work, RSS state, and full `net_device` lifecycle handling. The roadmap therefore still requires DMA-safe abstractions, queueing correctness, throughput and recovery parity, and segmented rollout before any honest live data-path claim.
+That anchor remains high value because `virtio_net.c` still covers probe-time negotiation, queue-pair topology, recovery decisions, receive and transmit coordination, control-virtqueue work, RSS state, and full `net_device` lifecycle handling. The roadmap therefore still requires DMA-safe abstractions, queueing correctness, throughput and recovery parity, and segmented rollout before any honest live data-path claim.
 
 ## Current-master verification
 
 - current `master` still carries the earlier Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_build.zig`
-- current `master` does not carry `drivers/net/virtio_net.zig`
-- current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig` as the dedicated survey gate for this bounded lane reminder
-- current `master` still carries `zigux/tests/phase12_virtio_net_manifest.json` as the survey manifest for this lane family
-- current `master` now carries `zigux/tests/phase12_build.zig`, but that shared build route still wires only the shipped `virtio_scsi` smoke-first packet rather than a direct `virtio_net` replay
-- current `master` still does not carry `zigux/tests/phase12_virtio_net_syntax_lab.zig`
-- `zigux/Makefile` still carries `phase12-smoke`, `phase12-test`, and `phase12` targets, and those shared routes line up with `zigux/tests/phase12_build.zig` for the shipped `virtio_scsi` packet without yet promoting direct `virtio_net` validation
+- current `master` now carries `drivers/net/virtio_net.zig`
+- the current bounded starter exposes `captureProbeSnapshot()` for queue-pair fallback plus header-shape selection and `planMergeableReceiveBuffer()` for the probe-time packet-buffer choice
+- current `master` now carries `zigux/tests/phase12_virtio_net.zig` as the direct starter replay for this bounded packet
+- current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig` as the dedicated syntax lab for this bounded packet
+- current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig` and `zigux/tests/phase12_virtio_net_manifest.json` as the survey-backed lane guard
+- current `master` now carries `zigux/tests/phase12_build.zig`, and that shared build route now carries the direct `virtio_net` syntax-lab smoke shard alongside the shipped `virtio_scsi` packet
+- `zigux/Makefile` still carries `phase12-smoke`, `phase12-test`, and `phase12`, and those shared routes now pick up the bounded `virtio_net` syntax-lab smoke shard through the shared Phase 12 build route
 
-Those checks mean the present lane is parked on a survey-only boundary again: the shared Phase 12 smoke-first route is present for the shipped `virtio_scsi` tranche, the dedicated `virtio_net` survey packet still exists, but the driver-local Zig starter itself is absent from current `master` and the direct syntax-lab shard is still missing beside it.
+Those checks mean the current lane has moved forward from a survey-only absence boundary into a bounded driver-local starter, but it is still intentionally below any live runtime or DMA-backed data-path claim.
 
 ## Truthful boundary
 
@@ -41,31 +42,30 @@ The truthful current boundary is:
 
 - the roadmap still wants a bounded `virtio_net` lane in Phase 12
 - the Phase 10 virtio foundation still exists and remains the nearest reusable substrate
-- current `master` no longer reads back `drivers/net/virtio_net.zig`, so the queue-recovery starter is not presently a shipped driver-local surface
-- current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig`, so the survey-only and driver-absent boundary is executable as a direct survey gate
-- current `master` now carries `zigux/tests/phase12_build.zig`, but that shared route still only proves the shipped `virtio_scsi` smoke-first packet rather than a direct `virtio_net` replay
-- current `master` still lacks the direct syntax-lab shard and full direct replay needed to execute queue or recovery claims as a `virtio_net` smoke route
-- throughput parity, post-restore replay validation, DMA-safe refill ownership, and live queue execution remain blocked beyond the current survey-only boundary
+- current `master` now carries `drivers/net/virtio_net.zig`, but the current starter is still deliberately small and limited to probe fallback plus mergeable receive-buffer planning
+- the bounded starter models packet-buffer choice through `planMergeableReceiveBuffer()` without claiming live DMA-safe receive ownership, page-pool wiring, refill execution, or transport-backed submit flow
+- current `master` now carries `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_net_syntax_lab.zig`, so the current starter is directly executable and syntax-checked through the shared Phase 12 smoke route
+- current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig`, so the survey-backed boundary continues to machine-check the starter-present packet and its blocked runtime claims
+- current `master` still does not claim live DMA-safe receive ownership, NAPI, XDP, XSK, control-virtqueue runtime traffic, RSS table programming, throughput parity, or full `net_device` lifecycle coverage
 
 ## Non-goals
 
 This note does not claim:
 
-- a current direct smoke shard for `virtio_net`
-- a current driver-backed syntax lab
-- a current `drivers/net/virtio_net.zig` starter on `master`
-- live DMA-safe receive ownership or page-pool wiring
-- live NAPI, XDP, XSK, control-virtqueue command traffic, RSS table programming, or `net_device` lifecycle parity
+- a current live refill loop
+- a current DMA-safe receive ownership path
+- a current transport-backed queue execution path
 - a current throughput benchmark or measured recovery parity result
+- a current NAPI, XDP, XSK, RSS table programming, control-virtqueue command, or `net_device` lifecycle implementation
 
 ## Next bounded step
 
-The next honest same-lane move is to reland the missing driver-local starter and its direct validation packet rather than pretending the data path is ready.
+The next honest same-lane move is still a bounded probe-snapshot or queue-summary follow-up, not a runtime data-path jump.
 
 The next bounded step is:
 
-1. keep `zigux/tests/phase12_build.zig` explicit as the shipped shared `virtio_scsi` smoke-first route rather than treating it as proof of direct `virtio_net` validation
-2. reland the driver-local starter under `drivers/net/virtio_net.zig` together with the matching direct syntax-lab shard under `zigux/tests/phase12_virtio_net_syntax_lab.zig`, while keeping `zigux/tests/phase12_virtio_net_survey.zig` and `zigux/tests/phase12_virtio_net_manifest.json` aligned with the survey-only boundary until those files truly return
-3. rerun `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` before making any stronger throughput or recovery-parity claim
+1. keep the current starter focused on probe-time fallback and packet-buffer choice instead of widening into live DMA or lifecycle code
+2. reland one probe-snapshot or queue-summary follow-up beside the current starter so the next queue-facing contract is reviewable without overclaiming runtime behavior
+3. revisit shared `phase12_build.zig` or `zigux/Makefile` wiring only after that follow-up exists and still fits the bounded starter packet
 
-Until that driver-local packet is relanded, treat the current survey reminder as a useful Phase 12 absence boundary, but not as a runnable throughput or live recovery proof.
+Until then, treat the current starter as a real but deliberately small Phase 12 packet-buffer step, not as a live runtime proof.
