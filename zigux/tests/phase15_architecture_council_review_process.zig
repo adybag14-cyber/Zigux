@@ -53,7 +53,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-11", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
