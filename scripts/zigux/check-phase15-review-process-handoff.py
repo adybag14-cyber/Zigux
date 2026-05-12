@@ -41,6 +41,18 @@ NOTE_MAINTENANCE_PACKET_MARKERS = (
     "Documentation/zigux/README.md",
     "phase15-docs-readme-maintenance-note-undercount",
     "The review-checklist maintenance packet is already closed",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+)
+
+NOTE_NEXT_STEP_MARKERS = (
+    "## Next bounded step",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
 )
 
 POLICY_FIELD_SYNC_MARKERS = (
@@ -119,10 +131,12 @@ CURRENT_REPO_HANDOFF_MARKERS = (
 )
 
 NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS = (
+    "## Next bounded step",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
 )
 
 
@@ -138,13 +152,17 @@ def _write(path: Path, text: str) -> None:
 def _require_markers_present(text: str, markers: tuple[str, ...], prefix: str, issues: list[str]) -> None:
     for marker in markers:
         if marker not in text:
-            issues.append(f"{prefix}:missing:{marker}")
+            issue = f"{prefix}:missing:{marker}"
+            if issue not in issues:
+                issues.append(issue)
 
 
 def _require_items_present(values: list[str], markers: tuple[str, ...], prefix: str, issues: list[str]) -> None:
     for marker in markers:
         if marker not in values:
-            issues.append(f"{prefix}:missing:{marker}")
+            issue = f"{prefix}:missing:{marker}"
+            if issue not in issues:
+                issues.append(issue)
 
 
 def validate(root: Path) -> list[str]:
@@ -177,6 +195,7 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(note, CURRENT_APPROVAL_POSTURE_MARKERS, "note", issues)
     _require_markers_present(note, NOTE_REPLAY_ROUTE_MARKERS, "note", issues)
     _require_markers_present(note, NOTE_MAINTENANCE_PACKET_MARKERS, "note", issues)
+    _require_markers_present(note, NOTE_NEXT_STEP_MARKERS, "note", issues)
     _require_markers_present(policy, POLICY_FIELD_SYNC_MARKERS, "policy", issues)
     _require_markers_present(policy, POLICY_EXCEPTION_POSTURE_MARKERS, "policy", issues)
     _require_markers_present(policy, POLICY_REOPEN_TRIGGER_MARKERS, "policy", issues)
@@ -264,6 +283,13 @@ def _seed_fixture_tree(root: Path) -> None:
                 "- Documentation/zigux/README.md",
                 "- phase15-docs-readme-maintenance-note-undercount",
                 "- The review-checklist maintenance packet is already closed",
+                "- Documentation/zigux/phase15-readiness-gate-survey.md",
+                "- Documentation/zigux/phase15-handoff-next-steps-survey.md",
+                "- Documentation/zigux/phase15-governance-lane-sequencing.md",
+                "## Next bounded step",
+                "- Documentation/zigux/README.md keeps the compact Phase 15 reminder.",
+                "- Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, and Documentation/zigux/phase15-governance-lane-sequencing.md remain the parked maintenance-note trio.",
+                "- broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
                 "",
             )
         ),
@@ -326,10 +352,12 @@ def _seed_fixture_tree(root: Path) -> None:
                     "current_mode": "maintenance_mode",
                     "replay_commands": list(HANDOFF_ROUTE_MARKERS),
                     "next_step": (
+                        "## Next bounded step\n"
                         "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; "
                         "if one same-lane reviewer-facing truthfulness repair is still needed before then, start with Documentation/zigux/README.md, "
                         "because the compact Phase 15 docs-root reminder there still omits Documentation/zigux/phase15-readiness-gate-survey.md, "
-                        "Documentation/zigux/phase15-handoff-next-steps-survey.md, and Documentation/zigux/phase15-governance-lane-sequencing.md"
+                        "Documentation/zigux/phase15-handoff-next-steps-survey.md, and Documentation/zigux/phase15-governance-lane-sequencing.md, "
+                        "while broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane"
                     ),
                 },
             },
@@ -387,11 +415,43 @@ def run_self_test() -> int:
         case_count += 1
 
         missing_note_packet_marker = "Documentation/zigux/README.md"
-        _write(root / NOTE_PATH, note_text.replace(f"- {missing_note_packet_marker}\n", "", 1))
+        _write(root / NOTE_PATH, note_text.replace(missing_note_packet_marker, ""))
         _assert_only(
             validate(root),
             [f"note:missing:{missing_note_packet_marker}"],
             "missing_note_packet_marker_guard_failed",
+        )
+        _write(root / NOTE_PATH, note_text)
+        case_count += 1
+
+        missing_note_readiness_marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
+        _write(root / NOTE_PATH, note_text.replace(missing_note_readiness_marker, ""))
+        _assert_only(
+            validate(root),
+            [f"note:missing:{missing_note_readiness_marker}"],
+            "missing_note_readiness_marker_guard_failed",
+        )
+        _write(root / NOTE_PATH, note_text)
+        case_count += 1
+
+        missing_note_next_step_heading = "## Next bounded step"
+        _write(root / NOTE_PATH, note_text.replace(missing_note_next_step_heading + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"note:missing:{missing_note_next_step_heading}"],
+            "missing_note_next_step_heading_guard_failed",
+        )
+        _write(root / NOTE_PATH, note_text)
+        case_count += 1
+
+        missing_note_companion_lane_marker = (
+            "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane"
+        )
+        _write(root / NOTE_PATH, note_text.replace(f"- {missing_note_companion_lane_marker}\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"note:missing:{missing_note_companion_lane_marker}"],
+            "missing_note_companion_lane_marker_guard_failed",
         )
         _write(root / NOTE_PATH, note_text)
         case_count += 1
@@ -546,7 +606,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(NOTE_MAINTENANCE_PACKET_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS)}"
+        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(NOTE_MAINTENANCE_PACKET_MARKERS) + len(NOTE_NEXT_STEP_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(NEXT_STEP_DOCS_ROOT_UNDERCOUNT_MARKERS)}"
     )
     return 0
 
