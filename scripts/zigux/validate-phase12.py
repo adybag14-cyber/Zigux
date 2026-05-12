@@ -21,6 +21,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_virtio_scsi.zig",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+    "zigux/tests/phase12_virtio_scsi_packet.zig",
     "zigux/tests/phase12_build.zig",
     "scripts/zigux/validate-phase12.py",
 ]
@@ -48,14 +49,19 @@ REQUIRED_MARKERS = {
         "\"phase12_virtio_scsi.zig\"",
         "\"phase12_virtio_scsi_syntax_lab.zig\"",
         "\"phase12_virtio_scsi_repeated_replan_gate.zig\"",
+        "\"phase12_virtio_scsi_packet.zig\"",
         "phase12-virtio-scsi-tests",
         "phase12-virtio-scsi-syntax-lab-tests",
         "phase12-virtio-scsi-repeated-replan-gate-tests",
+        "phase12-virtio-scsi-packet-tests",
         "run_contract_tests.setCwd(b.path(\"../..\"));",
         "run_syntax_tests.setCwd(b.path(\"../..\"));",
         "run_repeated_replan_tests.setCwd(b.path(\"../..\"));",
+        "run_packet_tests.setCwd(b.path(\"../..\"));",
         "smoke_step.dependOn(&run_repeated_replan_tests.step);",
+        "smoke_step.dependOn(&run_packet_tests.step);",
         "test_step.dependOn(&run_repeated_replan_tests.step);",
+        "test_step.dependOn(&run_packet_tests.step);",
         "b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\")",
         "b.step(\"test\", \"Run Phase 12 virtio packet tests\")",
     ],
@@ -75,6 +81,9 @@ REQUIRED_MARKERS = {
         "phase12_virtio_net_survey.zig",
         "phase12_virtio_net_manifest.json",
         "phase12-virtio-net-survey.md",
+        "phase12_virtio_scsi_syntax_lab.zig",
+        "phase12_virtio_scsi_repeated_replan_gate.zig",
+        "phase12_virtio_scsi_packet.zig",
     ],
 }
 
@@ -90,6 +99,7 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase12_virtio_scsi.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_scsi_packet.zig": "// fixture\n",
 }
 
 
@@ -166,7 +176,6 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_phase12_virtio_net_driver", "drivers/net/virtio_net.zig"),
-        ("missing_phase12_virtio_scsi_driver", "drivers/scsi/virtio_scsi.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         (
             "missing_phase12_virtio_net_survey_note",
@@ -185,6 +194,7 @@ def run_self_test() -> None:
             "missing_phase12_virtio_net_manifest",
             "zigux/tests/phase12_virtio_net_manifest.json",
         ),
+        ("missing_phase12_driver", "drivers/scsi/virtio_scsi.zig"),
         ("missing_phase12_contract_test", "zigux/tests/phase12_virtio_scsi.zig"),
         (
             "missing_phase12_syntax_lab",
@@ -193,6 +203,10 @@ def run_self_test() -> None:
         (
             "missing_phase12_repeated_replan_gate",
             "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+        ),
+        (
+            "missing_phase12_packet_test",
+            "zigux/tests/phase12_virtio_scsi_packet.zig",
         ),
         ("missing_phase12_build", "zigux/tests/phase12_build.zig"),
     ]
@@ -269,6 +283,13 @@ def run_self_test() -> None:
             "zigux/tests/phase12_build.zig: \"phase12_virtio_scsi_repeated_replan_gate.zig\"",
         ),
         (
+            "missing_phase12_build_packet_source",
+            "zigux/tests/phase12_build.zig",
+            "\"phase12_virtio_scsi_packet.zig\"",
+            "\"phase12_virtio_scsi_packet_missing.zig\"",
+            "zigux/tests/phase12_build.zig: \"phase12_virtio_scsi_packet.zig\"",
+        ),
+        (
             "missing_phase12_build_smoke_dependency",
             "zigux/tests/phase12_build.zig",
             "smoke_step.dependOn(&run_repeated_replan_tests.step);",
@@ -276,11 +297,25 @@ def run_self_test() -> None:
             "zigux/tests/phase12_build.zig: smoke_step.dependOn(&run_repeated_replan_tests.step);",
         ),
         (
+            "missing_phase12_build_packet_smoke_dependency",
+            "zigux/tests/phase12_build.zig",
+            "smoke_step.dependOn(&run_packet_tests.step);",
+            "smoke_step.dependOn(&run_packet_gate.step);",
+            "zigux/tests/phase12_build.zig: smoke_step.dependOn(&run_packet_tests.step);",
+        ),
+        (
             "missing_phase12_build_test_dependency",
             "zigux/tests/phase12_build.zig",
             "test_step.dependOn(&run_repeated_replan_tests.step);",
             "test_step.dependOn(&run_repeated_replan_gate.step);",
             "zigux/tests/phase12_build.zig: test_step.dependOn(&run_repeated_replan_tests.step);",
+        ),
+        (
+            "missing_phase12_build_packet_test_dependency",
+            "zigux/tests/phase12_build.zig",
+            "test_step.dependOn(&run_packet_tests.step);",
+            "test_step.dependOn(&run_packet_gate.step);",
+            "zigux/tests/phase12_build.zig: test_step.dependOn(&run_packet_tests.step);",
         ),
         (
             "missing_validator_nvme_absence_section",
@@ -309,6 +344,13 @@ def run_self_test() -> None:
             "phase12_virtio_net_manifest.json",
             "phase12_virtio_net_manifest_missing.json",
             "scripts/zigux/validate-phase12.py: phase12_virtio_net_manifest.json",
+        ),
+        (
+            "missing_validator_packet_marker",
+            "scripts/zigux/validate-phase12.py",
+            "phase12_virtio_scsi_packet.zig",
+            "phase12_virtio_scsi_packet_missing.zig",
+            "scripts/zigux/validate-phase12.py: phase12_virtio_scsi_packet.zig",
         ),
         (
             "missing_validator_self_test_flag",
