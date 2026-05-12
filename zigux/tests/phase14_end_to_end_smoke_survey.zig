@@ -14,6 +14,7 @@ const SurveySummary = struct {
     review_checklist_has_productization_prompt: bool,
     review_checklist_has_rollback_threshold_prompt: bool,
     smoke_note_records_rollback_threshold: bool,
+    smoke_note_records_tests_readme_checker: bool,
     scripts_readme_records_rollback_threshold: bool,
     smoke_note_records_owner_and_rollback: bool,
     smoke_note_records_transfer_rationale: bool,
@@ -186,6 +187,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.review_checklist_has_productization_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_rollback_threshold_prompt);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_rollback_threshold);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_tests_readme_checker);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_owner_and_rollback);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_transfer_rationale);
@@ -339,6 +341,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-docs-root-smoke-summary.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-tests-readme-smoke-summary.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14-workqueue-reviewability-tests") != null);
