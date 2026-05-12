@@ -80,7 +80,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
