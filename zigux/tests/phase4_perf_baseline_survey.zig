@@ -20,6 +20,20 @@ fn requireMarkerCount(marker: []const u8, expected_count: usize) !void {
     }
 }
 
+fn requireRepoMarker(repo_root_relative_path: []const u8, marker: []const u8) !void {
+    const source = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        std.testing.allocator,
+        .limited(1024 * 1024),
+    );
+    defer std.testing.allocator.free(source);
+
+    if (std.mem.indexOf(u8, source, marker) == null) {
+        return error.MissingRepoMarker;
+    }
+}
+
 test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
     try requireMarker("\"lane_key\": \"P4-L20\"");
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
@@ -110,4 +124,38 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
 
     try std.testing.expectEqual(@as(u64, 4), @as(u64, 4));
     try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));
+}
+
+test "phase4 perf baseline survey keeps the shared matrix perf-governance packet aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "local-only acceptable limits are approved today",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
+    );
+}
+
+test "phase4 perf baseline survey keeps the shared review checklist perf-governance packet aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/review-checklist.md",
+        "the still-pending shared-CI perf-promotion posture",
+    );
 }
