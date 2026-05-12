@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 ARTIFACT_DIFF_CONTRACT = ROOT / "scripts" / "zigux" / "check-artifact-diff-contract.py"
 ARTIFACT_DIFF_NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
+DOCS_ROOT_NOTE = ROOT / "Documentation" / "zigux" / "README.md"
+SCRIPTS_ROOT_NOTE = ROOT / "scripts" / "zigux" / "README.md"
 
 EXPECTED_HELPER_SELF_TEST_CASES = [
     "text_pass",
@@ -87,6 +89,10 @@ EXPECTED_SELF_TEST_CASES = [
     "phase4_use_marker_drift",
     "review_note_marker_round_trip",
     "review_note_marker_drift",
+    "docs_root_marker_round_trip",
+    "docs_root_marker_drift",
+    "scripts_root_marker_round_trip",
+    "scripts_root_marker_drift",
     "helper_summary_round_trip",
     "helper_summary_count_drift",
     "helper_summary_case_order_drift",
@@ -106,6 +112,12 @@ REQUIRED_PHASE4_USE_MARKERS = [
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
     "- deterministic survey self-test catalog: `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, review-note, helper-summary, and contract-catalog drift coverage",
+]
+REQUIRED_DOCS_ROOT_MARKERS = [
+    "- `python3 scripts/zigux/validate-phase4.py` keeps the shared `scripts/zigux/check-artifact-diff-contract.py` contract replay, the dedicated `scripts/zigux/check-phase4-artifact-diff-determinism.py` deterministic catalog checker, the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` workflow-route-count checker, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed runtime atomic64 handoff pair `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, the manifest-backed bitmap rollback survey pair `zigux/tests/phase4_bitmap_diff_manifest.json` plus `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint, `zigux/Makefile`, `make -C zigux phase4-validate`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4`, and the bootstrap workflow.",
+]
+REQUIRED_SCRIPTS_ROOT_MARKERS = [
+    "Phase 4 flow - `validate-phase4.py` checks that the shared Phase 4 rollback-readiness packet stays aligned across `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_manifest.json`, `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/phase4_bitmap_live_helper_replay.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/phase4_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` before the rollback and survey replays run.",
 ]
 
 
@@ -234,6 +246,26 @@ def run_self_test() -> int:
         lambda: assert_markers(REQUIRED_REVIEW_NOTE_MARKERS[0], REQUIRED_REVIEW_NOTE_MARKERS, "review_note"),
     )
     covered_cases.append("review_note_marker_drift")
+
+    docs_root_text = "\n".join(REQUIRED_DOCS_ROOT_MARKERS)
+    assert_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "docs_root")
+    covered_cases.append("docs_root_marker_round_trip")
+
+    expect_assertion(
+        "docs_root_marker_drift",
+        lambda: assert_markers("", REQUIRED_DOCS_ROOT_MARKERS, "docs_root"),
+    )
+    covered_cases.append("docs_root_marker_drift")
+
+    scripts_root_text = "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS)
+    assert_markers(scripts_root_text, REQUIRED_SCRIPTS_ROOT_MARKERS, "scripts_root")
+    covered_cases.append("scripts_root_marker_round_trip")
+
+    expect_assertion(
+        "scripts_root_marker_drift",
+        lambda: assert_markers("", REQUIRED_SCRIPTS_ROOT_MARKERS, "scripts_root"),
+    )
+    covered_cases.append("scripts_root_marker_drift")
 
     helper_lines = [
         "ARTIFACT_DIFF_SELF_TEST=pass",
@@ -375,6 +407,12 @@ def main() -> int:
     note_text = ARTIFACT_DIFF_NOTE.read_text(encoding="utf-8")
     assert_markers(note_text, REQUIRED_PHASE4_USE_MARKERS, "phase4_use")
     assert_markers(note_text, REQUIRED_REVIEW_NOTE_MARKERS, "review_note")
+
+    docs_root_text = DOCS_ROOT_NOTE.read_text(encoding="utf-8")
+    assert_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "docs_root")
+
+    scripts_root_text = SCRIPTS_ROOT_NOTE.read_text(encoding="utf-8")
+    assert_markers(scripts_root_text, REQUIRED_SCRIPTS_ROOT_MARKERS, "scripts_root")
 
     helper_lines = run_lines([str(ARTIFACT_DIFF), "--self-test"])
     assert_helper_summary(helper_lines)
