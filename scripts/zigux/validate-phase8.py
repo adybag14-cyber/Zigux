@@ -110,7 +110,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
-        "The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
+        "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
     ),
     WORKFLOW_PATH: (
         "Validate Phase 8 tooling packet",
