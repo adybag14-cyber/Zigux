@@ -39,119 +39,119 @@
   ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_test_files": 1,
     "preexisting_virtio_core_zig_present": true,
-    "preexisting_phase10_build_present": true,
+    "preexisting_phase10_build_present": false,
     "preexisting_phase10_core_doc_present": true,
-    "preexisting_virtio_ring_zig_present": true,
-    "preexisting_virtio_ring_doc_present": true,
-    "preexisting_ring_verify_present": true
+    "preexisting_virtio_ring_zig_present": false,
+    "preexisting_virtio_ring_doc_present": false,
+    "preexisting_ring_verify_present": false
   },
   "gaps": [
     {
       "id": "phase10-build-gate",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_ring survey reviewable without claiming a transport implementation."
+      "why_now": "Current master does not materialize zigux/tests/phase10_build.zig, so the ring lane cannot honestly count the shared Phase 10 build step as landed evidence yet."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The existing virtio core lab slice already covers status negotiation, descriptor-shape metadata, and notification accounting, so the ring survey should build on that real foothold instead of pretending those core-side capabilities are still missing."
+      "why_now": "The existing virtio core lab slice still provides the honest nearby foothold for status negotiation, descriptor-shape metadata, and notification accounting even while the direct ring packet remains absent on current master."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper."
+      "why_now": "Current master does not materialize zigux/tests/phase10_virtio_ring_survey.zig, so the ring lane remains a survey-note plus manifest checkpoint rather than a dedicated survey gate."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a note that records the current queue-local ring foothold against the remaining roadmap lab-driver bridge and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane still needs a note that records the current queue-local ring foothold against the remaining roadmap lab-driver bridge and prevents the repo from overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The first honest virtio_ring step is a tiny in-memory helper for queue index, descriptor count, split or packed layout metadata, and notification bookkeeping that mirrors only the smallest reviewable shape from virtio_ring.c."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the tiny in-memory queue-shape foothold is still missing rather than landed review evidence."
     },
     {
       "id": "phase10-used-buffer-polling-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice adds a tiny in-memory used-buffer polling helper that reports only newly consumed chains since the previous poll."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the queue-local used-buffer polling helper remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-callback-enable-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice adds a tiny callback re-enable helper that flips queue-local callback state back on and reports whether already-consumed chains still need a follow-up poll."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the bounded callback re-enable helper remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-callback-delay-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice also adds a bounded delayed-callback helper that mirrors the virtqueue_enable_cb_delayed() threshold shape while staying queue-local and in memory only."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the delayed-callback pacing helper remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-notify-prepare-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice carries queue-local notify-prepare bookkeeping that reports avail shadow, num_added, and whether a kick is needed while flushing the staged publish count, which mirrors virtqueue_kick_prepare()."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so queue-local notify-prepare bookkeeping remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-notification-data-summary-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice keeps a queue-local notification-data summary that makes split next-avail state and packed wrap-bit transitions reviewable without claiming transport-backed notify behavior."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the notification-data summary helper remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice keeps a queue marked broken from accepting fresh publish, kick-preparation, poll, or callback re-enable work while leaving existing debt reviewable."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the broken-queue poll guard remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-queue-reset-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice carries a queue-local resetQueue() helper that clears avail, used, callback, outstanding-chain, and notify bookkeeping while preserving descriptor-count and layout metadata for reuse."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the queue-local reset helper remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-queue-reset-readiness-helper",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice adds a queue-local reset-readiness preflight that reports whether resetQueue() would succeed and, if not, whether unpublished chains, outstanding chains, unpolled used chains, or a broken queue still block the reset attempt."
+      "why_now": "Current master does not materialize the direct virtio_ring helper, so the reset-readiness preflight remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-ring-verify-replay",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
-      "why_now": "The wrapper-facing verify replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, and packed-ring event-index review live beside the direct ring-helper replay."
+      "why_now": "Current master does not materialize the direct ring verify replay, so the wrapper-facing reset-readiness and callback pacing proof remains absent rather than landed review evidence."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "A dedicated slice note keeps the new lab helper honest about what is implemented and what still remains blocked in drivers/virtio/virtio_ring.c work."
+      "why_now": "Current master does not materialize the dedicated ring slice note, so the queue-local helper boundary is still documented only through the survey note and manifest."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
