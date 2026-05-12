@@ -18,8 +18,8 @@ SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 README_MARKERS = ("validate_phase3_selftest.py",)
-README_PHASE3_HEADING = "Phase 3 notes"
-README_PHASE3_NEXT_HEADING = "Phase 5 notes"
+README_PHASE3_PREFIX = "Phase 3 notes - "
+README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
 README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
@@ -167,18 +167,6 @@ def _extract_prefix_section(text: str, start_prefix: str, next_prefix: str | Non
     return section
 
 
-def _extract_heading_section(text: str, heading: str, next_heading: str | None) -> str | None:
-    start_token = f"{heading}\n"
-    if start_token not in text:
-        return None
-    section = text.split(start_token, 1)[1]
-    if next_heading is not None:
-        next_token = f"\n{next_heading}\n"
-        if next_token in section:
-            section = section.split(next_token, 1)[0]
-    return section
-
-
 def _check_prefix_section_marker_counts(
     path: Path,
     start_prefix: str,
@@ -192,32 +180,6 @@ def _check_prefix_section_marker_counts(
         return [f"missing repo file: {path.as_posix()}"]
 
     section = _extract_prefix_section(text, start_prefix, next_prefix)
-    if section is None:
-        return [f"missing {label} section"]
-
-    issues: list[str] = []
-    for marker, expected_count in marker_counts.items():
-        actual_count = section.count(marker)
-        if actual_count != expected_count:
-            issues.append(
-                f"{label} marker count drift: {marker} (expected {expected_count}, found {actual_count})"
-            )
-    return issues
-
-
-def _check_heading_section_marker_counts(
-    path: Path,
-    heading: str,
-    next_heading: str | None,
-    marker_counts: dict[str, int],
-    label: str,
-) -> list[str]:
-    try:
-        text = _read(path)
-    except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}"]
-
-    section = _extract_heading_section(text, heading, next_heading)
     if section is None:
         return [f"missing {label} section"]
 
@@ -277,10 +239,10 @@ def validate_repo(repo_root: Path) -> list[str]:
     docs_readme = repo_root / README_PATH
     issues.extend(_check_markers(docs_readme, README_MARKERS, "docs README"))
     issues.extend(
-        _check_heading_section_marker_counts(
+        _check_prefix_section_marker_counts(
             docs_readme,
-            README_PHASE3_HEADING,
-            README_PHASE3_NEXT_HEADING,
+            README_PHASE3_PREFIX,
+            README_PHASE3_NEXT_PREFIX,
             README_PHASE3_MARKER_COUNTS,
             "docs README Phase 3 notes",
         )
@@ -320,11 +282,9 @@ def _populate_repo(root: Path) -> None:
         "\n".join(
             (
                 "# Zigux Documentation",
-                "Phase 1 notes",
-                README_PHASE3_HEADING,
-                *README_MARKERS,
-                *README_PHASE3_MARKER_COUNTS.keys(),
-                README_PHASE3_NEXT_HEADING,
+                "Phase 1 notes - current packet",
+                README_PHASE3_PREFIX + " ".join((*README_MARKERS, *README_PHASE3_MARKER_COUNTS.keys())),
+                README_PHASE3_NEXT_PREFIX + " later lane",
             )
         )
         + "\n",
@@ -358,10 +318,7 @@ def _populate_repo(root: Path) -> None:
         )
         + "\n",
     )
-    _write(
-        root / VALIDATOR_SUPPORT_PATH,
-        "validator support placeholder\n",
-    )
+    _write(root / VALIDATOR_SUPPORT_PATH, "validator support placeholder\n")
     _write(
         root / TESTS_README_PATH,
         "\n".join(
@@ -388,9 +345,8 @@ def _populate_repo(root: Path) -> None:
                 SCRIPTS_README_PHASE3_PREFIX + " ".join(SCRIPTS_README_MARKERS),
                 *SCRIPTS_README_PHASE3_MARKER_COUNTS.keys(),
                 SCRIPTS_README_PHASE3_NEXT_PREFIX + "later lane",
-                SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX + " ".join(
-                    SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS.keys()
-                ),
+                SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX
+                + " ".join(SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS.keys()),
             )
         )
         + "\n",
@@ -411,7 +367,10 @@ def run_self_test() -> int:
             return 1
 
         docs_path = root / README_PATH
-        docs_path.write_text(_read(docs_path).replace(README_PHASE3_HEADING, "Phase 3 overview", 1), encoding="utf-8")
+        docs_path.write_text(
+            _read(docs_path).replace(README_PHASE3_PREFIX, "Phase 3 overview - ", 1),
+            encoding="utf-8",
+        )
         issues = validate_repo(root)
         if "missing docs README Phase 3 notes section" not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
@@ -465,10 +424,7 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         note_path = root / NOTE_PATH
-        note_path.write_text(
-            _read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1),
-            encoding="utf-8",
-        )
+        note_path.write_text(_read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = (
             "abi.h next-step note marker count drift: "
@@ -541,10 +497,7 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         driver_path = root / SELFTEST_DRIVER_PATH
-        driver_path.write_text(
-            _read(driver_path).replace(SELFTEST_DRIVER_MARKERS[0], "", 1),
-            encoding="utf-8",
-        )
+        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[0]}"
         if expected not in issues:
@@ -554,10 +507,7 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         makefile_path = root / MAKEFILE_PATH
-        makefile_path.write_text(
-            _read(makefile_path).replace(MAKEFILE_MARKERS[1], "", 1),
-            encoding="utf-8",
-        )
+        makefile_path.write_text(_read(makefile_path).replace(MAKEFILE_MARKERS[1], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = f"missing makefile marker: {MAKEFILE_MARKERS[1]}"
         if expected not in issues:
