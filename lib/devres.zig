@@ -688,6 +688,33 @@ test "managed ioremap resource remap failure records nonposted unwind planning" 
     }
 }
 
+test "managed ioremap resource maps the success path into a caller-owned pretty-name plan" {
+    const allocator = std.testing.allocator;
+    const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
+        .device_name = "eth0",
+        .resource = .{
+            .start = 0x2000,
+            .end = 0x20ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("eth0 regs", plan.pretty_name);
+            try std.testing.expectEqual(IoremapType.np, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x100), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
 test "managed ioremap resource maps invalid range into structured invalid_resource failure" {
     const allocator = std.testing.allocator;
     const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
@@ -709,6 +736,40 @@ test "managed ioremap resource maps invalid range into structured invalid_resour
             try std.testing.expectEqual(false, failure.releases_region_on_remap_failure);
         },
         .mapped => return error.UnexpectedSuccess,
+    }
+}
+
+test "device tree iomap success preserves reported size and mapping plan" {
+    const allocator = std.testing.allocator;
+    const resources = [_]Resource{.{
+        .start = 0x3000,
+        .end = 0x307f,
+        .is_memory = true,
+        .nonposted = false,
+        .name = "ctrl",
+    }};
+
+    const outcome = try DevresHelperLab.planDeviceTreeIomap(allocator, .{
+        .device_name = "uart0",
+        .index = 0,
+        .resources = &resources,
+        .requested_type = .wc,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer allocator.free(plan.mapping.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqual(@as(usize, 0), plan.index);
+            try std.testing.expectEqual(@as(?u64, 0x80), plan.reported_size);
+            try std.testing.expectEqualStrings("uart0 ctrl", plan.mapping.pretty_name);
+            try std.testing.expectEqual(IoremapType.wc, plan.mapping.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x80), plan.mapping.size);
+            try std.testing.expect(plan.mapping.requests_region);
+            try std.testing.expect(!plan.mapping.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
     }
 }
 
