@@ -10,7 +10,7 @@ Phase 7 stays limited to the roadmap-backed in-kernel leaf-helper tranche and th
 - `lib/cmdline.zig`
 - `lib/argv_split.zig`
 - `lib/rbtree.zig`
-- the shared validator, make-wrapper, build-wiring, docs-root, and no-sample reminder packet that already belongs to those helpers
+- the shared validator, make-wrapper, build-wiring, tests-root, docs-root, and no-sample reminder packet that already belongs to those helpers
 
 Do not use this lane to widen into Phase 5 samples, Phase 8 tooling, or broader runtime-loader work.
 
@@ -27,6 +27,7 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
   - `scripts/zigux/check-phase7-make-wrapper.py`
   - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
   - `scripts/zigux/check-phase7-build-wiring.py`
+  - `zigux/tests/README.md`
   - `zigux/Makefile`
   - `zigux/tests/phase7_build.zig`
 - shared helper-lane owner map, lane `P7-Y06`:
@@ -86,6 +87,8 @@ That means the honest shared owner map is not "all helper follow-up stays inside
 
 The docs root now needs its own bounded backlog lane because `Documentation/zigux/README.md` still summarizes the Phase 7 tranche as one jointly gated shared bundle even though current helper-state evidence already shows a split packet with a parked shared replay route. Recording that docs-root ownership belongs here; rewriting the docs-root Phase 7 summary itself belongs to `P7-Y08`.
 
+The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints while the helper-local slice notes already record that pair as a parked cross-packet blocker. Recording that tests-root truthfulness belongs to `P7-Y05` here prevents future helper-local runs from silently overlapping with the shared reminder repair.
+
 ## Anti-Overlap Rules
 
 - Do not use `P7-Y06` for helper code, dedicated tests, fixtures, manifests, parity packets, or docs-root tranche summaries.
@@ -95,7 +98,7 @@ The docs root now needs its own bounded backlog lane because `Documentation/zigu
 - `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift; the helper and committed `nextArg()` fixture are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
 - `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.
 - `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.
-- `P7-Y05` owns only shared validator, make-wrapper, build-route, and shared reminder truthfulness.
+- `P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.
 - If a helper packet is already parked and truthful on current `master`, leave it parked and do not batch it with another helper family in the same run.
 
 ## Next Bounded Step
@@ -105,6 +108,7 @@ Start from the slice note or shared reminder surface that drifted.
 - If the drift is a helper-local lane key, helper-local next-step claim, or helper-local blocked posture, fix that helper slice only.
 - If the drift is the shared owner map itself, fix this note only.
 - If the drift is the docs-root Phase 7 tranche summary, route it to `P7-Y08` and keep the change inside `Documentation/zigux/README.md` only.
+- If the drift is the shared tests-root Phase 7 tranche summary, route it to `P7-Y05` and keep the change inside `zigux/tests/README.md` only.
 - If the drift is shared validator, make-wrapper, build-route, or docs-root packet truthfulness across more than one helper family, route it to `P7-Y05` instead of this lane.
 
 This note is lane-local coordination only. It does not reopen helper implementation work or broaden Phase 7 scope.
