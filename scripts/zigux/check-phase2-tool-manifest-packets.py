@@ -331,6 +331,24 @@ REQUIRED_FILES = {
     ],
 }
 
+EXACT_FILE_MARKER_COUNTS = {
+    "Documentation/zigux/review-checklist.md": {
+        "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
+    },
+    "zigux/tests/README.md": {
+        "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
+    },
+}
+
+PHASE2_CLOSURE_PACKET_EXACT_COUNTS = {
+    "shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`": 1,
+    "shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`": 1,
+}
+
+PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit": 1,
+}
+
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
     try:
@@ -391,6 +409,32 @@ def validate_markdown_section_markers(
     return issues
 
 
+def validate_exact_marker_counts(
+    *, text: str, exact_counts: dict[str, int], label: str
+) -> list[str]:
+    issues: list[str] = []
+    for marker, expected_count in exact_counts.items():
+        count = text.count(marker)
+        if count != expected_count:
+            issues.append(
+                f"exact_count:{label}:{marker}:count={count}:expected={expected_count}"
+            )
+    return issues
+
+
+def validate_markdown_section_exact_counts(
+    *, text: str, heading: str, exact_counts: dict[str, int], label: str
+) -> list[str]:
+    section = extract_markdown_section(text, heading)
+    if section is None:
+        return [f"missing_section:{label}:{heading}"]
+    return validate_exact_marker_counts(
+        text=section,
+        exact_counts=exact_counts,
+        label=label,
+    )
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
@@ -414,6 +458,22 @@ def validate_root(root: Path) -> list[str]:
                 label=f"{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:review_notes",
             )
         )
+        issues.extend(
+            validate_markdown_section_exact_counts(
+                text=closure_text,
+                heading=PHASE2_CLOSURE_PACKET_SECTION,
+                exact_counts=PHASE2_CLOSURE_PACKET_EXACT_COUNTS,
+                label=f"{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:closure_packet",
+            )
+        )
+        issues.extend(
+            validate_markdown_section_exact_counts(
+                text=closure_text,
+                heading=PHASE2_REVIEW_NOTES_SECTION,
+                exact_counts=PHASE2_REVIEW_NOTES_EXACT_COUNTS,
+                label=f"{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:review_notes",
+            )
+        )
 
     for rel_path, markers in REQUIRED_FILES.items():
         path = root / rel_path
@@ -424,6 +484,14 @@ def validate_root(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{rel_path}:{marker}")
+        if rel_path in EXACT_FILE_MARKER_COUNTS:
+            issues.extend(
+                validate_exact_marker_counts(
+                    text=text,
+                    exact_counts=EXACT_FILE_MARKER_COUNTS[rel_path],
+                    label=rel_path,
+                )
+            )
 
     payload, load_issues = load_json(root / PHASE2_TOOL_MANIFEST.relative_to(ROOT), "phase2_tool_manifest")
     issues.extend(load_issues)
@@ -654,6 +722,74 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "missing_marker:Documentation/zigux/phase2-closure.md:review_notes:`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        review_checklist = root / "Documentation/zigux/review-checklist.md"
+        review_checklist.write_text(
+            review_checklist.read_text(encoding="utf-8")
+            + "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/review-checklist.md:scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme.write_text(
+            tests_readme.read_text(encoding="utf-8")
+            + "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:zigux/tests/README.md:scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        closure_doc.write_text(
+            closure_doc.read_text(encoding="utf-8").replace(
+                "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`\n",
+                "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`\n"
+                "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/phase2-closure.md:closure_packet:shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        review_marker = (
+            "- `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, "
+            "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` "
+            "keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit\n"
+        )
+        closure_doc.write_text(
+            closure_doc.read_text(encoding="utf-8").replace(
+                review_marker,
+                review_marker + review_marker,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/phase2-closure.md:review_notes:`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit:count=2:expected=1"
             in issues
         )
         case_count += 1
