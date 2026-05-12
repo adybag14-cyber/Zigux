@@ -308,6 +308,9 @@ PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS = [
 PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS = [
     "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
 ]
+DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS = [
+    "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of shrinking the live Phase 2 packet back to a docs-root shorthand that undercounts the shared validator pair, the tests-root alignment checker pair, and the current bridge-facing replay surfaces on `master`.",
+]
 SCRIPTS_PHASE2_TOOL_MANIFEST_MARKERS = [
     "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 manifest guard disappear behind the broader closure note.",
 ]
@@ -340,6 +343,9 @@ SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER = (
 )
 
 REQUIRED_FILES = {
+    "Documentation/zigux/README.md": [
+        *DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS,
+    ],
     "scripts/zigux/README.md": [
         "check-phase2-tool-manifest-packets.py --self-test",
         "check-phase2-tool-manifest-packets.py",
@@ -366,6 +372,9 @@ REQUIRED_FILES = {
 }
 
 EXACT_FILE_MARKER_COUNTS = {
+    "Documentation/zigux/README.md": {
+        DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0]: 1,
+    },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note": 1,
     },
@@ -608,6 +617,7 @@ def build_self_test_root(root: Path) -> None:
                 "",
             ]
         ),
+        "Documentation/zigux/README.md": "\n".join(DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS) + "\n",
         "scripts/zigux/README.md": "\n".join(
             [
                 *REQUIRED_FILES["scripts/zigux/README.md"],
@@ -661,6 +671,29 @@ def run_self_test() -> int:
         synthetic_repo = root / "synthetic-repo"
         synthetic_script = synthetic_repo / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
         assert derive_repo_root(synthetic_script) == synthetic_repo
+        case_count += 1
+
+        build_self_test_root(root)
+        docs_root = root / "Documentation/zigux/README.md"
+        docs_root.write_text("", encoding="utf-8")
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:Documentation/zigux/README.md:{DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        docs_root = root / "Documentation/zigux/README.md"
+        docs_root.write_text(
+            docs_root.read_text(encoding="utf-8") + DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"exact_count:Documentation/zigux/README.md:{DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0]}:count=2:expected=1"
+            in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -963,7 +996,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=10")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=11")
     return 0
 
 
