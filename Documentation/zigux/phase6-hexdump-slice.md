@@ -22,4 +22,4 @@
 - the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract
 
 ## Next Step
-Leave this slice parked unless helper formatting semantics, fixture evidence, or the dedicated perf replay drifts on current `master`.
+Leave this slice parked unless a fresh hexdump packet reread shows drift across the helper-local serialized `length_cases` packet, the focused helper replay, or the exact four-case perf packet. If it reopens, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test` first, then keep the repair to one same-packet surface only.
