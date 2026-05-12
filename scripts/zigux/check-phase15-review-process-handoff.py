@@ -139,6 +139,27 @@ CURRENT_REPO_HANDOFF_MARKERS = (
     "zigux/tests/README.md",
 )
 
+VALIDATOR_MARKERS = (
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+)
+
+SCRIPTS_README_MARKERS = (
+    "check-phase15-review-process-handoff.py",
+)
+
+TESTS_README_PACKET_MARKERS = (
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15",
+    "without implying any Architecture Council approval for a freeze-map status change",
+)
+
 MANIFEST_NEXT_STEP_MARKERS = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -217,9 +238,9 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(policy, POLICY_EXCEPTION_POSTURE_MARKERS, "policy", issues)
     _require_markers_present(policy, POLICY_REOPEN_TRIGGER_MARKERS, "policy", issues)
     _require_markers_present(lane_note, CURRENT_REPO_HANDOFF_MARKERS, "lane_note", issues)
-    _require_markers_present(validator, ("scripts/zigux/check-phase15-review-process-handoff.py",), "validator", issues)
-    _require_markers_present(scripts_readme, ("check-phase15-review-process-handoff.py",), "scripts_readme", issues)
-    _require_markers_present(tests_readme, ("scripts/zigux/check-phase15-review-process-handoff.py",), "tests_readme", issues)
+    _require_markers_present(validator, VALIDATOR_MARKERS, "validator", issues)
+    _require_markers_present(scripts_readme, SCRIPTS_README_MARKERS, "scripts_readme", issues)
+    _require_markers_present(tests_readme, TESTS_README_PACKET_MARKERS, "tests_readme", issues)
 
     if manifest.get("current_approval_state") != "no_freeze_map_status_change_approved":
         issues.append("manifest:approval_state_mismatch")
@@ -347,15 +368,15 @@ def _seed_fixture_tree(root: Path) -> None:
     )
     _write(
         root / VALIDATOR_PATH,
-        "scripts/zigux/check-phase15-review-process-handoff.py\n",
+        "\n".join(VALIDATOR_MARKERS) + "\n",
     )
     _write(
         root / SCRIPTS_README_PATH,
-        "check-phase15-review-process-handoff.py\n",
+        "\n".join(SCRIPTS_README_MARKERS) + "\n",
     )
     _write(
         root / TESTS_README_PATH,
-        "scripts/zigux/check-phase15-review-process-handoff.py\n",
+        "\n".join(TESTS_README_PACKET_MARKERS) + "\n",
     )
     _write(
         root / MANIFEST_PATH,
@@ -635,6 +656,34 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        tests_readme_path = root / TESTS_README_PATH
+        tests_readme_text = _read(tests_readme_path)
+        missing_tests_manifest_marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+        _write(
+            root / TESTS_README_PATH,
+            tests_readme_text.replace(f"{missing_tests_manifest_marker}\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"tests_readme:missing:{missing_tests_manifest_marker}"],
+            "missing_tests_readme_manifest_marker_guard_failed",
+        )
+        _write(root / TESTS_README_PATH, tests_readme_text)
+        case_count += 1
+
+        missing_tests_no_approval_marker = "without implying any Architecture Council approval for a freeze-map status change"
+        _write(
+            root / TESTS_README_PATH,
+            tests_readme_text.replace(f"{missing_tests_no_approval_marker}\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"tests_readme:missing:{missing_tests_no_approval_marker}"],
+            "missing_tests_readme_no_approval_marker_guard_failed",
+        )
+        _write(root / TESTS_README_PATH, tests_readme_text)
+        case_count += 1
+
         (root / TESTS_README_PATH).unlink()
         _assert_only(
             validate(root),
@@ -680,7 +729,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(NOTE_MAINTENANCE_PACKET_MARKERS) + len(NOTE_NEXT_STEP_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(MANIFEST_NEXT_STEP_MARKERS)}"
+        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(NOTE_MAINTENANCE_PACKET_MARKERS) + len(NOTE_NEXT_STEP_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(VALIDATOR_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(MANIFEST_NEXT_STEP_MARKERS)}"
     )
     return 0
 
