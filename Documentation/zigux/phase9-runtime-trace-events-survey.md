@@ -18,7 +18,7 @@ This packet is still review-first rather than loadable-runtime-complete. The goa
 
 ## Current review surface
 
-Current `master` now keeps the family-local trace-events packet visible again:
+Current `master` keeps the family-local trace-events packet visible:
 
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
@@ -49,7 +49,7 @@ Keep this trace-events packet honest in the same way as the shared Phase 9 owner
 
 ## Active blocker posture
 
-The immediate same-family blocker on current `master` is no longer a missing trace-events packet. The family-local sample, loader, direct module and diff tests, dedicated survey gate, manifest, and paired review notes are visible again.
+The immediate same-family blocker on current `master` is not packet visibility. The family-local sample, loader, direct module and diff tests, dedicated survey gate, manifest, and paired review notes are visible again on current `master`.
 
 The remaining blocker is the broader Phase 9 runtime substrate. Until that shared substrate lands, the trace-events packet should stay described as reviewable evidence rather than as completed live runtime tracepoint registration lifecycle parity.
 
