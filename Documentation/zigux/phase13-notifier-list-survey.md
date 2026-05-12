@@ -32,10 +32,15 @@ notifier-facing surfaces:
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_chain_view.zig`
 - `include/zigux/abi.h`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+
+The shipped `zigux/helpers/notifier_chain_view.zig` helper stays read-only: it
+walks `NotifierBlock` links and checks nonincreasing priority ordering without
+claiming callback execution, registration, SRCU, or blocking-notifier semantics.
 
 The same current-`master` readback still cannot materialize these direct notifier or
 list companions, so contributor-facing summaries should record them as repo-reality
@@ -46,7 +51,6 @@ gaps instead of independently shipped evidence:
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
-- `zigux/helpers/notifier_chain_view.zig`
 - `drivers/tty/hvc/hvc_console.h`
 
 The direct `zigux/tests/phase13_build.zig` route is also not materialized on current
@@ -59,6 +63,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 
 - it supports the broader shared-helper release packet without becoming a fifth helper anchor
 - it keeps the shipped notifier priority-signal checker explicit
+- it keeps the shipped `zigux/helpers/notifier_chain_view.zig` traversal and priority-order view explicit while staying read-only
 - it keeps the shipped `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the broader validator-first and Linux-style replay handles explicit
 - it treats still-missing direct notifier, helper, header, and tests-root companions as repo-reality gaps
@@ -84,12 +89,13 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 
 Those summaries should keep this notifier survey, the shipped
 `check-phase13-notifier-priority-signal.py` helper, the shipped
+`zigux/helpers/notifier_chain_view.zig` read-only traversal helper, the shipped
 `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds,
 the shared release-notes and roadmap-traceability packet, the paired Landlock
 ownership and syscall-governance notes, and the stable `phase13-validate` or
 `phase13` make routes visible while framing the still-missing direct notifier
-packet, header, helper, and HVC header companions as repo-reality gaps rather
-than shipped current-`master` evidence.
+packet, dedicated header, tests-root, list-helper, and HVC header companions as
+repo-reality gaps rather than shipped current-`master` evidence.
 
 ## Non-goals
 
