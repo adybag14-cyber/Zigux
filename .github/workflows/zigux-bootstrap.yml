@@ -351,6 +351,9 @@ jobs:
         run: make -C zigux phase8-cpu-mask-test
 
       - name: Run focused Phase 8 help and kallsyms tests
+        run: make -C zigux phase8-help-kallsyms-test
+
+      - name: Run focused Phase 8 file-path and perf-buffer shard tests
         run: |
           make -C zigux phase8-file-path-handle-bridge-test
           make -C zigux phase8-perf-buffer-poll-test
