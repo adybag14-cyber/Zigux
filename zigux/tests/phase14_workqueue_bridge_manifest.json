@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-L01",
+  "lane_key": "P14-L04",
   "phase": "Phase 14",
-  "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
+  "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
   "anchor": "kernel/workqueue.c",
   "roadmap_destinations": [
     "kernel/workqueue_bridge.zig",
@@ -27,84 +27,119 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_build.zig",
-      "why_now": "The first honest Phase 14 landing is a dedicated build gate that keeps the workqueue boundary-map slice reviewable without pretending Zigux already owns live async execution."
+      "why_now": "A dedicated build gate keeps the workqueue bridge reviewable without pretending Zigux owns live async execution."
     },
     {
       "id": "phase14-make-target",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "A dedicated make target keeps the Phase 14 survey lane runnable with the same bounded discipline as the earlier tranche gates."
+      "why_now": "A dedicated make target keeps the Phase 14 workqueue packet runnable with the same bounded discipline as the rest of the tranche."
     },
     {
       "id": "phase14-kernel-export-shim-foundation",
       "status": "starter_landed",
       "kind": "foundation",
       "zigux_destination": "zigux/kernel/export_shim.zig",
-      "why_now": "The existing export shim proves Zigux already has a reviewable kernel namespace foothold, so the workqueue lane can add a pure boundary map without inventing a fresh top-level layout."
+      "why_now": "The existing export shim already gives Zigux a reviewable kernel namespace foothold for this boundary-study lane."
     },
     {
       "id": "phase14-workqueue-boundary-map-starter",
       "status": "starter_landed",
       "kind": "boundary_map",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The first honest `workqueue_bridge.zig` foothold is a boundary map around `queue_work_on()`, `__queue_work()`, `__alloc_workqueue()`, `cancel_work_sync()`, `manage_workers()`, and the rescuer or scheduler hooks, with explicit stay-in-C decisions where concurrency ownership is still too coupled to `worker_pool` state."
+      "why_now": "The bridge records `queue_work_on()`, `__queue_work()`, allocation entrypoints, and explicit stay-in-C decisions so the lane stays descriptive rather than pretending to own live worker execution."
     },
     {
       "id": "phase14-workqueue-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_workqueue_bridge.zig",
-      "why_now": "A dedicated Phase 14 gate is the smallest truthful way to lock the new boundary-map descriptor to the manifest and keep later runs from drifting into fake implementation claims."
+      "why_now": "The dedicated Zig test keeps the boundary-map packet pinned to the manifest and the survey note."
     },
     {
       "id": "phase14-workqueue-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase14-workqueue-bridge-slice.md",
-      "why_now": "The slice note records the exact boundary-map posture so the lane does not overstate symbol cataloging as a workqueue helper or execution bridge."
+      "why_now": "The slice note records the exact review-only packet so the lane does not drift into fake implementation claims."
     },
     {
       "id": "phase14-workqueue-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
-      "why_now": "The survey note compares the 8,439-line `kernel/workqueue.c` anchor and its supporting header or test surfaces against the new boundary map so future runs stay honest about what still belongs in C."
+      "why_now": "The survey note keeps the roadmap framing and the current blocked-maintenance packet honest."
     },
     {
       "id": "phase14-workqueue-concurrency-audit-outline",
       "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now carries a small concurrency audit outline around `manage_workers()`, `struct worker_pool`, `wq_worker_running()` or `wq_worker_sleeping()`, and `rescuer_thread()` so Zigux can name `pool->manager`, forward-progress fields, scheduler-visible running state, and `pwq->mayday_cursor` without claiming live execution ownership."
+      "why_now": "The bridge now carries a review-only audit that names `pool->manager`, `WORK_STRUCT_PENDING_BIT`, `pwq->refcnt`, and `pwq->mayday_cursor` without claiming live concurrency ownership."
     },
     {
       "id": "phase14-workqueue-max-active-audit",
       "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now records the `__queue_work()` gate that chooses between `pool->worklist` and `pwq->inactive_works` while `max_active` and ordered-workqueue sequencing are still enforced under `pool->lock`, which is a reviewable field-level audit step before any wrapper claims live enqueue ownership. The same boundary keeps later `workqueue_set_max_active()` tuning honest by naming the inactive-list seam without moving it out of C."
+      "why_now": "The bridge records the `inactive_works` gate and keeps `workqueue_set_max_active` in a review-only posture under the shipped C locking model."
     },
     {
       "id": "phase14-workqueue-lock-handoff-audit",
       "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now records the `__queue_work()` last-pool reentrancy handoff, the `process_one_work()` unlock and relock execution window, and the `worker_thread()` idle sleep transition so Zigux can name where `last_pool->lock`, `pool->lock`, and TASK_IDLE handoffs stay under C-owned concurrency control."
+      "why_now": "The bridge records the `last_pool->lock` reentrancy handoff plus the `worker_thread` idle-sleep transition without claiming live enqueue or wake ownership."
     },
     {
-      "id": "phase14-workqueue-pending-bit-audit",
-      "status": "ready_next",
+      "id": "phase14-workqueue-pending-bit-followup",
+      "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can name pending ownership, retry, and reselection rules without claiming live submission control."
+      "why_now": "The bridge now audits `try_to_grab_pending()` and the `__queue_work()` `pwq->refcnt` retry seam so the pending ownership window is recorded without claiming live submission control."
+    },
+    {
+      "id": "phase14-workqueue-delayed-submission-alias-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records `queue_delayed_work_on()` and `__queue_delayed_work` as delayed submission aliases over timer-backed queueing instead of new execution ownership."
+    },
+    {
+      "id": "phase14-workqueue-delayed-timer-expiry-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge records `delayed_work_timer_fn()` as the timer-base handoff back into `__queue_work()` without claiming runtime timer ownership."
+    },
+    {
+      "id": "phase14-workqueue-delayed-requeue-governance",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge keeps `mod_delayed_work_on()` review-only by naming CPU affinity, timer-base state, and immediate queueing fallthrough as C-owned governance."
+    },
+    {
+      "id": "phase14-workqueue-flush-drain-governance",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge keeps `__flush_workqueue()` and `drain_workqueue()` review-only by naming `work_color`, `flush_color`, and flusher coordination as C-owned governance."
+    },
+    {
+      "id": "phase14-workqueue-rescuer-mayday-governance",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge records `rescuer_thread()`, `wq->maydays`, `pwq->mayday_cursor`, and `wake_up_worker()` so mayday rescue stays explicit and review-only."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
       "status": "blocked_on_live_concurrency",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_workqueue_bridge.zig",
-      "why_now": "Live worker_pool execution, pool draining, hotplug transitions, scheduler callbacks, rescue behavior, and forward-progress correctness remain blocked until the boundary map grows a tighter concurrency audit and Phase 14 still keeps those mechanisms in the existing C implementation."
+      "why_now": "Live worker_pool execution, scheduler parity, rescuer ownership, delayed-work requeue control, runtime max_active retuning, and hotplug-driven migration remain blocked under the existing C implementation."
     }
   ]
 }
