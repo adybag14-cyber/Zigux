@@ -153,6 +153,8 @@ def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> s
     section = text.split(start_prefix, 1)[1]
     if next_prefix is not None and next_prefix in section:
         section = section.split(next_prefix, 1)[0]
+    elif next_prefix is None and "\n## " in section:
+        section = section.split("\n## ", 1)[0]
     return section
 
 
@@ -511,6 +513,29 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected section-scoped header-family survey drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
+                "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+                "## Future follow-through\n"
+                + "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "Documentation/zigux/phase3-export-uapi-boundary-survey.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print(
+                "expected next-heading-bounded header-family survey drift was not reported"
+            )
             return 1
 
         _populate_repo(root)
