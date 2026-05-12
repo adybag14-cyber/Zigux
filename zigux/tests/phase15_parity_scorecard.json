@@ -11,6 +11,7 @@
   "metrics": {
     "active_freeze_in_c_anchor_count": 4,
     "blocked_status_change_anchor_count": 4,
+    "phase15_governance_only_blocker_anchor_count": 2,
     "phase14_coupled_blocker_anchor_count": 2,
     "anchors_still_blocked_on_prior_phase_bridge_evidence": 2,
     "study_only_anchors_tracked_outside_scorecard": 2,
