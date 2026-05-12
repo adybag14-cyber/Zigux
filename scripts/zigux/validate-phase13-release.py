@@ -65,6 +65,9 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
+        "`include/zigux/abi.h`",
+        "`zigux/helpers/list_view.zig`",
+        "`zigux/helpers/hlist_view.zig`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -375,6 +378,42 @@ def run_self_test() -> int:
                 "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through::expected=1:actual=0",
             ],
             "missing_devres_truthfulness_guard_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                    if marker
+                    not in {
+                        "`include/zigux/abi.h`",
+                        "`zigux/helpers/list_view.zig`",
+                        "`zigux/helpers/hlist_view.zig`",
+                    }
+                ],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`include/zigux/abi.h`",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/helpers/list_view.zig`",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/helpers/hlist_view.zig`",
+            ],
+            "missing_notifier_adjacent_footholds_failed",
         )
         write_text(
             root,
