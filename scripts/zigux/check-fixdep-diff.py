@@ -55,6 +55,13 @@ EXPECTED_CASES = {
         'expected': 'sample_concatenated_expected.txt',
         'expected_exit_code': 0,
     },
+    'sample_comment_continuation': {
+        'depfile': 'sample_comment_continuation.d',
+        'target': 'sample_comment_continuation.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_comment_continuation_source.c -o sample_comment_continuation.o',
+        'expected': 'sample_comment_continuation_expected.txt',
+        'expected_exit_code': 0,
+    },
     'sample_comment_only': {
         'depfile': 'sample_comment_only.d',
         'target': 'sample_comment_only.o',
