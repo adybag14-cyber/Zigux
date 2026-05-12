@@ -429,9 +429,24 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(review_checklist_marker);
 
+    const gate_evidence_checker_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase4-gate-evidence.py",
+    );
+    defer std.testing.allocator.free(gate_evidence_checker_source);
+    const gate_evidence_checker_blob_sha = try gitBlobShaHex(gate_evidence_checker_source);
+    const gate_evidence_checker_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={s}",
+        .{gate_evidence_checker_blob_sha},
+    );
+    defer std.testing.allocator.free(gate_evidence_checker_marker);
+
     try expectMarker(gate_evidence_source, atomic64_diff_blob_marker);
     try expectMarker(gate_evidence_source, validate_phase4_marker);
+    try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
+    try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
@@ -456,9 +471,11 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_ATOMIC64_DIFF_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_VALIDATOR_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=", 1);
 }
