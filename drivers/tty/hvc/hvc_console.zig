@@ -53,6 +53,32 @@ pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummar
     };
 }
 
+pub const TtyRegistrationRequest = struct {
+    tty_driver_allocated: bool,
+    tty_operations_registered: bool,
+    tty_port_linked: bool,
+    open_time_irq_request_ready: bool,
+    wakeup_after_registration: bool,
+};
+
+pub const TtyRegistrationSummary = struct {
+    tty_driver_allocated: bool,
+    tty_operations_registered: bool,
+    tty_port_linked: bool,
+    open_time_irq_request_ready: bool,
+    wakeup_after_registration: bool,
+};
+
+pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {
+    return .{
+        .tty_driver_allocated = request.tty_driver_allocated,
+        .tty_operations_registered = request.tty_operations_registered,
+        .tty_port_linked = request.tty_port_linked,
+        .open_time_irq_request_ready = request.open_time_irq_request_ready,
+        .wakeup_after_registration = request.wakeup_after_registration,
+    };
+}
+
 pub const NotifierAddRequest = struct {
     notifier_add_success: bool,
     polling_fallback: bool,
@@ -201,6 +227,22 @@ test "phase11 hvc console keeps final-close teardown summary reviewable" {
     try std.testing.expect(summary.resize_work_cancelled);
     try std.testing.expect(summary.wait_until_sent_intent);
     try std.testing.expect(summary.port_initialized_cleared);
+}
+
+test "phase11 hvc console keeps tty-registration handoff summary reviewable" {
+    const summary = summarizeTtyRegistrationHandoff(.{
+        .tty_driver_allocated = true,
+        .tty_operations_registered = true,
+        .tty_port_linked = true,
+        .open_time_irq_request_ready = true,
+        .wakeup_after_registration = true,
+    });
+
+    try std.testing.expect(summary.tty_driver_allocated);
+    try std.testing.expect(summary.tty_operations_registered);
+    try std.testing.expect(summary.tty_port_linked);
+    try std.testing.expect(summary.open_time_irq_request_ready);
+    try std.testing.expect(summary.wakeup_after_registration);
 }
 
 test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {
