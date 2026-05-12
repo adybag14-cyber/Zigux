@@ -40,6 +40,7 @@ PHASE3_SELFTEST_DRIVER_COMMAND = (
 )
 REQUIRED_SELFTEST_DRIVER_PATHS = (
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
 )
 
 
@@ -189,6 +190,20 @@ def run_self_test() -> int:
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing header-family selftest command was not reported")
+            return 1
+
+        export_uapi_path = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
+        missing = validate_driver_inventory(
+            tuple(
+                entry
+                for entry in SELFTEST_COMMANDS
+                if entry[0] != export_uapi_path
+            )
+        )
+        expected = f"missing selftest command entry: {export_uapi_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing export/UAPI selftest command was not reported")
             return 1
 
         first_path = SELFTEST_COMMANDS[0][0]
