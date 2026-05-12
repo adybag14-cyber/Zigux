@@ -22,10 +22,12 @@ Keep shared sample-root wording aligned with that narrower kobject packet until 
 
 The same tree also still carries the later runtime-oriented sample family:
 
+* `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_atomic64_loader.zig`
 * `samples/zigux/runtime_bitmap.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+* `samples/zigux/runtime_kretprobe.zig`
 * `samples/zigux/runtime_kretprobe_loader.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_loader.zig`
