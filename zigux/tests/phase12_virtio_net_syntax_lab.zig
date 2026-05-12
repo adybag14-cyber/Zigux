@@ -1,7 +1,7 @@
 const std = @import("std");
 const virtio_net = @import("virtio_net");
 
-test "phase12 virtio net syntax lab keeps queue-topology, refill, recovery, and control sequencing exports reachable" {
+test "phase12 virtio net syntax lab keeps queue-topology, refill, recovery, and control recovery exports reachable" {
     _ = virtio_net.ModuleDescriptor;
     _ = virtio_net.ProbeRequest;
     _ = virtio_net.ProbeSnapshot;
@@ -17,7 +17,8 @@ test "phase12 virtio net syntax lab keeps queue-topology, refill, recovery, and 
     _ = virtio_net.RecoveryAction;
     _ = virtio_net.RecoverySummary;
     _ = virtio_net.RecoveryQueuePlan;
-    _ = virtio_net.ControlQueueSequencingSummary;
+    _ = virtio_net.ControlQueueRecoveryRequest;
+    _ = virtio_net.ControlQueueRecoveryPlan;
 
     var lab = virtio_net.VirtioNetProbeLab.init();
     const snapshot = lab.captureProbeSnapshot(.{
@@ -68,20 +69,26 @@ test "phase12 virtio net syntax lab keeps queue-topology, refill, recovery, and 
     try std.testing.expectEqual(virtio_net.RecoveryAction.freeze, frozen.action);
     try std.testing.expect(frozen.receive_buffer_refill_required);
 
-    const sequencing = try lab.summarizeControlQueueSequencing();
-    try std.testing.expect(!sequencing.control_queue_present);
-    try std.testing.expectEqual(@as(?u16, null), sequencing.control_queue_index);
-    try std.testing.expect(!sequencing.restore_control_before_receive);
-    try std.testing.expect(!sequencing.restore_control_before_transmit);
-    try std.testing.expect(!sequencing.refill_after_control_restore);
-    try std.testing.expect(sequencing.runtime_control_commands_blocked);
+    const recovery = try lab.controlQueueRecoveryPlan(.{});
+    try std.testing.expect(!recovery.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, null), recovery.control_queue_index);
+    try std.testing.expect(!recovery.requires_control_queue_restore);
+    try std.testing.expect(!recovery.requires_receive_mode_sync);
+    try std.testing.expect(!recovery.requires_hash_report_restore);
+    try std.testing.expect(!recovery.requires_mac_table_sync);
+    try std.testing.expect(!recovery.requires_vlan_filter_sync);
+    try std.testing.expect(!recovery.requires_rss_config_sync);
+    try std.testing.expect(recovery.requires_receive_queue_restore);
+    try std.testing.expect(recovery.requires_transmit_queue_restore);
+    try std.testing.expect(!recovery.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 0), recovery.command_count);
 
     const restored = try lab.restoreAfterReset();
     try std.testing.expectEqual(virtio_net.RecoveryAction.restore, restored.action);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
 }
 
-test "phase12 virtio net syntax lab keeps control queue restore separate from runtime commands" {
+test "phase12 virtio net syntax lab keeps control queue recovery separate from runtime commands" {
     var lab = virtio_net.VirtioNetProbeLab.init();
     _ = lab.captureProbeSnapshot(.{
         .requested_queue_pairs = 2,
@@ -107,14 +114,23 @@ test "phase12 virtio net syntax lab keeps control queue restore separate from ru
     });
     _ = try lab.freezeForReset();
 
-    const sequencing = try lab.summarizeControlQueueSequencing();
-    try std.testing.expect(sequencing.control_queue_present);
-    try std.testing.expectEqual(@as(?u16, 4), sequencing.control_queue_index);
-    try std.testing.expect(sequencing.restore_control_before_receive);
-    try std.testing.expect(sequencing.restore_control_before_transmit);
-    try std.testing.expect(sequencing.refill_after_control_restore);
-    try std.testing.expectEqual(@as(u16, 0), sequencing.recovery_generation);
-    try std.testing.expect(sequencing.runtime_control_commands_blocked);
+    const recovery = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = false,
+    });
+    try std.testing.expect(recovery.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), recovery.control_queue_index);
+    try std.testing.expect(recovery.requires_control_queue_restore);
+    try std.testing.expect(recovery.requires_receive_mode_sync);
+    try std.testing.expect(recovery.requires_hash_report_restore);
+    try std.testing.expect(recovery.requires_mac_table_sync);
+    try std.testing.expect(recovery.requires_vlan_filter_sync);
+    try std.testing.expect(!recovery.requires_rss_config_sync);
+    try std.testing.expect(recovery.requires_receive_queue_restore);
+    try std.testing.expect(recovery.requires_transmit_queue_restore);
+    try std.testing.expect(recovery.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 5), recovery.command_count);
 }
 
 test "phase12 virtio net syntax lab keeps mergeable path and recycled room distinct through refill and recovery" {
@@ -152,9 +168,14 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
     const mergeable = try mergeable_lab.recoveryQueuePlan();
     try std.testing.expect(mergeable.requires_receive_buffer_refill);
     try std.testing.expect(mergeable.requires_mergeable_buffer_refill);
-    const mergeable_sequence = try mergeable_lab.summarizeControlQueueSequencing();
-    try std.testing.expect(mergeable_sequence.control_queue_present);
-    try std.testing.expect(mergeable_sequence.refill_after_control_restore);
+    const mergeable_recovery = try mergeable_lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = false,
+        .rss_table_dirty = false,
+    });
+    try std.testing.expect(mergeable_recovery.control_vq_present);
+    try std.testing.expect(mergeable_recovery.requires_control_queue_restore);
+    try std.testing.expect(mergeable_recovery.must_restore_before_data_queues);
 
     var recycled_lab = virtio_net.VirtioNetProbeLab.init();
     _ = recycled_lab.captureProbeSnapshot(.{
@@ -190,7 +211,12 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
     const recycled = try recycled_lab.recoveryQueuePlan();
     try std.testing.expect(recycled.requires_receive_buffer_refill);
     try std.testing.expect(!recycled.requires_mergeable_buffer_refill);
-    const recycled_sequence = try recycled_lab.summarizeControlQueueSequencing();
-    try std.testing.expect(!recycled_sequence.control_queue_present);
-    try std.testing.expect(!recycled_sequence.refill_after_control_restore);
+    const recycled_recovery = try recycled_lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expect(!recycled_recovery.control_vq_present);
+    try std.testing.expect(!recycled_recovery.requires_control_queue_restore);
+    try std.testing.expect(!recycled_recovery.must_restore_before_data_queues);
 }
