@@ -15,12 +15,14 @@ MATRIX_REL = Path("Documentation/zigux/phase4-validation-matrix.md")
 REQUIRED_MARKERS = [
     "## Remaining Roadmap Gaps",
     "### `samples/zigux/kprobe_example.zig`",
+    "* current C anchor: `samples/kprobes/kprobe_example.c`",
     "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
     "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`\n* survey owner: `Validation and Perf Team`",
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
     "### `samples/zigux/test_fsmount.zig`",
+    "* current C anchor: `samples/vfs/test-fsmount.c`",
     "* current replay path: `make M=samples/vfs`",
     "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
@@ -39,10 +41,12 @@ REQUIRED_MARKERS = [
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_matrix_file",
+    "kprobe_c_anchor_drift",
     "kprobe_replay_path_drift",
     "kprobe_wrapper_drift",
     "kprobe_owner_drift",
     "kprobe_rollback_owner_drift",
+    "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
     "test_fsmount_rollback_owner_drift",
@@ -88,6 +92,7 @@ def build_fixture_text() -> str:
             "# Phase 4 Validation Matrix",
             "## Remaining Roadmap Gaps",
             "### `samples/zigux/kprobe_example.zig`",
+            "* current C anchor: `samples/kprobes/kprobe_example.c`",
             "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
             "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
             "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
@@ -95,6 +100,7 @@ def build_fixture_text() -> str:
             "* rollback owner: `Validation and Perf Team`",
             "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
             "### `samples/zigux/test_fsmount.zig`",
+            "* current C anchor: `samples/vfs/test-fsmount.c`",
             "* current replay path: `make M=samples/vfs`",
             "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
             "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
@@ -137,6 +143,23 @@ def run_self_test() -> int:
         if not expect_failure(root, f"file:{MATRIX_REL.as_posix()}"):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("missing matrix file case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "samples/kprobes/kprobe_example.c",
+                "samples/kprobes/kprobe_example_drift.c",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current C anchor: `samples/kprobes/kprobe_example.c`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("kprobe C-anchor drift case did not fail closed")
             return 1
         case_count += 1
 
@@ -205,6 +228,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("kprobe rollback-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "samples/vfs/test-fsmount.c",
+                "samples/vfs/test-fsmount-drift.c",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current C anchor: `samples/vfs/test-fsmount.c`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount C-anchor drift case did not fail closed")
             return 1
         case_count += 1
 
