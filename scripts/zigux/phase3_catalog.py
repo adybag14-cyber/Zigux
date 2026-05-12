@@ -13,6 +13,27 @@ RUNNER_MARKER_RE = re.compile(
     r"python3 scripts/zigux/run-phase3-checks.py --slug (?P<slug>[a-z0-9-]+)"
 )
 BUILD_DUMP_RE = re.compile(r"phase3_(?P<family>[a-z0-9_]+)_dump\.zig")
+LEGACY_WRAPPER_PATH_RE = re.compile(
+    r"scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py"
+)
+TEXT_FILE_SUFFIXES = {
+    ".c",
+    ".h",
+    ".json",
+    ".md",
+    ".py",
+    ".txt",
+    ".yaml",
+    ".yml",
+    ".zig",
+}
+TEXT_FILE_NAMES = {"Makefile"}
+SUPPORT_WRAPPER_REFERENCE_EXCLUDES = {
+    Path("scripts/zigux/phase3_catalog.py"),
+    Path("scripts/zigux/phase3_check_lib.py"),
+    Path("scripts/zigux/generate-phase3-check-wrappers.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
+}
 
 
 @dataclass(frozen=True)
@@ -138,6 +159,63 @@ def audit_build_surface_reality(root: Path = ROOT) -> list[str]:
     return issues
 
 
+def _shared_runner_marker(slug: str) -> str:
+    return f"python3 scripts/zigux/run-phase3-checks.py --slug {slug}"
+
+
+def _legacy_wrapper_marker(slug: str) -> str:
+    return f"python3 scripts/zigux/check-phase3-{slug}.py"
+
+
+def audit_legacy_wrapper_docs(root: Path = ROOT) -> list[str]:
+    docs: list[str] = []
+    for entry in discover_phase3_slices(root):
+        text = entry.doc_path.read_text(encoding="utf-8")
+        if _shared_runner_marker(entry.slug) in text:
+            continue
+        if _legacy_wrapper_marker(entry.slug) in text:
+            docs.append(entry.doc_path.relative_to(root).as_posix())
+    return docs
+
+
+def _iter_repo_text_files(root: Path) -> list[Path]:
+    candidates: list[Path] = []
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        rel_path = path.relative_to(root)
+        if any(part.startswith(".git") for part in rel_path.parts):
+            continue
+        if path.name in TEXT_FILE_NAMES or path.suffix in TEXT_FILE_SUFFIXES:
+            candidates.append(path)
+    return sorted(candidates)
+
+
+def audit_legacy_wrapper_references(root: Path = ROOT) -> list[str]:
+    slice_docs = {
+        entry.doc_path.relative_to(root)
+        for entry in discover_phase3_slices(root)
+    }
+    references: list[str] = []
+    for path in _iter_repo_text_files(root):
+        rel_path = path.relative_to(root)
+        if rel_path in slice_docs or rel_path in SUPPORT_WRAPPER_REFERENCE_EXCLUDES:
+            continue
+        if rel_path.parent == Path("scripts/zigux") and rel_path.name.startswith("check-phase3-"):
+            continue
+        matches = sorted(
+            {
+                match.group(0)
+                for match in LEGACY_WRAPPER_PATH_RE.finditer(
+                    path.read_text(encoding="utf-8")
+                )
+            }
+        )
+        for match in matches:
+            references.append(f"{rel_path.as_posix()}: {match}")
+    return references
+
+
 def audit_doc_sync(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     required = [
@@ -156,7 +234,7 @@ def audit_doc_sync(root: Path = ROOT) -> list[str]:
     if artifact_diff.exists():
         text = artifact_diff.read_text(encoding="utf-8")
         for entry in entries:
-            marker = f"python3 scripts/zigux/run-phase3-checks.py --slug {entry.slug}"
+            marker = _shared_runner_marker(entry.slug)
             if marker not in text:
                 issues.append(f"missing artifact-diff marker: {marker}")
 
@@ -169,7 +247,7 @@ def audit_artifact_diff_reality(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     artifact_diff = root / "Documentation/zigux/artifact-diff.md"
     if not artifact_diff.exists():
-        return [f"missing repo file: {artifact_diff.relative_to(root).as_posix()}"]
+        return [f"missing repo file: {artifact_diff.relative_to(root).as_posix()}]
 
     documented = {
         match.group("slug")
@@ -204,7 +282,7 @@ def run_self_test() -> int:
         ]:
             path = root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("python3 scripts/zigux/run-phase3-checks.py --slug abi\n", encoding="utf-8")
+            path.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
         (root / "zigux/tests/build.zig").write_text(
             'const abi_dump = "phase3_abi_dump.zig";\n',
             encoding="utf-8",
@@ -213,6 +291,8 @@ def run_self_test() -> int:
         assert audit_doc_sync(root) == []
         assert audit_artifact_diff_reality(root) == []
         assert audit_build_surface_reality(root) == []
+        assert audit_legacy_wrapper_docs(root) == []
+        assert audit_legacy_wrapper_references(root) == []
 
         extra_dir = root / "zigux/tests/fixtures/phase3_bitmap_cpumask"
         extra_dir.mkdir(parents=True, exist_ok=True)
@@ -243,12 +323,44 @@ def run_self_test() -> int:
 
         artifact = root / "Documentation/zigux/artifact-diff.md"
         artifact.write_text(
-            "python3 scripts/zigux/run-phase3-checks.py --slug abi\n"
+            _shared_runner_marker("abi") + "\n"
             "python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask\n",
             encoding="utf-8",
         )
         assert audit_artifact_diff_reality(root) == [
             "artifact-diff documents unsupported Phase 3 slug: bitmap-cpumask"
+        ]
+
+        artifact.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
+        (root / "zigux/tests/build.zig").write_text(
+            'const abi_dump = "phase3_abi_dump.zig";\n',
+            encoding="utf-8",
+        )
+        abi_doc = root / "Documentation/zigux/phase3-abi-slice.md"
+        abi_doc.write_text(_legacy_wrapper_marker("abi") + "\n", encoding="utf-8")
+        assert audit_legacy_wrapper_docs(root) == [
+            "Documentation/zigux/phase3-abi-slice.md"
+        ]
+        assert audit_legacy_wrapper_references(root) == []
+
+        abi_doc.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme.write_text(
+            "wrapper note: scripts/zigux/check-phase3-abi.py\n",
+            encoding="utf-8",
+        )
+        assert audit_legacy_wrapper_references(root) == [
+            "zigux/tests/README.md: scripts/zigux/check-phase3-abi.py"
+        ]
+
+        support_note = root / "Documentation/zigux/phase3-support-note.md"
+        support_note.write_text(
+            "wrapper note: scripts/zigux/check-phase3-abi.py\n",
+            encoding="utf-8",
+        )
+        assert audit_legacy_wrapper_references(root) == [
+            "Documentation/zigux/phase3-support-note.md: scripts/zigux/check-phase3-abi.py",
+            "zigux/tests/README.md: scripts/zigux/check-phase3-abi.py",
         ]
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -260,6 +372,8 @@ def main() -> int:
     parser.add_argument("--audit-doc-sync", action="store_true")
     parser.add_argument("--audit-build-surface-reality", action="store_true")
     parser.add_argument("--audit-artifact-diff-reality", action="store_true")
+    parser.add_argument("--legacy-wrapper-docs", action="store_true")
+    parser.add_argument("--legacy-wrapper-references", action="store_true")
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
@@ -298,6 +412,24 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE3_ARTIFACT_DIFF_REALITY=pass")
+        return 0
+
+    if args.legacy_wrapper_docs:
+        docs = audit_legacy_wrapper_docs()
+        if not docs:
+            print("PHASE3_LEGACY_WRAPPER_DOCS=none")
+            return 0
+        for path in docs:
+            print(path)
+        return 0
+
+    if args.legacy_wrapper_references:
+        references = audit_legacy_wrapper_references()
+        if not references:
+            print("PHASE3_LEGACY_WRAPPER_REFERENCES=none")
+            return 0
+        for reference in references:
+            print(reference)
         return 0
 
     parser.print_help()
