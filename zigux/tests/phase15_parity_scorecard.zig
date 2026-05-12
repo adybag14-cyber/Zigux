@@ -127,6 +127,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "P15-Y03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
+    try expectContains(scorecard_doc, "current-master-readback-2026-05-12");
     try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
     try expectContains(scorecard_doc, "blocked status-change anchor count: `4`");
 
