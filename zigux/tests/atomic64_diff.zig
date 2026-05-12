@@ -220,7 +220,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectNoMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_gate_evidence_blob_sha\": ");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_review_checklist_blob_sha\": \"915152a0c2b9ce7d6b73c52968ee6fc0f39aea99\"",
+        "\"phase4_review_checklist_blob_sha\": \"8872de4813a88de9bd71fdcf5bf3444fb102001c\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -362,7 +362,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(gate_evidence_source);
 
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=27");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase9_build_manifest_blob_pin_drift");
@@ -374,7 +374,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=27");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true");
