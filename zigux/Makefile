@@ -16,8 +16,9 @@ PHONY += phase14-validate phase14-smoke phase14-test phase14
 PHONY += phase15-validate phase15-test phase15
 
 PYTHON ?= python3
-ZIG ?= zig
 ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))
+ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)
 
 phase1-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py
