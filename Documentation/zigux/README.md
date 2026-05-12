@@ -197,15 +197,6 @@ Phase 10 notes
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `zigux/tests/README.md`
-- `Documentation/zigux/phase10-virtio-core-slice.md`
-- `Documentation/zigux/phase10-virtio-core-survey.md`
-- `Documentation/zigux/phase10-virtio-ring-slice.md`
-- `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `Documentation/zigux/phase10-virtio-input-slice.md`
-- `Documentation/zigux/phase10-virtio-input-module-slice.md`
-- `Documentation/zigux/phase10-virtio-input-survey.md`
-- `Documentation/zigux/phase10-virtio-mmio-slice.md`
-- `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
@@ -219,21 +210,19 @@ Phase 10 notes
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio_ring.zig`
-- `drivers/virtio/virtio_input.zig`
-- `drivers/virtio/virtio_mmio.zig`
-- `zigux/tests/phase10_build.zig`
+- `drivers/virtio/virtio_verify.zig`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
-- `drivers/virtio/virtio_verify.zig`
 - `zigux/tests/phase10_virtio_ring.zig`
 - `drivers/virtio/virtio_ring_verify.zig`
 - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
-- `zigux/tests/phase10_virtio_input.zig`
+- `drivers/virtio/virtio_input.zig`
 - `drivers/virtio/virtio_input_verify.zig`
+- `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_probe_preflight.zig`
 - `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 - `zigux/tests/phase10_virtio_input_registration_preflight.zig`
@@ -241,15 +230,17 @@ Phase 10 notes
 - `zigux/tests/phase10_virtio_input_status_drain.zig`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_input_survey.zig`
-- `zigux/tests/phase10_virtio_mmio.zig`
+- `drivers/virtio/virtio_mmio.zig`
 - `drivers/virtio/virtio_mmio_verify.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `zigux/Makefile`
 - `make -C zigux phase10-validate`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
-- these Phase 10 docs-root reminders now keep the shared closure packet reviewable through the shipped validators, the dedicated harness-coverage checker, the direct core tests-root checker, the direct ring surface, the direct ring verifier, the drained-reset reuse replay, the input and MMIO verifier replays, the closure manifest, and the Linux-style replay routes instead of undercounting the live ring packet.
+- these Phase 10 docs-root reminders now keep the direct ring verifier and the drained-reset reuse replay explicit beside the shared closure packet and Linux-style replay routes.
+- the missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`.
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
