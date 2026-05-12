@@ -37,6 +37,20 @@ surface:
 - `make -C zigux phase7-test`
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
+Current `master` keeps this shared Phase 7 control surface parked, not green:
+`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still
+missing from the live tree. Treat `make -C zigux phase7-validate`,
+`make -C zigux phase7-test`, `zig build test --build-file
+zigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the
+authoritative blocker-bearing bundle routes until that missing implementation
+pair is restored; this shared note is not evidence that the full four-helper
+packet currently passes on `master`.
+
+`Documentation/zigux/phase7-string-helpers-slice.md` and
+`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of
+the missing-helper record, and restoring that implementation pair stays under
+`P7-L04` rather than this shared `P7-Y05` control-surface lane.
+
 The same parked packet also depends on the shared docs-root Phase 5 no-sample
 reminders staying honest for `string_helpers`, `cmdline`, `argv_split`, and
 `rbtree`. Current `master` now keeps the fuller parked packet explicit from
@@ -76,12 +90,17 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `zigux/tests/fixtures/phase7_rbtree.json`,
 `zigux/tests/fixtures/phase7_rbtree_c_harness.c`,
 `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and
-`zigux/tests/phase7_build.zig` aligned around that same shared replay packet so
-the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
-not drift back toward per-slice ad hoc checks.
+`zigux/tests/phase7_build.zig` aligned around that same shared replay packet and
+the parked string-helpers blocker so the parked `string_helpers`, `cmdline`,
+`argv_split`, and `rbtree` bundle does not drift back toward per-slice ad hoc
+checks or a false all-green shared status.
 
 `make -C zigux phase7-validate`, the dedicated survey and sample-boundary
 replays, `make -C zigux phase7-test`, and `make -C zigux phase7` remain the
-Linux-style review routes for this shared control surface.
+Linux-style review routes for this shared control surface while the bundle stays
+parked.
 
-this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`; it only keeps the already-landed shared control surface truthful.
+this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`,
+`lib/argv_split.zig`, `lib/rbtree.zig`, or the missing string-helpers
+implementation pair; it only keeps the already-landed shared control surface
+truthful and the `P7-L04` ownership split explicit.
