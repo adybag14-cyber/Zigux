@@ -1,7 +1,7 @@
 {
   "status": "parity_scorecard_slice_landed",
-  "lane_key": "P15-L09",
-  "slice": "freeze-map-parity-scorecard-baseline",
+  "lane_key": "P15-Y03",
+  "slice": "parity-scorecard-baseline",
   "provenance_mode": "dated_master_readback",
   "surveyed_commit": "current-master-readback-2026-05-11",
   "posture": {
