@@ -261,6 +261,18 @@ def run_self_test() -> int:
     if tests_readme_missing != [expected_tests_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
 
+    closure_missing = validate_required_markers(
+        "\n".join(CLOSURE_MARKERS[:2] + CLOSURE_MARKERS[3:]),
+        label="phase2_closure_doc",
+        markers=CLOSURE_MARKERS,
+    )
+    expected_closure_issue = (
+        "phase2_closure_doc:missing_marker:"
+        "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
+    )
+    if closure_missing != [expected_closure_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:closure_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "phase2_cross_targets.json"
@@ -270,7 +282,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
