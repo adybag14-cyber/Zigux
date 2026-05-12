@@ -62,15 +62,16 @@ Those 404 read results mean the remaining same-lane truthfulness gap is no longe
 
 ## Current Truthfulness Posture
 
-Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/README.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` already keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
+Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/README.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` already keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
 
-The remaining broader shared-summary drift is now narrower than the older handoff:
+The remaining broader shared-summary drift is now concentrated in the review checklist and scripts-root summary:
 
-- `scripts/zigux/README.md` still presents `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` as live current-`master` evidence even though authenticated reads now return 404 for those paths.
+- `Documentation/zigux/review-checklist.md` still presents `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` as if they were part of the shipped shared Phase 10 packet even though authenticated reads now return 404 for those paths on current `master`.
+- `scripts/zigux/README.md` still presents those same five missing slice-note paths as live current-`master` evidence even though authenticated reads now return 404 for them.
 - `zigux/tests/README.md` no longer carries that missing-slice overclaim and already keeps the direct `drivers/virtio/virtio_ring.zig` ring surface explicit beside `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
-- `Documentation/zigux/README.md` remains an adjacent same-lane reread candidate, but the sharpest directly verified shared-summary mismatch is now the scripts-root Phase 10 flow and then the docs-root Phase 10 summary, rather than the tests-root paragraph.
+- `Documentation/zigux/README.md` already records those missing slice-note paths as repo-reality gaps instead of live docs-root evidence.
 
-The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should stay inside one shared summary surface at a time and start with the scripts-root Phase 10 flow before the docs-root Phase 10 summary instead of replaying the older tests-root-first target.
+The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should stay inside one shared summary surface at a time and start with the review checklist before the scripts-root summary instead of replaying the older tests-root-first target.
 
 ## Parked Boundary
 
@@ -85,6 +86,6 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder or checker surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. refresh `scripts/zigux/README.md` so it stops presenting `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` as live current-`master` evidence while keeping the direct `drivers/virtio/virtio_ring.zig` surface explicit beside the existing shared checker, manifest, and make-route reminders
-3. after that scripts-root repair lands, reread `Documentation/zigux/README.md` in case the same missing-slice-note overclaim or any direct-ring-surface undercount still survives there
+2. refresh `Documentation/zigux/review-checklist.md` so it stops presenting `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` as live current-`master` evidence while keeping the direct ring surface explicit beside the existing shared checker, manifest, and make-route reminders
+3. after that checklist repair lands, refresh `scripts/zigux/README.md` so it stops presenting those same missing slice-note paths as live current-`master` evidence while keeping the direct `drivers/virtio/virtio_ring.zig` surface explicit beside the existing shared checker, manifest, and make-route reminders
 4. if a fresh repo-first inspection finds another equally small same-lane drift after those shared-summary repairs, prefer one shared reminder, checker, manifest, or survey surface at a time
