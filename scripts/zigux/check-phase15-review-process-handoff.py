@@ -99,6 +99,22 @@ REQUIRED_REVIEW_PACKET_FIELDS = (
     "written rationale",
 )
 
+OWNERSHIP_EVIDENCE_FIELDS = (
+    "owner",
+    "required approver set",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "rollback threshold",
+    "retained discussion state",
+    "reopen triggers",
+    "parity scorecard link or blocker record",
+    "indefinite-C policy link or non-applicability note",
+)
+
 TRIGGER_CONDITIONS = (
     "freeze-map list change",
     "freeze-map status-bucket change",
@@ -194,6 +210,12 @@ def validate(root: Path) -> list[str]:
         issues.append("manifest:approval_state_mismatch")
 
     _require_items(
+        manifest.get("ownership_evidence_fields", []),
+        OWNERSHIP_EVIDENCE_FIELDS,
+        "manifest_ownership_evidence_fields",
+        issues,
+    )
+    _require_items(
         manifest.get("required_review_packet_fields", []),
         REQUIRED_REVIEW_PACKET_FIELDS,
         "manifest_required_review_packet_fields",
@@ -271,6 +293,7 @@ def _seed_fixture_tree(root: Path) -> None:
         json.dumps(
             {
                 "current_approval_state": "no_freeze_map_status_change_approved",
+                "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
                 "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
                 "trigger_conditions": list(TRIGGER_CONDITIONS),
                 "reopen_trigger_catalog": list(REOPEN_TRIGGER_CATALOG),
@@ -347,6 +370,17 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["ownership_evidence_fields"].remove("required approver set")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_ownership_evidence_fields:missing:required approver set"],
+            "missing_manifest_ownership_field",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["required_review_packet_fields"].remove("required approver set")
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
@@ -393,7 +427,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS)}"
+        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS)}"
     )
     return 0
 
