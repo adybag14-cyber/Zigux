@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
+    "zigux/Makefile",
 ]
 
 DIRECT_OWNER_MARKERS = [
@@ -34,6 +35,11 @@ NEXT_STEP_MARKERS = [
     "- If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.",
 ]
 
+MAKEFILE_MARKERS = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py",
+]
+
 
 def repo_root(root_arg: str | None) -> Path:
     return Path(root_arg).resolve() if root_arg else ROOT
@@ -45,8 +51,9 @@ def collect_missing_files(root: Path) -> list[str]:
 
 def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> list[str]:
     missing: list[str] = []
+    lines = text.splitlines()
     for marker in markers:
-        count = text.count(marker)
+        count = lines.count(marker)
         if count != 1:
             missing.append(f"{label}:{marker}:expected=1:actual={count}")
     return missing
@@ -56,10 +63,12 @@ def collect_missing_markers(root: Path) -> list[str]:
     lane_note = (root / "Documentation" / "zigux" / "phase1-host-helper-lane-sequencing.md").read_text(
         encoding="utf-8"
     )
+    makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_companion", COMPANION_MARKERS))
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_next_step", NEXT_STEP_MARKERS))
+    missing.extend(collect_exact_count_markers(makefile, "phase1_direct_owner_makefile", MAKEFILE_MARKERS))
     return missing
 
 
@@ -86,6 +95,10 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
 
+    makefile = root / "zigux" / "Makefile"
+    makefile.parent.mkdir(parents=True, exist_ok=True)
+    makefile.write_text("\n".join(MAKEFILE_MARKERS) + "\n", encoding="utf-8")
+
 
 def run_self_test() -> None:
     case_count = 0
@@ -99,6 +112,12 @@ def run_self_test() -> None:
         lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         lane_note.unlink()
         assert collect_missing_files(root) == ["Documentation/zigux/phase1-host-helper-lane-sequencing.md"]
+        case_count += 1
+
+        make_fixture_root(root)
+        makefile = root / "zigux/Makefile"
+        makefile.unlink()
+        assert collect_missing_files(root) == ["zigux/Makefile"]
         case_count += 1
 
         make_fixture_root(root)
@@ -116,7 +135,7 @@ def run_self_test() -> None:
         lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(
                 DIRECT_OWNER_MARKERS[1],
-                DIRECT_OWNER_MARKERS[1] + " " + DIRECT_OWNER_MARKERS[1],
+                DIRECT_OWNER_MARKERS[1] + "\n" + DIRECT_OWNER_MARKERS[1],
                 1,
             ),
             encoding="utf-8",
@@ -153,7 +172,7 @@ def run_self_test() -> None:
         lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(
                 NEXT_STEP_MARKERS[4],
-                NEXT_STEP_MARKERS[4] + " " + NEXT_STEP_MARKERS[4],
+                NEXT_STEP_MARKERS[4] + "\n" + NEXT_STEP_MARKERS[4],
                 1,
             ),
             encoding="utf-8",
@@ -161,6 +180,33 @@ def run_self_test() -> None:
         missing = collect_missing_markers(root)
         assert (
             f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[4]}:expected=1:actual=2"
+            in missing
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[0]}:expected=1:actual=0" in missing
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                MAKEFILE_MARKERS[1],
+                MAKEFILE_MARKERS[1] + "\n" + MAKEFILE_MARKERS[1],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[1]}:expected=1:actual=2"
             in missing
         )
         case_count += 1
@@ -204,7 +250,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DIRECT_OWNER_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS)}"
+        f"{len(DIRECT_OWNER_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS)}"
     )
     return 0
 
