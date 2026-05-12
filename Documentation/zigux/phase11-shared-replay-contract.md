@@ -38,7 +38,7 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the shared packet uses the existing `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when shared Phase 11 reminder wording moves
-* direct dedicated HVC cleanup evidence currently materializes on `master` through `zigux/tests/phase11_hvc_cleanup.zig` beside the dedicated survey packet, while direct `zigux/tests/phase11_hvc_console.zig` and `drivers/tty/hvc/hvc_console_verify.zig` companions remain absent repo-reality gaps
+* the dedicated HVC archival packet stays reviewable on current `master` through the teardown note, manifest-backed survey gate, modem-control split, poll-retry split, sysrq helper, and dedicated checker-backed replay route, while direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` companions remain absent repo-reality gaps
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
@@ -48,7 +48,6 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
@@ -57,7 +56,7 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `make -C zigux phase11-hvc-survey`
 
-Treat `zigux/tests/phase11_hvc_cleanup.zig` as landed dedicated cleanup evidence beside that survey packet, while missing direct `zigux/tests/phase11_hvc_console.zig` and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof.
+Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof.
 
 The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:
 
