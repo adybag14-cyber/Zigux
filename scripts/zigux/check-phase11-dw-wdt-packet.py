@@ -25,7 +25,9 @@ MARKERS = {
         "direct teardown and failure-mode parity stays as a future same-lane follow-through target rather than shipped current-`master` evidence through `drivers/watchdog/dw_wdt_verify.zig`",
         "That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.",
         "The next bounded follow-up is still to attach the registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
+        "- shared Phase 11 reminder-surface churn outside the DesignWare packet",
         "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` together when the DesignWare packet meaning changes",
+        "- Phase 11 shared build replay only as a truthfulness check, not as a claim that hardware-backed behavior is complete",
         "- create a new DesignWare manifest, survey, validation-matrix, or teardown surface only if a future scaffold lands enough new lane evidence to justify reviving it",
         "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
         "If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.",
@@ -37,7 +39,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 9
 
 
 class CheckError(RuntimeError):
@@ -96,9 +98,12 @@ def run_self_test() -> None:
             (FILES["plan_note"], MARKERS["plan_note"][1]),
             (FILES["plan_note"], MARKERS["plan_note"][5]),
             (FILES["plan_note"], MARKERS["plan_note"][6]),
-            (FILES["plan_note"], MARKERS["plan_note"][9]),
+            (FILES["plan_note"], MARKERS["plan_note"][8]),
+            (FILES["plan_note"], MARKERS["plan_note"][10]),
             (FILES["lane_sequencing"], MARKERS["lane_sequencing"][0]),
             (FILES["lane_sequencing"], MARKERS["lane_sequencing"][2]),
+            (FILES["plan_note"], MARKERS["plan_note"][11]),
+            (FILES["plan_note"], MARKERS["plan_note"][13]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
