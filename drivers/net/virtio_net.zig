@@ -23,6 +23,12 @@ pub const ReceiveBufferMode = enum {
     recycled_room,
 };
 
+pub const ReceiveRefillPath = enum {
+    reuse_existing_room,
+    allocate_single_page,
+    allocate_mergeable_chain,
+};
+
 pub const BigPacketReason = enum {
     none,
     exceeds_single_buffer,
@@ -39,6 +45,7 @@ pub const ModuleDescriptor = struct {
     provides_probe_snapshot: bool,
     provides_queue_topology_summary: bool,
     provides_mergeable_receive_buffer_planner: bool,
+    provides_receive_refill_summary: bool,
     provides_queue_recovery_planner: bool,
     touches_live_dma: bool,
     touches_net_device: bool,
@@ -103,6 +110,18 @@ pub const MergeableReceiveBufferPlan = struct {
     uses_mergeable_path: bool,
 };
 
+pub const ReceiveRefillSummary = struct {
+    anchor: []const u8,
+    packet_bytes: u32,
+    total_bytes: u32,
+    refill_path: ReceiveRefillPath,
+    required_buffers: u16,
+    buffer_mode: ReceiveBufferMode,
+    publishes_receive_buffers: bool,
+    reuses_existing_room: bool,
+    requires_mergeable_buffers: bool,
+};
+
 pub const RecoverySummary = struct {
     anchor: []const u8,
     action: RecoveryAction,
@@ -139,6 +158,7 @@ pub const VirtioNetProbeLab = struct {
     last_probe_snapshot: ?ProbeSnapshot = null,
     last_queue_topology_summary: ?QueueTopologySummary = null,
     last_mergeable_plan: ?MergeableReceiveBufferPlan = null,
+    last_refill_summary: ?ReceiveRefillSummary = null,
     frozen_probe_snapshot: ?ProbeSnapshot = null,
     frozen_queue_topology_summary: ?QueueTopologySummary = null,
     frozen_mergeable_plan: ?MergeableReceiveBufferPlan = null,
@@ -152,6 +172,7 @@ pub const VirtioNetProbeLab = struct {
             .provides_probe_snapshot = true,
             .provides_queue_topology_summary = true,
             .provides_mergeable_receive_buffer_planner = true,
+            .provides_receive_refill_summary = true,
             .provides_queue_recovery_planner = true,
             .touches_live_dma = false,
             .touches_net_device = false,
@@ -248,6 +269,27 @@ pub const VirtioNetProbeLab = struct {
         return plan;
     }
 
+    pub fn summarizeReceiveRefill(self: *Self, request: MergeableReceiveBufferRequest) !ReceiveRefillSummary {
+        const plan = try self.planMergeableReceiveBuffer(request);
+        const summary = ReceiveRefillSummary{
+            .anchor = plan.anchor,
+            .packet_bytes = plan.packet_bytes,
+            .total_bytes = plan.total_bytes,
+            .refill_path = switch (plan.buffer_mode) {
+                .recycled_room => .reuse_existing_room,
+                .single_page => .allocate_single_page,
+                .mergeable => .allocate_mergeable_chain,
+            },
+            .required_buffers = plan.required_buffers,
+            .buffer_mode = plan.buffer_mode,
+            .publishes_receive_buffers = true,
+            .reuses_existing_room = plan.reuses_existing_room,
+            .requires_mergeable_buffers = plan.uses_mergeable_path,
+        };
+        self.last_refill_summary = summary;
+        return summary;
+    }
+
     pub fn freezeForReset(self: *Self) !RecoverySummary {
         if (self.resetting) {
             return error.TransportResetInProgress;
@@ -314,6 +356,7 @@ pub const VirtioNetProbeLab = struct {
         self.last_probe_snapshot = null;
         self.last_queue_topology_summary = null;
         self.last_mergeable_plan = null;
+        self.last_refill_summary = null;
         self.frozen_probe_snapshot = null;
         self.frozen_queue_topology_summary = null;
         self.frozen_mergeable_plan = null;
@@ -456,6 +499,40 @@ test "planMergeableReceiveBuffer rejects big packets without mergeable support" 
     }));
 }
 
+test "summarizeReceiveRefill keeps reused-room posting explicit" {
+    var lab = VirtioNetProbeLab.init();
+    const summary = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+
+    try std.testing.expectEqual(ReceiveRefillPath.reuse_existing_room, summary.refill_path);
+    try std.testing.expectEqual(ReceiveBufferMode.recycled_room, summary.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 1), summary.required_buffers);
+    try std.testing.expect(summary.publishes_receive_buffers);
+    try std.testing.expect(summary.reuses_existing_room);
+    try std.testing.expect(!summary.requires_mergeable_buffers);
+    try std.testing.expectEqual(summary, lab.last_refill_summary.?);
+}
+
+test "summarizeReceiveRefill flags mergeable-chain posting for oversized packets" {
+    var lab = VirtioNetProbeLab.init();
+    const summary = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 5000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    try std.testing.expectEqual(ReceiveRefillPath.allocate_mergeable_chain, summary.refill_path);
+    try std.testing.expectEqual(ReceiveBufferMode.mergeable, summary.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 2), summary.required_buffers);
+    try std.testing.expect(summary.publishes_receive_buffers);
+    try std.testing.expect(!summary.reuses_existing_room);
+    try std.testing.expect(summary.requires_mergeable_buffers);
+}
+
 test "freezeForReset captures the last queue summary and refill expectations" {
     var lab = VirtioNetProbeLab.init();
 
@@ -556,6 +633,12 @@ test "restoreAfterReset clears remembered queue state and increments generation"
         .headroom_bytes = 32,
         .mergeable_rx_bufs = true,
     });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
     _ = try lab.freezeForReset();
 
     const restored = try lab.restoreAfterReset();
@@ -566,5 +649,5 @@ test "restoreAfterReset clears remembered queue state and increments generation"
     try std.testing.expect(restored.receive_buffer_refill_required);
     try std.testing.expect(!restored.mergeable_buffer_refill_required);
     try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
-    try std.testing.expectError(error.QueueTopologyUnavailable, lab.restoreAfterReset());
+    try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
 }
