@@ -16,8 +16,9 @@ pub const ModuleDescriptor = struct {
     provides_positive_entry_classification: bool,
     provides_directory_emptiness_planning: bool,
     provides_lookup_planning: bool,
-    provides_transaction_release_planning: bool,
+    provides_transaction_acquire_planning: bool,
     provides_transaction_publish_planning: bool,
+    provides_transaction_release_planning: bool,
     provides_offset_seek_planning: bool,
     provides_offset_readdir_planning: bool,
     provides_offset_rename_planning: bool,
@@ -58,12 +59,14 @@ pub const LookupPlan = struct {
     installs_negative_dentry: bool,
 };
 
-pub const TransactionReleasePlan = struct {
+pub const TransactionBufferAcquirePlan = struct {
     anchor: []const u8,
-    private_data_present: bool,
-    frees_page_backed_private_data: bool,
-    clears_private_data: bool,
-    returns_zero: bool,
+    requested_write_size: usize,
+    transaction_limit: usize,
+    allocates_zeroed_page_backing: bool,
+    stages_single_write_per_open: bool,
+    copies_write_into_private_data: bool,
+    returns_staged_private_data: bool,
 };
 
 pub const TransactionBufferPublishPlan = struct {
@@ -72,7 +75,16 @@ pub const TransactionBufferPublishPlan = struct {
     transaction_limit: usize,
     requires_private_data: bool,
     publishes_after_barrier: bool,
+    reuses_staged_private_data: bool,
     published_response_size: usize,
+};
+
+pub const TransactionReleasePlan = struct {
+    anchor: []const u8,
+    private_data_present: bool,
+    frees_page_backed_private_data: bool,
+    clears_private_data: bool,
+    returns_zero: bool,
 };
 
 pub const OffsetSeekWhence = enum {
@@ -180,8 +192,9 @@ pub const LibfsHelperLab = struct {
             .provides_positive_entry_classification = true,
             .provides_directory_emptiness_planning = true,
             .provides_lookup_planning = true,
-            .provides_transaction_release_planning = true,
+            .provides_transaction_acquire_planning = true,
             .provides_transaction_publish_planning = true,
+            .provides_transaction_release_planning = true,
             .provides_offset_seek_planning = true,
             .provides_offset_readdir_planning = true,
             .provides_offset_rename_planning = true,
@@ -233,6 +246,44 @@ pub const LibfsHelperLab = struct {
         };
     }
 
+    pub fn simpleTransactionGetPlan(requested_write_size: usize, private_data_present: bool) !TransactionBufferAcquirePlan {
+        if (private_data_present) {
+            return error.PrivateDataAlreadyPresent;
+        }
+        if (requested_write_size > simple_transaction_limit) {
+            return error.InputTooLarge;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_write_size = requested_write_size,
+            .transaction_limit = simple_transaction_limit,
+            .allocates_zeroed_page_backing = true,
+            .stages_single_write_per_open = true,
+            .copies_write_into_private_data = requested_write_size != 0,
+            .returns_staged_private_data = true,
+        };
+    }
+
+    pub fn simpleTransactionSetPlan(requested_response_size: usize, private_data_present: bool) !TransactionBufferPublishPlan {
+        if (!private_data_present) {
+            return error.MissingPrivateData;
+        }
+        if (requested_response_size > simple_transaction_limit) {
+            return error.InputTooLarge;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_response_size = requested_response_size,
+            .transaction_limit = simple_transaction_limit,
+            .requires_private_data = true,
+            .publishes_after_barrier = true,
+            .reuses_staged_private_data = true,
+            .published_response_size = requested_response_size,
+        };
+    }
+
     pub fn simpleTransactionReleasePlan(private_data_present: bool) TransactionReleasePlan {
         return .{
             .anchor = descriptor().anchor,
@@ -240,24 +291,6 @@ pub const LibfsHelperLab = struct {
             .frees_page_backed_private_data = private_data_present,
             .clears_private_data = private_data_present,
             .returns_zero = true,
-        };
-    }
-
-    pub fn simpleTransactionSetPlan(response_size: usize, has_private_data: bool) !TransactionBufferPublishPlan {
-        if (response_size > simple_transaction_limit) {
-            return error.InputTooLarge;
-        }
-        if (!has_private_data) {
-            return error.MissingPrivateData;
-        }
-
-        return .{
-            .anchor = descriptor().anchor,
-            .requested_response_size = response_size,
-            .transaction_limit = simple_transaction_limit,
-            .requires_private_data = true,
-            .publishes_after_barrier = true,
-            .published_response_size = response_size,
         };
     }
 
@@ -436,8 +469,9 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_positive_entry_classification);
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
     try std.testing.expect(descriptor.provides_lookup_planning);
-    try std.testing.expect(descriptor.provides_transaction_release_planning);
+    try std.testing.expect(descriptor.provides_transaction_acquire_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
+    try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
@@ -494,6 +528,42 @@ test "simple_lookup plan rejects oversized names without claiming live dcache mu
     try std.testing.expect(!plan.installs_negative_dentry);
 }
 
+test "transaction acquire planner bounds the staged write buffer and enforces one-write-per-open" {
+    const plan = try LibfsHelperLab.simpleTransactionGetPlan(simple_transaction_limit, false);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(simple_transaction_limit, plan.requested_write_size);
+    try std.testing.expectEqual(simple_transaction_limit, plan.transaction_limit);
+    try std.testing.expect(plan.allocates_zeroed_page_backing);
+    try std.testing.expect(plan.stages_single_write_per_open);
+    try std.testing.expect(plan.copies_write_into_private_data);
+    try std.testing.expect(plan.returns_staged_private_data);
+
+    const empty = try LibfsHelperLab.simpleTransactionGetPlan(0, false);
+    try std.testing.expect(!empty.copies_write_into_private_data);
+
+    try std.testing.expectError(error.InputTooLarge, LibfsHelperLab.simpleTransactionGetPlan(simple_transaction_limit + 1, false));
+    try std.testing.expectError(error.PrivateDataAlreadyPresent, LibfsHelperLab.simpleTransactionGetPlan(8, true));
+}
+
+test "transaction publish planner validates response size and publish bookkeeping" {
+    const plan = try LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit, true);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(simple_transaction_limit, plan.requested_response_size);
+    try std.testing.expectEqual(simple_transaction_limit, plan.transaction_limit);
+    try std.testing.expect(plan.requires_private_data);
+    try std.testing.expect(plan.publishes_after_barrier);
+    try std.testing.expect(plan.reuses_staged_private_data);
+    try std.testing.expectEqual(simple_transaction_limit, plan.published_response_size);
+
+    const empty = try LibfsHelperLab.simpleTransactionSetPlan(0, true);
+    try std.testing.expectEqual(@as(usize, 0), empty.published_response_size);
+
+    try std.testing.expectError(error.InputTooLarge, LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit + 1, true));
+    try std.testing.expectError(error.MissingPrivateData, LibfsHelperLab.simpleTransactionSetPlan(8, false));
+}
+
 test "transaction release planner frees page-backed private data and returns zero" {
     const plan = LibfsHelperLab.simpleTransactionReleasePlan(true);
 
@@ -511,23 +581,6 @@ test "transaction release planner keeps the no-private-data path explicit" {
     try std.testing.expect(!plan.frees_page_backed_private_data);
     try std.testing.expect(!plan.clears_private_data);
     try std.testing.expect(plan.returns_zero);
-}
-
-test "transaction publish planner keeps response-size validation and publish bookkeeping explicit" {
-    const plan = try LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit, true);
-
-    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
-    try std.testing.expectEqual(simple_transaction_limit, plan.requested_response_size);
-    try std.testing.expectEqual(simple_transaction_limit, plan.transaction_limit);
-    try std.testing.expect(plan.requires_private_data);
-    try std.testing.expect(plan.publishes_after_barrier);
-    try std.testing.expectEqual(simple_transaction_limit, plan.published_response_size);
-
-    const empty = try LibfsHelperLab.simpleTransactionSetPlan(0, true);
-    try std.testing.expectEqual(@as(usize, 0), empty.published_response_size);
-
-    try std.testing.expectError(error.InputTooLarge, LibfsHelperLab.simpleTransactionSetPlan(simple_transaction_limit + 1, true));
-    try std.testing.expectError(error.MissingPrivateData, LibfsHelperLab.simpleTransactionSetPlan(8, false));
 }
 
 test "offset seek plan accepts SEEK_SET positions into the real-entry window" {
@@ -563,7 +616,7 @@ test "offset seek plan rejects unsupported whence values" {
     try std.testing.expectEqual(OffsetSeekStatus.unsupported_whence, plan.status);
     try std.testing.expectEqual(@as(?i64, null), plan.resolved_offset);
     try std.testing.expect(!plan.points_at_real_entry_window);
-    try std.testing.expect(!plan.points_at_end_of_directory);
+    try std.testing.expect(!plan.points_atEndOfDirectory);
 }
 
 test "offset seek plan recognizes the end-of-directory sentinel" {
