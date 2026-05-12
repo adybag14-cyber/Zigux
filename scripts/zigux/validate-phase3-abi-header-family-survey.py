@@ -31,6 +31,16 @@ FORBIDDEN_CURRENT_PACKET_MARKERS = (
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
 )
+REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS = {
+    "include/linux/zigux.h": 1,
+    "include/zigux/abi.h": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/bindings/abi.zig": 1,
+    "zigux/kernel/export_shim.zig": 1,
+    "zigux/uapi/version.zig": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "starter UAPI surface remains a bounded version-plus-dev_t pair": 1,
+}
 REQUIRED_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
@@ -50,6 +60,7 @@ REQUIRED_SHARED_REMINDER_MARKER_COUNTS = {
     "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail": 1,
     "should stay anchored in this dedicated survey and the paired next-step note": 1,
 }
+REVIEW_BOUNDARY_PREFIX = "## Review boundary"
 SHARED_REMINDER_PREFIX = "## Shared reminder"
 
 
@@ -74,11 +85,11 @@ def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> s
 def validate_text(text: str) -> list[str]:
     if "## Current packet" not in text:
         return ["missing current packet section"]
-    if "## Review boundary" not in text:
+    if REVIEW_BOUNDARY_PREFIX not in text:
         return ["missing review boundary section"]
 
     current_packet = text.split("## Current packet", 1)[1].split(
-        "## Review boundary", 1
+        REVIEW_BOUNDARY_PREFIX, 1
     )[0]
     issues = [marker for marker in REQUIRED_MARKERS if marker not in current_packet]
     issues.extend(
@@ -86,6 +97,19 @@ def validate_text(text: str) -> list[str]:
         for marker in FORBIDDEN_CURRENT_PACKET_MARKERS
         if marker in current_packet
     )
+
+    review_boundary = _extract_section(text, REVIEW_BOUNDARY_PREFIX, "## Non-goals")
+    if review_boundary is None:
+        issues.append("missing review boundary section")
+        return issues
+
+    for marker, expected_count in REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS.items():
+        actual_count = review_boundary.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                "review boundary marker count drift: "
+                f"{marker} (expected {expected_count}, found {actual_count})"
+            )
 
     shared_reminder = _extract_section(text, SHARED_REMINDER_PREFIX, None)
     if shared_reminder is None:
@@ -107,7 +131,9 @@ def run_self_test() -> int:
         "## Current packet\n"
         + "\n".join(REQUIRED_MARKERS)
         + "\n## Review boundary\n"
-        + "boundary marker\n"
+        + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS.keys())
+        + "\n## Non-goals\n"
+        + "non-goal marker\n"
         + "\n## Shared reminder\n"
         + "\n".join(REQUIRED_SHARED_REMINDER_MARKER_COUNTS.keys())
         + "\n## Future follow-through\n"
@@ -151,6 +177,53 @@ def run_self_test() -> int:
     if forbidden not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected removed replay marker was not reported")
+        return 1
+
+    before, separator, after = sample.partition("## Review boundary\n")
+    if not separator:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected review boundary section separator was not found")
+        return 1
+    review_boundary, separator, tail = after.partition("\n## Non-goals\n")
+    if not separator:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected non-goals section separator was not found")
+        return 1
+
+    review_boundary_broken = review_boundary.replace("include/zigux/dev_t.h", "", 1)
+    broken = validate_text(
+        before + "## Review boundary\n" + review_boundary_broken + "\n## Non-goals\n" + tail
+    )
+    expected = (
+        "review boundary marker count drift: include/zigux/dev_t.h "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected review-boundary dev_t marker was not reported")
+        return 1
+
+    review_boundary_moved = review_boundary.replace(
+        "starter UAPI surface remains a bounded version-plus-dev_t pair",
+        "",
+        1,
+    )
+    broken = validate_text(
+        before
+        + "## Review boundary\n"
+        + review_boundary_moved
+        + "\n## Non-goals\n"
+        + tail
+        + "\nstarter UAPI surface remains a bounded version-plus-dev_t pair\n"
+    )
+    expected = (
+        "review boundary marker count drift: "
+        "starter UAPI surface remains a bounded version-plus-dev_t pair "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected section-scoped review-boundary drift was not reported")
         return 1
 
     broken = validate_text(sample.replace("Documentation/zigux/README.md", "", 1))
