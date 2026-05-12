@@ -62,14 +62,14 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
 ]
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
-    "scripts/zigux/check-zig-toolchain.py": 1,
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
-    "scripts/zigux/validate-phase2.py": 1,
-    "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
-    "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
-    "scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
-    "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
 }
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
@@ -668,7 +668,7 @@ def run_self_test_checks() -> list[str]:
                 PHASE2_MAKEFILE_RUN_COUNTS,
                 "makefile",
             ),
-            ["makefile:exact_count:scripts/zigux/validate-phase2.py:count=0:expected=1"],
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py:count=0:expected=1"],
         ),
         (
             "phase2_validator_missing_tool_manifest_command",
