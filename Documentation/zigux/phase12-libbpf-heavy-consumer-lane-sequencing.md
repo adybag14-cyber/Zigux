@@ -17,7 +17,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 - verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 
 ## Lane Scope
-- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` as present reviewability surfaces on current `master` rather than shipped replay surfaces in the shared smoke-first route.
+- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` as parked note-owned boundaries until they land again on current `master`.
 - Keep the shared replay order fixed unless a new shipped route lands first:
   1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
   2. `make -C zigux phase12-smoke`
@@ -31,13 +31,13 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 ## Anti-Overlap Rules
 - Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening helper-local behavior.
 - Keep the shared fallback split explicit here too: only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.
-- Keep the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` explicit as present reviewability surfaces while staying clear that they are still outside the shared shipped replay order.
+- Keep the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` explicit as parked note-owned boundaries while staying clear that they are still outside the shared shipped replay order until they land again on current `master`.
 - Leave driver-local replay and survey evolution to the separate complex-driver companion and the concrete `nvme_pci`, `virtio_net`, or `virtio_scsi` packet that changes.
 - The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.
 
 ## Boundaries
 - This note must not imply `skeleton.zig`, object-loader parity, relocation parity, direct queue-routing delivery, or other unshipped libbpf runtime surfaces.
-- There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`.
+- Current `master` does ship `scripts/zigux/validate-phase12.py` as an unwired helper, but there is still no shipped shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route.
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper queueing and transport anchors, so this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
