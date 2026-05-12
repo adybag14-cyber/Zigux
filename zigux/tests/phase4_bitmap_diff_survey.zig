@@ -142,7 +142,7 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
     try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
-    try expectContains(gate_evidence_source, "13 `DiffCase`, `13 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "`13 DiffCase`, `13 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
