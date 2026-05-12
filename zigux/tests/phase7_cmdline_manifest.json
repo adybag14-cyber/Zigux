@@ -1,0 +1,100 @@
+{
+  "lane_key": "P7-Y06",
+  "phase": "Phase 7",
+  "anchor": "lib/cmdline.c",
+  "roadmap_destinations": [
+    "lib/cmdline.zig"
+  ],
+  "review_surfaces": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase7-cmdline-slice.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
+    "zigux/tests/README.md",
+    "zigux/tests/phase7_build.zig",
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/phase7_cmdline_manifest.json",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "lib/cmdline.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
+  ],
+  "covered_helpers": [
+    "getOption",
+    "getOptions",
+    "memparse",
+    "parseOptionStr",
+    "nextArg"
+  ],
+  "ownership_focus": [
+    "nextArg caller-owned buffer slices",
+    "nextArg empty-input borrowed-slice reuse",
+    "nextArg leading-whitespace sentinel token",
+    "validator-first shared Phase 7 replay route"
+  ],
+  "survey_summary": {
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_build_present": true,
+    "preexisting_phase7_doc_present": true,
+    "preexisting_phase7_helper_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase7-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_build.zig",
+      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the cmdline runtime-safe leaf packet aligned with the parked helper tranche."
+    },
+    {
+      "id": "phase7-cmdline-helper",
+      "status": "starter_landed",
+      "kind": "runtime_leaf_helper",
+      "zigux_destination": "lib/cmdline.zig",
+      "why_now": "The roadmap names lib/cmdline.zig directly, and the live helper packet already keeps bounded parsing, range handling, and caller-slice ownership reviewable without widening into shell, process, or runtime-loader behavior."
+    },
+    {
+      "id": "phase7-cmdline-dedicated-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_cmdline.zig",
+      "why_now": "Dedicated Phase 7 tests keep getOption/getOptions range parsing, memparse suffix handling, exact bare-option matching, and nextArg caller-slice behavior reviewable around the landed helper packet."
+    },
+    {
+      "id": "phase7-cmdline-shared-fixtures",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+      "why_now": "The serialized next_arg edge-fixture layer keeps the quoted-token, leading-equals, unterminated-quote, and whitespace-trimming cases reviewable from one committed packet instead of leaving them spread across ad hoc inline tests."
+    },
+    {
+      "id": "phase7-cmdline-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase7-cmdline-slice.md",
+      "why_now": "The slice note records the bounded product surface, the parked no-sample boundary, and the validator-first review route so this Phase 7 lane stays tied to the current helper packet instead of drifting into broader parsing policy."
+    },
+    {
+      "id": "phase7-cmdline-manifest-packet",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_cmdline_manifest.json",
+      "why_now": "The machine-readable manifest packet keeps the landed helper, survey, fixture, and shared validation surfaces auditable from one current Phase 7 record instead of leaving them implicit in the surrounding docs and survey gate."
+    },
+    {
+      "id": "phase7-cmdline-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_cmdline_survey.zig",
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, helper-local review surfaces, and shared validator-backed route explicit without reopening helper behavior."
+    }
+  ]
+}
