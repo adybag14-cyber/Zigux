@@ -70,6 +70,8 @@ REQUIRED_MARKERS = {
 EXACT_COUNT_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": {
         "make -C zigux phase7-validate": 1,
+        "python3 scripts/zigux/check-phase7-make-wrapper.py": 0,
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py": 0,
     },
     "zigux/Makefile": {
         "scripts/zigux/check-phase7-make-wrapper.py --self-test": 1,
@@ -84,6 +86,7 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
+
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -92,6 +95,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
+
 
 
 def collect_count_mismatches(root: Path) -> list[str]:
@@ -105,11 +109,13 @@ def collect_count_mismatches(root: Path) -> list[str]:
     return mismatches
 
 
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], []
     return [], collect_missing_markers(root), collect_count_mismatches(root)
+
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -135,6 +141,7 @@ def write_fixture_root(tmp_root: Path) -> None:
     makefile_path.write_text(makefile_text + "\n", encoding="utf-8")
 
 
+
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
@@ -150,11 +157,13 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
+
 def expect_count_mismatch(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert count_mismatches == [mismatch], case
+
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -163,6 +172,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     updated = original.replace(old, new, 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
+
 
 
 def run_self_test() -> None:
@@ -251,9 +261,32 @@ def run_self_test() -> None:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-validate', found 2",
         )
+        write_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        direct_make_wrapper_hook = "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test"
+        workflow_path.write_text(workflow_text + direct_make_wrapper_hook + "\n", encoding="utf-8")
+        expect_count_mismatch(
+            "direct_make_wrapper_workflow_hook",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 0 occurrence(s) of 'python3 scripts/zigux/check-phase7-make-wrapper.py', found 1",
+        )
+        write_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        direct_alignment_hook = "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"
+        workflow_path.write_text(workflow_text + direct_alignment_hook + "\n", encoding="utf-8")
+        expect_count_mismatch(
+            "direct_alignment_workflow_hook",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 0 occurrence(s) of 'python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py', found 1",
+        )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=8")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=10")
+
 
 
 def main() -> int:
