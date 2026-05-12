@@ -18,6 +18,7 @@ pub const ModuleDescriptor = struct {
     provides_lookup_planning: bool,
     provides_transaction_release_planning: bool,
     provides_offset_seek_planning: bool,
+    provides_offset_readdir_planning: bool,
     provides_offset_rename_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
@@ -87,6 +88,30 @@ pub const OffsetDirectorySeekPlan = struct {
     points_at_end_of_directory: bool,
 };
 
+pub const OffsetReaddirStatus = enum {
+    ok,
+    negative_position,
+};
+
+pub const OffsetReaddirMode = enum {
+    blocked_on_emit_dots,
+    ready_to_iterate,
+    ready_at_end_of_directory,
+};
+
+pub const OffsetReaddirPlan = struct {
+    anchor: []const u8,
+    current_position: i64,
+    emit_dots_result: bool,
+    status: OffsetReaddirStatus,
+    mode: ?OffsetReaddirMode,
+    returns_zero: bool,
+    requires_dir_emit_dots: bool,
+    enters_offset_iteration: bool,
+    keeps_current_pos: bool,
+    treats_end_of_directory_as_terminal: bool,
+};
+
 pub const OffsetSlotClass = enum {
     missing,
     dot_entry_window,
@@ -147,6 +172,7 @@ pub const LibfsHelperLab = struct {
             .provides_lookup_planning = true,
             .provides_transaction_release_planning = true,
             .provides_offset_seek_planning = true,
+            .provides_offset_readdir_planning = true,
             .provides_offset_rename_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
@@ -251,6 +277,52 @@ pub const LibfsHelperLab = struct {
         };
     }
 
+    pub fn planOffsetReaddir(current_position: i64, emit_dots_result: bool) OffsetReaddirPlan {
+        if (current_position < 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .status = .negative_position,
+                .mode = null,
+                .returns_zero = false,
+                .requires_dir_emit_dots = true,
+                .enters_offset_iteration = false,
+                .keeps_current_pos = false,
+                .treats_end_of_directory_as_terminal = false,
+            };
+        }
+
+        if (!emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .status = .ok,
+                .mode = .blocked_on_emit_dots,
+                .returns_zero = true,
+                .requires_dir_emit_dots = true,
+                .enters_offset_iteration = false,
+                .keeps_current_pos = true,
+                .treats_end_of_directory_as_terminal = false,
+            };
+        }
+
+        const terminal = current_position == dir_offset_end_of_directory;
+        return .{
+            .anchor = descriptor().anchor,
+            .current_position = current_position,
+            .emit_dots_result = emit_dots_result,
+            .status = .ok,
+            .mode = if (terminal) .ready_at_end_of_directory else .ready_to_iterate,
+            .returns_zero = true,
+            .requires_dir_emit_dots = true,
+            .enters_offset_iteration = !terminal,
+            .keeps_current_pos = terminal,
+            .treats_end_of_directory_as_terminal = terminal,
+        };
+    }
+
     pub fn classifyOffsetSlot(offset: ?i64) OffsetSlotClass {
         if (offset == null) {
             return .missing;
@@ -337,6 +409,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_lookup_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
+    try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
@@ -453,6 +526,37 @@ test "offset seek plan recognizes the end-of-directory sentinel" {
     try std.testing.expectEqual(@as(?i64, dir_offset_end_of_directory), plan.resolved_offset);
     try std.testing.expect(!plan.points_at_real_entry_window);
     try std.testing.expect(plan.points_at_end_of_directory);
+}
+
+test "offset readdir plan gates offset iteration on emit_dots and eod state" {
+    const blocked = LibfsHelperLab.planOffsetReaddir(dir_offset_first + 4, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", blocked.anchor);
+    try std.testing.expectEqual(OffsetReaddirStatus.ok, blocked.status);
+    try std.testing.expectEqual(OffsetReaddirMode.blocked_on_emit_dots, blocked.mode.?);
+    try std.testing.expect(blocked.returns_zero);
+    try std.testing.expect(blocked.requires_dir_emit_dots);
+    try std.testing.expect(!blocked.enters_offset_iteration);
+    try std.testing.expect(blocked.keeps_current_pos);
+    try std.testing.expect(!blocked.treats_end_of_directory_as_terminal);
+
+    const active = LibfsHelperLab.planOffsetReaddir(dir_offset_first + 4, true);
+    try std.testing.expectEqual(OffsetReaddirStatus.ok, active.status);
+    try std.testing.expectEqual(OffsetReaddirMode.ready_to_iterate, active.mode.?);
+    try std.testing.expect(active.enters_offset_iteration);
+    try std.testing.expect(!active.keeps_current_pos);
+    try std.testing.expect(!active.treats_end_of_directory_as_terminal);
+
+    const terminal = LibfsHelperLab.planOffsetReaddir(dir_offset_end_of_directory, true);
+    try std.testing.expectEqual(OffsetReaddirStatus.ok, terminal.status);
+    try std.testing.expectEqual(OffsetReaddirMode.ready_at_end_of_directory, terminal.mode.?);
+    try std.testing.expect(!terminal.enters_offset_iteration);
+    try std.testing.expect(terminal.keeps_current_pos);
+    try std.testing.expect(terminal.treats_end_of_directory_as_terminal);
+
+    const invalid = LibfsHelperLab.planOffsetReaddir(-1, true);
+    try std.testing.expectEqual(OffsetReaddirStatus.negative_position, invalid.status);
+    try std.testing.expectEqual(@as(?OffsetReaddirMode, null), invalid.mode);
+    try std.testing.expect(!invalid.returns_zero);
 }
 
 test "offset slot classification distinguishes managed entries from reserved sentinels" {
