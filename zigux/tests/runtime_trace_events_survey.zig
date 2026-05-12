@@ -344,11 +344,11 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
     try expectContains(
         runtime_trace_events_module,
-        "test \"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\" {",
+        "test \\\"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\\\" {",
     );
     try expectContains(
         runtime_trace_events_module,
-        "test \"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\" {",
+        "test \\\"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\\\" {",
     );
     try expectContains(
         runtime_trace_events_module,
@@ -361,19 +361,19 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
 
     try expectContains(
         runtime_trace_events_loader,
-        "test \"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\" {",
+        "test \\\"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\\\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\" {",
+        "test \\\"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\\\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \"runtime trace-events loader rejects registration snapshot drift\" {",
+        "test \\\"runtime trace-events loader rejects registration snapshot drift\\\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\" {",
+        "test \\\"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\\\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
@@ -384,9 +384,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         "try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));",
     );
 
+    try expectContains(phase9_build, "runtime_trace_events.zig");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-sample-tests");
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-module-tests");
     try expectContains(phase9_build, "runtime_trace_events_diff.zig");
+    try expectContains(phase9_build, "runtime_trace_events_loader.zig");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-loader-tests");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-tests");
     try expectContains(phase9_build, "runtime_trace_events_survey.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-survey-tests");
 }
