@@ -39,6 +39,10 @@ PHASE3_SELFTEST_DRIVER_COMMAND = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py"
 )
 REQUIRED_SELFTEST_DRIVER_PATHS = (
+    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+    Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
 )
@@ -178,33 +182,22 @@ def run_self_test() -> int:
             print("expected synthetic makefile self-test route to validate")
             return 1
 
-        header_family_path = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
-        missing = validate_driver_inventory(
-            tuple(
-                entry
-                for entry in SELFTEST_COMMANDS
-                if entry[0] != header_family_path
+        for required_path in REQUIRED_SELFTEST_DRIVER_PATHS:
+            missing = validate_driver_inventory(
+                tuple(
+                    entry
+                    for entry in SELFTEST_COMMANDS
+                    if entry[0] != required_path
+                )
             )
-        )
-        expected = f"missing selftest command entry: {header_family_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing header-family selftest command was not reported")
-            return 1
-
-        export_uapi_path = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
-        missing = validate_driver_inventory(
-            tuple(
-                entry
-                for entry in SELFTEST_COMMANDS
-                if entry[0] != export_uapi_path
-            )
-        )
-        expected = f"missing selftest command entry: {export_uapi_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing export/UAPI selftest command was not reported")
-            return 1
+            expected = f"missing selftest command entry: {required_path.as_posix()}"
+            if expected not in missing:
+                print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+                print(
+                    "expected missing selftest command entry was not reported: "
+                    f"{required_path.as_posix()}"
+                )
+                return 1
 
         first_path = SELFTEST_COMMANDS[0][0]
         (root / first_path).unlink()
