@@ -35,7 +35,7 @@ The current parked deferred-exec packet covers:
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
-- a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus a stat-backed `sameLocation()` and `choosePwdCwdFromFilesystem()` pair that mirror the C helper's logical-`PWD` acceptance rule without widening into broader process or environment side effects
+- a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers, with `setupPathWithPwd()` keeping the logical-`PWD` acceptance rule reviewable without widening into broader process or environment side effects
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later deferred `execv_cmd()`-style handoff planning, plus a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`
 
@@ -46,7 +46,7 @@ The current tests keep these bounded edges explicit:
 - empty inherited `PATH` values preserve the C helper's trailing-colon shape instead of silently falling back to default search roots
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
-- the shared logical-`PWD` replay keeps the logical-`PWD` alias acceptance proof explicit while the filesystem-backed helper path accepts a symlinked alias to the same directory
+- the shared logical-`PWD` replay keeps the logical-`PWD` alias acceptance proof explicit while the identity-backed helper path accepts a same-device-and-inode alias to the same directory
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure deferred `execv` and `execl` handoff helpers keep the parked argv packet reviewable before any direct `execv_cmd()` or `execvp()` ownership exists
 - the `collectExeclArgs()` overflow and missing-null guards stay reviewable before any direct varargs launch path exists
