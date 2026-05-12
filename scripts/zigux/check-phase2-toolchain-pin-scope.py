@@ -344,12 +344,13 @@ def run_self_test() -> int:
     }
     assert validate_policy(valid_policy) == []
 
+    pin_target = EXPECTED_PIN_TARGETS[0]
     valid_notes = "\n".join(
         [
             f"- current pinned Zig channel: `{SELF_TEST_CHANNEL}`",
             f"- current minimum Zig version: `{SELF_TEST_CHANNEL}`",
-            "- current pinned bootstrap archive target: `x86_64-linux`",
-            f"- current pinned bootstrap archive sha256 (`{x86_64-linux}`): `{SELF_TEST_ARCHIVE_SHA256}`",
+            f"- current pinned bootstrap archive target: `{pin_target}`",
+            f"- current pinned bootstrap archive sha256 (`{pin_target}`): `{SELF_TEST_ARCHIVE_SHA256}`",
             *[f"- {marker}" if not marker.startswith("the ") else f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
     )
@@ -381,7 +382,7 @@ def run_self_test() -> int:
     assert validate_exact_workflow_runs(workflow_text, payload=valid_policy) == []
 
     for label, checks in EXACT_SURFACE_COUNTS.items():
-        text = "\n".join(checks.keys())
+        text = "\n".join(marker for marker, expected_count in checks.items() for _ in range(expected_count))
         assert validate_exact_marker_counts(text, label=label, checks=checks) == []
         duplicated = text + "\n" + next(iter(checks.keys()))
         issues = validate_exact_marker_counts(duplicated, label=label, checks=checks)
