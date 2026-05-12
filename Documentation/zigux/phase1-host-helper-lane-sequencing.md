@@ -90,6 +90,7 @@ Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helpe
 - If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.
 - If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.
 - For `tools/lib/bitmap.zig`, do not replay the closed `scripts/zigux/validate-phase1.py` or `scripts/zigux/validate-phase1-closure.py` validator cue; only reopen if a fresh reread shows new direct-anchor drift or committed shared replay drift.
+- If a same-lane follow-up stays inside shared validation instead of helper-local drift, the smallest honest parity-gate step is to teach `scripts/zigux/validate-phase1.py` to exact-check the four `PHASE1_BITMAP_DIRECT_OWNER`, `PHASE1_FIND_BIT_DIRECT_OWNER`, `PHASE1_RBTREE_DIRECT_OWNER`, and `PHASE1_STRING_DIRECT_OWNER` lines in this note before widening into any helper-local replay change.
 - If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.
 
 ## Footer
