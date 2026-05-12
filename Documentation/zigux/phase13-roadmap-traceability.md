@@ -36,37 +36,28 @@ If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifes
 
 Keep the current `landlock/ruleset` mapping explicit through:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
-- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-- `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- `zigux/tests/phase13_landlock_ruleset.zig`
+- `security/landlock/ruleset.zig`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-- `zigux/tests/phase13_build.zig`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Current `master` still materializes that dedicated ownership note plus the slice note, survey note, manifest, direct test, checker, and shared replay route for the `landlock/ruleset` lane. If any of those companions stop materializing on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
+Current `master` materializes the dedicated ownership note, the helper-local `security/landlock/ruleset.zig` starter, the dedicated packet checker, and the stable validator-first make routes for the `landlock/ruleset` lane. If direct companions such as `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `landlock/ruleset` packet still covers access-mask accounting, the matching-rule-versus-no-match `insert_rule()` planning split, tree-search outcome planning, and explicit no-match tree-link mode reviewability without claiming live rb-tree mutation, `rb_replace_node()`, object ownership, hierarchy lifetime, deferred frees, or full Landlock enforcement.
-The dedicated ownership note should stay visible here as roadmap-to-repo evidence, and any still-missing slice, survey, manifest, or direct test companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
+The dedicated ownership note plus the shipped helper-local ruleset starter should stay visible here as roadmap-to-repo evidence, and any still-missing slice, survey, manifest, direct-test, or direct-build companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
 
 ## Landlock Syscalls Lane Traceability
 
 Keep the current `landlock/syscalls` mapping explicit through:
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
-- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `zigux/tests/phase13_landlock_syscalls.zig`
-- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
-- `zigux/tests/phase13_build.zig`
+- `security/landlock/syscalls.zig`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Current `master` still materializes that dedicated governance note plus the slice note, survey note, manifest, direct test, reviewability shard, and shared replay route for the `landlock/syscalls` lane. If any of those companions stop materializing on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
+Current `master` materializes the dedicated governance note, the helper-local `security/landlock/syscalls.zig` starter, and the stable validator-first make routes for the `landlock/syscalls` lane. If direct companions such as `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, or `zigux/tests/phase13_build.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `landlock/syscalls` packet still covers `landlock_restrict_self()` flag and credential-gate planning, one bounded `landlock_add_rule()` wrapper step for path-beneath and net-port rule validation, explicit ruleset-FD and write-mode validation, and the `ruleset_fops` plus `fop_ruleset_release()` reviewability path without claiming in-memory `get_ruleset_from_fd()` or `get_path_from_fd()` planners, `add_rule_path_beneath()` path handoff, anonymous-fd creation, live FD ownership, path import, credential replacement, thread synchronization, or full Landlock enforcement.
-The dedicated governance note should stay visible here as roadmap-to-repo evidence, and any still-missing slice, survey, manifest, direct-test, or reviewability companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
+The dedicated governance note plus the shipped helper-local syscalls starter should stay visible here as roadmap-to-repo evidence, and any still-missing slice, survey, manifest, direct-test, reviewability, or direct-build companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
 
 ## Broad Surface Expectations
 
@@ -92,9 +83,9 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 ## Checker-Backed Evidence
 
 Keep the roadmap-to-repo map explicit about the shipped or repo-reality-gapped Phase 13 packet-truthfulness checks that sit beside the shared replay:
-- `scripts/zigux/check-phase13-landlock-ruleset-packet.py` is still materialized on current `master` and keeps `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-ruleset-ownership.md` aligned as one roadmap-backed `landlock/ruleset` packet while the direct tests-root companions remain subject to repo reality.
-- `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` currently materialize the direct `landlock/syscalls` packet on current `master`; together with `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-governance.md`, they keep the syscall-facing roadmap anchor reviewable as one bounded helper-first packet while any absent direct companions should still be recorded as repo-reality gaps rather than overstated as closure evidence.
-- `scripts/zigux/check-phase13-devres-packet-alignment.py` is the shipped direct `devres` truthfulness guard on current `master`; it keeps `zigux/tests/phase13_devres_manifest.json` aligned with `Documentation/zigux/phase13-devres-survey.md` so manifest-backed `devres` release wording cannot drift while `zigux/tests/phase13_devres_dma_coherent.zig` stays the shipped focused DMA-boundary replay and `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` remain repo-reality gaps.
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py` is still materialized on current `master`; together with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, the shipped `security/landlock/ruleset.zig` starter, and the stable make routes, it keeps the roadmap-backed `landlock/ruleset` packet reviewable while `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, and `zigux/tests/phase13_build.zig` stay framed as repo-reality gaps until current `master` materializes them.
+- `security/landlock/syscalls.zig` is the shipped helper-local `landlock/syscalls` starter on current `master`; together with `Documentation/zigux/phase13-landlock-syscalls-governance.md` and the stable make routes, it keeps the syscall-facing roadmap anchor reviewable as one bounded helper-first packet while `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_build.zig` stay framed as repo-reality gaps rather than closure evidence.
+- `scripts/zigux/check-phase13-devres-packet-alignment.py` is the shipped direct `devres` truthfulness guard on current `master`; it keeps `zigux/tests/phase13_devres_manifest.json` aligned with `Documentation/zigux/phase13-devres-survey.md` so manifest-backed `devres` release wording cannot drift while the shipped `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` companions stay explicit, and `zigux/tests/phase13_devres_boundary_evidence.zig` remains a repo-reality gap until current `master` materializes it again.
 - If `scripts/zigux/check-phase13-notifier-packet.py` cannot be materialized on current `master`, keep adjacent notifier evidence anchored to `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`, and record the missing checker plus direct notifier ABI, helper, tests-root, and HVC header companions as repo-reality gaps instead of shipped current-master evidence.
 
 ## Shared Replay Route
