@@ -48,10 +48,10 @@
     },
     {
       "id": "runtime-kretprobe-shared-prepared-plan-drift",
-      "status": "verification_gap",
+      "status": "starter_landed",
       "kind": "shared_loader_review_guard",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "The current requestSharedRuntimeLoad review surface still needs an explicit prepared-plan drift guard before the sample-side loader advances to waiting_on_runtime_substrate, so shared request drift cannot desynchronize the local kretprobe loader stage from the shared runtime_loader request state during compile and selftest review."
+      "why_now": "The current requestSharedRuntimeLoad review surface now keeps prepared-plan drift explicit before the sample-side loader advances to waiting_on_runtime_substrate, so shared request drift cannot desynchronize the local kretprobe loader stage from the shared runtime_loader request state during compile and selftest review."
     },
     {
       "id": "runtime-kretprobe-substrate-handoff",
