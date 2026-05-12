@@ -35,6 +35,9 @@
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
       ],
+      "fixtures": [
+        "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
+      ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
     },
@@ -229,6 +232,8 @@
         "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+        "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+        "fixture_companion_role": "compact shared seed evidence for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases while executable comparison-budget replays stay inline in the focused bsearch test files",
         "policy": "keep representative sorted slices, duplicate-bearing lower- and upper-bound insertion probes, direct c abi equality probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module"
       }
     }
@@ -281,7 +286,8 @@
       "lower_upper_record_member_size_replay": true,
       "c_abi_equality_dynamic_lengths": 33,
       "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
-      "c_abi_equality_record_member_size_replay": true
+      "c_abi_equality_record_member_size_replay": true,
+      "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
     },
     "checksum": {
       "c_parity_cases": 22
