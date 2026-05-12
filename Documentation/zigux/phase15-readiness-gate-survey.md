@@ -6,9 +6,10 @@ This document records the parked Phase 15 readiness gate for the current Archite
 - `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=readiness-gate-survey`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-11`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current readiness packet remains a maintenance-mode governance surface only
-- Later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head
+- Later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head than `current-master-readback-2026-05-11`
 
 ## Readiness at Reviewed Head
 
