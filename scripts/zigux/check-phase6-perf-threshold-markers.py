@@ -15,6 +15,8 @@ class ValidationError(RuntimeError):
 
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
+CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
+BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
@@ -105,6 +107,18 @@ SURVEY_SNIPPETS = [
     "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
     "* checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` still pins two perf cases, `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases",
     "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
+]
+
+BASE64_SLICE_SNIPPETS = [
+    "- the dedicated base64 slowdown gate stays helper-local through `zigux/tests/phase6_base64_perf.zig` and `make -C zigux phase6-base64-perf`",
+    "- `zigux/tests/fixtures/phase6_base64_vectors.zig` owns the current slowdown corpus boundary through `perfReferenceSupportedVariant()`, so the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands",
+    "- the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs",
+]
+
+CATALOG_BASE64_SNIPPETS = [
+    "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
+    "- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
+    "- current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines",
 ]
 
 
@@ -225,6 +239,8 @@ def validate_manifest(repo_root: Path) -> None:
 def run_checks(repo_root: Path) -> None:
     validate_manifest(repo_root)
     ensure_text_markers(SURVEY_PATH, SURVEY_SNIPPETS, repo_root)
+    ensure_text_markers(CATALOG_PATH, CATALOG_BASE64_SNIPPETS, repo_root)
+    ensure_text_markers(BASE64_SLICE_PATH, BASE64_SLICE_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
     ensure_text_markers(CHECKSUM_PERF_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
     ensure_text_markers(CHECKSUM_VECTORS_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
@@ -313,6 +329,18 @@ def scaffold_repo(root: Path) -> None:
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
     write(root / SURVEY_PATH, "# Phase 6 Perf Gate Survey\n\n" + "\n".join(SURVEY_SNIPPETS) + "\n")
+    write(
+        root / CATALOG_PATH,
+        "# Phase 6 Helper Parity Catalog\n\n## Packet Rows\n\n### base64\n"
+        + "\n".join(CATALOG_BASE64_SNIPPETS)
+        + "\n",
+    )
+    write(
+        root / BASE64_SLICE_PATH,
+        "# Phase 6 Base64 Slice\n\n## Review Surface\n"
+        + "\n".join(BASE64_SLICE_SNIPPETS)
+        + "\n",
+    )
     write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
     write(root / CHECKSUM_PERF_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
     write(root / CHECKSUM_VECTORS_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
@@ -362,6 +390,18 @@ def run_self_test() -> None:
             SURVEY_PATH,
             "max_decode_slowdown_pct = 325",
             "max_decode_slowdown_pct = 300",
+        )
+        assert_failure(
+            root,
+            CATALOG_PATH,
+            "current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines",
+            "current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std`, `urlsafe`, and `imap` baselines",
+        )
+        assert_failure(
+            root,
+            BASE64_SLICE_PATH,
+            "the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands",
+            "the shipped perf packet is intentionally limited to the direct `std`, `urlsafe`, and `imap` baselines",
         )
         assert_failure(
             root,
