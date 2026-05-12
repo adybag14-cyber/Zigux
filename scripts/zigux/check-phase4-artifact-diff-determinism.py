@@ -43,6 +43,12 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
     "review_note_marker_round_trip",
     "review_note_owner_marker_drift",
     "review_note_marker_drift",
+    "cli_help_round_trip",
+    "cli_help_line_drift",
+    "cli_missing_argument_parser_round_trip",
+    "cli_missing_argument_parser_stderr_drift",
+    "cli_invalid_mode_parser_round_trip",
+    "cli_invalid_mode_parser_stderr_drift",
     "helper_summary_round_trip",
     "contract_summary_round_trip",
     "helper_summary_status_drift",
@@ -128,7 +134,7 @@ REQUIRED_PHASE4_USE_MARKERS = [
 ]
 REQUIRED_SURVEY_NOTE_MARKERS = [
     "- `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`",
-    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18`",
+    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24`",
     f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(EXPECTED_BASE_CONTRACT_CASES)}`",
     "- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`",
     f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(EXPECTED_REPEAT_CONTRACT_CASES)}`",
@@ -137,7 +143,7 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
 ]
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
-    "- deterministic survey self-test catalog: `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, review-note, helper-summary, and contract-catalog drift coverage",
+    "- deterministic survey self-test catalog: `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, survey-note, review-note, docs-root, scripts-root, helper-summary, and contract-catalog drift coverage",
 ]
 REQUIRED_DOCS_ROOT_MARKERS = [
     "- `python3 scripts/zigux/validate-phase4.py` keeps the shared `scripts/zigux/check-artifact-diff-contract.py` contract replay, the dedicated `scripts/zigux/check-phase4-artifact-diff-determinism.py` deterministic catalog checker, the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` workflow-route-count checker, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed runtime atomic64 handoff pair `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, the manifest-backed bitmap rollback survey pair `zigux/tests/phase4_bitmap_diff_manifest.json` plus `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint, `zigux/Makefile`, `make -C zigux phase4-validate`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4`, and the bootstrap workflow.",
