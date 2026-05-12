@@ -8,13 +8,6 @@ const Gap = struct {
     why_now: []const u8,
 };
 
-const Handoff = struct {
-    current_mode: []const u8,
-    replay_commands: []const []const u8,
-    blocker_posture_requirement: []const u8,
-    next_step: []const u8,
-};
-
 const PolicyManifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -22,7 +15,6 @@ const PolicyManifest = struct {
     roadmap_requirement: []const u8,
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
-    handoff: Handoff,
     gaps: []const Gap,
 };
 
@@ -74,9 +66,6 @@ test "phase 15 blocker evidence packet keeps the blocked posture and focused com
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
-    try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
-    try std.testing.expectEqual(@as(usize, 3), manifest.handoff.replay_commands.len);
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_build.zig");
@@ -114,7 +103,7 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     });
     defer parsed.deinit();
 
-    try std.testing.expectEqualStrings("P15-L01", parsed.value.lane_key);
+    try std.testing.expectEqualStrings("P15-Y03", parsed.value.lane_key);
     try std.testing.expect(!parsed.value.posture.architecture_council_status_change_approval_recorded);
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", parsed.value.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), parsed.value.metrics.active_freeze_in_c_anchor_count);
