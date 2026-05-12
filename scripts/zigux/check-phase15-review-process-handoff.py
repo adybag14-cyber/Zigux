@@ -18,6 +18,8 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+FREEZE_MAP_MANIFEST_PATH = "zigux/tests/phase15_freeze_map_manifest.json"
+PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
 
 NOTE_MARKERS = (
     "## Trigger Conditions",
@@ -181,6 +183,13 @@ HANDOFF_NEXT_STEP_MARKERS = (
     "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
 )
 
+EXPECTED_FREEZE_IN_C_TARGETS = (
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -203,6 +212,79 @@ def _require_items(items: list[str], markers: tuple[str, ...], prefix: str, issu
             issues.append(f"{prefix}:missing:{marker}")
 
 
+def _require_json_object(value: object, prefix: str, issues: list[str]) -> dict:
+    if not isinstance(value, dict):
+        issues.append(f"{prefix}:missing:object")
+        return {}
+    return value
+
+
+def _validate_governance_alignment(
+    review_manifest: dict,
+    freeze_manifest: dict,
+    parity_scorecard: dict,
+    issues: list[str],
+) -> None:
+    if review_manifest.get("current_approval_state") != "no_freeze_map_status_change_approved":
+        issues.append("manifest:approval_state_mismatch")
+
+    posture = _require_json_object(parity_scorecard.get("posture"), "parity_scorecard:posture", issues)
+    if posture.get("architecture_council_status_change_approval_recorded") is not False:
+        issues.append("parity_scorecard:approval_posture_mismatch")
+
+    metrics = _require_json_object(parity_scorecard.get("metrics"), "parity_scorecard:metrics", issues)
+    if metrics.get("architecture_council_status_change_approval_count") != 0:
+        issues.append("parity_scorecard:approval_count_mismatch")
+
+    freeze_surveyed_commit = freeze_manifest.get("surveyed_commit")
+    parity_surveyed_commit = parity_scorecard.get("surveyed_commit")
+    if freeze_surveyed_commit != parity_surveyed_commit:
+        issues.append("governance_alignment:freeze_vs_parity_surveyed_commit")
+
+    freeze_targets = freeze_manifest.get("freeze_in_c_targets")
+    if freeze_targets != list(EXPECTED_FREEZE_IN_C_TARGETS):
+        issues.append("freeze_map_manifest:freeze_in_c_targets")
+
+    freeze_blockers = freeze_manifest.get("blocker_ownership")
+    anchors = parity_scorecard.get("anchors")
+    if not isinstance(freeze_blockers, list):
+        issues.append("freeze_map_manifest:blocker_ownership")
+        freeze_blockers = []
+    if not isinstance(anchors, list):
+        issues.append("parity_scorecard:anchors")
+        anchors = []
+
+    freeze_map = {item.get("anchor"): item for item in freeze_blockers if isinstance(item, dict)}
+    parity_map = {item.get("path"): item for item in anchors if isinstance(item, dict)}
+    freeze_paths = [item.get("anchor") for item in freeze_blockers if isinstance(item, dict)]
+    parity_paths = [item.get("path") for item in anchors if isinstance(item, dict)]
+    if freeze_paths != list(EXPECTED_FREEZE_IN_C_TARGETS):
+        issues.append("freeze_map_manifest:blocker_ownership")
+    if parity_paths != list(EXPECTED_FREEZE_IN_C_TARGETS):
+        issues.append("parity_scorecard:anchors")
+
+    for anchor in EXPECTED_FREEZE_IN_C_TARGETS:
+        freeze_entry = freeze_map.get(anchor)
+        parity_entry = parity_map.get(anchor)
+        if not isinstance(freeze_entry, dict) or not isinstance(parity_entry, dict):
+            continue
+        parity_archive = _require_json_object(
+            parity_entry.get("evidence_archive"),
+            f"parity_scorecard:evidence_archive:{anchor}",
+            issues,
+        )
+        if parity_entry.get("lane_owner") != freeze_entry.get("owner"):
+            issues.append(f"governance_alignment:owner:{anchor}")
+        if parity_entry.get("required_approver_set") != freeze_entry.get("required_approver_set"):
+            issues.append(f"governance_alignment:required_approver_set:{anchor}")
+        if parity_entry.get("rollback_owner") != freeze_entry.get("rollback_owner"):
+            issues.append(f"governance_alignment:rollback_owner:{anchor}")
+        if parity_entry.get("current_blocker") != freeze_entry.get("latest_blocker_disposition"):
+            issues.append(f"governance_alignment:current_blocker:{anchor}")
+        if parity_archive.get("latest_blocker_disposition") != freeze_entry.get("latest_blocker_disposition"):
+            issues.append(f"governance_alignment:evidence_archive.latest_blocker_disposition:{anchor}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -216,6 +298,8 @@ def validate(root: Path) -> list[str]:
         REVIEW_CHECKLIST_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
+        FREEZE_MAP_MANIFEST_PATH,
+        PARITY_SCORECARD_PATH,
     )
     for rel in required_files:
         if not (root / rel).exists():
@@ -232,42 +316,42 @@ def validate(root: Path) -> list[str]:
     _require_text_markers(_read(root / SCRIPTS_README_PATH), SCRIPTS_README_MARKERS, "scripts_readme", issues)
     _require_text_markers(_read(root / TESTS_README_PATH), TESTS_README_PACKET_MARKERS, "tests_readme", issues)
 
-    manifest = json.loads(_read(root / MANIFEST_PATH))
-    if manifest.get("current_approval_state") != "no_freeze_map_status_change_approved":
-        issues.append("manifest:approval_state_mismatch")
+    review_manifest = json.loads(_read(root / MANIFEST_PATH))
+    freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
+    parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
 
     _require_items(
-        manifest.get("ownership_evidence_fields", []),
+        review_manifest.get("ownership_evidence_fields", []),
         OWNERSHIP_EVIDENCE_FIELDS,
         "manifest_ownership_evidence_fields",
         issues,
     )
     _require_items(
-        manifest.get("required_review_packet_fields", []),
+        review_manifest.get("required_review_packet_fields", []),
         REQUIRED_REVIEW_PACKET_FIELDS,
         "manifest_required_review_packet_fields",
         issues,
     )
     _require_items(
-        manifest.get("trigger_conditions", []),
+        review_manifest.get("trigger_conditions", []),
         TRIGGER_CONDITIONS,
         "manifest_trigger_conditions",
         issues,
     )
     _require_items(
-        manifest.get("reopen_trigger_catalog", []),
+        review_manifest.get("reopen_trigger_catalog", []),
         REOPEN_TRIGGER_CATALOG,
         "manifest_reopen_trigger_catalog",
         issues,
     )
     _require_items(
-        manifest.get("decision_buckets", []),
+        review_manifest.get("decision_buckets", []),
         DECISION_BUCKETS,
         "manifest_decision_buckets",
         issues,
     )
 
-    handoff = manifest.get("handoff")
+    handoff = review_manifest.get("handoff")
     if not isinstance(handoff, dict):
         issues.append("manifest:missing:handoff")
         return issues
@@ -284,6 +368,8 @@ def validate(root: Path) -> list[str]:
         issues.append("manifest:missing:handoff.next_step")
     else:
         _require_text_markers(next_step, HANDOFF_NEXT_STEP_MARKERS, "manifest_handoff_next_step", issues)
+
+    _validate_governance_alignment(review_manifest, freeze_manifest, parity_scorecard, issues)
 
     return issues
 
@@ -312,6 +398,105 @@ def _seed_fixture_tree(root: Path) -> None:
                     "replay_commands": list(HANDOFF_REPLAY_COMMANDS),
                     "next_step": " ".join(HANDOFF_NEXT_STEP_MARKERS),
                 },
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    _write(
+        root / FREEZE_MAP_MANIFEST_PATH,
+        json.dumps(
+            {
+                "surveyed_commit": "current-master-readback-2026-05-12",
+                "freeze_in_c_targets": list(EXPECTED_FREEZE_IN_C_TARGETS),
+                "blocker_ownership": [
+                    {
+                        "anchor": "kernel/sched/core.c",
+                        "owner": "Architecture Council",
+                        "required_approver_set": "Architecture Council + PMO / Release Management",
+                        "rollback_owner": "Architecture Council + PMO / Release Management",
+                        "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
+                    },
+                    {
+                        "anchor": "mm/page_alloc.c",
+                        "owner": "Architecture Council",
+                        "required_approver_set": "Architecture Council + Validation and Perf Team",
+                        "rollback_owner": "Architecture Council + Validation and Perf Team",
+                        "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
+                    },
+                    {
+                        "anchor": "kernel/rcu/tree.c",
+                        "owner": "ABI and Runtime Team",
+                        "required_approver_set": "Architecture Council + ABI and Runtime Team",
+                        "rollback_owner": "Architecture Council + ABI and Runtime Team",
+                        "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                    },
+                    {
+                        "anchor": "net/core/skbuff.c",
+                        "owner": "Shared Subsystems Pod",
+                        "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                        "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    _write(
+        root / PARITY_SCORECARD_PATH,
+        json.dumps(
+            {
+                "surveyed_commit": "current-master-readback-2026-05-12",
+                "posture": {
+                    "architecture_council_status_change_approval_recorded": False,
+                },
+                "metrics": {
+                    "architecture_council_status_change_approval_count": 0,
+                },
+                "anchors": [
+                    {
+                        "path": "kernel/sched/core.c",
+                        "lane_owner": "Architecture Council",
+                        "required_approver_set": "Architecture Council + PMO / Release Management",
+                        "rollback_owner": "Architecture Council + PMO / Release Management",
+                        "current_blocker": "blocked_no_bounded_scheduler_seam",
+                        "evidence_archive": {
+                            "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
+                        },
+                    },
+                    {
+                        "path": "mm/page_alloc.c",
+                        "lane_owner": "Architecture Council",
+                        "required_approver_set": "Architecture Council + Validation and Perf Team",
+                        "rollback_owner": "Architecture Council + Validation and Perf Team",
+                        "current_blocker": "blocked_no_bounded_allocator_seam",
+                        "evidence_archive": {
+                            "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
+                        },
+                    },
+                    {
+                        "path": "kernel/rcu/tree.c",
+                        "lane_owner": "ABI and Runtime Team",
+                        "required_approver_set": "Architecture Council + ABI and Runtime Team",
+                        "rollback_owner": "Architecture Council + ABI and Runtime Team",
+                        "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                        "evidence_archive": {
+                            "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                        },
+                    },
+                    {
+                        "path": "net/core/skbuff.c",
+                        "lane_owner": "Shared Subsystems Pod",
+                        "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                        "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
+                        "evidence_archive": {
+                            "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+                        },
+                    },
+                ],
             },
             indent=2,
         )
@@ -423,6 +608,74 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-11"
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [
+                "governance_alignment:freeze_vs_parity_surveyed_commit",
+            ],
+            "surveyed_commit_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["posture"]["architecture_council_status_change_approval_recorded"] = True
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["parity_scorecard:approval_posture_mismatch"],
+            "approval_posture_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["metrics"]["architecture_council_status_change_approval_count"] = 1
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["parity_scorecard:approval_count_mismatch"],
+            "approval_count_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["anchors"][2]["lane_owner"] = "Architecture Council"
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["governance_alignment:owner:kernel/rcu/tree.c"],
+            "owner_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
+        freeze_manifest["blocker_ownership"][3]["required_approver_set"] = "Architecture Council"
+        _write(root / FREEZE_MAP_MANIFEST_PATH, json.dumps(freeze_manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["governance_alignment:required_approver_set:net/core/skbuff.c"],
+            "approver_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
+        freeze_manifest["freeze_in_c_targets"] = list(EXPECTED_FREEZE_IN_C_TARGETS[:-1])
+        _write(root / FREEZE_MAP_MANIFEST_PATH, json.dumps(freeze_manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["freeze_map_manifest:freeze_in_c_targets"],
+            "freeze_map_targets",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         (root / REVIEW_CHECKLIST_PATH).unlink()
         _assert_only(
             validate(root),
@@ -459,7 +712,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS)}"
+        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 8}"
     )
     return 0
 
