@@ -157,14 +157,33 @@ test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
     try std.testing.expectEqual(base, byte_scoped_desc.base_addr);
     try std.testing.expectEqual(@as(u32, 12), byte_scoped_desc.length);
     try std.testing.expectEqual(@as(u32, 2), byte_scoped_desc.stride);
+    const bytes_scoped_desc = try mmio.rangeInteropPolicyBytes(
+        base,
+        10,
+        1,
+        @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        0,
+    );
+    try std.testing.expectEqual(base, bytes_scoped_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 10), bytes_scoped_desc.length);
+    try std.testing.expectEqual(@as(u32, 1), bytes_scoped_desc.stride);
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, reserved_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.none)));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.rangeInteropPolicyBytes(base, 10, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 1),
+    );
 
     try mmio.write8InteropPolicy(base, 0, 0x33, mmio_policy);
     try std.testing.expectEqual(@as(u8, 0x33), try mmio.read8InteropPolicy(base, 0, mmio_policy));
+    try mmio.write8InteropPolicyByte(base, 3, 0x7e, @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectEqual(
+        @as(u8, 0x7e),
+        try mmio.read8InteropPolicyByte(base, 3, @intFromEnum(abi.UnsafeScope.volatile_mmio)),
+    );
     try mmio.write16InteropPolicy(base, 2, 0x1234, mmio_policy);
     try std.testing.expectEqual(@as(u16, 0x1234), try mmio.read16InteropPolicy(base, 2, mmio_policy));
     try mmio.write16InteropPolicyByte(base, 4, 0x5678, @intFromEnum(abi.UnsafeScope.volatile_mmio));
