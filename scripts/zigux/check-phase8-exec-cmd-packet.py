@@ -176,6 +176,7 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-exec-cmd-packet.py`"),
             (DOCS_ROOT_PATH, "`make -C zigux phase8-exec-cmd-test`"),
             (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
+            (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
