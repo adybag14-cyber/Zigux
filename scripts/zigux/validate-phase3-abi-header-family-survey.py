@@ -44,6 +44,11 @@ REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS = {
     "zigux/uapi/dev_t.zig": 1,
     "starter UAPI surface remains a bounded version-plus-dev_t pair": 1,
 }
+REQUIRED_NON_GOALS_MARKER_COUNTS = {
+    "no new exported header family claims": 1,
+    "no runtime-loader or helper-lane expansion": 1,
+    "no deep-core header migration beyond the shipped export and UAPI surface": 1,
+}
 REQUIRED_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
@@ -64,6 +69,7 @@ REQUIRED_SHARED_REMINDER_MARKER_COUNTS = {
     "should stay anchored in this dedicated survey and the paired next-step note": 1,
 }
 REVIEW_BOUNDARY_PREFIX = "## Review boundary"
+NON_GOALS_PREFIX = "## Non-goals"
 SHARED_REMINDER_PREFIX = "## Shared reminder"
 
 
@@ -109,7 +115,7 @@ def validate_text(text: str) -> list[str]:
         if marker in current_packet
     )
 
-    review_boundary = _extract_section(text, REVIEW_BOUNDARY_PREFIX, "## Non-goals")
+    review_boundary = _extract_section(text, REVIEW_BOUNDARY_PREFIX, NON_GOALS_PREFIX)
     if review_boundary is None:
         issues.append("missing review boundary section")
         return issues
@@ -119,6 +125,19 @@ def validate_text(text: str) -> list[str]:
         if actual_count != expected_count:
             issues.append(
                 "review boundary marker count drift: "
+                f"{marker} (expected {expected_count}, found {actual_count})"
+            )
+
+    non_goals = _extract_section(text, NON_GOALS_PREFIX, SHARED_REMINDER_PREFIX)
+    if non_goals is None:
+        issues.append("missing non-goals section")
+        return issues
+
+    for marker, expected_count in REQUIRED_NON_GOALS_MARKER_COUNTS.items():
+        actual_count = non_goals.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                "non-goals marker count drift: "
                 f"{marker} (expected {expected_count}, found {actual_count})"
             )
 
@@ -144,7 +163,7 @@ def run_self_test() -> int:
         + "\n## Review boundary\n"
         + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS.keys())
         + "\n## Non-goals\n"
-        + "non-goal marker\n"
+        + "\n".join(REQUIRED_NON_GOALS_MARKER_COUNTS.keys())
         + "\n## Shared reminder\n"
         + "\n".join(REQUIRED_SHARED_REMINDER_MARKER_COUNTS.keys())
         + "\n## Future follow-through\n"
@@ -280,6 +299,61 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected section-scoped review-boundary drift was not reported")
+        return 1
+
+    before, separator, after = sample.partition("## Non-goals\n")
+    if not separator:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected non-goals section separator was not found")
+        return 1
+    non_goals, separator, tail = after.partition("\n## Shared reminder\n")
+    if not separator:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected shared reminder section separator was not found")
+        return 1
+
+    broken_non_goals = non_goals.replace(
+        "no runtime-loader or helper-lane expansion",
+        "",
+        1,
+    )
+    broken = validate_text(
+        before
+        + "## Non-goals\n"
+        + broken_non_goals
+        + "\n## Shared reminder\n"
+        + tail
+    )
+    expected = (
+        "non-goals marker count drift: no runtime-loader or helper-lane expansion "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected non-goals marker drift was not reported")
+        return 1
+
+    broken_non_goals = non_goals.replace(
+        "no deep-core header migration beyond the shipped export and UAPI surface",
+        "",
+        1,
+    )
+    broken = validate_text(
+        before
+        + "## Non-goals\n"
+        + broken_non_goals
+        + "\n## Shared reminder\n"
+        + tail
+        + "\nno deep-core header migration beyond the shipped export and UAPI surface\n"
+    )
+    expected = (
+        "non-goals marker count drift: "
+        "no deep-core header migration beyond the shipped export and UAPI surface "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected section-scoped non-goals drift was not reported")
         return 1
 
     broken = validate_text(sample.replace("Documentation/zigux/README.md", "", 1))
