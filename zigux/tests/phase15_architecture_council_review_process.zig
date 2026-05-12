@@ -106,11 +106,11 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/validate-phase15.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/check-phase15-scripts-readme-alignment.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/check-phase15-review-process-handoff.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "make -C zigux phase15-validate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "make -C zigux phase15-test") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "zigux/tests/phase15_readiness_gate_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "shared-summaries plus its direct validator surface") != null);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -197,12 +197,12 @@ test "phase 15 architecture council review-process manifest records the bounded 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15-validate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15-test") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-docs-root-validator-packet-undercount")) {
+        if (std.mem.eql(u8, gap.id, "phase15-docs-readme-maintenance-note-undercount")) {
             saw_docs_root_undercount = true;
-            try std.testing.expectEqualStrings("open", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/README.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "undercounts the current validator-first packet") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dedicated Phase 15 checker routes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "compact Phase 15 docs-root reminder") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-summary drift appears") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -210,9 +210,9 @@ test "phase 15 architecture council review-process manifest records the bounded 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), landed_count);
+    try std.testing.expectEqual(@as(usize, 12), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), open_count);
+    try std.testing.expectEqual(@as(usize, 0), open_count);
     try std.testing.expect(saw_doc);
     try std.testing.expect(saw_manifest);
     try std.testing.expect(saw_test);
@@ -275,7 +275,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`study_only_followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`bounded_dual_implementation`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`defer_or_reject`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-root-validator-route-trio-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-readme-maintenance-note-undercount") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-dated-readback-provenance-refresh") != null);
 }
 
