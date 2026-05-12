@@ -40,3 +40,19 @@ test "phase14 survey keeps the reviewability shard in the shared smoke packet" {
     try expectContains(survey_source, "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`");
     try expectContains(survey_source, "focused workqueue reviewability replay");
 }
+
+test "phase14 shared smoke packet keeps the current workqueue anchor metadata aligned" {
+    const survey_source = try readSurveySource();
+    defer std.testing.allocator.free(survey_source);
+
+    try expectContains(manifest_source, "\"lane_key\": \"P14-L04\"");
+    try expectContains(manifest_source, "\"surveyed_commit\": \"9b98d3b9c812840bf279508030be0b8de093736c\"");
+    try expectContains(manifest_source, "\"ready_next_gap\": \"\"");
+    try expectContains(manifest_source, "\"blocked_gap\": \"phase14-workqueue-live-execution-blocker\"");
+    try std.testing.expect(std.mem.indexOf(u8, manifest_source, "\"ready_next_gap\": \"phase14-workqueue-pending-bit-audit\"") == null);
+    try expectContains(
+        survey_source,
+        "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next none currently recorded, blocked `phase14-workqueue-live-execution-blocker`",
+    );
+    try std.testing.expect(std.mem.indexOf(u8, survey_source, "phase14-workqueue-pending-bit-audit") == null);
+}
