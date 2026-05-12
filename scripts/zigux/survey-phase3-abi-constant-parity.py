@@ -11,10 +11,11 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_HEADER = ROOT / "include" / "zigux" / "abi.h"
 DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
+DEFAULT_LAYOUT_ASSERT = ROOT / "zigux" / "helpers" / "layout_assert.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 18
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 20
 
 REQUIRED_ABI_VERSION = ("ZIGUX_ABI_VERSION", "ABI_VERSION", 1)
 
@@ -67,6 +68,47 @@ REQUIRED_FAMILY_TYPE_MARKERS = (
     (
         "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {",
         "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = extern struct {",
+    ),
+)
+REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS = (
+    "fn assertThreeU32FieldLayout(",
+    "    try size(T, 12);",
+    "    try alignment(T, 4);",
+    "    try offset(T, first, 0);",
+    "    try offset(T, second, 4);",
+    "    try offset(T, third, 8);",
+    "    fieldType(T, first, u32);",
+    "    fieldType(T, second, u32);",
+    "    fieldType(T, third, u32);",
+)
+REQUIRED_LAYOUT_ASSERT_FUNCTIONS = (
+    (
+        "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout",
+        '        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView,',
+        '        "ack_window",',
+        '        "delivery_window",',
+        '        "status",',
+    ),
+    (
+        "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout",
+        '        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary,',
+        '        "applied",',
+        '        "skipped",',
+        '        "delivered",',
+    ),
+    (
+        "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout",
+        '        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView,',
+        '        "budget",',
+        '        "window",',
+        '        "flags",',
+    ),
+    (
+        "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout",
+        '        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary,',
+        '        "attempted",',
+        '        "applied",',
+        '        "skipped",',
     ),
 )
 
@@ -135,9 +177,32 @@ def collect_duplicate_exact_markers(path: Path, markers: tuple[str, ...], issue_
     return issues
 
 
+def validate_layout_assert(layout_assert_path: Path) -> list[str]:
+    layout_assert_source = layout_assert_path.read_text(encoding="utf-8")
+    issues: list[str] = []
+
+    for marker in REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS:
+        if marker not in layout_assert_source:
+            issues.append(f"{layout_assert_path}:missing_layout_assert_helper_marker:{marker}")
+
+    for function_name, *call_markers in REQUIRED_LAYOUT_ASSERT_FUNCTIONS:
+        signature = f"pub fn {function_name}() !void {{"
+        if signature not in layout_assert_source:
+            issues.append(f"{layout_assert_path}:missing_layout_assert_function:{function_name}")
+        for marker in call_markers:
+            if marker not in layout_assert_source:
+                issues.append(f"{layout_assert_path}:missing_layout_assert_call_marker:{function_name}:{marker.strip()}")
+        self_test_marker = f"    try {function_name}();"
+        if self_test_marker not in layout_assert_source:
+            issues.append(f"{layout_assert_path}:missing_layout_assert_self_test_call:{function_name}")
+
+    return issues
+
+
 def validate_constant_parity(
     header_path: Path,
     bindings_path: Path,
+    layout_assert_path: Path,
     dump_path: Path,
     harness_path: Path,
     expected_path: Path,
@@ -162,6 +227,8 @@ def validate_constant_parity(
     harness_source = harness_path.read_text(encoding="utf-8")
     expected = json.loads(expected_path.read_text(encoding="utf-8"))
     expected_constants = expected.get("constants")
+
+    issues.extend(validate_layout_assert(layout_assert_path))
 
     if not isinstance(expected_constants, dict):
         issues.append(f"{expected_path}:missing_constants_object")
@@ -232,17 +299,30 @@ def validate_constant_parity(
     return issues
 
 
+def _layout_assert_text() -> str:
+    helper_block = "\n".join(REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS) + "\n"
+    function_blocks = []
+    for function_name, *call_markers in REQUIRED_LAYOUT_ASSERT_FUNCTIONS:
+        block_lines = [f"pub fn {function_name}() !void {{"] + call_markers + ["}"]
+        function_blocks.append("\n".join(block_lines))
+    self_test_lines = ['test "phase3 layout assertions cover canonical bindings" {']
+    self_test_lines.extend(f"    try {function_name}();" for function_name, *_ in REQUIRED_LAYOUT_ASSERT_FUNCTIONS)
+    self_test_lines.append("}")
+    return helper_block + "\n".join(function_blocks) + "\n" + "\n".join(self_test_lines) + "\n"
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase3_abi_constant_parity_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         header = root / "include" / "zigux" / "abi.h"
         bindings = root / "zigux" / "bindings" / "abi.zig"
+        layout_assert = root / "zigux" / "helpers" / "layout_assert.zig"
         dump = root / "zigux" / "tests" / "phase3_abi_dump.zig"
         harness = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
         expected = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
 
-        for path in (header.parent, bindings.parent, dump.parent, harness.parent, expected.parent):
+        for path in (header.parent, bindings.parent, layout_assert.parent, dump.parent, harness.parent, expected.parent):
             path.mkdir(parents=True, exist_ok=True)
 
         def reset_all() -> None:
@@ -267,6 +347,7 @@ def run_self_test() -> int:
                 encoding="utf-8",
                 newline="\n",
             )
+            layout_assert.write_text(_layout_assert_text(), encoding="utf-8", newline="\n")
             dump.write_text(
                 '\n'.join(['// "abi_version":'] + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
                 encoding="utf-8",
@@ -289,11 +370,11 @@ def run_self_test() -> int:
             )
 
         reset_all()
-        assert validate_constant_parity(header, bindings, dump, harness, expected) == []
+        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected) == []
         case_count += 1
 
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
         assert f"{bindings}:missing_binding_constant:{REQUIRED_ABI_VERSION[1]}" in issues
         assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[0][1]}" in issues
@@ -301,14 +382,14 @@ def run_self_test() -> int:
 
         reset_all()
         dump.write_text('// "facility_kernel":\n', encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{dump}:missing_dump_key:abi_version" in issues
         assert f"{dump}:missing_dump_key:status_flag_error" in issues
         case_count += 1
 
         reset_all()
         harness.write_text('/* "facility_kernel": */\n', encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{harness}:missing_harness_key:abi_version" in issues
         assert f"{harness}:missing_harness_key:status_flag_error" in issues
         case_count += 1
@@ -324,7 +405,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:wrong_header_value:{REQUIRED_ABI_VERSION[0]}:2" in issues
         case_count += 1
 
@@ -334,7 +415,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{expected}:wrong_expected_value:abi_version:2" in issues
         assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
         assert f"{expected}:missing_expected_key:status_flag_error" in issues
@@ -358,7 +439,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:duplicate_header_constant:{REQUIRED_CONSTANTS[0][0]}:1,2" in issues
         case_count += 1
 
@@ -380,7 +461,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:duplicate_binding_constant:{REQUIRED_CONSTANTS[0][1]}:1,2" in issues
         case_count += 1
 
@@ -394,7 +475,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}" in issues
         case_count += 1
 
@@ -408,7 +489,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[1][1]}" in issues
         case_count += 1
 
@@ -422,7 +503,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[2][0]}" in issues
         case_count += 1
 
@@ -436,7 +517,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[3][1]}" in issues
         case_count += 1
 
@@ -450,7 +531,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:missing_header_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[3][0]}" in issues
         case_count += 1
 
@@ -464,7 +545,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}" in issues
         case_count += 1
 
@@ -478,7 +559,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{header}:duplicate_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}:19,20" in issues
         case_count += 1
 
@@ -492,7 +573,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:duplicate_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][1]}:19,20" in issues
         case_count += 1
 
@@ -506,7 +587,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:{REQUIRED_ABI_VERSION[1]}" in issues
         case_count += 1
 
@@ -516,8 +597,44 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{expected}:missing_expected_key:abi_version" in issues
+        case_count += 1
+
+        reset_all()
+        layout_assert.write_text(
+            layout_assert.read_text(encoding="utf-8").replace(
+                '        "flags",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        missing_call_issue = (
+            f'{layout_assert}:missing_layout_assert_call_marker:'
+            "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout:\"flags\","
+        )
+        assert missing_call_issue in issues
+        case_count += 1
+
+        reset_all()
+        layout_assert.write_text(
+            layout_assert.read_text(encoding="utf-8").replace(
+                "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        missing_self_test_issue = (
+            f"{layout_assert}:missing_layout_assert_self_test_call:"
+            "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout"
+        )
+        assert missing_self_test_issue in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
@@ -527,10 +644,11 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Survey shipped Phase 3 ABI constant parity across the C header, curated Zig bindings, dump replay, C harness, and committed expected fixture."
+        description="Survey shipped Phase 3 ABI constant parity across the C header, curated Zig bindings, layout-assert helpers, dump replay, C harness, and committed expected fixture."
     )
     parser.add_argument("--header-path", type=Path, default=DEFAULT_HEADER)
     parser.add_argument("--bindings-path", type=Path, default=DEFAULT_BINDINGS)
+    parser.add_argument("--layout-assert-path", type=Path, default=DEFAULT_LAYOUT_ASSERT)
     parser.add_argument("--dump-path", type=Path, default=DEFAULT_DUMP)
     parser.add_argument("--harness-path", type=Path, default=DEFAULT_HARNESS)
     parser.add_argument("--expected-path", type=Path, default=DEFAULT_EXPECTED)
@@ -543,6 +661,7 @@ def main() -> int:
     issues = validate_constant_parity(
         args.header_path,
         args.bindings_path,
+        args.layout_assert_path,
         args.dump_path,
         args.harness_path,
         args.expected_path,
