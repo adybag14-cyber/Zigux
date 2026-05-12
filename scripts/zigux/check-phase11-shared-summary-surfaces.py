@@ -68,16 +68,17 @@ MARKERS = {
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
         "`zigux/tests/phase11_hvc_console_survey.zig`",
+        "- `drivers/tty/hvc/hvc_console_verify.zig`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "the dedicated archival `hvc_console` teardown note plus the bounded cleanup handoff, the validation matrix, manifest-backed survey gate, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` plus `make -C zigux phase11-hvc-survey` checker-backed replay route, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "the dedicated archival `hvc_console` teardown note plus the bounded cleanup handoff, the validation matrix, manifest-backed survey gate, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` plus `make -C zigux phase11-hvc-survey` checker-backed replay route, the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -149,7 +150,8 @@ def run_self_test() -> None:
             (FILES["tests_companion"], MARKERS["tests_companion"][7]),
             (FILES["tests_companion"], MARKERS["tests_companion"][8]),
             (FILES["tests_companion"], MARKERS["tests_companion"][9]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][12]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][10]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][13]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
