@@ -37,7 +37,7 @@
     "requirements_doc_lines": 2873,
     "memory_order_doc_lines": 648,
     "freeze_map_lists_tree_c": true,
-    "preexisting_phase14_build_present": false,
+    "preexisting_phase14_build_present": true,
     "preexisting_phase14_make_target_present": true,
     "preexisting_phase14_workqueue_bridge_present": true,
     "preexisting_phase14_ring_buffer_manifest_present": true,
@@ -159,10 +159,10 @@
   "gaps": [
     {
       "id": "phase14-build-gate",
-      "status": "blocked_on_missing_review_artifact",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_build.zig",
-      "why_now": "The Phase 14 make wrapper still exposes `phase14-validate`, but the current repo tree does not expose `zigux/tests/phase14_build.zig`, so compile-readiness for the RCU survey packet cannot be claimed from the current review surface."
+      "why_now": "The shared Phase 14 build step keeps the RCU tree survey packet reviewable inside the full-bundle compile matrix without implying a bridge or freeze-status change."
     },
     {
       "id": "phase14-make-target",
