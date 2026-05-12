@@ -13,6 +13,7 @@ DOCS_README = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+KERNEL_EXPORT_GOVERNANCE = Path("Documentation/zigux/phase3-kernel-export-shim-governance.md")
 HEADER_GOVERNANCE = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
 LINUX_HEADER = Path("include/linux/zigux.h")
 ABI_HEADER = Path("include/zigux/abi.h")
@@ -20,7 +21,6 @@ EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
 ABI_SLICE = Path("Documentation/zigux/phase3-abi-slice.md")
-LANE_SEQUENCING = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
 ABI_NEXT_STEP = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 BUILD_FILE = Path("zigux/tests/build.zig")
 ABI_DUMP = Path("zigux/tests/phase3_abi_dump.zig")
@@ -49,6 +49,10 @@ SURVEY_LINES = (
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
 )
+SURVEY_CONTAINS = (
+    "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+    "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
+)
 ABI_SLICE_LINES = (
     f"`{SURVEY.as_posix()}`",
     f"`{ABI_NEXT_STEP.as_posix()}`",
@@ -56,21 +60,6 @@ ABI_SLICE_LINES = (
     f"`{UAPI_VERSION.as_posix()}`",
     f"`{UAPI_DEV_T.as_posix()}`",
     f"`{ABI_DUMP.as_posix()}`",
-)
-LANE_SEQUENCING_MARKERS = (
-    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-    "`Documentation/zigux/phase3-abi-header-family-survey.md`",
-    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
-    "`include/linux/zigux.h`",
-    "`zigux/kernel/export_shim.zig`",
-    "`zigux/uapi/version.zig`",
-    "`zigux/uapi/dev_t.zig`",
-    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-)
-LANE_SEQUENCING_CONTAINS = (
-    "export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family",
-    "if the drift is about starter UAPI truth, export-shim wording, Linux-facing header governance, the packet-local export/UAPI survey checker, or whether the starter packet still points at the shared replay routes instead of retired dedicated export/UAPI-only replays, keep it in the export and header packet",
 )
 ABI_NEXT_STEP_LINES = (
     f"`{SURVEY.as_posix()}`",
@@ -117,6 +106,19 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
     "`include/linux/zigux.h`",
     "`include/zigux/abi.h`",
+)
+KERNEL_EXPORT_GOVERNANCE_MARKERS = (
+    "`PHASE3_KERNEL_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_PACKET=shared Phase 3 ABI substrate packet only`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_STARTER_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_HEADER_GOVERNANCE=Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+    "`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
+)
+KERNEL_EXPORT_GOVERNANCE_CONTAINS = (
+    "`zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `ok()`, `errno()`, `normalize()`, `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` helpers for kernel-side callers",
+    "new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
 )
 HEADER_GOVERNANCE_MARKERS = (
     "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
@@ -184,6 +186,7 @@ def validate(root: Path) -> list[str]:
         REVIEW_CHECKLIST,
         SCRIPTS_README,
         WORKFLOW,
+        KERNEL_EXPORT_GOVERNANCE,
         HEADER_GOVERNANCE,
         LINUX_HEADER,
         ABI_HEADER,
@@ -191,7 +194,6 @@ def validate(root: Path) -> list[str]:
         UAPI_VERSION,
         UAPI_DEV_T,
         ABI_SLICE,
-        LANE_SEQUENCING,
         ABI_NEXT_STEP,
         BUILD_FILE,
         ABI_DUMP,
@@ -209,6 +211,8 @@ def validate(root: Path) -> list[str]:
     require_one_of(issues, survey_text, "survey_provenance", PROVENANCE)
     for marker in SURVEY_LINES:
         require_exact(issues, survey_text, "survey_marker", marker)
+    for marker in SURVEY_CONTAINS:
+        require_contains(issues, survey_text, "survey_rule", marker)
     for marker in FORBIDDEN_SURVEY_MARKERS:
         if marker in survey_text:
             issues.append(f"forbidden_survey_marker:{marker}")
@@ -261,12 +265,8 @@ def validate(root: Path) -> list[str]:
             'try writer.writeAll("},\\\"structs\\\":{");',
             "try writeStruct(writer, decl.name, value);",
         ),
-        HEADER_GOVERNANCE: (
-            "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
-            "`PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
-            "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`",
-            "the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
-        ),
+        KERNEL_EXPORT_GOVERNANCE: KERNEL_EXPORT_GOVERNANCE_MARKERS,
+        HEADER_GOVERNANCE: HEADER_GOVERNANCE_MARKERS,
         LINUX_HEADER: (
             "#ifndef _LINUX_ZIGUX_H",
             '#include "../zigux/abi.h"',
@@ -296,6 +296,10 @@ def validate(root: Path) -> list[str]:
             if marker not in text:
                 issues.append(f"missing_marker:{rel.as_posix()}:{marker}")
 
+    governance_text = (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8")
+    for marker in KERNEL_EXPORT_GOVERNANCE_CONTAINS:
+        require_contains(issues, governance_text, "kernel_export_governance_rule", marker)
+
     docs_text = (root / DOCS_README).read_text(encoding="utf-8")
     for marker in DOCS_README_LINES:
         require_exact(issues, docs_text, "docs_root_marker", marker)
@@ -307,12 +311,6 @@ def validate(root: Path) -> list[str]:
     abi_slice_text = (root / ABI_SLICE).read_text(encoding="utf-8")
     for marker in ABI_SLICE_LINES:
         require_exact(issues, abi_slice_text, "abi_slice_marker", marker)
-
-    lane_sequencing_text = (root / LANE_SEQUENCING).read_text(encoding="utf-8")
-    for marker in LANE_SEQUENCING_MARKERS:
-        require_exact(issues, lane_sequencing_text, "lane_sequencing_marker", marker)
-    for marker in LANE_SEQUENCING_CONTAINS:
-        require_contains(issues, lane_sequencing_text, "lane_sequencing_rule", marker)
 
     abi_next_step_text = (root / ABI_NEXT_STEP).read_text(encoding="utf-8")
     for marker in ABI_NEXT_STEP_LINES:
@@ -399,12 +397,25 @@ def build_valid_workspace(root: Path) -> None:
         "",
     )))
     write(root / VALIDATOR, "# validator placeholder\n")
+    write(root / KERNEL_EXPORT_GOVERNANCE, "\n".join((
+        "# Phase 3 Kernel Export Shim Governance",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_PACKET=shared Phase 3 ABI substrate packet only`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_STARTER_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_HEADER_GOVERNANCE=Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
+        "- `zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `ok()`, `errno()`, `normalize()`, `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` helpers for kernel-side callers",
+        "- new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
+        "",
+    )))
     write(root / HEADER_GOVERNANCE, "\n".join((
         "# Phase 3 Linux `zigux.h` Header Governance",
         "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
-        "`PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
-        "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`",
-        "the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
+        "`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
+        "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "`include/zigux/abi.h`",
         "",
     )))
     write(root / LINUX_HEADER, "\n".join((
@@ -447,20 +458,6 @@ def build_valid_workspace(root: Path) -> None:
         f"- `{ABI_DUMP.as_posix()}`",
         "",
     )))
-    write(root / LANE_SEQUENCING, "\n".join((
-        "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-        "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-        "- `Documentation/zigux/phase3-abi-header-family-survey.md`",
-        "- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
-        "- `include/linux/zigux.h`",
-        "- `zigux/kernel/export_shim.zig`",
-        "- `zigux/uapi/version.zig`",
-        "- `zigux/uapi/dev_t.zig`",
-        "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
-        "export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family",
-        "if the drift is about starter UAPI truth, export-shim wording, Linux-facing header governance, the packet-local export/UAPI survey checker, or whether the starter packet still points at the shared replay routes instead of retired dedicated export/UAPI-only replays, keep it in the export and header packet",
-        "",
-    )))
     write(root / ABI_NEXT_STEP, "\n".join((
         f"- `{SURVEY.as_posix()}`",
         f"- `{EXPORT_SHIM.as_posix()}`",
@@ -500,9 +497,10 @@ def build_valid_workspace(root: Path) -> None:
         f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
         f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
         "",
-        "## Live Boundary",
+        "## Review Ownership",
         "",
-        "The starter export shim and starter UAPI companions stay on the shared Phase 3 route.",
+        "- `Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+        "- any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
         "",
     )))
 
@@ -518,6 +516,44 @@ def run_self_test() -> int:
         write(root / UAPI_DEV_T, (root / UAPI_DEV_T).read_text(encoding="utf-8") + "// drift\n")
         issues = validate(root)
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_UAPI_DEV_T_BLOB_SHA:"), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
+            "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+            "broken governance reminder.",
+            1,
+        ))
+        assert validate(root) == [
+            "missing_survey_rule:`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface."
+        ]
+        build_valid_workspace(root)
+        case_count += 1
+
+        (root / KERNEL_EXPORT_GOVERNANCE).unlink()
+        assert validate(root) == [f"missing_file:{KERNEL_EXPORT_GOVERNANCE.as_posix()}"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / KERNEL_EXPORT_GOVERNANCE, (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8").replace(
+            "`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
+            "`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=broken`",
+            1,
+        ))
+        assert validate(root) == [
+            "missing_marker:Documentation/zigux/phase3-kernel-export-shim-governance.md:`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`"
+        ]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / KERNEL_EXPORT_GOVERNANCE, (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8").replace(
+            "new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
+            "broken churn rule",
+            1,
+        ))
+        assert validate(root) == [
+            "missing_kernel_export_governance_rule:new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure"
+        ]
         build_valid_workspace(root)
         case_count += 1
 
@@ -545,31 +581,6 @@ def run_self_test() -> int:
             1,
         ))
         assert validate(root) == [f"missing_abi_slice_marker:`{ABI_DUMP.as_posix()}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        (root / LANE_SEQUENCING).unlink()
-        assert validate(root) == [f"missing_file:{LANE_SEQUENCING.as_posix()}"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / LANE_SEQUENCING, (root / LANE_SEQUENCING).read_text(encoding="utf-8").replace(
-            "`zigux/kernel/export_shim.zig`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == ["missing_lane_sequencing_marker:`zigux/kernel/export_shim.zig`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / LANE_SEQUENCING, (root / LANE_SEQUENCING).read_text(encoding="utf-8").replace(
-            "packet-local `validate-phase3-export-uapi-survey.py` checker",
-            "packet-local `broken` checker",
-            1,
-        ))
-        assert validate(root) == [
-            "missing_lane_sequencing_rule:export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family"
-        ]
         build_valid_workspace(root)
         case_count += 1
 
