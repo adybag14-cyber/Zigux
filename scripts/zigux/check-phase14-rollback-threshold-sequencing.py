@@ -36,15 +36,15 @@ ANCHOR_MANIFEST_MARKERS = [
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
 RELEASE_BOUNDARY_MARKERS = [
-    "- bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes",
-    "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus the Phase 15 readiness and handoff packet; `zigux/tests/phase14_rcu_tree_survey.zig` is the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
-    "- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the same shared smoke packet plus the Phase 15 freeze-in-C and readiness packet rather than an active Phase 14 delivery lane",
+    "- bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
+    "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-rcu-tree-survey.md` and manifest `zigux/tests/phase14_rcu_tree_manifest.json`; the Phase 15 readiness and handoff packet only governs any later freeze-map status review, so `zigux/tests/phase14_rcu_tree_survey.zig` remains the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
+    "- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-skbuff-bridge-survey.md` and manifest `zigux/tests/phase14_skbuff_bridge_manifest.json`; the Phase 15 freeze-map governance packet only owns any later status-change discussion, so the current lane stays a Phase 14 review-only bridge packet rather than an active delivery lane",
 ]
 SELF_TEST_ANCHOR_PACKETS = [
     {
-        "lane_key": "P14-L01",
+        "lane_key": "P14-L04",
         "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
-        "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
+        "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
     },
     {
         "lane_key": "P14-Y03",
@@ -52,7 +52,7 @@ SELF_TEST_ANCHOR_PACKETS = [
         "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
     },
     {
-        "lane_key": "P14-L06",
+        "lane_key": "P14-L08",
         "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
         "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
     },
@@ -200,11 +200,13 @@ def check(root: Path) -> list[str]:
         if not isinstance(packet, dict):
             errors.append("manifest:anchor_packet must be an object")
             continue
+        packet_field_errors: list[str] = []
         for key in ["manifest_path", "lane_key", "surveyed_commit"]:
             value = packet.get(key)
             if not isinstance(value, str) or not value:
-                errors.append(f"manifest:anchor_packet missing {key}")
-        if errors and any(msg.startswith("manifest:anchor_packet") for msg in errors):
+                packet_field_errors.append(f"manifest:anchor_packet missing {key}")
+        if packet_field_errors:
+            errors.extend(packet_field_errors)
             continue
         fragment = anchor_note_fragment(packet)
         if fragment not in smoke_note:
