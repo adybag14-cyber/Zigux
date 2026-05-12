@@ -67,6 +67,36 @@ test "phase 7 argvSplit keeps every shared token pointer inside the owned storag
     }
 }
 
+test "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer" {
+    var split = try argv_split.argvSplit(std.testing.allocator, " alpha  beta\tgamma\n");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[0]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[7]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[12]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[18]);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("gamma", split.argv[2]);
+}
+
+test "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "\ralpha\x0bbeta\x0cgamma\r\n\tdelta");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[0]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[11]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[17]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[18]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[19]);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("gamma", split.argv[2]);
+    try std.testing.expectEqualStrings("delta", split.argv[3]);
+}
+
 test "phase 7 argvSplitWithArgc reports the split length through the optional out parameter" {
     var argc: usize = 99;
     var split = try argv_split.argvSplitWithArgc(std.testing.allocator, "console=ttyS0 root=/dev/vda rw", &argc);
