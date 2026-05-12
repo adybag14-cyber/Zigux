@@ -18,6 +18,8 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     _ = virtio_scsi.RecoveryQueuePlan;
     _ = virtio_scsi.RecoveryIoQueueMapSummary;
     _ = virtio_scsi.RecoveryQueueDepthSummary;
+    _ = virtio_scsi.RecoveryEventBufferOwnershipSummary;
+    _ = virtio_scsi.RecoveryHostScanSummary;
     _ = virtio_scsi.RequestQueueSummary;
 
     try std.testing.expectEqualStrings("virtio_scsi_queue_lab", descriptor.name);
@@ -151,6 +153,27 @@ test "phase12 virtio scsi syntax lab keeps transport-reset recovery exports reac
     try std.testing.expect(mapping.requires_virtio_affinity_restore);
     try std.testing.expect(mapping.requires_poll_map_restore);
 
+    const ownership = try lab.recoveryEventBufferOwnershipSummary();
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), ownership.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), ownership.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 4), ownership.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), ownership.poll_queue_count);
+    try std.testing.expect(ownership.event_buffers_reserved_for_event_queue);
+    try std.testing.expect(!ownership.request_queues_can_borrow_event_buffers);
+    try std.testing.expect(ownership.requires_device_ready_before_event_rearm);
+    try std.testing.expect(ownership.requires_event_rearm_before_request_queue_reuse);
+
+    const host_scan = try lab.recoveryHostScanSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", host_scan.anchor);
+    try std.testing.expectEqual(@as(u16, 4), host_scan.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), host_scan.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), host_scan.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), host_scan.recovery_generation);
+    try std.testing.expect(host_scan.requires_control_queue_restore_before_scan);
+    try std.testing.expect(host_scan.requires_event_rearm_before_scan);
+    try std.testing.expect(host_scan.requires_request_queue_restore_before_scan);
+    try std.testing.expect(host_scan.requires_async_scan_resume);
+
     const restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(virtio_scsi.RecoveryAction.restore, restore.action);
     try std.testing.expect(restore.was_frozen);
@@ -162,4 +185,6 @@ test "phase12 virtio scsi syntax lab keeps transport-reset recovery exports reac
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueueDepthSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryHostScanSummary());
 }
