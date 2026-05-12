@@ -5,10 +5,11 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
+- `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state, reopen triggers, and the required review-packet fields that stay aligned with the freeze map and indefinite-C policy
-- survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-11` on 2026-05-11 after live compare-against-master showed the previously recorded reviewed head `febebdae089598f228fff0bc6ee44c1a860fd905` no longer matched current `master`
+- survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-12` on 2026-05-12 after live compare-against-master showed the previously recorded reviewed head `febebdae089598f228fff0bc6ee44c1a860fd905` no longer matched current `master`
 - exact branch-head parity is not recorded for this parked review-process packet; the note now uses an explicit dated readback marker instead of a quickly stale exact-head count while keeping the same no-approval posture and the same bounded reviewer-facing maintenance follow-up
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires, the deep-core blocker posture changes, or the shared-summary companion lane in `Documentation/zigux/phase15-governance-lane-sequencing.md` reports drift that changes the truthfulness of this packet's required review fields, decision buckets, reopen-trigger catalog, or no-approval posture. The shared docs-root and review-checklist maintenance undercounts are already closed on current `master`, so any future shared-summary follow-up should stay scoped to the smallest truthful repair instead of reopening a parked docs-root reminder that is no longer live
 - product boundary:
@@ -117,7 +118,7 @@ The current lane state is:
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-review-packet-field-sync`
-- landed `phase15-dated-readback-provenance-refresh`
+- landed `phase15-tests-readme-validator-route-sync`
 - landed `phase15-docs-readme-maintenance-note-undercount`
 
 The shared docs-root and review-checklist maintenance undercounts are now closed on current `master`: `Documentation/zigux/README.md` already keeps `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` explicit beside the parked Phase 15 packet, and `Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned. Any broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane remains separate, so this review-process packet should reopen only if that shared-summary drift changes the process fields or approval posture it owns.
