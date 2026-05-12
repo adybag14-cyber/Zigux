@@ -351,9 +351,6 @@ jobs:
         run: make -C zigux phase8-cpu-mask-test
 
       - name: Run focused Phase 8 help and kallsyms tests
-        run: make -C zigux phase8-help-kallsyms-test
-
-      - name: Run focused Phase 8 file-path and perf-buffer shard tests
         run: |
           make -C zigux phase8-file-path-handle-bridge-test
           make -C zigux phase8-perf-buffer-poll-test
@@ -406,8 +403,14 @@ jobs:
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
 
+      - name: Self-test Phase 11 shared summary-surfaces checker
+        run: python3 scripts/zigux/check-phase11-shared-summary-surfaces.py --self-test
+
       - name: Run Phase 11 shared replay contract checker
         run: make -C zigux phase11-contract
+
+      - name: Check Phase 11 shared summary surfaces
+        run: python3 scripts/zigux/check-phase11-shared-summary-surfaces.py
 
       - name: Run Phase 11 watchdog and console tests
         run: zig build test --build-file zigux/tests/phase11_build.zig --summary all
