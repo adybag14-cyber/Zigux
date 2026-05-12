@@ -34,7 +34,7 @@ Current `master` also still keeps the paired review-note and shared-owner surfac
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `zigux/tests/phase9_build.zig`
 
-That means the honest current packet is a reviewable family-local starter plus the adjacent shared loader-facing reminder packet. The trace-events sample, loader scaffold, direct module and diff tests, dedicated survey gate, manifest-backed ownership packet, and paired notes are all visible on current `master`. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, and keeps registration-snapshot and outstanding-registration-drain proofs explicit; what remains blocked is the broader runtime-substrate step that would eventually turn that review packet into live runtime tracepoint-registration parity.
+That means the honest current packet is a reviewable family-local starter plus the adjacent shared loader-facing reminder packet. The trace-events sample, loader scaffold, direct module and diff tests, dedicated survey gate, manifest-backed ownership packet, and paired notes are all visible on current `master`. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, and keeps registration-snapshot and outstanding-registration-drain proofs explicit; the family-local module gate separately keeps the selftest-ready failed-exit rollback path explicit so lifecycle state stays stable until registration drain finishes. What remains blocked is the broader runtime-substrate step that would eventually turn that review packet into live runtime tracepoint-registration parity.
 
 The directly coupled module-slice note already keeps `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `zigux/Makefile` explicit as adjacent reminder surfaces. Inside this pilot packet, that means the trace-events family owns only the focused `phase9-runtime-trace-events-tests` step in `zigux/tests/phase9_build.zig`; the broader sequencing note and the shared runtime-loader routes stay outside the trace-events-owned boundary.
 
@@ -53,7 +53,7 @@ The immediate same-family blocker on current `master` is no longer a missing tra
 
 The remaining blocker is the broader Phase 9 runtime substrate. Until that shared substrate lands, the trace-events packet should stay described as reviewable evidence rather than as completed live runtime tracepoint registration lifecycle parity.
 
-That still-blocked boundary includes runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior. The family-local packet should keep those surfaces explicit as blocked instead of letting them fade into generic runtime-substrate wording.
+That still-blocked boundary includes runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior. The family-local packet should keep those surfaces explicit as blocked instead of letting them fade into generic runtime-substrate wording, while the selftest-ready failed-exit rollback path stays recorded as already-landed family-local lifecycle evidence.
 
 ## Recommended next step
 
