@@ -120,6 +120,10 @@ test "phase4 test_fsmount survey keeps shared validation matrix aligned" {
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
+        "* survey owner: `Validation and Perf Team`",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
         "* rollback owner: `Validation and Perf Team`",
     );
     try requireRepoMarker(
