@@ -5,7 +5,7 @@ This note records the bounded teardown and poweroff-ownership surface already pr
 ## Status
 
 - `PHASE11_BCM2835_WDT_TEARDOWN_STATUS=teardown_note_landed`
-- archival packet identity remains `P11-L08` for traceability while the current bcm2835-only continuity note is tracked through `P11-Y02`
+- archival packet identity remains `P11-L08` for traceability while the current bcm2835-only continuity note is tracked through `P11-L10`
 - lane scope: keep the current bcm2835 watchdog teardown story reviewable without widening into live platform remove, PM base plumbing, watchdog-core deregistration, or hardware-backed poweroff execution
 - paired driver-local packet:
   - `drivers/watchdog/bcm2835_wdt.zig`
