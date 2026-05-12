@@ -54,6 +54,7 @@ MARKERS = {
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
         "`zigux/tests/phase11_hvc_console_survey.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
@@ -76,7 +77,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 
 
 class CheckError(RuntimeError):
@@ -138,9 +139,10 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][6]),
             (FILES["tests_root"], MARKERS["tests_root"][8]),
             (FILES["tests_root"], MARKERS["tests_root"][10]),
-            (FILES["tests_root"], MARKERS["tests_root"][13]),
+            (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_root"], MARKERS["tests_root"][15]),
+            (FILES["tests_root"], MARKERS["tests_root"][16]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][4]),
             (FILES["tests_companion"], MARKERS["tests_companion"][5]),
