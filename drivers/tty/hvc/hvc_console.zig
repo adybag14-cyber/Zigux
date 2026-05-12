@@ -108,6 +108,35 @@ pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSumma
     };
 }
 
+pub const KhvcdPollingContractRequest = struct {
+    final_close_wait_carryover: bool,
+    notifier_driven_wakeup: bool,
+    polling_driven_wakeup: bool,
+    khvcd_polling_visible: bool,
+    bounded_reschedule_intent: bool,
+    teardown_host_io_pressure: bool,
+};
+
+pub const KhvcdPollingContractSummary = struct {
+    final_close_wait_carryover: bool,
+    notifier_driven_wakeup: bool,
+    polling_driven_wakeup: bool,
+    khvcd_polling_visible: bool,
+    bounded_reschedule_intent: bool,
+    teardown_host_io_pressure: bool,
+};
+
+pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {
+    return .{
+        .final_close_wait_carryover = request.final_close_wait_carryover,
+        .notifier_driven_wakeup = request.notifier_driven_wakeup,
+        .polling_driven_wakeup = request.polling_driven_wakeup,
+        .khvcd_polling_visible = request.khvcd_polling_visible,
+        .bounded_reschedule_intent = request.bounded_reschedule_intent,
+        .teardown_host_io_pressure = request.teardown_host_io_pressure,
+    };
+}
+
 pub const KhvcdWorkerEntryRequest = struct {
     initial_poll_attempt: bool,
     wakeup_kick_ready: bool,
@@ -145,6 +174,29 @@ pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary 
         .pre_sleep_kick_check = request.pre_sleep_kick_check,
         .interruptible_state_recheck = request.interruptible_state_recheck,
         .guard_tick_timed_sleep = request.guard_tick_timed_sleep,
+    };
+}
+
+pub const PollDrainOrderRequest = struct {
+    irq_backed_drained_reads: bool,
+    partial_write_progress: bool,
+    stalled_retry_path: bool,
+    pending_sysrq_dispatch_separate: bool,
+};
+
+pub const PollDrainOrderSummary = struct {
+    irq_backed_drained_reads: bool,
+    partial_write_progress: bool,
+    stalled_retry_path: bool,
+    pending_sysrq_dispatch_separate: bool,
+};
+
+pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {
+    return .{
+        .irq_backed_drained_reads = request.irq_backed_drained_reads,
+        .partial_write_progress = request.partial_write_progress,
+        .stalled_retry_path = request.stalled_retry_path,
+        .pending_sysrq_dispatch_separate = request.pending_sysrq_dispatch_separate,
     };
 }
 
@@ -289,6 +341,24 @@ test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {
     try std.testing.expect(!summary.khvcd_kick_follow_through);
 }
 
+test "phase11 hvc console keeps khvcd polling-contract summary reviewable" {
+    const summary = summarizeKhvcdPollingContract(.{
+        .final_close_wait_carryover = true,
+        .notifier_driven_wakeup = true,
+        .polling_driven_wakeup = false,
+        .khvcd_polling_visible = true,
+        .bounded_reschedule_intent = true,
+        .teardown_host_io_pressure = false,
+    });
+
+    try std.testing.expect(summary.final_close_wait_carryover);
+    try std.testing.expect(summary.notifier_driven_wakeup);
+    try std.testing.expect(!summary.polling_driven_wakeup);
+    try std.testing.expect(summary.khvcd_polling_visible);
+    try std.testing.expect(summary.bounded_reschedule_intent);
+    try std.testing.expect(!summary.teardown_host_io_pressure);
+}
+
 test "phase11 hvc console keeps khvcd worker-entry handoff reviewable" {
     const summary = summarizeKhvcdWorkerEntry(.{
         .initial_poll_attempt = true,
@@ -311,6 +381,20 @@ test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {
     try std.testing.expect(summary.pre_sleep_kick_check);
     try std.testing.expect(summary.interruptible_state_recheck);
     try std.testing.expect(summary.guard_tick_timed_sleep);
+}
+
+test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {
+    const summary = summarizePollDrainOrder(.{
+        .irq_backed_drained_reads = true,
+        .partial_write_progress = true,
+        .stalled_retry_path = false,
+        .pending_sysrq_dispatch_separate = true,
+    });
+
+    try std.testing.expect(summary.irq_backed_drained_reads);
+    try std.testing.expect(summary.partial_write_progress);
+    try std.testing.expect(!summary.stalled_retry_path);
+    try std.testing.expect(summary.pending_sysrq_dispatch_separate);
 }
 
 test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable" {
