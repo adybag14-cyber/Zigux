@@ -105,6 +105,13 @@ CLOSURE_NOTE_MARKERS = [
     "`make -C zigux phase10`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "ring drained-reset reuse replay",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`",
+    "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+    "`scripts/zigux/README.md` still presents",
+    "repo-reality gaps",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -219,6 +226,8 @@ def write_fixture(root: Path) -> None:
                 "- the ring drained-reset reuse replay stays visible beside the shared closure packet",
                 "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
                 "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
+                "- repo-reality gaps stay explicit through `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`",
+                "- `scripts/zigux/README.md` still presents those missing slice-note paths as live evidence, so the next same-lane repair stays in the scripts-root summary",
                 "",
             ]
         ),
@@ -350,6 +359,36 @@ def run_self_test() -> int:
             "closure_note_ring_reset_reuse_phrase",
             root,
             "closure_note:ring drained-reset reuse replay",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+                "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_mmio_slice_gap_entry",
+            root,
+            "closure_note:`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "`scripts/zigux/README.md` still presents",
+                "`scripts/zigux/README.md` drifted away from",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_scripts_readme_gap_owner",
+            root,
+            "closure_note:`scripts/zigux/README.md` still presents",
         )
         closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
@@ -676,7 +715,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
