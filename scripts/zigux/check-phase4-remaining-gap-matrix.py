@@ -17,15 +17,15 @@ REQUIRED_MARKERS = [
     "### `samples/zigux/kprobe_example.zig`",
     "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-    "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper without claiming a shipped Zig starter",
+    "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
     "### `samples/zigux/test_fsmount.zig`",
-    "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+    "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
-    "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, plus the dedicated local survey wrapper at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, the matching Linux-style wrapper `make -C zigux phase4-test-fsmount-survey`, and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, and rollback owner reviewable, and the packet intentionally stays outside the shared gate-evidence target set even while the shared validator rereads it through the dedicated exact-readback checker until a later bounded promotion lands",
+    "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
     "### `Phase 4 perf thresholds`",
     "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
     "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
-    "* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident.",
+    "* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident. This matrix, `scripts/zigux/validate-phase4.py`, the dedicated workflow-route-count checker, `zigux/Makefile`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around the still-correctness-only shared replay routes while the dedicated perf-baseline survey keeps the approved local benchmark commands and the approved local-only acceptable limits for both rollback gates explicit until a later Phase 4 lane intentionally decides whether any broader shared perf promotion belongs in the shipped packet.",
 ]
 
 SELF_TEST_CASES = [
@@ -74,15 +74,15 @@ def build_fixture_text() -> str:
             "### `samples/zigux/kprobe_example.zig`",
             "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
             "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper without claiming a shipped Zig starter",
+            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
             "### `samples/zigux/test_fsmount.zig`",
-            "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+            "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
             "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
-            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, plus the dedicated local survey wrapper at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, the matching Linux-style wrapper `make -C zigux phase4-test-fsmount-survey`, and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, and rollback owner reviewable, and the packet intentionally stays outside the shared gate-evidence target set even while the shared validator rereads it through the dedicated exact-readback checker until a later bounded promotion lands",
+            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
             "### `Phase 4 perf thresholds`",
             "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
             "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
-            "* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident.",
+            "* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident. This matrix, `scripts/zigux/validate-phase4.py`, the dedicated workflow-route-count checker, `zigux/Makefile`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around the still-correctness-only shared replay routes while the dedicated perf-baseline survey keeps the approved local benchmark commands and the approved local-only acceptable limits for both rollback gates explicit until a later Phase 4 lane intentionally decides whether any broader shared perf promotion belongs in the shipped packet.",
             "",
         ]
     )
@@ -114,29 +114,69 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        write_text(matrix_path, replace_once(baseline, "make -C zigux phase4-kprobe-example-survey", "make -C zigux phase4-kprobe-gap-survey"))
-        if not expect_failure(root, "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`"):
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "make -C zigux phase4-kprobe-example-survey",
+                "make -C zigux phase4-kprobe-gap-survey",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+        ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("kprobe wrapper drift case did not fail closed")
             return 1
         case_count += 1
 
-        write_text(matrix_path, replace_once(baseline, "Documentation/zigux/phase4-test-fsmount-gap-survey.md", "Documentation/zigux/phase4-test-fsmount-gap-note.md"))
-        if not expect_failure(root, "missing_marker:* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`"):
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+                "Documentation/zigux/phase4-test-fsmount-gap-note.md",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
+        ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount packet drift case did not fail closed")
             return 1
         case_count += 1
 
-        write_text(matrix_path, replace_once(baseline, "approved local-only acceptable limits for both atomic64 and bitmap", "tentative local-only acceptable limits"))
-        if not expect_failure(root, "missing_marker:* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap"):
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "approved local-only acceptable limits for both atomic64 and bitmap",
+                "tentative local-only acceptable limits",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap",
+        ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("perf limit drift case did not fail closed")
             return 1
         case_count += 1
 
-        write_text(matrix_path, replace_once(baseline, "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod", "Tooling and Validation Team owning that policy decision on its own"))
-        if not expect_failure(root, "missing_marker:* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident."):
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod",
+                "Tooling and Validation Team owning that policy decision on its own",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident. This matrix, `scripts/zigux/validate-phase4.py`, the dedicated workflow-route-count checker, `zigux/Makefile`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around the still-correctness-only shared replay routes while the dedicated perf-baseline survey keeps the approved local benchmark commands and the approved local-only acceptable limits for both rollback gates explicit until a later Phase 4 lane intentionally decides whether any broader shared perf promotion belongs in the shipped packet.",
+        ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("perf owner drift case did not fail closed")
             return 1
