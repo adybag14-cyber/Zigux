@@ -341,6 +341,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         module_slice_note,
         "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
     );
+    try expectContains(
+        module_slice_note,
+        "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state",
+    );
+    try expectContains(
+        module_slice_note,
+        "those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.",
+    );
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
     try expectContains(
         runtime_trace_events_module,
