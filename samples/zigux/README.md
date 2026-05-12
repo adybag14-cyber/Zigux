@@ -37,7 +37,14 @@ When touching Phase 5 contributor guidance:
 * do not describe a Phase 5 sample as shipped from this directory unless the corresponding `samples/zigux/*.zig` file is directly readable on current `master`
 * do not treat review notes by themselves as proof that a sample file is present in this directory
 * keep runtime-facing `runtime_*` files in the separate later runtime lane instead of folding them into Phase 5
-* keep helper-only reviewability for `string`, `cmdline`, `argv_split`, `rbtree`, and direct `bitmap` work in their existing helper or runtime lanes instead of implying extra Phase 5 samples
+* keep direct `bitmap` helper reviewability in its existing helper or runtime lanes instead of implying an extra Phase 5 sample
+
+## Phase 7 no-sample boundaries
+
+* current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig`, and treat any new `samples/zigux/*string*.zig` file as review-blocking unless the roadmap lane is explicitly reopened
+* current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `lib/cmdline.zig`, and `zigux/tests/phase7_build.zig`
+* current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `lib/argv_split.zig`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `zigux/tests/phase7_build.zig`
+* current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `lib/rbtree.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, and `zigux/tests/phase7_build.zig`
 
 ## Boundary notes
 
