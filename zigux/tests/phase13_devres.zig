@@ -599,6 +599,8 @@ test "phase13 devres manifest records the current helper packet" {
     try expectContains(manifest_text, "\"status\": \"blocked_on_missing_shared_build_surface\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
+    try expectContains(manifest_text, "still-shipped helper-first packet");
+    try expectContains(manifest_text, "wider shared build bundle stays absent");
     try expectContains(manifest_text, "devm_iounmap()");
     try expectContains(manifest_text, "UC/WC MMIO evidence");
     try expectContains(manifest_text, "manifest alignment reviewable");
