@@ -128,6 +128,8 @@ VALIDATION_MATRIX_MARKERS = [
     "stale-count short-circuit behavior",
     "buffered-write clearing",
     "notifier_hangup boundary",
+    "Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig` or `zigux/tests/phase11_hvc_console.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.",
+    "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_console.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
     "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes",
     "host-free khvcd, notifier, remove, or cleanup handoff",
 ]
@@ -169,7 +171,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 
 
 class CheckError(RuntimeError):
@@ -496,6 +498,20 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "notifier_hangup boundary")
+
+        reset_fixture(tmpdir)
+        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
+        matrix_missing.write_text(
+            matrix_missing.read_text(encoding="utf-8").replace(
+                "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_console.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_console.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
+        )
 
         reset_fixture(tmpdir)
         modem_missing = tmpdir / REQUIRED_FILES["modem_control_split"]
