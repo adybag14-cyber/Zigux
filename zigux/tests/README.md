@@ -99,6 +99,7 @@ Key entrypoints
   * `zigux/tests/phase8_help_only_build.zig`
   * `zigux/tests/phase8_help_kallsyms_only_build.zig`
   * `zigux/tests/phase8_kallsyms.zig`
+  * `zigux/tests/phase8_kallsyms_only_build.zig`
   * `zigux/tests/phase8_cpu_mask.zig`
   * `zigux/tests/phase8_cpu_mask_only_build.zig`
   * `zigux/tests/phase8_logging.zig`
@@ -111,7 +112,11 @@ Key entrypoints
   * `zigux/tests/phase8_libbpf_segments.zig`
   * `zigux/tests/phase8_libbpf_segments_only_build.zig`
   * `scripts/zigux/check-phase8-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase8-help-kallsyms-packet.py`
   * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+  * `make -C zigux phase8-help-test`
+  * `make -C zigux phase8-help-kallsyms-test`
+  * `make -C zigux phase8-kallsyms-test`
   * `make -C zigux phase8-cpu-mask-test`
   * `make -C zigux phase8-file-path-handle-bridge-test`
   * `make -C zigux phase8-libbpf-segments-test`
