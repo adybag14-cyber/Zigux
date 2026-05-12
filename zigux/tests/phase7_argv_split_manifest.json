@@ -20,8 +20,7 @@
       "build_file": "zigux/tests/phase7_build.zig",
       "missing_sibling_paths": [
         "lib/string_helpers.zig",
-        "zigux/tests/phase7_string_helpers.zig",
-        "lib/cmdline.zig"
+        "zigux/tests/phase7_string_helpers.zig"
       ]
     }
   },
@@ -78,7 +77,7 @@
       "current_replay_status": "blocked_by_missing_sibling_paths",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, but it is not a current green claim on live master while the string_helpers and cmdline sibling paths above are still missing."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, but it is not a current green claim on live master while the string_helpers sibling paths above are still missing."
     },
     {
       "id": "phase7-argv-split-helper",
