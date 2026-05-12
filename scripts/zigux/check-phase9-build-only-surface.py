@@ -52,6 +52,12 @@ DEP_MOD_BOUNDARY_MARKER = (
 DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
     "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
 )
+REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER = (
+    "with `samples/zigux/runtime_trace_events_loader.zig` kept explicit as a shipped shared-loader scaffold while `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` remain the sample-only blocked pilot boundary for live runtime substrate and tracepoint-registration execution"
+)
+REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER = (
+    "while the older Phase 8 command and environment control cues stay with `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig`"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -110,6 +116,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase9-build-only-surface.py`",
         "without overstating missing shared-loader paths as shipped current-`master` evidence",
         "the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
+        REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER,
+        REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER,
     ],
     README_PATH: [
         "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
@@ -308,6 +316,30 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:Documentation/zigux/review-checklist.md:the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace(REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{REVIEW_CHECKLIST_PATH}:{REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace(REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{REVIEW_CHECKLIST_PATH}:{REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER}",
         )
 
         write_fixture_tree(base)
