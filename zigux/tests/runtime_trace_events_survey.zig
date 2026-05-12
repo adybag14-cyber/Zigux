@@ -119,6 +119,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     defer std.testing.allocator.free(runtime_trace_events_module);
 
+    const runtime_trace_events_loader = try cwd.readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events_loader.zig",
+        std.testing.allocator,
+        .limited(96 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_trace_events_loader);
+
     const phase9_build = try cwd.readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase9_build.zig",
@@ -341,6 +349,31 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         runtime_trace_events_module,
         "try std.testing.expectEqual(sample.ModuleStage.selftest_complete, after_failed_exit.stage);",
+    );
+
+    try expectContains(
+        runtime_trace_events_loader,
+        "test \"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "test \"runtime trace-events loader rejects registration snapshot drift\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "test \"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));",
     );
 
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
