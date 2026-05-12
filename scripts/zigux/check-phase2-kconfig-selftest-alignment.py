@@ -291,7 +291,7 @@ def run_self_test() -> int:
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[2]) in issues
         checks_run += 1
 
-        build_self_test_ROOT(root)
+        build_self_test_root(root)
         path = resolve_path(root, WORKFLOW)
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
