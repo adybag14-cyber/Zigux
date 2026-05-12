@@ -23,6 +23,10 @@ DOCS_ROOT_MARKERS = [
     "`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.",
 ]
 
+DOCS_ROOT_ROUTE_SPLIT_MARKERS = [
+    "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the docs-root companion note split explicit too: the self-test replays the bounded checker logic, while the live route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces.",
+]
+
 SCRIPTS_README_MARKERS = [
     "- `check-phase1-installer-companion-checks.py`",
 ]
@@ -115,6 +119,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     missing.extend(collect_stripped_line_markers(makefile, "makefile", MAKEFILE_MARKERS))
     missing.extend(collect_exact_count_markers(docs_root, "docs_root", DOCS_ROOT_MARKERS))
+    missing.extend(
+        collect_exact_count_markers(
+            docs_root,
+            "docs_root_route_split",
+            DOCS_ROOT_ROUTE_SPLIT_MARKERS,
+        )
+    )
     missing.extend(collect_exact_count_markers(scripts_readme, "scripts_readme", SCRIPTS_README_MARKERS))
     missing.extend(
         collect_exact_count_markers(
@@ -162,7 +173,7 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "Documentation" / "zigux" / "README.md").write_text(
-        "\n".join(DOCS_ROOT_MARKERS) + "\n",
+        "\n".join(DOCS_ROOT_MARKERS + DOCS_ROOT_ROUTE_SPLIT_MARKERS) + "\n",
         encoding="utf-8",
     )
     (root / "scripts" / "zigux" / "README.md").write_text(
@@ -305,6 +316,10 @@ def run_self_test() -> None:
             "docs_root:`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
             in missing
         )
+        assert (
+            "docs_root_route_split:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the docs-root companion note split explicit too: the self-test replays the bounded checker logic, while the live route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
+            in missing
+        )
         case_count += 1
         make_fixture_root(root)
 
@@ -315,6 +330,22 @@ def run_self_test() -> None:
         missing = collect_missing_markers(root)
         assert (
             "docs_root:while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_ROUTE_SPLIT_MARKERS[0],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "docs_root_route_split:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the docs-root companion note split explicit too: the self-test replays the bounded checker logic, while the live route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -492,7 +523,7 @@ def main() -> int:
     print(f"PHASE1_INSTALLER_COMPANION_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_INSTALLER_COMPANION_REQUIRED_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_PHASE1_FLOW_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(DOCS_ROOT_ROUTE_SPLIT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_PHASE1_FLOW_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS)}"
     )
     return 0
 
