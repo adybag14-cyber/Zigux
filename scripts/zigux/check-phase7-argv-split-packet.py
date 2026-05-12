@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
@@ -65,11 +66,21 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "PHASE7_LANE_KEY=P7-L09",
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
         "zigux/tests/phase7_argv_split_manifest.json",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    ],
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "shared helper-lane owner map, lane `P7-Y06`:",
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        "argv-split packet, lane `P7-L09`:",
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+        "P7-L09 owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
@@ -240,6 +251,14 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        (tmp_root / "Documentation/zigux/phase7-helper-lane-sequencing.md").unlink()
+        expect_missing_file(
+            "missing_helper_lane_note",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        )
+        write_fixture_root(tmp_root)
+
         mutate_file(
             tmp_root,
             "scripts/zigux/README.md",
@@ -279,6 +298,48 @@ def run_self_test() -> None:
             "review_checklist_no_sample_boundary_marker",
             tmp_root,
             "Documentation/zigux/review-checklist.md: there is no standalone `samples/zigux/*argv*` reference sample",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "",
+            "slice_helper_lane_note_marker",
+        )
+        expect_missing_marker(
+            "slice_helper_lane_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: Documentation/zigux/phase7-helper-lane-sequencing.md",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "argv-split packet, lane `P7-L09`:",
+            "",
+            "helper_lane_note_packet_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_note_packet_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: argv-split packet, lane `P7-L09`:",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+            "",
+            "helper_lane_note_lane_constant_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_note_lane_constant_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
         )
         write_fixture_root(tmp_root)
 
@@ -394,7 +455,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 11
+    case_count = 15
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
