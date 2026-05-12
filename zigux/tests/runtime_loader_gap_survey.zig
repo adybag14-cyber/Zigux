@@ -34,6 +34,18 @@ test "phase 9 runtime loader gap survey keeps manifest and note aligned" {
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet");
 }
 
+test "phase 9 runtime loader gap survey keeps phase 2 or phase 3 non-owner boundaries explicit" {
+    const allocator = std.testing.allocator;
+    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
+    defer allocator.free(note);
+
+    try expectContains(
+        note,
+        "`scripts/zigux/kconfig/conf_bridge.zig` and\n`scripts/zigux/kconfig/confdata_bridge.zig` stay in the Phase 2 config-surface\nbridge packet, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay\nin the Phase 3 export-boundary packet.",
+    );
+    try expectContains(note, "only as boundary references instead of Phase 9 runtime evidence");
+}
+
 test "phase 9 runtime loader gap survey keeps the shared request surface explicit" {
     const allocator = std.testing.allocator;
     const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
