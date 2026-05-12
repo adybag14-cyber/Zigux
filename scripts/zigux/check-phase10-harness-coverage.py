@@ -86,6 +86,7 @@ DOC_README_MARKERS = [
     "`make -C zigux phase10-validate`",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
+    "the missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`.",
 ]
 
 TESTS_README_MARKERS = [
@@ -124,6 +125,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps rather than shipped current-`master` evidence",
 ]
 
 COMPANION_MARKERS = [
@@ -233,14 +235,7 @@ def write_fixture(root: Path) -> None:
         ),
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
-        "Documentation/zigux/review-checklist.md": "\n".join(
-            [
-                "# Zigux Review Checklist",
-                "",
-                "If the change touches the shared Phase 10 packet, keep `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `zigux/tests/phase10_closure_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` aligned.",
-                "",
-            ]
-        ),
+        "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n" + "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
@@ -473,6 +468,21 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "framed as repo-reality gaps rather than shipped current-`master` evidence",
+                "framed as shared reminder evidence on current `master`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_repo_reality_gap_phrase",
+            root,
+            "review_checklist:`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps rather than shipped current-`master` evidence",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         doc_readme_path = root / "Documentation/zigux/README.md"
         original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
         doc_readme_path.write_text(
@@ -532,6 +542,21 @@ def run_self_test() -> int:
             "doc_readme_ring_reset_reuse_entry",
             root,
             "doc_readme:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "repo-reality gaps rather than shipped docs-root evidence on current `master`.",
+                "shared docs-root evidence on current `master`.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_repo_reality_gap_phrase",
+            root,
+            "doc_readme:the missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`.",
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
@@ -715,7 +740,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
