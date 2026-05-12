@@ -22,7 +22,7 @@ truthfulness work without promoting it into a separate shared replay count.
 - lane key: `P13-L18`
 - surveyed state: `current master` readback refreshed on `2026-05-12`
 - roadmap-adjacent reviewability evidence only
-- shared Phase 13 build intentionally omits this packet from the eight-test shared helper replay
+- shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle
 
 ## Current Repo Reality
 
@@ -62,7 +62,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 - it keeps the shipped `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the broader validator-first and Linux-style replay handles explicit
 - it treats still-missing direct notifier, helper, header, and tests-root companions as repo-reality gaps
-- it does not add extra shared replay steps beyond the current eight-test shared helper replay
+- it does not add extra shared replay steps beyond the current validator-first shared-helper release handle
 - it should not claim broader callback, registration, or HVC runtime parity while those direct companions remain absent on current `master`
 
 ## Contributor Checks
