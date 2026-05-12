@@ -125,7 +125,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
 
     const skbuff = manifest.deep_core_blocker_survey[3];
     try std.testing.expectEqualStrings("net/core/skbuff.c", skbuff.anchor);
-    try expectContains(skbuff.repo_reality, "P14-L10");
+    try expectContains(skbuff.repo_reality, "P14-Y03");
     try expectContains(skbuff.repo_reality, "phase14-skbuff-live-ownership-blocker");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
@@ -157,8 +157,8 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
-    try expectContains(governance_note, "lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker");
-    try expectContains(governance_note, "lane P14-L10 still records blocked phase14-skbuff-live-ownership-blocker");
+    try expectContains(governance_note, "lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker");
+    try expectContains(governance_note, "lane P14-Y03 still records blocked phase14-skbuff-live-ownership-blocker");
     try expectContains(governance_note, "phase15-review-process-required-field-sync");
     try expectContains(governance_note, "phase15-freeze-map-required-approver-sync");
     try expectContains(governance_note, "phase15-dated-readback-provenance-refresh");
@@ -261,13 +261,13 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
 
     const rcu_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", 32 * 1024);
     defer std.testing.allocator.free(rcu_note);
-    try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L13");
+    try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L16");
     try expectContains(rcu_note, "blocked `phase14-rcu-tree-bridge-blocker`");
     try expectContains(rcu_note, "Keep this packet blocked until a real Architecture Council reopen record");
 
     const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 24 * 1024);
     defer std.testing.allocator.free(skbuff_note);
-    try expectContains(skbuff_note, "PHASE14_LANE_KEY=P14-L10");
+    try expectContains(skbuff_note, "PHASE14_LANE_KEY=P14-Y03");
     try expectContains(skbuff_note, "blocked `phase14-skbuff-live-ownership-blocker`");
     try expectContains(skbuff_note, "no smaller review-only skbuff follow-up remains before the live ownership blocker");
 }
