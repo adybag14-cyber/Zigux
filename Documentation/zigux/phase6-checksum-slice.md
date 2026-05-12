@@ -26,4 +26,4 @@
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
 
 ## Next Step
-Leave this slice parked unless helper semantics, direct C parity evidence, or the dedicated slowdown gate drifts on current `master`.
+Leave this slice parked unless a fresh checksum packet reread shows helper-local drift across the slice note, dedicated C parity evidence, or the dedicated slowdown gate on current `master`. If it reopens, rerun `python3 scripts/zigux/check-phase6-checksum-c-parity.py` and `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe` first, then keep the repair inside one checksum-owned packet surface such as `Documentation/zigux/phase6-checksum-slice.md`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, or `zigux/tests/phase6_checksum_perf.zig` instead of widening into shared Phase 6 routing or another helper lane.
