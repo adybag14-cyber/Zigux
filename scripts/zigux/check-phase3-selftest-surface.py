@@ -286,7 +286,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
     )
 
-    issues.extend(_check_note_nextStep(repo_root / NOTE_PATH))
+    issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
     issues.extend(_check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH))
 
     tests_readme = repo_root / TESTS_README_PATH
