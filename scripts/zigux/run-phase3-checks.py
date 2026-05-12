@@ -18,6 +18,7 @@ def command_plan_for_slug(slug: str) -> tuple[tuple[str, ...], ...]:
         return (
             (sys.executable, "scripts/zigux/check-phase3-abi.py"),
             ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+            ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
         )
     return ()
 
@@ -87,6 +88,7 @@ def run_self_test() -> int:
         assert abi_plan == (
             (sys.executable, "scripts/zigux/check-phase3-abi.py"),
             ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+            ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
         )
         assert command_plan_for_slug("bitmap-cpumask") == ()
 
@@ -100,6 +102,7 @@ def run_self_test() -> int:
         assert observed_calls == [
             ((sys.executable, "scripts/zigux/check-phase3-abi.py"), tmp_dir, False),
             (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), tmp_dir, False),
+            (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), tmp_dir, False),
         ]
 
         observed_calls.clear()
