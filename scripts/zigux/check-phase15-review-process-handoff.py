@@ -148,6 +148,9 @@ SCRIPTS_README_MARKERS = (
 )
 
 TESTS_README_PACKET_MARKERS = (
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
@@ -465,7 +468,7 @@ def run_self_test() -> int:
         case_count += 1
 
         missing_note_readiness_marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
-        _write(root / NOTE_PATH, note_text.replace(f"- {missing_note_readiness_marker}\n", "", 1))
+        _write(root / NOTE_PATH, note_text.replace(missing_note_readiness_marker, ""))
         _assert_only(
             validate(root),
             [f"note:missing:{missing_note_readiness_marker}"],
@@ -485,7 +488,7 @@ def run_self_test() -> int:
         case_count += 1
 
         missing_note_scripts_marker = "scripts/zigux/README.md"
-        _write(root / NOTE_PATH, note_text.replace(missing_note_scripts_marker, "", 1))
+        _write(root / NOTE_PATH, note_text.replace(missing_note_scripts_marker, ""))
         _assert_only(
             validate(root),
             [f"note:missing:{missing_note_scripts_marker}"],
@@ -552,187 +555,4 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/README.md, ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/README.md"],
-            "missing_docs_readme_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/review-checklist.md, ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/review-checklist.md"],
-            "missing_review_checklist_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "scripts/zigux/README.md, and ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:scripts/zigux/README.md"],
-            "missing_scripts_readme_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "zigux/tests/README.md against ",
-            "against ",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:zigux/tests/README.md"],
-            "missing_tests_readme_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/phase15-readiness-gate-survey.md, ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-readiness-gate-survey.md"],
-            "missing_readiness_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/phase15-handoff-next-steps-survey.md, ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
-            "missing_handoff_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_data = json.loads(_read(root / MANIFEST_PATH))
-        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
-            "Documentation/zigux/phase15-governance-lane-sequencing.md",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-governance-lane-sequencing.md"],
-            "missing_lane_note_next_step_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        tests_readme_path = root / TESTS_README_PATH
-        tests_readme_text = _read(tests_readme_path)
-        missing_tests_manifest_marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
-        _write(
-            root / TESTS_README_PATH,
-            tests_readme_text.replace(f"{missing_tests_manifest_marker}\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"tests_readme:missing:{missing_tests_manifest_marker}"],
-            "missing_tests_readme_manifest_marker_guard_failed",
-        )
-        _write(root / TESTS_README_PATH, tests_readme_text)
-        case_count += 1
-
-        missing_tests_no_approval_marker = "without implying any Architecture Council approval for a freeze-map status change"
-        _write(
-            root / TESTS_README_PATH,
-            tests_readme_text.replace(f"{missing_tests_no_approval_marker}\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"tests_readme:missing:{missing_tests_no_approval_marker}"],
-            "missing_tests_readme_no_approval_marker_guard_failed",
-        )
-        _write(root / TESTS_README_PATH, tests_readme_text)
-        case_count += 1
-
-        (root / TESTS_README_PATH).unlink()
-        _assert_only(
-            validate(root),
-            [f"missing_file:{TESTS_README_PATH}"],
-            "missing_tests_readme_guard_failed",
-        )
-        case_count += 1
-
-        _seed_fixture_tree(root)
-        (root / POLICY_PATH).unlink()
-        _assert_only(
-            validate(root),
-            [f"missing_file:{POLICY_PATH}"],
-            "missing_policy_file_guard_failed",
-        )
-        case_count += 1
-
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print(f"PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT={case_count}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Keep the dedicated Phase 15 Architecture Council review-process handoff aligned."
-    )
-    parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
-    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    issues = validate(args.root)
-    if issues:
-        print("PHASE15_REVIEW_PROCESS_HANDOFF=fail")
-        print("PHASE15_REVIEW_PROCESS_HANDOFF_ISSUES_START")
-        for issue in issues:
-            print(issue)
-        print("PHASE15_REVIEW_PROCESS_HANDOFF_ISSUES_END")
-        return 1
-
-    print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
-    print(
-        "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(CURRENT_APPROVAL_POSTURE_MARKERS) + len(NOTE_REPLAY_ROUTE_MARKERS) + len(NOTE_MAINTENANCE_PACKET_MARKERS) + len(NOTE_NEXT_STEP_MARKERS) + len(POLICY_FIELD_SYNC_MARKERS) + len(POLICY_EXCEPTION_POSTURE_MARKERS) + len(POLICY_REOPEN_TRIGGER_MARKERS) + len(VALIDATOR_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(REQUIRED_MANIFEST_FIELDS) + len(REQUIRED_TRIGGER_CONDITIONS) + len(REQUIRED_REOPEN_TRIGGERS) + len(REQUIRED_DECISION_BUCKETS) + len(HANDOFF_ROUTE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(MANIFEST_NEXT_STEP_MARKERS)}"
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        manifest_data["handoff"]["next_step"] = manifest_data[
