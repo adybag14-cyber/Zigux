@@ -91,6 +91,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split.zig",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         "make -C zigux phase7-validate",
         "make -C zigux phase7",
     ],
@@ -235,6 +236,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "scripts/zigux/README.md",
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+            "",
+            "scripts_readme_fixture_marker",
+        )
+        expect_missing_marker(
+            "scripts_readme_fixture_marker",
+            tmp_root,
+            "scripts/zigux/README.md: zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
             "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
             "",
@@ -303,7 +318,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 6
+    case_count = 7
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
