@@ -85,10 +85,13 @@ The bounded reopen-trigger catalog for a retained stay-in-C packet is:
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
+  - `make -C zigux phase15-validate`
+  - `make -C zigux phase15-test`
   - `zig test zigux/tests/phase15_indefinite_c_policy.zig`
   - `zig test zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
   - `zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
+  - `make -C zigux phase15`
 - reopen only when one of the packet-local conditions below becomes true:
   - a named reopen-trigger catalog item now fits fresh stay-in-C evidence and includes the trigger-specific evidence refresh
   - the deep-core blocker posture, parity scorecard blocker record, or freeze-in-C anchor inventory changes enough to invalidate the parked policy packet
