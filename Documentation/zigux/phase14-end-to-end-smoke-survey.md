@@ -79,7 +79,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside that same validator-first route. That keeps all four dedicated Phase 14 drift guards on the shared contract path without implying a separate tests-readme make target that current `master` does not ship.
 - the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
 - `zigux/tests/phase14_build.zig` still exposes a dedicated `phase14-smoke` shard so the shared smoke packet can be replayed without compiling the heavier anchor-local bundle.
-- `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared smoke shard, and still honors the standard `ZIG` environment override so the attached archive can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` examples above when the default toolchain path is unavailable in the local shell.
+- `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared smoke shard, and still honors the standard `ZIG` environment override so the attached archive can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` examples above when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available in the local environment.
 - `.github/workflows/zigux-bootstrap.yml` still runs the validator-backed shared smoke packet, the focused smoke shard, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the existing end-to-end replay.
 - `Documentation/zigux/README.md` and `zigux/tests/README.md` now remain part of the explicit shared smoke surface inventory, so the docs root and tests root keep the same study-only packet visible without depending on phase-local notes alone.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
@@ -119,7 +119,7 @@ This shared smoke slice does not claim:
 - `make -C zigux phase14`
 - `make -C zigux phase14-smoke`
 
-4. rerun the same note with the attached toolchain when the shell cannot find the default Zig binary
+4. rerun the same note with the attached toolchain when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
