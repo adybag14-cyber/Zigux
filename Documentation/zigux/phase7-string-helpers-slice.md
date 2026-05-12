@@ -28,7 +28,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
-The four approved Phase 5 anchors remain the bounded bytestream FIFO, kobject, kretprobe, and trace-events sample packets. The bounded sample replay added on this draft branch exists only to keep the landed helper contract reviewable through the shared Phase 7 lane, without recasting string helpers as a fifth Phase 5 sample family.
+The four approved Phase 5 anchors remain the bounded bytestream FIFO, kobject, kretprobe, and trace-events sample packets. The bounded sample replay added on this draft branch exists only to keep the landed helper contract reviewable through the shared Phase 7 lane, without recasting string helpers as a fifth Phase 5 sample family. The roadmap-backed Phase 7 product destination still remains `lib/string_helpers.zig`, with the draft `samples/zigux/string_helpers_sample.zig` packet kept as supporting review evidence rather than as a new approved sample-root idiom.
 
 ## Gates
 
