@@ -56,7 +56,7 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`make -C zigux phase11-hvc-survey`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "while `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
+        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -88,13 +88,12 @@ FORBIDDEN_MARKERS = {
         "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`",
     ],
     "tests_root": [
-        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
-        "  * `zigux/tests/phase11_hvc_cleanup.zig`",
-        "  * `zigux/tests/phase11_hvc_console.zig`",
+        "the bounded `hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "while `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 26
 
 
 class CheckError(RuntimeError):
@@ -125,6 +124,7 @@ def run_check(root: Path) -> None:
         text = read_text(root, relative_path)
         expect_markers(label, text, MARKERS[label])
         expect_forbidden_markers_absent(label, text)
+
 
 
 def write(path: Path, text: str) -> None:
@@ -166,7 +166,6 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][10]),
             (FILES["tests_root"], MARKERS["tests_root"][11]),
             (FILES["tests_root"], MARKERS["tests_root"][12]),
-            (FILES["tests_root"], MARKERS["tests_root"][13]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_companion"], MARKERS["tests_companion"][2]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
@@ -193,7 +192,6 @@ def run_self_test() -> None:
         forbidden_cases = [
             ("tests_root", FORBIDDEN_MARKERS["tests_root"][0]),
             ("tests_root", FORBIDDEN_MARKERS["tests_root"][1]),
-            ("tests_root", FORBIDDEN_MARKERS["tests_root"][2]),
             ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
             ("review_checklist", FORBIDDEN_MARKERS["review_checklist"][0]),
         ]
