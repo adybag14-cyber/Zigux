@@ -31,12 +31,12 @@
   ],
   "anchor_packets": [
     {
-      "lane_key": "P14-L01",
+      "lane_key": "P14-L04",
       "anchor": "kernel/workqueue.c",
-      "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
+      "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
-      "ready_next_gap": "phase14-workqueue-pending-bit-audit",
+      "ready_next_gap": "",
       "blocked_gap": "phase14-workqueue-live-execution-blocker"
     },
     {
