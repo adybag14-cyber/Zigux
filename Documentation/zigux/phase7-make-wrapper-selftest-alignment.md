@@ -38,11 +38,12 @@ surface:
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 The same parked packet also depends on the shared docs-root Phase 5 no-sample
-reminders staying equally explicit for `string_helpers`, `cmdline`,
-`argv_split`, and `rbtree` so `Documentation/zigux/README.md` does not
-under-describe the parked helper bundle compared with
-`Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and the
-four Phase 7 slice notes.
+reminders staying honest for `string_helpers`, `cmdline`, `argv_split`, and
+`rbtree`. Current `master` keeps the full parked packet explicit for
+`string_helpers`, while the `cmdline`, `argv_split`, and `rbtree` docs-root
+reminders still rely on `Documentation/zigux/review-checklist.md`,
+`samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`,
+and the four Phase 7 slice notes for the fuller packet map.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
