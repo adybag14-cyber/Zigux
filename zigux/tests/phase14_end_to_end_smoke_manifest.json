@@ -36,7 +36,7 @@
       "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
-      "ready_next_gap": "phase14-workqueue-drain-cancel-followup",
+      "ready_next_gap": "phase14-workqueue-pending-bit-audit",
       "blocked_gap": "phase14-workqueue-live-execution-blocker"
     },
     {
