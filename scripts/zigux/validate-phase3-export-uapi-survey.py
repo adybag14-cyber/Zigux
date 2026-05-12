@@ -10,6 +10,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 DOCS_README = Path("Documentation/zigux/README.md")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 HEADER_GOVERNANCE = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
@@ -67,6 +68,19 @@ SCRIPTS_README_LINES = (
     f"`{LINUX_HEADER.as_posix()}`",
     f"`{ABI_HEADER.as_posix()}`",
 )
+REVIEW_CHECKLIST_MARKERS = (
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+    "`include/linux/zigux.h`",
+    "`include/zigux/abi.h`",
+)
+HEADER_GOVERNANCE_MARKERS = (
+    "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
+    "`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`include/zigux/abi.h`",
+)
 
 
 def norm_lines(text: str) -> list[str]:
@@ -104,6 +118,11 @@ def require_one_of(issues: list[str], text: str, prefix: str, markers: tuple[str
         issues.append(f"duplicate_{prefix}:{len(matches)}:{'|'.join(markers)}")
 
 
+def require_contains(issues: list[str], text: str, prefix: str, marker: str) -> None:
+    if marker not in text:
+        issues.append(f"missing_{prefix}:{marker}")
+
+
 def backtick_value(text: str, key: str) -> list[str]:
     prefix = f"`{key}="
     return [line[len(prefix):-1] for line in norm_lines(text) if line.startswith(prefix) and line.endswith("`")]
@@ -119,6 +138,7 @@ def validate(root: Path) -> list[str]:
     for rel in (
         SURVEY,
         DOCS_README,
+        REVIEW_CHECKLIST,
         SCRIPTS_README,
         WORKFLOW,
         HEADER_GOVERNANCE,
@@ -213,6 +233,12 @@ def validate(root: Path) -> list[str]:
     for marker in DOCS_README_LINES:
         require_exact(issues, docs_text, "docs_root_marker", marker)
 
+    review_checklist_path = root / REVIEW_CHECKLIST
+    if review_checklist_path.exists():
+        review_checklist_text = review_checklist_path.read_text(encoding="utf-8")
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            require_contains(issues, review_checklist_text, "review_checklist_marker", marker)
+
     scripts_readme_text = (root / SCRIPTS_README).read_text(encoding="utf-8")
     for marker in SCRIPTS_README_LINES:
         require_exact(issues, scripts_readme_text, "scripts_readme_marker", marker)
@@ -239,133 +265,108 @@ def validate(root: Path) -> list[str]:
 
 
 def build_valid_workspace(root: Path) -> None:
-    write(
-        root / EXPORT_SHIM,
-        "\n".join((
-            'const uapi_version = @import("uapi_version");',
-            "pub const Header = uapi_version.Header;",
-            "pub const HeaderCompatibility = uapi_version.Compatibility;",
-            "pub fn compatibilityStatus() void {}",
-            'test "phase3 export shim relays compatibility through explicit status packets" {}',
-            "",
-        )),
-    )
-    write(
-        root / UAPI_VERSION,
-        "\n".join((
-            "pub const Header = extern struct {};",
-            "pub const Compatibility = enum { canonical, future_compatible };",
-            "pub fn compatibility(header: Header) ?Compatibility { _ = header; return null; }",
-            'test "phase3 uapi evaluation keeps requested boundary shape explicit" {}',
-            "",
-        )),
-    )
-    write(
-        root / UAPI_DEV_T,
-        "\n".join((
-            "pub const EncodeError = error{};",
-            "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }",
-            "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }",
-            'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {}',
-            "",
-        )),
-    )
-    write(
-        root / HEADER_GOVERNANCE,
-        "\n".join((
-            "# Phase 3 Linux `zigux.h` Header Governance",
-            "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
-            "`PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
-            "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`",
-            "the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
-            "",
-        )),
-    )
-    write(
-        root / LINUX_HEADER,
-        "\n".join((
-            "#ifndef _LINUX_ZIGUX_H",
-            '#include "../zigux/abi.h"',
-            '#include "../zigux/dev_t.h"',
-            "static inline int zigux_export_status_ok(void) { return 1; }",
-            "",
-        )),
-    )
-    write(
-        root / ABI_HEADER,
-        "\n".join((
-            "#ifndef _ZIGUX_ABI_H",
-            "#define ZIGUX_ABI_VERSION 1",
-            "struct zigux_boundary_header { int size; };",
-            "struct zigux_export_status { int code; };",
-            "",
-        )),
-    )
+    write(root / EXPORT_SHIM, "\n".join((
+        'const uapi_version = @import("uapi_version");',
+        "pub const Header = uapi_version.Header;",
+        "pub const HeaderCompatibility = uapi_version.Compatibility;",
+        "pub fn compatibilityStatus() void {}",
+        'test "phase3 export shim relays compatibility through explicit status packets" {}',
+        "",
+    )))
+    write(root / UAPI_VERSION, "\n".join((
+        "pub const Header = extern struct {};",
+        "pub const Compatibility = enum { canonical, future_compatible };",
+        "pub fn compatibility(header: Header) ?Compatibility { _ = header; return null; }",
+        'test "phase3 uapi evaluation keeps requested boundary shape explicit" {}',
+        "",
+    )))
+    write(root / UAPI_DEV_T, "\n".join((
+        "pub const EncodeError = error{};",
+        "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }",
+        "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }",
+        'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {}',
+        "",
+    )))
     write(root / BUILD_FILE, "// shared phase3 build route\n")
-    write(
-        root / MAKEFILE,
-        "\n".join((
-            "phase3-validate:",
-            "phase3-abi:",
-            "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
-            "phase3: phase3-validate phase3-abi phase3-interop",
-            "",
-        )),
-    )
+    write(root / MAKEFILE, "\n".join((
+        "phase3-validate:",
+        "phase3-abi:",
+        "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+        "phase3: phase3-validate phase3-abi phase3-interop",
+        "",
+    )))
     write(root / VALIDATOR, "# validator placeholder\n")
-    write(
-        root / DOCS_README,
-        "\n".join((
-            "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-            "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-            "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
-            f"- `{UAPI_DEV_T.as_posix()}`",
-            "- `zig build phase3-test --build-file zigux/tests/build.zig`",
-            "- `make -C zigux phase3`",
-            "",
-        )),
-    )
-    write(
-        root / SCRIPTS_README,
-        "\n".join((
-            "- `validate-phase3-export-uapi-survey.py`",
-            f"- `{HEADER_GOVERNANCE.as_posix()}`",
-            f"- `{LINUX_HEADER.as_posix()}`",
-            f"- `{ABI_HEADER.as_posix()}`",
-            "",
-        )),
-    )
-    write(
-        root / WORKFLOW,
-        "\n".join((
-            "- name: Validate Phase 3 export/UAPI survey",
-            "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
-            "- name: Self-test Phase 3 export/UAPI survey",
-            "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-            "- name: Run Phase 3 ABI/interp substrate tests",
-            "  run: zig build phase3-test --build-file zigux/tests/build.zig",
-            "",
-        )),
-    )
-    write(
-        root / SURVEY,
-        "\n".join((
-            "# Phase 3 Export Shim and UAPI Boundary Survey",
-            "",
-            "## Status",
-            "",
-            f"- {PROVENANCE[0]}",
-            *(f"- {line}" for line in SURVEY_LINES),
-            f"- `PHASE3_EXPORT_SHIM_BLOB_SHA={blob_sha(root / EXPORT_SHIM)}`",
-            f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
-            f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
-            "",
-            "## Live Boundary",
-            "",
-            "The starter export shim and starter UAPI companions stay on the shared Phase 3 route.",
-            "",
-        )),
-    )
+    write(root / HEADER_GOVERNANCE, "\n".join((
+        "# Phase 3 Linux `zigux.h` Header Governance",
+        "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
+        "`PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
+        "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`",
+        "the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
+        "",
+    )))
+    write(root / LINUX_HEADER, "\n".join((
+        "#ifndef _LINUX_ZIGUX_H",
+        '#include "../zigux/abi.h"',
+        '#include "../zigux/dev_t.h"',
+        "static inline int zigux_export_status_ok(void) { return 1; }",
+        "",
+    )))
+    write(root / ABI_HEADER, "\n".join((
+        "#ifndef _ZIGUX_ABI_H",
+        "#define ZIGUX_ABI_VERSION 1",
+        "struct zigux_boundary_header { int size; };",
+        "struct zigux_export_status { int code; };",
+        "",
+    )))
+    write(root / DOCS_README, "\n".join((
+        "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+        "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
+        f"- `{UAPI_DEV_T.as_posix()}`",
+        "- `zig build phase3-test --build-file zigux/tests/build.zig`",
+        "- `make -C zigux phase3`",
+        "",
+    )))
+    write(root / REVIEW_CHECKLIST, "\n".join((
+        "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+        "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
+        "- `include/linux/zigux.h`",
+        "- `include/zigux/abi.h`",
+        "",
+    )))
+    write(root / SCRIPTS_README, "\n".join((
+        "- `validate-phase3-export-uapi-survey.py`",
+        f"- `{HEADER_GOVERNANCE.as_posix()}`",
+        f"- `{LINUX_HEADER.as_posix()}`",
+        f"- `{ABI_HEADER.as_posix()}`",
+        "",
+    )))
+    write(root / WORKFLOW, "\n".join((
+        "- name: Validate Phase 3 export/UAPI survey",
+        "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "- name: Self-test Phase 3 export/UAPI survey",
+        "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "- name: Run Phase 3 ABI/interp substrate tests",
+        "  run: zig build phase3-test --build-file zigux/tests/build.zig",
+        "",
+    )))
+    write(root / SURVEY, "\n".join((
+        "# Phase 3 Export Shim and UAPI Boundary Survey",
+        "",
+        "## Status",
+        "",
+        f"- {PROVENANCE[0]}",
+        *(f"- {line}" for line in SURVEY_LINES),
+        f"- `PHASE3_EXPORT_SHIM_BLOB_SHA={blob_sha(root / EXPORT_SHIM)}`",
+        f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
+        f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
+        "",
+        "## Live Boundary",
+        "",
+        "The starter export shim and starter UAPI companions stay on the shared Phase 3 route.",
+        "",
+    )))
 
 
 def run_self_test() -> int:
@@ -383,12 +384,22 @@ def run_self_test() -> int:
             root / DOCS_README,
             (root / DOCS_README).read_text(encoding="utf-8").replace(
                 "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-                "`broken-header-note`",
+                "`broken`",
                 1,
             ),
         )
         assert validate(root) == [
             "missing_docs_root_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`"
+        ]
+        build_valid_workspace(root)
+
+        write(root / REVIEW_CHECKLIST, "")
+        assert validate(root) == [
+            "missing_review_checklist_marker:`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+            "missing_review_checklist_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+            "missing_review_checklist_marker:`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+            "missing_review_checklist_marker:`include/linux/zigux.h`",
+            "missing_review_checklist_marker:`include/zigux/abi.h`",
         ]
         build_valid_workspace(root)
 
@@ -398,6 +409,10 @@ def run_self_test() -> int:
         assert f"missing_scripts_readme_marker:`{HEADER_GOVERNANCE.as_posix()}`" in issues, issues
         assert f"missing_scripts_readme_marker:`{LINUX_HEADER.as_posix()}`" in issues, issues
         assert f"missing_scripts_readme_marker:`{ABI_HEADER.as_posix()}`" in issues, issues
+        build_valid_workspace(root)
+
+        (root / HEADER_GOVERNANCE).unlink()
+        assert validate(root) == [f"missing_file:{HEADER_GOVERNANCE.as_posix()}"]
         build_valid_workspace(root)
 
         write(
@@ -417,30 +432,19 @@ def run_self_test() -> int:
         assert validate(root) == ["forbidden_survey_marker:phase3_export_uapi.zig"]
         build_valid_workspace(root)
 
-        write(
-            root / SCRIPTS_README,
-            (root / SCRIPTS_README).read_text(encoding="utf-8") + "zigux/tests/phase3_export_uapi.zig\n",
-        )
+        write(root / SCRIPTS_README, (root / SCRIPTS_README).read_text(encoding="utf-8") + "zigux/tests/phase3_export_uapi.zig\n")
         assert validate(root) == ["forbidden_scripts_readme_marker:zigux/tests/phase3_export_uapi.zig"]
         build_valid_workspace(root)
 
         write(root / MAKEFILE, "phase3-validate:\n")
         issues = validate(root)
         assert "missing_marker:zigux/Makefile:$(ZIG) build phase3-test --build-file zigux/tests/build.zig" in issues, issues
-        build_valid_workspace(root)
 
-        (root / HEADER_GOVERNANCE).unlink()
-        assert validate(root) == [
-            f"missing_file:{HEADER_GOVERNANCE.as_posix()}"
-        ]
         build_valid_workspace(root)
-
         (root / LINUX_HEADER).unlink()
-        assert validate(root) == [
-            f"missing_file:{LINUX_HEADER.as_posix()}"
-        ]
-        build_valid_workspace(root)
+        assert validate(root) == [f"missing_file:{LINUX_HEADER.as_posix()}"]
 
+        build_valid_workspace(root)
         write(
             root / ABI_HEADER,
             (root / ABI_HEADER).read_text(encoding="utf-8").replace(
@@ -475,7 +479,7 @@ def main() -> int:
             print(issue)
         return 1
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=13")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=14")
     return 0
 
 
