@@ -37,6 +37,9 @@ COMPLEX_DRIVER_LANE_SEQUENCING_PATH = (
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
+RAW_GITHUB_COVERAGE_SURVEY_PATH = (
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -58,6 +61,7 @@ REQUIRED_FILES = [
     RELEASE_CLOSURE_CHECKLIST_PATH,
     COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    RAW_GITHUB_COVERAGE_SURVEY_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -70,8 +74,6 @@ REQUIRED_FILES = [
     PHASE12_REPEATED_REPLAN_PATH,
     PHASE12_PACKET_PATH,
 ]
-
-FORBIDDEN_FILES = ["scripts/zigux/validate-phase12.py"]
 
 SCRIPTS_README_MARKERS = [
     "`check-build-only-phase12-surface.py`",
@@ -127,7 +129,7 @@ RELEASE_SEQUENCING_MARKERS = [
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12`",
     "starter-present `virtio_net` packet plus the shipped `virtio_scsi` build-only packet",
-    "`scripts/zigux/README.md` still names absent `Documentation/zigux/phase12-nvme-pci-slice.md` and `Documentation/zigux/phase12-nvme-pci-survey.md` while still omitting `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`make -C zigux phase12-validate` route, wired validator-first replay packet, focused libbpf-only replay, or cross-build replay on current `master`; `scripts/zigux/validate-phase12.py` exists as an unwired helper",
 ]
 
 RELEASE_COORDINATION_MATRIX_MARKERS = [
@@ -145,6 +147,7 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "the bounded storage rollback drill",
     "the shared build-and-make replay path",
     "the active shipped build packet on current `master` is the starter-present `virtio_net` plus smoke-first `virtio_scsi` replay",
+    "There is still no shipped shared `make -C zigux phase12-validate` route, even though `scripts/zigux/validate-phase12.py` now exists as an unwired helper on current `master`.",
 ]
 
 COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
@@ -160,6 +163,16 @@ LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
     "`PHASE12_STATUS=parked`",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
     "snapshot-only readback set",
+]
+
+RAW_GITHUB_COVERAGE_SURVEY_MARKERS = [
+    "`PHASE12_STATUS=active`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
+    "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+    "`make -C zigux phase12 ZIG=<attached-zig-path>`",
+    "current `master` ships `scripts/zigux/validate-phase12.py`",
+    "there is still no shipped `make -C zigux phase12-validate` route",
 ]
 
 WORKFLOW_MARKERS = [
@@ -259,10 +272,6 @@ def validate(root: Path) -> list[str]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
 
-    for rel_path in FORBIDDEN_FILES:
-        if (root / rel_path).exists():
-            failures.append(f"unexpected_file:{rel_path}")
-
     if failures:
         return failures
 
@@ -294,6 +303,11 @@ def validate(root: Path) -> list[str]:
             "libbpf_verify_shard_note",
             LIBBPF_VERIFY_SHARD_NOTE_PATH,
             LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
+        ),
+        (
+            "raw_github_coverage_survey",
+            RAW_GITHUB_COVERAGE_SURVEY_PATH,
+            RAW_GITHUB_COVERAGE_SURVEY_MARKERS,
         ),
         ("workflow", WORKFLOW_PATH, WORKFLOW_MARKERS),
         ("makefile", MAKEFILE_PATH, MAKEFILE_MARKERS),
@@ -460,6 +474,10 @@ def placeholder_for(rel_path: str) -> str:
         LIBBPF_VERIFY_SHARD_NOTE_PATH: minimal_join(
             "# Phase 12 Libbpf Verify Shard Note", LIBBPF_VERIFY_SHARD_NOTE_MARKERS
         ),
+        RAW_GITHUB_COVERAGE_SURVEY_PATH: minimal_join(
+            "# Phase 12 Raw GitHub Coverage Survey",
+            RAW_GITHUB_COVERAGE_SURVEY_MARKERS,
+        ),
         WORKFLOW_PATH: minimal_join("name: zigux-bootstrap", WORKFLOW_MARKERS),
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
         PHASE12_BUILD_PATH: minimal_phase12_build(),
@@ -506,6 +524,21 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
+        raw_coverage_path.write_text(
+            raw_coverage_path.read_text(encoding="utf-8").replace(
+                RAW_GITHUB_COVERAGE_SURVEY_MARKERS[5],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"raw_github_coverage_survey:{RAW_GITHUB_COVERAGE_SURVEY_MARKERS[5]}",
         )
 
         write_fixture_tree(base)
@@ -567,7 +600,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -616,6 +649,7 @@ def main() -> int:
         + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
         + len(COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS)
         + len(LIBBPF_VERIFY_SHARD_NOTE_MARKERS)
+        + len(RAW_GITHUB_COVERAGE_SURVEY_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(PHASE12_BUILD_MARKERS)
