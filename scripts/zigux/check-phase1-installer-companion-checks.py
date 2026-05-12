@@ -27,6 +27,10 @@ SCRIPTS_README_MARKERS = [
     "- `check-phase1-installer-companion-checks.py`",
 ]
 
+SCRIPTS_PHASE1_FLOW_MARKERS = [
+    "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+]
+
 WORKFLOW_MARKERS = [
     "- name: Self-test Phase 1 installer companion checks",
     "run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
@@ -91,6 +95,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_stripped_line_markers(makefile, "makefile", MAKEFILE_MARKERS))
     missing.extend(collect_exact_count_markers(docs_root, "docs_root", DOCS_ROOT_MARKERS))
     missing.extend(collect_exact_count_markers(scripts_readme, "scripts_readme", SCRIPTS_README_MARKERS))
+    missing.extend(
+        collect_exact_count_markers(
+            scripts_readme,
+            "scripts_phase1_flow",
+            SCRIPTS_PHASE1_FLOW_MARKERS,
+        )
+    )
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(
@@ -118,7 +129,7 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "scripts" / "zigux" / "README.md").write_text(
-        "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "\n".join(SCRIPTS_README_MARKERS + SCRIPTS_PHASE1_FLOW_MARKERS) + "\n",
         encoding="utf-8",
     )
     (root / ".github" / "workflows" / "zigux-bootstrap.yml").write_text(
@@ -199,6 +210,27 @@ def run_self_test() -> None:
         (root / "scripts/zigux/README.md").write_text("", encoding="utf-8")
         missing = collect_missing_markers(root)
         assert "scripts_readme:- `check-phase1-installer-companion-checks.py`:expected=1:actual=0" in missing
+        assert (
+            "scripts_phase1_flow:- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                SCRIPTS_PHASE1_FLOW_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "scripts_phase1_flow:- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.:expected=1:actual=0"
+            in missing
+        )
         case_count += 1
         make_fixture_root(root)
 
@@ -331,7 +363,7 @@ def main() -> int:
     print(f"PHASE1_INSTALLER_COMPANION_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_INSTALLER_COMPANION_REQUIRED_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_PHASE1_FLOW_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
