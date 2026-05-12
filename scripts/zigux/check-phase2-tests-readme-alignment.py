@@ -45,6 +45,10 @@ SCRIPTS_PHASE2_KCONFIG_SENTENCE = (
     "documented through the shared Phase 2 reminder surface instead of implying that stack is "
     "missing on current `master`."
 )
+TESTS_README_GENKSYMS_PACKET_SENTENCE = (
+    "keep the shipped genksyms bridge direct replay visible in the tests root through the "
+    "committed fixture packet instead of reviving a direct tests-root replay command"
+)
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -190,7 +194,7 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
-        "zig test scripts/zigux/genksyms.zig": 1,
+        TESTS_README_GENKSYMS_PACKET_SENTENCE: 1,
     },
     "zigux/Makefile": {
         "phase2-tools:": 1,
