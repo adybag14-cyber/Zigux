@@ -1,6 +1,17 @@
 const std = @import("std");
 
 const expected_surveyed_commit = "00b92f22991e9124aefb308d7eb0e90f14923338";
+const phase5_reference_anchors = [_][]const u8{
+    "`samples/zigux/bytestream_fifo.zig`",
+    "`samples/zigux/kobject_example.zig`",
+    "`samples/zigux/kretprobe_example.zig`",
+    "`samples/zigux/trace_events_sample.zig`",
+};
+const runtime_bitmap_family_files = [_][]const u8{
+    "`samples/zigux/runtime_bitmap.zig`",
+    "`samples/zigux/runtime_bitmap_loader.zig`",
+    "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
+};
 
 const DeliveryEvidence = struct {
     id: []const u8,
@@ -190,6 +201,11 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(survey_note, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`make -C zigux phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`make -C zigux phase9`");
+    try expectContains(survey_note, "no `samples/zigux/*bitmap*` Phase 5 reference sample");
+    try expectContains(survey_note, "separate Phase 9 runtime bitmap family");
+    try expectContains(survey_note, "rather than a fifth approved Phase 5 sample idiom");
+    for (phase5_reference_anchors) |marker| try expectContains(survey_note, marker);
+    for (runtime_bitmap_family_files) |marker| try expectContains(survey_note, marker);
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
