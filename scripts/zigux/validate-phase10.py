@@ -50,10 +50,10 @@ BUILD_MARKERS = [
     "phase10_virtio_input_queue_callback_preflight_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_verify_module",
-    '\"phase10-virtio-input-probe-preflight-tests\"',
-    '\"phase10-virtio-input-queue-callback-preflight-tests\"',
-    '\"phase10-virtio-input-status-drain-tests\"',
-    '\"phase10-virtio-input-verify-tests\"',
+    '"phase10-virtio-input-probe-preflight-tests"',
+    '"phase10-virtio-input-queue-callback-preflight-tests"',
+    '"phase10-virtio-input-status-drain-tests"',
+    '"phase10-virtio-input-verify-tests"',
 ]
 
 WORKFLOW_MARKERS = [
