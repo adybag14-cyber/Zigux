@@ -97,7 +97,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
-        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
+        "The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
     ),
     WORKFLOW_PATH: (
         "Validate Phase 8 tooling packet",
