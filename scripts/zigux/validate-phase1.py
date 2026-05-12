@@ -106,6 +106,7 @@ REQUIRED_FILES = [
     *EXPECTED_HELPERS,
     "scripts/zigux/artifact_diff.py",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
@@ -141,6 +142,21 @@ DOC_MARKERS = {
         "if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
     ],
 }
+
+PHASE1_SHARED_REPLAY_PARKED_HELPERS = ",".join(
+    EXPECTED_MANIFEST["lane_sequencing"]["shared_replay_parked_helpers"]
+)
+PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS = ",".join(
+    EXPECTED_MANIFEST["lane_sequencing"]["direct_anchor_followup_helpers"]
+)
+PHASE1_LANE_NOTE_MARKERS = [
+    "Fresh repo-first inspection shows that the honest current owner map is the shared Phase 1 helper manifest plus the live helper-local anchors, not an older bitmap-only reopen guide.",
+    "- `zigux/tests/fixtures/phase1_helper_manifest.json` is the authoritative owner-map split for all thirteen closed Phase 1 helpers",
+    f"- `PHASE1_SHARED_REPLAY_PARKED_HELPERS={PHASE1_SHARED_REPLAY_PARKED_HELPERS}`",
+    f"- `PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS={PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS}`",
+    f"- `PHASE1_LANE_RULE_SUMMARY={EXPECTED_MANIFEST['lane_sequencing']['rule_summary']}`",
+    f"- `PHASE1_LANE_ANTI_OVERLAP_RULE={EXPECTED_MANIFEST['lane_sequencing']['anti_overlap_rule']}`",
+]
 
 PHASE1_IMPORT_MARKERS = [
     '@import("argv_split")',
@@ -444,6 +460,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     docs_readme = load_text(root / "Documentation/zigux/README.md")
     tests_readme = load_text(root / "zigux/tests/README.md")
     review_checklist = load_text(root / "Documentation/zigux/review-checklist.md")
+    lane_note = load_text(root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md")
     helpers_text = load_text(root / "zigux/tests/phase1_helpers.zig")
     manifest, manifest_errors = load_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", "phase1_manifest")
     fixture, fixture_errors = load_json(root / "zigux/tests/fixtures/phase1_helpers.json", "phase1_fixture")
@@ -459,6 +476,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_required_markers(docs_readme, "docs_root_phase1_packet", DOC_MARKERS["docs_root_phase1_packet"]))
     missing.extend(collect_required_markers(tests_readme, "tests_root_phase1_packet", DOC_MARKERS["tests_root_phase1_packet"]))
     missing.extend(collect_required_markers(review_checklist, "review_checklist_phase1_packet", DOC_MARKERS["review_checklist_phase1_packet"]))
+    missing.extend(collect_required_markers(lane_note, "phase1_lane_note", PHASE1_LANE_NOTE_MARKERS))
     missing.extend(collect_required_markers(helpers_text, "phase1_import_marker", PHASE1_IMPORT_MARKERS))
     missing.extend(collect_required_markers(helpers_text, "phase1_helper_test", HELPER_FOLLOWUP_TESTS))
 
@@ -488,6 +506,7 @@ def make_fixture_root(root: Path) -> None:
     (root / "Documentation/zigux/README.md").write_text("\n".join(DOC_MARKERS["docs_root_phase1_packet"]) + "\n", encoding="utf-8")
     (root / "zigux/tests/README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n", encoding="utf-8")
     (root / "Documentation/zigux/review-checklist.md").write_text("\n".join(DOC_MARKERS["review_checklist_phase1_packet"]) + "\n", encoding="utf-8")
+    (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").write_text("\n".join(PHASE1_LANE_NOTE_MARKERS) + "\n", encoding="utf-8")
 
     manifest = {
         **EXPECTED_MANIFEST,
@@ -497,7 +516,10 @@ def make_fixture_root(root: Path) -> None:
         },
     }
     manifest["review_anchors"]["tools/lib/find_bit.zig"] = {
-        "helper_test_anchors": ['test "single-word next scans honor start masks"'],
+        "helper_test_anchors": [
+            'test "single-word next scans honor start masks"',
+            EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR,
+        ],
         "tail_word_inclusive_boundary_anchor": EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR,
         "tail_word_inclusive_boundary_contract": EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT,
         "tail_clamp_fixture_keys": ["tail_clamped_first"],
@@ -525,7 +547,9 @@ def make_fixture_root(root: Path) -> None:
 
     for helper, anchors in manifest["review_anchors"].items():
         lines: list[str] = []
-        for value in anchors.values():
+        for key, value in anchors.items():
+            if key == "phase1_helper_replay_anchor":
+                continue
             lines.extend(review_anchor_tests(value))
         (root / helper).write_text("\n".join(dict.fromkeys(lines)) + "\n", encoding="utf-8")
 
@@ -587,6 +611,23 @@ def run_self_test() -> None:
         assert "phase1_replay_marker:fixture.string.strtobool_invalid" in collect_missing_markers(root)
         helpers.write_text(original, encoding="utf-8")
         case_count += 1
+
+        lane_note_path = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
+        lane_note_path.unlink()
+        assert collect_missing_files(root) == ["Documentation/zigux/phase1-host-helper-lane-sequencing.md"]
+        case_count += 1
+        make_fixture_root(root)
+
+        lane_note_path.write_text(
+            load_text(lane_note_path).replace(PHASE1_LANE_NOTE_MARKERS[2] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert (
+            f"phase1_lane_note:{PHASE1_LANE_NOTE_MARKERS[2]}:expected=1:actual=0"
+            in collect_missing_markers(root)
+        )
+        case_count += 1
+        make_fixture_root(root)
 
         fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
         fixture = json.loads(load_text(fixture_path))
@@ -755,7 +796,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f'{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 7}'
+        f'{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_LANE_NOTE_MARKERS) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 7}'
     )
     return 0
 
