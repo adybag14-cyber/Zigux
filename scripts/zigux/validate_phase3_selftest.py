@@ -43,6 +43,7 @@ REQUIRED_SELFTEST_DRIVER_PATHS = (
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
     Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
