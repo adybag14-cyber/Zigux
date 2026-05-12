@@ -66,6 +66,38 @@ pub fn compareExchangeWeak(
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
+fn requireUnsignedInt(comptime T: type) void {
+    const info = @typeInfo(T);
+    if (info != .int or info.int.signedness != .unsigned) {
+        @compileError("phase3 atomic bit wrappers require an unsigned integer type");
+    }
+}
+
+fn bitMask(comptime T: type, bit_index: u16) T {
+    requireUnsignedInt(T);
+    std.debug.assert(bit_index < @bitSizeOf(T));
+    const shift: std.math.Log2Int(T) = @intCast(bit_index);
+    return @as(T, 1) << shift;
+}
+
+pub fn bitSet(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {
+    const mask = bitMask(T, bit_index);
+    const previous = @atomicRmw(T, ptr, .Or, mask, order);
+    return @intFromBool((previous & mask) != 0);
+}
+
+pub fn bitReset(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {
+    const mask = bitMask(T, bit_index);
+    const previous = @atomicRmw(T, ptr, .And, ~mask, order);
+    return @intFromBool((previous & mask) != 0);
+}
+
+pub fn bitToggle(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {
+    const mask = bitMask(T, bit_index);
+    const previous = @atomicRmw(T, ptr, .Xor, mask, order);
+    return @intFromBool((previous & mask) != 0);
+}
+
 test "phase3 atomic wrappers behave predictably" {
     var value: u32 = 1;
     try std.testing.expectEqual(@as(u32, 1), load(u32, &value, .seq_cst));
@@ -161,4 +193,23 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     const weak_mismatch = compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
     try std.testing.expectEqual(@as(?u32, 19), weak_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+}
+
+test "phase3 atomic wrappers keep bit wrappers reviewable" {
+    var flags: u8 = 0b0001_0100;
+
+    try std.testing.expectEqual(@as(u1, 0), bitSet(u8, &flags, 1, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b0001_0110), flags);
+    try std.testing.expectEqual(@as(u1, 1), bitSet(u8, &flags, 2, .release));
+    try std.testing.expectEqual(@as(u8, 0b0001_0110), flags);
+
+    try std.testing.expectEqual(@as(u1, 1), bitReset(u8, &flags, 4, .acquire));
+    try std.testing.expectEqual(@as(u8, 0b0000_0110), flags);
+    try std.testing.expectEqual(@as(u1, 0), bitReset(u8, &flags, 7, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b0000_0110), flags);
+
+    try std.testing.expectEqual(@as(u1, 1), bitToggle(u8, &flags, 2, .acq_rel));
+    try std.testing.expectEqual(@as(u8, 0b0000_0010), flags);
+    try std.testing.expectEqual(@as(u1, 0), bitToggle(u8, &flags, 0, .seq_cst));
+    try std.testing.expectEqual(@as(u8, 0b0000_0011), flags);
 }
