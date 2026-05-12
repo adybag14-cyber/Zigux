@@ -30,12 +30,19 @@ When current `master` cannot materialize direct helper-packet companions such as
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
 broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
 Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `security/landlock/ruleset.zig`
+- `security/landlock/syscalls.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+
+Broad summaries should keep those shipped Landlock helper anchors explicit instead of treating Landlock as docs-only ownership metadata.
 
 Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -56,6 +63,7 @@ Broad summaries should also keep the shipped adjacent direct-evidence shards vis
 - `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `include/zigux/abi.h`
@@ -88,7 +96,7 @@ Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
 - the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
 - direct missing companions should stay recorded as repo-reality gaps until current `master` can materialize them again
-- `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the shipped `zigux/bindings/notifier_abi.zig`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, the shipped `include/zigux/abi.h` ABI foothold, the Linux-side `drivers/tty/hvc/hvc_console.h` header, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps
+- `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the direct `zigux/tests/phase13_landlock_ruleset.zig` replay, the shipped `zigux/bindings/notifier_abi.zig`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, the shipped `include/zigux/abi.h` ABI foothold, the Linux-side `drivers/tty/hvc/hvc_console.h` header, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps, while the direct syscall-side companions stay repo-reality gaps
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
