@@ -165,7 +165,6 @@ FORBIDDEN_FILE_MARKERS = {
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-genksyms-crc-diff.py",
         "scripts/zigux/check-mk-elfconfig-diff.py",
-        "zig test scripts/zigux/genksyms.zig",
         "zig test scripts/zigux/genksyms_crc.zig",
         "zig test scripts/zigux/kconfig/conf_bridge.zig",
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
@@ -191,6 +190,7 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+        "zig test scripts/zigux/genksyms.zig": 1,
     },
     "zigux/Makefile": {
         "phase2-tools:": 1,
