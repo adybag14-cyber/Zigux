@@ -8,7 +8,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_SLICE=cmdline-runtime-leaf`
 * `PHASE7_LANE_KEY=P7-Y06`
 * scope: first low-risk runtime-safe parsing helpers only
-* lane state: helper, dedicated survey, committed manifest packet, shared build-wiring checker, shared validator, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, fixture, or shared review packet
+* lane state: the slice note, dedicated test, dedicated survey, and committed manifest packet remain visible on current `master`, but direct current reads no longer prove `lib/cmdline.zig` or `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`; treat the cmdline packet as review-drifted until that helper-plus-fixture pair is restored or the remaining packet surfaces are rewritten to a blocked posture
 * product boundary:
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
@@ -42,26 +42,37 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 - keep leading-whitespace handling keeps the Linux-style empty sentinel token
 - keep mixed-whitespace trimming and caller-owned buffer slicing explicit instead of widening into ownership-heavy follow-on helpers
 
+Current repo reality is narrower than the parked packet summary above: on `2026-05-12`, direct current `master` reads still returned this slice note together with `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_cmdline_manifest.json`, but the same read path returned `404` for `lib/cmdline.zig` and `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
+Treat the surviving note, test, survey, and manifest as a partial review record, not as proof that the bounded helper packet is fully landed today.
+
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/cmdline.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting cmdline as a fifth Phase 5 sample.
 
 ## Gates
 
-1. keep the dedicated cmdline survey gate reviewable
+1. keep the surviving review record explicit
+
+* `Documentation/zigux/phase7-cmdline-slice.md`
+* `zigux/tests/phase7_cmdline.zig`
+* `zigux/tests/phase7_cmdline_survey.zig`
+* `zigux/tests/phase7_cmdline_manifest.json`
+
+2. keep the missing helper-plus-fixture pair explicit as the current blocker
+
+* `lib/cmdline.zig`
+* `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+
+3. keep the dedicated cmdline survey gate tied to that helper-plus-fixture pair instead of overstating current replayability
 
 * `zigux/tests/phase7_cmdline_survey.zig`
 * `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all`
 * `make -C zigux phase7-cmdline-survey`
 
-2. keep the machine-readable review record explicit
+4. keep the machine-readable review record explicit
 
 * `zigux/tests/phase7_cmdline_manifest.json`
 
-3. keep the committed serialized `next_arg()` fixture packet explicit
-
-* `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
-
-4. keep the shared validator-first packet explicit
+5. keep the shared validator-first packet explicit
 
 * `python3 scripts/zigux/validate-phase7.py`
 * `python3 scripts/zigux/check-phase7-make-wrapper.py`
@@ -69,17 +80,30 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 * `python3 scripts/zigux/check-phase7-build-wiring.py`
 * `make -C zigux phase7-validate`
 
-5. keep the shared Phase 7 helper gate explicit
+6. keep the shared Phase 7 helper gate explicit once the helper-plus-fixture pair is visible again
 
 * `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 * `make -C zigux phase7-test`
 * `make -C zigux phase7`
 
-## Current parity surface
+## Current Repo Reality
 
-The current landed slice covers the bounded cmdline review packet under `lib/cmdline.zig`, the dedicated `zigux/tests/phase7_cmdline.zig` helper replay, the dedicated `zigux/tests/phase7_cmdline_survey.zig` survey gate, the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all` compile-check handoff, the committed `zigux/tests/phase7_cmdline_manifest.json` review record, and the committed serialized `next_arg()` edge fixtures under `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
+Current `master` still exposes a partial cmdline review packet:
 
-The current tests keep these packet edges explicit:
+* `Documentation/zigux/phase7-cmdline-slice.md`
+* `zigux/tests/phase7_cmdline.zig`
+* `zigux/tests/phase7_cmdline_survey.zig`
+* `zigux/tests/phase7_cmdline_manifest.json`
+
+Current `master` does not presently expose the full helper packet:
+
+* `lib/cmdline.zig` currently fails direct current-path reads
+* `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` currently fails direct current-path reads
+
+That means the dedicated survey and dedicated helper test still describe the intended bounded packet, but they do not currently prove a replayable cmdline helper lane on their own.
+The survey source still names the missing fixture module, and the survey body still reads `lib/cmdline.zig`, so the surviving review surfaces should be treated as drifted until the missing helper-plus-fixture pair returns or the surrounding packet is rewritten to a blocked posture.
+
+The surviving review text and tests still document these intended packet edges:
 
 * `getOption()` and `getOptions()` preserve Linux-style range parsing, including validator-only counting paths
 * `getOption()` clears caller-provided output on malformed signed and unsigned input so the bounded helper packet keeps that failure contract explicit instead of leaving stale caller state behind
@@ -89,10 +113,9 @@ The current tests keep these packet edges explicit:
 * caller-owned `nextArg()` buffer slicing stays explicit for `param`, `value`, and `rest`
 * empty-input handling keeps `param` and `rest` borrowed from the caller slice
 * leading-whitespace handling keeps the Linux-style empty sentinel token
-* serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-* the dedicated survey gate, the dedicated `phase7-cmdline-survey` compile-check replay, the committed manifest packet, the committed fixture packet, the shared validator-first packet, the parked make-wrapper alignment note, and the no-sample boundary note stay reviewable together instead of drifting into separate ad hoc reminders
+* the dedicated survey gate, the dedicated `phase7-cmdline-survey` compile-check replay, the committed manifest packet, the missing serialized fixture packet, the shared validator-first packet, the parked make-wrapper alignment note, and the no-sample boundary note are all still supposed to describe one bounded cmdline lane rather than separate ad hoc reminders
 
-The helper entrypoints remain explicit:
+The intended helper entrypoints remain explicit:
 
 * `getOption()`
 * `getOptions()`
@@ -110,8 +133,11 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep this slice parked unless fresh repo inspection finds one concrete cmdline parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
-Current `master` already keeps the broader Phase 5 no-cmdline-sample reminder aligned in `Documentation/zigux/README.md`, so there is no open docs-root sync step left in this slice.
-If the family reopens, prefer one tiny same-packet follow-through around the dedicated `phase7-cmdline-survey` compile-check replay, the already-landed malformed-input caller-output proof, the already-landed oversized-wrap replay, the `nextArg()` caller-slice ownership packet, the serialized edge fixtures, or another shared review-surface wording repair before widening into broader parsing policy or another lane.
+Stay in this cmdline lane and do one of two bounded things on a fresh `master` base:
+
+* restore `lib/cmdline.zig` together with `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` so the surviving dedicated test, survey, manifest, and shared Phase 7 routes become replayable again
+* or, if that helper-plus-fixture pair is not meant to ship on current `master`, rewrite the remaining cmdline-local review packet so it explicitly records the blocked state instead of reading like a fully landed helper slice
+
+Do not widen this follow-through into broader Phase 7 helper-family cleanup until the cmdline-local helper-versus-review drift is settled.
 
 ## Footer
