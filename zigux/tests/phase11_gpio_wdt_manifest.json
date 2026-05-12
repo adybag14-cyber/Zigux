@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L04",
   "phase": "Phase 11",
-  "surveyed_commit": "41ee426b91cf612f2d7a5ef5e4754109fc8b6e16",
+  "surveyed_commit": "6f64b07f9b4024b5a56f20bbef2d7f5a560060a9",
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -119,10 +119,10 @@
     },
     {
       "id": "phase11-gpio-wdt-platform-drvdata-tests",
-      "status": "starter_landed",
+      "status": "repo_gap_confirmed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
-      "why_now": "A focused Phase 11 harness now keeps the early platform_set_drvdata() ordering explicit around the landed checkpoint without widening into the broader shared Phase 11 build packet."
+      "why_now": "Current master verification shows the focused platform_set_drvdata() replay file is not actually present in the live zigux/tests tree, and direct contents reads for zigux/tests/phase11_gpio_wdt_platform_drvdata.zig return not found. The packet can still point at the platform drvdata checkpoint summary in drivers/watchdog/gpio_wdt.zig, but it must not claim a landed dedicated local harness until that file is added and wired into the Phase 11 build surface."
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
