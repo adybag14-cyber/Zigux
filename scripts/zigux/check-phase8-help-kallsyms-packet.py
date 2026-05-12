@@ -21,6 +21,7 @@ HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
 HELP_ONLY_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
 HELP_KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
 KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
+KALLSYMS_ONLY_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 REQUIRED_FILES = (
@@ -38,6 +39,7 @@ REQUIRED_FILES = (
     HELP_ONLY_BUILD_PATH,
     HELP_KALLSYMS_ONLY_BUILD_PATH,
     KALLSYMS_TEST_PATH,
+    KALLSYMS_ONLY_BUILD_PATH,
     PHASE8_BUILD_PATH,
 )
 
@@ -95,13 +97,32 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-help-kallsyms-test",
         "zigux/tests/phase8_help_kallsyms_only_build.zig",
     ),
+    KALLSYMS_SLICE_PATH: (
+        "PHASE8_SLICE=kallsyms-parse-wrapper-parked",
+        "zigux/tests/phase8_kallsyms_only_build.zig",
+        "make -C zigux phase8-kallsyms-test",
+        "make -C zigux phase8-help-kallsyms-test",
+        "one direct `kallsymsParse()` wrapper",
+    ),
     HELP_TEST_PATH: (
         'test "phase 8 help module imports cleanly" {',
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit" {',
     ),
+    KALLSYMS_TEST_PATH: (
+        'test "phase 8 kallsyms module imports cleanly" {',
+        'test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit" {',
+        'test "phase 8 kallsyms wrappers preserve the parked callback contract" {',
+    ),
     HELP_SOURCE_PATH: (
         "pub fn planPrettyPrint(",
         "pub fn writePrettyPrintStringListForTerminal(",
+    ),
+    KALLSYMS_ONLY_BUILD_PATH: (
+        '"Documentation/zigux/phase8-kallsyms-slice.md"',
+        '"../../tools/lib/symbol/kallsyms.zig"',
+        '"phase8_kallsyms.zig"',
+        '"phase8-kallsyms-tests"',
+        '"Run focused Phase 8 kallsyms tests"',
     ),
 }
 
@@ -184,7 +205,10 @@ def run_self_test() -> int:
             (WORKFLOW_PATH, "Run focused Phase 8 help and kallsyms tests"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test"),
             (HELP_SLICE_PATH, "PHASE8_SLICE=help-command-source-and-terminal-starter"),
+            (KALLSYMS_SLICE_PATH, "PHASE8_SLICE=kallsyms-parse-wrapper-parked"),
             (HELP_TEST_PATH, 'test "phase 8 help module imports cleanly" {'),
+            (KALLSYMS_TEST_PATH, 'test "phase 8 kallsyms module imports cleanly" {'),
+            (KALLSYMS_ONLY_BUILD_PATH, '"phase8-kallsyms-tests"'),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
@@ -194,10 +218,10 @@ def run_self_test() -> int:
 
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
-        (missing_file_root / KALLSYMS_TEST_PATH).unlink()
+        (missing_file_root / KALLSYMS_ONLY_BUILD_PATH).unlink()
         missing_result = run_validator(missing_file_root)
         missing_output = missing_result.stdout.strip() or missing_result.stderr.strip() or "no_output"
-        expected = f"missing-file:{KALLSYMS_TEST_PATH}"
+        expected = f"missing-file:{KALLSYMS_ONLY_BUILD_PATH}"
         if missing_result.returncode == 0 or expected not in missing_output:
             raise SystemExit(f"self-test-missing-file-mismatch:{missing_output}")
         cases += 1
