@@ -258,6 +258,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace("workflow-backed `make -C zigux phase9` route", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:Documentation/zigux/review-checklist.md:workflow-backed `make -C zigux phase9` route",
+        )
+
+        write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(makefile.replace("phase9-runtime-loader-shared-tests:", "", 1), encoding="utf-8")
