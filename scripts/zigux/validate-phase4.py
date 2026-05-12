@@ -246,6 +246,13 @@ REQUIRED_PHASE4_RUNTIME_ATOMIC64_SURVEY_MARKERS = [
     "zigux/tests/phase4_perf_baseline_survey.zig",
 ]
 
+REQUIRED_PHASE4_PERF_BASELINE_MATRIX_ROW_MARKERS = [
+    "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates `Validation and Perf Team` `Validation and Perf Team`",
+    "not on the shared workflow or validator packet yet; keep this survey local until any shared CI perf promotion is intentionally approved",
+    "`zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` or `make -C zigux phase4-perf-baseline-survey`",
+    "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
+]
+
 GENERIC_CHECKS = [
     ("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], None),
     ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", ["scripts/zigux/check-artifact-diff-contract.py", "--self-test"], "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),
@@ -368,6 +375,14 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     )
     return failures
 
+def run_phase4_perf_baseline_matrix_check(root: Path) -> list[str]:
+    matrix_text = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(encoding="utf-8")
+    return _check_markers(
+        matrix_text,
+        REQUIRED_PHASE4_PERF_BASELINE_MATRIX_ROW_MARKERS,
+        "phase4_perf_baseline_matrix",
+    )
+
 def validate_root(root: Path) -> list[str]:
     failures = [f"file:{item}" for item in _missing_files(root)]
     if failures:
@@ -375,6 +390,7 @@ def validate_root(root: Path) -> list[str]:
     failures.extend(run_root_marker_checks(root))
     failures.extend(run_generic_checks(root))
     failures.extend(run_phase4_runtime_atomic64_packet_check(root))
+    failures.extend(run_phase4_perf_baseline_matrix_check(root))
     return failures
 
 def _write_fixture_tree(root: Path) -> None:
@@ -527,6 +543,10 @@ def _write_fixture_tree(root: Path) -> None:
         "phase4_bitmap_diff_survey.zig",
         "phase4_perf_baseline_manifest.json",
         "phase4_perf_baseline_survey.zig",
+        "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates `Validation and Perf Team` `Validation and Perf Team`",
+        "not on the shared workflow or validator packet yet; keep this survey local until any shared CI perf promotion is intentionally approved",
+        "`zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` or `make -C zigux phase4-perf-baseline-survey`",
+        "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
         "phase4_test_fsmount_manifest.json",
         "phase4_test_fsmount_survey.zig",
         "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
@@ -688,6 +708,24 @@ def run_self_test() -> int:
         )
         failures = validate_root(root)
         if "phase4_matrix:reviewability_only_no_perf_threshold" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        matrix_path.write_text(
+            original_matrix.replace(
+                "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "phase4_perf_baseline_matrix:`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`" not in failures:
             print("PHASE4_VALIDATOR_SELF_TEST=fail")
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
             for item in failures:
