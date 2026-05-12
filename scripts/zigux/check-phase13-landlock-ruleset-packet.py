@@ -83,6 +83,8 @@ REQUIRED_NOTIFIER_SURVEY_MARKERS = (
     "`Documentation/zigux/phase13-release-notes-survey.md`",
     "`Documentation/zigux/phase13-roadmap-traceability.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
     "paired Landlock",
 )
 
@@ -277,6 +279,7 @@ def run_self_test() -> int:
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[4]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[0]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[0]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[5]),
             ("syscalls-governance", SYSCALLS_GOVERNANCE_PATH, REQUIRED_SYSCALLS_GOVERNANCE_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[3]),
