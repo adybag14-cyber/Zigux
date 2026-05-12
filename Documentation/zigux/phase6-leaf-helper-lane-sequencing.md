@@ -6,13 +6,14 @@ This note keeps the bounded Phase 6 leaf-helper packet from overlapping itself o
 
 - `PHASE6_LANE_MAP_STATUS=active`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
+- shared sequencing lane key: `P6-Y10`
 - shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet catalog: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared perf posture note: `Documentation/zigux/phase6-perf-gate-survey.md`
 
 ## Shared-Surface Owner
 
-Use this sequencing lane only for packet-wide routing, ownership, or anti-overlap truthfulness across:
+Use `P6-Y10` only for packet-wide routing, ownership, or anti-overlap truthfulness across:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
@@ -74,7 +75,7 @@ Keep helper-local work under:
 
 Treat `P6-Y06` and `P6-L13` as checksum parked-survey or closure-correction lanes and `P6-L16` as the checksum helper-or-fixture drift lane when those same helper-local surfaces could plausibly overlap.
 
-While current `master` still lacks the checksum-owned helper packet, keep helper restoration under those checksum lanes but treat shared route truthfulness as shared-lane work. That shared follow-up is limited to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the packet-level shared-route fields inside `zigux/tests/phase6_helper_parity_manifest.json` when they drift from the blocked checksum slice.
+While current `master` still lacks the checksum-owned helper packet, keep helper restoration under those checksum lanes but treat shared route truthfulness as `P6-Y10` work. That shared follow-up is limited to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the packet-level shared-route fields inside `zigux/tests/phase6_helper_parity_manifest.json` when they drift from the blocked checksum slice.
 
 ### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet
 
@@ -83,6 +84,7 @@ Keep helper-local work under:
 - `lib/hexdump.zig`
 - `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase6_hexdump_perf.zig`
+- `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
@@ -96,9 +98,9 @@ Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6
 - If `Documentation/zigux/phase6-helper-parity-catalog.md` or `Documentation/zigux/phase6-perf-gate-survey.md` changes only one helper subsection, route that work back to the owning helper lane.
 - Reopen this shared sequencing lane only when packet membership, shared routes, shared checker coverage, shared status wording, or helper-owner boundaries drift.
 - If a shared route changes, update the shared note first, then let the owning helper lane repair only the helper-local evidence it actually owns.
-- If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while this shared lane owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.
+- If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.
 - If a helper packet has separate parked-survey, fixture-governance, and helper-drift lanes, route the smallest truthful follow-up to the narrowest owner instead of reopening the whole helper family.
 
 ## Current Bounded Next Step
 
-Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. The current backlog-backed next safe step is one shared-surface-only correction that makes the docs-root, scripts-root, tests-root, checklist, checker, build, Makefile, workflow, or manifest packet tell the same truth about the blocked checksum helper state without attempting checksum restoration in the same change; after that, route the actual helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16`.
+Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. The current backlog-backed next safe step for `P6-Y10` is one shared-surface-only correction that makes the docs-root, scripts-root, tests-root, checklist, checker, build, Makefile, workflow, or manifest packet tell the same truth about the blocked checksum helper state without attempting checksum restoration in the same change; after that, route the actual helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16`.
