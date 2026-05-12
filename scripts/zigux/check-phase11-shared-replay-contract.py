@@ -15,6 +15,7 @@ FILES = {
 }
 
 NOTE_EXISTENCE_FILES = [
+    "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "Documentation/zigux/phase11-hvc-console-slice.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -22,7 +23,6 @@ NOTE_EXISTENCE_FILES = [
     "zigux/tests/phase11_hvc_cleanup.zig",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "zigux/tests/phase11_hvc_console_manifest.json",
@@ -81,7 +81,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 24
 
 
 class CheckError(RuntimeError):
@@ -144,9 +144,9 @@ def run_self_test() -> None:
             (FILES["note"], "* `Documentation/zigux/phase11-hvc-console-slice.md`"),
             (FILES["note"], "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (FILES["note"], "* `zigux/tests/phase11_hvc_cleanup.zig`"),
-            (FILES["note"], "* `drivers/tty/hvc/hvc_console_verify.zig`"),
             (FILES["note"], "* `drivers/tty/hvc/hvc_console_sysrq.zig`"),
             (FILES["note"], "Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_console.zig` stays recorded as the remaining repo-reality gap rather than shared proof."),
+            (FILES["note"], "The DesignWare watchdog lane is still parked on a planning checkpoint beside that shared route:"),
             (FILES["note"], "* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
             (FILES["note"], "Treat that plan note as the current DesignWare lane evidence on `master`: it keeps the next bounded platform-registration scaffold explicit while the repository still does not materialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `drivers/watchdog/dw_wdt_verify.zig`."),
             (FILES["closure_note"], "* `zigux/tests/phase11_build.zig`"),
@@ -158,11 +158,11 @@ def run_self_test() -> None:
             (FILES["lane_note"], "Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the shared notes, the shared contract checker, the shared `phase11_build.zig` route, and `make -C zigux phase11`, while `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains the focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when reminder wording moves."),
             (FILES["lane_note"], "Keep the DesignWare lane honest: on current `master` the landed DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` only, while `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` remain repo-reality gaps rather than a landed packet."),
             (FILES["lane_note"], "Keep the HVC delivery-gate lane honest: on current `master` the landed HVC archival packet is the teardown-note cleanup handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, the manifest-backed survey gate, modem-control split, poll-retry split, sysrq helper, validation matrix, and dedicated `phase11-hvc-survey` route rather than a missing or purely reminder-only packet."),
+            ("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md", "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
             ("Documentation/zigux/phase11-hvc-console-teardown-note.md", "Documentation/zigux/phase11-hvc-console-teardown-note.md"),
             ("zigux/tests/phase11_hvc_cleanup.zig", "zigux/tests/phase11_hvc_cleanup.zig"),
             ("zigux/tests/phase11_hvc_console_modem_control_split.zig", "zigux/tests/phase11_hvc_console_modem_control_split.zig"),
             ("zigux/tests/phase11_hvc_console_survey.zig", "zigux/tests/phase11_hvc_console_survey.zig"),
-            ("drivers/tty/hvc/hvc_console_verify.zig", "drivers/tty/hvc/hvc_console_verify.zig"),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
