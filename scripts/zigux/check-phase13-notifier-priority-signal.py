@@ -105,6 +105,7 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "`check-phase13-notifier-priority-signal.py`",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "adjacent release-surface evidence",
+    "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
 )
 
 
@@ -187,7 +188,7 @@ def run_self_test() -> int:
             ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[3]),
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[3]),
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
-            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[1]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
         )
         for label, rel_path, needle in mutations:
             case_root = Path(tmp) / f"{label}_{cases}"
