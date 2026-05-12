@@ -8,13 +8,12 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
 - surveyed inspected `master` head: `c11221dc7a68d7511ae1c69d64b3f08528287ed8`
-- scope: compare the already-landed core survey packet against the remaining roadmap lab-driver gap, keep the slice note and shared build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
+- scope: compare the already-landed core survey packet against the remaining roadmap lab-driver gap, keep the dedicated note, manifest, and shared build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `zigux/tests/phase10_virtio_core_manifest.json`
   - `zigux/tests/phase10_virtio_core_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `Documentation/zigux/phase10-virtio-core-survey.md`
-  - `Documentation/zigux/phase10-virtio-core-slice.md`
   - `scripts/zigux/check-phase10-core-packet.py`
   - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 
@@ -22,9 +21,9 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 
 The Phase 10 roadmap names `drivers/virtio/virtio.c` as the first virtio-core anchor, and the live repo already ships a bounded `drivers/virtio/virtio.zig` helper plus dedicated implementation tests.
 
-Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path, and the shipped bounded status_show and features_show-style summaries were only implicit in the helper and tests. This survey restores the small manifest-backed governance packet so the core lane is reviewable again without widening into new helper behavior, but the packet is not yet fully machine-checkable because the dedicated checker and survey gate still lag the refreshed note and manifest state.
+Current `master` no longer ships the older dedicated `Documentation/zigux/phase10-virtio-core-slice.md` path, so the bounded review packet on live `master` is the manifest-backed survey note, the dedicated core checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes. That packet keeps the core lane reviewable without widening into transport-backed lifecycle claims.
 
-This same packet is still the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The slice note already keeps the roadmap's dual-implementation boundary explicit too, so this survey packet must carry that same blocked bridge instead of naming only the later probe or remove step, and the packet-local enforcement now needs to catch up to that two-blocker posture.
+This same packet is still the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The current survey packet already keeps the roadmap's dual-implementation boundary explicit too, so it must carry that same blocked bridge instead of naming only the later probe or remove step, and the packet-local enforcement now needs to catch up to that two-blocker posture.
 
 ## Survey findings
 
@@ -52,13 +51,13 @@ Any status review beyond this blocked-on-risky-transport packet still needs an A
 
 ## Recorded gaps
 
-The restored survey manifest records:
+The restored survey packet currently records:
 
 - the landed `phase10-build-gate`
 - the landed `phase10-virtio-core-lab-starter`
 - the landed `phase10-virtio-core-lab-gate`
 - the landed `phase10-virtio-core-reset-queue-gate`
-- the landed `phase10-virtio-core-slice-note`
+- the still-missing `phase10-virtio-core-slice-note` path
 - the landed `phase10-virtio-core-survey-gate`
 - the landed `phase10-virtio-core-survey-note`
 - the landed `phase10-virtio-core-verify-replay`
@@ -76,7 +75,7 @@ The restored survey manifest records:
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence on the survey note, manifest, direct verify replay, tests-root companion, and shared build surfaces; the still-missing dual-implementation boundary for risky transport-facing paths remains explicit; the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied; and the next lane-local repair is to refresh the dedicated checker and the survey gate so they enforce this same two-blocker packet instead of the older single-blocker snapshot.
+This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence on the survey note, manifest, direct verify replay, tests-root companion, and shared build surfaces; the repo still does not ship the older `phase10-virtio-core-slice.md` path; the still-missing dual-implementation boundary for risky transport-facing paths remains explicit; the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied; and the next lane-local repair remains refreshing the dedicated checker and survey gate so they enforce this same two-blocker packet instead of the older single-blocker snapshot.
 
 ## Non-goals
 
