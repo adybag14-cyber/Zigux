@@ -16,7 +16,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
   * survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`
   * lane key: `P14-L01`
   * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`
-  * ready-next gap: `phase14-workqueue-drain-cancel-followup`
+  * ready-next gap: `phase14-workqueue-pending-bit-audit`
   * blocked gap: `phase14-workqueue-live-execution-blocker`
   * retained-in-C boundary: live worker-pool execution, draining, delayed-work requeue ownership, timer-base and CPU-affinity handoff, hotplug transitions, rescuer behavior, scheduler callbacks, and forward-progress correctness still remain in C because they share `worker_pool` state, pending-bit handoff, delayed timer expiry, and scheduler-visible ownership that the current boundary map only records for reviewability.
 ### Ring buffer
