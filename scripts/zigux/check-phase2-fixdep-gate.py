@@ -13,6 +13,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/phase2-closure.md",
+    "scripts/basic/fixdep.c",
+    "scripts/include/xalloc.h",
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/validate-phase2.py",
