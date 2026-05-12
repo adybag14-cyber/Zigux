@@ -40,6 +40,7 @@ REQUIRED_MARKERS = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "zigux/Makefile",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/phase3_check_lib.py --self-test",
@@ -58,6 +59,7 @@ REQUIRED_CURRENT_PACKET_MARKERS = (
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
+    "zigux/Makefile",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
@@ -275,7 +277,7 @@ def _sample_text() -> str:
 
 def _boundary_note_sample_text() -> str:
     sample = "## Current landed surface\n"
-    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
+    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS)
     sample += "\n## Next bounded step\n"
     sample += "\n".join(REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS)
     sample += "\n## Non-goals\n- stub\n"
@@ -420,6 +422,17 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected bindings current packet marker was not reported")
+        return 1
+
+    current_packet_makefile_marker = "zigux/Makefile"
+    broken = validate_text(sample.replace(current_packet_makefile_marker, "", 1))
+    expected = (
+        "current packet marker count drift: zigux/Makefile "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected makefile current packet marker was not reported")
         return 1
 
     shared_reminder_bindings_marker = "zigux/bindings/abi.zig"
