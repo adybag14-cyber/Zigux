@@ -17,6 +17,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
   - `zigux/tests/README.md`
+  - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
