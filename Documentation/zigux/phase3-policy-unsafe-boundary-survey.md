@@ -15,7 +15,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=264b9dbcb591fe6fd6bc1112bce7889b1e5f1b7c`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=da243407a376213cc583d46e824862985ba75477`
+- `PHASE3_MMIO_BLOB_SHA=b1124a72419da4d11e76768005ae800b64be3a0b`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=f635ed0103177618249c02e47c7b02a5231de2c3`
@@ -24,7 +24,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=0859efb2c4ba1a8178d10171321223b21273ae02`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=8cc86aa4fd1f212b93a1046920c2d92fc878c240`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=7dc9453578270b6123666326eb2b5b744c16be6b`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=0f459e18392bcd3b07e87f118f27699162f747c5`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
