@@ -41,7 +41,6 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/README.md": 1,
-    "Documentation/zigux/review-checklist.md": 1,
     "scripts/zigux/README.md": 1,
     "zigux/tests/README.md": 1,
     "zigux/uapi/dev_t.zig": 1,
