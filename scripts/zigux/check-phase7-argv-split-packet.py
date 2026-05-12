@@ -62,6 +62,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
+        "PHASE7_LANE_KEY=P7-L11",
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
@@ -135,6 +136,8 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
+        "const active_lane_key = \"P7-L11\";",
+        "try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_argv_split_manifest.json",
         "phase7-argv-split-packet-checker",
@@ -260,6 +263,13 @@ def run_self_test() -> None:
             "Documentation/zigux/review-checklist.md: zigux/tests/phase7_argv_split_manifest.json",
         ),
         (
+            "slice_lane_key_marker",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "PHASE7_LANE_KEY=P7-L11",
+            "PHASE7_LANE_KEY=P7-L02",
+            "Documentation/zigux/phase7-argv-split-slice.md: PHASE7_LANE_KEY=P7-L11",
+        ),
+        (
             "slice_checker_marker",
             "Documentation/zigux/phase7-argv-split-slice.md",
             "python3 scripts/zigux/check-phase7-argv-split-packet.py",
@@ -356,6 +366,20 @@ def run_self_test() -> None:
             "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
             "",
             "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+        ),
+        (
+            "survey_active_lane_key_marker",
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "const active_lane_key = \"P7-L11\";",
+            "const active_lane_key = \"P7-L02\";",
+            "zigux/tests/phase7_argv_split_survey.zig: const active_lane_key = \"P7-L11\";",
+        ),
+        (
+            "survey_lane_manifest_parity_marker",
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);",
+            "",
+            "zigux/tests/phase7_argv_split_survey.zig: try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);",
         ),
         (
             "survey_checker_marker",
