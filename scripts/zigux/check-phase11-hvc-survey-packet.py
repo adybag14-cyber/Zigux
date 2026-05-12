@@ -27,6 +27,7 @@ REQUIRED_FILES = {
 SURVEY_GATE_MARKERS = [
     'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
+    'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
     "hvc_cleanup tty-port release handoff",
     "phase11_hvc_console_modem_control_split.zig",
     "phase11_hvc_console_poll_retry_split.zig",
@@ -132,7 +133,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 class CheckError(RuntimeError):
@@ -289,6 +290,7 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         cases = [
+            (REQUIRED_FILES["survey_gate"], 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"'),
             (REQUIRED_FILES["validation_matrix"], "zigux/tests/phase11_hvc_cleanup.zig"),
             (REQUIRED_FILES["validation_matrix"], "direct verify-and-replay pair"),
             (REQUIRED_FILES["slice_note"], "drivers/tty/hvc/hvc_console_sysrq.zig"),
