@@ -20,6 +20,7 @@ EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
 ABI_SLICE = Path("Documentation/zigux/phase3-abi-slice.md")
+LANE_SEQUENCING = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
 ABI_NEXT_STEP = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 BUILD_FILE = Path("zigux/tests/build.zig")
 ABI_DUMP = Path("zigux/tests/phase3_abi_dump.zig")
@@ -55,6 +56,21 @@ ABI_SLICE_LINES = (
     f"`{UAPI_VERSION.as_posix()}`",
     f"`{UAPI_DEV_T.as_posix()}`",
     f"`{ABI_DUMP.as_posix()}`",
+)
+LANE_SEQUENCING_MARKERS = (
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+    "`Documentation/zigux/phase3-abi-header-family-survey.md`",
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
+    "`include/linux/zigux.h`",
+    "`zigux/kernel/export_shim.zig`",
+    "`zigux/uapi/version.zig`",
+    "`zigux/uapi/dev_t.zig`",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+)
+LANE_SEQUENCING_CONTAINS = (
+    "export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family",
+    "if the drift is about starter UAPI truth, export-shim wording, Linux-facing header governance, the packet-local export/UAPI survey checker, or whether the starter packet still points at the shared replay routes instead of retired dedicated export/UAPI-only replays, keep it in the export and header packet",
 )
 ABI_NEXT_STEP_LINES = (
     f"`{SURVEY.as_posix()}`",
@@ -175,6 +191,7 @@ def validate(root: Path) -> list[str]:
         UAPI_VERSION,
         UAPI_DEV_T,
         ABI_SLICE,
+        LANE_SEQUENCING,
         ABI_NEXT_STEP,
         BUILD_FILE,
         ABI_DUMP,
@@ -290,6 +307,12 @@ def validate(root: Path) -> list[str]:
     abi_slice_text = (root / ABI_SLICE).read_text(encoding="utf-8")
     for marker in ABI_SLICE_LINES:
         require_exact(issues, abi_slice_text, "abi_slice_marker", marker)
+
+    lane_sequencing_text = (root / LANE_SEQUENCING).read_text(encoding="utf-8")
+    for marker in LANE_SEQUENCING_MARKERS:
+        require_exact(issues, lane_sequencing_text, "lane_sequencing_marker", marker)
+    for marker in LANE_SEQUENCING_CONTAINS:
+        require_contains(issues, lane_sequencing_text, "lane_sequencing_rule", marker)
 
     abi_next_step_text = (root / ABI_NEXT_STEP).read_text(encoding="utf-8")
     for marker in ABI_NEXT_STEP_LINES:
@@ -424,6 +447,20 @@ def build_valid_workspace(root: Path) -> None:
         f"- `{ABI_DUMP.as_posix()}`",
         "",
     )))
+    write(root / LANE_SEQUENCING, "\n".join((
+        "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+        "- `Documentation/zigux/phase3-abi-header-family-survey.md`",
+        "- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
+        "- `include/linux/zigux.h`",
+        "- `zigux/kernel/export_shim.zig`",
+        "- `zigux/uapi/version.zig`",
+        "- `zigux/uapi/dev_t.zig`",
+        "- `scripts/zigux/validate-phase3-export-uapi-survey.py`",
+        "export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family",
+        "if the drift is about starter UAPI truth, export-shim wording, Linux-facing header governance, the packet-local export/UAPI survey checker, or whether the starter packet still points at the shared replay routes instead of retired dedicated export/UAPI-only replays, keep it in the export and header packet",
+        "",
+    )))
     write(root / ABI_NEXT_STEP, "\n".join((
         f"- `{SURVEY.as_posix()}`",
         f"- `{EXPORT_SHIM.as_posix()}`",
@@ -508,6 +545,31 @@ def run_self_test() -> int:
             1,
         ))
         assert validate(root) == [f"missing_abi_slice_marker:`{ABI_DUMP.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        (root / LANE_SEQUENCING).unlink()
+        assert validate(root) == [f"missing_file:{LANE_SEQUENCING.as_posix()}"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / LANE_SEQUENCING, (root / LANE_SEQUENCING).read_text(encoding="utf-8").replace(
+            "`zigux/kernel/export_shim.zig`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == ["missing_lane_sequencing_marker:`zigux/kernel/export_shim.zig`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / LANE_SEQUENCING, (root / LANE_SEQUENCING).read_text(encoding="utf-8").replace(
+            "packet-local `validate-phase3-export-uapi-survey.py` checker",
+            "packet-local `broken` checker",
+            1,
+        ))
+        assert validate(root) == [
+            "missing_lane_sequencing_rule:export, UAPI, and Linux-facing header governance owns starter-boundary wording for `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, and `include/linux/zigux.h`, the packet-local `validate-phase3-export-uapi-survey.py` checker, and the survey wording that tells reviewers this starter packet is currently exercised through the shared `phase3-test`, `phase3-dump`, and `phase3-interop` routes rather than through a dedicated export/UAPI-only replay family"
+        ]
         build_valid_workspace(root)
         case_count += 1
 
@@ -696,7 +758,7 @@ def main() -> int:
             print(issue)
         return 1
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=17")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=18")
     return 0
 
 
