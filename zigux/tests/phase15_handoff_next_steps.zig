@@ -138,9 +138,11 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summaries") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "review-process") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parity-scorecard-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parity-scorecard") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "readiness-gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
@@ -158,5 +160,6 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Those parked maintenance notes still belong to `shared-summaries`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "any future docs-root reminder repair should stay there before this handoff lane reopens") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-handoff-pointer-visible") == null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-parity-scorecard-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
