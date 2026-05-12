@@ -152,6 +152,7 @@ def check(root: Path) -> list[str]:
         errors.append(f"manifest:phase {manifest.get('phase')!r} != 'Phase 14'")
     if manifest.get("smoke_commands") != [
         "make -C zigux phase14-validate",
+        "make -C zigux phase14-test",
         "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
         "make -C zigux phase14",
     ]:
@@ -253,6 +254,7 @@ def current_manifest_text() -> str:
             },
             "smoke_commands": [
                 "make -C zigux phase14-validate",
+                "make -C zigux phase14-test",
                 "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
                 "make -C zigux phase14",
             ],
