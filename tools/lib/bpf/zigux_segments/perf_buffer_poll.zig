@@ -77,6 +77,19 @@ pub const PollExecutionResult = struct {
     disposition: PollReturnDisposition,
 };
 
+pub const BufferFdLookupDisposition = enum {
+    found_fd,
+    invalid_index,
+    missing_fd,
+};
+
+pub const BufferFdLookupSummary = struct {
+    slot_count: usize,
+    requested_index: usize,
+    fd: ?i32,
+    disposition: BufferFdLookupDisposition,
+};
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -374,6 +387,40 @@ pub fn summarizePollExecutionResultFromWaitResult(
     );
 }
 
+pub fn summarizeBufferFdLookup(
+    buffer_fds: []const ?i32,
+    buffer_index: usize,
+) BufferFdLookupSummary {
+    if (buffer_index >= buffer_fds.len) {
+        return .{
+            .slot_count = buffer_fds.len,
+            .requested_index = buffer_index,
+            .fd = null,
+            .disposition = .invalid_index,
+        };
+    }
+
+    return if (buffer_fds[buffer_index]) |fd| .{
+        .slot_count = buffer_fds.len,
+        .requested_index = buffer_index,
+        .fd = fd,
+        .disposition = .found_fd,
+    } else .{
+        .slot_count = buffer_fds.len,
+        .requested_index = buffer_index,
+        .fd = null,
+        .disposition = .missing_fd,
+    };
+}
+
+pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {
+    return switch (summary.disposition) {
+        .found_fd => summary.fd.?,
+        .invalid_index => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        .missing_fd => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    };
+}
+
 test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
     try std.testing.expectEqual(WaitClass.indefinite, try classifyWaitClass(-1));
     try std.testing.expectEqual(WaitClass.nonblocking, try classifyWaitClass(0));
@@ -639,6 +686,41 @@ test "summarizePollExecution rejects processing more ready buffers than the help
             .{ .records_processed = 1 },
             .{ .records_processed = 2 },
         }),
+    );
+}
+
+test "summarizeBufferFdLookup keeps perf_buffer__buffer_fd slot classification compact and reviewable" {
+    const buffer_fds = [_]?i32{ 11, null, 17 };
+
+    const found = summarizeBufferFdLookup(&buffer_fds, 2);
+    try std.testing.expectEqual(BufferFdLookupDisposition.found_fd, found.disposition);
+    try std.testing.expectEqual(@as(usize, 3), found.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), found.requested_index);
+    try std.testing.expectEqual(@as(?i32, 17), found.fd);
+
+    const missing = summarizeBufferFdLookup(&buffer_fds, 1);
+    try std.testing.expectEqual(BufferFdLookupDisposition.missing_fd, missing.disposition);
+    try std.testing.expectEqual(@as(?i32, null), missing.fd);
+
+    const invalid = summarizeBufferFdLookup(&buffer_fds, 4);
+    try std.testing.expectEqual(BufferFdLookupDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(@as(?i32, null), invalid.fd);
+}
+
+test "resolveBufferFdLookupReturn keeps errno-shaped buffer-fd lookup returns explicit" {
+    const buffer_fds = [_]?i32{ 11, null, 17 };
+
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        resolveBufferFdLookupReturn(summarizeBufferFdLookup(&buffer_fds, 0)),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferFdLookupReturn(summarizeBufferFdLookup(&buffer_fds, 1)),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferFdLookupReturn(summarizeBufferFdLookup(&buffer_fds, 5)),
     );
 }
 
