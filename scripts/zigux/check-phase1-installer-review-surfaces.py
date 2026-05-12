@@ -115,6 +115,7 @@ REVIEW_CHECKLIST_PHASE1_BLOCK_END = "  * if the change touches the shared Phase 
 REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS = [
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`",
+    "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py`",
     "`scripts/zigux/check-phase1-installer-companion-checks.py`",
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
@@ -309,6 +310,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
 
         review_path = root / "Documentation/zigux/review-checklist.md"
+        review_text = review_path.read_text(encoding="utf-8")
+        write_text(
+            review_path,
+            review_text.replace("`python3 scripts/zigux/check-phase1-installer-review-surfaces.py`\n", "", 1),
+        )
+        expect(validate_root(root), "review_checklist_phase1_route:expected=1:actual=0")
+        build_self_test_root(root)
+
         review_text = review_path.read_text(encoding="utf-8")
         write_text(
             review_path,
