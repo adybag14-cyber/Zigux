@@ -28,6 +28,7 @@ The paired freeze-map governance gate now cross-checks this scorecard's dated re
 - active freeze-in-C anchor count: `4`
 - blocked status-change anchor count: `4`
 - anchors blocked entirely within Phase 15 governance evidence: `2`
+- Phase 14 coupled blocker anchor count: `2`
 - anchors still blocked on prior-phase bridge evidence: `2`
 - study-only anchors tracked outside this scorecard: `2`
 - Architecture Council approvals recorded for status change: `0`
