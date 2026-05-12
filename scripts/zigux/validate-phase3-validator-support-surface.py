@@ -279,7 +279,7 @@ def _sample_text() -> str:
 
 def _boundary_note_sample_text() -> str:
     sample = "## Current landed surface\n"
-    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS)
+    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
     sample += "\n## Next bounded step\n"
     sample += "\n".join(REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS)
     sample += "\n## Non-goals\n- stub\n"
