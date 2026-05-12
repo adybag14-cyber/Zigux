@@ -13,6 +13,9 @@ PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
+BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
 EXPECTED_TARGETS = [
@@ -62,6 +65,26 @@ CLOSURE_MARKERS = [
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "make -C zigux phase2-cross",
+]
+
+BOOTSTRAP_NOTES_MARKERS = [
+    "shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "shared cross selftest-alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
+]
+
+SCRIPTS_README_MARKERS = [
+    "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
+    "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+]
+
+TESTS_README_MARKERS = [
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "make -C zigux phase2-cross",
 ]
@@ -201,6 +224,43 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-cross-alignment:self-test:marker_failure_shape")
 
+    bootstrap_issues = validate_required_markers(
+        "\n".join(BOOTSTRAP_NOTES_MARKERS),
+        label="phase2_bootstrap_notes",
+        markers=BOOTSTRAP_NOTES_MARKERS,
+    )
+    if bootstrap_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_presence")
+
+    bootstrap_missing = validate_required_markers(
+        "\n".join(BOOTSTRAP_NOTES_MARKERS[1:]),
+        label="phase2_bootstrap_notes",
+        markers=BOOTSTRAP_NOTES_MARKERS,
+    )
+    expected_bootstrap_issue = (
+        "phase2_bootstrap_notes:missing_marker:"
+        "shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
+    )
+    if bootstrap_missing != [expected_bootstrap_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_failure")
+
+    tests_readme_issues = validate_required_markers(
+        "\n".join(TESTS_README_MARKERS),
+        label="phase2_tests_readme",
+        markers=TESTS_README_MARKERS,
+    )
+    if tests_readme_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_presence")
+
+    tests_readme_missing = validate_required_markers(
+        "\n".join(TESTS_README_MARKERS[:-1]),
+        label="phase2_tests_readme",
+        markers=TESTS_README_MARKERS,
+    )
+    expected_tests_issue = "phase2_tests_readme:missing_marker:make -C zigux phase2-cross"
+    if tests_readme_missing != [expected_tests_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "phase2_cross_targets.json"
@@ -210,7 +270,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -230,6 +290,9 @@ def main() -> int:
         WORKFLOW,
         MAKEFILE,
         CLOSURE_DOC,
+        BOOTSTRAP_NOTES,
+        SCRIPTS_README,
+        TESTS_README,
         TARGETS_MANIFEST,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -265,6 +328,27 @@ def main() -> int:
             CLOSURE_DOC.read_text(encoding="utf-8"),
             label="phase2_closure_doc",
             markers=CLOSURE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            BOOTSTRAP_NOTES.read_text(encoding="utf-8"),
+            label="phase2_bootstrap_notes",
+            markers=BOOTSTRAP_NOTES_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            SCRIPTS_README.read_text(encoding="utf-8"),
+            label="phase2_scripts_readme",
+            markers=SCRIPTS_README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            TESTS_README.read_text(encoding="utf-8"),
+            label="phase2_tests_readme",
+            markers=TESTS_README_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(workflow_text))
