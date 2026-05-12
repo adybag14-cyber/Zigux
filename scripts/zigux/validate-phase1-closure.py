@@ -585,6 +585,16 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[9], "", 1), encoding="utf-8")
+        assert any(item == f"closure:{CLOSURE_MARKERS[9]}" for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[15], "", 1), encoding="utf-8")
+        assert any(item == f"closure:{CLOSURE_MARKERS[15]}" for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
         closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[-1], "", 1), encoding="utf-8")
         assert any(item == f"closure:{CLOSURE_MARKERS[-1]}" for item in collect_missing_markers(root))
         case_count += 1
