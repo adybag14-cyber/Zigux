@@ -135,7 +135,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
     defer loaded.deinit(std.testing.allocator);
     const manifest = loaded.parsed.value;
 
-    try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("4c889233d157960514b241bcd5aff7cac5fda312", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
@@ -214,7 +214,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
             try std.testing.expect(contains(gap.why_now, "republishes the dedicated RCU survey note"));
-            try std.testing.expect(contains(gap.why_now, "P14-L14"));
+            try std.testing.expect(contains(gap.why_now, "P14-L16"));
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-memory-ordering-followup")) {
@@ -309,7 +309,7 @@ test "phase 14 rcu tree survey note matches the live manifest-backed owner and b
     const note = try loadSurveyNote(std.testing.allocator);
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(contains(note, "PHASE14_LANE_KEY=P14-L14"));
+    try std.testing.expect(contains(note, "PHASE14_LANE_KEY=P14-L16"));
     try std.testing.expect(contains(note, "PHASE14_STATUS_BUCKET=freeze_in_c"));
     try std.testing.expect(contains(note, "PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker"));
     try std.testing.expect(contains(note, "NOCB wakeup handoff still stays in C"));
@@ -329,7 +329,7 @@ test "phase 14 rcu tree bridge boundary map exists as review-only evidence" {
     const bridge = try loadBridgeMap(std.testing.allocator);
     defer std.testing.allocator.free(bridge);
 
-    try std.testing.expect(contains(bridge, "pub const lane_key = \"P14-L14\""));
+    try std.testing.expect(contains(bridge, "pub const lane_key = \"P14-L16\""));
     try std.testing.expect(contains(bridge, "pub const status_bucket = \"freeze_in_c\""));
     try std.testing.expect(contains(bridge, "pub const blocked_gap = \"phase14-rcu-tree-bridge-blocker\""));
     try std.testing.expect(contains(bridge, "public_wait_and_callback_barrier"));
@@ -394,6 +394,6 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and 
     try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[7].id);
     try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[7].anchor_symbols[0]);
     try std.testing.expectEqualStrings("rcutree_offline_cpu", checklist[7].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcu_migrate_callbacks", checklist[7].anchor_symbols[2]);
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[7].anchor_symbols[2]);
     try std.testing.expect(contains(checklist[7].rationale, "callback migration"));
 }
