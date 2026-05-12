@@ -16,6 +16,7 @@ MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 DOCS_ROOT_CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
+TESTS_README_PATH = Path("zigux/tests/README.md")
 ROADMAP_ANCHORS = [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c",
@@ -31,6 +32,14 @@ FREEZE_IN_C_ANCHORS = [
 STUDY_ONLY_ANCHORS = [
     "`kernel/workqueue.c`",
     "`kernel/trace/ring_buffer.c`",
+]
+TESTS_README_PACKET_LINES = [
+    "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+    "  * `zigux/tests/phase14_workqueue_reviewability.zig`",
+    "  * `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+    "  * `zigux/tests/phase14_skbuff_bridge_manifest.json`",
+    "  * `zigux/tests/phase14_ring_buffer_manifest.json`",
+    "  * `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
 EXPECTED_COMPILE_SHARDS = [
     {
@@ -150,6 +159,16 @@ def require_exact_count(errors: list[str], rel_path: str, text: str, markers: li
             )
 
 
+def require_exact_line_count(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
+    lines = text.splitlines()
+    for marker in markers:
+        count = sum(1 for line in lines if line == marker)
+        if count != 1:
+            errors.append(
+                f"marker count drift in {rel_path}: {marker} (expected 1, found {count})"
+            )
+
+
 def check_manifest(errors: list[str], root: Path) -> None:
     path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not path.exists():
@@ -192,7 +211,8 @@ def check(root: Path) -> list[str]:
     survey_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     freeze_map_path = root / "Documentation/zigux/freeze-map.md"
     roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
-    for path in (release_path, survey_path, freeze_map_path, roadmap_path):
+    tests_readme_path = root / TESTS_README_PATH
+    for path in (release_path, survey_path, freeze_map_path, roadmap_path, tests_readme_path):
         if not path.exists():
             errors.append(f"missing file: {path.relative_to(root).as_posix()}")
     if errors:
@@ -205,6 +225,7 @@ def check(root: Path) -> list[str]:
     survey_text = read_text(survey_path)
     freeze_map_text = read_text(freeze_map_path)
     roadmap_text = read_text(roadmap_path)
+    tests_readme_text = read_text(tests_readme_path)
 
     require_exact_count(
         errors,
@@ -217,6 +238,12 @@ def check(root: Path) -> list[str]:
         survey_path.relative_to(root).as_posix(),
         survey_text,
         SURVEY_EXACT_COUNT_MARKERS,
+    )
+    require_exact_line_count(
+        errors,
+        tests_readme_path.relative_to(root).as_posix(),
+        tests_readme_text,
+        TESTS_README_PACKET_LINES,
     )
 
     phase14_section = extract_section(roadmap_text, PHASE14_SECTION_HEADING)
@@ -239,11 +266,27 @@ def check(root: Path) -> list[str]:
 
 
 def good_release_boundary_text() -> str:
-    return "\n".join(f"- `{marker}`" if marker.startswith("PHASE14_") else f"- {marker}" for marker in RELEASE_BOUNDARY_MARKERS) + "\n"
+    return "\n".join(
+        f"- `{marker}`" if marker.startswith("PHASE14_") else f"- {marker}"
+        for marker in RELEASE_BOUNDARY_MARKERS
+    ) + "\n"
 
 
 def good_survey_text() -> str:
     return "\n".join(f"- `{marker}`" for marker in SURVEY_EXACT_COUNT_MARKERS) + "\n"
+
+
+def good_tests_readme_text() -> str:
+    return "\n".join(
+        [
+            "# zigux/tests",
+            "",
+            "Key entrypoints",
+            *TESTS_README_PACKET_LINES,
+            "  * `zigux/tests/phase14_ring_buffer_survey.zig`",
+            "  * `zigux/tests/phase14_rcu_tree_survey.zig`",
+        ]
+    ) + "\n"
 
 
 def good_freeze_map_text() -> str:
@@ -302,6 +345,7 @@ def run_self_test() -> int:
 
         write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
         write_text(root / "Documentation/zigux/freeze-map.md", good_freeze_map_text())
         write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
@@ -351,6 +395,41 @@ def run_self_test() -> int:
             print("self-test expected missing survey anchor-count failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in zigux/tests/README.md:   * `zigux/tests/phase14_workqueue_reviewability.zig` (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected missing tests-readme packet line failure", file=sys.stderr)
+            return 1
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n"
+                "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in zigux/tests/README.md:   * `zigux/tests/phase14_end_to_end_smoke_manifest.json` (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print("self-test expected duplicate tests-readme packet line failure", file=sys.stderr)
+            return 1
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
 
         write_text(
             root / "Documentation/zigux/freeze-map.md",
@@ -405,7 +484,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
