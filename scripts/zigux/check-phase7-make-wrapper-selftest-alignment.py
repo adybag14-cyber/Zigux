@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/phase7-string-helpers-slice.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
@@ -25,6 +26,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase7_build.zig",
+    "zigux/tests/phase7_string_helpers_manifest.json",
 ]
 
 REQUIRED_MARKERS = {
@@ -45,10 +47,17 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "`python3 scripts/zigux/check-phase7-rbtree-parity.py`",
         "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
         "python3 scripts/zigux/check-phase7-build-wiring.py",
+        "`Documentation/zigux/phase7-string-helpers-slice.md` and\n`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of",
+        "`P7-L04`",
         "zigux/tests/phase7_build.zig",
+    ],
+    "Documentation/zigux/phase7-string-helpers-slice.md": [
+        "PHASE7_LANE_KEY=P7-L04",
+        "The parked string-helper packet remains recorded in `zigux/tests/phase7_string_helpers_manifest.json`",
+        "Until those files are back on current `master`, keep this lane limited to same-packet truthfulness repairs",
     ],
     "samples/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -62,6 +71,10 @@ REQUIRED_MARKERS = {
     "zigux/tests/README.md": [
         "zigux/tests/phase7_build.zig",
         "scripts/zigux/check-phase7-build-wiring.py",
+    ],
+    "zigux/tests/phase7_string_helpers_manifest.json": [
+        "\"phase7-string-helpers-validator-truthfulness\"",
+        "\"status\": \"shared_surface_drift\"",
     ],
     "zigux/Makefile": [
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
@@ -90,7 +103,6 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -99,7 +111,6 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
-
 
 
 def collect_count_mismatches(root: Path) -> list[str]:
@@ -113,13 +124,11 @@ def collect_count_mismatches(root: Path) -> list[str]:
     return mismatches
 
 
-
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], []
     return [], collect_missing_markers(root), collect_count_mismatches(root)
-
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -145,13 +154,11 @@ def write_fixture_root(tmp_root: Path) -> None:
     makefile_path.write_text(makefile_text + "\n", encoding="utf-8")
 
 
-
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert count_mismatches == [], case
     assert missing_markers == [marker], case
-
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -161,13 +168,11 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
-
 def expect_count_mismatch(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert count_mismatches == [mismatch], case
-
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -176,7 +181,6 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     updated = original.replace(old, new, 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
-
 
 
 def run_self_test() -> None:
@@ -196,6 +200,24 @@ def run_self_test() -> None:
             "missing_phase7_workflow_file",
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml",
+        )
+        write_fixture_root(tmp_root)
+
+        slice_path = tmp_root / "Documentation/zigux/phase7-string-helpers-slice.md"
+        slice_path.unlink()
+        expect_missing_file(
+            "missing_string_helpers_slice_file",
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_path = tmp_root / "zigux/tests/phase7_string_helpers_manifest.json"
+        manifest_path.unlink()
+        expect_missing_file(
+            "missing_string_helpers_manifest_file",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json",
         )
         write_fixture_root(tmp_root)
 
@@ -222,13 +244,49 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
-        note_text = note_path.read_text(encoding="utf-8")
-        missing_rbtree_direct_marker = "python3 scripts/zigux/check-phase7-rbtree-parity.py"
-        note_path.write_text(note_text.replace(missing_rbtree_direct_marker, "", 1), encoding="utf-8")
+        note_lines = note_path.read_text(encoding="utf-8").splitlines()
+        note_lines.remove("`python3 scripts/zigux/check-phase7-rbtree-parity.py`")
+        note_path.write_text("\n".join(note_lines) + "\n", encoding="utf-8")
         expect_missing_marker(
             "missing_rbtree_direct_marker",
             tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-rbtree-parity.py`",
+        )
+        write_fixture_root(tmp_root)
+
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_owner_note_marker = (
+            "`Documentation/zigux/phase7-string-helpers-slice.md` and\n"
+            "`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of"
+        )
+        note_path.write_text(note_text.replace(missing_owner_note_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_string_helpers_owner_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `Documentation/zigux/phase7-string-helpers-slice.md` and\n`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of",
+        )
+        write_fixture_root(tmp_root)
+
+        slice_path = tmp_root / "Documentation/zigux/phase7-string-helpers-slice.md"
+        slice_text = slice_path.read_text(encoding="utf-8")
+        missing_slice_lane_marker = "PHASE7_LANE_KEY=P7-L04"
+        slice_path.write_text(slice_text.replace(missing_slice_lane_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_string_helpers_slice_lane_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md: PHASE7_LANE_KEY=P7-L04",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_path = tmp_root / "zigux/tests/phase7_string_helpers_manifest.json"
+        manifest_text = manifest_path.read_text(encoding="utf-8")
+        missing_manifest_status_marker = "\"status\": \"shared_surface_drift\""
+        manifest_path.write_text(manifest_text.replace(missing_manifest_status_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_string_helpers_manifest_status_marker",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json: \"status\": \"shared_surface_drift\"",
         )
         write_fixture_root(tmp_root)
 
@@ -311,7 +369,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=12")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=17")
 
 
 
