@@ -1,31 +1,22 @@
 # Phase 6 Base64 Slice
 
 ## Status
-- `PHASE6_STATUS=parked`
+- `PHASE6_STATUS=blocked`
 - `PHASE6_SLICE=base64-leaf-helper`
 - helper anchor: `lib/base64.zig`
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
+- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 ## Review Surface
-- `zigux/tests/phase6_base64.zig`
-- `zigux/tests/phase6_base64_c_parity.zig`
-- `zigux/tests/phase6_base64_perf.zig`
-- `zigux/tests/fixtures/phase6_base64_vectors.zig`
-- `zigux/tests/fixtures/phase6_base64_c_harness.c`
-- `scripts/zigux/check-phase6-base64-c-parity.py`
-- `zigux/tests/phase6_build.zig`
-- `zigux/Makefile`
-- direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+- present helper and direct C parity packet: `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- currently missing focused helper replay and perf packet: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- direct local C parity checker route once the missing fixture dependency is restored or the runner is decoupled from it: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
 - built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`
-- Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
-- `make -C zigux phase6-base64-perf`
-- the focused helper replay keeps the shipped base64 packet reviewable through the committed standard, variant, decode, invalid-input, and variant-decode fixture loops in `zigux/tests/phase6_base64.zig`
-- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
-- the shipped parity script also keeps a built-in ten-case self-test for missing-path handling, fixture-surface parsing, unexpected or missing case detection, and explicit `c_output_mismatch` reporting before the live C-vs-Zig replay runs
-- the checker-generated `zigux/tests/fixtures/phase6_base64_c_generated_cases.inc` include remains transient parity-run output from `zigux/tests/phase6_base64_c_casegen.zig` instead of a committed fixture, so the shipped direct C parity surface stays repo-truthful without storing generated case files on `master`
-- the dedicated base64 slowdown gate stays helper-local through `zigux/tests/phase6_base64_perf.zig` and `make -C zigux phase6-base64-perf`
-- `zigux/tests/fixtures/phase6_base64_vectors.zig` owns the current slowdown corpus boundary through `perfReferenceSupportedVariant()`, so the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands
-- the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs
+- Linux-style C parity rerun route once the helper-local packet is restored: `make -C zigux phase6-base64-c-parity`
+- current `master` cannot honestly claim the broader focused base64 replay, the helper drift guard, or the dedicated base64 slowdown gate because the committed replay and fixture files that backed those surfaces are absent from the tree
+- the shipped direct C parity surface is also not currently runnable as a complete packet because `zigux/tests/phase6_base64_c_parity.zig` still imports the absent `zigux/tests/fixtures/phase6_base64_vectors.zig` fixture module
+- this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module
 
 ## Next Step
-Leave this slice parked on current `master`. If the helper reopens, the next safe step is one perf-only extension that adds an explicit IMAP slowdown baseline through `zigux/tests/fixtures/phase6_base64_vectors.zig`'s `perfReferenceSupportedVariant()` boundary and reruns `zigux/tests/phase6_base64_perf.zig`, without widening `lib/base64.zig` semantics, the direct C parity packet, or the shared Phase 6 helper catalog.
+Refresh against a fresh `master` base and choose one bounded repair: either restore `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` so the base64 helper packet becomes runnable again, or retell the shared reminder and route surfaces so they stop advertising focused base64 replay and perf coverage that the committed tree does not contain.
