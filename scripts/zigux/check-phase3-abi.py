@@ -15,6 +15,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
     Path("include/zigux/dev_t.h"),
@@ -39,6 +40,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
@@ -238,6 +240,36 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / low_level_build_rel)
 
+        validator_support_note_rel = Path(
+            "Documentation/zigux/phase3-validator-support-surface.md"
+        )
+        (root / validator_support_note_rel).unlink()
+        issues = validate_repo(root)
+        expected_validator_support_note_missing = (
+            f"missing repo file: {validator_support_note_rel.as_posix()}"
+        )
+        if expected_validator_support_note_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing validator-support note was not reported")
+            return 1
+        case_count += 1
+        _write(root / validator_support_note_rel)
+
+        validator_support_checker_rel = Path(
+            "scripts/zigux/validate-phase3-validator-support-surface.py"
+        )
+        (root / validator_support_checker_rel).unlink()
+        issues = validate_repo(root)
+        expected_validator_support_checker_missing = (
+            f"missing repo file: {validator_support_checker_rel.as_posix()}"
+        )
+        if expected_validator_support_checker_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing validator-support checker was not reported")
+            return 1
+        case_count += 1
+        _write(root / validator_support_checker_rel)
+
         mmio_consumer_rel = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
         (root / mmio_consumer_rel).unlink()
         issues = validate_repo(root)
@@ -321,7 +353,7 @@ def run_self_test() -> int:
         )
         issues = validate_repo(root)
         expected_helper_marker = (
-            'missing shared helper marker: '
+            "missing shared helper marker: "
             '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),'
         )
         if expected_helper_marker not in issues:
