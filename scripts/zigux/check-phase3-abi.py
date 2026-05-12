@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import tempfile
 
 
+ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
@@ -29,7 +31,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
-    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
+    ABI_MANIFEST_PATH,
     Path("zigux/tests/phase3_rbtree_shared_contract.zig"),
     Path("zigux/tests/phase3_rbtree_manifest.json"),
     Path("zigux/tests/fixtures/phase3_rbtree/expected.json"),
@@ -44,6 +46,12 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
     Path("scripts/zigux/phase3_check_lib.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
+)
+REQUIRED_MANIFEST_ENTRIES = (
+    Path("include/zigux/dev_t.h"),
+    Path("zigux/bindings/dev_t.zig"),
+    Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/uapi/dev_t.zig"),
 )
 
 # The export/UAPI lane explicitly keeps these dedicated replay files out of the
@@ -77,6 +85,35 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def validate_manifest_entries(repo_root: Path) -> list[str]:
+    manifest_path = repo_root / ABI_MANIFEST_PATH
+    if not manifest_path.is_file():
+        return []
+
+    try:
+        manifest = json.loads(_read(manifest_path))
+    except json.JSONDecodeError as exc:
+        return [f"invalid phase3 ABI manifest JSON: {exc.msg}"]
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return ["invalid phase3 ABI manifest files list"]
+
+    issues: list[str] = []
+    file_entries: set[str] = set()
+    for entry in files:
+        if not isinstance(entry, str):
+            issues.append(f"invalid phase3 ABI manifest file entry: {entry!r}")
+            continue
+        file_entries.add(entry)
+
+    for rel_path in REQUIRED_MANIFEST_ENTRIES:
+        if rel_path.as_posix() not in file_entries:
+            issues.append(f"missing phase3 ABI manifest entry: {rel_path.as_posix()}")
+
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -106,6 +143,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in check_lib_text:
                 issues.append(f"missing shared helper marker: {marker}")
 
+    issues.extend(validate_manifest_entries(repo_root))
     return issues
 
 
@@ -114,9 +152,21 @@ def _write(path: Path, text: str = "# stub\n") -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _manifest_payload(files: list[Path] | tuple[Path, ...]) -> str:
+    payload = {
+        "phase": "Phase 3",
+        "status": "active",
+        "slice": "abi-substrate-skeleton",
+        "file_count": len(files),
+        "files": [path.as_posix() for path in files],
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path)
+    _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
     _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
     _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
     _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
@@ -157,6 +207,28 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / rbtree_contract_rel)
+        for manifest_entry_rel in REQUIRED_MANIFEST_ENTRIES:
+            _write(
+                root / ABI_MANIFEST_PATH,
+                _manifest_payload(
+                    [
+                        rel_path
+                        for rel_path in REQUIRED_MANIFEST_ENTRIES
+                        if rel_path != manifest_entry_rel
+                    ]
+                ),
+            )
+            issues = validate_repo(root)
+            expected_manifest_entry_missing = (
+                f"missing phase3 ABI manifest entry: {manifest_entry_rel.as_posix()}"
+            )
+            if expected_manifest_entry_missing not in issues:
+                print("PHASE3_ABI_SELF_TEST=fail")
+                print("expected missing phase3 ABI manifest entry was not reported")
+                return 1
+            case_count += 1
+
+        _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
         issues = validate_repo(root)
