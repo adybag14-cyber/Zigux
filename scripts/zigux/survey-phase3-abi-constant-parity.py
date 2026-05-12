@@ -14,7 +14,7 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 12
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 14
 
 REQUIRED_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
@@ -31,9 +31,23 @@ REQUIRED_CONSTANTS = (
     ("ZIGUX_UNSAFE_VOLATILE_MMIO", "UNSAFE_VOLATILE_MMIO", "unsafe_scope_volatile_mmio", 1),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
-REQUIRED_BINDING_MARKERS = (
-    "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
-    "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+REQUIRED_FAMILY_CONSTANT_MARKERS = (
+    (
+        "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+    ),
+    (
+        "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+    ),
+    (
+        "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
+    ),
+    (
+        "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED",
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED",
+    ),
 )
 REQUIRED_FAMILY_TYPE_MARKERS = (
     (
@@ -149,12 +163,14 @@ def validate_constant_parity(
         elif fixture_value != expected_value:
             issues.append(f"{expected_path}:wrong_expected_value:{json_key}:{fixture_value}")
 
-    for binding_name in REQUIRED_BINDING_MARKERS:
-        if binding_name not in binding_constants:
-            issues.append(f"{bindings_path}:missing_binding_marker:{binding_name}")
-
     header_source = header_path.read_text(encoding="utf-8")
     bindings_source = bindings_path.read_text(encoding="utf-8")
+    for header_marker, binding_marker in REQUIRED_FAMILY_CONSTANT_MARKERS:
+        if header_marker not in header_source:
+            issues.append(f"{header_path}:missing_header_family_constant:{header_marker}")
+        if binding_marker not in binding_constants:
+            issues.append(f"{bindings_path}:missing_binding_family_constant:{binding_marker}")
+
     for header_marker, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS:
         if header_marker not in header_source:
             issues.append(f"{header_path}:missing_header_type_marker:{header_marker}")
@@ -181,6 +197,7 @@ def run_self_test() -> int:
             header.write_text(
                 "\n".join(
                     [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
+                    + [f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS]
                     + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
                 ) + "\n",
                 encoding="utf-8",
@@ -189,7 +206,7 @@ def run_self_test() -> int:
             bindings.write_text(
                 "\n".join(
                     [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS)]
-                    + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+                    + [f"pub const {binding_name}: u32 = 1;" for _, binding_name in REQUIRED_FAMILY_CONSTANT_MARKERS]
                     + [bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS]
                 )
                 + "\n",
@@ -219,7 +236,7 @@ def run_self_test() -> int:
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
-        assert f"{bindings}:missing_binding_marker:{REQUIRED_BINDING_MARKERS[0]}" in issues
+        assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[0][1]}" in issues
         case_count += 1
 
         reset_all()
@@ -239,6 +256,8 @@ def run_self_test() -> int:
             "\n".join(
                 [f"#define {REQUIRED_CONSTANTS[0][0]} 7U"]
                 + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS[1:]]
+                + [f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS]
+                + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
             ) + "\n",
             encoding="utf-8",
             newline="\n",
@@ -264,6 +283,7 @@ def run_self_test() -> int:
                         f"#define {header_name} {value}U"
                         for header_name, _, _, value in REQUIRED_CONSTANTS[1:]
                     ],
+                    *[f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS],
                     *[header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
@@ -284,7 +304,7 @@ def run_self_test() -> int:
                         f"pub const {binding_name}: u32 = {value};"
                         for _, binding_name, _, value in REQUIRED_CONSTANTS[1:]
                     ],
-                    *[f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS],
+                    *[f"pub const {binding_name}: u32 = 1;" for _, binding_name in REQUIRED_FAMILY_CONSTANT_MARKERS],
                     *[bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
@@ -349,6 +369,34 @@ def run_self_test() -> int:
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[3][1]}" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                f"#define {REQUIRED_FAMILY_CONSTANT_MARKERS[3][0]} 1U\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:missing_header_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[3][0]}" in issues
+        case_count += 1
+
+        reset_all()
+        bindings.write_text(
+            bindings.read_text(encoding="utf-8").replace(
+                f"pub const {REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}: u32 = 1;\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
