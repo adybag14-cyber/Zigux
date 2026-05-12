@@ -21,6 +21,8 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 The scorecard now also carries the same phase, status-bucket, required-approver-set, and validation-gate summary fields that the freeze-map governance packet expects from reviewable Phase 15 records, so the human-readable scorecard no longer underreports those core Architecture Council handoff fields.
 
+The paired freeze-map governance gate now cross-checks this scorecard's dated readback marker plus the active-freeze and blocked-anchor aggregate counts against the live freeze-map manifest, so the metrics below are reviewable governance accounting rather than note-only summary prose.
+
 ## Aggregate Metrics
 
 - active freeze-in-C anchor count: `4`
