@@ -24,14 +24,14 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=ab6f6bca70dbf672b8e6fa777233a69a505f9aea`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=0a416a832073082a1be0b7fd225f48c65052ec0d`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=4d53724d71eb8874dd5cf5a069246fda0f266794`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`
 - `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands`
 
 ## Roadmap Contract
 
