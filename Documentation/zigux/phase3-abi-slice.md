@@ -63,3 +63,5 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zig build phase3-dump --build-file zigux/tests/build.zig`
 - `make -C zigux phase3-validate`
 - `make -C zigux phase3`
+
+The focused low-level replay has moved a little further than the older shared reminder wording implied. Current `master` still keeps `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig` as the direct low-level wrapper packet, while that same replay now also consumes `zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` for allocator-policy, panic-policy, and raw-pointer prerequisites that remain owned by the adjacent `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` packet rather than a new wrapper family.
