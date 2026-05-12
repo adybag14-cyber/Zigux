@@ -13,11 +13,11 @@ ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 SURVEY_REQUIRED = (
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands",
-    "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
-    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte`",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands",
+    "`zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
+    "`zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte`",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small",
-    "The current tree no longer ships a dedicated `phase3_policy_unsafe` replay pair",
+    "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
 )
 
 ABI_SLICE_REQUIRED = (
@@ -40,9 +40,12 @@ MANIFEST_REQUIRED = (
     "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
 )
 
 MANIFEST_FORBIDDEN = ABI_SLICE_FORBIDDEN
+
 
 class CheckFailure(RuntimeError):
     pass
@@ -93,7 +96,10 @@ def run_self_test() -> None:
         check_repo_root(tmpdir)
 
         survey_path = tmpdir / SURVEY_REL
-        survey_path.write_text(survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[1], ""), encoding="utf-8")
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[1], ""),
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
@@ -103,7 +109,10 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         abi_slice_path = tmpdir / ABI_SLICE_REL
-        abi_slice_path.write_text(abi_slice_path.read_text(encoding="utf-8") + ABI_SLICE_FORBIDDEN[0] + "\n", encoding="utf-8")
+        abi_slice_path.write_text(
+            abi_slice_path.read_text(encoding="utf-8") + ABI_SLICE_FORBIDDEN[0] + "\n",
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
@@ -113,7 +122,10 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         manifest_path = tmpdir / ABI_MANIFEST_REL
-        manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[3] + "\n", ""), encoding="utf-8")
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[3] + "\n", ""),
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
@@ -128,7 +140,9 @@ def run_self_test() -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fail closed on the current shared Phase 3 policy/unsafe packet.")
+    parser = argparse.ArgumentParser(
+        description="Fail closed on the current shared Phase 3 policy/unsafe packet."
+    )
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
