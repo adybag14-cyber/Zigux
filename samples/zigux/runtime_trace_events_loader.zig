@@ -223,15 +223,20 @@ pub const RuntimeTraceEventsLoader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
+        if (self.stage_state != .prepared) return error.InvalidLoaderState;
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
-
+        if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         _ = try runtime_loader.prepareRequest(shared_request.plan);
-        const plan = try self.requestRuntimeLoad();
-        const shared_plan = try shared_request.requestRuntimeLoad();
-        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
+
+        const plan = self.cached_plan orelse return error.MissingLoadPlan;
+        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_request.plan)) {
             return error.SharedLoadPlanDrift;
         }
-        return shared_plan;
+
+        _ = try self.requestRuntimeLoad();
+        return shared_request.requestRuntimeLoad();
     }
 
     pub fn releaseWithoutSubstrate(self: *Self) !void {
@@ -577,6 +582,10 @@ test "runtime trace-events loader keeps shared release failures from desynchroni
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
 
+    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
     try std.testing.expectError(error.InvalidLoaderState, loader.releaseSharedWithoutSubstrate(&shared_request));
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
@@ -585,6 +594,61 @@ test "runtime trace-events loader keeps shared release failures from desynchroni
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
+test "runtime trace-events loader rejects prepared shared allocator and init-flow drift before any local runtime handoff" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var allocator_loader = RuntimeTraceEventsLoader{};
+    var allocator_request = try allocator_loader.prepareSharedRequest(&module);
+    const prepared_allocator_plan = allocator_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        allocator_request,
+        .prepared,
+        allocator_request.plan,
+    ));
+    allocator_request.plan.allocator_handoff = .arena;
+
+    try std.testing.expectError(error.PreparedPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.prepared_plan,
+        prepared_allocator_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.plan,
+        prepared_allocator_plan,
+    ));
+
+    var init_flow_loader = RuntimeTraceEventsLoader{};
+    var init_flow_request = try init_flow_loader.prepareSharedRequest(&module);
+    const prepared_init_flow_plan = init_flow_request.plan;
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        init_flow_request,
+        .prepared,
+        init_flow_request.plan,
+    ));
+    init_flow_request.plan.init_flow.handoff_stage = .initialized;
+    init_flow_request.plan.init_flow.selftest_runs = 0;
+
+    try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.prepared_plan,
+        prepared_init_flow_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.plan,
+        prepared_init_flow_plan,
+    ));
 }
 
 test "runtime trace-events loader rejects prepared shared request drift before any local runtime handoff" {
@@ -603,7 +667,7 @@ test "runtime trace-events loader rejects prepared shared request drift before a
     ));
     shared_request.plan.module_name = "runtime_trace_events_drift";
 
-    try std.testing.expectError(error.InvalidPilotFamilyContract, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
