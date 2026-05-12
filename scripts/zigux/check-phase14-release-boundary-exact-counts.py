@@ -15,6 +15,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 DOCS_ROOT_CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
 TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -100,6 +101,7 @@ SURVEY_EXACT_COUNT_MARKERS = [
 ]
 MANIFEST_REQUIRED_SURFACES = [
     DOCS_ROOT_CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     ROLLBACK_CHECKER_PATH,
     CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
@@ -567,6 +569,35 @@ def run_self_test() -> int:
         )
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(
+                {
+                    "shared_smoke_surfaces": [
+                        DOCS_ROOT_CHECKER_PATH,
+                        ROLLBACK_CHECKER_PATH,
+                        CHECKER_PATH,
+                        "scripts/zigux/validate-phase14.py",
+                    ],
+                    "anchor_packets": [{}, {}, {}, {}],
+                    "compile_shards": EXPECTED_COMPILE_SHARDS,
+                    "productization": {
+                        "status_bucket": "study_only",
+                        "rollback_owner": "Repo Tooling Pod",
+                    },
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            TESTS_README_CHECKER_PATH,
+            "self-test expected missing tests-readme checker manifest surface failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
         manifest = json.loads(good_manifest_text())
         manifest["compile_shards"] = EXPECTED_COMPILE_SHARDS[:-1]
         write(
@@ -588,7 +619,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=14")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
