@@ -37,6 +37,7 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
+- `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
