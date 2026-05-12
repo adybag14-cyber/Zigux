@@ -46,6 +46,26 @@ REQUIRED_EXACT_CHECKSUMS = {
     'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM',
     'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM',
 }
+REQUIRED_BITMAP_SOURCE_MARKERS = [
+    'fn bitmapBench() struct { checksum: u64 } {',
+    'bitmap.setRange(&map, 5, 32);',
+    'bitmap.setRange(&map, 256, 64);',
+    'bitmap.setRange(&map, 2048, 17);',
+    'checksum +%= @intCast(bitmap.weight(&map, 4096));',
+    'fn bitmapWindowBench() struct { checksum: u64 } {',
+    'const nbits = bitmap.bits_per_long + 5;',
+    'if ((idx & 1) == 0) {',
+    'lhs[1] |= @as(bitmap.Word, 1) << 2;',
+    'rhs[1] &= ~(@as(bitmap.Word, 1) << 4);',
+    'lhs[1] &= ~(@as(bitmap.Word, 1) << 2);',
+    'rhs[1] |= @as(bitmap.Word, 1) << 4;',
+    'bitmap.orBits(&dst, &lhs, &rhs, nbits);',
+    'checksum +%= @as(u64, @intFromBool(bitmap.andBits(&dst, &lhs, &rhs, nbits)));',
+    'checksum +%= @as(u64, @intFromBool(bitmap.andNotBits(&dst, &lhs, &rhs, nbits)));',
+    'bitmap.xorBits(&dst, &lhs, &rhs, nbits);',
+    'checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));',
+    'checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));',
+]
 REQUIRED_RBTREE_SOURCE_MARKERS = [
     'rbtree.findAdd(&find_add_entries[3].node, &find_add_root, cmpNode)',
     'rbtree.find(&wanted, &duplicate_root, cmpKey)',
@@ -181,9 +201,12 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
 
 
 def validate_bench_source(source: str) -> tuple[str, object]:
-    missing = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]
-    if missing:
-        return ('missing_rbtree_source_markers', missing)
+    missing_bitmap = [marker for marker in REQUIRED_BITMAP_SOURCE_MARKERS if marker not in source]
+    if missing_bitmap:
+        return ('missing_bitmap_source_markers', missing_bitmap)
+    missing_rbtree = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]
+    if missing_rbtree:
+        return ('missing_rbtree_source_markers', missing_rbtree)
     return ('pass', None)
 
 
@@ -271,7 +294,7 @@ def print_command_output(label: str, output: str | None) -> None:
 
 
 def self_test_case_count() -> int:
-    return 10
+    return 13
 
 
 def run_self_test() -> None:
@@ -302,6 +325,17 @@ def run_self_test() -> None:
     ])
     kind, _ = validate_output(full_expectations, ok_output)
     assert kind == 'pass'
+
+    kind, _ = validate_bench_source('\n'.join([*REQUIRED_BITMAP_SOURCE_MARKERS, *REQUIRED_RBTREE_SOURCE_MARKERS]))
+    assert kind == 'pass'
+
+    kind, payload = validate_bench_source('\n'.join(REQUIRED_RBTREE_SOURCE_MARKERS))
+    assert kind == 'missing_bitmap_source_markers'
+    assert payload == REQUIRED_BITMAP_SOURCE_MARKERS
+
+    kind, payload = validate_bench_source('\n'.join(REQUIRED_BITMAP_SOURCE_MARKERS))
+    assert kind == 'missing_rbtree_source_markers'
+    assert payload == REQUIRED_RBTREE_SOURCE_MARKERS
 
     kind, payload = validate_output(full_expectations, ok_output + '\nPHASE1_BENCH_FAKE_CHECKSUM=1')
     assert kind == 'unexpected'
@@ -516,12 +550,14 @@ def main() -> int:
         return 1
 
     kind, payload = validate_bench_source(bench_source)
-    if kind == 'missing_rbtree_source_markers':
+    if kind in {'missing_bitmap_source_markers', 'missing_rbtree_source_markers'}:
+        group = 'bitmap' if kind == 'missing_bitmap_source_markers' else 'rbtree'
         print('PHASE1_BENCH_CHECK=fail')
-        print('MISSING_PHASE1_BENCH_RBTREE_SOURCE_MARKERS_START')
+        print(f'MISSING_PHASE1_BENCH_SOURCE_MARKER_GROUP={group}')
+        print('MISSING_PHASE1_BENCH_SOURCE_MARKERS_START')
         for marker in payload:
             print(marker)
-        print('MISSING_PHASE1_BENCH_RBTREE_SOURCE_MARKERS_END')
+        print('MISSING_PHASE1_BENCH_SOURCE_MARKERS_END')
         return 1
 
     zig = find_zig(args.zig)
