@@ -51,6 +51,23 @@ test "simple lookup planning keeps the negative-dentry install boundary explicit
     try std.testing.expect(!oversized.installs_negative_dentry);
 }
 
+test "transaction acquire planning bounds the staged write buffer and private-data handoff" {
+    const full = try libfs.LibfsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", full.anchor);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, full.requested_write_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, full.transaction_limit);
+    try std.testing.expect(full.allocates_zeroed_page_backing);
+    try std.testing.expect(full.stages_single_write_per_open);
+    try std.testing.expect(full.copies_write_into_private_data);
+    try std.testing.expect(full.returns_staged_private_data);
+
+    const empty = try libfs.LibfsHelperLab.simpleTransactionGetPlan(0, false);
+    try std.testing.expect(!empty.copies_write_into_private_data);
+
+    try std.testing.expectError(error.InputTooLarge, libfs.LibfsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit + 1, false));
+    try std.testing.expectError(error.PrivateDataAlreadyPresent, libfs.LibfsHelperLab.simpleTransactionGetPlan(8, true));
+}
+
 test "offset seek planning keeps the bounded window and sentinel paths explicit" {
     const window_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_first + 4, .set);
     const sentinel_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_end_of_directory, .set);
@@ -171,23 +188,23 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 }
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L02\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L05\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
-    try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-inode-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"ready_next\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
     try expectContains(manifest_text, "simple directory emptiness");
+    try expectContains(manifest_text, "transaction acquire planning");
     try expectContains(manifest_text, "transaction publish planning");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
