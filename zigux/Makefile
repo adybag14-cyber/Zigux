@@ -172,6 +172,6 @@ phase14-smoke:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-test --build-file zigux/tests/phase14_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14: phase14-validate phase14-smoke phase14-test
