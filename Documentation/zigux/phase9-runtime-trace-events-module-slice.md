@@ -2,6 +2,10 @@
 
 This note keeps the owner-facing module-slice surface aligned with the live Phase 9 runtime trace-events packet.
 
+PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e
+
+This note keeps the manifest-backed inspected commit explicit so the module-slice review surface stays pinned to `zigux/tests/runtime_trace_events_manifest.json` while the broader runtime substrate remains blocked.
+
 ## Roadmap anchor
 
 Phase 9 is the runtime pilot tranche.
