@@ -9,6 +9,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_positive_entry_classification);
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
     try std.testing.expect(descriptor.provides_lookup_planning);
+    try std.testing.expect(descriptor.provides_transaction_acquire_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
@@ -121,6 +122,24 @@ test "offset rename helpers stay reviewable as managed-slot planners rather than
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, exchange_reserved.destination_slot_class);
     try std.testing.expect(!exchange_reserved.stores_destination_in_source_map);
+}
+
+test "transaction acquire planner stays helper-only and page-bounded" {
+    const acquire = try libfs.LibfsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit, false);
+    const empty_acquire = try libfs.LibfsHelperLab.simpleTransactionGetPlan(0, false);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", acquire.anchor);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, acquire.requested_write_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, acquire.transaction_limit);
+    try std.testing.expect(acquire.allocates_zeroed_page_backing);
+    try std.testing.expect(acquire.stages_single_write_per_open);
+    try std.testing.expect(acquire.copies_write_into_private_data);
+    try std.testing.expect(acquire.returns_staged_private_data);
+
+    try std.testing.expect(!empty_acquire.copies_write_into_private_data);
+
+    try std.testing.expectError(error.InputTooLarge, libfs.LibfsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit + 1, false));
+    try std.testing.expectError(error.PrivateDataAlreadyPresent, libfs.LibfsHelperLab.simpleTransactionGetPlan(4, true));
 }
 
 test "transaction release planner stays helper-only and unconditional-zero" {
