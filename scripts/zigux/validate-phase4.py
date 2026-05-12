@@ -58,8 +58,14 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "phase4-test:",
     "zig build test --build-file zigux/tests/phase4_build.zig",
+    "phase4-runtime-atomic64-diff:",
+    "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff-survey",
+    "phase4-bitmap-diff:",
+    "$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
     "phase4-bitmap-diff-survey",
+    "phase4-bitmap-live-helper-replay:",
+    "$(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
     "phase4-perf-baseline-survey",
     "phase4-test-fsmount-survey",
     "phase4-kprobe-example-survey",
@@ -401,6 +407,12 @@ def _write_fixture_tree(root: Path) -> None:
         "\tpython3 scripts/zigux/check-phase4-workflow-route-counts.py",
         "phase4-test:",
         "\tzig build test --build-file zigux/tests/phase4_build.zig",
+        "phase4-runtime-atomic64-diff:",
+        "\t$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        "phase4-bitmap-diff:",
+        "\t$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+        "phase4-bitmap-live-helper-replay:",
+        "\t$(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
     ]) + "\n")
 
     _write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join([
@@ -676,6 +688,63 @@ def run_self_test() -> int:
         )
         failures = validate_root(root)
         if "phase4_matrix:reviewability_only_no_perf_threshold" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        makefile_path = root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase4-runtime-atomic64-diff:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "make:phase4-runtime-atomic64-diff:" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+                "$(ZIG) build phase4-bitmap-diff-drifted --build-file zigux/tests/phase4_build.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "make:$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase4-bitmap-live-helper-replay:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "make:phase4-bitmap-live-helper-replay:" not in failures:
             print("PHASE4_VALIDATOR_SELF_TEST=fail")
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
             for item in failures:
