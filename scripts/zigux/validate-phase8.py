@@ -16,6 +16,8 @@ SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
+TESTS_README_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
+EXEC_CMD_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-exec-cmd-packet.py"
 HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
 PERF_BUFFER_POLL_GATE_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
@@ -34,6 +36,8 @@ REQUIRED_FILES = (
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     VALIDATOR_PATH,
+    TESTS_README_ALIGNMENT_CHECKER_PATH,
+    EXEC_CMD_PACKET_CHECKER_PATH,
     HELP_KALLSYMS_PACKET_CHECKER_PATH,
     PERF_BUFFER_POLL_GATE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
@@ -46,6 +50,8 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     DOCS_ROOT_PATH: (
+        "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
@@ -68,23 +74,29 @@ REQUIRED_MARKERS = {
     ),
     SCRIPTS_README_PATH: (
         "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-tests-readme-alignment.py",
+        "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "make -C zigux phase8-exec-cmd-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
         "make -C zigux phase8-validate",
     ),
     TESTS_README_PATH: (
-        "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
@@ -97,6 +109,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
+        "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "The next honest shared-surface reopen cue now starts with `scripts/zigux/README.md`:",
     ),
     WORKFLOW_PATH: (
@@ -105,6 +118,8 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase8-validate:",
+        "scripts/zigux/check-phase8-tests-readme-alignment.py",
+        "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "phase8-file-path-handle-bridge-test",
         "scripts/zigux/validate-phase8.py",
     ),
@@ -112,6 +127,8 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     VALIDATOR_PATH: "# fixture\n",
+    TESTS_README_ALIGNMENT_CHECKER_PATH: "# fixture\n",
+    EXEC_CMD_PACKET_CHECKER_PATH: "# fixture\n",
     HELP_KALLSYMS_PACKET_CHECKER_PATH: "# fixture\n",
     PERF_BUFFER_POLL_GATE_PATH: "# fixture\n",
     LIBBPF_SEGMENT_GATE_PATH: "# fixture\n",
@@ -178,6 +195,8 @@ def run_self_test() -> None:
         ("missing_sequencing_note", SEQUENCING_PATH),
         ("missing_workflow", WORKFLOW_PATH),
         ("missing_makefile", MAKEFILE_PATH),
+        ("missing_tests_readme_alignment_checker", TESTS_README_ALIGNMENT_CHECKER_PATH),
+        ("missing_exec_cmd_packet_checker", EXEC_CMD_PACKET_CHECKER_PATH),
         ("missing_help_kallsyms_checker", HELP_KALLSYMS_PACKET_CHECKER_PATH),
         ("missing_perf_buffer_poll_gate", PERF_BUFFER_POLL_GATE_PATH),
         ("missing_libbpf_segment_gate", LIBBPF_SEGMENT_GATE_PATH),
@@ -189,39 +208,60 @@ def run_self_test() -> None:
     ]
     marker_cases = [
         (
-            "docs_root_libbpf_shard_routes_marker",
+            "docs_root_tests_readme_alignment_marker",
             DOCS_ROOT_PATH,
-            "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
-            "`scripts/zigux/check-phase8-libbpf-routes.py`",
-            f"{DOCS_ROOT_PATH}: `scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+            "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+            "`scripts/zigux/check-phase8-tests-alignment.py`",
+            f"{DOCS_ROOT_PATH}: `scripts/zigux/check-phase8-tests-readme-alignment.py`",
         ),
         (
-            "review_checklist_bridge_target_marker",
-            REVIEW_CHECKLIST_PATH,
-            "`make -C zigux phase8-file-path-handle-bridge-test`",
-            "`make -C zigux phase8-file-path-handle-review-test`",
-            f"{REVIEW_CHECKLIST_PATH}: `make -C zigux phase8-file-path-handle-bridge-test`",
+            "docs_root_exec_cmd_packet_marker",
+            DOCS_ROOT_PATH,
+            "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
+            "`scripts/zigux/check-phase8-exec-cmd-review.py`",
+            f"{DOCS_ROOT_PATH}: `scripts/zigux/check-phase8-exec-cmd-packet.py`",
         ),
         (
-            "scripts_readme_bridge_slice_marker",
+            "scripts_readme_tests_readme_alignment_marker",
             SCRIPTS_README_PATH,
-            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
-            "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
-            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "scripts/zigux/check-phase8-tests-readme-alignment.py",
+            "scripts/zigux/check-phase8-tests-alignment.py",
+            f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-tests-readme-alignment.py",
         ),
         (
-            "tests_readme_bridge_only_build_marker",
+            "scripts_readme_exec_cmd_packet_marker",
+            SCRIPTS_README_PATH,
+            "scripts/zigux/check-phase8-exec-cmd-packet.py",
+            "scripts/zigux/check-phase8-exec-cmd-review.py",
+            f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-exec-cmd-packet.py",
+        ),
+        (
+            "tests_readme_exec_cmd_packet_marker",
             TESTS_README_PATH,
-            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
-            "`zigux/tests/phase8_file_path_handle_bridge_review_only_build.zig`",
-            f"{TESTS_README_PATH}: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
+            "`scripts/zigux/check-phase8-exec-cmd-review.py`",
+            f"{TESTS_README_PATH}: `scripts/zigux/check-phase8-exec-cmd-packet.py`",
         ),
         (
-            "sequencing_bridge_test_marker",
+            "sequencing_exec_cmd_packet_marker",
             SEQUENCING_PATH,
-            "`zigux/tests/phase8_file_path_handle_bridge.zig`",
-            "`zigux/tests/phase8_file_path_handle_bridge_review.zig`",
-            f"{SEQUENCING_PATH}: `zigux/tests/phase8_file_path_handle_bridge.zig`",
+            "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+            "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-review.py`",
+            f"{SEQUENCING_PATH}: current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "makefile_tests_readme_alignment_marker",
+            MAKEFILE_PATH,
+            "scripts/zigux/check-phase8-tests-readme-alignment.py",
+            "scripts/zigux/check-phase8-tests-alignment.py",
+            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-tests-readme-alignment.py",
+        ),
+        (
+            "makefile_exec_cmd_packet_marker",
+            MAKEFILE_PATH,
+            "scripts/zigux/check-phase8-exec-cmd-packet.py",
+            "scripts/zigux/check-phase8-exec-cmd-review.py",
+            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-exec-cmd-packet.py",
         ),
         (
             "workflow_phase8_validate_marker",
@@ -231,11 +271,11 @@ def run_self_test() -> None:
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "makefile_bridge_target_marker",
-            MAKEFILE_PATH,
-            "phase8-file-path-handle-bridge-test",
-            "phase8-file-path-handle-review-test",
-            f"{MAKEFILE_PATH}: phase8-file-path-handle-bridge-test",
+            "scripts_readme_bridge_slice_marker",
+            SCRIPTS_README_PATH,
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         ),
     ]
 
