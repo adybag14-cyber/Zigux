@@ -22,7 +22,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 ### Ring buffer
   * manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
   * survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
-  * lane key: `P14-L06`
+  * lane key: `P14-L08`
   * surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`
   * ready-next gap: none currently recorded
   * blocked gap: `phase14-ring-buffer-zig-port-blocker`
