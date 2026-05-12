@@ -106,6 +106,7 @@ REQUIRED_GATE_EVIDENCE_MARKERS = [
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=",
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=",
+    "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
@@ -598,6 +599,7 @@ def _write_fixture_tree(root: Path) -> None:
         "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
         "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`",
         "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`",
+        "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
         "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
         "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
         "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
@@ -623,6 +625,26 @@ def run_self_test() -> int:
                 print(item)
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
             return 1
+
+        gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
+        original_gate_evidence = gate_evidence_path.read_text(encoding="utf-8")
+        gate_evidence_path.write_text(
+            original_gate_evidence.replace(
+                "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "gate_evidence:PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8")
 
         matrix_path = root / "Documentation/zigux/phase4-validation-matrix.md"
         original_matrix = matrix_path.read_text(encoding="utf-8")
