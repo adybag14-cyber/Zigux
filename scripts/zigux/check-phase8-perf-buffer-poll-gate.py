@@ -76,6 +76,21 @@ REQUIRED_MARKERS = {
         "phase8-perf-buffer-poll-test:",
         "phase8-libbpf-segments-test:",
     ),
+    PACKET_HELPER_PATH: (
+        "pub fn classifyWaitClass(",
+        "pub fn summarizePollExecutionResultFromWaitResult(",
+        "ReadyBufferProcessingExceedsObservedEvents",
+    ),
+    PACKET_TEST_PATH: (
+        "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\" {",
+        "test \"phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity\" {",
+        "test \"resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries\" {",
+    ),
+    PACKET_ONLY_BUILD_PATH: (
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "phase8_perf_buffer_poll.zig",
+        "phase8-perf-buffer-poll-tests",
+    ),
 }
 
 
@@ -126,6 +141,8 @@ def make_fixture_root(root: Path) -> None:
         PACKET_TEST_PATH,
         PACKET_ONLY_BUILD_PATH,
     ):
+        if rel_path in REQUIRED_MARKERS:
+            continue
         write_text(root, rel_path, "// fixture\n")
 
 
@@ -161,9 +178,11 @@ def run_self_test() -> int:
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
             (SLICE_PATH, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all"),
             (SLICE_PATH, "make -C zigux phase8-test"),
-            (SLICE_PATH, "zigux/tests/phase8_perf_buffer_poll_only_build.zig"),
             (MAKEFILE_PATH, "phase8-perf-buffer-poll-test:"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
+            (PACKET_HELPER_PATH, "pub fn summarizePollExecutionResultFromWaitResult("),
+            (PACKET_TEST_PATH, "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\" {"),
+            (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
