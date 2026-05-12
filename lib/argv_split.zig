@@ -346,6 +346,34 @@ test "argvSplit treats whitespace before the first NUL as blank input" {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "blank-input deinit on one caller keeps the shared sentinel views usable for another" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var first = try argvSplitWithArgc(fba.allocator(), " \t\n", null);
+    var second = try argvSplitWithArgc(fba.allocator(), "", null);
+    defer second.deinit(fba.allocator());
+
+    try std.testing.expectEqual(first.storage.ptr, second.storage.ptr);
+    try std.testing.expectEqual(first.argv_null_terminated.ptr, second.argv_null_terminated.ptr);
+    try std.testing.expectEqual(first.cArgv(), second.cArgv());
+
+    first.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), first.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), first.storage[first.storage.len]);
+    try std.testing.expectEqual(@as(usize, 1), first.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArgv()[0]);
+
+    try std.testing.expectEqual(@as(usize, 0), second.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), second.storage[second.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), second.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), second.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[0]);
+    try std.testing.expectEqual(first.storage.ptr, second.storage.ptr);
+    try std.testing.expectEqual(first.argv_null_terminated.ptr, second.argv_null_terminated.ptr);
+    try std.testing.expectEqual(first.cArgv(), second.cArgv());
+}
+
 test "argvFree keeps blank-input sentinel teardown safe and repeatable" {
     var buffer = [_]u8{};
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
