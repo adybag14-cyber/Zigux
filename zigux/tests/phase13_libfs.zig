@@ -106,3 +106,45 @@ test "transaction release planning leaves the null-private-data no-op path expli
     try std.testing.expect(!plan.clears_private_data);
     try std.testing.expect(plan.returns_zero);
 }
+
+test "offset rename planning keeps managed destinations and sentinel rejection explicit" {
+    const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_min + 7);
+    const missing_destination = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, null);
+    const reserved_destination = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_first);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", ok_plan.anchor);
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.ok, ok_plan.status);
+    try std.testing.expect(ok_plan.removes_source_from_old_map);
+    try std.testing.expect(ok_plan.clears_destination_offset_before_replace);
+    try std.testing.expect(ok_plan.installs_source_at_destination_offset);
+    try std.testing.expect(ok_plan.preserves_destination_offset_value);
+
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.missing_destination_offset, missing_destination.status);
+    try std.testing.expect(!missing_destination.clears_destination_offset_before_replace);
+    try std.testing.expect(!missing_destination.installs_source_at_destination_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.reserved_destination_offset, reserved_destination.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.first_real_entry, reserved_destination.destination_slot_class);
+    try std.testing.expect(!reserved_destination.preserves_destination_offset_value);
+}
+
+test "offset rename exchange planning keeps managed-slot swap and rollback expectations explicit" {
+    const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 2, libfs.dir_offset_min + 8);
+    const missing_source = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(null, libfs.dir_offset_min + 3);
+    const reserved_destination = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 3, libfs.dir_offset_end_of_directory);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", ok_plan.anchor);
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.ok, ok_plan.status);
+    try std.testing.expect(ok_plan.stores_source_in_destination_map);
+    try std.testing.expect(ok_plan.stores_destination_in_source_map);
+    try std.testing.expect(ok_plan.swaps_recorded_offsets);
+    try std.testing.expect(ok_plan.preserves_existing_offset_values);
+    try std.testing.expect(ok_plan.rolls_back_destination_store_on_second_store_failure);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.missing_source_offset, missing_source.status);
+    try std.testing.expect(!missing_source.stores_source_in_destination_map);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, reserved_destination.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, reserved_destination.destination_slot_class);
+    try std.testing.expect(!reserved_destination.swaps_recorded_offsets);
+}
