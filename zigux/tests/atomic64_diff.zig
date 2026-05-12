@@ -1,4 +1,5 @@
 const std = @import("std");
+const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
@@ -362,6 +363,15 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(gate_evidence_source);
 
+    const atomic64_diff_blob_sha = try gitBlobShaHex(atomic64_diff_source);
+    const atomic64_diff_blob_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_ATOMIC64_DIFF_BLOB_SHA={s}",
+        .{atomic64_diff_blob_sha},
+    );
+    defer std.testing.allocator.free(atomic64_diff_blob_marker);
+
+    try expectMarker(gate_evidence_source, atomic64_diff_blob_marker);
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
