@@ -153,6 +153,10 @@ EXPECTED_BENCH = {
         "PHASE1_BENCH_HWEIGHT_CHECKSUM",
         "PHASE1_BENCH_LIST_SORT_CHECKSUM",
         "PHASE1_BENCH_RBTREE_CHECKSUM",
+        "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
     ],
     "exact_checksums": {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000,
@@ -161,6 +165,10 @@ EXPECTED_BENCH = {
         "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 23340000,
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
         "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
+        "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1308000,
+        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 56000,
+        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 1868000,
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 148000,
     },
 }
 
@@ -550,7 +558,7 @@ def run_self_test() -> None:
 
         bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
-        bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CHECKSUM"] = 1
+        bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"] = 1
         bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
         assert "bench:exact_checksums" in collect_missing_markers(root)
         case_count += 1
