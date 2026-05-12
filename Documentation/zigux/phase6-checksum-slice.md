@@ -16,11 +16,14 @@
 - direct local C parity rerun route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
 - exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
+- direct local perf rerun route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
+- Linux-style perf rerun route: `make -C zigux phase6-checksum-perf`
+- exact perf packet: `zigux/tests/fixtures/phase6_checksum_vectors.zig` still pins `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases
+- emitted perf evidence: `zigux/tests/phase6_checksum_perf.zig` still prints the per-case iterations, helper and reference nanoseconds, slowdown percentages, threshold percentages, per-case `pass` or `fail`, and the aggregate `PHASE6_CHECKSUM_PERF=pass|fail` result for the current two-case packet
 - fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
 - fixture-backed `add16` and `sub16` carry-helper review rows that keep ones-complement wrap and borrow behavior explicit on the exported 16-bit helper surface
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
-- `make -C zigux phase6-checksum-perf`
 
 ## Next Step
 Leave this slice parked unless helper semantics, direct C parity evidence, or the dedicated slowdown gate drifts on current `master`.
