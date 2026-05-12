@@ -126,17 +126,19 @@ REQUIRED_MARKERS = {
         'run_argv_split_survey_tests.setCwd(b.path("../.."));',
     ],
     "zigux/tests/phase7_argv_split.zig": [
-        'phase 7 argvSplit matches focused parity fixtures',
-        'phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers',
-        'phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact',
-        'phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact',
-        'phase 7 blank argvSplit input reuses the empty exported argv view',
-        'phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space',
-        'phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable',
-        'phase 7 argvSplit deinit stays safe when called after teardown already cleared the result',
-        'phase 7 argvSplit deinit clears exported storage and argv views',
-        'phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable',
-        'phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup',
+        "phase 7 argvSplit matches focused parity fixtures",
+        "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+        "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+        "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+        "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
+        "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
+        "phase 7 blank argvSplit input reuses the empty exported argv view",
+        "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
+        "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
+        "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
+        "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         'const active_lane_key = "P7-L09";',
@@ -145,6 +147,8 @@ REQUIRED_MARKERS = {
         'zigux/tests/phase7_argv_split_manifest.json',
         'phase7-argv-split-packet-checker',
         'PHASE7_LANE_KEY=',
+        'phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer',
+        'phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too',
         'phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers',
         'phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact',
         'phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact',
@@ -251,6 +255,34 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
+            "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+            "",
+            "survey_zeroed_whitespace_marker",
+        )
+        expect_missing_marker(
+            "survey_zeroed_whitespace_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+            "",
+            "survey_control_whitespace_marker",
+        )
+        expect_missing_marker(
+            "survey_control_whitespace_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig",
             "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
             "",
             "survey_distinct_callers_marker",
@@ -293,6 +325,20 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+            "",
+            "helper_zeroed_whitespace_marker",
+        )
+        expect_missing_marker(
+            "helper_zeroed_whitespace_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
             "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
             "",
             "helper_deinit_sibling_marker",
@@ -318,7 +364,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 7
+    case_count = 9
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
