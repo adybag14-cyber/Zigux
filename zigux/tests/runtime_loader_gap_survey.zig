@@ -10,6 +10,16 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
+    var count: usize = 0;
+    var remaining = haystack;
+    while (std.mem.indexOf(u8, remaining, needle)) |match_index| {
+        count += 1;
+        remaining = remaining[match_index + needle.len ..];
+    }
+    try std.testing.expectEqual(expected_count, count);
+}
+
 test "phase 9 runtime loader gap survey keeps note and manifest aligned with the live shared packet" {
     const allocator = std.testing.allocator;
 
@@ -128,7 +138,7 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(samples_readme, "instead of implying a dedicated `validate-phase9.py` route");
 }
 
-test "phase 9 runtime loader gap survey keeps rollback and metadata-only trace-events evidence explicit" {
+test "phase 9 runtime loader gap survey keeps rollback, metadata-only trace-events evidence, and prepared-state drift proof explicit" {
     const allocator = std.testing.allocator;
 
     const init_flow = try readRepoFileAlloc(
@@ -150,6 +160,19 @@ test "phase 9 runtime loader gap survey keeps rollback and metadata-only trace-e
     try expectContains(init_flow, "runtime_trace_events");
     try expectContains(init_flow, "runtime_kretprobe");
     try expectContains(init_flow, "runtime_loader_gap_survey.zig");
+    try expectContains(init_flow, "request.plan.requires_runtime_substrate = false;");
+    try expectContains(init_flow, "request.plan.module_name = \"runtime_trace_events_drift\";");
+    try expectContains(init_flow, "request.plan.anchor = \"samples/trace_events/trace-events-sample-drift.c\";");
+    try expectContains(init_flow, "request.plan.entry_symbol = \"zigux_runtime_trace_events_init_drift\";");
+    try expectContains(init_flow, "request.plan.exit_symbol = \"zigux_runtime_trace_events_exit_drift\";");
+    try expectContains(init_flow, "request.plan.allocator_handoff = .arena;");
+    try expectContains(init_flow, "request.plan.provides_selftest_hook = false;");
+    try expectContains(init_flow, "request.plan.init_flow.selftest_runs = 2;");
+    try expectCount(
+        init_flow,
+        "try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));",
+        7,
+    );
 
     try expectContains(trace_loader, "registrationSnapshot");
     try expectContains(trace_loader, "prepareSharedRequest");
