@@ -5,7 +5,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ## Status
 - `PHASE6_STATUS=parked`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
-- surveyed head: `663d05b`
+- surveyed head: `a0f4d7e`
 - shared coverage anchors: `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c`
 - exact coverage evidence: `zigux/tests/phase6_helper_parity_manifest.json` records the same parked four-helper packet through shared `roadmap_anchors` and per-helper `roadmap_anchor` fields
 - shared sequencing note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`
