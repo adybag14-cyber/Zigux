@@ -600,6 +600,37 @@ test "runtime bitmap loader rejects prepared shared selftest-hook drift before a
     ));
 }
 
+test "runtime bitmap loader rejects shared selftest-hook drift before any local runtime handoff" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    const initialized_plan = try RuntimeBitmapLoader.planFor(&module);
+    var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
+    try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+
+    initialized_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(initialized_shared_plan),
+    );
+
+    _ = try module.runSelftest();
+
+    const selftest_plan = try RuntimeBitmapLoader.planFor(&module);
+    var selftest_shared_plan = toSharedLoadPlan(selftest_plan);
+    try std.testing.expect(selftest_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+
+    selftest_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(selftest_shared_plan),
+    );
+}
+
 test "runtime bitmap loader rejects prepared shared allocator and init-flow drift before any local runtime handoff" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
