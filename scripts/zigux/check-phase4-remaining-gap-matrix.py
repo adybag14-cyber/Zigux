@@ -49,6 +49,7 @@ SELF_TEST_CASES = [
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
+    "test_fsmount_validation_entrypoint_drift",
     "test_fsmount_rollback_owner_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
@@ -279,6 +280,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount packet drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+                "zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount validation-entrypoint drift case did not fail closed")
             return 1
         case_count += 1
 
