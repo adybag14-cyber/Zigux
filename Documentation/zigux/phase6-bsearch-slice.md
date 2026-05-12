@@ -11,11 +11,13 @@
 - `searchMutable`
 - `lowerBoundIndex`
 - `upperBoundIndex`
+- `equalRangeIndex`
 - `bsearchIndex`
 - `bsearch`
 - `bsearchMutable`
 - `bsearchLowerBoundIndex`
 - `bsearchUpperBoundIndex`
+- `bsearchEqualRangeIndex`
 
 ## Review Surface
 - `lib/bsearch.zig`
