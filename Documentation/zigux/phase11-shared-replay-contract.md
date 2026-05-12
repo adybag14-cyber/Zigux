@@ -32,13 +32,21 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 ## Current Repo Reality
 
 * shared build replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-* shared make replay: `make -C zigux phase11`
+* full delivery wrapper: `make -C zigux phase11`
 * no shared `validate-phase11.py`
 * no shared `make -C zigux phase11-validate` target on `master`
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * the shared packet uses the shipped `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when shared Phase 11 reminder wording moves
 * the remaining bcm2835 and gpio watchdog evidence stays beside the shared route on their own packet-local validation, survey, teardown, checker, and manifest-backed reminder surfaces rather than being collapsed back into one generic shared note
+
+## Exact Delivery Checks On `master`
+
+* bootstrap self-tests currently run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`, `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`, `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`, `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test`, and `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
+* bootstrap delivery checks then run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`, `python3 scripts/zigux/check-phase11-header-boundary-packet.py`, `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-contract` before the shared replay
+* the shared `zigux/tests/phase11_build.zig` replay currently runs exactly `phase11-gpio-wdt-tests`, `phase11-gpio-wdt-survey-tests`, `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-survey-tests`, `phase11-dw-wdt-tests`, `phase11-dw-wdt-survey-tests`, `phase11-hvc-console-tests`, `phase11-hvc-cleanup-tests`, and `phase11-hvc-console-survey-tests`
+* the shared bundle stays directly replayable through `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+* the dedicated archival HVC replay still stays available through `make -C zigux phase11-hvc-survey` when the archival packet needs a focused single-lane rerun
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
