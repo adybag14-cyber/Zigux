@@ -37,11 +37,12 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - roadmap anchor: `lib/checksum.c`
 - helper expected by the shared packet: `lib/checksum.zig`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current missing helper-local packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c`
+- still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- current missing helper-local helper and perf packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - still-present checker and shared route references: `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - direct local C parity rerun route once the helper packet is restored: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route once the helper packet is restored: `make -C zigux phase6-checksum-c-parity`
-- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` no longer contains the checksum-owned Zig helper, fixture, parity, or perf replay files that used to make that row reviewable
+- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding and no longer contains the checksum-owned Zig helper, focused helper replay, fixture-backed perf replay, or checksum fixture module that would make the full row reviewable
 
 ### hexdump
 - roadmap anchor: `lib/hexdump.c`
