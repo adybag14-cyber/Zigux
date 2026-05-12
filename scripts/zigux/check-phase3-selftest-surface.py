@@ -34,6 +34,7 @@ CHECKLIST_MARKERS = (
     "make -C zigux phase3-selftest",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
     "zigux/uapi/dev_t.zig",
 )
 CHECKLIST_PHASE3_REMINDER_PREFIX = (
@@ -423,6 +424,31 @@ def run_self_test() -> int:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print(
                 "expected review checklist Phase 3 section-scoped drift was not reported"
+            )
+            return 1
+
+        _populate_repo(root)
+        checklist_path.write_text(
+            _read(checklist_path).replace(
+                "Documentation/zigux/phase3-validator-support-surface.md",
+                CHECKLIST_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "Documentation/zigux/phase3-validator-support-surface.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "review checklist Phase 3 reminder marker count drift: "
+            "Documentation/zigux/phase3-validator-support-surface.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print(
+                "expected review checklist validator-support section-scoped drift "
+                "was not reported"
             )
             return 1
 
