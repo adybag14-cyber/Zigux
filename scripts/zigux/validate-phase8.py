@@ -20,6 +20,10 @@ HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-pa
 PERF_BUFFER_POLL_GATE_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
+BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
+BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+BRIDGE_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
 
 REQUIRED_FILES = (
     DOCS_ROOT_PATH,
@@ -34,6 +38,10 @@ REQUIRED_FILES = (
     PERF_BUFFER_POLL_GATE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
+    BRIDGE_SLICE_PATH,
+    BRIDGE_HELPER_PATH,
+    BRIDGE_TEST_PATH,
+    BRIDGE_BUILD_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -50,7 +58,12 @@ REQUIRED_MARKERS = {
         "if the change touches the shared parked Phase 8 libbpf packet",
         "`scripts/zigux/validate-phase8.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`tools/lib/bpf/zigux_segments/manifest.json`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
     ),
     SCRIPTS_README_PATH: (
@@ -58,19 +71,27 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "make -C zigux phase8-file-path-handle-bridge-test",
         "make -C zigux phase8-validate",
     ),
     TESTS_README_PATH: (
         "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
     ),
     SEQUENCING_PATH: (
         "`zigux/tests/phase8_pin_path.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
@@ -84,6 +105,7 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase8-validate:",
+        "phase8-file-path-handle-bridge-test",
         "scripts/zigux/validate-phase8.py",
     ),
 }
@@ -160,6 +182,10 @@ def run_self_test() -> None:
         ("missing_perf_buffer_poll_gate", PERF_BUFFER_POLL_GATE_PATH),
         ("missing_libbpf_segment_gate", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes", LIBBPF_SHARD_ROUTES_PATH),
+        ("missing_bridge_slice", BRIDGE_SLICE_PATH),
+        ("missing_bridge_helper", BRIDGE_HELPER_PATH),
+        ("missing_bridge_test", BRIDGE_TEST_PATH),
+        ("missing_bridge_build", BRIDGE_BUILD_PATH),
     ]
     marker_cases = [
         (
@@ -170,32 +196,32 @@ def run_self_test() -> None:
             f"{DOCS_ROOT_PATH}: `scripts/zigux/check-phase8-libbpf-shard-routes.py`",
         ),
         (
-            "review_checklist_libbpf_manifest_marker",
+            "review_checklist_bridge_target_marker",
             REVIEW_CHECKLIST_PATH,
-            "`tools/lib/bpf/zigux_segments/manifest.json`",
-            "`tools/lib/bpf/zigux_segments/index.json`",
-            f"{REVIEW_CHECKLIST_PATH}: `tools/lib/bpf/zigux_segments/manifest.json`",
+            "`make -C zigux phase8-file-path-handle-bridge-test`",
+            "`make -C zigux phase8-file-path-handle-review-test`",
+            f"{REVIEW_CHECKLIST_PATH}: `make -C zigux phase8-file-path-handle-bridge-test`",
         ),
         (
-            "scripts_readme_libbpf_segment_gate_marker",
+            "scripts_readme_bridge_slice_marker",
             SCRIPTS_README_PATH,
-            "scripts/zigux/check-phase8-libbpf-segment-gate.py",
-            "scripts/zigux/check-phase8-libbpf-segment.py",
-            f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-libbpf-segment-gate.py",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         ),
         (
-            "tests_readme_perf_buffer_route_marker",
+            "tests_readme_bridge_only_build_marker",
             TESTS_README_PATH,
-            "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
-            "`zigux/tests/phase8_perf_buffer_review_build.zig`",
-            f"{TESTS_README_PATH}: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`zigux/tests/phase8_file_path_handle_bridge_review_only_build.zig`",
+            f"{TESTS_README_PATH}: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         ),
         (
-            "sequencing_next_step_marker",
+            "sequencing_bridge_test_marker",
             SEQUENCING_PATH,
-            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
-            "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`:",
-            f"{SEQUENCING_PATH}: The next honest shared-surface reopen cue now starts with `Documentation/zigux/review-checklist.md`:",
+            "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+            "`zigux/tests/phase8_file_path_handle_bridge_review.zig`",
+            f"{SEQUENCING_PATH}: `zigux/tests/phase8_file_path_handle_bridge.zig`",
         ),
         (
             "workflow_phase8_validate_marker",
@@ -205,11 +231,11 @@ def run_self_test() -> None:
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "makefile_validator_marker",
+            "makefile_bridge_target_marker",
             MAKEFILE_PATH,
-            "scripts/zigux/validate-phase8.py",
-            "scripts/zigux/validate-phase8-lane.py",
-            f"{MAKEFILE_PATH}: scripts/zigux/validate-phase8.py",
+            "phase8-file-path-handle-bridge-test",
+            "phase8-file-path-handle-review-test",
+            f"{MAKEFILE_PATH}: phase8-file-path-handle-bridge-test",
         ),
     ]
 
