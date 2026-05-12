@@ -264,6 +264,6 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned w
 // runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
 // phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
 // validator blob eea5b7d67d6e99f8838a0550d5aa950d1f4cff30
-// phase4 matrix blob d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8
+// phase4 matrix blob 5ba1599569548585203e7d94fcec188b06eec210
 // review checklist blob 1ec1d3f4f98c4ed1fa324af1c0e6d26489320fa4
 // phase9 build blob 7f855cce2b91c156d5c0373b3b0fa096eab0aeda
