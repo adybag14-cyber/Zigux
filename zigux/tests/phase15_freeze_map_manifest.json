@@ -149,13 +149,13 @@
     {
       "anchor": "kernel/rcu/tree.c",
       "roadmap_basis": "Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker and keeps the packet parked until reopen evidence, parity scorecard evidence, benchmark notes, and replay commands travel together.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps the packet parked until reopen evidence, parity scorecard evidence, benchmark notes, and replay commands travel together.",
       "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
     },
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L10 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-Y03 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
