@@ -56,7 +56,7 @@ The four anchor packets above are also carried together by the Phase 14 shared s
   * shared full replay: `make -C zigux phase14-test`
   * direct shared replay: `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   * convenience target: `make -C zigux phase14`
-That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, the same shared smoke manifest, the same full-bundle workqueue reviewability replay, and the same validator, checker-backed smoke contract, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
+That shared packet matters because it keeps the workqueue, ring-buffer, skbuff, and RCU anchor notes tied to the same surveyed commits, parked-or-blocked posture, stay-in-C decisions, shared smoke manifest, full-bundle workqueue reviewability replay, and validator-backed smoke plus full-replay routes instead of drifting independently or disappearing from the shared evidence path. It also acts as the current owner-map surface for bounded-internal follow-through: workqueue routes through `P14-L04`, ring buffer routes through `P14-L08`, skbuff routes through `P14-Y03`, and RCU currently routes through the manifest-backed `P14-L16` owner. Shared-lane runs should treat older packet-local owner labels as packet-local cleanup work only, not as permission to reopen a different bounded-internal lane.
 ## What this lane does not claim
 
   * `kernel/workqueue.zig`
@@ -67,4 +67,4 @@ That shared packet matters because it proves the workqueue, ring-buffer, skbuff,
   * any Architecture Council reopen request
 ## Next bounded step
 
-Keep this cross-anchor traceability note aligned only when one of the four anchor packets or the shared smoke packet changes in a way that would otherwise hide a roadmap or stay-in-C boundary shift. Anchor-local audit work should continue in the existing workqueue, ring-buffer, skbuff, and RCU lanes rather than here.
+Keep this cross-anchor traceability note aligned only when one of the four anchor packets or the shared smoke packet changes in a way that would otherwise hide a roadmap or stay-in-C boundary shift. Shared-lane follow-through should keep packet-local owner-label cleanup inside the affected anchor packet unless the cross-anchor owner map itself drifts. Anchor-local audit work should continue in the existing workqueue, ring-buffer, skbuff, and RCU lanes rather than here.
