@@ -6,6 +6,25 @@
   "roadmap_destinations": [
     "lib/argv_split.zig"
   ],
+  "current_verification": {
+    "verified_on_utc": "2026-05-12T00:00:00Z",
+    "argv_split_pair_compile": {
+      "status": "confirmed",
+      "paths": [
+        "lib/argv_split.zig",
+        "zigux/tests/phase7_argv_split.zig"
+      ]
+    },
+    "shared_phase7_build": {
+      "status": "blocked",
+      "build_file": "zigux/tests/phase7_build.zig",
+      "missing_sibling_paths": [
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig",
+        "lib/cmdline.zig"
+      ]
+    }
+  },
   "review_surfaces": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -56,9 +75,10 @@
     {
       "id": "phase7-build-gate",
       "status": "starter_landed",
+      "current_replay_status": "blocked_by_missing_sibling_paths",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the argv_split runtime leaf helper inside the existing in-kernel helper tranche."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, but it is not a current green claim on live master while the string_helpers and cmdline sibling paths above are still missing."
     },
     {
       "id": "phase7-argv-split-helper",
