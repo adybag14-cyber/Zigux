@@ -1,121 +1,55 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the bounded Phase 11 DesignWare watchdog packet."""
+"""Fail-closed checker for the bounded Phase 11 DesignWare watchdog planning packet."""
 
 from __future__ import annotations
 
 import argparse
-import json
 import shutil
 import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
-EXPECTED_LANE_KEY = "P11-L05"
 
-REQUIRED_FILES = {
-    "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
-    "survey_note": "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "validation_matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-    "teardown_note": "Documentation/zigux/phase11-dw-wdt-teardown-note.md",
+FILES = {
+    "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "shared_contract": "Documentation/zigux/phase11-shared-replay-contract.md",
-    "scripts_readme": "scripts/zigux/README.md",
-    "docs_readme": "Documentation/zigux/README.md",
-    "driver_tests": "zigux/tests/phase11_dw_wdt.zig",
-    "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
-    "survey_gate": "zigux/tests/phase11_dw_wdt_survey.zig",
-    "verify_replay": "drivers/watchdog/dw_wdt_verify.zig",
+    "closure_note": "Documentation/zigux/phase11-closure-note.md",
+    "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
 }
 
-SURVEY_NOTE_MARKERS = [
-    "phase11-dw-wdt-registration-scaffold-tests",
-    "drivers/watchdog/dw_wdt_verify.zig",
-    "hardware validation matrix",
-    "platform_set_drvdata",
-    "watchdog_register_device",
-]
-
-VALIDATION_MATRIX_MARKERS = [
-    "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed",
-    "phase11-dw-wdt-registration-scaffold-tests",
-    "phase11-dw-wdt-verify-tests",
-    "platform_set_drvdata",
-    "watchdog_register_device",
-    "drivers/watchdog/dw_wdt_verify.zig",
-]
-
-TEARDOWN_NOTE_MARKERS = [
-    "continued-heartbeat semantics",
-    "teardownSummary()",
-    "removeSummary()",
-    "drivers/watchdog/dw_wdt_verify.zig",
-]
-
-SHARED_CONTRACT_MARKERS = [
-    "python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test",
-    "python3 scripts/zigux/check-phase11-dw-wdt-packet.py",
-    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-    "`drivers/watchdog/dw_wdt_verify.zig`",
-    "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
-]
-
-SCRIPTS_README_MARKERS = [
-    "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
-    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
-    "`zigux/tests/phase11_dw_wdt_manifest.json`",
-    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-]
-
-DOCS_README_MARKERS = [
-    "`Documentation/zigux/phase11-shared-replay-contract.md`",
-    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-]
-
-SURVEY_GATE_MARKERS = [
-    'test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown note stay aligned" {',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-teardown-note.md") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-registration scaffold") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "module_platform_driver") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);',
-]
-
-REGISTRATION_SCAFFOLD_MARKERS = [
-    'try std.testing.expectEqualStrings("module_platform_driver", summary.platform_driver_anchor);',
-    'try std.testing.expectEqualStrings("dw_wdt_drv_probe", summary.probe_anchor);',
-    'try std.testing.expectEqualStrings("dw_wdt_drv_remove", summary.remove_anchor);',
-    'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);',
-    'try std.testing.expectEqualStrings("watchdog_register_device", summary.registration_call);',
-    'try std.testing.expectEqualStrings("platform_set_drvdata", summary.drvdata_anchor);',
-    "try std.testing.expectEqual(dw_wdt.TimerClockPath.shared_clk_fallback, summary.timer_clock_path);",
-    "try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, summary.registration_state);",
-]
-
-VERIFY_REPLAY_MARKERS = [
-    'test "dw_wdt platform handoff keeps imported running state explicit when drvdata publication is absent" {',
-    'try std.testing.expectEqualStrings("watchdog_register_device", handoff.registration_call);',
-    'try std.testing.expectEqualStrings("platform_set_drvdata", handoff.drvdata_anchor);',
-    "try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, handoff.registration_state);",
-    'test "dw_wdt platform handoff stays blocked-but-reviewable when drvdata or irq wiring is absent" {',
-    'test "dw_wdt verify keeps idle remove-time no-reset path from fabricating continued heartbeat" {',
-    'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {',
-]
-
-EXPECTED_GAP_STATUSES = {
-    "phase11-build-gate": "starter_landed",
-    "phase11-dw-wdt-survey-gate": "starter_landed",
-    "phase11-dw-wdt-survey-note": "starter_landed",
-    "phase11-dw-wdt-driver-starter": "starter_landed",
-    "phase11-dw-wdt-driver-tests": "starter_landed",
-    "phase11-dw-wdt-registration-order-scaffold": "starter_landed",
-    "phase11-dw-wdt-teardown-parity": "starter_landed",
-    "phase11-dw-wdt-platform-registration-scaffold": "ready_next",
-    "phase11-dw-wdt-live-platform-pm": "blocked_on_driver_scaffold",
+MARKERS = {
+    "plan_note": [
+        "# Phase 11 DesignWare Watchdog Platform Registration Plan",
+        "The live repository does not currently ship a `dw_wdt` test packet, manifest, or driver-local replay surface under `zigux/tests/` or `drivers/watchdog/`.",
+        "Keep the next implementation bounded to a single scaffolding surface that makes clock or reset acquisition reviewable without claiming a full probe path.",
+        "1. model timer-clock acquisition and optional APB clock acquisition as explicit outcome-bearing steps",
+        "2. model reset-control availability and reset-release intent as explicit outcome-bearing steps",
+        "3. preserve the intended ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`",
+        "4. keep imported-running-state handoff reviewable when the timer starts hot",
+        "- focused Zig tests for the new acquisition-order summary or summaries",
+        "- survey or manifest update only if the new scaffold actually lands",
+        "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        "- `zigux/tests/README.md`",
+        "If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step.",
+    ],
+    "shared_contract": [
+        "The DesignWare watchdog lane is still parked on a planning checkpoint beside that shared route:",
+        "* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "* `scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "Treat that plan note together with the dedicated packet checker as the current DesignWare lane evidence on `master`: they keep the next bounded platform-registration scaffold explicit while the repository still does not materialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `drivers/watchdog/dw_wdt_verify.zig`.",
+    ],
+    "closure_note": [
+        "* DesignWare watchdog continuity stays with `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`, while `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as remaining repo-reality gaps rather than shared closure evidence",
+    ],
+    "lane_note": [
+        "- DesignWare lane `P11-L05` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`; `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as the intended first scaffold packet rather than shipped current-`master` evidence",
+        "- DesignWare packet review stays parked on `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`; `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` stay recorded as repo-reality gaps until the first scaffold lands",
+        "Keep the DesignWare lane honest: on current `master` the landed DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` plus `scripts/zigux/check-phase11-dw-wdt-packet.py`, while `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` remain repo-reality gaps rather than a landed packet.",
+    ],
 }
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -129,114 +63,15 @@ def read_text(root: Path, relative_path: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
+def expect_markers(label: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
-            raise CheckError(f"missing marker in {relative_path}: {marker}")
-
-
-def check_manifest(root: Path) -> None:
-    manifest_text = read_text(root, REQUIRED_FILES["manifest"])
-    try:
-        payload = json.loads(manifest_text)
-    except json.JSONDecodeError as exc:
-        raise CheckError(f"invalid json in {REQUIRED_FILES['manifest']}: {exc}") from exc
-
-    if payload.get("lane_key") != EXPECTED_LANE_KEY:
-        raise CheckError(f"phase11_dw_wdt_manifest.json lost lane_key {EXPECTED_LANE_KEY}")
-    if payload.get("phase") != "Phase 11":
-        raise CheckError("phase11_dw_wdt_manifest.json lost Phase 11 tag")
-    if payload.get("anchor") != "drivers/watchdog/dw_wdt.c":
-        raise CheckError("phase11_dw_wdt_manifest.json lost drivers/watchdog/dw_wdt.c anchor")
-
-    survey_summary = payload.get("survey_summary")
-    if not isinstance(survey_summary, dict):
-        raise CheckError("phase11_dw_wdt_manifest.json is missing survey_summary")
-
-    required_summary_flags = (
-        "dw_wdt_registration_scaffold_present",
-        "dw_wdt_registration_order_present",
-        "dw_wdt_survey_gate_present",
-        "dw_wdt_survey_note_present",
-    )
-    for flag in required_summary_flags:
-        if survey_summary.get(flag) is not True:
-            raise CheckError(f"phase11_dw_wdt_manifest.json lost summary flag {flag}")
-
-    gaps = payload.get("gaps")
-    if not isinstance(gaps, list):
-        raise CheckError("phase11_dw_wdt_manifest.json is missing gaps list")
-
-    statuses_by_id: dict[str, str] = {}
-    for gap in gaps:
-        if not isinstance(gap, dict):
-            raise CheckError("phase11_dw_wdt_manifest.json has non-object gap entry")
-        gap_id = gap.get("id")
-        gap_status = gap.get("status")
-        if not isinstance(gap_id, str) or not gap_id:
-            raise CheckError("phase11_dw_wdt_manifest.json has gap without id")
-        if gap_id in statuses_by_id:
-            raise CheckError(f"phase11_dw_wdt_manifest.json duplicated gap id {gap_id}")
-        statuses_by_id[gap_id] = gap_status
-
-    for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
-        actual = statuses_by_id.get(gap_id)
-        if actual != expected_status:
-            raise CheckError(
-                "phase11_dw_wdt_manifest.json lost expected status "
-                f"{expected_status} for {gap_id}"
-            )
+            raise CheckError(f"missing marker in {label}: {marker}")
 
 
 def run_check(root: Path) -> None:
-    check_manifest(root)
-    expect_markers(
-        REQUIRED_FILES["survey_note"],
-        read_text(root, REQUIRED_FILES["survey_note"]),
-        SURVEY_NOTE_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["validation_matrix"],
-        read_text(root, REQUIRED_FILES["validation_matrix"]),
-        VALIDATION_MATRIX_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["teardown_note"],
-        read_text(root, REQUIRED_FILES["teardown_note"]),
-        TEARDOWN_NOTE_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["shared_contract"],
-        read_text(root, REQUIRED_FILES["shared_contract"]),
-        SHARED_CONTRACT_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["scripts_readme"],
-        read_text(root, REQUIRED_FILES["scripts_readme"]),
-        SCRIPTS_README_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["docs_readme"],
-        read_text(root, REQUIRED_FILES["docs_readme"]),
-        DOCS_README_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["survey_gate"],
-        read_text(root, REQUIRED_FILES["survey_gate"]),
-        SURVEY_GATE_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["registration_scaffold"],
-        read_text(root, REQUIRED_FILES["registration_scaffold"]),
-        REGISTRATION_SCAFFOLD_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["verify_replay"],
-        read_text(root, REQUIRED_FILES["verify_replay"]),
-        VERIFY_REPLAY_MARKERS,
-    )
-    # Existence checks for the executable artifacts that the packet names directly.
-    read_text(root, REQUIRED_FILES["driver_tests"])
+    for label, relative_path in FILES.items():
+        expect_markers(label, read_text(root, relative_path), MARKERS[label])
 
 
 def write(path: Path, text: str) -> None:
@@ -246,71 +81,8 @@ def write(path: Path, text: str) -> None:
 
 def build_self_test_fixture(root: Path) -> None:
     write(root / SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
-    write(
-        root / REQUIRED_FILES["manifest"],
-        json.dumps(
-            {
-                "lane_key": EXPECTED_LANE_KEY,
-                "phase": "Phase 11",
-                "surveyed_commit": "75f8336c4305beed127d7abfae37d3999b7cc57c",
-                "anchor": "drivers/watchdog/dw_wdt.c",
-                "roadmap_destinations": [
-                    "drivers/watchdog/*.zig",
-                    "zigux/tests/",
-                    "Documentation/zigux/",
-                ],
-                "survey_summary": {
-                    "dw_wdt_registration_scaffold_present": True,
-                    "dw_wdt_registration_order_present": True,
-                    "dw_wdt_survey_gate_present": True,
-                    "dw_wdt_survey_note_present": True,
-                },
-                "gaps": [
-                    {"id": gap_id, "status": status}
-                    for gap_id, status in EXPECTED_GAP_STATUSES.items()
-                ],
-            },
-            indent=2,
-        )
-        + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["survey_note"],
-        "\n".join(SURVEY_NOTE_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["validation_matrix"],
-        "\n".join(VALIDATION_MATRIX_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["teardown_note"],
-        "\n".join(TEARDOWN_NOTE_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["shared_contract"],
-        "\n".join(SHARED_CONTRACT_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["scripts_readme"],
-        "\n".join(SCRIPTS_README_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["docs_readme"],
-        "\n".join(DOCS_README_MARKERS) + "\n",
-    )
-    write(root / REQUIRED_FILES["driver_tests"], "watchdog_register_device\n")
-    write(
-        root / REQUIRED_FILES["registration_scaffold"],
-        "\n".join(REGISTRATION_SCAFFOLD_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["survey_gate"],
-        "\n".join(SURVEY_GATE_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["verify_replay"],
-        "\n".join(VERIFY_REPLAY_MARKERS) + "\n",
-    )
+    for label, relative_path in FILES.items():
+        write(root / relative_path, "\n".join(MARKERS[label]) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -328,123 +100,37 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_dw_wdt_packet_"))
     try:
-        build_self_test_fixture(tmpdir)
-        run_check(tmpdir)
+        fixture_root = tmpdir / "fixture"
+        build_self_test_fixture(fixture_root)
+        run_check(fixture_root)
 
-        manifest_path = tmpdir / REQUIRED_FILES["manifest"]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["gaps"] = [
-            gap for gap in manifest["gaps"] if gap["id"] != "phase11-dw-wdt-teardown-parity"
+        cases = [
+            (FILES["plan_note"], MARKERS["plan_note"][1]),
+            (FILES["plan_note"], MARKERS["plan_note"][5]),
+            (FILES["shared_contract"], MARKERS["shared_contract"][0]),
+            (FILES["shared_contract"], MARKERS["shared_contract"][3]),
+            (FILES["closure_note"], MARKERS["closure_note"][0]),
+            (FILES["lane_note"], MARKERS["lane_note"][0]),
+            (FILES["lane_note"], MARKERS["lane_note"][1]),
+            (FILES["lane_note"], MARKERS["lane_note"][2]),
+            (FILES["plan_note"], MARKERS["plan_note"][12]),
+            (FILES["plan_note"], "- `zigux/tests/README.md`"),
         ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_failure(tmpdir, "phase11-dw-wdt-teardown-parity")
 
-        build_self_test_fixture(tmpdir)
-        survey_path = tmpdir / REQUIRED_FILES["survey_note"]
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                "phase11-dw-wdt-registration-scaffold-tests\n", ""
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "phase11-dw-wdt-registration-scaffold-tests")
+        for idx, (relative_path, marker) in enumerate(cases, start=1):
+            case_root = tmpdir / f"case_{idx}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            path = case_root / relative_path
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                encoding="utf-8",
+            )
+            expect_failure(case_root, marker)
 
-        build_self_test_fixture(tmpdir)
-        matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
-        matrix_path.write_text(
-            matrix_path.read_text(encoding="utf-8").replace("watchdog_register_device\n", ""),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "watchdog_register_device")
-
-        build_self_test_fixture(tmpdir)
-        teardown_path = tmpdir / REQUIRED_FILES["teardown_note"]
-        teardown_path.write_text(
-            teardown_path.read_text(encoding="utf-8").replace("removeSummary()\n", ""),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "removeSummary()")
-
-        build_self_test_fixture(tmpdir)
-        contract_path = tmpdir / REQUIRED_FILES["shared_contract"]
-        contract_path.write_text(
-            contract_path.read_text(encoding="utf-8").replace(
-                "python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test\n",
-                "",
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "check-phase11-dw-wdt-packet.py --self-test")
-
-        build_self_test_fixture(tmpdir)
-        readme_path = tmpdir / REQUIRED_FILES["scripts_readme"]
-        readme_path.write_text(
-            readme_path.read_text(encoding="utf-8").replace(
-                "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`\n", ""
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "phase11_dw_wdt_registration_scaffold.zig")
-
-        build_self_test_fixture(tmpdir)
-        docs_readme_path = tmpdir / REQUIRED_FILES["docs_readme"]
-        docs_readme_path.write_text(
-            docs_readme_path.read_text(encoding="utf-8").replace(
-                "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`\n",
-                "",
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "phase11-dw-wdt-validation-matrix.md")
-
-        build_self_test_fixture(tmpdir)
-        survey_gate_path = tmpdir / REQUIRED_FILES["survey_gate"]
-        survey_gate_path.write_text(
-            survey_gate_path.read_text(encoding="utf-8").replace(
-                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-registration scaffold") != null);\n',
-                "",
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "platform-registration scaffold")
-
-        build_self_test_fixture(tmpdir)
-        registration_scaffold_path = tmpdir / REQUIRED_FILES["registration_scaffold"]
-        registration_scaffold_path.write_text(
-            registration_scaffold_path.read_text(encoding="utf-8").replace(
-                'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);\n',
-                "",
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, 'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);')
-
-        build_self_test_fixture(tmpdir)
-        verify_replay_path = tmpdir / REQUIRED_FILES["verify_replay"]
-        verify_replay_path.write_text(
-            verify_replay_path.read_text(encoding="utf-8").replace(
-                'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {\n',
-                "",
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            tmpdir,
-            'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {',
-        )
-
-        build_self_test_fixture(tmpdir)
-        driver_tests_path = tmpdir / REQUIRED_FILES["driver_tests"]
-        driver_tests_path.unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["driver_tests"])
-
-        build_self_test_fixture(tmpdir)
-        shutil.rmtree(tmpdir / "drivers", ignore_errors=True)
-        expect_failure(tmpdir, REQUIRED_FILES["verify_replay"])
-
-        build_self_test_fixture(tmpdir)
-        shutil.rmtree(tmpdir / "Documentation", ignore_errors=True)
-        expect_failure(tmpdir, REQUIRED_FILES["survey_note"])
+        missing_file_root = tmpdir / "missing_file"
+        shutil.copytree(fixture_root, missing_file_root, dirs_exist_ok=True)
+        (missing_file_root / FILES["shared_contract"]).unlink()
+        expect_failure(missing_file_root, FILES["shared_contract"])
 
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
