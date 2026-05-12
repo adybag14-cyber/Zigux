@@ -17,13 +17,10 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - roadmap anchor: `lib/base64.c`
 - helper: `lib/base64.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- focused helper replay: `zigux/tests/phase6_base64.zig`
-- focused direct C parity replay: `zigux/tests/phase6_base64_c_parity.zig`
-- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`
-- fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_harness.c`
-- checker: `scripts/zigux/check-phase6-base64-c-parity.py`
-- direct local C parity rerun route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
-- Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
+- still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- currently missing helper-local replay surfaces on `master`: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- blocked route note: the existing direct C parity scaffolding is not currently runnable as a complete packet because `zigux/tests/phase6_base64_c_parity.zig` still imports the absent `zigux/tests/fixtures/phase6_base64_vectors.zig` fixture module
+- current review posture: partially landed; current `master` still keeps the helper plus the direct C parity scaffolding, but it cannot honestly claim the broader focused helper replay or slowdown gate until the missing base64 replay and fixture files return
 
 ### bsearch
 - roadmap anchor: `lib/bsearch.c`
