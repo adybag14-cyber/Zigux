@@ -47,6 +47,8 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+* `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `zigux/tests/phase11_hvc_console_manifest.json`
