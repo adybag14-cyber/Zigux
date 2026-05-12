@@ -51,6 +51,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_build.zig",
     ],
     "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "lib/argv_split.zig",
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -224,6 +225,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "",
             "Documentation/zigux/README.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        ),
+        (
+            "review_checklist_slice_marker",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "",
+            "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-argv-split-slice.md",
         ),
         (
             "review_checklist_alignment_marker",
