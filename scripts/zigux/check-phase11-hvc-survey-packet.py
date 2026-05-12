@@ -71,7 +71,7 @@ SURVEY_NOTE_MARKERS = [
 
 SLICE_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SLICE_STATUS=starter_packet_archived`",
-    "lane: `P11-L16`",
+    "lane: `P11-L13`",
     "keep the landed teardown and failure-mode packet readable beside the shared Phase 11 replay route",
     "drivers/tty/hvc/hvc_console.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
@@ -357,7 +357,7 @@ def init_self_test_repo(root: Path) -> str:
 
 def build_manifest_text(surveyed_commit: str) -> str:
     manifest = {
-        "lane_key": "P11-L16",
+        "lane_key": "P11-L13",
         "phase": "Phase 11",
         "surveyed_commit": surveyed_commit,
         "anchor": "drivers/tty/hvc/hvc_console.c",
