@@ -78,6 +78,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "if the change touches the shared Phase 7 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        "there is no standalone `samples/zigux/*string*` reference sample",
         "zigux/tests/phase7_cmdline_manifest.json",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
@@ -355,6 +357,8 @@ def run_self_test() -> None:
         ("docs_readme_argv_split_manifest_marker", "Documentation/zigux/README.md", "zigux/tests/phase7_argv_split_manifest.json", "", "Documentation/zigux/README.md: zigux/tests/phase7_argv_split_manifest.json"),
         ("docs_readme_argv_split_fixture_marker", "Documentation/zigux/README.md", "zigux/tests/fixtures/phase7_argv_split_vectors.zig", "", "Documentation/zigux/README.md: zigux/tests/fixtures/phase7_argv_split_vectors.zig"),
         ("review_checklist_phase7_packet_marker", "Documentation/zigux/review-checklist.md", "if the change touches the shared Phase 7 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`", "", "Documentation/zigux/review-checklist.md: if the change touches the shared Phase 7 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`"),
+        ("review_checklist_string_sample_boundary_marker", "Documentation/zigux/review-checklist.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "Documentation/zigux/review-checklist.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
+        ("review_checklist_string_no_sample_phrase", "Documentation/zigux/review-checklist.md", "there is no standalone `samples/zigux/*string*` reference sample", "", "Documentation/zigux/review-checklist.md: there is no standalone `samples/zigux/*string*` reference sample"),
         ("review_checklist_cmdline_fixture_marker", "Documentation/zigux/review-checklist.md", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "Documentation/zigux/review-checklist.md: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("review_checklist_argv_fixture_marker", "Documentation/zigux/review-checklist.md", "zigux/tests/fixtures/phase7_argv_split_vectors.zig", "", "Documentation/zigux/review-checklist.md: zigux/tests/fixtures/phase7_argv_split_vectors.zig"),
         ("samples_readme_boundary_marker", "samples/zigux/README.md", "treat any new `samples/zigux/*string*.zig` file as review-blocking", "", "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking"),
