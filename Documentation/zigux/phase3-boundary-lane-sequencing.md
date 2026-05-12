@@ -98,4 +98,4 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Current bounded rule
 
-This note is the shared substrate owner map only. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above, with `P3-X11` reserved for shared closure, ledger, or lane-state corrections when the owner map itself drifts and the packet-local lanes remain otherwise accurate.
+This note is the shared substrate owner map only. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above, with `P3-Y11` reserved for shared closure, ledger, or lane-state corrections when the owner map itself drifts and the packet-local lanes remain otherwise accurate.
