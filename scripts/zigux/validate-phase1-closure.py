@@ -164,6 +164,34 @@ EXPECTED_BENCH = {
     },
 }
 
+EXPECTED_BITMAP_MANIFEST = {
+    "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
+    "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
+    "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
+    "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
+    "parity_fixture_keys": [
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values",
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len",
+    ],
+    "partial_xor_review_fields": [
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+    ],
+    "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
+    "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+    "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
+    "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
+}
+
 EXPECTED_FIND_BIT_MANIFEST = {
     "helper_test_anchors": [
         'test "single-word next scans honor start masks"',
@@ -291,6 +319,23 @@ def run_phase1_validator(root: Path) -> list[str]:
     return [f"phase1_validator_failed:{detail}"]
 
 
+def collect_bitmap_manifest_markers(manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["bitmap_manifest:json_object"]
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["bitmap_manifest:review_anchors"]
+    bitmap_anchors = review_anchors.get("tools/lib/bitmap.zig")
+    if not isinstance(bitmap_anchors, dict):
+        return ["bitmap_manifest:tools/lib/bitmap.zig"]
+
+    missing: list[str] = []
+    for key, expected in EXPECTED_BITMAP_MANIFEST.items():
+        if bitmap_anchors.get(key) != expected:
+            missing.append(f"bitmap_manifest:{key}")
+    return missing
+
+
 def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
     if not isinstance(manifest, dict):
         return ["find_bit_manifest:json_object"]
@@ -378,6 +423,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(require_markers(makefile, "makefile", MAKEFILE_MARKERS))
     missing.extend(require_markers(build_zig, "build", BUILD_MARKERS))
     missing.extend(collect_bench_markers(bench))
+    missing.extend(collect_bitmap_manifest_markers(manifest))
     missing.extend(collect_find_bit_manifest_markers(manifest))
     missing.extend(collect_string_manifest_markers(root, manifest))
     return missing
@@ -413,6 +459,7 @@ def make_fixture_root(root: Path) -> None:
         json.dumps(
             {
                 "review_anchors": {
+                    "tools/lib/bitmap.zig": EXPECTED_BITMAP_MANIFEST,
                     "tools/lib/find_bit.zig": EXPECTED_FIND_BIT_MANIFEST,
                     "tools/lib/string.zig": {
                         "helper_test_anchors": EXPECTED_STRING_HELPER_TESTS,
@@ -464,6 +511,13 @@ def run_self_test() -> None:
         make_fixture_root(root)
 
         manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["predicate_tail_mask_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "bitmap_manifest:predicate_tail_mask_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -544,7 +598,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_FIND_BIT_MANIFEST) + 3}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + 3}"
     )
     return 0
 
