@@ -27,6 +27,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/README.md": [
         "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
@@ -68,6 +69,7 @@ REQUIRED_MARKERS = {
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "make -C zigux phase8-validate",
@@ -158,6 +160,13 @@ def run_self_test() -> None:
             "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
             "`Documentation/zigux/phase8-libbpf-segment-note.md`",
             "Documentation/zigux/README.md: `Documentation/zigux/phase8-libbpf-segment-survey.md`",
+        ),
+        (
+            "docs_root_segment_gate_checker_anchor",
+            "Documentation/zigux/README.md",
+            "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+            "`scripts/zigux/check-phase8-libbpf-segment.py`",
+            "Documentation/zigux/README.md: `scripts/zigux/check-phase8-libbpf-segment-gate.py`",
         ),
         (
             "docs_root_checker_anchor",
@@ -277,6 +286,13 @@ def run_self_test() -> None:
             "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
             "Keep follow-up inside the shared wording lane until the public survey packet and the current readable helper-plus-build evidence agree again.",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
+        ),
+        (
+            "scripts_readme_segment_gate_checker_anchor",
+            "scripts/zigux/README.md",
+            "scripts/zigux/check-phase8-libbpf-segment-gate.py",
+            "scripts/zigux/check-phase8-libbpf-segment.py",
+            "scripts/zigux/README.md: scripts/zigux/check-phase8-libbpf-segment-gate.py",
         ),
         (
             "scripts_readme_checker_anchor",
