@@ -40,6 +40,13 @@ pub const ReadyBufferSummary = struct {
     first_error: ?i32,
 };
 
+pub const ReadyBufferCursor = struct {
+    start_index: usize,
+    next_scan_index: usize,
+    ready_index: ?usize,
+    skipped_nonready_count: usize,
+};
+
 pub const ProcessRecordObservation = struct {
     result: i32 = 0,
     records_processed: usize = 0,
@@ -132,9 +139,43 @@ pub fn classifyWaitClass(timeout_ms: i32) PollError!WaitClass {
     };
 }
 
+pub fn advanceReadyBufferCursor(
+    buffers: []const BufferObservation,
+    start_index: usize,
+) ReadyBufferCursor {
+    if (start_index >= buffers.len) {
+        return .{
+            .start_index = start_index,
+            .next_scan_index = buffers.len,
+            .ready_index = null,
+            .skipped_nonready_count = 0,
+        };
+    }
+
+    var index = start_index;
+    while (index < buffers.len) : (index += 1) {
+        if (buffers[index].ready) {
+            return .{
+                .start_index = start_index,
+                .next_scan_index = index + 1,
+                .ready_index = index,
+                .skipped_nonready_count = index - start_index,
+            };
+        }
+    }
+
+    return .{
+        .start_index = start_index,
+        .next_scan_index = buffers.len,
+        .ready_index = null,
+        .skipped_nonready_count = buffers.len - start_index,
+    };
+}
+
 pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
+    const cursor = advanceReadyBufferCursor(buffers, 0);
     var ready_count: usize = 0;
-    var first_ready_index: ?usize = null;
+    var first_ready_index = cursor.ready_index;
     var first_error: ?i32 = null;
 
     for (buffers, 0..) |buffer, index| {
@@ -436,6 +477,38 @@ test "classifyObservedWaitResult keeps normalized wait outcomes compact before b
         classifyObservedWaitResult(-@as(i32, @intFromEnum(std.os.linux.E.INTR))),
     );
     try std.testing.expectEqualDeep(WaitObservation{ .failed = -5 }, classifyObservedWaitResult(-5));
+}
+
+test "advanceReadyBufferCursor keeps ordered ready-buffer traversal explicit" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .error_code = -32 },
+        .{ .ready = true },
+        .{},
+        .{ .ready = true, .error_code = -11 },
+    };
+
+    const first = advanceReadyBufferCursor(&buffers, 0);
+    try std.testing.expectEqual(@as(usize, 0), first.start_index);
+    try std.testing.expectEqual(@as(?usize, 2), first.ready_index);
+    try std.testing.expectEqual(@as(usize, 3), first.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 2), first.skipped_nonready_count);
+
+    const second = advanceReadyBufferCursor(&buffers, first.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 3), second.start_index);
+    try std.testing.expectEqual(@as(?usize, 4), second.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), second.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 1), second.skipped_nonready_count);
+
+    const exhausted = advanceReadyBufferCursor(&buffers, second.next_scan_index);
+    try std.testing.expectEqual(@as(?usize, null), exhausted.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), exhausted.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 0), exhausted.skipped_nonready_count);
+
+    const past_end = advanceReadyBufferCursor(&buffers, 9);
+    try std.testing.expectEqual(@as(?usize, null), past_end.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), past_end.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 0), past_end.skipped_nonready_count);
 }
 
 test "summarizeReadyBuffers counts ready buffers and preserves the first error" {
