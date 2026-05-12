@@ -57,6 +57,9 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "framed as repo-reality gap references",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -71,10 +74,13 @@ MARKERS = {
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "framed as repo-reality gaps rather than shipped current-`master` evidence",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -139,10 +145,15 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][13]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
+            (FILES["tests_root"], MARKERS["tests_root"][15]),
+            (FILES["tests_root"], MARKERS["tests_root"][16]),
+            (FILES["tests_root"], MARKERS["tests_root"][17]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][8]),
             (FILES["tests_companion"], MARKERS["tests_companion"][9]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][12]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][13]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
