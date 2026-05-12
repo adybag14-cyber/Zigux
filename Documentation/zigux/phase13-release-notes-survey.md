@@ -34,15 +34,16 @@ When current `master` cannot materialize direct helper-packet companions such as
 
 broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
-Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:
+Broad summaries should also keep the paired Landlock ownership, syscall-governance, and syscall-survey notes explicit inside that same release handle through:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `security/landlock/ruleset.zig`
 - `security/landlock/syscalls.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 
-Broad summaries should keep those shipped Landlock helper anchors explicit instead of treating Landlock as docs-only ownership metadata.
+Broad summaries should keep those shipped Landlock helper anchors explicit instead of treating Landlock as docs-only ownership or governance metadata.
 
 Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -111,6 +112,7 @@ Refresh these notes together when a contributor-facing Phase 13 summary changes:
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
