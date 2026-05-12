@@ -7,8 +7,9 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_STATUS=indefinite_c_policy_packet_landed`
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-lane-owner-and-exception-posture-sync`
-- `PHASE15_PROVENANCE_MODE=exact_master_commit_readback`
-- survey provenance refreshed against current `master` commit `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-12` on 2026-05-12
+- exact branch-head parity is not recorded for this parked policy packet; the note now uses an explicit dated readback marker instead of a quickly stale exact-head commit while keeping the same stay-in-C exception posture, reopen-trigger vocabulary, and blocked deep-core posture
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one packet-local maintenance handoff that keeps future truthfulness repairs inside the stay-in-C packet
 
 ## Why this slice exists
