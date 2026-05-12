@@ -75,11 +75,13 @@ REQUIRED_REVIEW_BOUNDARY_MARKERS = (
 REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
+    "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
+    "make -C zigux phase3-selftest",
 )
 REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS = (
     "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
@@ -529,6 +531,34 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared reminder validator marker was not reported")
+        return 1
+
+    shared_reminder_selftest_driver_marker = (
+        "scripts/zigux/validate_phase3_selftest.py"
+    )
+    before, separator, after = sample.rpartition(shared_reminder_selftest_driver_marker)
+    broken = validate_text(before + after if separator else sample)
+    expected = (
+        "shared reminder marker count drift: "
+        "scripts/zigux/validate_phase3_selftest.py "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder selftest driver marker was not reported")
+        return 1
+
+    shared_reminder_selftest_route_marker = "make -C zigux phase3-selftest"
+    before, separator, after = sample.rpartition(shared_reminder_selftest_route_marker)
+    broken = validate_text(before + after if separator else sample)
+    expected = (
+        "shared reminder marker count drift: "
+        "make -C zigux phase3-selftest "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder selftest route marker was not reported")
         return 1
 
     scripts_readme_marker = "scripts/zigux/README.md"
