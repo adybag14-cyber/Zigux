@@ -208,6 +208,8 @@ EXPECTED_FIND_BIT_MANIFEST = {
         'test "find and bit returns the first shared set bit"',
         'test "underscore entry points reuse the public helper behavior"',
         'test "single-word next scans honor start masks"',
+        'test "single-word first scans clamp to the declared bit window"',
+        'test "single-word next scans clamp partial windows before returning nbits"',
         'test "word-boundary next scans start fresh on the next word"',
         'test "zero-bit windows return without reading bitmap words"',
         'test "zero-sized scans ignore populated backing words"',
