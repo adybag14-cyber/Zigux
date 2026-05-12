@@ -1,0 +1,84 @@
+{
+  "abi_version": 1,
+  "constants": {
+    "facility_kernel": 1,
+    "facility_helpers": 2,
+    "facility_drivers": 3,
+    "status_flag_error": 1,
+    "panic_abort": 0,
+    "panic_bug": 1,
+    "panic_warn": 2,
+    "allocator_caller_provided": 0,
+    "allocator_kernel_heap": 1,
+    "allocator_arena": 2,
+    "unsafe_scope_none": 0,
+    "unsafe_scope_volatile_mmio": 1,
+    "unsafe_scope_raw_pointer_bridge": 2
+  },
+  "structs": {
+    "boundary_header": {
+      "size": 8,
+      "align": 4,
+      "offsets": {
+        "size": 0,
+        "abi_version": 4,
+        "flags": 6
+      }
+    },
+    "export_status": {
+      "size": 8,
+      "align": 4,
+      "offsets": {
+        "code": 0,
+        "facility": 4,
+        "flags": 6
+      }
+    },
+    "interop_policy": {
+      "size": 4,
+      "align": 1,
+      "offsets": {
+        "panic_mode": 0,
+        "allocator_mode": 1,
+        "unsafe_scope": 2,
+        "reserved": 3
+      }
+    },
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_view": {
+      "size": 12,
+      "align": 4,
+      "offsets": {
+        "ack_window": 0,
+        "delivery_window": 4,
+        "status": 8
+      }
+    },
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary": {
+      "size": 12,
+      "align": 4,
+      "offsets": {
+        "applied": 0,
+        "skipped": 4,
+        "delivered": 8
+      }
+    },
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view": {
+      "size": 12,
+      "align": 4,
+      "offsets": {
+        "budget": 0,
+        "window": 4,
+        "flags": 8
+      }
+    },
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary": {
+      "size": 12,
+      "align": 4,
+      "offsets": {
+        "attempted": 0,
+        "applied": 4,
+        "skipped": 8
+      }
+    }
+  }
+}
