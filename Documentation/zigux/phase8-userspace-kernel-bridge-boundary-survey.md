@@ -16,15 +16,15 @@ This parked Phase 8 gap note keeps the roadmap-backed command and environment
 control surface reviewable without pretending that the current Zigux packet has
 closed direct process-launch, live environment-read, or terminal-probing parity.
 
-The same shared boundary survey also keeps the already-landed file, path, and
-handle bridge packet reviewable without pretending that the current Zigux packet
+The same shared boundary survey also keeps the current file, path, and handle
+bridge review packet explicit without pretending that the current Zigux packet
 has closed token materialization or capability handoff, map reopen or bpffs
 compatibility closure, or fd close or ownership semantics.
 
 The note is intentionally narrow:
 - keep the roadmap anchors explicit
 - keep the parked current-tree command and help packet explicit
-- keep the already-landed file-path-and-handle bridge packet explicit
+- keep the current file-path-and-handle bridge review packet explicit
 - keep the shared Phase 8 lane note and validation entrypoint explicit
 - keep the next bounded follow-through step explicit until later Phase 8 work lands
   a smaller truthfulness or replay update inside the same command or bridge packet
