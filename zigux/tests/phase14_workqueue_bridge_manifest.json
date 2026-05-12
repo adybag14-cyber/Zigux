@@ -94,24 +94,10 @@
     },
     {
       "id": "phase14-workqueue-pending-bit-audit",
-      "status": "starter_landed",
-      "kind": "concurrency_audit",
-      "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now records the irq-disabled PENDING-bit claim window across `try_to_grab_pending()` and `queue_work_on()`, plus the unbound `__queue_work()` `pwq->refcnt` retry loop, so Zigux can name pending ownership, retry, and reselection rules without claiming live submission control."
-    },
-    {
-      "id": "phase14-workqueue-flush-color-followup",
-      "status": "starter_landed",
-      "kind": "concurrency_audit",
-      "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now records the `__flush_workqueue()` color cascade, `start_flush_work()` barrier insertion, and `pwq_dec_nr_in_flight()` release path so Zigux can name `wq->work_color`, `wq->flush_color`, `wq->first_flusher`, `wq->flusher_overflow`, and `nr_pwqs_to_flush` handoff rules without claiming live flush or cancellation completion."
-    },
-    {
-      "id": "phase14-workqueue-drain-cancel-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `drain_workqueue()`, `__flush_work()`, and `__cancel_work_sync()` so Zigux can describe reflush looping, single-work barrier waiting, and cancellation completion boundaries before any wrapper claims draining or cancellation parity."
+      "why_now": "The next honest Phase 14 step is to audit `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can name pending ownership, retry, and reselection rules without claiming live submission control."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
