@@ -231,7 +231,7 @@ Phase 10 notes
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
-- `drivers/virtio/virtio_ring.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
 - `drivers/virtio/virtio_ring_verify.zig`
 - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
