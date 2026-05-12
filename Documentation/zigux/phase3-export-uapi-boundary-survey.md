@@ -37,15 +37,16 @@ The blob markers above are the packet-local evidence for the currently shipped s
 
 The Phase 3 roadmap still wants a narrow and explicit permanent C/Zigux boundary. On current `master`, this packet stays honest only if the export/UAPI lane owns the starter wording without implying dedicated packet-local replay files that are not part of the live manifest-backed ABI packet.
 
-- the export/UAPI packet owns this survey note, its packet-local validator, and the wording that points reviewers at the shared `phase3-interop`, `phase3-test`, and `phase3-dump` routes for the currently shipped starter surface.
+- `Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.
+- `Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, while this survey keeps the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions paired with that narrower kernel-facing relay.
 - the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.
-- any future top-level export or UAPI growth should land with a refreshed survey and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.
+- any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.
 
 ## Current Gap
 
 The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, no direct same-lane export/UAPI survey gap is visible between that roadmap target and the shipped reminder packet.
 
-- current `master` already ships `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, packet-local validator, shared ABI slice, header-family survey, docs-root reminder, and manifest-backed inventory now keep that starter packet aligned, including the explicit accepted-header extension-byte accounting exposed through the starter version helper and export shim relay.
+- current `master` already ships `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, kernel-facing governance note, header-family survey, and manifest-backed inventory now keep that starter packet aligned, including the explicit accepted-header extension-byte accounting exposed through the starter version helper and export shim relay.
 - the remaining lane rule is to keep the shared interop, build, and dump wording accurate and to avoid claiming dedicated `phase3_export_uapi*` replay files unless those files actually land alongside the shared ABI packet and its reminder surfaces.
 - if a future run grows this packet again, reopen the lane only for that concrete starter-boundary change and refresh this survey plus one shared reminder surface in the same bounded step.
 
