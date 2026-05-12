@@ -311,6 +311,12 @@ jobs:
       - name: Check Phase 6 shared surface
         run: python3 scripts/zigux/check-phase6-shared-surface.py
 
+      - name: Self-test Phase 6 perf-threshold checker
+        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test
+
+      - name: Check Phase 6 perf threshold markers
+        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py
+
       - name: Run Phase 6 leaf helper tests
         run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
 
