@@ -19,12 +19,23 @@ const LifecycleBoundarySummary = struct {
     prepared_snapshot_owned_by_loader_request: bool = false,
 };
 
+const RollbackBoundarySummary = struct {
+    release_without_substrate_path: []const u8,
+    release_without_substrate_api: []const u8,
+    release_without_substrate_state: []const u8,
+    failed_exit_state_retained_until_drain: bool,
+    maxactive_overflow_retained_until_drain: bool,
+    live_registration_surfaces: []const []const u8,
+    blocked_parity_status: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     lifecycle_boundary_summary: LifecycleBoundarySummary,
+    rollback_boundary_summary: RollbackBoundarySummary,
     gaps: []const Gap,
 };
 
@@ -149,6 +160,34 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1],
     );
 
+    try std.testing.expectEqualStrings(
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        manifest.rollback_boundary_summary.release_without_substrate_path,
+    );
+    try std.testing.expectEqualStrings(
+        "releaseSharedWithoutSubstrate",
+        manifest.rollback_boundary_summary.release_without_substrate_api,
+    );
+    try std.testing.expectEqualStrings(
+        "released_without_substrate",
+        manifest.rollback_boundary_summary.release_without_substrate_state,
+    );
+    try std.testing.expect(manifest.rollback_boundary_summary.failed_exit_state_retained_until_drain);
+    try std.testing.expect(manifest.rollback_boundary_summary.maxactive_overflow_retained_until_drain);
+    try std.testing.expectEqual(@as(usize, 2), manifest.rollback_boundary_summary.live_registration_surfaces.len);
+    try std.testing.expectEqualStrings(
+        "register_kretprobe",
+        manifest.rollback_boundary_summary.live_registration_surfaces[0],
+    );
+    try std.testing.expectEqualStrings(
+        "unregister_kretprobe",
+        manifest.rollback_boundary_summary.live_registration_surfaces[1],
+    );
+    try std.testing.expectEqualStrings(
+        "review_only_until_runtime_substrate",
+        manifest.rollback_boundary_summary.blocked_parity_status,
+    );
+
     const loader_plan_gap = findGap(manifest.gaps, "runtime-kretprobe-loader-plan") orelse return error.MissingLoaderPlanGap;
     try std.testing.expectEqualStrings("starter_landed", loader_plan_gap.status);
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_plan_gap.kind);
@@ -188,11 +227,11 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         module_slice_note,
-        "the shared `phase9-runtime-loader-shared-tests` shard and the workflow-backed `make -C zigux phase9` route",
+        "the shared `phase9-runtime-loader-shared-tests` shard plus the workflow-backed `make -C zigux phase9` route",
     );
     try expectContains(
         module_slice_note,
-        "shared-request handoff evidence reviewable without claiming loadable-module parity",
+        "makes the kretprobe handoff and failure-mode evidence reviewable without claiming loadable-module parity",
     );
 
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_kretprobe_survey.zig\")");
