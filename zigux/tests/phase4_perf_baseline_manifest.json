@@ -1,6 +1,8 @@
 {
   "lane_key": "P4-L20",
   "phase": "Phase 4",
+  "owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
   "decision_owner": "Validation and Perf Team",
   "coordination_owners": [
     "ABI and Runtime Team",
