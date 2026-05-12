@@ -87,12 +87,24 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey manifest records the maintained packet cleanly",
     "phase11 shared header parity survey keeps a bounded watchdog_info layout proof",
     "phase11 shared header parity survey keeps a bounded winsize layout proof",
+    "phase11 shared header parity survey keeps a bounded hv_ops callback-table layout proof",
     "phase11 shared header parity survey keeps the note pinned to the manifest provenance",
     "phase11 shared header parity survey keeps shared replay markers explicit without reviving removed validator claims",
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertSize(WinSize, 8);",
+    "layout_assert.assertSize(HvOps, 72);",
+    "layout_assert.assertAlign(HvOps, 8);",
+    'layout_assert.assertOffset(HvOps, "get_chars", 0);',
+    'layout_assert.assertOffset(HvOps, "put_chars", 8);',
+    'layout_assert.assertOffset(HvOps, "flush", 16);',
+    'layout_assert.assertOffset(HvOps, "notifier_add", 24);',
+    'layout_assert.assertOffset(HvOps, "notifier_del", 32);',
+    'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
+    'layout_assert.assertOffset(HvOps, "tiocmget", 48);',
+    'layout_assert.assertOffset(HvOps, "tiocmset", 56);',
+    'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -275,6 +287,13 @@ def run_self_test() -> int:
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
+            'layout_assert.assertOffset(HvOps, "notifier_hangup", 44);',
+            "survey missing markers",
         )
         expect_failure(
             root,
