@@ -177,6 +177,7 @@ Phase 8 notes
 - `zigux/tests/phase8_cpu_mask.zig`
 - `zigux/tests/phase8_cpu_mask_only_build.zig`
 - `zigux/tests/phase8_logging.zig`
+- `zigux/tests/phase8_pin_path.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`
 - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
@@ -185,4 +186,4 @@ Phase 8 notes
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/Makefile`
-- `make -C zigux phase8-validate`, `make -C zigux phase8-exec-cmd-test`, `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, `make -C zigux phase8-kallsyms-test`, `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8` now keep the current exec-cmd, help, kallsyms, and helper-first libbpf packet reviewable from the docs root while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master` instead of shrinking the current Phase 8 surface back toward older starter-only or missing-file assumptions.
+- `make -C zigux phase8-validate`, `make -C zigux phase8-exec-cmd-test`, `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, `make -C zigux phase8-kallsyms-test`, `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8` now keep the current exec-cmd, help, kallsyms, and helper-first libbpf packet reviewable from the docs root while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master` instead of shrinking the current Phase 8 surface back toward older starter-only or missing-file assumptions.
