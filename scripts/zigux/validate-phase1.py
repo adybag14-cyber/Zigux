@@ -66,6 +66,7 @@ EXPECTED_FIXTURE = json.loads(
 
 EXPECTED_FIXTURE_TOP_LEVEL_KEYS = sorted(EXPECTED_FIXTURE.keys())
 EXPECTED_HELPERS = EXPECTED_MANIFEST["helpers"]
+DIRECT_ANCHOR_HELPERS = set(EXPECTED_MANIFEST["lane_sequencing"]["direct_anchor_followup_helpers"])
 EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, "
@@ -82,7 +83,7 @@ EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, underscore-alias, and Linux-style alias behavior review-visible on current master"
 )
 EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
-    "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
+    "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root leftmost-return fixture keys"
 )
 EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
     "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
@@ -247,6 +248,19 @@ def collect_required_markers(text: str, label: str, markers: list[str]) -> list[
     return missing
 
 
+def extract_test_titles(text: str) -> list[str]:
+    titles: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('test "'):
+            continue
+        closing_quote = stripped.find('"', len('test "'))
+        if closing_quote == -1:
+            continue
+        titles.append(stripped[: closing_quote + 1])
+    return titles
+
+
 def extract_test_body(text: str, title: str) -> str | None:
     anchor = f'test "{title}"'
     start = text.find(anchor)
@@ -337,6 +351,12 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
             missing.append(f"phase1_manifest:{helper}:review_anchor_shape")
             continue
         source_text = load_text(root / source_path_for_helper(helper))
+        helper_test_anchors = anchors.get("helper_test_anchors")
+        if helper in DIRECT_ANCHOR_HELPERS:
+            if not isinstance(helper_test_anchors, list) or not all(isinstance(item, str) for item in helper_test_anchors):
+                missing.append(f"phase1_manifest:{helper}:helper_test_anchors")
+            elif helper_test_anchors != extract_test_titles(source_text):
+                missing.append(f"phase1_helper_test_anchor_list:{helper}")
         for key, value in anchors.items():
             target_text = replay_text if key == "phase1_helper_replay_anchor" else source_text
             for marker in review_anchor_tests(value):
@@ -589,6 +609,12 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["review_packet_summary"] = "stale bitmap summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        bitmap_path = root / "tools/lib/bitmap.zig"
+        bitmap_path.write_text(load_text(bitmap_path) + 'test "bitmap drift"\n', encoding="utf-8")
+        assert "phase1_helper_test_anchor_list:tools/lib/bitmap.zig" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
