@@ -79,6 +79,13 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "make -C zigux phase15-validate");
     try expectContains(readiness_note, "make -C zigux phase15-test");
     try expectContains(readiness_note, "the remaining blocker is still `phase15-deep-core-status-change-blocker`");
+    try expectContains(readiness_note, "scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(readiness_note, "zigux/tests/phase15_readiness_gate_manifest.json");
+    try expectContains(readiness_note, "zigux/tests/phase15_readiness_gate.zig");
+    try expectContains(
+        readiness_note,
+        "whether the dedicated readiness packet still keeps the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes aligned",
+    );
 
     try expectContains(scripts_readme, "validate-phase15.py");
     try expectContains(scripts_readme, "check-phase15-scripts-readme-alignment.py");
