@@ -13,6 +13,7 @@ It stays inside the archival Phase 11 HVC lane and does not widen into tty regis
 
 The current bounded HVC archival packet is reviewed through:
 
+* `drivers/tty/hvc/hvc_console.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
@@ -22,7 +23,7 @@ The current bounded HVC archival packet is reviewed through:
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.
+These archival packet surfaces keep the bounded `drivers/tty/hvc/hvc_console.zig` starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.
 
 ## Teardown And Failure-Mode Cues
 
