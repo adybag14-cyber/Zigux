@@ -15,7 +15,7 @@
     "review_process_present": true,
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
-    "docs_index_handoff_pointer_present": false,
+    "docs_index_handoff_pointer_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
@@ -28,7 +28,7 @@
     {
       "lane_family": "shared-summaries",
       "zigux_destination": "Documentation/zigux/README.md",
-      "why_out_of_scope": "Compact docs-root and shared reminder repairs belong here before the dedicated handoff packet should reopen."
+      "why_out_of_scope": "Compact docs-root and shared reminder repairs stay here; the currently landed docs-root and checklist maintenance closures should remain parked in shared-summaries unless a fresh shared-summary drift appears."
     },
     {
       "lane_family": "review-process",
@@ -71,7 +71,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "If the compact docs-root Phase 15 reminder still understates the parked maintenance notes, route that repair to `shared-summaries` first by restating `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md`; reopen this lane only if the dedicated handoff packet itself drifts.",
+    "If a new shared-summary truthfulness drift appears, route that repair to `shared-summaries` first by rechecking `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated handoff packet itself drifts.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
