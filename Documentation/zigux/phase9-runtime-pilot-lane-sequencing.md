@@ -35,6 +35,7 @@ Current `master` still exposes the shared loader-facing reminder packet:
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/tests/runtime_loader_gap_survey.zig`
 - `scripts/zigux/check-phase9-build-only-surface.py`
 - `zigux/tests/phase9_build.zig`
 - `samples/zigux/runtime_atomic64_loader.zig`
@@ -44,7 +45,7 @@ Current `master` still exposes the shared loader-facing reminder packet:
 
 Current `master` also keeps the shared convenience-target names literal for that same packet:
 
-- `make -C zigux phase9-runtime-loader-shared-tests` remains the focused shared-loader replay for the runtime-loader facade, runtime-loader contract, and allocator/init-flow proof bundle
+- `make -C zigux phase9-runtime-loader-shared-tests` remains the focused shared-loader replay for the runtime-loader facade, runtime-loader contract, allocator/init-flow proof bundle, and loader-gap survey
 - `make -C zigux phase9-test` remains the shared build-only checker plus Phase 9 build replay route
 - `make -C zigux phase9` remains the broader runtime-pilot bundle replay route
 
@@ -69,6 +70,7 @@ Current `master` no longer needs the older docs-root follow-through that earlier
 - direct readback now shows `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already defer the exact shared owner map back to this sequencing note
 - the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls for `requires_runtime_substrate`, `module_name`, `anchor`, `entry_symbol`, `exit_symbol`, selftest-hook, and init-flow drift, while allocator-handoff drift stays covered by dedicated prepared-plan-versus-live-plan equality checks, so the older shared-lane publication handoff for the seven direct explicitness assertions is now stale and future shared follow-through should move to reminder or checker alignment instead of reopening the same replay body
+- direct readback now also shows `zigux/tests/phase9_build.zig` routes `zigux/tests/runtime_loader_gap_survey.zig` through the same `phase9-runtime-loader-shared-tests` bundle, so shared owner-map wording needs to keep that loader-gap survey explicit beside `zigux/tests/runtime_loader_allocator_init_flow.zig` instead of undercounting the current shared loader packet
 - the remaining same-lane overlap risk is now the owner-map handoff between this note and the shipped shared reminder packet: older pilot-family labels can still point future runs at stale owners even though the active packet-local follow-through has already moved, so the next safe shared follow-through is to decide whether the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should fail closed on the exact `P9-L04`/`P9-L08`/`P9-L10`/`P9-L13` split recorded here instead of reopening the older allocator/init-flow replay proof
 - the current atomic64 follow-through is the manifest-backed survey-versus-module-slice packet tracked in `P9-L04`, with the shared loader-facing owner map staying adjacent through `P9-L11`
 - the current bitmap follow-through stays bitmap-local in `P9-L08`: the manifest, survey note, module-slice note, top-bit companion replay, and survey gate remain family-local, while `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and the shared loader packet stay adjacent through `P9-L11`
