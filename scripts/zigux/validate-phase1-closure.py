@@ -169,6 +169,7 @@ EXPECTED_FIND_BIT_MANIFEST = {
         'test "tail-word next set scans skip earlier in-range matches before clamping"',
         'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
         'test "low-level underscore aliases mirror the primary find helpers"',
+        'test "Linux-style aliases mirror the primary find helpers"',
     ],
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
@@ -177,6 +178,7 @@ EXPECTED_FIND_BIT_MANIFEST = {
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
     "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
+    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers"',
     "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
     "tail_clamp_fixture_keys": [
         "tail_clamped_first",
@@ -188,7 +190,7 @@ EXPECTED_FIND_BIT_MANIFEST = {
         "tail_clamped_last",
         "tail_clamped_empty_last",
     ],
-    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master",
+    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, underscore-alias, and Linux-style alias behavior review-visible on current master",
 }
 
 
