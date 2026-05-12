@@ -85,6 +85,15 @@ SCRIPT_README_MARKERS = [
     "stay-in-C boundary",
 ]
 
+TESTS_README_MARKERS = [
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json",
+    "zigux/tests/phase14_ring_buffer_manifest.json",
+    "zigux/tests/phase14_rcu_tree_manifest.json",
+]
+
 RELEASE_MARKERS = [
     "PHASE14_STATUS=active",
     "PHASE14_SLICE=end-to-end-smoke-verification",
@@ -354,6 +363,26 @@ def run_self_test() -> int:
         print("SELF_TEST_MARKERS_END")
         return 1
 
+    good_tests_readme = "\n".join(TESTS_README_MARKERS) + "\n"
+    missing_tests_readme_markers = [
+        marker
+        for marker in TESTS_README_MARKERS
+        if marker
+        not in good_tests_readme.replace(
+            "zigux/tests/phase14_workqueue_reviewability.zig",
+            "",
+            1,
+        )
+    ]
+    if missing_tests_readme_markers != ["zigux/tests/phase14_workqueue_reviewability.zig"]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_tests_readme_marker_gap")
+        print("SELF_TEST_MARKERS_START")
+        for item in missing_tests_readme_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     good_phase14_make = "\n".join(["phase14-validate:", *MAKE_EXACT_LINES]) + "\n"
     exact_line_missing: list[str] = []
     require_exact_line_once(
@@ -461,7 +490,7 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_makefile_release_boundary_route_gap_markers")
         print("SELF_TEST_MARKERS_START")
         for item in exact_line_missing:
-            print(item)
+        print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
@@ -527,6 +556,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
+    print("PHASE14_SELF_TEST_MISSING_TESTS_README_MARKER=zigux/tests/phase14_workqueue_reviewability.zig")
     print("PHASE14_SELF_TEST_MISSING_DOCS_ROOT_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_ROUTE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py")
@@ -556,6 +586,7 @@ def run_validation() -> int:
     make_text = text("zigux/Makefile")
     for name, source, markers in [
         ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
+        ("tests_readme", text("zigux/tests/README.md"), TESTS_README_MARKERS),
         ("make", make_text, MAKE_MARKERS),
         ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
         ("survey", survey_text, RELEASE_MARKERS),
@@ -804,7 +835,7 @@ def run_validation() -> int:
     print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE14_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
     )
     print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
