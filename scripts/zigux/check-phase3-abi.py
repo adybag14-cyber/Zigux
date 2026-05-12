@@ -20,9 +20,7 @@ REQUIRED_FILES = (
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
-    Path("zigux/tests/phase3_export_uapi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
-    Path("zigux/tests/phase3_export_uapi_layout.zig"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     Path("scripts/zigux/validate-phase3.py"),
@@ -33,6 +31,13 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+)
+
+# The export/UAPI lane explicitly keeps these dedicated replay files out of the
+# current shared ABI packet until they land with the rest of that packet.
+OPTIONAL_EXPORT_UAPI_REPLAY_FILES = (
+    Path("zigux/tests/phase3_export_uapi.zig"),
+    Path("zigux/tests/phase3_export_uapi_layout.zig"),
 )
 
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -85,6 +90,17 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         if issues:
             print("PHASE3_ABI_SELF_TEST=fail")
+            print("\n".join(issues))
+            return 1
+        case_count += 1
+
+        for rel_path in OPTIONAL_EXPORT_UAPI_REPLAY_FILES:
+            _write(root / rel_path)
+            (root / rel_path).unlink()
+        issues = validate_repo(root)
+        if issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected ABI gate to keep export/UAPI-only replay files optional")
             print("\n".join(issues))
             return 1
         case_count += 1
