@@ -36,7 +36,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
 - focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`
-- fixtures: `zigux/tests/fixtures/phase6_bsearch_vectors.zig` for the bounded deterministic query-seeding and case-size corpus shared by the focused bsearch replays
+- inline corpus: representative 15-element ascending and descending equality replays plus dynamic lower-, upper-, and packed-record `member_size` sweeps stay inline in `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` instead of a separate `phase6_bsearch_vectors` fixture module
 - direct local corpus evidence checker route: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-bsearch-test`
