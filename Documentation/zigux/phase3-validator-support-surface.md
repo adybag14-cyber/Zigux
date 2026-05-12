@@ -80,9 +80,7 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `Documentation/zigux/phase3-kernel-export-shim-governance.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `zigux/uapi/dev_t.zig`, and `zigux/bindings/abi.zig`; adjacent
-header-family and checklist reminders can keep
-`Documentation/zigux/phase3-kernel-export-shim-governance.md`,
-`Documentation/zigux/phase3-abi-h-boundary-next-step.md`, and
-`zigux/uapi/dev_t.zig` explicit without restating this validator-support note
-so the shipped support helpers do not get restated as missing historical-only
-entrypoints.
+header-family and checklist reminders can keep that narrower governance-plus-
+next-step-plus-`dev_t` policy explicit without restating this validator-support
+note so the shipped support helpers do not get restated as missing
+historical-only entrypoints.
