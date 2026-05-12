@@ -16,25 +16,25 @@
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
-    "landed_pilot_state": "starter_landed_with_missing_shared_loader_files",
-    "missing_capability": "readable shared runtime-loader files on current master before the bounded atomic64 loader scaffold can be replayed honestly",
-    "blocked_deliverable": "replayable Phase 9 shared-loader-backed atomic64 pilot packet",
-    "next_gate": "keep the direct atomic64 starter packet explicit and fail closed on missing shared runtime-loader files until that packet is readable again"
+    "landed_pilot_state": "starter_landed_with_visible_shared_loader_packet",
+    "missing_capability": "shared runtime substrate that would turn the bounded atomic64 loader scaffold plus the visible shared loader-facing reminder packet into a real loadable runtime-module path",
+    "blocked_deliverable": "loadable Phase 9 runtime atomic64 pilot module lifecycle parity",
+    "next_gate": "keep the direct atomic64 starter packet explicit, treat the visible shared loader-facing reminder packet as review-only evidence, and leave the broader runtime-substrate blocker explicit"
   },
   "gaps": [
     {
       "id": "phase9-build-gate",
-      "status": "blocked_on_missing_shared_loader_files",
+      "status": "visible_review_only_packet",
       "kind": "shared_build_route",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build route file is still present, but current master is missing readable `zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig`, so this build surface is an adjacent stale scaffold rather than an honest replayable gate for the atomic64 packet."
+      "why_now": "The shared Phase 9 build route is visible on current master beside `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/tests/runtime_loader_gap_survey.zig`, but it remains review-only evidence until the broader runtime substrate exists."
     },
     {
       "id": "runtime-atomic64-survey-gate",
       "status": "starter_landed",
       "kind": "survey_gate",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The dedicated runtime survey gate keeps the direct sample packet and the current missing shared-loader readback fail-closed instead of implying live runtime parity."
+      "why_now": "The dedicated runtime survey gate keeps the direct sample packet and the visible shared-loader reminder packet fail-closed instead of implying live runtime parity."
     },
     {
       "id": "runtime-atomic64-sample-module",
@@ -66,17 +66,17 @@
     },
     {
       "id": "runtime-atomic64-loader-scaffold",
-      "status": "blocked_on_missing_shared_loader_files",
+      "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded loader scaffold still keeps the atomic64 entry symbol, exit symbol, and handoff-plan shape reviewable, but current master no longer exposes readable `zigux/kernel/runtime_loader.zig` or `zigux/kernel/runtime_loader_contract.zig`, so the scaffold cannot currently support an honest shared-loader replay claim."
+      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, handoff-plan shape, and the adjacent shared loader-facing reminder packet reviewable without implying live runtime registration parity."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
-      "status": "blocked_on_missing_shared_loader_files",
+      "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's full runtime module lifecycle parity cannot be claimed while current master is missing readable shared runtime-loader files, so the atomic64 lane must stay in a direct-starter-only posture before any deeper runtime-substrate follow-through."
+      "why_now": "The roadmap's full runtime module lifecycle parity still depends on the broader runtime substrate beyond the current direct atomic64 packet and visible shared loader-facing reminder packet."
     }
   ]
 }
