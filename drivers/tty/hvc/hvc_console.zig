@@ -108,6 +108,26 @@ pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSumma
     };
 }
 
+pub const KhvcdWorkerEntryRequest = struct {
+    initial_poll_attempt: bool,
+    wakeup_kick_ready: bool,
+    sleep_handoff_ready: bool,
+};
+
+pub const KhvcdWorkerEntrySummary = struct {
+    initial_poll_attempt: bool,
+    wakeup_kick_ready: bool,
+    sleep_handoff_ready: bool,
+};
+
+pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {
+    return .{
+        .initial_poll_attempt = request.initial_poll_attempt,
+        .wakeup_kick_ready = request.wakeup_kick_ready,
+        .sleep_handoff_ready = request.sleep_handoff_ready,
+    };
+}
+
 pub const KhvcdSleepRequest = struct {
     pre_sleep_kick_check: bool,
     interruptible_state_recheck: bool,
@@ -267,6 +287,18 @@ test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {
     try std.testing.expect(summary.failed_open_close_cleanup);
     try std.testing.expect(summary.open_time_irq_request_boundaries);
     try std.testing.expect(!summary.khvcd_kick_follow_through);
+}
+
+test "phase11 hvc console keeps khvcd worker-entry handoff reviewable" {
+    const summary = summarizeKhvcdWorkerEntry(.{
+        .initial_poll_attempt = true,
+        .wakeup_kick_ready = true,
+        .sleep_handoff_ready = true,
+    });
+
+    try std.testing.expect(summary.initial_poll_attempt);
+    try std.testing.expect(summary.wakeup_kick_ready);
+    try std.testing.expect(summary.sleep_handoff_ready);
 }
 
 test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {
