@@ -247,6 +247,48 @@ test "phase3 mmio wrappers keep direct reads and writes reviewable" {
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), read64(base, 8));
 }
 
+test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    const base = narrow.addressOf(&bytes[0]);
+    const mmio_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio);
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = mmio_scope,
+        .reserved = 0,
+    };
+
+    const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
+    write16(base, 1, 0x1234);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_halfword.*);
+    try std.testing.expectEqual(@as(u16, 0x1234), read16(base, 1));
+
+    try write16InteropPolicyByte(base, 1, 0x4321, mmio_scope);
+    try std.testing.expectEqual(@as(u16, 0x4321), odd_halfword.*);
+    try std.testing.expectEqual(@as(u16, 0x4321), try read16InteropPolicyByte(base, 1, mmio_scope));
+
+    const odd_word: *align(1) const u32 = @ptrCast(&bytes[3]);
+    write32(base, 3, 0x89ab_cdef);
+    try std.testing.expectEqual(@as(u32, 0x89ab_cdef), odd_word.*);
+    try std.testing.expectEqual(@as(u32, 0x89ab_cdef), read32(base, 3));
+
+    try write32InteropPolicyBytes(base, 3, 0xc001_d00d, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u32, 0xc001_d00d), odd_word.*);
+    try std.testing.expectEqual(
+        @as(u32, 0xc001_d00d),
+        try read32InteropPolicyBytes(base, 3, mmio_scope, 0),
+    );
+
+    const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
+    write64(base, 5, 0xfedc_ba98_7654_3210);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), odd_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), read64(base, 5));
+
+    try write64InteropPolicy(base, 5, 0x0bad_f00d_dead_beef, mmio_policy);
+    try std.testing.expectEqual(@as(u64, 0x0bad_f00d_dead_beef), odd_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0x0bad_f00d_dead_beef), try read64InteropPolicy(base, 5, mmio_policy));
+}
+
 test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {
     var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
