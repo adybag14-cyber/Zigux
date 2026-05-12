@@ -19,6 +19,7 @@ ABI_COMMAND_PLAN = (
     (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
     ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
+    ("zig", "build", "phase3-low-level-wrappers-test", "--build-file", "zigux/tests/phase3_low_level_wrappers_build.zig"),
 )
 
 WRAPPER_STUB = """#!/usr/bin/env python3
@@ -151,6 +152,7 @@ def run_self_test() -> int:
         ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),
         (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
         (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+        (("zig", "build", "phase3-low-level-wrappers-test", "--build-file", "zigux/tests/phase3_low_level_wrappers_build.zig"), ROOT, False),
     ]
 
     observed_calls.clear()
