@@ -77,8 +77,8 @@ MANIFEST_MARKERS = [
 MMIO_SURVEY_MARKERS = [
     "phase10-mmio-selected-queue-readiness-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
-    "repo-reality gap at `zigux/tests/phase10_virtio_mmio_manifest.json`",
-    "repo-reality gap at `scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+    "the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`",
+    "the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
 ]
 
 LEDGER_EXACT_ONCE_MARKERS = [
@@ -252,17 +252,32 @@ def run_self_test() -> int:
 
         mmio_survey.write_text(
             mmio_survey.read_text(encoding="utf-8").replace(
-                "repo-reality gap at `zigux/tests/phase10_virtio_mmio_manifest.json`\n",
+                "the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         if (
-            "mmio-survey:repo-reality gap at `zigux/tests/phase10_virtio_mmio_manifest.json`"
+            "mmio-survey:the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`"
             not in collect_missing_markers(root)
         ):
-            raise SystemExit("phase10-closure-self-test:mmio_survey_gap_marker_not_detected")
+            raise SystemExit("phase10-closure-self-test:mmio_survey_manifest_marker_not_detected")
+        write_fixture(root)
+
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if (
+            "mmio-survey:the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`"
+            not in collect_missing_markers(root)
+        ):
+            raise SystemExit("phase10-closure-self-test:mmio_survey_freeze_boundary_marker_not_detected")
         write_fixture(root)
 
         review = root / "Documentation/zigux/review-checklist.md"
@@ -348,7 +363,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
