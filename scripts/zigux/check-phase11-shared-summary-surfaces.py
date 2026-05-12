@@ -58,7 +58,7 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "`hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "`hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus the direct HVC verify replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
 }
 
