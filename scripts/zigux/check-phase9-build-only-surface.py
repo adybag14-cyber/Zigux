@@ -70,6 +70,9 @@ GAP_SURVEY_DRIFT_MARKER = (
 GAP_SURVEY_NEXT_STEP_MARKER = (
     "starting with `scripts/zigux/README.md` and then `zigux/tests/README.md`"
 )
+DEP_MOD_BOUNDARY_MARKER = (
+    "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -83,6 +86,7 @@ REQUIRED_MARKERS = {
         PREPARED_STATE_LANDED_MARKER,
         GAP_SURVEY_DRIFT_MARKER,
         GAP_SURVEY_NEXT_STEP_MARKER,
+        DEP_MOD_BOUNDARY_MARKER,
         *OWNER_MAP_MARKERS,
         "the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should fail closed",
     ],
@@ -218,6 +222,15 @@ def run_self_test() -> int:
         lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(lane_note.replace(OWNER_SPLIT_MARKER, "", 1), encoding="utf-8")
         expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{OWNER_SPLIT_MARKER}")
+
+        write_fixture_tree(base)
+        lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
+        lane_note = lane_note_path.read_text(encoding="utf-8")
+        lane_note_path.write_text(
+            lane_note.replace(DEP_MOD_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{DEP_MOD_BOUNDARY_MARKER}")
 
         write_fixture_tree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
