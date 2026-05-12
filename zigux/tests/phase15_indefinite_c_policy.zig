@@ -25,6 +25,8 @@ const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
+    surveyed_commit_mode: []const u8,
+    surveyed_commit_mode_reason: []const u8,
     roadmap_requirement: []const u8,
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
@@ -50,14 +52,6 @@ fn expectArtifactListContains(list: []const []const u8, needle: []const u8) !voi
     return error.TestUnexpectedResult;
 }
 
-fn isLowerHexCommit(text: []const u8) bool {
-    if (text.len != 40) return false;
-    for (text) |byte| {
-        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
-    }
-    return true;
-}
-
 fn findRequirement(requirements: []const Requirement, id: []const u8) ?Requirement {
     for (requirements) |requirement| {
         if (std.mem.eql(u8, requirement.id, id)) return requirement;
@@ -72,7 +66,7 @@ fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maintenance handoff, exception posture, and blocker accounting" {
+test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maintenance handoff, and blocker accounting" {
     const policy_note = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 32 * 1024);
     defer std.testing.allocator.free(policy_note);
 
@@ -91,7 +85,9 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
+    try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
@@ -99,7 +95,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(@as(usize, 4), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/freeze-map.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
@@ -112,9 +108,10 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
-    try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=exact_master_commit_readback");
-    try expectContains(policy_note, "survey provenance refreshed against current `master` commit `");
-    try expectContains(policy_note, manifest.surveyed_commit);
+    try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
+    try expectContains(policy_note, "current-master-readback-2026-05-12");
+    try expectContains(policy_note, "previously recorded reviewed head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6` no longer matched current `master`");
+    try expectContains(policy_note, "exact branch-head parity is not recorded");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "existing blocker remains recorded");
@@ -131,6 +128,8 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
     try expectContains(policy_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(policy_note, "policy packet's truthfulness");
     try expectContains(policy_note, "keep the repair inside the policy packet and its direct replays");
+    try expectContains(policy_note, "phase15-indefinite-c-dated-readback-provenance-refresh");
+    try expectContains(policy_note, "phase15-indefinite-c-maintenance-handoff");
     try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
 
     try expectContains(review_process, "named owner for the lane");
@@ -188,7 +187,12 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
         try std.testing.expect(gap.why_now.len > 0);
         if (std.mem.eql(u8, gap.status, "landed")) landed_gap_count += 1;
     }
-    try std.testing.expectEqual(@as(usize, 6), landed_gap_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_gap_count);
+
+    const dated_refresh = findGap(manifest.gaps, "phase15-indefinite-c-dated-readback-provenance-refresh") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("landed", dated_refresh.status);
+    try std.testing.expectEqualStrings("provenance_refresh", dated_refresh.kind);
+    try expectContains(dated_refresh.why_now, "dated readback marker");
 
     const handoff_gap = findGap(manifest.gaps, "phase15-indefinite-c-maintenance-handoff") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("landed", handoff_gap.status);
