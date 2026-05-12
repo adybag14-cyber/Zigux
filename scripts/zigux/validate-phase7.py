@@ -96,6 +96,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_rbtree_manifest.json",
         "scripts/zigux/check-phase7-rbtree-parity.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
@@ -232,6 +233,9 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNT_MARKERS = {
+    "Documentation/zigux/review-checklist.md": [
+        ("scripts/zigux/check-phase7-build-wiring.py", 5),
+    ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         ("Documentation/zigux/review-checklist.md", 2),
         ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 2),
@@ -439,6 +443,12 @@ def run_self_test() -> None:
     ]
 
     exact_count_cases = [
+        (
+            "review_checklist_duplicate_build_wiring_marker",
+            "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/check-phase7-build-wiring.py",
+            "Documentation/zigux/review-checklist.md: exact_count:scripts/zigux/check-phase7-build-wiring.py:6!=5",
+        ),
         (
             "cmdline_slice_duplicate_review_checklist_marker",
             "Documentation/zigux/phase7-cmdline-slice.md",
