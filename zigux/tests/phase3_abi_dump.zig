@@ -2,20 +2,6 @@ const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
 
-fn isIntegerConstant(comptime T: type) bool {
-    return switch (@typeInfo(T)) {
-        .int, .comptime_int => true,
-        else => false,
-    };
-}
-
-fn isExternStruct(comptime T: type) bool {
-    return switch (@typeInfo(T)) {
-        .@"struct" => |info| info.layout == .@"extern",
-        else => false,
-    };
-}
-
 fn writeQuoted(writer: anytype, text: []const u8) !void {
     try writer.writeByte('"');
     try writer.writeAll(text);
@@ -40,44 +26,63 @@ fn writeStruct(writer: anytype, comptime name: []const u8, comptime T: type) !vo
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    const abi_decls = comptime std.meta.declarations(abi);
     var stdout_buffer: [4096]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout_writer.interface;
 
     try writer.writeAll("{\"abi_version\":");
-    if (@hasDecl(abi, "ABI_VERSION")) {
-        try writer.print("{d}", .{@field(abi, "ABI_VERSION")});
-    } else {
-        try writer.writeByte('0');
-    }
+    try writer.print("{d}", .{abi.ABI_VERSION});
 
     try writer.writeAll(",\"constants\":{");
-    var first_constant = true;
-    inline for (abi_decls) |decl| {
-        const value = @field(abi, decl.name);
-        const T = @TypeOf(value);
-        if (comptime isIntegerConstant(T) and !std.mem.eql(u8, decl.name, "ABI_VERSION")) {
-            if (!first_constant) try writer.writeByte(',');
-            first_constant = false;
-            try writeQuoted(writer, decl.name);
-            try writer.writeByte(':');
-            try writer.print("{d}", .{value});
-        }
-    }
+    try writer.print(
+        "\"facility_kernel\":{d},\"facility_helpers\":{d},\"facility_drivers\":{d},\"status_flag_error\":{d},\"panic_abort\":{d},\"panic_bug\":{d},\"panic_warn\":{d},\"allocator_caller_provided\":{d},\"allocator_kernel_heap\":{d},\"allocator_arena\":{d},\"unsafe_scope_none\":{d},\"unsafe_scope_volatile_mmio\":{d},\"unsafe_scope_raw_pointer_bridge\":{d}",
+        .{
+            abi.FACILITY_KERNEL,
+            abi.FACILITY_HELPERS,
+            abi.FACILITY_DRIVERS,
+            abi.STATUS_FLAG_ERROR,
+            abi.PANIC_ABORT,
+            abi.PANIC_BUG,
+            abi.PANIC_WARN,
+            abi.ALLOC_CALLER_PROVIDED,
+            abi.ALLOC_KERNEL_HEAP,
+            abi.ALLOC_ARENA,
+            abi.UNSAFE_NONE,
+            abi.UNSAFE_VOLATILE_MMIO,
+            abi.UNSAFE_RAW_POINTER_BRIDGE,
+        },
+    );
 
     try writer.writeAll("},\"structs\":{");
-    var first_struct = true;
-    inline for (abi_decls) |decl| {
-        const value = @field(abi, decl.name);
-        const T = @TypeOf(value);
-        if (comptime T == type and isExternStruct(value)) {
-            if (!first_struct) try writer.writeByte(',');
-            first_struct = false;
-            try writeStruct(writer, decl.name, value);
-        }
-    }
-
+    try writeStruct(writer, "boundary_header", abi.BoundaryHeader);
+    try writer.writeByte(',');
+    try writeStruct(writer, "export_status", abi.ExportStatus);
+    try writer.writeByte(',');
+    try writeStruct(writer, "interop_policy", abi.InteropPolicy);
+    try writer.writeByte(',');
+    try writeStruct(
+        writer,
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView,
+    );
+    try writer.writeByte(',');
+    try writeStruct(
+        writer,
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary,
+    );
+    try writer.writeByte(',');
+    try writeStruct(
+        writer,
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView,
+    );
+    try writer.writeByte(',');
+    try writeStruct(
+        writer,
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary,
+    );
     try writer.writeAll("}}\n");
     try stdout_writer.interface.flush();
 }
