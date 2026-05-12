@@ -168,6 +168,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_loader_gap_survey_module = b.createModule(.{
+        .root_source_file = b.path("runtime_loader_gap_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const runtime_atomic64_sample_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-sample-tests",
@@ -269,13 +274,20 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_loader_allocator_init_flow_module,
     });
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
+    const runtime_loader_gap_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-gap-survey-tests",
+        .root_module = runtime_loader_gap_survey_module,
+    });
+    const run_runtime_loader_gap_survey_tests = b.addRunArtifact(runtime_loader_gap_survey_tests);
+    run_runtime_loader_gap_survey_tests.setCwd(b.path("../.."));
     const runtime_loader_shared_tests_step = b.step(
         "phase9-runtime-loader-shared-tests",
-        "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
+        "Run the focused Phase 9 runtime-loader facade, contract, allocator/init-flow, and loader-gap survey tests",
     );
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
@@ -314,6 +326,7 @@ pub fn build(b: *std.Build) void {
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_bitmap_top_bit_tests_step = b.step(
         "phase9-runtime-bitmap-top-bit-tests",
@@ -334,6 +347,7 @@ pub fn build(b: *std.Build) void {
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_trace_events_tests_step = b.step(
         "phase9-runtime-trace-events-tests",
@@ -357,8 +371,9 @@ pub fn build(b: *std.Build) void {
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, and allocator/init-flow tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, allocator/init-flow, and loader-gap survey tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
@@ -379,6 +394,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_loader_contract_tests.step);
     test_step.dependOn(&run_runtime_loader_facade_tests.step);
     test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
