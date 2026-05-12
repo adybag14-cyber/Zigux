@@ -22,6 +22,7 @@ ROOT = infer_repo_root()
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 PHASE9_LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
@@ -38,6 +39,7 @@ REQUIRED_FILES = [
     FREEZE_MAP_PATH,
     PHASE9_LANE_SEQUENCING_PATH,
     REVIEW_CHECKLIST_PATH,
+    README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SAMPLES_README_PATH,
@@ -77,6 +79,9 @@ GAP_SURVEY_NEXT_STEP_MARKER = (
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
 )
+DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
+    "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
+)
 FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
     "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
 )
@@ -110,6 +115,15 @@ REQUIRED_MARKERS = {
         "the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
         "the focused bitmap top-bit companion replay `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus the shipped `phase9-runtime-bitmap-top-bit-tests` step in `zigux/tests/phase9_build.zig`",
         "no-dedicated-`validate-phase9.py` posture",
+    ],
+    README_PATH: [
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        "scripts/zigux/check-phase9-build-only-surface.py",
+        "zigux/tests/phase9_build.zig",
+        "zigux/kernel/runtime_loader.zig",
+        "zigux/kernel/runtime_loader_contract.zig",
+        "the shared Phase 9 packet is still review-first rather than loadable-runtime-complete",
+        DOCS_ROOT_DEPMOD_BOUNDARY_MARKER,
     ],
     SCRIPTS_README_PATH: [
         "Phase 9 flow",
@@ -320,6 +334,18 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:Documentation/zigux/review-checklist.md:workflow-backed `make -C zigux phase9` route",
+        )
+
+        write_fixture_tree(base)
+        docs_root_path = base / README_PATH
+        docs_root = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text(
+            docs_root.replace(DOCS_ROOT_DEPMOD_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{README_PATH}:{DOCS_ROOT_DEPMOD_BOUNDARY_MARKER}",
         )
 
         write_fixture_tree(base)
