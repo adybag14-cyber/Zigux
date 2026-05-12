@@ -18,6 +18,12 @@ The files directly readable here today are the runtime-oriented sample family:
 
 Treat those files as the separate runtime sample family. Do not count them as shipped Phase 5 evidence.
 
+## Separate Phase 9 runtime pilot family
+
+* `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets, so the focused `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local instead of drifting into shared loader evidence
+* keep the older command and environment control boundary explicit too: `tools/lib/subcmd/exec-cmd.zig` still owns the deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues, while `tools/lib/subcmd/help.zig` still owns the `LINES` and `COLUMNS` terminal-formatting cues; the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`
+* review the shipped Phase 9 runtime pilot family through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, the focused `phase9-runtime-loader-shared-tests` step, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `.github/workflows/zigux-bootstrap.yml`, and `make -C zigux phase9`; keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route, a missing shared checker, or a cleared runtime-substrate handoff on current `master`
+
 ## Approved Phase 5 sample scope
 
 The roadmap-backed Phase 5 sample anchors are still limited to these four Linux sample paths:
