@@ -211,7 +211,10 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
             saw_public_wait = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(contains(gap.why_now, "synchronize_rcu()"));
+            try std.testing.expect(contains(gap.why_now, "get_state_synchronize_rcu()"));
+            try std.testing.expect(contains(gap.why_now, "poll_state_synchronize_rcu()"));
             try std.testing.expect(contains(gap.why_now, "rcu_barrier()"));
+            try std.testing.expect(contains(gap.why_now, "polling-cookie"));
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-cpu-hotplug-followup")) {
@@ -233,7 +236,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
             saw_bridge_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
             try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", gap.zigux_destination);
-            try std.testing.expect(contains(gap.why_now, "public wait-and-barrier APIs"));
+            try std.testing.expect(contains(gap.why_now, "public wait, polling-cookie, and callback-barrier APIs"));
             try std.testing.expect(contains(gap.why_now, "CPU hotplug migration"));
             try std.testing.expect(contains(gap.why_now, "memory-ordering rules"));
         }
@@ -274,7 +277,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
         "blocked_on_stay_in_c_evidence",
         manifest.boundary_map[2].current_state,
     );
-    try std.testing.expect(contains(manifest.boundary_map[2].blocker, "public wait-and-barrier APIs"));
+    try std.testing.expect(contains(manifest.boundary_map[2].blocker, "public wait plus polling-cookie APIs"));
 }
 
 test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and rollback guardrail" {
