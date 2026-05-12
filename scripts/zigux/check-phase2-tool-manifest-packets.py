@@ -305,6 +305,12 @@ PHASE2_CLOSURE_PACKET_MARKERS = [
 PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit",
 ]
+PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS = [
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
+]
+SCRIPTS_PHASE2_TOOL_MANIFEST_MARKERS = [
+    "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 manifest guard disappear behind the broader closure note.",
+]
 
 REQUIRED_FILES = {
     "scripts/zigux/README.md": [
@@ -332,8 +338,14 @@ REQUIRED_FILES = {
 }
 
 EXACT_FILE_MARKER_COUNTS = {
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
+        "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note": 1,
+    },
     "Documentation/zigux/review-checklist.md": {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
+    },
+    "scripts/zigux/README.md": {
+        "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 manifest guard disappear behind the broader closure note.": 1,
     },
     "zigux/tests/README.md": {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
@@ -566,9 +578,18 @@ def build_self_test_root(root: Path) -> None:
                 "",
             ]
         ),
-        "scripts/zigux/README.md": "\n".join(REQUIRED_FILES["scripts/zigux/README.md"]) + "\n",
+        "scripts/zigux/README.md": "\n".join(
+            [
+                *REQUIRED_FILES["scripts/zigux/README.md"],
+                *SCRIPTS_PHASE2_TOOL_MANIFEST_MARKERS,
+            ]
+        )
+        + "\n",
         "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": "\n".join(
-            REQUIRED_FILES["Documentation/zigux/phase2-toolchain-bootstrap-notes.md"]
+            [
+                *REQUIRED_FILES["Documentation/zigux/phase2-toolchain-bootstrap-notes.md"],
+                *PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS,
+            ]
         )
         + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REQUIRED_FILES["Documentation/zigux/review-checklist.md"]) + "\n",
@@ -644,9 +665,8 @@ def run_self_test() -> int:
         scripts_readme = root / "scripts/zigux/README.md"
         scripts_readme.write_text(
             scripts_readme.read_text(encoding="utf-8").replace(
-                "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json\n",
+                "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
                 "",
-                1,
             ),
             encoding="utf-8",
         )
@@ -661,15 +681,37 @@ def run_self_test() -> int:
         bootstrap_notes = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
         bootstrap_notes.write_text(
             bootstrap_notes.read_text(encoding="utf-8").replace(
-                "zigux/tests/fixtures/phase2_artifact_tools_manifest.json\n",
+                "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
                 "",
-                1,
             ),
             encoding="utf-8",
         )
         issues = validate_root(root)
         assert (
             "missing_marker:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        bootstrap_notes = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        bootstrap_marker = (
+            "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` "
+            "plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed "
+            "genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating "
+            "missing standalone checker scripts in this dedicated pin-scope note\n"
+        )
+        bootstrap_notes.write_text(
+            bootstrap_notes.read_text(encoding="utf-8").replace(
+                bootstrap_marker,
+                bootstrap_marker + bootstrap_marker,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note:count=2:expected=1"
             in issues
         )
         case_count += 1
@@ -687,6 +729,31 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "missing_marker:Documentation/zigux/review-checklist.md:scripts/zigux/check-phase2-tool-manifest-packets.py"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_marker = (
+            "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed "
+            "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, "
+            "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` "
+            "packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, "
+            "`Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 "
+            "manifest guard disappear behind the broader closure note.\n"
+        )
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace(
+                scripts_marker,
+                scripts_marker + scripts_marker,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:scripts/zigux/README.md:`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 manifest guard disappear behind the broader closure note.:count=2:expected=1"
             in issues
         )
         case_count += 1
