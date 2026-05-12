@@ -222,6 +222,61 @@ static int base64_decoded_length(const char *src, int srclen, bool padding, enum
     }
 }
 
+static size_t base64_encoded_length(size_t input_len, bool padding)
+{
+    const size_t whole_groups = input_len / 3;
+    const size_t remainder = input_len % 3;
+    size_t out_len = whole_groups * 4;
+
+    if (remainder == 0)
+        return out_len;
+
+    return out_len + (padding ? 4 : remainder + 1);
+}
+
+static int validate_encode_case_capacity(const struct encode_case *c, size_t case_index, size_t capacity)
+{
+    const size_t required = base64_encoded_length(c->input_len, c->padding);
+
+    if (required > capacity) {
+        fprintf(
+            stderr,
+            "phase6-base64-c-parity: encode case %zu exceeds fixed harness buffer (%zu > %zu)\n",
+            case_index,
+            required,
+            capacity
+        );
+        return -1;
+    }
+
+    return 0;
+}
+
+static int validate_decode_case_capacity(int decoded_length, size_t case_index, size_t capacity)
+{
+    if (decoded_length < 0) {
+        fprintf(
+            stderr,
+            "phase6-base64-c-parity: decode case %zu failed decoded-length preflight\n",
+            case_index
+        );
+        return -1;
+    }
+
+    if ((size_t)decoded_length > capacity) {
+        fprintf(
+            stderr,
+            "phase6-base64-c-parity: decode case %zu exceeds fixed harness buffer (%d > %zu)\n",
+            case_index,
+            decoded_length,
+            capacity
+        );
+        return -1;
+    }
+
+    return 0;
+}
+
 static void print_hex(const unsigned char *buf, size_t len)
 {
     static const char *hex = "0123456789abcdef";
@@ -254,7 +309,24 @@ int main(void)
 
     for (i = 0; i < sizeof(encode_cases) / sizeof(encode_cases[0]); i++) {
         const struct encode_case *c = &encode_cases[i];
-        const int written = base64_encode(c->input, (int)c->input_len, encoded, c->padding, c->variant);
+        const size_t expected_len = base64_encoded_length(c->input_len, c->padding);
+        int written;
+
+        if (validate_encode_case_capacity(c, i, sizeof(encoded)) != 0)
+            return 1;
+
+        written = base64_encode(c->input, (int)c->input_len, encoded, c->padding, c->variant);
+        if ((size_t)written != expected_len) {
+            fprintf(
+                stderr,
+                "phase6-base64-c-parity: encode case %zu length drifted (%d != %zu)\n",
+                i,
+                written,
+                expected_len
+            );
+            return 1;
+        }
+
         printf("enc\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);
         print_hex(c->input, c->input_len);
         putchar('\t');
@@ -265,11 +337,27 @@ int main(void)
     for (i = 0; i < sizeof(decode_cases) / sizeof(decode_cases[0]); i++) {
         const struct decode_case *c = &decode_cases[i];
         const int bytes_result = base64_decoded_length((const char *)c->input, (int)c->input_len, c->padding, c->variant);
-        const int written = base64_decode((const char *)c->input, (int)c->input_len, decoded, c->padding, c->variant);
+        int written;
+
+        if (validate_decode_case_capacity(bytes_result, i, sizeof(decoded)) != 0)
+            return 1;
+
+        written = base64_decode((const char *)c->input, (int)c->input_len, decoded, c->padding, c->variant);
+        if (written != bytes_result) {
+            fprintf(
+                stderr,
+                "phase6-base64-c-parity: decode case %zu length drifted (%d != %d)\n",
+                i,
+                written,
+                bytes_result
+            );
+            return 1;
+        }
+
         printf("dec\t%s\t%d\t%d\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);
         print_hex(c->input, c->input_len);
         putchar('\t');
-        print_hex(decoded, written < 0 ? 0U : (size_t)written);
+        print_hex(decoded, (size_t)written);
         putchar('\n');
     }
 
