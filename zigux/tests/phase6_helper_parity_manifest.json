@@ -70,6 +70,7 @@
         "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
       ],
       "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+      "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
       "packet_checker": "scripts/zigux/check-phase6-hexdump-packet.py",
       "linux_review_route": "make -C zigux phase6-hexdump-review"
     }
@@ -290,7 +291,7 @@
       "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
     },
     "checksum": {
-      "c_parity_cases": 27
+      "c_parity_cases": 22
     },
     "hexdump": {
       "perf_replay_cases": 4
