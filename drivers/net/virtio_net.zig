@@ -47,6 +47,7 @@ pub const ModuleDescriptor = struct {
     provides_mergeable_receive_buffer_planner: bool,
     provides_receive_refill_summary: bool,
     provides_queue_recovery_planner: bool,
+    provides_control_queue_recovery_planner: bool,
     touches_live_dma: bool,
     touches_net_device: bool,
     touches_control_virtqueue_runtime: bool,
@@ -152,6 +153,28 @@ pub const RecoveryQueuePlan = struct {
     requires_mergeable_buffer_refill: bool,
 };
 
+pub const ControlQueueRecoveryRequest = struct {
+    mac_table_dirty: bool = false,
+    vlan_filters_dirty: bool = false,
+    rss_table_dirty: bool = false,
+};
+
+pub const ControlQueueRecoveryPlan = struct {
+    anchor: []const u8,
+    control_vq_present: bool,
+    control_queue_index: ?u16,
+    requires_control_queue_restore: bool,
+    requires_receive_mode_sync: bool,
+    requires_hash_report_restore: bool,
+    requires_mac_table_sync: bool,
+    requires_vlan_filter_sync: bool,
+    requires_rss_config_sync: bool,
+    requires_receive_queue_restore: bool,
+    requires_transmit_queue_restore: bool,
+    must_restore_before_data_queues: bool,
+    command_count: u16,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -174,6 +197,7 @@ pub const VirtioNetProbeLab = struct {
             .provides_mergeable_receive_buffer_planner = true,
             .provides_receive_refill_summary = true,
             .provides_queue_recovery_planner = true,
+            .provides_control_queue_recovery_planner = true,
             .touches_live_dma = false,
             .touches_net_device = false,
             .touches_control_virtqueue_runtime = false,
@@ -341,6 +365,45 @@ pub const VirtioNetProbeLab = struct {
             .requires_control_queue_restore = topology.control_queue_count > 0,
             .requires_receive_buffer_refill = mergeable_plan != null,
             .requires_mergeable_buffer_refill = if (mergeable_plan) |plan| plan.uses_mergeable_path else false,
+        };
+    }
+
+    pub fn controlQueueRecoveryPlan(self: *const Self, request: ControlQueueRecoveryRequest) !ControlQueueRecoveryPlan {
+        if (!self.resetting) {
+            return error.TransportNotResetting;
+        }
+
+        const topology = self.frozen_queue_topology_summary orelse return error.QueueTopologyUnavailable;
+        const snapshot = self.frozen_probe_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const control_vq_present = topology.control_queue_count > 0;
+        const requires_control_queue_restore = control_vq_present;
+        const requires_receive_mode_sync = control_vq_present;
+        const requires_hash_report_restore = control_vq_present and snapshot.header_shape != .legacy;
+        const requires_mac_table_sync = control_vq_present and request.mac_table_dirty;
+        const requires_vlan_filter_sync = control_vq_present and request.vlan_filters_dirty;
+        const requires_rss_config_sync = control_vq_present and topology.rss_enabled and request.rss_table_dirty;
+        const command_count: u16 =
+            @as(u16, @intCast(@intFromBool(requires_control_queue_restore))) +
+            @as(u16, @intCast(@intFromBool(requires_receive_mode_sync))) +
+            @as(u16, @intCast(@intFromBool(requires_hash_report_restore))) +
+            @as(u16, @intCast(@intFromBool(requires_mac_table_sync))) +
+            @as(u16, @intCast(@intFromBool(requires_vlan_filter_sync))) +
+            @as(u16, @intCast(@intFromBool(requires_rss_config_sync)));
+
+        return .{
+            .anchor = descriptor().anchor,
+            .control_vq_present = control_vq_present,
+            .control_queue_index = topology.first_control_queue_index,
+            .requires_control_queue_restore = requires_control_queue_restore,
+            .requires_receive_mode_sync = requires_receive_mode_sync,
+            .requires_hash_report_restore = requires_hash_report_restore,
+            .requires_mac_table_sync = requires_mac_table_sync,
+            .requires_vlan_filter_sync = requires_vlan_filter_sync,
+            .requires_rss_config_sync = requires_rss_config_sync,
+            .requires_receive_queue_restore = topology.receive_queue_count > 0,
+            .requires_transmit_queue_restore = topology.transmit_queue_count > 0,
+            .must_restore_before_data_queues = command_count > 0,
+            .command_count = command_count,
         };
     }
 
@@ -611,6 +674,88 @@ test "recoveryQueuePlan mirrors the frozen queue summary" {
     try std.testing.expect(plan.requires_mergeable_buffer_refill);
 }
 
+test "controlQueueRecoveryPlan keeps control sequencing reviewable without runtime traffic" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expect(plan.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), plan.control_queue_index);
+    try std.testing.expect(plan.requires_control_queue_restore);
+    try std.testing.expect(plan.requires_receive_mode_sync);
+    try std.testing.expect(plan.requires_hash_report_restore);
+    try std.testing.expect(plan.requires_mac_table_sync);
+    try std.testing.expect(plan.requires_vlan_filter_sync);
+    try std.testing.expect(plan.requires_rss_config_sync);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(plan.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 6), plan.command_count);
+}
+
+test "controlQueueRecoveryPlan stays inert when the topology has no control queue" {
+    var lab = VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expect(!plan.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, null), plan.control_queue_index);
+    try std.testing.expect(!plan.requires_control_queue_restore);
+    try std.testing.expect(!plan.requires_receive_mode_sync);
+    try std.testing.expect(!plan.requires_hash_report_restore);
+    try std.testing.expect(!plan.requires_mac_table_sync);
+    try std.testing.expect(!plan.requires_vlan_filter_sync);
+    try std.testing.expect(!plan.requires_rss_config_sync);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(!plan.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 0), plan.command_count);
+}
+
 test "restoreAfterReset clears remembered queue state and increments generation" {
     var lab = VirtioNetProbeLab.init();
     try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
@@ -649,5 +794,6 @@ test "restoreAfterReset clears remembered queue state and increments generation"
     try std.testing.expect(restored.receive_buffer_refill_required);
     try std.testing.expect(!restored.mergeable_buffer_refill_required);
     try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
+    try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
     try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
 }
