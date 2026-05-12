@@ -59,7 +59,7 @@
     "owned replacement and quotable-log duplication without mutating caller buffers beyond the exported C-string prefix",
     "sequential prefix-index string-array allocation with zero-count sentinel reuse and repeated-teardown safety"
   ],
-  "current_master_truthfulness": "The review packet is still present on current master, but both lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig are missing from the live tree and should not be described as landed review surfaces.",
+  "current_master_truthfulness": "The review packet is still present on current master, but both lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig are missing from the live tree and should not be described as landed review surfaces; the shared validate-phase7 surface should treat that pair as parked truthfulness state rather than required landed files.",
   "survey_summary": {
     "preexisting_phase7_test_files": 0,
     "preexisting_phase7_fixture_modules": 0,
@@ -88,6 +88,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
       "why_now": "Current master is also missing the dedicated helper replay, so the parked string_helpers packet should record that gap explicitly instead of overstating the survey and boundary packet as if the direct helper tests were still present."
+    },
+    {
+      "id": "phase7-string-helpers-validator-truthfulness",
+      "status": "shared_surface_drift",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/validate-phase7.py",
+      "why_now": "The shared Phase 7 validator still lists lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig as required landed files even though this manifest and the slice note record them as missing on current master, so the next same-lane repair should make that validator fail closed on the parked truthfulness packet instead of the absent helper pair."
     },
     {
       "id": "phase7-string-helpers-slice-note",
