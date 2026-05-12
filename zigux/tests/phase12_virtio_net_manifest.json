@@ -1,5 +1,5 @@
 {
-  "lane_key": "P12-L04",
+  "lane_key": "P12-L01",
   "phase": "Phase 12",
   "surveyed_commit": "unresolved_on_master",
   "verified_on": "2026-05-12",
@@ -25,26 +25,26 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "starter_present_runtime_data_path_blocked",
-      "current_surface": "Current master carries a bounded `virtio_net` Zig starter around probe fallback and mergeable receive-buffer planning, but it still stops before live DMA-safe receive ownership, page-pool wiring, refill loops, or transport-backed submit flow.",
-      "blocked_by": "DMA-safe receive ownership, refill execution, and runtime transport coordination still need later queue and lifecycle helpers beyond the current in-memory planner."
+      "current_surface": "Current master carries a bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, and mergeable receive-buffer planning, but it still stops before live DMA-safe receive ownership, page-pool wiring, refill loops, or transport-backed submit flow.",
+      "blocked_by": "DMA-safe receive ownership, refill execution, and runtime transport coordination still need later queue and lifecycle helpers beyond the current in-memory summaries."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_present_direct_gate_present_shared_smoke_present",
-      "current_surface": "The driver-local starter, direct test, dedicated survey gate, dedicated syntax lab, and shared `phase12_build.zig` syntax-smoke route are all present on current master.",
-      "blocked_by": "Queue-pair topology and recovery summaries still need their own follow-up packet before the broader queueing contract can be treated as landed."
+      "status": "starter_and_queue_summary_present_direct_gate_present_shared_smoke_present",
+      "current_surface": "The driver-local starter, bounded queue-topology summary, direct test, dedicated survey gate, dedicated syntax lab, and shared `phase12_build.zig` syntax-smoke route are all present on current master.",
+      "blocked_by": "Receive refill sequencing and recovery summaries still need their own follow-up packet before the broader queueing contract can be treated as landed."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "starter_present_throughput_gate_missing",
-      "current_surface": "The current starter proves only bounded mergeable receive-buffer planning and probe fallback behavior.",
+      "current_surface": "The current starter now proves bounded probe fallback, queue-topology summary, and mergeable receive-buffer planning only.",
       "blocked_by": "Throughput parity, post-restore replay, queue-recovery sequencing, and live refill execution remain outside the current starter."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "starter_present_direct_lab_present_shared_route_present",
-      "current_surface": "The survey note, survey gate, driver-local starter, direct test, dedicated syntax lab, and shared Phase 12 smoke route are present on current master.",
-      "blocked_by": "A later follow-up still needs richer probe or queue summaries before this packet can widen into the broader complex-driver validation bundle."
+      "status": "starter_queue_summary_direct_lab_present_shared_route_present",
+      "current_surface": "The survey note, survey gate, driver-local starter, direct test, dedicated syntax lab, queue-topology follow-up, and shared Phase 12 smoke route are present on current master.",
+      "blocked_by": "A later follow-up still needs richer refill or recovery summaries before this packet can widen into the broader complex-driver validation bundle."
     }
   },
   "gaps": [
@@ -67,21 +67,21 @@
       "status": "survey_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The dedicated survey gate keeps the bounded starter, syntax-lab presence, and blocked runtime-data-path boundary explicit."
+      "why_now": "The dedicated survey gate keeps the bounded starter, queue-topology follow-up, syntax-lab presence, and blocked runtime-data-path boundary explicit."
     },
     {
       "id": "phase12-virtio-net-survey-note",
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The survey note records the same bounded mergeable-buffer starter and still-blocked runtime boundary."
+      "why_now": "The survey note records the same bounded queue-topology follow-up, mergeable-buffer starter, and still-blocked runtime boundary."
     },
     {
       "id": "phase12-virtio-net-syntax-lab-gate",
       "status": "starter_landed_and_shared_smoke_wired",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_syntax_lab.zig",
-      "why_now": "The dedicated syntax lab keeps the new driver-local starter reachable and is now wired into the shared Phase 12 smoke route."
+      "why_now": "The dedicated syntax lab keeps the driver-local starter and queue-topology follow-up reachable and is wired into the shared Phase 12 smoke route."
     },
     {
       "id": "phase12-virtio-net-mergeable-receive-buffer-starter",
@@ -91,11 +91,11 @@
       "why_now": "Current master now carries a bounded mergeable receive-buffer planner that models the probe-time packet-buffer choice without claiming runtime DMA execution."
     },
     {
-      "id": "phase12-virtio-net-probe-snapshot-followup",
-      "status": "missing_on_master",
+      "id": "phase12-virtio-net-queue-topology-followup",
+      "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "A richer probe snapshot or queue-summary follow-up is still the next honest same-family step before runtime claims."
+      "why_now": "Current master now carries a bounded queue-topology summary that keeps receive and transmit pair counts plus optional control-virtqueue placement reviewable without claiming runtime traffic."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
