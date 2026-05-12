@@ -430,7 +430,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "phase11_hvc_console_poll_retry_split.zig")
 
-        commit = resetFixture(tmpdir)
+        commit = reset_fixture(tmpdir)
         note_missing = tmpdir / REQUIRED_FILES["survey_note"]
         note_missing.write_text(
             note_missing.read_text(encoding="utf-8").replace(commit + "\n", ""),
