@@ -27,10 +27,11 @@ Fresh repo-first inspection for this lane found these kobject-adjacent surfaces 
 
 - `zigux/tests/phase5_kobject_example.zig` exists and keeps a focused Phase 5 replay surface for descriptor, anchor replay, pre-registration boundary, registered boundary, shared `baz` and `bar` dispatch plus parse-failure visibility, initialized-only exit, ownership replay, teardown replay, and public parse-failure behavior.
 - `zigux/tests/phase5_kobject_example_manifest.json` exists and still records the ownership-and-lifetime prompts, exact checks, and non-goals for the kobject anchor.
-- `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still talk about a broader landed kobject packet than the public tree currently exposes.
+- `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, and `samples/zigux/README.md` already carry the narrower note-plus-tests packet and should remain the truthful shared reminder surfaces until the missing sample-root path returns.
 
-The same inspection also found two important absences that this note should keep explicit instead of papering over:
+The same inspection also found a concrete shared-summary overclaim that this note should keep explicit instead of flattening back into a vague “broader packet” warning:
 
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still list `samples/zigux/kobject_example.zig` as shipped Phase 5 evidence even though direct contents readback for that path currently returns `404 Not Found`.
 - `samples/zigux/kobject_example.zig` is not visible in the current `samples/zigux/` directory tree.
 - `zigux/tests/phase5_kobject_example_survey.zig` is not visible in the current `zigux/tests/` directory tree.
 
@@ -72,4 +73,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless a follow-up run is specifically restoring the missing kobject sample files or tightening another directly coupled shared reminder surface. If the repo stays in its current state, prefer the next smallest doc-accuracy repair over widening into new sample semantics or runtime-substrate claims.
+Keep this lane parked unless a follow-up run is specifically restoring the missing kobject sample files or tightening another directly coupled shared reminder surface. If the repo stays in its current state, prefer the next smallest shared-summary repair in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` so those contributor-facing Phase 5 surfaces stop listing the missing sample-root path before any attempt to widen sample semantics or runtime-substrate claims.
