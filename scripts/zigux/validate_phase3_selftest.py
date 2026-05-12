@@ -35,6 +35,7 @@ SELFTEST_COMMANDS = (
 )
 MAKEFILE_PATH = Path("zigux/Makefile")
 PHASE3_VALIDATE_TARGET = "phase3-validate"
+PHASE3_SELFTEST_TARGET = "phase3-selftest"
 PHASE3_SELFTEST_DRIVER_COMMAND = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py"
 )
@@ -92,6 +93,27 @@ def _required_phase3_validate_commands() -> tuple[str, ...]:
     return tuple(commands)
 
 
+def _required_phase3_selftest_commands() -> tuple[str, ...]:
+    return (PHASE3_SELFTEST_DRIVER_COMMAND,)
+
+
+def _check_make_target_commands(
+    text: str,
+    target: str,
+    required_commands: tuple[str, ...],
+    label: str,
+) -> list[str]:
+    commands = _extract_make_target_commands(text, target)
+    if commands is None:
+        return [f"missing make target: {target}"]
+
+    issues: list[str] = []
+    for command in required_commands:
+        if command not in commands:
+            issues.append(f"missing {label} command: {command}")
+    return issues
+
+
 def validate_makefile(repo_root: Path) -> list[str]:
     makefile_path = repo_root / MAKEFILE_PATH
     try:
@@ -99,15 +121,23 @@ def validate_makefile(repo_root: Path) -> list[str]:
     except FileNotFoundError:
         return [f"missing repo file: {MAKEFILE_PATH.as_posix()}"]
 
-    commands = _extract_make_target_commands(makefile_text, PHASE3_VALIDATE_TARGET)
-    if commands is None:
-        return [f"missing make target: {PHASE3_VALIDATE_TARGET}"]
-
     issues: list[str] = []
-    for command in _required_phase3_validate_commands():
-        if command not in commands:
-            issues.append(f"missing make command: {command}")
-
+    issues.extend(
+        _check_make_target_commands(
+            makefile_text,
+            PHASE3_VALIDATE_TARGET,
+            _required_phase3_validate_commands(),
+            PHASE3_VALIDATE_TARGET,
+        )
+    )
+    issues.extend(
+        _check_make_target_commands(
+            makefile_text,
+            PHASE3_SELFTEST_TARGET,
+            _required_phase3_selftest_commands(),
+            PHASE3_SELFTEST_TARGET,
+        )
+    )
     return issues
 
 
@@ -144,6 +174,21 @@ def run_packet(repo_root: Path) -> int:
     return 0
 
 
+def _synthetic_makefile_text() -> str:
+    validate_commands = list(_required_phase3_validate_commands())
+    selftest_commands = list(_required_phase3_selftest_commands())
+    return (
+        PHASE3_VALIDATE_TARGET
+        + ":\n"
+        + "\n".join(f"\t{command}" for command in validate_commands)
+        + "\n"
+        + PHASE3_SELFTEST_TARGET
+        + ":\n"
+        + "\n".join(f"\t{command}" for command in selftest_commands)
+        + "\n"
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validate_selftest_") as temp_dir:
         root = Path(temp_dir)
@@ -156,13 +201,9 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
 
-        commands = list(_required_phase3_validate_commands())
         (root / MAKEFILE_PATH).parent.mkdir(parents=True, exist_ok=True)
         (root / MAKEFILE_PATH).write_text(
-            PHASE3_VALIDATE_TARGET
-            + ":\n"
-            + "\n".join(f"\t{command}" for command in commands)
-            + "\n",
+            _synthetic_makefile_text(),
             encoding="utf-8",
         )
 
@@ -220,7 +261,7 @@ def run_self_test() -> int:
         (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
         expected = (
-            "missing make command: "
+            "missing phase3-validate command: "
             + _selftest_make_command(SELFTEST_COMMANDS[-1][0], SELFTEST_COMMANDS[-1][1])
         )
         if expected not in missing:
@@ -228,12 +269,92 @@ def run_self_test() -> int:
             print("expected missing makefile self-test command was not reported")
             return 1
 
-        commands = list(_required_phase3_validate_commands())
         (root / MAKEFILE_PATH).write_text(
-            PHASE3_VALIDATE_TARGET
-            + ":\n"
-            + "\n".join(f"\t{command}" for command in commands)
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            PHASE3_SELFTEST_TARGET + ":\n\t" + PHASE3_SELFTEST_DRIVER_COMMAND + "\n",
+            PHASE3_SELFTEST_TARGET
+            + ":\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing phase3-selftest command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected dedicated selftest target command was not reported")
+            return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            PHASE3_SELFTEST_TARGET + ":",
+            "phase3-selftest-shadow:",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing make target: {PHASE3_SELFTEST_TARGET}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing dedicated selftest target was not reported")
+            return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            PHASE3_SELFTEST_TARGET + ":\n\t" + PHASE3_SELFTEST_DRIVER_COMMAND + "\n",
+            PHASE3_SELFTEST_TARGET + ":\n",
+            1,
+        )
+        makefile = makefile.replace(
+            PHASE3_SELFTEST_TARGET + ":\n",
+            PHASE3_SELFTEST_TARGET + ":\n\t" + PHASE3_VALIDATE_SUPPORT_COMMANDS[0] + "\n",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing phase3-selftest command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected target-scoped selftest drift was not reported")
+            return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            "\t" + PHASE3_VALIDATE_SUPPORT_COMMANDS[0] + "\n",
+            "",
+            1,
+        )
+        makefile = makefile.replace(
+            PHASE3_SELFTEST_TARGET + ":\n\t" + PHASE3_SELFTEST_DRIVER_COMMAND + "\n",
+            PHASE3_SELFTEST_TARGET
+            + ":\n\t"
+            + PHASE3_SELFTEST_DRIVER_COMMAND
+            + "\n\t"
+            + PHASE3_VALIDATE_SUPPORT_COMMANDS[0]
             + "\n",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[0]}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected target-scoped phase3-validate drift was not reported")
+            return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
             encoding="utf-8",
         )
         makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
@@ -243,18 +364,14 @@ def run_self_test() -> int:
         )
         (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
-        expected = f"missing make command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
+        expected = f"missing phase3-validate command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing selftest driver makefile command was not reported")
             return 1
 
-        commands = list(_required_phase3_validate_commands())
         (root / MAKEFILE_PATH).write_text(
-            PHASE3_VALIDATE_TARGET
-            + ":\n"
-            + "\n".join(f"\t{command}" for command in commands)
-            + "\n",
+            _synthetic_makefile_text(),
             encoding="utf-8",
         )
         makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
@@ -264,18 +381,14 @@ def run_self_test() -> int:
         )
         (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
-        expected = f"missing make command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[0]}"
+        expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[0]}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing audit-doc-sync makefile command was not reported")
             return 1
 
-        commands = list(_required_phase3_validate_commands())
         (root / MAKEFILE_PATH).write_text(
-            PHASE3_VALIDATE_TARGET
-            + ":\n"
-            + "\n".join(f"\t{command}" for command in commands)
-            + "\n",
+            _synthetic_makefile_text(),
             encoding="utf-8",
         )
         makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
@@ -285,18 +398,14 @@ def run_self_test() -> int:
         )
         (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
-        expected = f"missing make command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[1]}"
+        expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[1]}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing wrapper-check makefile command was not reported")
             return 1
 
-        commands = list(_required_phase3_validate_commands())
         (root / MAKEFILE_PATH).write_text(
-            PHASE3_VALIDATE_TARGET
-            + ":\n"
-            + "\n".join(f"\t{command}" for command in commands)
-            + "\n",
+            _synthetic_makefile_text(),
             encoding="utf-8",
         )
         failing_path = SELFTEST_COMMANDS[1][0]
