@@ -7,7 +7,7 @@
   ],
   "survey_summary": {
     "preexisting_phase7_test_files": 1,
-    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_fixture_modules": 0,
     "preexisting_phase7_build_present": true,
     "preexisting_phase7_doc_present": true,
     "preexisting_phase7_helper_present": true
@@ -33,13 +33,6 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
       "why_now": "Dedicated Phase 7 tests keep whitespace trimming, size rendering, escape coverage, integer-array parsing, quotable duplication, and string-array teardown behavior reviewable around the landed helper packet."
-    },
-    {
-      "id": "phase7-string-helpers-shared-fixtures",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
-      "why_now": "The serialized cases helper-local only fixture layer keeps deterministic escape and unescape review inputs explicit instead of leaving them split across ad hoc inline test bodies."
     },
     {
       "id": "phase7-string-helpers-slice-note",
