@@ -102,6 +102,18 @@ fn loadManifest(allocator: std.mem.Allocator) !LoadedManifest {
     };
 }
 
+fn loadSurveyNote(allocator: std.mem.Allocator) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        allocator,
+        .limited(32 * 1024),
+    );
+}
+
 fn contains(haystack: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, haystack, needle) != null;
 }
@@ -134,7 +146,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
     try std.testing.expect(manifest.survey_summary.preexisting_tree_bridge_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
     try std.testing.expect(manifest.survey_summary.rollback_threshold_note_present);
     try std.testing.expect(manifest.survey_summary.rollback_threshold_checklist_present);
     try std.testing.expect(manifest.survey_summary.rollback_threshold_freeze_map_rule_present);
@@ -187,9 +199,10 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
 
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-survey-note")) {
             saw_note_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_missing_review_artifact", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
-            try std.testing.expect(contains(gap.why_now, "does not expose `Documentation/zigux/phase14-rcu-tree-survey.md`"));
+            try std.testing.expect(contains(gap.why_now, "republishes the dedicated RCU survey note"));
+            try std.testing.expect(contains(gap.why_now, "P14-L16"));
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-memory-ordering-followup")) {
@@ -246,9 +259,9 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), landed_count);
+    try std.testing.expectEqual(@as(usize, 14), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_note_gap);
@@ -269,15 +282,29 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
     );
     try std.testing.expectEqualStrings("", manifest.boundary_map[0].blocker);
     try std.testing.expectEqualStrings(
-        "blocked_on_missing_review_artifact",
+        "reviewable_survey_landed",
         manifest.boundary_map[1].current_state,
     );
-    try std.testing.expect(contains(manifest.boundary_map[1].blocker, "does not expose `Documentation/zigux/phase14-rcu-tree-survey.md`"));
+    try std.testing.expectEqualStrings("", manifest.boundary_map[1].blocker);
     try std.testing.expectEqualStrings(
         "blocked_on_stay_in_c_evidence",
         manifest.boundary_map[2].current_state,
     );
     try std.testing.expect(contains(manifest.boundary_map[2].blocker, "public wait plus polling-cookie APIs"));
+}
+
+test "phase 14 rcu tree survey note matches the live manifest-backed owner and blocker posture" {
+    const note = try loadSurveyNote(std.testing.allocator);
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(contains(note, "PHASE14_LANE_KEY=P14-L16"));
+    try std.testing.expect(contains(note, "PHASE14_STATUS_BUCKET=freeze_in_c"));
+    try std.testing.expect(contains(note, "PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker"));
+    try std.testing.expect(contains(note, "public wait and callback-barrier ownership still stay in C"));
+    try std.testing.expect(contains(note, "CPU hotplug callback migration still stays in C"));
+    try std.testing.expect(contains(note, "memory-ordering lock network still stays in C"));
+    try std.testing.expect(contains(note, "`kernel/rcu/tree_bridge.zig` remains blocked"));
+    try std.testing.expect(contains(note, "Architecture Council reopen request"));
 }
 
 test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and rollback guardrail" {
