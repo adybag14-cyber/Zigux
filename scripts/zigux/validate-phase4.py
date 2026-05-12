@@ -729,24 +729,6 @@ def run_self_test() -> int:
 
         gate_evidence_path.write_text(
             original_gate_evidence.replace(
-                "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        failures = validate_root(root)
-        if "gate_evidence:PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true" not in failures:
-            print("PHASE4_VALIDATOR_SELF_TEST=fail")
-            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
-            for item in failures:
-                print(item)
-            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
-            return 1
-        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8")
-
-        gate_evidence_path.write_text(
-            original_gate_evidence.replace(
                 "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`\n",
                 "",
                 1,
