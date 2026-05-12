@@ -24,28 +24,28 @@
       "status": "blocked_on_missing_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master still does not ship the older shared Phase 13 build packet, so this narrower helper-local packet must keep that missing wider replay route explicit instead of pretending it is already back."
+      "why_now": "Current master still does not ship the older shared Phase 13 build bundle, so this still-shipped helper-first packet must keep that missing wider replay route explicit instead of pretending the shared build bundle is already back."
     },
     {
       "id": "phase13-devres-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The direct devres replay is present on current master and keeps the helper-first devm_iounmap() plus UC/WC MMIO evidence machine-checkable without pretending the wider shared build packet is back."
+      "why_now": "The direct devres replay is present on current master and keeps the still-shipped helper-first packet machine-checkable while the wider shared build bundle stays absent, without pretending the older shared build packet is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate is present on current master and keeps the helper-only DMA/scatterlist boundary plus manifest alignment reviewable inside the shipped packet."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the still-shipped helper-first packet plus manifest alignment reviewable while the wider shared build bundle stays absent."
     },
     {
       "id": "phase13-devres-dma-coherent-replay",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_dma_coherent.zig",
-      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA/scatterlist boundary machine-checkable even while the wider Phase 13 build packet remains missing on current master."
+      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA/scatterlist boundary machine-checkable for the still-shipped helper-first packet while the wider shared build bundle stays absent on current master."
     },
     {
       "id": "phase13-devres-live-dma-backed-helpers",
