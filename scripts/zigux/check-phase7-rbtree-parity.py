@@ -50,6 +50,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_build.zig",
     ],
     "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-rbtree-slice.md",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "lib/rbtree.zig",
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -204,6 +205,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "",
             "Documentation/zigux/README.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        ),
+        (
+            "review_checklist_slice_marker",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase7-rbtree-slice.md",
+            "",
+            "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-rbtree-slice.md",
         ),
         (
             "review_checklist_alignment_marker",
