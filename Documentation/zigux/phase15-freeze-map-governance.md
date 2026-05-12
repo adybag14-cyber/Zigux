@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and freeze-map gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, shared governance provenance, and maintenance-mode handoff aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-11` on 2026-05-11 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` no longer matched current `master`
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-12` on 2026-05-12 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` no longer matched current `master`
 - exact branch-head parity is not recorded for this packet; the parked freeze-map governance note now uses an explicit dated readback marker instead of stale exact-head provenance while keeping the same freeze anchor set and blocker posture
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -62,7 +62,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 - `mm/page_alloc.c` remains blocked as `blocked_no_bounded_allocator_seam` because the repo still has no bounded allocator seam
 - `kernel/rcu/tree.c` remains blocked as `blocked_phase14_followup_still_wider_than_allowed_rcu_seam` because the published Phase 14 follow-up is still wider than the allowed RCU seam
 - `net/core/skbuff.c` remains blocked as `blocked_packet_lifetime_boundary_still_too_wide` because the published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary
-- the freeze-map anchor set and study-only scope therefore stay unchanged on current `master`, and this parked note now records that posture through dated readback marker `current-master-readback-2026-05-11` instead of an older exact-head claim
+- the freeze-map anchor set and study-only scope therefore stay unchanged on current `master`, and this parked note now records that posture through dated readback marker `current-master-readback-2026-05-12` instead of an older exact-head claim
 
 ## Deep-core blockers versus roadmap and repo reality
 
