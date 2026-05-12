@@ -8,7 +8,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L04`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper, dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, and make-wrapper slice landed; parked unless a new `lib/string_helpers.c` parity issue or renewed Phase 5-versus-Phase 7 boundary drift appears
+- lane state: the dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, and make-wrapper slice are still present, but current `master` is missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`; keep this lane parked as a same-packet truthfulness repair until the helper packet itself is restored
 - product boundary:
   - `lib/string_helpers.zig`
   - `Documentation/zigux/README.md`
@@ -28,6 +28,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   - `zigux/tests/phase7_build.zig`
   - `.github/workflows/zigux-bootstrap.yml`
   - `zigux/Makefile`
+- current-master gap: `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` remain the intended review surfaces for this lane, but they are missing from the live tree and should not be described as landed helper evidence until they are restored
 
 ## Why This Slice Exists
 
@@ -37,12 +38,14 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
-- started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families
+- are still the right bounded formatting, escaping, and allocator-backed helper family to keep reviewable once the missing helper file is restored, without widening into broader ownership families
 - keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, first-NUL-bounded ASCII case-copy behavior that leaves trailing destination bytes untouched, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one quotable-log duplication helper
 - keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, `zigux/tests/phase7_string_helpers_manifest.json`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `.github/workflows/zigux-bootstrap.yml`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 The Phase 5 roadmap keeps approved reference idioms under four sample anchors in `samples/zigux/`, and no `samples/zigux/*string*` Phase 5 reference sample is expected here; treat any new `samples/zigux/*string*.zig` claim as a separate roadmap-boundary decision instead of silently folding it into this helper slice.
+
+Current `master` still carries the note, manifest, survey, and no-string-sample boundary packet, but both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are missing from the live tree. Treat this slice as a parked review packet with a missing implementation, not as a landed helper.
 
 ## Gates
 
@@ -67,7 +70,7 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 
 ## Current Parity Surface
 
-The current bounded slice covers:
+The most recently described bounded slice covers:
 
 - `skip_spaces()`
 - `strim()`
@@ -91,7 +94,7 @@ The current bounded slice covers:
 - `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
 - `kfree_strarray()` over the bounded repeated-teardown-safe release path
 
-The current tests check:
+The parked review packet still describes tests for:
 
 - leading whitespace skipping that stops at the first NUL
 - in-place leading and trailing trimming that preserves bytes beyond the first NUL
@@ -121,19 +124,19 @@ The current tests check:
 - the dedicated survey gate, the dedicated manifest packet, the shared make-wrapper checker, the dedicated build-wiring checker, the roadmap anchor, helper replay, shared build route, the workflow-backed bootstrap replay, the shared make-wrapper selftest-alignment control surface, the Linux-style `make -C zigux phase7-string-helpers-sample-boundary` replay route, and the no-string-sample boundary stay reviewable together
 - the Phase 5-versus-Phase 7 boundary check that keeps `samples/zigux/` free of approved string-helper reference samples while pointing reviewers back to this helper packet
 
-The dedicated string-helper packet is now also recorded in `zigux/tests/phase7_string_helpers_manifest.json`, so the parked helper, slice note, survey gate, no-string-sample boundary replay, and shared validator-backed route have a machine-readable Phase 7 record alongside the sibling `argv_split` and `rbtree` manifests without reopening helper logic.
+The parked string-helper packet remains recorded in `zigux/tests/phase7_string_helpers_manifest.json`, so the slice note, survey gate, no-string-sample boundary replay, and shared validator-backed route still have a machine-readable Phase 7 record even though the helper file and dedicated replay are currently missing from `master`.
 
 ## Non-goals
 
 This slice does not yet claim:
 
+- a restored landed helper packet on current `master` while `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still absent
 - the broader allocation-backed duplication and string-array family beyond `kstrdup_and_replace()`, `kstrdup_quotable()`, and the current bounded starters
 - the remaining task-owned, file-owned, or device-managed follow-ons: `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, and `devm_kasprintf_strarray()`
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-The shared `scripts/zigux/validate-phase7.py` follow-through is now landed: current `master` exact-counts the restored `Documentation/zigux/review-checklist.md` markers for this slice and `Documentation/zigux/phase7-rbtree-slice.md`.
-Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
-If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.
-If the string-helper family reopens after that, keep the follow-through inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.
+The next honest reopen step is to restore `lib/string_helpers.zig` together with `zigux/tests/phase7_string_helpers.zig`, then rerun `python3 scripts/zigux/validate-phase7.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, and `zig build test --build-file zigux/tests/phase7_build.zig --summary all` before the lane is described as landed again.
+Until those files are back on current `master`, keep this lane limited to same-packet truthfulness repairs in `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_string_helpers_sample_boundary.zig`.
+If the helper packet is restored after that, keep the follow-through inside the bounded whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.
