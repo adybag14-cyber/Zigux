@@ -335,7 +335,7 @@ test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs
     try std.testing.expect(cleanup.port_reference_drop_timing);
 }
 
-test "phase11 hvc console keeps remove handoff and notifier irq helper surface reviewable" {
+test "phase11 hvc console keeps remove handoff summary reviewable" {
     const summary = summarizeRemoveHandoff(.{
         .console_lock_slot_cleared = true,
         .vtermno_and_cons_ops_released = true,
@@ -351,4 +351,14 @@ test "phase11 hvc console keeps remove handoff and notifier irq helper surface r
     try std.testing.expect(summary.tty_vhangup_follow_through);
     try std.testing.expect(summary.tty_kref_put_release);
     try std.testing.expect(summary.keep_irq_until_hangup);
+}
+
+test "phase11 hvc console keeps notifier irq helper surface reviewable" {
+    const fake_hp: *HvcStruct = @ptrFromInt(1);
+
+    try std.testing.expectEqual(@as(c_int, 0), notifier_add_irq(fake_hp, 3));
+    try std.testing.expectEqual(@as(c_int, -1), notifier_add_irq(fake_hp, -1));
+
+    notifier_del_irq(fake_hp, 7);
+    notifier_hangup_irq(fake_hp, 9);
 }
