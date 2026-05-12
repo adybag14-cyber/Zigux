@@ -28,163 +28,61 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_input_c_lines": 421,
-    "preexisting_phase10_test_files": 6,
-    "preexisting_phase10_build_present": true,
-    "preexisting_virtio_core_zig_present": true,
-    "preexisting_virtio_ring_zig_present": true,
-    "preexisting_virtio_mmio_survey_present": true,
-    "preexisting_virtio_input_zig_present": true,
-    "preexisting_virtio_input_test_present": true,
-    "preexisting_virtio_input_slice_note_present": true,
-    "preexisting_virtio_input_module_note_present": true
+    "directly_readable_input_packet_files": [
+      "zigux/tests/phase10_virtio_input_manifest.json",
+      "Documentation/zigux/phase10-virtio-input-survey.md",
+      "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+      "zigux/tests/phase10_virtio_input_teardown_observation.zig"
+    ],
+    "missing_direct_input_paths": [
+      "Documentation/zigux/phase10-virtio-input-slice.md",
+      "Documentation/zigux/phase10-virtio-input-module-slice.md",
+      "drivers/virtio/virtio_input.zig",
+      "drivers/virtio/virtio_input_verify.zig",
+      "scripts/zigux/check-phase10-input-packet.py",
+      "zigux/tests/phase10_virtio_input.zig",
+      "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+      "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+      "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+      "zigux/tests/phase10_virtio_input_status_drain.zig",
+      "zigux/tests/phase10_virtio_input_survey.zig"
+    ]
   },
   "gaps": [
     {
-      "id": "phase10-build-gate",
+      "id": "phase10-virtio-input-reminder-manifest",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_input survey reviewable alongside the already-landed helper and the focused status-drain replay."
-    },
-    {
-      "id": "phase10-virtio-core-lab-starter",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The existing virtio core lab slice already covers status and queue bookkeeping, so the virtio_input lane can rely on that footing instead of reopening core-side work."
-    },
-    {
-      "id": "phase10-virtio-ring-lab-helper",
-      "status": "starter_landed",
-      "kind": "queue_wrapper",
-      "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live repo already has a bounded in-memory ring helper for queue shape and notification bookkeeping, which is the minimum queue-facing support the virtio_input starter depends on."
-    },
-    {
-      "id": "phase10-virtio-input-lab-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The first virtio_input-specific helper is already landed and now models identity snapshots, config bitmaps, ABS metadata, queue planning, ready-state gating, and multitouch timestamp suppression without claiming transport parity."
-    },
-    {
-      "id": "phase10-virtio-input-lab-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Dedicated Phase 10 tests already keep the starter helper honest around capped string copies, queue planning, ready gating, reset behavior, and MSC_TIMESTAMP suppression."
-    },
-    {
-      "id": "phase10-virtio-input-verify-replay",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "drivers/virtio/virtio_input_verify.zig",
-      "why_now": "The live repo now has a dedicated wrapper-facing verifier replay that keeps queue-callback, probe-preflight, and registration-preflight blocker ordering reviewable beside the helper-local tests and focused status-drain replay without widening into transport-backed queue callbacks or registration lifecycle work."
-    },
-    {
-      "id": "phase10-virtio-input-queue-callback-preflight-replay",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-      "why_now": "The live repo now has a dedicated queue-callback-preflight replay that keeps the bounded blocker ordering explicit beside the helper-facing tests, wrapper-facing verify replay, and focused status-drain replay instead of leaving that input-lane evidence implicit inside broader packet summaries."
-    },
-    {
-      "id": "phase10-virtio-input-registration-preflight-replay",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
-      "why_now": "The live repo now has a dedicated registration-preflight replay that keeps queue, ready-state, capability-setup, and multitouch-slot blockers explicit before any future input_register_device() handoff, which keeps the remaining lifecycle gap reviewable without claiming transport-backed parity."
-    },
-    {
-      "id": "phase10-virtio-input-teardown-observation-replay",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-      "why_now": "The live repo now has a dedicated teardown-observation replay that keeps identity preservation plus runtime- and capability-state cleanup explicit before any future transport-backed remove, freeze, or restore work instead of leaving that reset-local evidence implicit inside broader packet summaries."
-    },
-    {
-      "id": "phase10-virtio-input-slice-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase10-virtio-input-slice.md",
-      "why_now": "The slice note already records what the landed helper covers so the survey can focus on the remaining roadmap gap rather than re-explaining the starter surface."
-    },
-    {
-      "id": "phase10-virtio-input-survey-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig",
-      "why_now": "A dedicated survey gate keeps the current virtio_input roadmap gap explicit now that the repo already has a starter helper and test path."
+      "zigux_destination": "zigux/tests/phase10_virtio_input_manifest.json",
+      "why_now": "Current master still needs one fail-closed manifest that records the live reminder packet honestly while the wider direct helper and checker surfaces remain missing."
     },
     {
       "id": "phase10-virtio-input-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
-      "why_now": "The lane needs a Phase 10 note that compares the live starter against the roadmap, states the current lab-only driver validation evidence plainly, and prevents the repo from overstating input-driver progress."
+      "why_now": "The lane still needs one directly readable survey note that compares the roadmap anchor against repo reality without claiming missing helper, checker, or slice-note surfaces as landed."
     },
     {
-      "id": "phase10-virtio-input-capability-setup-helper",
+      "id": "phase10-virtio-input-teardown-observation-replay",
       "status": "starter_landed",
-      "kind": "lab_driver_starter",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+      "why_now": "The teardown-observation replay is the only directly readable input-local replay left on current master, so the reminder packet should keep that bounded teardown evidence explicit."
+    },
+    {
+      "id": "phase10-virtio-input-direct-packet-restore",
+      "status": "repo_reality_gap",
+      "kind": "reviewability",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded in-memory capability-setup helper that connects `virtinput_cfg_bits()`, `virtinput_cfg_abs()`, `input_set_capability()`, and `input_set_abs_params()` intent without claiming transport-backed config reads or input-core registration."
-    },
-    {
-      "id": "phase10-virtio-input-multitouch-slot-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, which gives the lab slice a truthful slot-count foothold before any `input_register_device()` or transport-backed queue work."
-    },
-    {
-      "id": "phase10-virtio-input-probe-preflight-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded probe-preflight summary that keeps identity staging, queue-fill readiness, and capability-setup blockers explicit before any future ready-state toggle or `input_register_device()` handoff."
-    },
-    {
-      "id": "phase10-virtio-input-registration-preflight-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff, which keeps the remaining lifecycle gap explicit without claiming transport-backed parity."
-    },
-    {
-      "id": "phase10-virtio-input-queue-callback-preflight-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded queue-callback preflight summary that reports event and status queue configuration, event-buffer fill state, and ready-state blockers before any future transport-backed callback handoff."
-    },
-    {
-      "id": "phase10-virtio-input-status-drain-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded in-memory status-drain helper that mirrors the `virtinput_recv_status()` reclaim step closely enough to retire completed status sends from the lab queue model without claiming transport-backed callbacks."
-    },
-    {
-      "id": "phase10-virtio-input-teardown-observation-helper",
-      "status": "starter_landed",
-      "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The live repo now includes one bounded teardown-observation summary that keeps identity preservation plus runtime- and capability-state cleanup explicit before any future transport-backed remove, freeze, or restore work."
-    },
-    {
-      "id": "phase10-virtio-input-wrapper-ownership-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
-      "why_now": "The driver-local input packet now depends on already-landed virtio core, virtqueue wrapper, and MMIO wrapper packets, so the survey needs one explicit ownership note that keeps queue and transport scaffolding parked outside virtio_input-local work."
+      "why_now": "Fresh current-master reads still return 404 for the direct helper, verify replay, checker, focused preflight replays, status-drain replay, survey gate, and slice-note companions, so the next same-lane move is a bounded restore or another reminder-packet truthfulness repair rather than pretending the full packet is already shipped."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the probe-preflight, registration-preflight, queue-callback preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
+      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+      "why_now": "Real event delivery, input registration parity, freeze or restore behavior, and transport-backed queue callbacks remain blocked even if the missing direct packet is restored later."
     }
   ]
 }
