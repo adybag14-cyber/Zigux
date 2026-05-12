@@ -152,9 +152,9 @@ REQUIRED_ABI_TEST_SNIPPETS = (
 )
 
 REQUIRED_ABI_DUMP_SNIPPETS = (
-    "\\\\\"panic_abort\\\\\":{d},\\\\\"panic_bug\\\\\":{d},\\\\\"panic_warn\\\\\":{d}",
-    "\\\\\"allocator_caller_provided\\\\\":{d},\\\\\"allocator_kernel_heap\\\\\":{d},\\\\\"allocator_arena\\\\\":{d}",
-    "\\\\\"unsafe_scope_none\\\\\":{d},\\\\\"unsafe_scope_volatile_mmio\\\\\":{d},\\\\\"unsafe_scope_raw_pointer_bridge\\\\\":{d}",
+    "\\\"panic_abort\\\":{d},\\\"panic_bug\\\":{d},\\\"panic_warn\\\":{d}",
+    "\\\"allocator_caller_provided\\\":{d},\\\"allocator_kernel_heap\\\":{d},\\\"allocator_arena\\\":{d}",
+    "\\\"unsafe_scope_none\\\":{d},\\\"unsafe_scope_volatile_mmio\\\":{d},\\\"unsafe_scope_raw_pointer_bridge\\\":{d}",
     'try writeStruct(writer, "interop_policy", abi.InteropPolicy);',
     "try writeStruct(",
 )
