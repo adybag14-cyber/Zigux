@@ -83,6 +83,10 @@ TESTS_README_MARKER_COUNTS = {
     "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
+TESTS_README_PHASE3_REMINDER_MARKER_COUNTS = {
+    **{marker: 1 for marker in TESTS_README_MARKERS},
+    **TESTS_README_MARKER_COUNTS,
+}
 TESTS_README_PHASE3_REMINDER_PREFIX = (
     "  * keep the focused Phase 3 validator-support replay explicit in the tests root too:"
 )
@@ -198,7 +202,7 @@ def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
         path,
         TESTS_README_PHASE3_REMINDER_PREFIX,
         TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
-        TESTS_README_MARKER_COUNTS,
+        TESTS_README_PHASE3_REMINDER_MARKER_COUNTS,
         "tests README Phase 3 reminder",
     )
 
@@ -370,8 +374,8 @@ def _populate_repo(root: Path) -> None:
         root / TESTS_README_PATH,
         "\n".join(
             (
-                *TESTS_README_MARKERS,
                 TESTS_README_PHASE3_REMINDER_PREFIX,
+                *TESTS_README_MARKERS,
                 *TESTS_README_MARKER_COUNTS.keys(),
                 TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
             )
@@ -764,6 +768,50 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected dev_t marker count drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "python3 scripts/zigux/validate_phase3_selftest.py",
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "python3 scripts/zigux/validate_phase3_selftest.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "python3 scripts/zigux/validate_phase3_selftest.py "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README selftest-driver section drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "make -C zigux phase3-selftest",
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "make -C zigux phase3-selftest",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "make -C zigux phase3-selftest "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README selftest-route section drift was not reported")
             return 1
 
         _populate_repo(root)
