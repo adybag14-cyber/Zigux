@@ -76,11 +76,13 @@ Phase 3 ABI and runtime tranche.
 
 Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
+`scripts/zigux/validate_phase3_selftest.py`,
 `scripts/zigux/validate-phase3-validator-support-surface.py`,
 `Documentation/zigux/phase3-kernel-export-shim-governance.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
-`zigux/uapi/dev_t.zig`, and `zigux/bindings/abi.zig`; adjacent
-header-family and checklist reminders can keep that narrower governance-plus-
-next-step-plus-`dev_t` policy explicit without restating this validator-support
-note so the shipped support helpers do not get restated as missing
-historical-only entrypoints.
+`zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`, and
+`make -C zigux phase3-selftest`; adjacent header-family and checklist reminders
+can keep that narrower governance-plus-next-step-plus-`dev_t` policy explicit
+without restating this validator-support note so the shipped support helpers and
+focused selftest route do not get restated as missing historical-only
+entrypoints.
