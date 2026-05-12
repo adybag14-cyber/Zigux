@@ -71,7 +71,9 @@ REQUIRED_MARKERS = {
         "`phase8_bpf_type_names.zig`",
         "`phase8_perf_buffer_poll.zig`",
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
-        "The two ready-next helper-first catalog entries are `fdinfo-map-info-helpers` and `map-reuse-compatibility`, and they stay queued helper-first catalog entries until the next bridge-local helper follow-through lands.",
+        "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+        "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+        "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
         "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
     ],
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
@@ -239,7 +241,7 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_cpu_mask_only_build.zig`",
             "`zigux/tests/phase8_cpu_mask_review_build.zig`",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_cpu_mask_only_build.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_cpu_mask_ONLY_BUILD.zig`",
         ),
         (
             "lane_note_type_names_anchor",
@@ -267,7 +269,7 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_perf_buffer_poll.zig`",
             "`zigux/tests/phase8_perf_buffer_review.zig`",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_buffer_poll.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_BUFFER_POLL.zig`",
         ),
         (
             "lane_note_perf_buffer_only_build_anchor",
@@ -347,11 +349,25 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         ),
         (
-            "segment_survey_ready_next_anchor",
+            "segment_survey_current_master_bridge_state_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "The two ready-next helper-first catalog entries are `fdinfo-map-info-helpers` and `map-reuse-compatibility`, and they stay queued helper-first catalog entries until the next bridge-local helper follow-through lands.",
-            "The two ready-next helper-first catalog entries are `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `file-path-and-handle-bridge`.",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: The two ready-next helper-first catalog entries are `fdinfo-map-info-helpers` and `map-reuse-compatibility`, and they stay queued helper-first catalog entries until the next bridge-local helper follow-through lands.",
+            "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+            "Current `master` now matches that wording: the manifest and the shared file-path bridge packet still treat those two bridge-adjacent helpers as queued helper-first slices while the heavier `file-path-and-handle-bridge` destination stays deferred.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+        ),
+        (
+            "segment_survey_landed_slice_catalog_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+            "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-online-cpu-routing`.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+        ),
+        (
+            "segment_survey_deferred_slice_catalog_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
+            "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-poll-bookkeeping`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
         ),
         (
             "segment_survey_follow_through_anchor",
