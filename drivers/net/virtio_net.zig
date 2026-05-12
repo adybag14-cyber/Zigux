@@ -28,12 +28,18 @@ pub const BigPacketReason = enum {
     exceeds_single_buffer,
 };
 
+pub const RecoveryAction = enum {
+    freeze,
+    restore,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_probe_snapshot: bool,
     provides_queue_topology_summary: bool,
     provides_mergeable_receive_buffer_planner: bool,
+    provides_queue_recovery_planner: bool,
     touches_live_dma: bool,
     touches_net_device: bool,
     touches_control_virtqueue_runtime: bool,
@@ -97,12 +103,47 @@ pub const MergeableReceiveBufferPlan = struct {
     uses_mergeable_path: bool,
 };
 
+pub const RecoverySummary = struct {
+    anchor: []const u8,
+    action: RecoveryAction,
+    was_resetting: bool,
+    is_resetting: bool,
+    remembered_queue_pairs: u16,
+    remembered_total_queue_count: u16,
+    remembered_control_queue_count: u16,
+    receive_buffer_refill_required: bool,
+    mergeable_buffer_refill_required: bool,
+    recovery_generation: u16,
+};
+
+pub const RecoveryQueuePlan = struct {
+    anchor: []const u8,
+    effective_queue_pairs: u16,
+    receive_queue_count: u16,
+    transmit_queue_count: u16,
+    first_receive_queue_index: u16,
+    first_transmit_queue_index: u16,
+    first_control_queue_index: ?u16,
+    total_queue_count: u16,
+    rss_enabled: bool,
+    requires_receive_queue_restore: bool,
+    requires_transmit_queue_restore: bool,
+    requires_control_queue_restore: bool,
+    requires_receive_buffer_refill: bool,
+    requires_mergeable_buffer_refill: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
     last_probe_snapshot: ?ProbeSnapshot = null,
     last_queue_topology_summary: ?QueueTopologySummary = null,
     last_mergeable_plan: ?MergeableReceiveBufferPlan = null,
+    frozen_probe_snapshot: ?ProbeSnapshot = null,
+    frozen_queue_topology_summary: ?QueueTopologySummary = null,
+    frozen_mergeable_plan: ?MergeableReceiveBufferPlan = null,
+    resetting: bool = false,
+    recovery_generation: u16 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -111,6 +152,7 @@ pub const VirtioNetProbeLab = struct {
             .provides_probe_snapshot = true,
             .provides_queue_topology_summary = true,
             .provides_mergeable_receive_buffer_planner = true,
+            .provides_queue_recovery_planner = true,
             .touches_live_dma = false,
             .touches_net_device = false,
             .touches_control_virtqueue_runtime = false,
@@ -204,6 +246,91 @@ pub const VirtioNetProbeLab = struct {
         };
         self.last_mergeable_plan = plan;
         return plan;
+    }
+
+    pub fn freezeForReset(self: *Self) !RecoverySummary {
+        if (self.resetting) {
+            return error.TransportResetInProgress;
+        }
+
+        const probe_snapshot = self.last_probe_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const topology = self.last_queue_topology_summary orelse return error.QueueTopologyUnavailable;
+        const mergeable_plan = self.last_mergeable_plan;
+
+        self.resetting = true;
+        self.frozen_probe_snapshot = probe_snapshot;
+        self.frozen_queue_topology_summary = topology;
+        self.frozen_mergeable_plan = mergeable_plan;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .action = .freeze,
+            .was_resetting = false,
+            .is_resetting = true,
+            .remembered_queue_pairs = topology.effective_queue_pairs,
+            .remembered_total_queue_count = topology.total_queue_count,
+            .remembered_control_queue_count = topology.control_queue_count,
+            .receive_buffer_refill_required = mergeable_plan != null,
+            .mergeable_buffer_refill_required = if (mergeable_plan) |plan| plan.uses_mergeable_path else false,
+            .recovery_generation = self.recovery_generation,
+        };
+    }
+
+    pub fn recoveryQueuePlan(self: *const Self) !RecoveryQueuePlan {
+        if (!self.resetting) {
+            return error.TransportNotResetting;
+        }
+
+        const topology = self.frozen_queue_topology_summary orelse return error.QueueTopologyUnavailable;
+        const mergeable_plan = self.frozen_mergeable_plan;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .effective_queue_pairs = topology.effective_queue_pairs,
+            .receive_queue_count = topology.receive_queue_count,
+            .transmit_queue_count = topology.transmit_queue_count,
+            .first_receive_queue_index = topology.first_receive_queue_index,
+            .first_transmit_queue_index = topology.first_transmit_queue_index,
+            .first_control_queue_index = topology.first_control_queue_index,
+            .total_queue_count = topology.total_queue_count,
+            .rss_enabled = topology.rss_enabled,
+            .requires_receive_queue_restore = topology.receive_queue_count > 0,
+            .requires_transmit_queue_restore = topology.transmit_queue_count > 0,
+            .requires_control_queue_restore = topology.control_queue_count > 0,
+            .requires_receive_buffer_refill = mergeable_plan != null,
+            .requires_mergeable_buffer_refill = if (mergeable_plan) |plan| plan.uses_mergeable_path else false,
+        };
+    }
+
+    pub fn restoreAfterReset(self: *Self) !RecoverySummary {
+        if (!self.resetting) {
+            return error.TransportNotResetting;
+        }
+
+        const topology = self.frozen_queue_topology_summary orelse return error.QueueTopologyUnavailable;
+        const mergeable_plan = self.frozen_mergeable_plan;
+
+        self.resetting = false;
+        self.last_probe_snapshot = null;
+        self.last_queue_topology_summary = null;
+        self.last_mergeable_plan = null;
+        self.frozen_probe_snapshot = null;
+        self.frozen_queue_topology_summary = null;
+        self.frozen_mergeable_plan = null;
+        self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .action = .restore,
+            .was_resetting = true,
+            .is_resetting = false,
+            .remembered_queue_pairs = topology.effective_queue_pairs,
+            .remembered_total_queue_count = topology.total_queue_count,
+            .remembered_control_queue_count = topology.control_queue_count,
+            .receive_buffer_refill_required = mergeable_plan != null,
+            .mergeable_buffer_refill_required = if (mergeable_plan) |plan| plan.uses_mergeable_path else false,
+            .recovery_generation = self.recovery_generation,
+        };
     }
 
     fn negotiatedQueuePairs(request: ProbeRequest) u16 {
@@ -327,4 +454,117 @@ test "planMergeableReceiveBuffer rejects big packets without mergeable support" 
         .headroom_bytes = 64,
         .mergeable_rx_bufs = false,
     }));
+}
+
+test "freezeForReset captures the last queue summary and refill expectations" {
+    var lab = VirtioNetProbeLab.init();
+
+    try std.testing.expectError(error.ProbeSnapshotUnavailable, lab.freezeForReset());
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    try std.testing.expectError(error.QueueTopologyUnavailable, lab.freezeForReset());
+
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    _ = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 6000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    const frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(RecoveryAction.freeze, frozen.action);
+    try std.testing.expect(!frozen.was_resetting);
+    try std.testing.expect(frozen.is_resetting);
+    try std.testing.expectEqual(@as(u16, 2), frozen.remembered_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 5), frozen.remembered_total_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), frozen.remembered_control_queue_count);
+    try std.testing.expect(frozen.receive_buffer_refill_required);
+    try std.testing.expect(frozen.mergeable_buffer_refill_required);
+    try std.testing.expectEqual(@as(u16, 0), frozen.recovery_generation);
+    try std.testing.expectError(error.TransportResetInProgress, lab.freezeForReset());
+}
+
+test "recoveryQueuePlan mirrors the frozen queue summary" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    _ = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 6000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expectEqual(@as(u16, 2), plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), plan.receive_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), plan.transmit_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), plan.first_receive_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), plan.first_transmit_queue_index);
+    try std.testing.expectEqual(@as(?u16, 4), plan.first_control_queue_index);
+    try std.testing.expectEqual(@as(u16, 5), plan.total_queue_count);
+    try std.testing.expect(plan.rss_enabled);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(plan.requires_control_queue_restore);
+    try std.testing.expect(plan.requires_receive_buffer_refill);
+    try std.testing.expect(plan.requires_mergeable_buffer_refill);
+}
+
+test "restoreAfterReset clears remembered queue state and increments generation" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = false,
+        .has_rss = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = false,
+        .has_rss = false,
+    });
+    _ = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const restored = try lab.restoreAfterReset();
+    try std.testing.expectEqual(RecoveryAction.restore, restored.action);
+    try std.testing.expect(restored.was_resetting);
+    try std.testing.expect(!restored.is_resetting);
+    try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+    try std.testing.expect(restored.receive_buffer_refill_required);
+    try std.testing.expect(!restored.mergeable_buffer_refill_required);
+    try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
+    try std.testing.expectError(error.QueueTopologyUnavailable, lab.restoreAfterReset());
 }
