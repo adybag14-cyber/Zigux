@@ -241,6 +241,24 @@ def run_self_test() -> int:
         print("expected review-boundary dev_t marker was not reported")
         return 1
 
+    review_boundary_broken = review_boundary.replace("zigux/uapi/version.zig", "", 1)
+    broken = validate_text(
+        before
+        + "## Review boundary\n"
+        + review_boundary_broken
+        + "\n## Non-goals\n"
+        + tail
+        + "\nzigux/uapi/version.zig\n"
+    )
+    expected = (
+        "review boundary marker count drift: zigux/uapi/version.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected section-scoped version companion drift was not reported")
+        return 1
+
     review_boundary_moved = review_boundary.replace(
         "starter UAPI surface remains a bounded version-plus-dev_t pair",
         "",
