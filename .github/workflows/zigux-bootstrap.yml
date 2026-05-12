@@ -110,6 +110,12 @@ jobs:
       - name: Check Phase 2 tests README alignment
         run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
 
+      - name: Self-test Phase 2 kconfig selftest alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 kconfig selftest alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
+
       - name: Self-test Phase 2 kconfig README alignment
         run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test
 
