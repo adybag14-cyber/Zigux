@@ -137,6 +137,14 @@ readback: public tree and readable blob evidence still carry the direct
 exec-cmd shard, while authenticated contents reads for that same shard remain
 intermittent from this environment.
 
+Current `master` also shows that `Documentation/zigux/phase8-libbpf-segment-survey.md`
+and `Documentation/zigux/phase8-tooling-lane-sequencing.md` already carry the
+refreshed mixed 2026-05-12 libbpf and shared-wording readback. That makes the
+next truthful reopen inside this boundary packet a one-surface shared wording
+repair in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
+`scripts/zigux/README.md`, `zigux/tests/README.md`, or `zigux/Makefile`, rather
+than another helper-local or validator-local change.
+
 Until then, keep this survey parked and keep follow-up inside one bounded
-command-packet, bridge-summary, or replay step rather than widening into
-broader tooling-tranche restatement.
+shared-wording, command-packet, bridge-summary, or replay step rather than
+widening into broader tooling-tranche restatement.
