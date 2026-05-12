@@ -129,7 +129,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "Documentation/zigux/README.md"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
     try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
