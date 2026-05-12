@@ -38,6 +38,7 @@ VALIDATION_MATRIX_MARKERS = [
     "phase11-bcm2835-wdt-verify-tests",
     "phase11-bcm2835-wdt-survey-tests",
     "drivers/watchdog/bcm2835_wdt_verify.zig",
+    "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`",
 ]
 
 SHARED_CONTRACT_MARKERS = [
@@ -81,7 +82,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`zigux/tests/phase11_bcm2835_wdt_manifest.json`",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 
 class CheckError(RuntimeError):
@@ -161,7 +162,7 @@ def write(path: Path, text: str) -> None:
 
 def build_self_test_fixture(root: Path) -> None:
     write(root / SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
-    write(root / REQUIRED_FILES["manifest"], "{\n  \"lane_key\": \"P11-L03\"\n}\n")
+    write(root / REQUIRED_FILES["manifest"], "{\n  \"lane_key\": \"P11-L08\"\n}\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["shared_contract"], "\n".join(SHARED_CONTRACT_MARKERS) + "\n")
@@ -203,6 +204,21 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "phase11-bcm2835-wdt-verify-tests")
+
+        build_self_test_fixture(tmpdir)
+        validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
+        validation_matrix_path.write_text(
+            validation_matrix_path.read_text(encoding="utf-8").replace(
+                "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L03`",
+        )
 
         build_self_test_fixture(tmpdir)
         shared_contract_path = tmpdir / REQUIRED_FILES["shared_contract"]
