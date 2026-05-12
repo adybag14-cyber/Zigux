@@ -29,6 +29,7 @@ NOTE_STATIC_MARKERS = [
     "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
+    "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 ]
 PHASE2_ROUTE_COUNT_MARKER = "PHASE2_LINUX_STYLE_ROUTE_COUNT=6"
 PHASE2_ROUTE_LIST_MARKER = (
@@ -137,6 +138,7 @@ EXACT_SURFACE_COUNTS = {
     "phase2_toolchain_notes": {
         PHASE2_ROUTE_COUNT_MARKER: 1,
         PHASE2_ROUTE_LIST_MARKER: 1,
+        "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note": 1,
     },
     "scripts_readme": {
         "check-phase2-toolchain-pin-scope.py": 2,
