@@ -12,6 +12,14 @@ pub const Compatibility = enum {
 pub const AcceptedHeader = struct {
     compatibility: Compatibility,
     canonical: Header,
+
+    pub fn isCanonical(self: @This()) bool {
+        return self.compatibility == .canonical;
+    }
+
+    pub fn extendsBoundary(self: @This()) bool {
+        return self.compatibility == .future_compatible;
+    }
 };
 
 pub const HeaderEvaluation = struct {
@@ -20,6 +28,16 @@ pub const HeaderEvaluation = struct {
 
     pub fn isAccepted(self: @This()) bool {
         return self.acceptance != null;
+    }
+
+    pub fn extendsBoundary(self: @This()) bool {
+        const accepted = self.acceptance orelse return false;
+        return accepted.extendsBoundary();
+    }
+
+    pub fn requestedExtraBytes(self: @This()) ?u32 {
+        const accepted = self.acceptance orelse return null;
+        return self.requested.size - accepted.canonical.size;
     }
 };
 
@@ -140,9 +158,11 @@ test "phase3 uapi evaluation keeps requested boundary shape explicit" {
     const accepted_future = acceptHeader(future_compatible).?;
     const rejected = acceptHeader(mismatched_version);
 
-    try std.testing.expectEqual(Compatibility.canonical, accepted_canonical.compatibility);
+    try std.testing.expect(accepted_canonical.isCanonical());
+    try std.testing.expect(!accepted_canonical.extendsBoundary());
     try std.testing.expectEqual(canonical, accepted_canonical.canonical);
-    try std.testing.expectEqual(Compatibility.future_compatible, accepted_future.compatibility);
+    try std.testing.expect(!accepted_future.isCanonical());
+    try std.testing.expect(accepted_future.extendsBoundary());
     try std.testing.expectEqual(canonical, accepted_future.canonical);
     try std.testing.expect(rejected == null);
 
@@ -152,8 +172,14 @@ test "phase3 uapi evaluation keeps requested boundary shape explicit" {
 
     try std.testing.expectEqual(canonical, canonical_evaluation.requested);
     try std.testing.expect(canonical_evaluation.isAccepted());
+    try std.testing.expect(!canonical_evaluation.extendsBoundary());
+    try std.testing.expectEqual(@as(u32, 0), canonical_evaluation.requestedExtraBytes().?);
     try std.testing.expectEqual(future_compatible, future_evaluation.requested);
     try std.testing.expect(future_evaluation.isAccepted());
+    try std.testing.expect(future_evaluation.extendsBoundary());
+    try std.testing.expectEqual(@as(u32, 16), future_evaluation.requestedExtraBytes().?);
     try std.testing.expectEqual(mismatched_version, mismatch_evaluation.requested);
     try std.testing.expect(!mismatch_evaluation.isAccepted());
+    try std.testing.expect(!mismatch_evaluation.extendsBoundary());
+    try std.testing.expect(mismatch_evaluation.requestedExtraBytes() == null);
 }
