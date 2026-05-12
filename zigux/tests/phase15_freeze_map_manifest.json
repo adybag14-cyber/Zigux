@@ -159,6 +159,21 @@
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
+  "maintenance_handoff": {
+    "current_lane_posture": "maintenance_mode",
+    "replay_before_trusting": [
+      "python3 scripts/zigux/validate-phase15.py",
+      "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
+      "python3 scripts/zigux/check-phase15-review-process-handoff.py",
+      "zig test zigux/tests/phase15_freeze_map_governance.zig"
+    ],
+    "reopen_conditions": [
+      "a freeze-map anchor changes status bucket, blocker disposition, or required approver set",
+      "the freeze-in-C or study-only anchor set changes in Documentation/zigux/freeze-map.md",
+      "the shared validator-first route or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence-archive, replay-command, stay-in-C, or no-silent-exception posture recorded here"
+    ],
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, zigux/tests/phase15_freeze_map_manifest.json, and zigux/tests/phase15_freeze_map_governance.zig, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening shared-summary, parity-scorecard, or readiness packets"
+  },
   "gaps": [
     {
       "id": "phase15-freeze-map-governance-doc",
@@ -250,6 +265,13 @@
       "kind": "provenance_refresh",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "The previous exact-head record had drifted behind current master, so this packet now records a dated readback marker instead of implying fresh exact-head parity."
+    },
+    {
+      "id": "phase15-freeze-map-maintenance-handoff",
+      "status": "landed",
+      "kind": "maintenance_handoff",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "The dedicated freeze-map packet now says exactly when to reopen, how to rerun the validator-first route, and how to keep future repairs inside the freeze-map packet instead of drifting into neighboring Phase 15 governance lanes."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
