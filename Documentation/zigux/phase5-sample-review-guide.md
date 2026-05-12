@@ -155,7 +155,7 @@ Keep the `reviewContract().focus` order explicit too: `bounded_fifo_order`, `wra
 
 Review the landed kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig`, and the shared `zigux/tests/phase5_build.zig` replay route.
 
-Keep `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runTeardownReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, the unnamed attribute-group shape, the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split, and the initialized-but-not-registered plus post-`exit()` rejection boundaries explicit together as one bounded non-runtime packet.
+Keep `runAnchorReplay()` explicit for the init-first, exact-three-attribute registration cue, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runTeardownReplay()`, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, the unnamed attribute-group shape, the shared `baz`/`bar` dispatch and parse-failure packet, the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split, and the initialized-but-not-registered plus post-`exit()` rejection boundaries explicit together as one bounded non-runtime packet.
 
 ## Non-goals
 
