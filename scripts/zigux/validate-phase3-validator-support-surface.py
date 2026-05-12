@@ -416,7 +416,20 @@ def run_self_test() -> int:
         return 1
 
     current_packet_bindings_marker = "zigux/bindings/abi.zig"
-    broken = validate_text(sample.replace(current_packet_bindings_marker, "", 1))
+    before, separator, after = sample.partition("## Current packet\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current packet section separator was not found")
+        return 1
+    current_packet, separator, tail = after.partition("\n## Review boundary\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review boundary section separator was not found")
+        return 1
+    current_packet_broken = current_packet.replace(current_packet_bindings_marker, "", 1)
+    broken = validate_text(
+        before + "## Current packet\n" + current_packet_broken + "\n## Review boundary\n" + tail
+    )
     expected = (
         "current packet marker count drift: zigux/bindings/abi.zig "
         "(expected 1, found 0)"
