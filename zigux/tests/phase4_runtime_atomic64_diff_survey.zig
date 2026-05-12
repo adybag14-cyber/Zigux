@@ -280,6 +280,19 @@ test "phase 4 atomic64 survey keeps the gate-evidence validator and review-check
     );
     defer std.testing.allocator.free(validate_phase4_marker);
 
+    const gate_evidence_checker_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase4-gate-evidence.py",
+    );
+    defer std.testing.allocator.free(gate_evidence_checker_source);
+    const gate_evidence_checker_blob_sha = try gitBlobShaHex(gate_evidence_checker_source);
+    const gate_evidence_checker_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={s}",
+        .{gate_evidence_checker_blob_sha},
+    );
+    defer std.testing.allocator.free(gate_evidence_checker_marker);
+
     const review_checklist_source = try readRepoFile(
         std.testing.allocator,
         "Documentation/zigux/review-checklist.md",
@@ -294,12 +307,28 @@ test "phase 4 atomic64 survey keeps the gate-evidence validator and review-check
     defer std.testing.allocator.free(review_checklist_marker);
 
     try expectMarker(gate_evidence_source, validate_phase4_marker);
+    try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
+    try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "validator_blob_pin_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
+}
+
+test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligned with live note" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
 }
 
 // runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
