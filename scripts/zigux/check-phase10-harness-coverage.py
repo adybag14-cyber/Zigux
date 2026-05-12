@@ -15,6 +15,7 @@ FILES = [
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "scripts/zigux/README.md",
@@ -68,6 +69,21 @@ SCRIPTS_README_MARKERS = [
     "`drivers/virtio/virtio_ring.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+]
+
+DOC_README_MARKERS = [
+    "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "`drivers/virtio/virtio_ring.zig`",
+    "`zigux/tests/phase10_virtio_ring_manifest.json`",
+    "`make -C zigux phase10-validate`",
+    "`make -C zigux phase10-test`",
+    "`make -C zigux phase10`",
 ]
 
 TESTS_README_MARKERS = [
@@ -141,6 +157,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             LANE_NOTE_MARKERS,
         ),
         ("review_checklist", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
+        ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
@@ -213,6 +230,7 @@ def write_fixture(root: Path) -> None:
                 "",
             ]
         ),
+        "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -414,6 +432,38 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        doc_readme_path = root / "Documentation/zigux/README.md"
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`scripts/zigux/check-phase10-harness-coverage.py`",
+                "`scripts/zigux/check-phase10-harness-coverage-removed.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_harness_checker",
+            root,
+            "doc_readme:`scripts/zigux/check-phase10-harness-coverage.py`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`make -C zigux phase10-test`",
+                "`make -C zigux phase10-test-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_phase10_test_route",
+            root,
+            "doc_readme:`make -C zigux phase10-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -594,7 +644,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -621,5 +671,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DOC_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
