@@ -65,6 +65,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "zigux/tests/phase7_cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectContains(slice_note, "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(slice_note, "make -C zigux phase7-cmdline-survey");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
     try expectContains(slice_note, "runtime-safe parsing helpers that:");
     try expectContains(slice_note, "- do not allocate");
@@ -82,6 +84,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(build_file, "\"phase7-cmdline-tests\"");
     try expectContains(build_file, "\"phase7-cmdline-survey-tests\"");
     try expectContains(build_file, "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));");
+    try expectContains(build_file, "\"phase7-cmdline-survey\"");
+    try expectContains(build_file, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);");
 
     const cmdline_tests = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
     defer allocator.free(cmdline_tests);
