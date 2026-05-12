@@ -79,18 +79,25 @@ Authenticated contents reads for some Phase 8 files are inconsistent from this
 environment, so current public default-branch tree evidence and readable blob
 content should win over older absent-file assumptions.
 
-Current authenticated 2026-05-12 contents readback now shows that inconsistency
-more sharply for the command packet itself:
+Current authenticated 2026-05-12 contents readback still shows that route
+instability for the command packet itself:
 - `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
-  and `zigux/tests/phase8_help.zig` remain readable
+  and `zigux/tests/phase8_help.zig` remain readable through the authenticated
+  contents route
 - `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and
-  `zigux/tests/phase8_exec_cmd_only_build.zig` currently return `404` through the
-  same contents route
+  `zigux/tests/phase8_exec_cmd_only_build.zig` still intermittently return `404`
+  through that same contents route
+- current public default-branch tree readback and exact readable blob content
+  still carry the direct exec-cmd shard, including `Documentation/zigux/phase8-exec-cmd-slice.md`,
+  `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and
+  `zigux/tests/phase8_exec_cmd_only_build.zig`
 
-Treat that split as the current truthful control-surface posture: the roadmap-backed
-command and environment lane still exists, the shared parked reminder packet still
-names it, the help-side reminder surface remains readable, and the direct exec-cmd
-starter shard is not presently readable on `master` from this environment.
+Treat that split as route instability rather than as a live repo-reality gap:
+the roadmap-backed command and environment lane still exists, the shared parked
+reminder packet still names it, the direct exec-cmd starter shard remains
+publicly present and blob-readable on current `master`, and the current
+authenticated contents route is the part that remains unreliable from this
+environment.
 
 That packet keeps the roadmap-backed command and environment plumbing gap explicit
 without claiming direct `execvp()` parity, direct process-launch ownership, live
@@ -102,17 +109,17 @@ The product roadmap still names Phase 8 as the first tooling-expansion tranche f
 - `tools/lib/subcmd/exec-cmd.c`
 - `tools/lib/subcmd/help.c`
 
-Current `master` still preserves parked help-lane reminder surfaces around this
-area, and it also preserves the bounded file-path-and-handle bridge packet as a
+Current `master` still preserves the parked command-and-help reminder packet,
+and it also preserves the bounded file-path-and-handle bridge packet as a
 planning-only gate for file, path, and handle reuse decisions. Even so, the
 same packet still stops short of full process-launch, environment-plumbing,
-terminal-probing, token handoff, and reopened-handle closure behavior, and the
-current authenticated readback now shows the direct exec-cmd starter shard as a
-live repo-reality gap instead of a cleanly present parked packet.
+terminal-probing, token handoff, and reopened-handle closure behavior.
 
 This note should therefore remain the truthful bridge between the roadmap target
-and the bounded current-tree evidence rather than reverting to older missing-file
-wording or overstating the parked command packet as fully present.
+and the bounded current-tree evidence: the direct exec-cmd shard is still part
+of the live parked Phase 8 packet, while authenticated contents reads for that
+same shard remain inconsistent enough that the survey must call out route
+instability instead of pretending the underlying file family disappeared.
 
 ## Next Bounded Step
 
@@ -124,11 +131,12 @@ file-path-and-handle bridge files, re-read this note together with
 `scripts/zigux/README.md`, `zigux/Makefile`, and the current Phase 8 test tree
 before widening broader Phase 8 summaries.
 
-The next honest follow-through inside this packet is no longer the older generic
-"parked command packet still present" reminder. It is the smaller truthfulness step
-of keeping the shared Phase 8 wording aligned with the mixed current readback:
-help-side reminder surfaces still read cleanly, while the direct exec-cmd shard
-currently reads as absent through authenticated contents.
+The next honest follow-through inside this packet is the smaller truthfulness
+step of keeping the shared Phase 8 wording aligned with the mixed current
+readback: public tree and readable blob evidence still carry the direct
+exec-cmd shard, while authenticated contents reads for that same shard remain
+intermittent from this environment.
 
-Until then, keep this survey parked and keep follow-up inside one bounded command-packet,
-bridge-summary, or replay step rather than rebuilding the older missing-control-surface claim.
+Until then, keep this survey parked and keep follow-up inside one bounded
+command-packet, bridge-summary, or replay step rather than widening into
+broader tooling-tranche restatement.
