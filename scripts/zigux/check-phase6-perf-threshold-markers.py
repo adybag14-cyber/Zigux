@@ -18,6 +18,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
@@ -31,6 +32,7 @@ BASE64_CASES = [
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
         "file_marker": '.{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        "fixture_marker": '.{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "STD_NO_PAD",
@@ -40,6 +42,7 @@ BASE64_CASES = [
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
         "file_marker": '.{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        "fixture_marker": '.{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "URLSAFE_PAD",
@@ -49,6 +52,7 @@ BASE64_CASES = [
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
         "file_marker": '.{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        "fixture_marker": '.{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "URLSAFE_NO_PAD",
@@ -58,6 +62,7 @@ BASE64_CASES = [
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
         "file_marker": '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        "fixture_marker": '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
 ]
 
@@ -115,6 +120,12 @@ BASE64_SLICE_SNIPPETS = [
     "- the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs",
 ]
 
+BASE64_VECTOR_SNIPPETS = [
+    'pub const perf_cases = [_]PerfCase{',
+    'pub const perf_payload_buf_size = perf_payload.len;',
+    'std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe")',
+]
+
 CATALOG_BASE64_SNIPPETS = [
     "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
     "- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
@@ -167,7 +178,7 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"missing perf_thresholds.base64 in {MANIFEST_PATH}")
     if base64.get("replay") != BASE64_PERF_PATH.as_posix():
         raise ValidationError(f"unexpected base64 replay in {MANIFEST_PATH}")
-    if base64.get("fixture") != "zigux/tests/fixtures/phase6_base64_vectors.zig":
+    if base64.get("fixture") != BASE64_VECTORS_PATH.as_posix():
         raise ValidationError(f"unexpected base64 fixture in {MANIFEST_PATH}")
     if base64.get("measurement_mode") != "relative_slowdown":
         raise ValidationError(f"unexpected base64 measurement_mode in {MANIFEST_PATH}")
@@ -242,6 +253,8 @@ def run_checks(repo_root: Path) -> None:
     ensure_text_markers(CATALOG_PATH, CATALOG_BASE64_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_SLICE_PATH, BASE64_SLICE_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
+    ensure_text_markers(BASE64_VECTORS_PATH, BASE64_VECTOR_SNIPPETS, repo_root)
+    ensure_text_markers(BASE64_VECTORS_PATH, [case["fixture_marker"] for case in BASE64_CASES], repo_root)
     ensure_text_markers(CHECKSUM_PERF_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
     ensure_text_markers(CHECKSUM_VECTORS_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
     ensure_case_fragments(HEXDUMP_VECTORS_PATH, HEXDUMP_CASES, repo_root)
@@ -267,7 +280,7 @@ def scaffold_repo(root: Path) -> None:
         "perf_thresholds": {
             "base64": {
                 "replay": BASE64_PERF_PATH.as_posix(),
-                "fixture": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+                "fixture": BASE64_VECTORS_PATH.as_posix(),
                 "measurement_mode": "relative_slowdown",
                 "cases": [
                     {
@@ -342,6 +355,10 @@ def scaffold_repo(root: Path) -> None:
         + "\n",
     )
     write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
+    write(
+        root / BASE64_VECTORS_PATH,
+        "\n".join(BASE64_VECTOR_SNIPPETS + [case["fixture_marker"] for case in BASE64_CASES]) + "\n",
+    )
     write(root / CHECKSUM_PERF_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
     write(root / CHECKSUM_VECTORS_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
     write(
@@ -408,6 +425,12 @@ def run_self_test() -> None:
             BASE64_PERF_PATH,
             '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
             '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 16000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+        )
+        assert_failure(
+            root,
+            BASE64_VECTORS_PATH,
+            '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
+            '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
         )
         assert_failure(
             root,
