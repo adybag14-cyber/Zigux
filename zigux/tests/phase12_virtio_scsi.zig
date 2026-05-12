@@ -9,6 +9,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expect(descriptor.provides_probe_config_snapshot);
     try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(descriptor.provides_queue_depth_summary);
+    try std.testing.expect(descriptor.provides_command_buffer_ownership_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -263,6 +264,19 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
         },
         .requested_depth = 4,
     }));
+    try std.testing.expectError(error.TransportFrozen, lab.captureCommandBufferOwnershipSummary(.{
+        .queue_depth = .{
+            .host_limit = .{
+                .probe = .{
+                    .num_queues = 5,
+                    .requested_poll_queues = 2,
+                    .cmd_per_lun = 9,
+                },
+                .synthetic_can_queue = 7,
+            },
+            .requested_depth = 4,
+        },
+    }));
     try std.testing.expectError(error.TransportFrozen, lab.captureIoQueueMapSummary(5, 2));
 
     _ = try lab.restoreAfterTransportReset();
@@ -298,6 +312,26 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
     try std.testing.expectEqual(@as(u32, 7), requeued.effective_can_queue);
     try std.testing.expectEqual(@as(u32, 7), requeued.effective_cmd_per_lun);
     try std.testing.expectEqual(@as(u32, 7), requeued.clamped_queue_depth);
+
+    const command_buffers = try lab.captureCommandBufferOwnershipSummary(.{
+        .queue_depth = .{
+            .host_limit = .{
+                .probe = .{
+                    .num_queues = 5,
+                    .requested_poll_queues = 2,
+                    .cmd_per_lun = 9,
+                    .max_target = 3,
+                    .max_lun = 2,
+                    .max_sectors = 1536,
+                },
+                .synthetic_can_queue = 7,
+            },
+            .requested_depth = 11,
+        },
+    });
+    try std.testing.expectEqual(@as(u32, 7), command_buffers.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_command_buffer_bytes), command_buffers.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_sense_buffer_bytes), command_buffers.sense_bytes_per_request);
 
     const remapped = try lab.captureIoQueueMapSummary(5, 2);
     try std.testing.expectEqual(@as(u16, 3), remapped.default_queue_count);
@@ -507,6 +541,66 @@ test "phase12 virtio scsi queue depth summary preserves smaller requests and def
     try std.testing.expectEqual(@as(u32, 1), summary.clamped_queue_depth);
     try std.testing.expect(summary.tracks_queue_depth);
     try std.testing.expect(summary.uses_change_queue_depth);
+}
+
+test "phase12 virtio scsi command buffer ownership summary tracks clamped queue depth and bytes" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureCommandBufferOwnershipSummary(.{
+        .queue_depth = .{
+            .host_limit = .{
+                .probe = .{
+                    .num_queues = 8,
+                    .requested_poll_queues = 3,
+                    .cmd_per_lun = 64,
+                    .max_target = 31,
+                    .max_lun = 7,
+                    .max_sectors = 2048,
+                },
+                .synthetic_can_queue = 12,
+            },
+            .requested_depth = 40,
+        },
+        .command_bytes = 48,
+        .sense_bytes = 96,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 40), summary.requested_depth);
+    try std.testing.expectEqual(@as(u32, 12), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, 48), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, 96), summary.sense_bytes_per_request);
+    try std.testing.expectEqual(@as(u64, 576), summary.total_command_bytes);
+    try std.testing.expectEqual(@as(u64, 1152), summary.total_sense_bytes);
+    try std.testing.expect(summary.owns_one_command_buffer_per_request);
+    try std.testing.expect(summary.owns_one_sense_buffer_per_request);
+    try std.testing.expect(summary.requires_dma_mapping_later);
+    try std.testing.expect(summary.preserves_pre_registration_scope);
+}
+
+test "phase12 virtio scsi command buffer ownership summary defaults buffer sizes" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureCommandBufferOwnershipSummary(.{
+        .queue_depth = .{
+            .host_limit = .{
+                .probe = .{
+                    .num_queues = 3,
+                    .requested_poll_queues = 9,
+                    .cmd_per_lun = 0,
+                    .max_target = 0,
+                    .max_lun = 0,
+                    .max_sectors = 0,
+                },
+                .synthetic_can_queue = 0,
+            },
+            .requested_depth = 1,
+        },
+    });
+
+    try std.testing.expectEqual(@as(u32, 1), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_command_buffer_bytes), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_sense_buffer_bytes), summary.sense_bytes_per_request);
+    try std.testing.expectEqual(@as(u64, virtio_scsi.default_command_buffer_bytes), summary.total_command_bytes);
+    try std.testing.expectEqual(@as(u64, virtio_scsi.default_sense_buffer_bytes), summary.total_sense_bytes);
 }
 
 test "phase12 virtio scsi io queue map summary mirrors default and poll offsets" {
