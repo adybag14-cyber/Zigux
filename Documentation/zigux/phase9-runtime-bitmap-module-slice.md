@@ -27,6 +27,12 @@ The runtime bitmap packet needs a family-local review surface that keeps the sam
 
 The live runtime substrate is still missing, so this slice must stay review-only and keep the broader blocked handoff explicit.
 
+## Roadmap Gap
+
+- the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`
+- the current runtime bitmap packet is still `starter_landed_without_loadable_runtime_substrate`: the sample starter, diff gate, survey gate, top-bit companion replay, and loader scaffold are visible, but the shared runtime substrate is still missing
+- the blocked deliverable remains `loadable Phase 9 runtime bitmap pilot module parity`
+
 ## Gates
 1. `zig test zigux/tests/runtime_bitmap_module.zig`
 2. `zig test zigux/tests/runtime_bitmap_diff.zig`
