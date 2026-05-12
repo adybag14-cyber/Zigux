@@ -41,7 +41,7 @@
       "id": "trace-events-loader-scaffold",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The sample-side loader scaffold is visible again on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability, shared-release failure, registration-snapshot drift, and outstanding-registration drain proofs without clearing the broader substrate blocker."
+      "why_now": "The sample-side loader scaffold is visible again on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, and outstanding-registration drain proofs without clearing the broader substrate blocker."
     },
     {
       "id": "trace-events-module-gate",
