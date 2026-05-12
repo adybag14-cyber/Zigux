@@ -27,7 +27,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
 - exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - Linux-style perf rerun route: `make -C zigux phase6-base64-perf`
-- current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the dedicated slowdown gate stays helper-local through the committed fixture-backed perf replay
+- current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines
 
 ### bsearch
 - roadmap anchor: `lib/bsearch.c`
