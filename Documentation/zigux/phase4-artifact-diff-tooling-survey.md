@@ -19,14 +19,23 @@ Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` calls for artifact-diff checks 
 
 Current `master` already closes the deterministic-check slice of that requirement:
 - `scripts/zigux/artifact_diff.py` ships the bounded text, JSON, and SHA-256 comparison helper plus a deterministic `--self-test` packet.
-- `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including missing-argument, invalid-mode, missing-path, malformed-JSON, and repeat-run cases.
-- `scripts/zigux/check-phase4-artifact-diff-determinism.py` separately rechecks the helper self-test catalog, the contract self-test catalog, the base-case catalog, the repeat-case catalog, and the full contract catalog so case-count or case-order drift fails closed.
+- `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including missing-argument, invalid-mode, missing-path, malformed-JSON, help-output, and repeat-run cases.
+- `scripts/zigux/check-phase4-artifact-diff-determinism.py` separately rechecks the helper self-test catalog, the contract self-test catalog, the base-case catalog, the repeat-case catalog, the full contract catalog, and this roadmap-facing survey packet so case-count or reminder-surface drift fails closed.
 - `scripts/zigux/validate-phase4.py` already treats both artifact-diff checkers as part of the shared Phase 4 validator-first route before the Zig rollback gates run.
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` already expose the same validator-first replay surface through `make -C zigux phase4-validate` and the bootstrap workflow.
 
+## Deterministic Contract Packet
+- `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`
+- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=21`
+
 ## Current Conclusion
 
-The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The remaining work in this lane should stay limited to truthfulness and reminder-surface drift around the existing checker packet unless the helper contract or validator-first route changes again.
+The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts so `scripts/zigux/check-phase4-artifact-diff-determinism.py` can reject roadmap-note drift before the broader Phase 4 validator-first route runs.
 
 ## Direct Replay Surface
 - `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
