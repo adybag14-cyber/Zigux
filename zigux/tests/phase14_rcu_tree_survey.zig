@@ -312,9 +312,15 @@ test "phase 14 rcu tree survey note matches the live manifest-backed owner and b
     try std.testing.expect(contains(note, "PHASE14_LANE_KEY=P14-L16"));
     try std.testing.expect(contains(note, "PHASE14_STATUS_BUCKET=freeze_in_c"));
     try std.testing.expect(contains(note, "PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker"));
+    try std.testing.expect(contains(note, "NOCB wakeup handoff still stays in C"));
+    try std.testing.expect(contains(note, "quiescent-state propagation and callback acceleration still stay in C"));
+    try std.testing.expect(contains(note, "callback enqueue and batch invocation still stay in C"));
     try std.testing.expect(contains(note, "public wait and callback-barrier ownership still stay in C"));
+    try std.testing.expect(contains(note, "poll_state_synchronize_rcu"));
     try std.testing.expect(contains(note, "CPU hotplug callback migration still stays in C"));
     try std.testing.expect(contains(note, "memory-ordering lock network still stays in C"));
+    try std.testing.expect(contains(note, "`zigux/tests/phase14_end_to_end_smoke_manifest.json`"));
+    try std.testing.expect(contains(note, "`Documentation/zigux/phase14-core-boundary-traceability.md`"));
     try std.testing.expect(contains(note, "`kernel/rcu/tree_bridge.zig` remains blocked"));
     try std.testing.expect(contains(note, "Architecture Council reopen request"));
 }
@@ -388,6 +394,6 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and 
     try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[7].id);
     try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[7].anchor_symbols[0]);
     try std.testing.expectEqualStrings("rcutree_offline_cpu", checklist[7].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[7].anchor_symbols[2]);
+    try std.testing.expectEqualStrings("rcu_migrate_callbacks", checklist[7].anchor_symbols[2]);
     try std.testing.expect(contains(checklist[7].rationale, "callback migration"));
 }
