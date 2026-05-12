@@ -22,6 +22,8 @@ STALE_CHECKER_WARNING = (
     "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift"
 )
 CURRENT_CHECKER_MARKER = "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
+REVIEWABILITY_LANE_KEY_MARKER = "manifest.lane_key"
+SURVEY_LANE_KEY_SUFFIX = " helper packet"
 
 MANIFEST_TO_SURVEY_MARKERS = {
     '"id": "phase13-devres-live-scatterlist-ownership"': "helper-only DMA/scatterlist boundary",
@@ -130,8 +132,13 @@ def validate(root: Path) -> list[str]:
     lane_key = manifest.get("lane_key")
     if not isinstance(lane_key, str) or not lane_key:
         errors.append("manifest:lane_key_missing")
-    elif not contains_manifest_expectation(replay_text, "lane_key", lane_key):
-        errors.append(f"replay:lane_key_mismatch:{lane_key}")
+    else:
+        if not contains_manifest_expectation(replay_text, "lane_key", lane_key):
+            errors.append(f"replay:lane_key_mismatch:{lane_key}")
+        if lane_key not in reviewability_text or REVIEWABILITY_LANE_KEY_MARKER not in reviewability_text:
+            errors.append(f"reviewability:lane_key_mismatch:{lane_key}")
+        if f"`{lane_key}`{SURVEY_LANE_KEY_SUFFIX}" not in survey_text:
+            errors.append(f"survey:lane_key_mismatch:{lane_key}")
 
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
@@ -227,6 +234,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
                 "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                 "- `devm_iounmap()` stays helper-first",
+                "- the direct replay and reviewability files now point at the same `P13-L01` helper packet",
                 "- keep the helper-only DMA/scatterlist boundary explicit",
                 "- `scripts/zigux/check-phase13-devres-packet-alignment.py` keeps the packet truthfulness guard explicit",
                 "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
@@ -273,6 +281,7 @@ def seed_fixture_tree(root: Path) -> None:
         root / REVIEWABILITY_PATH,
         "\n".join(
             [
+                '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
                 '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                 "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
                 "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
@@ -326,6 +335,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "survey:lane_key_mismatch:P13-L01",
                 "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
                 "survey:stale_slice_label",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
@@ -342,6 +352,33 @@ def run_self_test() -> int:
             root / REVIEWABILITY_PATH,
             "\n".join(
                 [
+                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
+                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
+                    '        "phase13-devres-test-gate",',
+                    '        "phase13-devres-reviewability-gate",',
+                    '        "phase13-devres-dma-coherent-replay",',
+                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
+                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["reviewability:lane_key_mismatch:P13-L01"],
+            "reviewability_lane_key_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REVIEWABILITY_PATH,
+            "\n".join(
+                [
+                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
                     '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
@@ -367,6 +404,7 @@ def run_self_test() -> int:
             root / REVIEWABILITY_PATH,
             "\n".join(
                 [
+                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
                     '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
@@ -392,6 +430,7 @@ def run_self_test() -> int:
             root / REVIEWABILITY_PATH,
             "\n".join(
                 [
+                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
                     '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
                     "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
@@ -422,6 +461,7 @@ def run_self_test() -> int:
                     "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                     "- `devm_iounmap()` stays helper-first",
                     "- keep the helper-only DMA/scatterlist boundary explicit",
+                    "- `scripts/zigux/check-phase13-devres-packet-alignment.py` keeps the packet truthfulness guard explicit",
                     "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
                 ]
             )
@@ -429,7 +469,32 @@ def run_self_test() -> int:
         )
         assert_only(
             validate(root),
-            ["survey:missing_current_checker_marker"],
+            ["survey:lane_key_mismatch:P13-L01"],
+            "survey_lane_key_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(
+                [
+                    "# Phase 13 devres Survey",
+                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+                    "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
+                    "- `devm_iounmap()` stays helper-first",
+                    "- keep the helper-only DMA/scatterlist boundary explicit",
+                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "survey:lane_key_mismatch:P13-L01",
+                "survey:missing_current_checker_marker",
+            ],
             "current_checker_marker_failed",
         )
         case_count += 1
