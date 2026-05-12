@@ -170,6 +170,7 @@ SYSRQ_HELPER_MARKERS = [
 
 MAKEFILE_MARKERS = [
     "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
+    "phase11-test:",
     "phase11-hvc-survey:",
     "phase11: phase11-contract phase11-test phase11-hvc-survey",
 ]
@@ -183,7 +184,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 25
 
 
 class CheckError(RuntimeError):
@@ -582,6 +583,16 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "pub fn summarizeSysrqHandoff")
+
+        reset_fixture(tmpdir)
+        makefile_missing = tmpdir / REQUIRED_FILES["makefile"]
+        makefile_missing.write_text(
+            makefile_missing.read_text(encoding="utf-8").replace(
+                "phase11-test:\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase11-test:")
 
         reset_fixture(tmpdir)
         makefile_missing = tmpdir / REQUIRED_FILES["makefile"]
