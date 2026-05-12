@@ -403,13 +403,44 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(atomic64_diff_blob_marker);
 
+    const validate_phase4_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(validate_phase4_source);
+    const validate_phase4_blob_sha = try gitBlobShaHex(validate_phase4_source);
+    const validate_phase4_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_VALIDATOR_BLOB_SHA={s}",
+        .{validate_phase4_blob_sha},
+    );
+    defer std.testing.allocator.free(validate_phase4_marker);
+
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+    const review_checklist_blob_sha = try gitBlobShaHex(review_checklist_source);
+    const review_checklist_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={s}",
+        .{review_checklist_blob_sha},
+    );
+    defer std.testing.allocator.free(review_checklist_marker);
+
     try expectMarker(gate_evidence_source, atomic64_diff_blob_marker);
+    try expectMarker(gate_evidence_source, validate_phase4_marker);
+    try expectMarker(gate_evidence_source, review_checklist_marker);
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase9_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase9_build_survey_blob_pin_drift");
+    try expectMarker(gate_evidence_source, "validator_blob_pin_drift");
+    try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
+    try expectMarker(gate_evidence_source, "shared_validator_expected_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "perf_baseline_packet_presence_drift");
     try expectMarker(gate_evidence_source, "perf_baseline_note_split_marker_drift");
     try expectMarker(gate_evidence_source, "test_fsmount_gap_packet_presence_drift");
@@ -424,8 +455,12 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "phase4-runtime-atomic64-diff-survey-tests");
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_ATOMIC64_DIFF_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_VALIDATOR_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=", 1);
 }
 
 test "atomic64 diff wrapper keeps rollback ownership and threshold posture explicit" {
