@@ -189,6 +189,12 @@ Key entrypoints
   * `zigux/tests/fixtures/phase3_abi/expected.json`
   * `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
   * `zigux/tests/phase14_build.zig`
+  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+  * `zigux/tests/phase14_workqueue_reviewability.zig`
+  * `zigux/tests/phase14_workqueue_bridge_manifest.json`
+  * `zigux/tests/phase14_skbuff_bridge_manifest.json`
+  * `zigux/tests/phase14_ring_buffer_manifest.json`
+  * `zigux/tests/phase14_rcu_tree_manifest.json`
   * `zigux/tests/phase14_ring_buffer_survey.zig`
   * `zigux/tests/phase14_rcu_tree_survey.zig`
   * `zigux/tests/phase14_skbuff_bridge.zig`
