@@ -1,7 +1,14 @@
 {
   "phase": "Phase 6",
   "tranche": "leaf-helper-parity",
-  "status": "parked",
+  "status": "partially_blocked",
+  "packet_state_summary": {
+    "base64": "partial_direct_c_parity_only",
+    "bsearch": "parked_reviewable",
+    "checksum": "blocked_helper_packet_missing",
+    "hexdump": "parked_reviewable"
+  },
+  "shared_route_truthfulness_note": "base64 still keeps lib/base64.zig plus the direct C parity packet while its focused replay and perf files remain absent, and checksum still lacks lib/checksum.zig plus its helper-owned replay, perf, and fixture files even though shared routes and reminder surfaces still need follow-up to stop advertising that broader packet as fully runnable.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
