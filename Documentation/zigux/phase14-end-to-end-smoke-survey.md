@@ -67,7 +67,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `007f00d0c6b6b430bfbb2110555544cc5faefe8b`, ready-next `phase14-workqueue-pending-bit-audit`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-Y03`, surveyed commit `f05e02445443e7743c3675a6f8ca4f70f6e736fb`, ready-next none currently recorded, blocked `phase14-skbuff-live-ownership-blocker`
-  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `99cd3249c4bab05b74227ed7ca3869284e818588`, ready-next `phase14-ring-buffer-tracefs-reader-serialization-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
+  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `99cd3249c4bab05b74227ed7ca3869284e818588`, ready-next none currently recorded, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4c889233d157960514b241bcd5aff7cac5fda312`, ready-next none currently recorded, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
@@ -82,7 +82,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `Documentation/zigux/README.md` and `zigux/tests/README.md` now remain part of the explicit shared smoke surface inventory, so the docs root and tests root keep the same study-only packet visible without depending on phase-local notes alone.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
 - `Documentation/zigux/review-checklist.md` still carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
-- same-phase bounded follow-up should stay inside the workqueue or ring-buffer lanes only; `net/core/skbuff.c` and `kernel/rcu/tree.c` remain parked under freeze-oriented governance and should not be reopened from this shared smoke note as ordinary bounded-internal next-step lanes.
+- same-phase bounded follow-up now narrows to the workqueue lane only; `Documentation/zigux/phase14-ring-buffer-survey.md` no longer records a smaller review-only ready-next step after the tracefs reader-serialization audit, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain parked under freeze-oriented governance and should not be reopened from this shared smoke note as ordinary bounded-internal next-step lanes.
 
 ## Productization evidence
 
@@ -124,4 +124,4 @@ This shared smoke slice does not claim:
 
 ## Next bounded step
 
-Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts. If current `master` does drift again, reopen only the smallest same-packet truthfulness repair inside `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/Makefile`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before touching any deeper Phase 14 study surfaces. Same-phase bounded follow-up remains limited to the workqueue and ring-buffer lanes, while skbuff and RCU stay parked under the freeze-oriented governance packet.
+Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts. If current `master` does drift again, reopen only the smallest same-packet truthfulness repair inside `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/Makefile`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before touching any deeper Phase 14 study surfaces. Same-phase bounded follow-up now narrows to `phase14-workqueue-pending-bit-audit`; the ring-buffer packet has no smaller review-only ready-next step recorded after the tracefs reader-serialization audit, while skbuff and RCU stay parked under the freeze-oriented governance packet.
