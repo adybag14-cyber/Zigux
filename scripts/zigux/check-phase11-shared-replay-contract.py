@@ -32,6 +32,17 @@ MARKERS = {
         "* `zigux/tests/phase11_hvc_console_manifest.json`",
         "* `zigux/tests/phase11_hvc_console_survey.zig`",
         "* `make -C zigux phase11-hvc-survey`",
+        "The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:",
+        "* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "* `Documentation/zigux/phase11-dw-wdt-survey.md`",
+        "* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+        "* `scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`",
+        "* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "* `zigux/tests/phase11_dw_wdt_manifest.json`",
+        "* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "* `zigux/tests/phase11_dw_wdt_survey.zig`",
+        "* `drivers/watchdog/dw_wdt_verify.zig`",
         "* `scripts/zigux/check-phase11-header-boundary-packet.py`",
         "* `zigux/tests/phase11_uapi_header_parity_survey.zig`",
     ],
@@ -42,20 +53,22 @@ MARKERS = {
         "* `make -C zigux phase11`",
         "* there is no shared `validate-phase11.py`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
+        "* DesignWare watchdog continuity stays with `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_survey.zig`",
         "* HVC archival continuity stays with `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `make -C zigux phase11-hvc-survey`",
         "* shared header boundary continuity stays with `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`",
     ],
     "lane_note": [
         "# Phase 11 Driver Lane Sequencing",
-        "- HVC delivery-gate lane `P11-L16` owns `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey`",
+        "- DesignWare lane `P11-L05` owns `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`",
         "The shared packet surfaces still living together on current `master` are `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, and `make -C zigux phase11`.",
         "Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the shared notes, the shared contract checker, the shared `phase11_build.zig` route, and `make -C zigux phase11`, while `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains the focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when reminder wording moves.",
         "Keep the current validator posture explicit: there is a shared `zigux/tests/phase11_build.zig` route and a shared `make -C zigux phase11` wrapper on current `master`, but there is no shared `validate-phase11.py`, no shared `zigux/tests/fixtures/phase11_build_inventory.json`, and no shared `make -C zigux phase11-validate` target, so reminder-surface edits should stay aligned with the surviving build-backed packet instead of reviving the older inventory-driven validator story.",
+        "Keep the DesignWare lane honest: on current `master` the landed DesignWare packet is the validation matrix, survey note, teardown note, registration-scaffold replay, verify helper, dedicated packet checker, and shared Phase 11 replay route rather than a docs-only planning placeholder.",
         "Keep the HVC delivery-gate lane honest: on current `master` the landed HVC archival packet is the manifest-backed survey gate, modem-control split, poll-retry split, sysrq helper, teardown note, validation matrix, and dedicated `phase11-hvc-survey` route rather than a missing or purely reminder-only packet.",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 15
 
 
 class CheckError(RuntimeError):
@@ -104,8 +117,9 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_shared_contract_"))
     try:
-        build_self_test_fixture(tmpdir)
-        run_check(tmpdir)
+        fixture_root = tmpdir / "fixture"
+        build_self_test_fixture(fixture_root)
+        run_check(fixture_root)
 
         cases = [
             (FILES["note"], MARKERS["note"][2]),
@@ -113,9 +127,12 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][7]),
             (FILES["note"], MARKERS["note"][12]),
             (FILES["note"], MARKERS["note"][16]),
+            (FILES["note"], MARKERS["note"][20]),
+            (FILES["note"], MARKERS["note"][24]),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
             (FILES["closure_note"], MARKERS["closure_note"][7]),
+            (FILES["lane_note"], MARKERS["lane_note"][0]),
             (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
             (FILES["lane_note"], MARKERS["lane_note"][4]),
@@ -124,7 +141,7 @@ def run_self_test() -> None:
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
             case_root = tmpdir / f"case_{idx}"
-            shutil.copytree(tmpdir, case_root, dirs_exist_ok=True)
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             path.write_text(path.read_text(encoding="utf-8").replace(marker + "\n", "", 1), encoding="utf-8")
             expect_failure(case_root, marker)
