@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-11",
+  "surveyed_commit": "master-readback-2026-05-12",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -12,9 +12,9 @@
     "preexisting_phase13_build_present": false,
     "preexisting_phase13_make_target_present": true,
     "preexisting_devres_zig_present": true,
-    "preexisting_phase13_devres_test_present": false,
+    "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
-    "preexisting_phase13_devres_reviewability_present": false,
+    "preexisting_phase13_devres_reviewability_present": true,
     "preexisting_phase13_devres_survey_present": true,
     "preexisting_phase13_devres_dma_coherent_present": true
   },
@@ -24,28 +24,28 @@
       "status": "blocked_on_missing_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master no longer ships the older shared Phase 13 build packet, so this narrower helper-local replay stays standalone instead of pretending the build route is still present."
+      "why_now": "Current master still does not ship the older shared Phase 13 build packet, so this narrower helper-local packet must keep that missing wider replay route explicit instead of pretending it is already back."
     },
     {
       "id": "phase13-devres-test-gate",
-      "status": "blocked_on_missing_direct_devres_test_surface",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The older direct devres packet is not on current master, so this lane currently keeps only the helper-local DMA or scatterlist boundary replay explicit."
+      "why_now": "The direct devres replay is present on current master and keeps the helper-first devm_iounmap() plus UC/WC MMIO evidence machine-checkable without pretending the wider shared build packet is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
-      "status": "blocked_on_missing_reviewability_surface",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate referenced by earlier lane notes is absent on current master, so this slice records that drift instead of claiming it still ships."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the helper-only DMA/scatterlist boundary plus manifest alignment reviewable inside the shipped packet."
     },
     {
       "id": "phase13-devres-dma-coherent-replay",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_dma_coherent.zig",
-      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA or scatterlist boundary machine-checkable even while the wider Phase 13 packet remains partially missing on current master."
+      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA/scatterlist boundary machine-checkable even while the wider Phase 13 build packet remains missing on current master."
     },
     {
       "id": "phase13-devres-live-dma-backed-helpers",
