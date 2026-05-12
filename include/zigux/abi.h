@@ -28,11 +28,11 @@
 #define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED 1U
 #define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED 1U
 
-struct zigux_boundary_header {
+typedef struct zigux_boundary_header {
     uint32_t size;
     uint16_t abi_version;
     uint16_t flags;
-};
+} zigux_boundary_header;
 
 struct zigux_export_status {
     int32_t code;
@@ -53,7 +53,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
     uint32_t status;
 };
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
@@ -71,10 +71,10 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t skipped;
 };
 
-static inline struct zigux_boundary_header zigux_default_header(uint16_t flags)
+static inline zigux_boundary_header zigux_default_header(uint16_t flags)
 {
-    struct zigux_boundary_header header = {
-        .size = (uint32_t)sizeof(struct zigux_boundary_header),
+    zigux_boundary_header header = {
+        .size = (uint32_t)sizeof(zigux_boundary_header),
         .abi_version = (uint16_t)ZIGUX_ABI_VERSION,
         .flags = flags,
     };
