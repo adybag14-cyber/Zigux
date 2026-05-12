@@ -212,4 +212,22 @@ test "phase3 atomic wrappers keep bit wrappers reviewable" {
     try std.testing.expectEqual(@as(u8, 0b0000_0010), flags);
     try std.testing.expectEqual(@as(u1, 0), bitToggle(u8, &flags, 0, .seq_cst));
     try std.testing.expectEqual(@as(u8, 0b0000_0011), flags);
+
+    var high_bit_flags: u64 = 0;
+    const high_bit_index: u16 = @bitSizeOf(u64) - 1;
+
+    try std.testing.expectEqual(@as(u1, 0), bitSet(u64, &high_bit_flags, high_bit_index, .acq_rel));
+    try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 1), bitSet(u64, &high_bit_flags, high_bit_index, .monotonic));
+    try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
+
+    try std.testing.expectEqual(@as(u1, 1), bitReset(u64, &high_bit_flags, high_bit_index, .release));
+    try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 0), bitReset(u64, &high_bit_flags, high_bit_index, .acquire));
+    try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
+
+    try std.testing.expectEqual(@as(u1, 0), bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst));
+    try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 1), bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst));
+    try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
 }
