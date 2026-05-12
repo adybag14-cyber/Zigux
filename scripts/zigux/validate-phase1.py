@@ -85,6 +85,9 @@ EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY = (
 EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
     "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root leftmost-return fixture keys"
 )
+EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
+)
 EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
     "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
 )
@@ -327,6 +330,8 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
         rbtree_review_anchors = {}
     if rbtree_review_anchors.get("review_packet_summary") != EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:review_packet_summary")
+    if rbtree_review_anchors.get("next_safe_step_note") != EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:next_safe_step_note")
 
     string_review_anchors = review_anchors.get("tools/lib/string.zig")
     if not isinstance(string_review_anchors, dict):
@@ -515,6 +520,7 @@ def make_fixture_root(root: Path) -> None:
         "helper_test_anchors": ['test "rbtree inserts and traverses in sorted order"'],
         "parity_fixture_keys": ["find_found_key"],
         "review_packet_summary": EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY,
+        "next_safe_step_note": EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
     }
 
     for helper, anchors in manifest["review_anchors"].items():
@@ -643,6 +649,13 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "stale rbtree summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:next_safe_step_note" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
