@@ -18,6 +18,9 @@ PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_mani
 PHASE2_ARTIFACT_TOOLS_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
 )
+GENKSYMS_BRIDGE_MANIFEST = (
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "manifest.json"
+)
 KCONFIG_CONF_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 )
@@ -72,6 +75,92 @@ PHASE2_ARTIFACT_TOOLS_MANIFEST_EXPECTED = {
     "artifact_tools": [
         "genksyms_crc",
         "mk_elfconfig",
+    ],
+}
+
+GENKSYMS_BRIDGE_MANIFEST_EXPECTED = {
+    "tool": "scripts/zigux/genksyms.zig",
+    "status": "closed",
+    "mode": "wrapper-first bridge",
+    "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
+    "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "case_count": 22,
+    "cases": [
+        "minimal",
+        "debug_reference_types",
+        "long_options",
+        "abbreviated_long_options",
+        "ambiguous_long_option",
+        "quiet_overrides_warning",
+        "explicit_option_terminator",
+        "positional_passthrough",
+        "lone_dash_passthrough",
+        "help",
+        "version_then_short_help",
+        "version_then_long_help",
+        "abbreviated_help",
+        "unexpected_help_argument",
+        "version",
+        "abbreviated_version",
+        "invalid_option",
+        "missing_reference_argument",
+        "unsupported_long_option",
+        "missing_long_reference_argument",
+        "missing_long_dump_types_argument",
+        "too_many_reference_files",
+    ],
+    "stdout_packet": [
+        "minimal_expected.json",
+        "debug_reference_types_expected.json",
+        "long_options_expected.json",
+        "abbreviated_long_options_expected.json",
+        "quiet_overrides_warning_expected.json",
+        "explicit_option_terminator_expected.json",
+        "positional_passthrough_expected.json",
+        "lone_dash_passthrough_expected.json",
+    ],
+    "process_packet": [
+        "ambiguous_long_option_expected.json",
+        "help_expected.json",
+        "version_then_help_expected.json",
+        "unexpected_help_argument_expected.json",
+        "version_expected.json",
+        "abbreviated_version_expected.json",
+        "invalid_option_expected.json",
+        "missing_reference_argument_expected.json",
+        "unsupported_long_option_expected.json",
+        "missing_long_reference_argument_expected.json",
+        "missing_long_dump_types_argument_expected.json",
+        "too_many_reference_files_expected.json",
+    ],
+    "normalized_stderr_packet": [
+        "ambiguous_long_option_expected.json",
+        "unexpected_help_argument_expected.json",
+        "invalid_option_expected.json",
+        "missing_reference_argument_expected.json",
+        "unsupported_long_option_expected.json",
+        "missing_long_reference_argument_expected.json",
+        "missing_long_dump_types_argument_expected.json",
+        "too_many_reference_files_expected.json",
+    ],
+    "action_abbrev_cases": [
+        "abbreviated_long_options",
+        "abbreviated_help",
+        "abbreviated_version",
+    ],
+    "helper_local_anchors": [
+        "genksyms bridge parses repeated short flags and arguments",
+        "genksyms bridge parses long options and quiet override",
+        "genksyms bridge keeps version as a side effect while parsing later options",
+        "genksyms bridge accepts unambiguous abbreviated long options",
+        "genksyms bridge canonicalizes unexpected long option argument failures",
+        "genksyms bridge treats lone dash as positional passthrough",
+        "genksyms bridge accepts explicit option terminator",
+        "genksyms bridge reports invalid short option in getopt style",
+        "genksyms bridge reports missing short option argument in getopt style",
+        "genksyms bridge rejects more than sixteen reference files like the C harness",
+        "genksyms bridge renders normalized invocation plan",
+        "genksyms bridge ignores positional args while still parsing later options",
     ],
 }
 
@@ -350,6 +439,20 @@ def validate_root(root: Path) -> list[str]:
         )
 
     payload, load_issues = load_json(
+        root / GENKSYMS_BRIDGE_MANIFEST.relative_to(ROOT),
+        "genksyms_bridge_manifest",
+    )
+    issues.extend(load_issues)
+    if payload is not None:
+        issues.extend(
+            validate_expected_object(
+                payload,
+                GENKSYMS_BRIDGE_MANIFEST_EXPECTED,
+                "genksyms_bridge_manifest",
+            )
+        )
+
+    payload, load_issues = load_json(
         root / KCONFIG_CONF_MANIFEST.relative_to(ROOT), "conf_manifest"
     )
     issues.extend(load_issues)
@@ -403,6 +506,10 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(PHASE2_ARTIFACT_TOOLS_MANIFEST_EXPECTED, indent=2) + "\n",
     )
     write_text(
+        root / "zigux/tests/fixtures/genksyms_bridge/manifest.json",
+        json.dumps(GENKSYMS_BRIDGE_MANIFEST_EXPECTED, indent=2) + "\n",
+    )
+    write_text(
         root / "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         json.dumps(KCONFIG_CONF_MANIFEST_EXPECTED, indent=2) + "\n",
     )
@@ -434,6 +541,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert "phase2_tool_manifest:families:expected=['fixdep', 'genksyms_bridge', 'kconfig_bridge', 'confdata_bridge']:actual=['fixdep', 'genksyms_bridge', 'kconfig_bridge', 'confdata_bridge', 'unexpected']" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        payload = json.loads((root / "zigux/tests/fixtures/genksyms_bridge/manifest.json").read_text(encoding="utf-8"))
+        payload["case_count"] = 21
+        write_text(
+            root / "zigux/tests/fixtures/genksyms_bridge/manifest.json",
+            json.dumps(payload, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert "genksyms_bridge_manifest:case_count:expected=22:actual=21" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -534,7 +652,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=8")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=9")
     return 0
 
 
