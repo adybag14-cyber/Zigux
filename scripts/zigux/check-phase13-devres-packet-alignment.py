@@ -9,7 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 MANIFEST_PATH = "zigux/tests/phase13_devres_manifest.json"
+SLICE_PATH = "Documentation/zigux/phase13-devres-slice.md"
 SURVEY_PATH = "Documentation/zigux/phase13-devres-survey.md"
+HELPER_PATH = "lib/devres.zig"
 REPLAY_PATH = "zigux/tests/phase13_devres.zig"
 
 STALE_SLICE_MARKER = "PHASE13_SLICE=devres-dma-scatterlist-boundary-survey"
@@ -22,6 +24,29 @@ MANIFEST_TO_SURVEY_MARKERS = {
     '"id": "phase13-devres-arch-phys-wc-token-planner"': "devm_arch_phys_wc_add()",
     '"id": "phase13-devres-live-scatterlist-ownership"': "helper-only DMA/scatterlist boundary",
 }
+
+IOUNMAP_SLICE_MARKERS = [
+    "devm_iounmap()",
+]
+
+IOUNMAP_SURVEY_MARKERS = [
+    "devm_iounmap()",
+]
+
+IOUNMAP_HELPER_MARKERS = [
+    ".provides_iounmap_call_planning = true",
+    "pub const ManagedIounmapPlan = struct {",
+    "pub fn ioremapReleaseMatches(",
+    "pub fn planManagedIounmap(",
+    ".warns_on_release_miss = !release_matches",
+]
+
+IOUNMAP_REPLAY_MARKERS = [
+    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
+    "const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
+    "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
+    "try std.testing.expect(miss.warns_on_release_miss);",
+]
 
 
 def read_text(path: Path) -> str:
@@ -42,16 +67,26 @@ def require_file(root: Path, rel: str, errors: list[str]) -> Path | None:
     return path
 
 
+def require_markers(source: str, prefix: str, markers: list[str], errors: list[str]) -> None:
+    for marker in markers:
+        if marker not in source:
+            errors.append(f"{prefix}:missing_marker:{marker}")
+
+
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
     manifest_path = require_file(root, MANIFEST_PATH, errors)
+    slice_path = require_file(root, SLICE_PATH, errors)
     survey_path = require_file(root, SURVEY_PATH, errors)
+    helper_path = require_file(root, HELPER_PATH, errors)
     replay_path = require_file(root, REPLAY_PATH, errors)
     if errors:
         return errors
 
     manifest_text = read_text(manifest_path)
+    slice_text = read_text(slice_path)
     survey_text = read_text(survey_path)
+    helper_text = read_text(helper_path)
     replay_text = read_text(replay_path)
 
     try:
@@ -84,6 +119,11 @@ def validate(root: Path) -> list[str]:
     if STALE_CHECKER_WARNING not in survey_text:
         errors.append("survey:missing_stale_checker_warning")
 
+    require_markers(slice_text, "slice", IOUNMAP_SLICE_MARKERS, errors)
+    require_markers(survey_text, "survey", IOUNMAP_SURVEY_MARKERS, errors)
+    require_markers(helper_text, "helper", IOUNMAP_HELPER_MARKERS, errors)
+    require_markers(replay_text, "replay", IOUNMAP_REPLAY_MARKERS, errors)
+
     return errors
 
 
@@ -109,15 +149,44 @@ def seed_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(
+        root / SLICE_PATH,
+        "\n".join(
+            [
+                "# Phase 13 devres Slice",
+                "- keep the `devm_iounmap()` pointer match exact",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
         root / SURVEY_PATH,
         "\n".join(
             [
                 "# Phase 13 devres Survey",
                 "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
                 "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
+                "- `devm_iounmap()` stays helper-first",
                 "- `devm_arch_phys_wc_add()` remains helper-first",
                 "- keep the helper-only DMA/scatterlist boundary explicit",
                 "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / HELPER_PATH,
+        "\n".join(
+            [
+                "pub const ModuleDescriptor = struct {",
+                "    provides_iounmap_call_planning: bool,",
+                "};",
+                ".provides_iounmap_call_planning = true",
+                "pub const ManagedIounmapPlan = struct {",
+                "    warns_on_release_miss: bool,",
+                "};",
+                "pub fn ioremapReleaseMatches(",
+                "pub fn planManagedIounmap(",
+                "    .warns_on_release_miss = !release_matches",
             ]
         )
         + "\n",
@@ -129,6 +198,11 @@ def seed_fixture_tree(root: Path) -> None:
                 'test "phase13 devres manifest records the current helper packet" {',
                 '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
                 '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"46a78c958bba5c1eb819b3213a6409f81ee7ab22\\"");',
+                "}",
+                'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
+                "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
+                "  const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
+                "  try std.testing.expect(miss.warns_on_release_miss);",
                 "}",
             ]
         )
@@ -161,6 +235,7 @@ def run_self_test() -> int:
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:helper-only DMA/scatterlist boundary",
                 "survey:missing_stale_checker_warning",
+                "survey:missing_marker:devm_iounmap()",
             ],
             "stale_slice_label_failed",
         )
@@ -170,7 +245,12 @@ def run_self_test() -> int:
         write_text(
             root / REPLAY_PATH,
             'try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L05\\"");\n'
-            'try expectContains(manifest_text, "\\"surveyed_commit\\": \\"46a78c958bba5c1eb819b3213a6409f81ee7ab22\\"");\n',
+            'try expectContains(manifest_text, "\\"surveyed_commit\\": \\"46a78c958bba5c1eb819b3213a6409f81ee7ab22\\"");\n'
+            'test "phase13 devres plans a managed iounmap call and warns on release misses" {\n'
+            "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);\n"
+            "  const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);\n"
+            "  try std.testing.expect(miss.warns_on_release_miss);\n"
+            "}\n",
         )
         assert_only(validate(root), ["replay:lane_key_mismatch:P13-L01"], "lane_key_mismatch_failed")
         case_count += 1
@@ -179,7 +259,12 @@ def run_self_test() -> int:
         write_text(
             root / REPLAY_PATH,
             'try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");\n'
-            'try expectContains(manifest_text, "\\"surveyed_commit\\": \\"10369315cba5d146a7c6c4c6480ef9d279dc490f\\"");\n',
+            'try expectContains(manifest_text, "\\"surveyed_commit\\": \\"10369315cba5d146a7c6c4c6480ef9d279dc490f\\"");\n'
+            'test "phase13 devres plans a managed iounmap call and warns on release misses" {\n'
+            "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);\n"
+            "  const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);\n"
+            "  try std.testing.expect(miss.warns_on_release_miss);\n"
+            "}\n",
         )
         assert_only(
             validate(root),
@@ -190,13 +275,54 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
-            root / SURVEY_PATH,
+            root / SLICE_PATH,
+            "# Phase 13 devres Slice\n- helper-only token planner\n",
+        )
+        assert_only(
+            validate(root),
+            ["slice:missing_marker:devm_iounmap()"],
+            "slice_iounmap_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
             "\n".join(
                 [
-                    "# Phase 13 devres Survey",
-                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
-                    "- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`",
-                    "- helper-first boundary summary only",
+                    "pub const ModuleDescriptor = struct {",
+                    "    provides_iounmap_call_planning: bool,",
+                    "};",
+                    ".provides_iounmap_call_planning = true",
+                    "pub const ManagedIounmapPlan = struct {",
+                    "    warns_on_release_miss: bool,",
+                    "};",
+                    "pub fn ioremapReleaseMatches(",
+                    "    .warns_on_release_miss = !release_matches",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:pub fn planManagedIounmap("],
+            "helper_iounmap_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            "\n".join(
+                [
+                    'test "phase13 devres manifest records the current helper packet" {',
+                    '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
+                    '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"46a78c958bba5c1eb819b3213a6409f81ee7ab22\\"");',
+                    "}",
+                    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
+                    "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
+                    "  try std.testing.expect(exact.release_matches);",
+                    "}",
                 ]
             )
             + "\n",
@@ -204,34 +330,10 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
-                "survey:missing_marker:devm_arch_phys_wc_add()",
-                "survey:missing_marker:helper-only DMA/scatterlist boundary",
-                "survey:missing_stale_checker_warning",
+                "replay:missing_marker:const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
+                "replay:missing_marker:try std.testing.expect(miss.warns_on_release_miss);",
             ],
-            "survey_marker_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / SURVEY_PATH,
-            "\n".join(
-                [
-                    "# Phase 13 devres Survey",
-                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
-                    "- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`",
-                    "- `devm_arch_phys_wc_add()` remains helper-first",
-                    "- keep the helper-only DMA/scatterlist boundary explicit",
-                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22"],
-            "survey_commit_mismatch_failed",
+            "replay_iounmap_marker_failed",
         )
         case_count += 1
 
@@ -245,14 +347,15 @@ def run_self_test() -> int:
                     "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
                     "- `devm_arch_phys_wc_add()` remains helper-first",
                     "- keep the helper-only DMA/scatterlist boundary explicit",
+                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
                 ]
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["survey:missing_stale_checker_warning"],
-            "missing_stale_checker_warning_failed",
+            ["survey:missing_marker:devm_iounmap()"],
+            "survey_iounmap_marker_failed",
         )
         case_count += 1
 
