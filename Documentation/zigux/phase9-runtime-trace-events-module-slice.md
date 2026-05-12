@@ -33,7 +33,7 @@ Current `master` also still exposes the adjacent shared loader-facing packet:
 - `zigux/tests/phase9_build.zig`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
-That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again, while the broader runtime-substrate handoff remains a separate blocked step.
+That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, and still leaves the broader runtime-substrate handoff as a separate blocked step.
 
 ## What this slice owns
 
