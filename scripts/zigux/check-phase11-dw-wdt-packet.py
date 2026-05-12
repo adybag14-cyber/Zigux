@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the bounded Phase 11 DesignWare watchdog ownership packet."""
+"""Fail-closed checker for the surviving Phase 11 DesignWare watchdog ownership packet."""
 
 from __future__ import annotations
 
@@ -12,55 +12,32 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
-    "validation_matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-    "survey_note": "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "teardown_note": "Documentation/zigux/phase11-dw-wdt-teardown-note.md",
-    "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
+    "lane_sequencing": "Documentation/zigux/phase11-driver-lane-sequencing.md",
 }
 
 MARKERS = {
     "plan_note": [
         "# Phase 11 DesignWare Watchdog Platform Registration Plan",
-        "This note records the next bounded follow-up for the landed Phase 11 DesignWare watchdog packet on current `master`.",
-        "The live repository already ships a bounded `dw_wdt` packet under the DesignWare lane:",
-        "`drivers/watchdog/dw_wdt.zig` keeps fixed and custom TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and the registration-facing handoff reviewable",
-        "`drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig` keep the current teardown, registration-order, and survey packet replayable",
-        "`zigux/tests/phase11_dw_wdt_manifest.json`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md` keep the current lane evidence and ownership boundaries explicit",
-        "That means the honest next step is no longer to invent a first DesignWare packet.",
-        "The next bounded follow-up is to attach the already-landed registration-facing handoff to one acquisition-facing platform-registration scaffold while keeping the current validation matrix and teardown note as the lane's truth surfaces.",
-        "Keep the next implementation bounded to one acquisition-facing scaffold inside the existing DesignWare packet without claiming a full probe path.",
-        "3. reuse the existing ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`",
-        "- `drivers/watchdog/dw_wdt.zig`",
-        "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-        "- update `zigux/tests/phase11_dw_wdt_manifest.json` and `Documentation/zigux/phase11-dw-wdt-survey.md` only if the new scaffold changes shipped lane evidence",
-        "- keep `Documentation/zigux/phase11-dw-wdt-teardown-note.md` unchanged unless `stop()`, `teardownSummary()`, or `removeSummary()` ownership actually moves",
-        "If neither acquisition branch lands yet, keep this note aligned with the already-landed DesignWare packet instead of reopening shared Phase 11 reminder surfaces.",
+        "This note records the next bounded follow-up for the surviving Phase 11 DesignWare watchdog packet on current `master`.",
+        "The live repository still keeps the DesignWare lane reviewable through:",
+        "`drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries",
+        "`drivers/watchdog/dw_wdt_verify.zig` for the directly coupled teardown and failure-mode review surface",
+        "`Documentation/zigux/phase11-driver-lane-sequencing.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the current owner-lane packet truth, pinned to `P11-L10`",
+        "That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.",
+        "The next bounded follow-up is still to attach the registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
+        "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` together when the DesignWare packet meaning changes",
+        "- create a new DesignWare manifest, survey, validation-matrix, or teardown surface only if a future scaffold lands enough new lane evidence to justify reviving it",
+        "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        "If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.",
     ],
-    "validation_matrix": [
-        "# Phase 11 DesignWare Watchdog Validation Matrix",
-        "active watchdog continuity for this matrix and its coupled survey packet is `P11-L05`",
-        "registration-facing and pre-registration platform handoff",
-        "keep this handoff truthful while the next step stays limited to one platform-backed registration scaffold that reuses this matrix as the hardware-validation plan",
-    ],
-    "survey_note": [
-        "# Phase 11 DesignWare Watchdog Survey",
-        "The remaining simple-driver gap is the next ready step already hinted at by the starter: attach the bounded registration-facing handoff and its already-recorded registration-order scaffold to platform-backed registration scaffolding",
-        "This cleanup packet now carries lane identity `P11-L05`",
-    ],
-    "teardown_note": [
-        "# Phase 11 DesignWare Watchdog Teardown Note",
-        "`stop()` owns the reset-control split",
-        "keep this note tied only to `drivers/watchdog/dw_wdt.zig` and its directly coupled remove or teardown checks in `zigux/tests/phase11_dw_wdt.zig` and `drivers/watchdog/dw_wdt_verify.zig`",
-    ],
-    "manifest": [
-        '"lane_key": "P11-L05"',
-        '"id": "phase11-dw-wdt-platform-registration-scaffold"',
-        '"status": "ready_next"',
-        '"zigux_destination": "drivers/watchdog/dw_wdt.zig"',
+    "lane_sequencing": [
+        "- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; the next same-lane follow-through is platform-backed registration scaffolding rather than reviving removed manifest, survey, validation-matrix, or teardown reminder surfaces without new evidence",
+        "- DesignWare packet review stays with `P11-L10` through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the current surviving packet, while the next bounded DesignWare follow-through remains platform-backed registration scaffolding",
+        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, and the next bounded step is platform-backed registration scaffolding rather than pretending removed manifest-backed reminder surfaces are still shipped.",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 6
 
 
 class CheckError(RuntimeError):
@@ -117,17 +94,11 @@ def run_self_test() -> None:
 
         cases = [
             (FILES["plan_note"], MARKERS["plan_note"][1]),
-            (FILES["plan_note"], MARKERS["plan_note"][4]),
             (FILES["plan_note"], MARKERS["plan_note"][5]),
-            (FILES["plan_note"], MARKERS["plan_note"][7]),
+            (FILES["plan_note"], MARKERS["plan_note"][6]),
             (FILES["plan_note"], MARKERS["plan_note"][9]),
-            (FILES["plan_note"], MARKERS["plan_note"][12]),
-            (FILES["plan_note"], MARKERS["plan_note"][13]),
-            (FILES["validation_matrix"], MARKERS["validation_matrix"][3]),
-            (FILES["survey_note"], MARKERS["survey_note"][1]),
-            (FILES["teardown_note"], MARKERS["teardown_note"][2]),
-            (FILES["manifest"], MARKERS["manifest"][0]),
-            (FILES["manifest"], MARKERS["manifest"][2]),
+            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][0]),
+            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][2]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
