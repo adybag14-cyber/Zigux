@@ -109,6 +109,14 @@ TEARDOWN_NOTE_MARKERS = [
     "bounded sysrq-handling support through `drivers/tty/hvc/hvc_console_sysrq.zig` without claiming live sysrq execution",
     "poll-retry and drain-order split",
     "modem-control fallback split",
+    "tty detachment",
+    "HUPCL-gated modem-line shutdown",
+    "notifier ownership",
+    "resize-work cancellation",
+    "wait-until-sent intent",
+    "buffered-write clearing",
+    "stale hangup short-circuit behavior",
+    "keep-IRQ-until-hangup teardown boundaries",
     "It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, or hardware-validated teardown parity.",
 ]
 
@@ -171,7 +179,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 24
 
 
 class CheckError(RuntimeError):
@@ -488,6 +496,26 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "poll-retry and drain-order split")
+
+        reset_fixture(tmpdir)
+        teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
+        teardown_missing.write_text(
+            teardown_missing.read_text(encoding="utf-8").replace(
+                "wait-until-sent intent\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "wait-until-sent intent")
+
+        reset_fixture(tmpdir)
+        teardown_missing = tmpdir / REQUIRED_FILES["teardown_note"]
+        teardown_missing.write_text(
+            teardown_missing.read_text(encoding="utf-8").replace(
+                "keep-IRQ-until-hangup teardown boundaries\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "keep-IRQ-until-hangup teardown boundaries")
 
         reset_fixture(tmpdir)
         matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
