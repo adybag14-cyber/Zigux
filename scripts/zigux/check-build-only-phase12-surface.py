@@ -34,6 +34,9 @@ RELEASE_CLOSURE_CHECKLIST_PATH = (
 COMPLEX_DRIVER_LANE_SEQUENCING_PATH = (
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 )
+LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH = (
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+)
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
@@ -60,6 +63,7 @@ REQUIRED_FILES = [
     RELEASE_COORDINATION_MATRIX_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
     COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
+    LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     WORKFLOW_PATH,
@@ -84,9 +88,10 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
-    "the current smoke-first `virtio_scsi` release packet plus the surviving survey-only `virtio_net` boundary and snapshot-backed libbpf survey anchor reviewable from the scripts root",
+    "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
 ]
 
@@ -157,6 +162,14 @@ COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "starter-present `virtio_net` syntax-lab and direct contract packet",
     "stops undercounting the newly landed `virtio_net` starter",
+]
+
+LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS = [
+    "`PHASE12_LANE=libbpf-heavy-consumer-shared-release-packet`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
+    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
+    "There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`.",
 ]
 
 LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
@@ -298,6 +311,11 @@ def validate(root: Path) -> list[str]:
             "complex_driver_lane_sequencing",
             COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
             COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
+        ),
+        (
+            "libbpf_heavy_consumer_lane_sequencing",
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH,
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS,
         ),
         (
             "libbpf_verify_shard_note",
@@ -471,6 +489,10 @@ def placeholder_for(rel_path: str) -> str:
             "# Phase 12 Complex-Driver Lane Sequencing",
             COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
         ),
+        LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH: minimal_join(
+            "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS,
+        ),
         LIBBPF_VERIFY_SHARD_NOTE_PATH: minimal_join(
             "# Phase 12 Libbpf Verify Shard Note", LIBBPF_VERIFY_SHARD_NOTE_MARKERS
         ),
@@ -545,7 +567,7 @@ def run_self_test() -> int:
         scripts_readme_path = base / SCRIPTS_README_PATH
         scripts_readme_path.write_text(
             scripts_readme_path.read_text(encoding="utf-8").replace(
-                SCRIPTS_README_MARKERS[10],
+                SCRIPTS_README_MARKERS[11],
                 "",
                 1,
             ),
@@ -553,7 +575,7 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            f"scripts_readme:{SCRIPTS_README_MARKERS[10]}",
+            f"scripts_readme:{SCRIPTS_README_MARKERS[11]}",
         )
 
         write_fixture_tree(base)
@@ -567,6 +589,20 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[5]}",
+        )
+
+        write_fixture_tree(base)
+        libbpf_lane_path = base / LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
+        libbpf_lane_path.write_text(
+            libbpf_lane_path.read_text(encoding="utf-8").replace(
+                LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[3], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "libbpf_heavy_consumer_lane_sequencing:"
+            f"{LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[3]}",
         )
 
         write_fixture_tree(base)
@@ -600,7 +636,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -648,6 +684,7 @@ def main() -> int:
         + len(RELEASE_COORDINATION_MATRIX_MARKERS)
         + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
         + len(COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS)
+        + len(LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS)
         + len(LIBBPF_VERIFY_SHARD_NOTE_MARKERS)
         + len(RAW_GITHUB_COVERAGE_SURVEY_MARKERS)
         + len(WORKFLOW_MARKERS)
