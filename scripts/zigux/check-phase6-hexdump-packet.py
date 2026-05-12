@@ -79,7 +79,17 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+PERF_MATRIX_MARKERS = [
+    'const fixtures = @import("phase6_hexdump_vectors");',
+    '.label = "16B-plain-g1"',
+    '.label = "32B-ascii-g2"',
+    '.label = "16B-ascii-g4"',
+    '.label = "16B-ascii-g8"',
+    'return error.HexdumpPerfMatrixMismatch;',
+    'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
+]
+
+SELF_TEST_CASE_COUNT = 13
 
 
 class CheckError(RuntimeError):
@@ -113,7 +123,7 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
     expect_nonempty(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]))
     expect_nonempty(REQUIRED_FILES["perf_test"], read_text(root, REQUIRED_FILES["perf_test"]))
-    expect_nonempty(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]))
+    expect_markers(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]), PERF_MATRIX_MARKERS)
     expect_nonempty(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]))
 
 
@@ -131,7 +141,7 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["focused_test"], 'test "phase6 hexdump focused replay placeholder" {}\n')
     write(root / REQUIRED_FILES["perf_test"], 'const perf_case = "phase6 hexdump perf placeholder";\n')
-    write(root / REQUIRED_FILES["perf_matrix_test"], 'test "phase6 hexdump perf matrix placeholder" {}\n')
+    write(root / REQUIRED_FILES["perf_matrix_test"], "\n".join(PERF_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["fixtures"], "pub const length_cases = [_]u8{0};\n")
 
 
@@ -197,6 +207,14 @@ def run_self_test() -> None:
         perf_test = tmpdir / REQUIRED_FILES["perf_test"]
         perf_test.unlink()
         expect_failure(tmpdir, REQUIRED_FILES["perf_test"])
+
+        build_self_test_fixture(tmpdir)
+        perf_matrix_test = tmpdir / REQUIRED_FILES["perf_matrix_test"]
+        perf_matrix_test.write_text(
+            perf_matrix_test.read_text(encoding="utf-8").replace('.label = "16B-ascii-g8"', '.label = "16B-ascii-g9"', 1),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, '.label = "16B-ascii-g8"')
 
         build_self_test_fixture(tmpdir)
         perf_matrix_test = tmpdir / REQUIRED_FILES["perf_matrix_test"]
