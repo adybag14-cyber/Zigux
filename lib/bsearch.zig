@@ -60,6 +60,19 @@ fn validateRawComparator(comptime Compare: type) void {
     }
 }
 
+pub const IndexRange = struct {
+    lower: usize,
+    upper: usize,
+
+    pub fn len(self: @This()) usize {
+        return self.upper - self.lower;
+    }
+
+    pub fn isEmpty(self: @This()) bool {
+        return self.lower == self.upper;
+    }
+};
+
 fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
     if (result == 0) {
         return true;
@@ -176,6 +189,19 @@ pub fn upperBoundIndex(
     return start;
 }
 
+pub fn equalRangeIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) IndexRange {
+    return .{
+        .lower = lowerBoundIndex(Key, T, key, items, compare),
+        .upper = upperBoundIndex(Key, T, key, items, compare),
+    };
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -258,6 +284,19 @@ pub fn bsearchUpperBoundIndex(
     }
 
     return start;
+}
+
+pub fn bsearchEqualRangeIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) IndexRange {
+    return .{
+        .lower = bsearchLowerBoundIndex(key, base, num, size, compare),
+        .upper = bsearchUpperBoundIndex(key, base, num, size, compare),
+    };
 }
 
 fn compareInt(key: *const i32, item: *const i32) i32 {
@@ -376,6 +415,29 @@ test "typed lower and upper bounds stay stable for ascending and descending dupl
     }
 }
 
+test "equalRangeIndex reports duplicate spans and empty insertion points" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    const ascending_range = equalRangeIndex(i32, i32, &@as(i32, 4), ascending[0..], compareInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
+    try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
+    try std.testing.expect(!ascending_range.isEmpty());
+
+    const ascending_missing = equalRangeIndex(i32, i32, &@as(i32, 5), ascending[0..], compareInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
+    try std.testing.expectEqual(@as(usize, 0), ascending_missing.len());
+    try std.testing.expect(ascending_missing.isEmpty());
+
+    const descending_range = equalRangeIndex(i32, i32, &@as(i32, 4), descending[0..], compareDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
+    try std.testing.expectEqual(@as(usize, 3), descending_range.len());
+
+    const descending_missing = equalRangeIndex(i32, i32, &@as(i32, 20), descending[0..], compareDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
+    try std.testing.expect(descending_missing.isEmpty());
+}
+
 test "raw search helpers keep pointer and mutable contracts" {
     const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const key = @as(i32, 16);
@@ -407,6 +469,30 @@ test "raw lower and upper bounds stay stable for ascending and descending duplic
     try std.testing.expectEqual(@as(usize, 5), bsearchUpperBoundIndex(&@as(i32, 4), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
     try std.testing.expectEqual(@as(usize, 0), bsearchLowerBoundIndex(&@as(i32, 20), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
     try std.testing.expectEqual(@as(usize, descending.len), bsearchUpperBoundIndex(&@as(i32, 0), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+}
+
+test "bsearchEqualRangeIndex reports duplicate spans and empty insertion points" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+
+    const ascending_range = bsearchEqualRangeIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
+    try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
+    try std.testing.expect(!ascending_range.isEmpty());
+
+    const ascending_missing = bsearchEqualRangeIndex(&@as(i32, 5), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
+    try std.testing.expect(ascending_missing.isEmpty());
+
+    const descending_range = bsearchEqualRangeIndex(&@as(i32, 4), descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
+    try std.testing.expectEqual(@as(usize, 3), descending_range.len());
+
+    const descending_missing = bsearchEqualRangeIndex(&@as(i32, 20), descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
+    try std.testing.expect(descending_missing.isEmpty());
 }
 
 test "raw comparator aliases accept native and C calling conventions" {
