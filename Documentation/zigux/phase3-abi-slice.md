@@ -32,6 +32,7 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `scripts/zigux/check-phase3-abi.py`
 - `scripts/zigux/check-phase3-abi-dump-gate.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
@@ -39,6 +40,7 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `scripts/zigux/validate-phase3-validator-support-surface.py`
+- `python3 scripts/zigux/check-phase3-abi.py --self-test`
 - `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `zig build phase3-dump --build-file zigux/tests/build.zig`
