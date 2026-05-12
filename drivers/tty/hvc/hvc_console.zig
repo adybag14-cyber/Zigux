@@ -30,6 +30,7 @@ pub const CloseTeardownRequest = struct {
     notifier_owned: bool,
     resize_work_cancelled: bool,
     wait_until_sent_intent: bool,
+    close_wait_ownership: bool,
     port_initialized_before_close: bool,
 };
 
@@ -39,6 +40,7 @@ pub const CloseTeardownSummary = struct {
     notifier_del_owned: bool,
     resize_work_cancelled: bool,
     wait_until_sent_intent: bool,
+    close_wait_ownership: bool,
     port_initialized_cleared: bool,
 };
 
@@ -49,6 +51,7 @@ pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummar
         .notifier_del_owned = request.notifier_owned,
         .resize_work_cancelled = request.resize_work_cancelled,
         .wait_until_sent_intent = request.wait_until_sent_intent,
+        .close_wait_ownership = request.close_wait_ownership,
         .port_initialized_cleared = request.port_initialized_before_close,
     };
 }
@@ -179,17 +182,20 @@ pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummar
 
 pub const CleanupHandoffRequest = struct {
     tty_port_release_handoff: bool,
+    cleanup_time_tty_port_ownership: bool,
     port_reference_drop_timing: bool,
 };
 
 pub const CleanupHandoffSummary = struct {
     tty_port_release_handoff: bool,
+    cleanup_time_tty_port_ownership: bool,
     port_reference_drop_timing: bool,
 };
 
 pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {
     return .{
         .tty_port_release_handoff = request.tty_port_release_handoff,
+        .cleanup_time_tty_port_ownership = request.cleanup_time_tty_port_ownership,
         .port_reference_drop_timing = request.port_reference_drop_timing,
     };
 }
@@ -211,13 +217,14 @@ pub fn notifier_hangup_irq(hp: *HvcStruct, irq: c_int) void {
     _ = irq;
 }
 
-test "phase11 hvc console keeps final-close teardown summary reviewable" {
+test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {
     const summary = summarizeCloseTeardown(.{
         .tty_detached = true,
         .hupcl = true,
         .notifier_owned = true,
         .resize_work_cancelled = true,
         .wait_until_sent_intent = true,
+        .close_wait_ownership = true,
         .port_initialized_before_close = true,
     });
 
@@ -226,6 +233,7 @@ test "phase11 hvc console keeps final-close teardown summary reviewable" {
     try std.testing.expect(summary.notifier_del_owned);
     try std.testing.expect(summary.resize_work_cancelled);
     try std.testing.expect(summary.wait_until_sent_intent);
+    try std.testing.expect(summary.close_wait_ownership);
     try std.testing.expect(summary.port_initialized_cleared);
 }
 
@@ -273,7 +281,7 @@ test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {
     try std.testing.expect(summary.guard_tick_timed_sleep);
 }
 
-test "phase11 hvc console keeps hangup disconnect and cleanup handoffs reviewable" {
+test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable" {
     const hangup = summarizeHangupDisconnect(.{
         .tty_resize_cancelled = true,
         .stale_count_short_circuit = true,
@@ -282,6 +290,7 @@ test "phase11 hvc console keeps hangup disconnect and cleanup handoffs reviewabl
     });
     const cleanup = summarizeCleanupHandoff(.{
         .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
         .port_reference_drop_timing = true,
     });
 
@@ -290,6 +299,7 @@ test "phase11 hvc console keeps hangup disconnect and cleanup handoffs reviewabl
     try std.testing.expect(hangup.buffered_write_cleared);
     try std.testing.expect(hangup.notifier_hangup_boundary);
     try std.testing.expect(cleanup.tty_port_release_handoff);
+    try std.testing.expect(cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(cleanup.port_reference_drop_timing);
 }
 
