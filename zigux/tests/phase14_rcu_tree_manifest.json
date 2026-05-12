@@ -25,7 +25,7 @@
       "roadmap_destination": "kernel/rcu/tree_bridge.zig",
       "current_state": "blocked_on_stay_in_c_evidence",
       "reviewable_artifact": "Documentation/zigux/freeze-map.md",
-      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-watch or dyntick re-entry transitions, CPU hotplug callback migration, and memory-ordering behavior too tightly together for a Phase 14 bridge claim."
+      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait plus polling-cookie APIs, callback barriers, NOCB offload, idle-watch or dyntick re-entry transitions, CPU hotplug callback migration, and memory-ordering behavior too tightly together for a Phase 14 bridge claim."
     }
   ],
   "survey_summary": {
@@ -232,7 +232,7 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `synchronize_rcu()` and `rcu_barrier()` as a landed stay-in-C audit so public wait, polling-cookie, and callback-barrier ownership remain reviewable without implying a bridge opening."
+      "why_now": "The survey now records `synchronize_rcu()`, `get_state_synchronize_rcu()`, `poll_state_synchronize_rcu()`, and `rcu_barrier()` as a landed stay-in-C audit so public wait, polling-cookie, and callback-barrier ownership remain reviewable without implying a bridge opening."
     },
     {
       "id": "phase14-rcu-tree-cpu-hotplug-followup",
@@ -260,7 +260,7 @@
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "kernel/rcu/tree_bridge.zig",
-      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, but the current survey still shows public wait-and-barrier APIs, CPU hotplug migration, gp_seq publication, expedited waits, NOCB offload, and memory-ordering rules that are too coupled to the deep-core RCU implementation for a Phase 14 bridge claim."
+      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, but the current survey still shows public wait, polling-cookie, and callback-barrier APIs, CPU hotplug migration, gp_seq publication, expedited waits, NOCB offload, and memory-ordering rules that are too coupled to the deep-core RCU implementation for a Phase 14 bridge claim."
     }
   ]
 }
