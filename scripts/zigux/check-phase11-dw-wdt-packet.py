@@ -71,6 +71,38 @@ DOCS_README_MARKERS = [
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
 ]
 
+SURVEY_GATE_MARKERS = [
+    'test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown note stay aligned" {',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-teardown-note.md") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-registration scaffold") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "module_platform_driver") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);',
+]
+
+REGISTRATION_SCAFFOLD_MARKERS = [
+    'try std.testing.expectEqualStrings("module_platform_driver", summary.platform_driver_anchor);',
+    'try std.testing.expectEqualStrings("dw_wdt_drv_probe", summary.probe_anchor);',
+    'try std.testing.expectEqualStrings("dw_wdt_drv_remove", summary.remove_anchor);',
+    'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);',
+    'try std.testing.expectEqualStrings("watchdog_register_device", summary.registration_call);',
+    'try std.testing.expectEqualStrings("platform_set_drvdata", summary.drvdata_anchor);',
+    "try std.testing.expectEqual(dw_wdt.TimerClockPath.shared_clk_fallback, summary.timer_clock_path);",
+    "try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, summary.registration_state);",
+]
+
+VERIFY_REPLAY_MARKERS = [
+    'test "dw_wdt platform handoff keeps imported running state explicit when drvdata publication is absent" {',
+    'try std.testing.expectEqualStrings("watchdog_register_device", handoff.registration_call);',
+    'try std.testing.expectEqualStrings("platform_set_drvdata", handoff.drvdata_anchor);',
+    "try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, handoff.registration_state);",
+    'test "dw_wdt platform handoff stays blocked-but-reviewable when drvdata or irq wiring is absent" {',
+    'test "dw_wdt verify keeps idle remove-time no-reset path from fabricating continued heartbeat" {',
+    'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {',
+]
+
 EXPECTED_GAP_STATUSES = {
     "phase11-build-gate": "starter_landed",
     "phase11-dw-wdt-survey-gate": "starter_landed",
@@ -83,7 +115,7 @@ EXPECTED_GAP_STATUSES = {
     "phase11-dw-wdt-live-platform-pm": "blocked_on_driver_scaffold",
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 13
 
 
 class CheckError(RuntimeError):
@@ -188,11 +220,23 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["docs_readme"]),
         DOCS_README_MARKERS,
     )
+    expect_markers(
+        REQUIRED_FILES["survey_gate"],
+        read_text(root, REQUIRED_FILES["survey_gate"]),
+        SURVEY_GATE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["registration_scaffold"],
+        read_text(root, REQUIRED_FILES["registration_scaffold"]),
+        REGISTRATION_SCAFFOLD_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["verify_replay"],
+        read_text(root, REQUIRED_FILES["verify_replay"]),
+        VERIFY_REPLAY_MARKERS,
+    )
     # Existence checks for the executable artifacts that the packet names directly.
     read_text(root, REQUIRED_FILES["driver_tests"])
-    read_text(root, REQUIRED_FILES["registration_scaffold"])
-    read_text(root, REQUIRED_FILES["survey_gate"])
-    read_text(root, REQUIRED_FILES["verify_replay"])
 
 
 def write(path: Path, text: str) -> None:
@@ -255,9 +299,18 @@ def build_self_test_fixture(root: Path) -> None:
         "\n".join(DOCS_README_MARKERS) + "\n",
     )
     write(root / REQUIRED_FILES["driver_tests"], "watchdog_register_device\n")
-    write(root / REQUIRED_FILES["registration_scaffold"], "platform_set_drvdata\n")
-    write(root / REQUIRED_FILES["survey_gate"], "teardown-parity replay\n")
-    write(root / REQUIRED_FILES["verify_replay"], "missing-drvdata-platform-handoff\n")
+    write(
+        root / REQUIRED_FILES["registration_scaffold"],
+        "\n".join(REGISTRATION_SCAFFOLD_MARKERS) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["survey_gate"],
+        "\n".join(SURVEY_GATE_MARKERS) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["verify_replay"],
+        "\n".join(VERIFY_REPLAY_MARKERS) + "\n",
+    )
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -345,18 +398,53 @@ def run_self_test() -> None:
         expect_failure(tmpdir, "phase11-dw-wdt-validation-matrix.md")
 
         build_self_test_fixture(tmpdir)
+        survey_gate_path = tmpdir / REQUIRED_FILES["survey_gate"]
+        survey_gate_path.write_text(
+            survey_gate_path.read_text(encoding="utf-8").replace(
+                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-registration scaffold") != null);\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "platform-registration scaffold")
+
+        build_self_test_fixture(tmpdir)
+        registration_scaffold_path = tmpdir / REQUIRED_FILES["registration_scaffold"]
+        registration_scaffold_path.write_text(
+            registration_scaffold_path.read_text(encoding="utf-8").replace(
+                'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, 'try std.testing.expectEqualStrings("dw_wdt_drv_shutdown", summary.shutdown_anchor);')
+
+        build_self_test_fixture(tmpdir)
+        verify_replay_path = tmpdir / REQUIRED_FILES["verify_replay"]
+        verify_replay_path.write_text(
+            verify_replay_path.read_text(encoding="utf-8").replace(
+                'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            'test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {',
+        )
+
+        build_self_test_fixture(tmpdir)
         driver_tests_path = tmpdir / REQUIRED_FILES["driver_tests"]
         driver_tests_path.unlink()
         expect_failure(tmpdir, REQUIRED_FILES["driver_tests"])
 
         build_self_test_fixture(tmpdir)
-        survey_gate_path = tmpdir / REQUIRED_FILES["survey_gate"]
-        survey_gate_path.unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["survey_gate"])
-
-        build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "drivers", ignore_errors=True)
         expect_failure(tmpdir, REQUIRED_FILES["verify_replay"])
+
+        build_self_test_fixture(tmpdir)
+        shutil.rmtree(tmpdir / "Documentation", ignore_errors=True)
+        expect_failure(tmpdir, REQUIRED_FILES["survey_note"])
 
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
