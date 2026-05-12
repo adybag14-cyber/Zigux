@@ -83,3 +83,52 @@ test "nvme pci reset summary freezes queue planning then clears io backlog while
     try testing.expectEqual(@as(u16, 1), next.queue_id);
     try testing.expectEqual(@as(u32, 1), next.reset_generation);
 }
+
+test "nvme pci recovery replay reports bounded rebuild debt for dropped io queues" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+    _ = try lab.planIoQueue(16, 64, false);
+    const metadata = try lab.planPrpMetadata(12288, 0x400);
+
+    const frozen_summary = lab.beginReset();
+    try testing.expectEqual(@as(usize, 2), frozen_summary.planned_io_queues);
+    try testing.expectEqual(@as(u32, 1), frozen_summary.reset_generation);
+
+    const blocked = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+    });
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, blocked.state);
+    try testing.expect(blocked.queue_planning_blocked);
+    try testing.expect(blocked.cached_prp_metadata_stale);
+    try testing.expect(blocked.descriptor_rebuild_required);
+    try testing.expectEqual(metadata.metadata_dma_bytes, blocked.descriptor_rebuild_dma_bytes);
+    try testing.expect(blocked.admin_queue_must_be_replanned);
+    try testing.expect(blocked.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 2), blocked.io_queues_dropped_by_reset);
+    try testing.expectEqual(@as(u16, 3), blocked.next_io_queue_id);
+    try testing.expectEqual(@as(u16, 64), blocked.last_admin_queue_depth);
+
+    const resumed = lab.completeReset();
+    try testing.expectEqual(nvme_pci.RecoveryState.running, resumed.state);
+    try testing.expectEqual(@as(usize, 0), resumed.planned_io_queues);
+
+    const replay_pending = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+    });
+    try testing.expect(!replay_pending.queue_planning_blocked);
+    try testing.expect(replay_pending.cached_prp_metadata_stale);
+    try testing.expect(replay_pending.descriptor_rebuild_required);
+    try testing.expect(replay_pending.admin_queue_must_be_replanned);
+    try testing.expect(replay_pending.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 2), replay_pending.io_queues_dropped_by_reset);
+    try testing.expectEqual(@as(u16, 1), replay_pending.next_io_queue_id);
+}
