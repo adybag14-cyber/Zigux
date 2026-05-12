@@ -39,6 +39,9 @@ ABSENT_PATHS = [
     Path("zigux/tests/phase6_checksum.zig"),
     Path("zigux/tests/phase6_checksum_perf.zig"),
     Path("zigux/tests/fixtures/phase6_checksum_vectors.zig"),
+    Path("zigux/tests/phase6_hexdump.zig"),
+    Path("zigux/tests/phase6_hexdump_perf.zig"),
+    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"),
 ]
 
 PRESENT_PATHS = [
@@ -311,7 +314,7 @@ def scaffold_repo(root: Path) -> None:
     if "- surveyed head: `a0f4d7e`" not in catalog_text:
         write(root / CATALOG_PATH, catalog_text + "- surveyed head: `a0f4d7e`\n")
     write(root / HEXDUMP_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n\nhelper-local perf refresh note\n")
-    write(root / HEXDUMP_MATRIX_PATH, "test \"phase 6 hexdump perf matrix preflight stays aligned with the documented packet\" {}\n")
+    write(root / HEXDUMP_MATRIX_PATH, 'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {}\n')
 
 
 def assert_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -359,6 +362,16 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if ABSENT_PATHS[0].as_posix() not in str(exc):
+                raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
+        else:
+            raise AssertionError("expected absent-path failure")
+        present_should_be_absent.unlink()
+        present_should_be_absent = root / ABSENT_PATHS[-1]
+        write(present_should_be_absent, "unexpected\n")
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if ABSENT_PATHS[-1].as_posix() not in str(exc):
                 raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
         else:
             raise AssertionError("expected absent-path failure")
