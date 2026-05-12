@@ -1,7 +1,7 @@
 # Phase 11 Shared Replay Contract
 
 This note records the bounded shared replay surface for the active Phase 11 simple-driver tranche on current `master`.
-The live shared packet is build-backed again on current `master`, but it still serves as a reminder-and-continuity surface rather than a claim of full simple-driver closure.
+The live shared packet is build-backed again on current `master`, but it remains a reminder-and-continuity surface rather than a claim of full simple-driver closure.
 
 ## Status
 
@@ -36,11 +36,18 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 * no shared `validate-phase11.py`
 * no shared `make -C zigux phase11-validate` target on `master`
 * no shared `zigux/tests/fixtures/phase11_build_inventory.json`
-* the shared packet uses the existing `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
+* the shared packet uses the shipped `check-phase11-*.py` reminder scripts rather than the older preflight inventory stack
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains available as a focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when shared Phase 11 reminder wording moves
-* the dedicated HVC archival packet stays reviewable on current `master` through the teardown note, manifest-backed survey gate, validation matrix, survey note, modem-control split, poll-retry split, sysrq helper, and dedicated checker-backed replay route, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay recorded as repo-reality gaps
+* the remaining bcm2835 and gpio watchdog evidence stays beside the shared route on their own packet-local validation, survey, teardown, checker, and manifest-backed reminder surfaces rather than being collapsed back into one generic shared note
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
+
+The DesignWare watchdog lane now keeps its surviving bounded reminder packet explicit beside that shared route:
+
+* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+* `scripts/zigux/check-phase11-dw-wdt-packet.py`
+
+Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`: they keep the next bounded step pinned to platform-backed registration scaffolding while the older manifest, survey, validation-matrix, and teardown reminder surfaces stay removed rather than being silently reintroduced as shared evidence.
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
@@ -58,26 +65,12 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 
 Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay recorded as the remaining repo-reality gaps rather than shared proof.
 
-The DesignWare watchdog lane now keeps its landed bounded evidence explicit beside that shared route:
-
-* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
-* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-* `Documentation/zigux/phase11-dw-wdt-survey.md`
-* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
-* `scripts/zigux/check-phase11-dw-wdt-packet.py`
-* `zigux/tests/phase11_dw_wdt_manifest.json`
-* `zigux/tests/phase11_dw_wdt_survey.zig`
-
-Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the current DesignWare lane evidence on `master`: they keep the landed starter, registration-order scaffold, survey gate, teardown-parity replay, and matrix-backed review packet explicit while the next bounded step remains the later platform-registration scaffold rather than live platform-backed execution.
-
 The shared header-boundary evidence also stays explicit beside that shared route:
 
 * `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 * `scripts/zigux/check-phase11-header-boundary-packet.py`
 * `zigux/tests/phase11_uapi_header_parity_manifest.json`
 * `zigux/tests/phase11_uapi_header_parity_survey.zig`
-
-The remaining bcm2835 and gpio watchdog evidence stays with the corresponding packet-local notes, manifests, surveys, and checkers rather than being collapsed back into one generic shared reminder.
 
 ## What This Contract Does Not Claim
 
@@ -88,4 +81,4 @@ The remaining bcm2835 and gpio watchdog evidence stays with the corresponding pa
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the landed DesignWare packet, and the shared header-boundary evidence remain aligned with live `master`.
+Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the surviving DesignWare continuity packet, and the shared header-boundary evidence remain aligned with live `master`.
