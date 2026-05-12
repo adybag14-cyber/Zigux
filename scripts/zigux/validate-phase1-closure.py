@@ -12,6 +12,7 @@ from typing import Any
 SELF_PATH = Path(__file__).resolve()
 DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 VALIDATE_PHASE1_REL = Path("scripts/zigux/validate-phase1.py")
+STRING_HELPER_REL = Path("tools/lib/string.zig")
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -27,6 +28,7 @@ REQUIRED_FILES = [
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-phase1.py",
     "scripts/zigux/validate-phase1-closure.py",
+    "tools/lib/string.zig",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -193,6 +195,44 @@ EXPECTED_FIND_BIT_MANIFEST = {
     "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, underscore-alias, and Linux-style alias behavior review-visible on current master",
 }
 
+EXPECTED_STRING_HELPER_TESTS = [
+    'test "strtobool accepts common Linux forms"',
+    'test "strlcpy copies and returns the source length"',
+    'test "streq matches C-string equality semantics"',
+    'test "skip trim remove and replace spaces work in place"',
+    'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+    'test "strreplace mirrors replaceChar C-string semantics"',
+    'test "strHasPrefix honors C-string boundaries"',
+    'test "strstarts mirrors the header-level prefix helper"',
+    'test "strEndsWith honors C-string boundaries"',
+    'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+    'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+    'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+    'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+    'test "memdup and memchrInv preserve byte content"',
+    'test "memchr_inv mirrors memchrInv byte-search semantics"',
+    'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+    'test "memchrInv follows the earliest dirty byte as long buffers change"',
+    'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+    'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
+    'test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments"',
+    'test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments"',
+    'test "memchrInv short zero-value scans stay byte-accurate"',
+    'test "memparse handles decimal hexadecimal octal and suffixes"',
+    'test "memparse keeps original rest when sign is not followed by digits"',
+    'test "memparse saturates signed overflow instead of trapping"',
+    'test "memparse clamps explicit positive signed overflow"',
+    'test "memparse keeps signed values and their trailing rest aligned"',
+    'test "memparse consumes suffix after saturation"',
+    'test "memparse applies suffixes before signed clamping"',
+]
+
+STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
+    'test "strHasPrefix ',
+    'test "strstarts ',
+    'test "strEndsWith ',
+)
+
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -264,6 +304,51 @@ def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
     return missing
 
 
+def extract_zig_test_names(text: str) -> list[str]:
+    names: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('test "'):
+            continue
+        closing_quote = stripped.find('"', len('test "'))
+        if closing_quote == -1:
+            continue
+        names.append(stripped[: closing_quote + 1])
+    return names
+
+
+def expected_string_memparse_review_anchors(test_names: list[str]) -> list[str]:
+    return [name for name in test_names if name.startswith('test "memparse ')]
+
+
+def expected_string_prefix_suffix_review_anchors(test_names: list[str]) -> list[str]:
+    return [name for name in test_names if name.startswith(STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES)]
+
+
+def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["string_manifest:json_object"]
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["string_manifest:review_anchors"]
+    string_anchors = review_anchors.get("tools/lib/string.zig")
+    if not isinstance(string_anchors, dict):
+        return ["string_manifest:tools/lib/string.zig"]
+
+    helper_tests = extract_zig_test_names(load_text(root, str(STRING_HELPER_REL)))
+    if not helper_tests:
+        return ["string_manifest:helper_test_anchors"]
+
+    missing: list[str] = []
+    if string_anchors.get("helper_test_anchors") != helper_tests:
+        missing.append("string_manifest:helper_test_anchors")
+    if string_anchors.get("memparse_review_anchors") != expected_string_memparse_review_anchors(helper_tests):
+        missing.append("string_manifest:memparse_review_anchors")
+    if string_anchors.get("prefix_suffix_review_anchors") != expected_string_prefix_suffix_review_anchors(helper_tests):
+        missing.append("string_manifest:prefix_suffix_review_anchors")
+    return missing
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     workflow = load_text(root, ".github/workflows/zigux-bootstrap.yml")
     docs_root = load_text(root, "Documentation/zigux/README.md")
@@ -290,6 +375,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(require_markers(build_zig, "build", BUILD_MARKERS))
     missing.extend(collect_bench_markers(bench))
     missing.extend(collect_find_bit_manifest_markers(manifest))
+    missing.extend(collect_string_manifest_markers(root, manifest))
     return missing
 
 
@@ -297,6 +383,10 @@ def write_text(root: Path, relative_path: str, text: str) -> None:
     path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def make_string_fixture_source(test_names: list[str]) -> str:
+    return "\n".join(f"{name} {{}}" for name in test_names) + "\n"
 
 
 def make_fixture_root(root: Path) -> None:
@@ -311,11 +401,24 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(LEDGER_MARKERS) + "\n")
     write_text(root, "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root, "zigux/tests/build.zig", "\n".join(BUILD_MARKERS) + "\n")
+    write_text(root, str(STRING_HELPER_REL), make_string_fixture_source(EXPECTED_STRING_HELPER_TESTS))
     write_text(root, "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(EXPECTED_BENCH, indent=2) + "\n")
     write_text(
         root,
         "zigux/tests/fixtures/phase1_helper_manifest.json",
-        json.dumps({"review_anchors": {"tools/lib/find_bit.zig": EXPECTED_FIND_BIT_MANIFEST}}, indent=2) + "\n",
+        json.dumps(
+            {
+                "review_anchors": {
+                    "tools/lib/find_bit.zig": EXPECTED_FIND_BIT_MANIFEST,
+                    "tools/lib/string.zig": {
+                        "helper_test_anchors": EXPECTED_STRING_HELPER_TESTS,
+                        "memparse_review_anchors": expected_string_memparse_review_anchors(EXPECTED_STRING_HELPER_TESTS),
+                        "prefix_suffix_review_anchors": expected_string_prefix_suffix_review_anchors(EXPECTED_STRING_HELPER_TESTS),
+                    },
+                }
+            },
+            indent=2,
+        ) + "\n",
     )
     write_text(root, "scripts/zigux/validate-phase1.py", "import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=pass')\n    raise SystemExit(0)\n")
 
@@ -356,6 +459,29 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "find_bit_manifest:tail_word_inclusive_boundary_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        string_path = root / STRING_HELPER_REL
+        string_path.write_text(
+            string_path.read_text(encoding="utf-8").replace(f"{EXPECTED_STRING_HELPER_TESTS[-1]} {{}}\n", "", 1),
+            encoding="utf-8",
+        )
+        assert "string_manifest:helper_test_anchors" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_anchors"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:memparse_review_anchors" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["prefix_suffix_review_anchors"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:prefix_suffix_review_anchors" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
@@ -409,7 +535,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_FIND_BIT_MANIFEST)}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_FIND_BIT_MANIFEST) + 3}"
     )
     return 0
 
