@@ -24,6 +24,13 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase12.py",
 ]
 
+EXPECTED_ABSENT_FILES = [
+    "drivers/nvme/host/pci.zig",
+    "zigux/tests/phase12_nvme_pci.zig",
+    "zigux/tests/phase12_nvme_pci_manifest.json",
+    "zigux/tests/phase12_nvme_pci_survey.zig",
+]
+
 REQUIRED_MARKERS = {
     "zigux/tests/phase12_build.zig": [
         "../../drivers/net/virtio_net.zig",
@@ -55,6 +62,11 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE12_VALIDATION=pass",
         "PHASE12_VALIDATOR_SELF_TEST=pass",
+        "UNEXPECTED_PHASE12_FILES_START",
+        "drivers/nvme/host/pci.zig",
+        "zigux/tests/phase12_nvme_pci.zig",
+        "zigux/tests/phase12_nvme_pci_manifest.json",
+        "zigux/tests/phase12_nvme_pci_survey.zig",
         "phase12_build.zig",
         "phase12_virtio_net.zig",
         "phase12_virtio_net_syntax_lab.zig",
@@ -84,7 +96,6 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -95,13 +106,20 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+def collect_unexpected_files(root: Path) -> list[str]:
+    return [rel for rel in EXPECTED_ABSENT_FILES if (root / rel).exists()]
 
-def validate(root: Path) -> tuple[list[str], list[str]]:
+
+def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
-        return missing_files, []
-    return [], collect_missing_markers(root)
+        return missing_files, [], []
 
+    missing_markers = collect_missing_markers(root)
+    if missing_markers:
+        return [], missing_markers, []
+
+    return [], [], collect_unexpected_files(root)
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -115,19 +133,25 @@ def write_fixture_root(tmp_root: Path) -> None:
         path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
 
 
-
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, unexpected_files = validate(tmp_root)
     assert missing_markers == [], case
+    assert unexpected_files == [], case
     assert missing_files == [rel], case
 
 
-
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, unexpected_files = validate(tmp_root)
     assert missing_files == [], case
+    assert unexpected_files == [], case
     assert missing_markers == [marker], case
 
+
+def expect_unexpected_file(case: str, tmp_root: Path, rel: str) -> None:
+    missing_files, missing_markers, unexpected_files = validate(tmp_root)
+    assert missing_files == [], case
+    assert missing_markers == [], case
+    assert unexpected_files == [rel], case
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -136,7 +160,6 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     updated = original.replace(old, new, 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
-
 
 
 def run_self_test() -> None:
@@ -170,6 +193,13 @@ def run_self_test() -> None:
             "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
         ),
         ("missing_phase12_build", "zigux/tests/phase12_build.zig"),
+    ]
+
+    unexpected_file_cases = [
+        ("unexpected_nvme_driver", "drivers/nvme/host/pci.zig"),
+        ("unexpected_nvme_contract_test", "zigux/tests/phase12_nvme_pci.zig"),
+        ("unexpected_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
+        ("unexpected_nvme_survey_gate", "zigux/tests/phase12_nvme_pci_survey.zig"),
     ]
 
     marker_cases = [
@@ -251,6 +281,20 @@ def run_self_test() -> None:
             "zigux/tests/phase12_build.zig: test_step.dependOn(&run_repeated_replan_tests.step);",
         ),
         (
+            "missing_validator_nvme_absence_section",
+            "scripts/zigux/validate-phase12.py",
+            "UNEXPECTED_PHASE12_FILES_START",
+            "UNEXPECTED_FILES_START",
+            "scripts/zigux/validate-phase12.py: UNEXPECTED_PHASE12_FILES_START",
+        ),
+        (
+            "missing_validator_nvme_driver_marker",
+            "scripts/zigux/validate-phase12.py",
+            "drivers/nvme/host/pci.zig",
+            "drivers/nvme/host/pci_missing.zig",
+            "scripts/zigux/validate-phase12.py: drivers/nvme/host/pci.zig",
+        ),
+        (
             "missing_validator_virtio_net_manifest_marker",
             "scripts/zigux/validate-phase12.py",
             "phase12_virtio_net_manifest.json",
@@ -269,26 +313,36 @@ def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase12_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
+        assert validate(tmp_root) == ([], [], [])
 
         for case, rel in missing_file_cases:
             (tmp_root / rel).unlink()
             expect_missing_file(case, tmp_root, rel)
             write_fixture_root(tmp_root)
 
+        for case, rel in unexpected_file_cases:
+            path = tmp_root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("// unexpected fixture\n", encoding="utf-8")
+            expect_unexpected_file(case, tmp_root, rel)
+            path.unlink()
+
         for case, rel, old, new, expected in marker_cases:
             mutate_file(tmp_root, rel, old, new, case)
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases)
+    case_count = len(missing_file_cases) + len(unexpected_file_cases) + len(marker_cases)
     print("PHASE12_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 12 virtio build surface for current tranche files."
+        description=(
+            "Validate the current Phase 12 virtio packet and fail closed if parked "
+            "direct NVMe replay files appear without validator maintenance."
+        )
     )
     parser.add_argument(
         "--self-test",
@@ -301,7 +355,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing_files, missing_markers = validate(ROOT)
+    missing_files, missing_markers, unexpected_files = validate(ROOT)
     if missing_files:
         print("PHASE12_VALIDATION=fail")
         print("MISSING_PHASE12_FILES_START")
@@ -318,8 +372,17 @@ def main() -> int:
         print("MISSING_PHASE12_MARKERS_END")
         return 1
 
+    if unexpected_files:
+        print("PHASE12_VALIDATION=fail")
+        print("UNEXPECTED_PHASE12_FILES_START")
+        for item in unexpected_files:
+            print(item)
+        print("UNEXPECTED_PHASE12_FILES_END")
+        return 1
+
     print("PHASE12_VALIDATION=pass")
     print(f"PHASE12_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE12_EXPECTED_ABSENT_FILE_COUNT={len(EXPECTED_ABSENT_FILES)}")
     print(
         "PHASE12_REQUIRED_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
