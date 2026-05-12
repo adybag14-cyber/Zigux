@@ -114,6 +114,18 @@ fn loadSurveyNote(allocator: std.mem.Allocator) ![]u8 {
     );
 }
 
+fn loadBridgeMap(allocator: std.mem.Allocator) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "kernel/rcu/tree_bridge.zig",
+        allocator,
+        .limited(32 * 1024),
+    );
+}
+
 fn contains(haystack: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, haystack, needle) != null;
 }
@@ -305,6 +317,18 @@ test "phase 14 rcu tree survey note matches the live manifest-backed owner and b
     try std.testing.expect(contains(note, "memory-ordering lock network still stays in C"));
     try std.testing.expect(contains(note, "`kernel/rcu/tree_bridge.zig` remains blocked"));
     try std.testing.expect(contains(note, "Architecture Council reopen request"));
+}
+
+test "phase 14 rcu tree bridge boundary map exists as review-only evidence" {
+    const bridge = try loadBridgeMap(std.testing.allocator);
+    defer std.testing.allocator.free(bridge);
+
+    try std.testing.expect(contains(bridge, "pub const lane_key = \"P14-L16\""));
+    try std.testing.expect(contains(bridge, "pub const status_bucket = \"freeze_in_c\""));
+    try std.testing.expect(contains(bridge, "pub const blocked_gap = \"phase14-rcu-tree-bridge-blocker\""));
+    try std.testing.expect(contains(bridge, "public_wait_and_callback_barrier"));
+    try std.testing.expect(contains(bridge, "cpu_hotplug_callback_migration"));
+    try std.testing.expect(contains(bridge, "live_bridge_claim = false"));
 }
 
 test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and rollback guardrail" {
