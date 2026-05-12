@@ -187,7 +187,7 @@ EXPECTED_BITMAP_MANIFEST = {
         "truncated_scnprintf",
         "terminator_only_scnprintf_len",
         "terminator_only_nul",
-        "zero_length_scnprintf_len",
+        "zero_length_scnprintf_len"
     ],
     "partial_xor_review_fields": [
         "partial_xor_nbits",
@@ -233,6 +233,43 @@ EXPECTED_FIND_BIT_MANIFEST = {
         "tail_clamped_empty_last",
     ],
     "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, underscore-alias, and Linux-style alias behavior review-visible on current master",
+}
+
+EXPECTED_RBTREE_MANIFEST = {
+    "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+    "parity_fixture_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "next_match_terminal_null",
+    ],
+    "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    "duplicate_search_anchors": [
+        'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+        'test "rbtree nextMatch walks the duplicate range in order"',
+        'test "rbtree matchIterator walks the duplicate range in order"',
+    ],
+    "cached_root_followup_anchors": [
+        'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+        'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+        'test "rbtree cached root keeps the leftmost pointer in sync"',
+        'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+        'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+        'test "rbtree eraseCached returns null for a singleton cached tree"',
+        'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+        'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+    ],
+    "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
+    "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors.",
 }
 
 EXPECTED_STRING_HELPER_TESTS = [
@@ -361,6 +398,23 @@ def collect_find_bit_manifest_markers(manifest: Any) -> list[str]:
     return missing
 
 
+def collect_rbtree_manifest_markers(manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["rbtree_manifest:json_object"]
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["rbtree_manifest:review_anchors"]
+    rbtree_anchors = review_anchors.get("tools/lib/rbtree.zig")
+    if not isinstance(rbtree_anchors, dict):
+        return ["rbtree_manifest:tools/lib/rbtree.zig"]
+
+    missing: list[str] = []
+    for key, expected in EXPECTED_RBTREE_MANIFEST.items():
+        if rbtree_anchors.get(key) != expected:
+            missing.append(f"rbtree_manifest:{key}")
+    return missing
+
+
 def extract_zig_test_names(text: str) -> list[str]:
     names: list[str] = []
     for line in text.splitlines():
@@ -433,6 +487,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_bench_markers(bench))
     missing.extend(collect_bitmap_manifest_markers(manifest))
     missing.extend(collect_find_bit_manifest_markers(manifest))
+    missing.extend(collect_rbtree_manifest_markers(manifest))
     missing.extend(collect_string_manifest_markers(root, manifest))
     return missing
 
@@ -469,6 +524,7 @@ def make_fixture_root(root: Path) -> None:
                 "review_anchors": {
                     "tools/lib/bitmap.zig": EXPECTED_BITMAP_MANIFEST,
                     "tools/lib/find_bit.zig": EXPECTED_FIND_BIT_MANIFEST,
+                    "tools/lib/rbtree.zig": EXPECTED_RBTREE_MANIFEST,
                     "tools/lib/string.zig": {
                         "helper_test_anchors": EXPECTED_STRING_HELPER_TESTS,
                         "memparse_review_anchors": expected_string_memparse_review_anchors(EXPECTED_STRING_HELPER_TESTS),
@@ -530,6 +586,13 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "find_bit_manifest:tail_word_inclusive_boundary_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "rbtree_manifest:next_safe_step_note" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
@@ -606,7 +669,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + 3}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 3}"
     )
     return 0
 
