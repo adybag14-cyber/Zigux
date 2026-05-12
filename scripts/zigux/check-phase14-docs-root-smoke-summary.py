@@ -335,6 +335,46 @@ def run_self_test() -> int:
         write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
 
         write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `make -C zigux phase14-smoke`\n",
+                "- `make -C zigux phase14-smoke`\n- `make -C zigux phase14-smoke`\n",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in Documentation/zigux/README.md: make -C zigux phase14-smoke (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate docs-root smoke-route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `make -C zigux phase14-test`\n",
+                "- `make -C zigux phase14-test`\n- `make -C zigux phase14-test`\n",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in Documentation/zigux/README.md: make -C zigux phase14-test (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate docs-root test-route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
             root / SMOKE_SURVEY_PATH,
             good_smoke_survey_text().replace(
                 f"- `{CHECKER_PATH}`\n",
@@ -444,6 +484,32 @@ def run_self_test() -> int:
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
         write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "shared_smoke_surfaces": [
+                        CHECKER_PATH,
+                        ROLLBACK_CHECKER_PATH,
+                        "scripts/zigux/validate-phase14.py",
+                    ]
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        if not any(
+            f"phase14 shared_smoke_surfaces drift for {RELEASE_BOUNDARY_CHECKER_PATH} (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing release-boundary checker surface failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
             current_checker_path,
             original_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
         )
@@ -454,7 +520,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
