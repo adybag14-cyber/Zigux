@@ -28,8 +28,8 @@ These surfaces keep the teardown packet readable beside the shared Phase 11 repl
 
 The current host-free teardown replay keeps these handoffs explicit:
 
-* final-close teardown boundaries
-* `hvc_cleanup()` tty-port release handoff
+* final-close teardown boundaries and close-wait ownership
+* `hvc_cleanup()` tty-port release handoff and cleanup-time tty-port ownership
 * `hvc_hangup()` disconnect cleanup
 * `hvc_remove()` slot-release and handoff ordering
 * notifier-facing teardown edges beside `summarizeNotifierAddOutcome()`
@@ -37,7 +37,7 @@ The current host-free teardown replay keeps these handoffs explicit:
 * poll-retry and drain-order split
 * modem-control fallback split
 
-The landed survey-backed packet also keeps the close-path failure-mode cues explicit around tty detachment, HUPCL-gated modem-line shutdown, notifier ownership, resize-work cancellation, wait-until-sent intent, buffered-write clearing, stale hangup short-circuit behavior, and keep-IRQ-until-hangup teardown boundaries.
+The landed survey-backed packet also keeps the close-path and cleanup-path failure-mode cues explicit around tty detachment, HUPCL-gated modem-line shutdown, close-wait ownership, notifier ownership, resize-work cancellation, wait-until-sent intent, buffered-write clearing, stale hangup short-circuit behavior, cleanup-time tty-port ownership, and keep-IRQ-until-hangup teardown boundaries.
 
 ## Bounded Meaning
 
