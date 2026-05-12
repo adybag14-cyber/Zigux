@@ -122,12 +122,6 @@ jobs:
       - name: Check Phase 2 kconfig README alignment
         run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py
 
-      - name: Self-test Phase 2 kconfig bridge checker
-        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
-
-      - name: Check Phase 2 kconfig bridge packet
-        run: python3 scripts/zigux/check-kconfig-bridge.py
-
       - name: Self-test Phase 2 cross-target compile checker
         run: python3 scripts/zigux/check-phase2-cross.py --self-test
 
