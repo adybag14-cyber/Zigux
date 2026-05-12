@@ -19,11 +19,13 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 PHASE9_LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+LOADER_SUBSTRATE_PLAN_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
@@ -33,11 +35,13 @@ ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 LOADER_GAP_SURVEY_PATH = "zigux/tests/runtime_loader_gap_survey.zig"
 
 REQUIRED_FILES = [
+    FREEZE_MAP_PATH,
     PHASE9_LANE_SEQUENCING_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SAMPLES_README_PATH,
+    LOADER_SUBSTRATE_PLAN_CHECKER_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     PHASE9_BUILD_PATH,
@@ -73,6 +77,9 @@ GAP_SURVEY_NEXT_STEP_MARKER = (
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
 )
+FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
+    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -81,6 +88,13 @@ OWNER_MAP_MARKERS = [
 ]
 
 REQUIRED_MARKERS = {
+    FREEZE_MAP_PATH: [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+        FREEZE_MAP_TRACE_BOUNDARY_MARKER,
+        "`scripts/zigux/check-phase9-loader-substrate-plan.py`",
+        "`samples/zigux/runtime_trace_events_loader.zig`",
+    ],
     PHASE9_LANE_SEQUENCING_PATH: [
         OWNER_SPLIT_MARKER,
         PREPARED_STATE_LANDED_MARKER,
@@ -113,6 +127,16 @@ REQUIRED_MARKERS = {
         "the focused `phase9-runtime-loader-shared-tests` step",
         "keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route",
     ],
+    LOADER_SUBSTRATE_PLAN_CHECKER_PATH: [
+        "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+        "Documentation/zigux/freeze-map.md",
+        "zigux/tests/phase9_build.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+        "PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass",
+        "PHASE9_LOADER_SUBSTRATE_PLAN=pass",
+    ],
     MAKEFILE_PATH: [
         "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9",
         "phase9-runtime-loader-shared-tests:",
@@ -130,10 +154,10 @@ REQUIRED_MARKERS = {
         "make -C zigux phase9",
     ],
     PHASE9_BUILD_PATH: [
-        '"phase9-runtime-loader-shared-tests"',
+        "\"phase9-runtime-loader-shared-tests\"",
         "runtime_loader_gap_survey.zig",
         "runtime_loader_allocator_init_flow.zig",
-        '"phase9-runtime-bitmap-top-bit-tests"',
+        "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
     ],
     LOADER_GAP_SURVEY_PATH: [
@@ -223,6 +247,30 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
+        freeze_map_path = base / FREEZE_MAP_PATH
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(
+            freeze_map.replace("`scripts/zigux/check-phase9-loader-substrate-plan.py`", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:Documentation/zigux/freeze-map.md:`scripts/zigux/check-phase9-loader-substrate-plan.py`",
+        )
+
+        write_fixture_tree(base)
+        substrate_checker_path = base / LOADER_SUBSTRATE_PLAN_CHECKER_PATH
+        substrate_checker = substrate_checker_path.read_text(encoding="utf-8")
+        substrate_checker_path.write_text(
+            substrate_checker.replace("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:scripts/zigux/check-phase9-loader-substrate-plan.py:Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+        )
+
+        write_fixture_tree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
         lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(lane_note.replace(OWNER_SPLIT_MARKER, "", 1), encoding="utf-8")
