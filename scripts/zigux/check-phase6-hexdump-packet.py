@@ -193,7 +193,7 @@ def run_self_test() -> None:
         focused_test.write_text("", encoding="utf-8")
         expect_failure(tmpdir, REQUIRED_FILES["focused_test"])
 
-        build_self_testFixture(tmpdir)
+        build_self_test_fixture(tmpdir)
         perf_test = tmpdir / REQUIRED_FILES["perf_test"]
         perf_test.unlink()
         expect_failure(tmpdir, REQUIRED_FILES["perf_test"])
