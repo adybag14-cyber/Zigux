@@ -36,7 +36,7 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-11", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
@@ -71,7 +71,7 @@ test "phase 15 readiness note and replay routes stay aligned" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L01");
     try expectContains(readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-11");
+    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-12");
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
