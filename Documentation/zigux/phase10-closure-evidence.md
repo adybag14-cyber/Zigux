@@ -44,15 +44,13 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` still keeps the bounded virtio closure packet explicit through the shared reminder surfaces, the ring drained-reset reuse replay, the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig`, the blocked risky-transport posture, and the Phase 14 study-only ownership cues.
 - `Documentation/zigux/phase10-virtio-mmio-survey.md` still keeps the dedicated MMIO packet checker, dedicated freeze-boundary checker, live MMIO manifest, landed selected-queue-readiness helper, and still-blocked `phase10-mmio-lifecycle-and-irq-paths` gap explicit.
 
-## Current Truthfulness Blocker
+## Current Truthfulness Posture
 
-A narrow shared-surface blocker is still visible on current `master`.
+Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/phase10_closure_manifest.json`, and `scripts/zigux/README.md` now all keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
 
-Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `zigux/tests/phase10_closure_manifest.json` already keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
+That closes the older shared reminder-surface drift recorded in this note. Across the directly re-readable shared Phase 10 surfaces from this run, I did not find a smaller new blocker that stayed inside the parked virtio core, ring, input, and MMIO packet without widening into risky transport claims.
 
-But the broader scripts-root reminder in `scripts/zigux/README.md` still names the ring packet only as a generic "ring verifier plus drained-reset reuse replay" summary instead of keeping the direct `drivers/virtio/virtio_ring_verify.zig` path explicit. That leaves the scripts-root wording narrower than the live companion and lane-sequencing notes, and narrower than the exact marker set that `scripts/zigux/check-phase10-harness-coverage.py` already requires for the shared Phase 10 packet.
-
-The older saved blocker about the ring reset-reuse replay itself is closed on live `master`; the remaining same-lane drift is this scripts-root omission of the direct ring-verify path.
+The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and future same-lane follow-through should reopen only for another directly visible one-file reminder, checker, manifest, or survey drift.
 
 ## Parked Boundary
 
@@ -67,5 +65,5 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder or checker surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. refresh `scripts/zigux/README.md` so the shared Phase 10 summary keeps the direct `drivers/virtio/virtio_ring_verify.zig` path explicit beside `drivers/virtio/virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
-3. reread `scripts/zigux/check-phase10-harness-coverage.py` after that scripts-root repair so the shared checker, closure note, companion note, and lane-sequencing note all describe the same bounded ring packet again
+2. if fresh repo-first inspection finds another equally small same-lane drift, prefer one shared reminder, checker, manifest, or survey surface at a time
+3. reread `scripts/zigux/check-phase10-harness-coverage.py` and `scripts/zigux/validate-phase10-closure.py` against that exact surface so the closure note, scripts root, companion note, lane-sequencing note, and closure manifest stay aligned
