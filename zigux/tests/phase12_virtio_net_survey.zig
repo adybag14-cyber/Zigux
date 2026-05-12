@@ -71,7 +71,7 @@ fn pathExists(path: []const u8) !bool {
     return true;
 }
 
-test "phase12 virtio net survey manifest keeps the bounded queue-summary and recovery packet truthful" {
+test "phase12 virtio net survey manifest keeps the bounded queue-recovery-and-refill packet truthful" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -98,18 +98,19 @@ test "phase12 virtio net survey manifest keeps the bounded queue-summary and rec
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
     try std.testing.expectEqualStrings("starter_present_runtime_data_path_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-    try std.testing.expectEqualStrings("starter_queue_summary_and_recovery_present_direct_gate_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
-    try std.testing.expectEqualStrings("starter_present_queue_recovery_planner_landed_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-    try std.testing.expectEqualStrings("starter_queue_summary_and_recovery_direct_lab_present_shared_route_present", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expectEqualStrings("starter_queue_summary_recovery_and_refill_present_direct_gate_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
+    try std.testing.expectEqualStrings("starter_recovery_and_refill_summary_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
+    try std.testing.expectEqualStrings("starter_queue_summary_recovery_and_refill_direct_lab_present_shared_route_present", manifest.roadmap_gap_check.segmented_rollout.status);
 
     var saw_starter = false;
     var saw_syntax_lab = false;
     var saw_build_gap = false;
     var saw_queue_summary_followup = false;
     var saw_recovery_gap = false;
+    var saw_refill_gap = false;
     var saw_runtime_gap = false;
 
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -140,6 +141,11 @@ test "phase12 virtio net survey manifest keeps the bounded queue-summary and rec
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freezeForReset()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryQueuePlan()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-refill-order-followup")) {
+            saw_refill_gap = true;
+            try std.testing.expectEqualStrings("landed_on_master", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill summary") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_runtime_gap = true;
             try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
@@ -151,10 +157,11 @@ test "phase12 virtio net survey manifest keeps the bounded queue-summary and rec
     try std.testing.expect(saw_build_gap);
     try std.testing.expect(saw_queue_summary_followup);
     try std.testing.expect(saw_recovery_gap);
+    try std.testing.expect(saw_refill_gap);
     try std.testing.expect(saw_runtime_gap);
 }
 
-test "phase12 virtio net survey note stays aligned with the bounded queue-recovery starter" {
+test "phase12 virtio net survey note stays aligned with the bounded refill-order follow-up" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -166,13 +173,14 @@ test "phase12 virtio net survey note stays aligned with the bounded queue-recove
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-recovery-planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-recovery-and-refill-summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeQueueTopology()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeReceiveRefill()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "refill-order or control-queue sequencing follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded control-queue sequencing follow-up") != null);
 }
 
 test "phase12 virtio net survey gate keeps present lane files explicit" {
