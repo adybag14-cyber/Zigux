@@ -18,6 +18,17 @@ fn readSurveySource() ![]u8 {
     );
 }
 
+fn readTraceabilitySource() ![]u8 {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+}
+
 test "phase14 shared smoke manifest keeps workqueue reviewability explicit" {
     try expectContains(manifest_source, "\"zigux/tests/phase14_workqueue_reviewability.zig\"");
     try expectContains(manifest_source, "\"label\": \"phase14-workqueue-reviewability-tests\"");
@@ -55,4 +66,17 @@ test "phase14 shared smoke packet keeps the current workqueue anchor metadata al
         "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next none currently recorded, blocked `phase14-workqueue-live-execution-blocker`",
     );
     try std.testing.expect(std.mem.indexOf(u8, survey_source, "phase14-workqueue-pending-bit-audit") == null);
+}
+
+test "phase14 workqueue traceability note keeps shared smoke metadata aligned" {
+    const traceability_source = try readTraceabilitySource();
+    defer std.testing.allocator.free(traceability_source);
+
+    try expectContains(traceability_source, "lane key: `P14-L04`");
+    try expectContains(traceability_source, "surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`");
+    try expectContains(traceability_source, "ready-next gap: none currently recorded");
+    try expectContains(traceability_source, "blocked gap: `phase14-workqueue-live-execution-blocker`");
+    try std.testing.expect(std.mem.indexOf(u8, traceability_source, "phase14-workqueue-pending-bit-audit") == null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_source, "lane key: `P14-L01`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_source, "`007f00d0c6b6b430bfbb2110555544cc5faefe8b`") == null);
 }
