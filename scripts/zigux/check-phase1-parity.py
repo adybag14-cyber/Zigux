@@ -20,6 +20,16 @@ REQUIRED_PARITY_KEYS = {
         "last",
         "tail_clamped_last",
         "tail_clamped_empty_last",
+        "first_clump_offset",
+        "first_clump_value",
+        "next_clump_offset",
+        "next_clump_value",
+        "tail_clump_offset",
+        "tail_clump_value",
+        "empty_clump_first_offset",
+        "empty_clump_first_value",
+        "empty_clump_next_offset",
+        "empty_clump_next_value",
     ),
     "string": (
         "replace_char_cstr_end",
@@ -299,6 +309,16 @@ def run_self_test() -> None:
                         "last": 1,
                         "tail_clamped_last": 2,
                         "tail_clamped_empty_last": 3,
+                        "first_clump_offset": 8,
+                        "first_clump_value": 66,
+                        "next_clump_offset": 8,
+                        "next_clump_value": 66,
+                        "tail_clump_offset": 64,
+                        "tail_clump_value": 8,
+                        "empty_clump_first_offset": 8,
+                        "empty_clump_first_value": 170,
+                        "empty_clump_next_offset": 8,
+                        "empty_clump_next_value": 170,
                     },
                     "string": {
                         "replace_char_cstr_end": 2,
@@ -311,14 +331,14 @@ def run_self_test() -> None:
         assert collect_output_issues(actual) == []
 
         actual.write_text(
-            '{"find_bit":{"last":1,"tail_clamped_last":2,"tail_clamped_empty_last":3},"string":{"replace_char_cstr_end":2}}',
+            '{"find_bit":{"last":1,"tail_clamped_last":2,"tail_clamped_empty_last":3,"first_clump_offset":8,"first_clump_value":66,"next_clump_offset":8,"next_clump_value":66,"tail_clump_offset":64,"tail_clump_value":8,"empty_clump_first_offset":8,"empty_clump_first_value":170,"empty_clump_next_offset":8,"empty_clump_next_value":170},"string":{"replace_char_cstr_end":2}}',
             encoding="utf-8",
         )
         missing_output = collect_output_issues(actual)
         assert "missing:string.replace_char_cstr_bytes" in missing_output
 
         actual.write_text(
-            '{"find_bit":{"last":1,"tail_clamped_last":2},"string":{"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122]}}',
+            '{"find_bit":{"last":1,"tail_clamped_last":2,"first_clump_offset":8,"first_clump_value":66,"next_clump_offset":8,"next_clump_value":66,"tail_clump_offset":64,"tail_clump_value":8,"empty_clump_first_offset":8,"empty_clump_first_value":170,"empty_clump_next_offset":8,"empty_clump_next_value":170},"string":{"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122]}}',
             encoding="utf-8",
         )
         missing_output = collect_output_issues(actual)
