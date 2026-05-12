@@ -61,6 +61,28 @@ test "phase12 virtio scsi repeated replan gate keeps the second-cycle recovery p
     try std.testing.expect(second_map.requires_virtio_affinity_restore);
     try std.testing.expect(second_map.requires_poll_map_restore);
 
+    const second_event_buffers = try lab.recoveryEventBufferOwnershipSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", second_event_buffers.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), second_event_buffers.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_event_buffers.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 4), second_event_buffers.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), second_event_buffers.poll_queue_count);
+    try std.testing.expect(second_event_buffers.event_buffers_reserved_for_event_queue);
+    try std.testing.expect(!second_event_buffers.request_queues_can_borrow_event_buffers);
+    try std.testing.expect(second_event_buffers.requires_device_ready_before_event_rearm);
+    try std.testing.expect(second_event_buffers.requires_event_rearm_before_request_queue_reuse);
+
+    const second_scan = try lab.recoveryHostScanSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", second_scan.anchor);
+    try std.testing.expectEqual(@as(u16, 4), second_scan.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_scan.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_scan.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 1), second_scan.recovery_generation);
+    try std.testing.expect(second_scan.requires_control_queue_restore_before_scan);
+    try std.testing.expect(second_scan.requires_event_rearm_before_scan);
+    try std.testing.expect(second_scan.requires_request_queue_restore_before_scan);
+    try std.testing.expect(second_scan.requires_async_scan_resume);
+
     const second_restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);
     try std.testing.expect(second_restore.request_planning_available);
