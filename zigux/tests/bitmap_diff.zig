@@ -945,6 +945,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
+    try expectMarker(bitmap_diff_source, "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
