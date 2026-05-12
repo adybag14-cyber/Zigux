@@ -56,8 +56,15 @@ SURVEY_NOTE_MARKERS = [
     "`hvc_hangup()` disconnect summary",
     "`hvc_remove()` handoff summary",
     "`hvc_cleanup()` tty-port release handoff summary",
+    "`hvc_kick()` wakeup cue",
     "notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`",
     "exported-helper signature proof",
+    "`tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent",
+    "`tiocmset` mask handling stays distinct even when `tiocmget` falls back",
+    "sysrq toggle handoff stays distinct from literal fallback on the primary console",
+    "pending sysrq dispatch stays separate from ordinary poll bytes",
+    "non-kernel `^O` input stays a literal byte without toggling sysrq state",
+    "sysrq handoff stays unavailable after teardown",
     "It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.",
 ]
 
@@ -162,7 +169,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 19
 
 
 class CheckError(RuntimeError):
@@ -410,11 +417,47 @@ def run_self_test() -> None:
 
         commit = reset_fixture(tmpdir)
         note_missing = tmpdir / REQUIRED_FILES["survey_note"]
+        note_missing.writeText = None
         note_missing.write_text(
             note_missing.read_text(encoding="utf-8").replace(commit + "\n", ""),
             encoding="utf-8",
         )
         expect_failure(tmpdir, REQUIRED_FILES["survey_note"])
+
+        reset_fixture(tmpdir)
+        note_missing = tmpdir / REQUIRED_FILES["survey_note"]
+        note_missing.write_text(
+            note_missing.read_text(encoding="utf-8").replace(
+                "`hvc_kick()` wakeup cue\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "`hvc_kick()` wakeup cue")
+
+        reset_fixture(tmpdir)
+        note_missing = tmpdir / REQUIRED_FILES["survey_note"]
+        note_missing.write_text(
+            note_missing.read_text(encoding="utf-8").replace(
+                "`tiocmset` mask handling stays distinct even when `tiocmget` falls back\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            "`tiocmset` mask handling stays distinct even when `tiocmget` falls back",
+        )
+
+        reset_fixture(tmpdir)
+        note_missing = tmpdir / REQUIRED_FILES["survey_note"]
+        note_missing.write_text(
+            note_missing.read_text(encoding="utf-8").replace(
+                "pending sysrq dispatch stays separate from ordinary poll bytes\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "pending sysrq dispatch stays separate from ordinary poll bytes")
 
         reset_fixture(tmpdir)
         slice_missing = tmpdir / REQUIRED_FILES["slice_note"]
