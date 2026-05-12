@@ -139,6 +139,11 @@ REQUIRED_MARKERS = {
     LOADER_GAP_SURVEY_PATH: [
         "phase 9 runtime loader gap survey keeps manifest and note aligned",
         "phase 9 runtime loader gap survey keeps phase 8 argv and environment controls out of the shared runtime surface",
+        "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
+        "shared_request_boundary_surface",
+        "shared_request_boundary_guard",
+        "review_only_loader_plan_surfaces",
+        "metadata_only_registration_surfaces",
     ],
 }
 
@@ -280,6 +285,34 @@ def run_self_test() -> int:
         build = build_path.read_text(encoding="utf-8")
         build_path.write_text(build.replace("runtime_loader_gap_survey.zig", "", 1), encoding="utf-8")
         expect_failure(base, "missing_marker:zigux/tests/phase9_build.zig:runtime_loader_gap_survey.zig")
+
+        write_fixture_tree(base)
+        survey_path = base / LOADER_GAP_SURVEY_PATH
+        survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            survey.replace(
+                "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
+        )
+
+        write_fixture_tree(base)
+        survey_path = base / LOADER_GAP_SURVEY_PATH
+        survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            survey.replace("metadata_only_registration_surfaces", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:metadata_only_registration_surfaces",
+        )
 
         write_fixture_tree(base)
         forbidden_path = base / "scripts/zigux/validate-phase9.py"
