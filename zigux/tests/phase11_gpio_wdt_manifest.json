@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L06",
+  "lane_key": "P11-L04",
   "phase": "Phase 11",
   "surveyed_commit": "41ee426b91cf612f2d7a5ef5e4754109fc8b6e16",
   "anchor": "drivers/watchdog/gpio_wdt.c",
