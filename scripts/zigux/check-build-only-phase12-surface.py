@@ -92,6 +92,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "the parked verify-shard note still governs the shared libbpf packet",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
+    "the next honest same-lane follow-through is a one-file review-checklist reread",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
@@ -450,6 +451,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        release_readiness_survey_path.write_text(
+            release_readiness_survey_path.read_text(encoding="utf-8").replace(
+                RELEASE_READINESS_SURVEY_MARKERS[6], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[6]}",
+        )
+
+        write_fixture_tree(base)
         release_sequencing_path.write_text(
             release_sequencing_path.read_text(encoding="utf-8").replace(
                 RELEASE_SEQUENCING_MARKERS[4], "", 1
@@ -554,7 +567,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
