@@ -1,0 +1,1 @@
+{"counts":{"set":5,"unset":0},"entries":[{"name":"CONFIG_BANNER","kind":"string","value":"line1nline2"},{"name":"CONFIG_NOTE","kind":"string","value":"ziguxbbridge"},{"name":"CONFIG_TITLE","kind":"string","value":"ziguxtbridge"},{"name":"CONFIG_STATUS","kind":"string","value":"readyrok"},{"name":"CONFIG_FORM","kind":"string","value":"line1fline2"}]}
