@@ -32,6 +32,9 @@ RELEASE_COORDINATION_MATRIX_PATH = (
 RELEASE_CLOSURE_CHECKLIST_PATH = (
     "Documentation/zigux/phase12-release-closure-checklist.md"
 )
+LIBBPF_VERIFY_SHARD_NOTE_PATH = (
+    "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -47,6 +50,7 @@ REQUIRED_FILES = [
     RELEASE_SEQUENCING_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
+    LIBBPF_VERIFY_SHARD_NOTE_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -410,10 +414,18 @@ def run_self_test() -> int:
         release_sequencing_path = base / RELEASE_SEQUENCING_PATH
         release_coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
         release_closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
+        libbpf_verify_shard_note_path = base / LIBBPF_VERIFY_SHARD_NOTE_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
         phase12_build_path = base / PHASE12_BUILD_PATH
 
+        libbpf_verify_shard_note_path.unlink()
+        expect_failure(
+            base,
+            f"missing_file:{LIBBPF_VERIFY_SHARD_NOTE_PATH}",
+        )
+
+        write_fixture_tree(base)
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(
                 TESTS_README_MARKERS[2], "", 1
@@ -462,7 +474,7 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
-        release_closure_checklist_path.write_text(
+        release_closure_checklist_path.writeText(
             release_closure_checklist_path.read_text(encoding="utf-8").replace(
                 RELEASE_CLOSURE_CHECKLIST_MARKERS[2], "", 1
             ),
@@ -542,7 +554,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
