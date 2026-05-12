@@ -26,7 +26,6 @@ README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
-LOADER_SUBSTRATE_PLAN_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
@@ -34,6 +33,31 @@ RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 LOADER_GAP_SURVEY_PATH = "zigux/tests/runtime_loader_gap_survey.zig"
+
+FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
+    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
+)
+PREPARED_STATE_LANDED_MARKER = (
+    "direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls"
+)
+GAP_SURVEY_DRIFT_MARKER = (
+    "direct readback now also shows `scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
+)
+GAP_SURVEY_NEXT_STEP_MARKER = (
+    "refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/review-checklist.md`, then `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` one file at a time."
+)
+DEP_MOD_BOUNDARY_MARKER = (
+    "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
+)
+DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
+    "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
+)
+OWNER_MAP_MARKERS = [
+    "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
+    "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
+    "- `P9-L10`: owns the current runtime trace-events manifest, survey note, module-slice note, and survey-gate packet.",
+    "- `P9-L13`: owns the current runtime kretprobe manifest-backed loader-plan, survey-gate lifecycle, and tracing proof follow-through.",
+]
 
 REQUIRED_FILES = [
     FREEZE_MAP_PATH,
@@ -43,7 +67,6 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SAMPLES_README_PATH,
-    LOADER_SUBSTRATE_PLAN_CHECKER_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     PHASE9_BUILD_PATH,
@@ -62,34 +85,7 @@ FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
     "scripts/zigux/check-phase9-validation-flow.py",
     "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
-]
-
-OWNER_SPLIT_MARKER = (
-    "the exact `P9-L04`/`P9-L08`/`P9-L10`/`P9-L13` split before another broader shared reminder pass"
-)
-PREPARED_STATE_LANDED_MARKER = (
-    "`zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit"
-)
-GAP_SURVEY_DRIFT_MARKER = (
-    "`scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
-)
-GAP_SURVEY_NEXT_STEP_MARKER = (
-    "refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary, starting with `Documentation/zigux/review-checklist.md` and then `Documentation/zigux/README.md` if the docs-root packet still trails behind"
-)
-DEP_MOD_BOUNDARY_MARKER = (
-    "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
-)
-DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
-    "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
-)
-FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
-    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
-)
-OWNER_MAP_MARKERS = [
-    "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
-    "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
-    "- `P9-L10`: owns the current runtime trace-events manifest, survey note, module-slice note, and survey-gate packet.",
-    "- `P9-L13`: owns the current runtime kretprobe manifest-backed loader-plan, survey-gate lifecycle, and tracing proof follow-through.",
+    "scripts/zigux/check-phase9-loader-substrate-plan.py",
 ]
 
 REQUIRED_MARKERS = {
@@ -97,11 +93,12 @@ REQUIRED_MARKERS = {
         "kernel/workqueue.c",
         "kernel/trace/ring_buffer.c",
         FREEZE_MAP_TRACE_BOUNDARY_MARKER,
-        "`scripts/zigux/check-phase9-loader-substrate-plan.py`",
-        "`samples/zigux/runtime_trace_events_loader.zig`",
+        "`scripts/zigux/check-phase9-build-only-surface.py`",
+        "`zigux/tests/phase9_build.zig`",
+        "`zigux/kernel/runtime_loader.zig`",
+        "`zigux/kernel/runtime_loader_contract.zig`",
     ],
     PHASE9_LANE_SEQUENCING_PATH: [
-        OWNER_SPLIT_MARKER,
         PREPARED_STATE_LANDED_MARKER,
         GAP_SURVEY_DRIFT_MARKER,
         GAP_SURVEY_NEXT_STEP_MARKER,
@@ -112,44 +109,31 @@ REQUIRED_MARKERS = {
     REVIEW_CHECKLIST_PATH: [
         "`scripts/zigux/check-phase9-build-only-surface.py`",
         "workflow-backed `make -C zigux phase9` route",
-        "the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
-        "the focused bitmap top-bit companion replay `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus the shipped `phase9-runtime-bitmap-top-bit-tests` step in `zigux/tests/phase9_build.zig`",
         "no-dedicated-`validate-phase9.py` posture",
     ],
     README_PATH: [
-        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
-        "scripts/zigux/check-phase9-build-only-surface.py",
-        "zigux/tests/phase9_build.zig",
-        "zigux/kernel/runtime_loader.zig",
-        "zigux/kernel/runtime_loader_contract.zig",
+        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
+        "`scripts/zigux/check-phase9-build-only-surface.py`",
+        "`zigux/tests/phase9_build.zig`",
+        "`zigux/kernel/runtime_loader.zig`",
+        "`zigux/kernel/runtime_loader_contract.zig`",
         "the shared Phase 9 packet is still review-first rather than loadable-runtime-complete",
         DOCS_ROOT_DEPMOD_BOUNDARY_MARKER,
     ],
     SCRIPTS_README_PATH: [
         "Phase 9 flow",
-        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for how that scripts-root summary stays split between the loader lane and the four pilot-family packets.",
-        "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
+        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
+        "there is no dedicated shared `validate-phase9.py`",
     ],
     TESTS_README_PATH: [
-        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
-        "`scripts/zigux/check-phase9-build-only-surface.py`",
         "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
-        "`zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig`",
+        "`zigux/tests/runtime_loader_gap_survey.zig`",
+        "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`",
     ],
     SAMPLES_README_PATH: [
-        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets",
+        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
         "the focused `phase9-runtime-loader-shared-tests` step",
-        "keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route",
-    ],
-    LOADER_SUBSTRATE_PLAN_CHECKER_PATH: [
-        "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-        "Documentation/zigux/freeze-map.md",
-        "zigux/tests/phase9_build.zig",
-        "samples/zigux/runtime_trace_events_loader.zig",
-        "kernel/workqueue.c",
-        "kernel/trace/ring_buffer.c",
-        "PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass",
-        "PHASE9_LOADER_SUBSTRATE_PLAN=pass",
+        "instead of implying a dedicated `validate-phase9.py` route",
     ],
     MAKEFILE_PATH: [
         "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9",
@@ -175,18 +159,20 @@ REQUIRED_MARKERS = {
         "runtime_bitmap_top_bit_contract.zig",
     ],
     LOADER_GAP_SURVEY_PATH: [
-        "phase 9 runtime loader gap survey keeps manifest and note aligned",
-        "phase 9 runtime loader gap survey keeps phase 8 argv and environment controls out of the shared runtime surface",
-        "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
-        "shared_request_boundary_surface",
-        "shared_request_boundary_guard",
-        "review_only_loader_plan_surfaces",
-        "metadata_only_registration_surfaces",
+        "phase 9 runtime loader gap survey keeps note and manifest aligned with the live shared packet",
+        "phase 9 runtime loader gap survey keeps the shared replay routes and no-dedicated-validator boundary explicit",
+        "phase 9 runtime loader gap survey keeps rollback and metadata-only trace-events evidence explicit",
+        "shared_runtime_loader_files_present",
+        "shared_runtime_loader_contract_present",
+        "shared_loader_shared_tests_route_present",
+        "shared_phase9_bundle_route_present",
+        "dedicated_validate_phase9_present",
     ],
 }
 
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: ["phase9-validate:"],
+    WORKFLOW_PATH: ["validate-phase9.py", "check-phase9-loader-substrate-plan.py"],
 }
 
 
@@ -240,16 +226,16 @@ def write_fixture_tree(root: Path) -> None:
 
     for rel_path in REQUIRED_FILES:
         markers = REQUIRED_MARKERS.get(rel_path)
-        if markers is None:
-            if rel_path.endswith(".py"):
-                content = "# placeholder\n"
-            elif rel_path.endswith(".md"):
-                content = "# placeholder\n"
-            else:
-                content = "// placeholder\n"
+        if rel_path.endswith(".py"):
+            title = Path(rel_path).name
+            content = "\n".join([f"# {title}", *(markers or []), ""])
+        elif rel_path.endswith(".md"):
+            title = Path(rel_path).name
+            content = "\n".join([f"# {title}", *(markers or []), ""])
         else:
             title = Path(rel_path).name
-            content = "\n".join([f"# {title}", *markers, ""])
+            prefix = f"// {title}"
+            content = "\n".join([prefix, *(markers or []), ""])
         write_text(root / rel_path, content)
 
 
@@ -264,31 +250,22 @@ def run_self_test() -> int:
         freeze_map_path = base / FREEZE_MAP_PATH
         freeze_map = freeze_map_path.read_text(encoding="utf-8")
         freeze_map_path.write_text(
-            freeze_map.replace("`scripts/zigux/check-phase9-loader-substrate-plan.py`", "", 1),
+            freeze_map.replace("`scripts/zigux/check-phase9-build-only-surface.py`", "", 1),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            "missing_marker:Documentation/zigux/freeze-map.md:`scripts/zigux/check-phase9-loader-substrate-plan.py`",
-        )
-
-        write_fixture_tree(base)
-        substrate_checker_path = base / LOADER_SUBSTRATE_PLAN_CHECKER_PATH
-        substrate_checker = substrate_checker_path.read_text(encoding="utf-8")
-        substrate_checker_path.write_text(
-            substrate_checker.replace("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "missing_marker:scripts/zigux/check-phase9-loader-substrate-plan.py:Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+            "missing_marker:Documentation/zigux/freeze-map.md:`scripts/zigux/check-phase9-build-only-surface.py`",
         )
 
         write_fixture_tree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
         lane_note = lane_note_path.read_text(encoding="utf-8")
-        lane_note_path.write_text(lane_note.replace(OWNER_SPLIT_MARKER, "", 1), encoding="utf-8")
-        expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{OWNER_SPLIT_MARKER}")
+        lane_note_path.write_text(
+            lane_note.replace(PREPARED_STATE_LANDED_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{PREPARED_STATE_LANDED_MARKER}")
 
         write_fixture_tree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
@@ -307,22 +284,6 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{GAP_SURVEY_DRIFT_MARKER}")
-
-        write_fixture_tree(base)
-        checklist_path = base / REVIEW_CHECKLIST_PATH
-        checklist = checklist_path.read_text(encoding="utf-8")
-        checklist_path.write_text(
-            checklist.replace(
-                "the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "missing_marker:Documentation/zigux/review-checklist.md:the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
-        )
 
         write_fixture_tree(base)
         checklist_path = base / REVIEW_CHECKLIST_PATH
@@ -351,47 +312,37 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(makefile.replace("phase9-runtime-loader-shared-tests:", "", 1), encoding="utf-8")
+        makefile_path.write_text(
+            makefile.replace("phase9-runtime-loader-shared-tests:", "", 1),
+            encoding="utf-8",
+        )
         expect_failure(base, "missing_marker:zigux/Makefile:phase9-runtime-loader-shared-tests:")
 
         write_fixture_tree(base)
         build_path = base / PHASE9_BUILD_PATH
         build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(build.replace("runtime_loader_gap_survey.zig", "", 1), encoding="utf-8")
+        build_path.write_text(
+            build.replace("runtime_loader_gap_survey.zig", "", 1),
+            encoding="utf-8",
+        )
         expect_failure(base, "missing_marker:zigux/tests/phase9_build.zig:runtime_loader_gap_survey.zig")
 
         write_fixture_tree(base)
         survey_path = base / LOADER_GAP_SURVEY_PATH
         survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            survey.replace(
-                "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
-                "",
-                1,
-            ),
+            survey.replace("shared_phase9_bundle_route_present", "", 1),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit",
+            "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:shared_phase9_bundle_route_present",
         )
 
         write_fixture_tree(base)
-        survey_path = base / LOADER_GAP_SURVEY_PATH
-        survey = survey_path.read_text(encoding="utf-8")
-        survey_path.write_text(
-            survey.replace("metadata_only_registration_surfaces", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:metadata_only_registration_surfaces",
-        )
-
-        write_fixture_tree(base)
-        forbidden_path = base / "scripts/zigux/validate-phase9.py"
+        forbidden_path = base / "scripts/zigux/check-phase9-loader-substrate-plan.py"
         write_text(forbidden_path, "# forbidden\n")
-        expect_failure(base, "unexpected_file:scripts/zigux/validate-phase9.py")
+        expect_failure(base, "unexpected_file:scripts/zigux/check-phase9-loader-substrate-plan.py")
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
