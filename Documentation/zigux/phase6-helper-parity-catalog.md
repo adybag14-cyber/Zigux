@@ -50,12 +50,16 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - roadmap anchor: `lib/hexdump.c`
 - helper: `lib/hexdump.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
+- perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
 - dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`
 - fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`
+- Linux-style packet review route: `make -C zigux phase6-hexdump-review`
 - direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-hexdump-test`
-- current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle
+- dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper and perf replays on the same `PYTHON` and `ZIG` selection path
+- current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle, while the preserved grouped-ASCII ceiling rationale stays anchored in `Documentation/zigux/phase6-hexdump-perf-refresh.md` under the same helper-owned review packet
 
 ## Shared Routes
 - `make -C zigux phase6-base64-c-parity`
