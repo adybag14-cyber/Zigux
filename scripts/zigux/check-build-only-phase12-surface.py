@@ -495,6 +495,19 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH}")
 
         write_fixture_tree(base)
+        readiness_path = base / RELEASE_READINESS_SURVEY_PATH
+        readiness_path.write_text(
+            readiness_path.read_text(encoding="utf-8").replace(
+                RELEASE_READINESS_SURVEY_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
         lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
@@ -538,7 +551,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=4")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
