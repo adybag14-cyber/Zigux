@@ -102,6 +102,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `scripts/zigux/README.md`
 - `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase1-installer-review-surfaces.py`
+- `scripts/zigux/check-phase1-installer-companion-checks.py`
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
@@ -121,9 +122,11 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `make -C zigux phase1-bench`
 - `make -C zigux phase1`
 - `python3 scripts/zigux/install-zig.py --self-test`
+- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`
+- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
+Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
 
 ## Find Bit Review Rule
 
@@ -331,7 +334,7 @@ That means `test "rbtree inserts and traverses in sorted order"`, `test "rbtree 
 
 The committed shared replay in `zigux/tests/phase1_helpers.zig` now consumes `find_found_key`, `find_missing`, `find_first_serial`, `next_match_serials`, and `next_match_terminal_null` directly, so duplicate-search parity is shared-replay-owned as well as helper-local. Reviewers should keep those shared fixture fields and the direct helper-local duplicate-search anchors `test "rbtree findAdd keeps the first duplicate and inserts new keys"` and `test "rbtree nextMatch walks the duplicate range in order"` aligned whenever `find()`, `findFirst()`, `findAdd()`, or `nextMatch()` changes. The paired `test "rbtree matchIterator walks the duplicate range in order"` remains the direct helper-local owning proof for iterator coverage because the shared replay still does not consume a dedicated iterator fixture key.
 
-The direct helper-local cached-root follow-up anchors `test "rbtree findAddCached keeps cached leftmost stable while inserting misses"`, `test "rbtree cached root keeps the leftmost pointer in sync"`, `test "rbtree cached-root Linux-style aliases mirror the primary helpers"`, `test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"`, `test "rbtree eraseCached returns null for a singleton cached tree"`, `test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"`, and `test "rbtree eraseInitCached clears singleton cached roots before reseed"` are also owning proofs for now. The shared Phase 1 replay does not consume committed cached-root insert-miss, alias, singleton-erase, replacement, detach, or reseed fixture fields directly yet, so reviewers must keep those helper-local anchors explicit whenever `findAddCached()`, `replaceNodeCached()`, `eraseCached()`, or `eraseInitCached()` changes.
+The direct helper-local cached-root follow-up anchors `test "rbtree findAddCached keeps cached leftmost stable while inserting misses"`, `test "rbtree cached root keeps the leftmost pointer in sync"`, `test "rbtree cached-root Linux-style aliases mirror the primary helpers"`, `test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"`, `test "rbtree eraseCached returns null for a singleton cached tree"`, and `test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"` are also owning proofs for now. The shared Phase 1 replay does not consume committed cached-root insert-miss, alias, singleton-erase, replacement, detach, or reseed fixture fields directly yet, so reviewers must keep those helper-local anchors explicit whenever `findAddCached()`, `replaceNodeCached()`, `eraseCached()`, or `eraseInitCached()` changes.
 
 ## String Review Rule
 
