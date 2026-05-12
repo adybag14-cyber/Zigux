@@ -32,7 +32,9 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
-    try expectContains(note, "final poll return keeps successful ready counts and first processing failures explicit");
+    try expectContains(note, "final return-path choice between a successful ready count and the first processing failure");
+    try expectContains(note, "bounded buffer-fd lookup and errno shaping");
+    try expectContains(note, "`perf_buffer__buffer_fd(buf_idx)` slot lookup classification");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
@@ -67,6 +69,28 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     );
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
     try std.testing.expectEqual(@as(?usize, 1), processing_failure.execution.first_process_error_index);
+}
+
+test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    const found = perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 2);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdLookupDisposition.found_fd, found.disposition);
+    try std.testing.expectEqual(@as(i32, 21), perf_buffer_poll.resolveBufferFdLookupReturn(found));
+
+    const missing = perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 1);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdLookupDisposition.missing_fd, missing.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveBufferFdLookupReturn(missing),
+    );
+
+    const invalid = perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 4);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdLookupDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferFdLookupReturn(invalid),
+    );
 }
 
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
