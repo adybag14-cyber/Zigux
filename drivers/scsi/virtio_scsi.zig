@@ -109,6 +109,18 @@ pub const RecoveryEventBufferOwnershipSummary = struct {
     requires_event_rearm_before_request_queue_reuse: bool,
 };
 
+pub const RecoveryHostScanSummary = struct {
+    anchor: []const u8,
+    remembered_request_queues: u16,
+    remembered_poll_queues: u16,
+    remembered_event_buffer_count: u16,
+    recovery_generation: u16,
+    requires_control_queue_restore_before_scan: bool,
+    requires_event_rearm_before_scan: bool,
+    requires_request_queue_restore_before_scan: bool,
+    requires_async_scan_resume: bool,
+};
+
 pub const ProbeRequest = struct {
     num_queues: u16,
     requested_poll_queues: u16 = 0,
@@ -483,6 +495,25 @@ pub const VirtioScsiQueueLab = struct {
             .request_queues_can_borrow_event_buffers = false,
             .requires_device_ready_before_event_rearm = true,
             .requires_event_rearm_before_request_queue_reuse = true,
+        };
+    }
+
+    pub fn recoveryHostScanSummary(self: *const Self) !RecoveryHostScanSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .remembered_request_queues = layout.request_queues,
+            .remembered_poll_queues = layout.poll_queues,
+            .remembered_event_buffer_count = layout.event_buffer_count,
+            .recovery_generation = self.recovery_generation,
+            .requires_control_queue_restore_before_scan = true,
+            .requires_event_rearm_before_scan = true,
+            .requires_request_queue_restore_before_scan = true,
+            .requires_async_scan_resume = true,
         };
     }
 
