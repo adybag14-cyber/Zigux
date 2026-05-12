@@ -134,6 +134,13 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(sample_root_readme);
 
+    const top_bit_contract_source = try readRepoFileAlloc(
+        std.testing.allocator,
+        "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(top_bit_contract_source);
+
     const phase9_build = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase9_build.zig",
@@ -219,6 +226,15 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
+
+    try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps the highest valid bit explicit");
+    try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps boundary mutation and bounds checks reviewable");
+    try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps exit-path lifecycle parity explicit");
+    try expectContains(top_bit_contract_source, "summary.weight");
+    try expectContains(top_bit_contract_source, "ModuleStage.initialized");
+    try expectContains(top_bit_contract_source, "ModuleStage.exited");
+    try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
+    try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
