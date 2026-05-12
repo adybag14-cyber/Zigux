@@ -6,24 +6,24 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8`
-- `PHASE4_VALIDATOR_BLOB_SHA=eea5b7d67d6e99f8838a0550d5aa950d1f4cff30`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=5ba1599569548585203e7d94fcec188b06eec210`
+- `PHASE4_VALIDATOR_BLOB_SHA=cfbe03fb6c1f6f1c118c253a3bd7a81a5c1c5387`
 - `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=716b1b941299258af178efdbf0184c99aed15922`
 - `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=1cb2bd21c540fc813ad5b8566d4e134b11a65e6c`
-- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=fabeb85868d4e5f82e82999199cb3b746b15009e`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=8f82defdf14710ffae5205423ce039f24e5e7792`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=480081306fa696f805ad664c460715a072e9a16b`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
 - `PHASE4_MAKEFILE_BLOB_SHA=c5e0b9bc021ce58f382fa0ec0506c810d4877cec`
 - `PHASE4_WORKFLOW_BLOB_SHA=709c448f32ee5bdd865b6e67a086d9e3cc2b5943`
 - `PHASE4_DOC_README_BLOB_SHA=1f3151b96b335a64b1ef0b99d7867d4d47e1fc0b`
-- `PHASE4_SCRIPT_README_BLOB_SHA=2a6f269d6b18c0794b5745e3e43db818bbc62be0`
-- `PHASE4_TESTS_README_BLOB_SHA=5f9b2da1406f91da3d93063ede0f6ea65b03e611`
+- `PHASE4_SCRIPT_README_BLOB_SHA=5ac9efc27555a18e47238f4496b4fd094c442d2e`
+- `PHASE4_TESTS_README_BLOB_SHA=a74ec525cb6fb0089b31261e558e5b1a0ff667f4`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=6657258cc2be335881d628243ffe1ad2cdb885e0`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=7010c4816a604be03ef46876765925edb9852e47`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=90c93b9f9039316616cedcd950dd73147b05c4e3`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=5c3e00173885db8ce50c47c5c47de03729e4ec1a`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=c8e1ae6083c666bfcd3fbbac6fc9d54eb6e473a8`
 - `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=1ec1d3f4f98c4ed1fa324af1c0e6d26489320fa4`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30`
@@ -44,7 +44,7 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.
 - The current bounded atomic64 rollback gate now has an exact check inventory in this note: two arithmetic checks (`v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing` and `negative-one arithmetic path keeps decrement-style updates visible`), three exchange checks (`v0 to v1 keeps the original counter visible as the exchange return value`, `v1 to v2 keeps wide negative and positive 64-bit values distinct`, and `high-bit starter from atomic64_test.c still round-trips through exchange`), two `cmpxchg` checks (success and mismatch), two `add_unless` checks (blocked and changed), three bitwise checks (`and`, `or`, and `xor`), the selftest-family ordering replay, the exact current case-group cardinalities of 2 arithmetic / 3 exchange / 2 `cmpxchg` / 2 `add_unless` / 3 bitwise checks, empty-batch rejection for `runThresholdReplay(0)`, deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with final counters `130322557735600377` and `130322557735600376` plus checksums `3626254113632800175` and `9210681150676220922`, and threshold lifecycle markers that keep `final_stage=exited`, `final_selftest_runs=1`, and `final_exit_runs=1` pinned for both replay batches.
 - That published thirty-case self-test catalog now also exercises the dedicated runtime atomic64 survey-packet presence drift alongside the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the parked kprobe packet's owner drift path, validation-entrypoint drift path, and bounded-next-step survey drift path, plus the shipped perf-baseline packet's manifest-presence drift path, the local-only perf-baseline note split-marker drift path, the shipped perf-baseline owner drift path, the shared-promotion status drift path, the adjacent `test_fsmount` gap packet's manifest-presence drift path, its reviewability-only threshold-posture drift path, its owner drift path, its direct validation-entrypoint drift path, its Linux-style survey-wrapper drift path, and its bounded-next-step handoff drift path too, so those validator, matrix, reviewer-checklist, kprobe packet, perf-baseline packet, local-only split marker, perf-baseline ownership, shared-promotion posture, and parked `test_fsmount` packet expectations are no longer an unstated self-test gap.
-- The current exact-readback set now truthfully pins the shared rollback-ownership and lab-matrix packet again, and the adjacent manifest-backed runtime atomic64 survey pair now keeps the shared review-checklist blob pin aligned with the current validator and matrix blob pins as part of that same current-head packet.
+- The current exact-readback set now truthfully pins the shared rollback-ownership and lab-matrix packet again. Fresh connector readback also shows the adjacent manifest-backed runtime atomic64 survey-local packet still carries the older validator and matrix blob pins `eea5b7d67d6e99f8838a0550d5aa950d1f4cff30` and `d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8` while live `master` now exposes `cfbe03fb6c1f6f1c118c253a3bd7a81a5c1c5387` and `5ba1599569548585203e7d94fcec188b06eec210`; that separate survey-local drift remains outside this note-only evidence refresh.
 - The current helper-backed bitmap rollback lab replay routes remain `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-bitmap-live-helper-replay`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 - The current bounded bitmap rollback gate now also has an exact check inventory in this note: thirteen bounded range and prefix cases, two `find_nth_bit` replays, thirteen copy-tail cases, explicit zero-length range/prefix and zero-length copy no-op coverage, the aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes, bounded out-of-bounds rejection coverage, explicit rollback-governance and manifest-backed rollback-packet alignment coverage, empty-batch rejection for `runThresholdReplay(0)`, deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with checksums `5216946504564592253` and `7942141539243507472`, final markers `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123`, and a current source-inventory tally of `13 DiffCase`, `13 CopyCase`, and `13 mixThresholdChecksum()` checkpoints.
 - The helper-backed bitmap rollback row still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.
