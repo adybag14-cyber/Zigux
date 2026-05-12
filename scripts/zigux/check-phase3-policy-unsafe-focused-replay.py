@@ -8,50 +8,41 @@ import tempfile
 from pathlib import Path
 
 
-TEST_FILE = "zigux/tests/phase3_policy_unsafe.zig"
-BUILD_FILE = "zigux/tests/phase3_policy_unsafe_build.zig"
-DOC_FILE = "Documentation/zigux/phase3-abi-slice.md"
+SURVEY_REL = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
+ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
+ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
-TEST_MARKERS = (
-    'const layout_assert = @import("layout_assert");',
-    'const panic_policy = @import("panic_policy");',
-    'const allocator_policy = @import("allocator_policy");',
-    'const mmio = @import("mmio_helpers");',
-    'const narrow = @import("narrow_unsafe");',
-    'test "phase3 focused policy and unsafe replay keeps layout and policy bytes explicit" {',
-    'layout_assert.assertInteropPolicyLayout();',
-    'layout_assert.assertMmioRangeLayout();',
-    'layout_assert.assertRbtreeRootViewLayout();',
-    'panic_policy.modeFromInteropPolicy(raw_policy)',
-    'allocator_policy.modeFromInteropPolicy(raw_policy)',
-    'narrow.constPointerAtInteropPolicyBytes(',
-    'mmio.rangeInteropPolicy(mmio_base, 16, 4, mmio_policy)',
-    'mmio.write32InteropPolicyByte(mmio_base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(mmio_base, 8, 0, 0, 0));',
+SURVEY_REQUIRED = (
+    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands",
+    "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
+    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte`",
+    "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small",
+    "The current tree no longer ships a dedicated `phase3_policy_unsafe` replay pair",
 )
 
-BUILD_MARKERS = (
-    '.root_source_file = b.path("phase3_policy_unsafe.zig")',
-    '.root_source_file = b.path("../helpers/layout_assert.zig")',
-    '.root_source_file = b.path("../helpers/panic_policy.zig")',
-    '.root_source_file = b.path("../helpers/allocator_policy.zig")',
-    '.root_source_file = b.path("../helpers/mmio.zig")',
-    '.root_source_file = b.path("../unsafe/narrow.zig")',
-    'root_module.addImport("mmio_helpers", mmio_helpers_module);',
-    'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-    'const tests = b.addTest(.{ .name = "phase3-policy-unsafe-tests", .root_module = root_module });',
-    'const test_step = b.step("test", "Run Phase 3 focused policy/unsafe tests");',
+ABI_SLICE_REQUIRED = (
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
 )
 
-DOC_MARKERS = (
-    "zigux/helpers/layout_assert.zig",
+ABI_SLICE_FORBIDDEN = (
+    "zigux/tests/phase3_policy_unsafe.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
+)
+
+MANIFEST_REQUIRED = (
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/unsafe/narrow.zig",
-    "zigux/helpers/mmio.zig",
-    "raw_pointer_bridge",
-    "volatile_mmio",
+)
+
+MANIFEST_FORBIDDEN = (
     "zigux/tests/phase3_policy_unsafe.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
 )
 
 
@@ -73,70 +64,86 @@ def require_markers(path: Path, markers: tuple[str, ...]) -> None:
             raise CheckFailure(f"missing_marker:{path.as_posix()}:{marker}")
 
 
-def check_repo_root(repo_root: Path) -> None:
-    require_markers(repo_root / TEST_FILE, TEST_MARKERS)
-    require_markers(repo_root / BUILD_FILE, BUILD_MARKERS)
-    require_markers(repo_root / DOC_FILE, DOC_MARKERS)
+def forbid_markers(path: Path, markers: tuple[str, ...]) -> None:
+    text = read_text(path)
+    for marker in markers:
+        if marker in text:
+            raise CheckFailure(f"stale_marker:{path.as_posix()}:{marker}")
+
+
+ def check_repo_root(repo_root: Path) -> None:
+    require_markers(repo_root / SURVEY_REL, SURVEY_REQUIRED)
+    require_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_REQUIRED)
+    forbid_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_FORBIDDEN)
+    require_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_REQUIRED)
+    forbid_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_FORBIDDEN)
 
 
 def write_fixture(root: Path) -> None:
-    (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
-    (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
-    (root / TEST_FILE).write_text("\n".join(TEST_MARKERS) + "\n", encoding="utf-8")
-    (root / BUILD_FILE).write_text("\n".join(BUILD_MARKERS) + "\n", encoding="utf-8")
-    (root / DOC_FILE).write_text("\n".join(DOC_MARKERS) + "\n", encoding="utf-8")
+    (root / SURVEY_REL.parent).mkdir(parents=True, exist_ok=True)
+    (root / ABI_MANIFEST_REL.parent).mkdir(parents=True, exist_ok=True)
+
+    (root / SURVEY_REL).write_text("\n".join(SURVEY_REQUIRED) + "\n", encoding="utf-8")
+    (root / ABI_SLICE_REL).write_text("\n".join(ABI_SLICE_REQUIRED) + "\n", encoding="utf-8")
+    (root / ABI_MANIFEST_REL).write_text("\n".join(MANIFEST_REQUIRED) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
-    tmpdir = Path(tempfile.mkdtemp(prefix="phase3_policy_unsafe_checker_"))
+    tmpdir = Path(tempfile.mkdtemp(prefix="phase3_policy_unsafe_packet_checker_"))
     try:
         write_fixture(tmpdir)
         check_repo_root(tmpdir)
 
-        test_path = tmpdir / TEST_FILE
-        original_test = test_path.read_text(encoding="utf-8")
-        test_path.write_text(original_test.replace(TEST_MARKERS[-1], ""), encoding="utf-8")
+        survey_path = tmpdir / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[0], ""),
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
-            if TEST_FILE not in str(exc):
+            if SURVEY_REL.as_posix() not in str(exc):
                 raise
         else:
-            raise AssertionError("expected missing test marker failure")
-        test_path.write_text(original_test, encoding="utf-8")
+            raise AssertionError("expected missing survey marker failure")
 
-        build_path = tmpdir / BUILD_FILE
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(original_build.replace(BUILD_MARKERS[-1], ""), encoding="utf-8")
+        write_fixture(tmpdir)
+        abi_slice_path = tmpdir / ABI_SLICE_REL
+        abi_slice_path.write_text(
+            abi_slice_path.read_text(encoding="utf-8") + ABI_SLICE_FORBIDDEN[0] + "\n",
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
-            if BUILD_FILE not in str(exc):
+            if ABI_SLICE_REL.as_posix() not in str(exc):
                 raise
         else:
-            raise AssertionError("expected missing build marker failure")
-        build_path.write_text(original_build, encoding="utf-8")
+            raise AssertionError("expected stale abi-slice marker failure")
 
-        doc_path = tmpdir / DOC_FILE
-        original_doc = doc_path.read_text(encoding="utf-8")
-        doc_path.write_text(original_doc.replace(DOC_MARKERS[-1], ""), encoding="utf-8")
+        write_fixture(tmpdir)
+        manifest_path = tmpdir / ABI_MANIFEST_REL
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[1] + "\n", ""),
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
-            if DOC_FILE not in str(exc):
+            if ABI_MANIFEST_REL.as_posix() not in str(exc):
                 raise
         else:
-            raise AssertionError("expected missing doc marker failure")
+            raise AssertionError("expected missing manifest marker failure")
 
-        print("PHASE3_POLICY_UNSAFE_FOCUSED_REPLAY_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=4")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=4")
     finally:
         shutil.rmtree(tmpdir)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Fail closed on the focused Phase 3 policy/unsafe replay packet."
+        description="Fail closed on the current shared Phase 3 policy/unsafe packet."
     )
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
@@ -150,10 +157,10 @@ def main() -> int:
             run_self_test()
             return 0
         check_repo_root(args.repo_root)
-        print("PHASE3_POLICY_UNSAFE_FOCUSED_REPLAY=pass")
+        print("PHASE3_POLICY_UNSAFE_PACKET=pass")
         return 0
     except CheckFailure as exc:
-        print(f"PHASE3_POLICY_UNSAFE_FOCUSED_REPLAY=fail:{exc}", file=sys.stderr)
+        print(f"PHASE3_POLICY_UNSAFE_PACKET=fail:{exc}", file=sys.stderr)
         return 1
 
 
