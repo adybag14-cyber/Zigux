@@ -28,6 +28,8 @@ FILES = [
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -48,10 +50,10 @@ BUILD_MARKERS = [
     "phase10_virtio_input_queue_callback_preflight_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_verify_module",
-    '"phase10-virtio-input-probe-preflight-tests"',
-    '"phase10-virtio-input-queue-callback-preflight-tests"',
-    '"phase10-virtio-input-status-drain-tests"',
-    '"phase10-virtio-input-verify-tests"',
+    '\"phase10-virtio-input-probe-preflight-tests\"',
+    '\"phase10-virtio-input-queue-callback-preflight-tests\"',
+    '\"phase10-virtio-input-status-drain-tests\"',
+    '\"phase10-virtio-input-verify-tests\"',
 ]
 
 WORKFLOW_MARKERS = [
@@ -73,6 +75,8 @@ SCRIPT_README_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "phase10_virtio_input_probe_preflight.zig",
     "phase10_virtio_input_queue_callback_preflight.zig",
+    "phase10_virtio_input_registration_preflight.zig",
+    "phase10_virtio_input_teardown_observation.zig",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -89,6 +93,8 @@ TESTS_README_MARKERS = [
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
     "phase10_virtio_input_probe_preflight.zig",
     "phase10_virtio_input_queue_callback_preflight.zig",
+    "phase10_virtio_input_registration_preflight.zig",
+    "phase10_virtio_input_teardown_observation.zig",
     "phase10_virtio_input_status_drain.zig",
 ]
 
@@ -108,6 +114,8 @@ DOC_README_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
 ]
 
 FORBIDDEN_DOC_README_MARKERS = [
@@ -124,10 +132,14 @@ SLICE_MARKERS = [
 SURVEY_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
+    "phase10-virtio-input-registration-preflight-replay",
+    "phase10-virtio-input-teardown-observation-replay",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
 ]
 
 MODULE_SLICE_MARKERS = [
@@ -302,6 +314,8 @@ else:
         "phase10-virtio-input-lab-gate": "starter_landed",
         "phase10-virtio-input-verify-replay": "starter_landed",
         "phase10-virtio-input-queue-callback-preflight-replay": "starter_landed",
+        "phase10-virtio-input-registration-preflight-replay": "starter_landed",
+        "phase10-virtio-input-teardown-observation-replay": "starter_landed",
         "phase10-virtio-input-survey-gate": "starter_landed",
         "phase10-virtio-input-capability-setup-helper": "starter_landed",
         "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
@@ -331,7 +345,7 @@ else:
         missing.append(f"manifest:ready_next_count={ready_count}")
     if blocked_count != 1:
         missing.append(f"manifest:blocked_count={blocked_count}")
-    if starter_count < 18:
+    if starter_count < 20:
         missing.append(f"manifest:starter_count={starter_count}")
 
     for gap_id, status in expected_statuses.items():
@@ -341,6 +355,34 @@ else:
             continue
         if gap.get("status") != status:
             missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
+
+    registration_preflight_replay_gap = find_gap(
+        manifest,
+        "phase10-virtio-input-registration-preflight-replay",
+    )
+    if registration_preflight_replay_gap is not None:
+        why_now = str(registration_preflight_replay_gap.get("why_now", ""))
+        if "dedicated registration-preflight replay" not in why_now:
+            missing.append("manifest:registration_preflight_replay_gap:dedicated_registration_preflight_replay")
+        if "capability-setup" not in why_now:
+            missing.append("manifest:registration_preflight_replay_gap:capability_setup")
+        if "multitouch-slot blockers" not in why_now:
+            missing.append("manifest:registration_preflight_replay_gap:multitouch_slot_blockers")
+        if "input_register_device() handoff" not in why_now:
+            missing.append("manifest:registration_preflight_replay_gap:input_register_device_handoff")
+
+    teardown_observation_replay_gap = find_gap(
+        manifest,
+        "phase10-virtio-input-teardown-observation-replay",
+    )
+    if teardown_observation_replay_gap is not None:
+        why_now = str(teardown_observation_replay_gap.get("why_now", ""))
+        if "dedicated teardown-observation replay" not in why_now:
+            missing.append("manifest:teardown_observation_replay_gap:dedicated_teardown_observation_replay")
+        if "identity preservation plus runtime- and capability-state cleanup explicit" not in why_now:
+            missing.append("manifest:teardown_observation_replay_gap:identity_and_cleanup")
+        if "remove, freeze, or restore work" not in why_now:
+            missing.append("manifest:teardown_observation_replay_gap:remove_freeze_restore")
 
     landed_preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
     if landed_preflight_gap is not None:
