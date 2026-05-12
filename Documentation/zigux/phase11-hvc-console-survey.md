@@ -14,6 +14,7 @@ It stays inside the simple-drivers lane and records only the shipped starter, th
 
 The current bounded HVC archival packet on `master` is:
 
+* `drivers/tty/hvc/hvc_console.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
@@ -24,9 +25,12 @@ The current bounded HVC archival packet on `master` is:
 * `make -C zigux phase11-hvc-survey`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 
-The survey note exists to keep those surfaces, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
+The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
 ## What Landed
+
+The shipped `drivers/tty/hvc/hvc_console.zig` starter is the direct anchor for the current HVC archival packet.
+It keeps the host-free close, notifier-add, khvcd, poll, hangup, remove, and cleanup summaries reviewable without claiming live tty-driver registration, notifier execution, or host-backed teardown.
 
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
