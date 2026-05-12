@@ -5,6 +5,36 @@ pub const MemparseResult = struct {
     rest: []const u8,
 };
 
+pub fn parseOptionStr(optionstr: []const u8, option: []const u8) bool {
+    if (optionstr.len == 0) {
+        return false;
+    }
+
+    var idx: usize = 0;
+    while (idx < optionstr.len) {
+        const start = idx;
+        while (idx < optionstr.len and optionstr[idx] != ',' and optionstr[idx] != 0) : (idx += 1) {}
+
+        const entry = optionstr[start..idx];
+        const terminated_by_comma = idx < optionstr.len and optionstr[idx] == ',';
+        const terminated_by_nul = idx < optionstr.len and optionstr[idx] == 0;
+
+        if ((entry.len != 0 or terminated_by_comma) and std.mem.eql(u8, entry, option)) {
+            return true;
+        }
+
+        if (terminated_by_nul or !terminated_by_comma) {
+            break;
+        }
+
+        idx += 1;
+    }
+
+    return false;
+}
+
+pub const parse_option_str = parseOptionStr;
+
 fn digitValue(ch: u8, base: u8) ?u8 {
     const value = std.fmt.charToDigit(ch, base) catch return null;
     return @intCast(value);
@@ -168,4 +198,16 @@ test "memparse applies suffixes before signed clamping" {
     const positive = memparse("+3Mmore");
     try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
     try std.testing.expectEqualStrings("more", positive.rest);
+}
+
+test "parseOptionStr matches only exact bare options" {
+    try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
+    try std.testing.expect(parseOptionStr("quiet,debug\x00,nohlt", "debug"));
+    try std.testing.expect(!parseOptionStr("quiet,debug=1,nohlt", "debug"));
+    try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
+    try std.testing.expect(parseOptionStr(",debug", ""));
+    try std.testing.expect(parseOptionStr("debug,,quiet", ""));
+    try std.testing.expect(!parseOptionStr("debug,", ""));
+    try std.testing.expect(!parseOptionStr("", ""));
+    try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
