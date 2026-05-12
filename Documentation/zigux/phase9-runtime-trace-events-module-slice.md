@@ -18,7 +18,7 @@ This module-slice note stays review-first. It records what the live repository a
 
 ## Current master evidence
 
-Current `master` now exposes the family-local trace-events packet again through the shared Phase 9 owner-map and build bundle:
+Current `master` exposes the family-local trace-events packet through the shared Phase 9 owner-map and build bundle:
 
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
@@ -37,7 +37,7 @@ Current `master` also still exposes the adjacent shared loader-facing packet:
 - `zigux/tests/phase9_build.zig`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
-That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, rejects non-idle registration state at the metadata-only handoff boundary, and keeps shared release failures from desynchronizing loader state; the family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step. That blocked handoff still stops before `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state; those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.
+That means the honest current review surface is a landed family-local packet plus the adjacent shared loader-facing reminder surfaces. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible on current `master`. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, rejects non-idle registration state at the metadata-only handoff boundary, and keeps shared release failures from desynchronizing loader state; the family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step. That blocked handoff still stops before `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state; those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.
 
 ## What this slice owns
 
