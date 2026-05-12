@@ -306,7 +306,15 @@ def run_self_test() -> int:
     expect_failure(
         'missing_expected_stderr',
         lambda: validate_cases(missing_stderr_cases),
-        f'{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='"'"'sample_comment_only_expected.stderr.txt'"'"'',
+        f'{CASES_PATH}:sample_comment_only:expected_stderr=None,expected=' "'" 'sample_comment_only_expected.stderr.txt' "'" '',
+    )
+
+    missing_expected_output_fixture_cases = copy_valid_cases(valid_cases)
+    find_case(missing_expected_output_fixture_cases, 'sample')['expected_stdout'] = 'missing_expected_output.txt'
+    expect_failure(
+        'missing_expected_output_fixture',
+        lambda: validate_cases(missing_expected_output_fixture_cases),
+        f'{CASES_PATH}:missing_expected_output:missing_expected_output.txt',
     )
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
