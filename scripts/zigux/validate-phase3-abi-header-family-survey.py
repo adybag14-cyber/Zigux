@@ -47,6 +47,8 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail",
+    "should stay anchored in this dedicated survey and the paired next-step note",
 )
 
 
@@ -177,6 +179,36 @@ def run_self_test() -> int:
     ):
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected next-step note marker was not reported")
+        return 1
+
+    broken = validate_text(
+        sample.replace(
+            "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail",
+            "",
+            1,
+        )
+    )
+    if (
+        "shared reminder missing marker: `include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail"
+        not in broken
+    ):
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected starter-companion detail marker was not reported")
+        return 1
+
+    broken = validate_text(
+        sample.replace(
+            "should stay anchored in this dedicated survey and the paired next-step note",
+            "",
+            1,
+        )
+    )
+    if (
+        "shared reminder missing marker: should stay anchored in this dedicated survey and the paired next-step note"
+        not in broken
+    ):
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected dedicated anchoring marker was not reported")
         return 1
 
     print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")
