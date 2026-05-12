@@ -123,7 +123,7 @@ EXPECTED_CLOSURE_MARKERS = [
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 9
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -154,6 +154,15 @@ def validate_expected_object(
 
 def validate_markers(text: str, markers: list[str], label: str) -> list[str]:
     return [f"missing_marker:{label}:{marker}" for marker in markers if marker not in text]
+
+
+def validate_exact_counts(text: str, markers: list[str], label: str) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append(f"exact_count:{label}:{marker}:count={count}:expected=1")
+    return issues
 
 
 def validate_line_counts(text: str, markers: list[str], label: str) -> list[str]:
@@ -229,9 +238,11 @@ def validate_root(root: Path) -> list[str]:
 
     tests_readme = (root / TESTS_README_REL).read_text(encoding="utf-8")
     issues.extend(validate_markers(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL))
+    issues.extend(validate_exact_counts(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL))
 
     closure_text = (root / PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
     issues.extend(validate_markers(closure_text, EXPECTED_CLOSURE_MARKERS, PHASE2_CLOSURE_REL))
+    issues.extend(validate_exact_counts(closure_text, EXPECTED_CLOSURE_MARKERS, PHASE2_CLOSURE_REL))
 
     workflow_text = (root / WORKFLOW_REL).read_text(encoding="utf-8")
     issues.extend(validate_line_counts(workflow_text, EXPECTED_WORKFLOW_LINES, WORKFLOW_REL))
@@ -354,6 +365,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert f"missing_marker:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}" in issues
+        assert f"exact_count:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}:count=0:expected=1" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        tests_readme_path = root / TESTS_README_REL
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8") + EXPECTED_TESTS_README_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"exact_count:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}:count=2:expected=1" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -403,6 +425,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert f"missing_marker:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[0]}" in issues
+        assert f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[0]}:count=0:expected=1" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE_REL
+        closure_path.write_text(
+            closure_path.read_text(encoding="utf-8") + EXPECTED_CLOSURE_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[0]}:count=2:expected=1" in issues
         case_count += 1
 
     assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
