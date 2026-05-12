@@ -4,14 +4,21 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Current `master` now exposes the bounded non-runtime Phase 5 reference-sample packet directly from this directory:
+Current `master` keeps most of the bounded non-runtime Phase 5 reference-sample packet directly visible from this directory:
 
 * `samples/zigux/bytestream_fifo.zig`
-* `samples/zigux/kobject_example.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_sample.zig`
 
-Treat those four files as the shipped non-runtime Phase 5 sample packet on current `master`.
+Treat those directly readable files as part of the shipped non-runtime Phase 5 sample packet on current `master`.
+
+The kobject anchor needs one narrower reminder here. Current shared Phase 5 guidance still treats `samples/kobject/kobject-example.c` as one of the four approved anchors, but direct public-tree readback for this lane is currently narrower than several shared reminders implied:
+
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `zigux/tests/phase5_kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
+
+Keep shared sample-root wording aligned with that narrower kobject packet until a fresh direct sample-root read confirms `samples/zigux/kobject_example.zig` is readable again on current `master`.
 
 The same tree also still carries the later runtime-oriented sample family:
 
@@ -40,15 +47,15 @@ The roadmap-backed Phase 5 sample anchors are still limited to these four Linux 
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Those anchors remain the approved Phase 5 target set, and the corresponding non-runtime `samples/zigux/*.zig` files above are now directly readable on current `master`.
+Those anchors remain the approved Phase 5 target set. On current `master`, shared contributor guidance should keep three directly readable `samples/zigux/*.zig` files explicit from this directory and keep the narrower kobject packet above explicit instead of restating a missing sample-root path as already readable.
 
 ## Contributor guidance
 
 When touching Phase 5 contributor guidance:
 
 * keep roadmap scope narrow to the four approved anchors above
-* keep shared Phase 5 wording aligned with the directly readable `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig` packet instead of falling back to older pre-landing wording
-* do not treat review notes by themselves as proof of additional sample files beyond that four-sample packet
+* keep shared Phase 5 wording aligned with the directly readable `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig` packet, and keep the kobject anchor aligned with `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` until the sample-root file is directly readable again
+* do not treat review notes by themselves as proof of additional sample files beyond the current directly readable packet
 * keep runtime-facing `runtime_*` files in the separate later runtime lane instead of folding them into Phase 5
 * keep direct `bitmap` helper reviewability in its existing helper or runtime lanes instead of implying an extra Phase 5 sample
 
@@ -77,4 +84,4 @@ For shared Phase 5 guidance, use:
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
-Use those shared surfaces to keep roadmap scope, contributor wording, the exact four-sample packet, and the Phase 5-versus-runtime boundary honest.
+Use those shared surfaces to keep roadmap scope, contributor wording, the current directly readable Phase 5 packet plus the narrower kobject caveat, and the Phase 5-versus-runtime boundary honest.
