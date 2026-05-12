@@ -96,6 +96,7 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "$(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py",
     "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "$(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py",
     "$(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
@@ -395,9 +396,7 @@ def _populate_repo(root: Path) -> None:
     _write(
         root / ABI_MANIFEST_PATH,
         _manifest_payload(
-            [
-                rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES
-            ]
+            [rel_path.as_posix() for rel_path in REQUIRED_MANIFEST_FILES]
             + [
                 "include/zigux/dev_t.h",
                 "zigux/bindings/dev_t.zig",
@@ -717,6 +716,26 @@ def run_self_test() -> int:
         if expected_validator_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing validator-support make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_header_family_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"
+        )
+        if expected_header_family_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing header-family self-test make marker was not reported")
             return 1
         case_count += 1
 
