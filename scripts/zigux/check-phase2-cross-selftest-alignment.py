@@ -56,7 +56,7 @@ PHASE2_CROSS_CHECKER_MARKERS = [
 PHASE2_VALIDATOR_MARKERS = [
     'ROOT / "scripts" / "zigux" / "check-phase2-cross.py"',
     'ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"',
-    'ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
+    '"zigux/tests/fixtures/phase2_cross_targets.json"',
 ]
 
 CLOSURE_MARKERS = [
