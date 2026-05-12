@@ -93,6 +93,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zigux/tests/phase15_readiness_gate_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "dedicated packet itself starts drifting") != null);
