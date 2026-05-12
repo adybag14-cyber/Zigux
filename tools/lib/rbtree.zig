@@ -653,6 +653,10 @@ pub fn firstPostorder(root: *const Root) ?*Node {
     return leftDeepestNode(node);
 }
 
+pub fn rb_first_postorder(root: *const Root) ?*Node {
+    return firstPostorder(root);
+}
+
 pub fn nextPostorder(node: ?*const Node) ?*Node {
     const current = node orelse return null;
     const parent = current.parent;
@@ -660,6 +664,10 @@ pub fn nextPostorder(node: ?*const Node) ?*Node {
         return leftDeepestNode(parent.?.right.?);
     }
     return parent;
+}
+
+pub fn rb_next_postorder(node: ?*const Node) ?*Node {
+    return nextPostorder(node);
 }
 
 test "rbtree inserts and traverses in sorted order" {
@@ -934,7 +942,10 @@ test "rbtree postorder and empty node helpers behave" {
     }
 
     try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqual(firstPostorder(&root), rb_first_postorder(&root));
+    try std.testing.expectEqual(nextPostorder(firstPostorder(&root)), rb_next_postorder(rb_first_postorder(&root)));
     try std.testing.expect(nextPostorder(null) == null);
+    try std.testing.expect(rb_next_postorder(null) == null);
 
     var detached = Node.init();
     clearNode(&detached);
