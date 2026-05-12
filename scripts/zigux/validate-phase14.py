@@ -703,6 +703,7 @@ def run_validation() -> int:
         smoke_commands = manifest.get("smoke_commands")
         expected_smoke_commands = [
             "make -C zigux phase14-validate",
+            "make -C zigux phase14-test",
             "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
             "make -C zigux phase14",
         ]
