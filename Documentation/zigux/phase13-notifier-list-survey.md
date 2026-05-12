@@ -73,6 +73,10 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
@@ -81,10 +85,11 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 Those summaries should keep this notifier survey, the shipped
 `check-phase13-notifier-priority-signal.py` helper, the shipped
 `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds,
-and the stable `phase13-validate` or `phase13` make routes visible while
-framing the still-missing direct notifier packet, header, helper, and HVC
-header companions as repo-reality gaps rather than shipped current-`master`
-evidence.
+the shared release-notes and roadmap-traceability packet, the paired Landlock
+ownership and syscall-governance notes, and the stable `phase13-validate` or
+`phase13` make routes visible while framing the still-missing direct notifier
+packet, header, helper, and HVC header companions as repo-reality gaps rather
+than shipped current-`master` evidence.
 
 ## Non-goals
 
