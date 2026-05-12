@@ -212,6 +212,17 @@
     }
   },
   "fixture_posture": {
+    "base64": {
+      "focused_replay": "zigux/tests/phase6_base64.zig",
+      "fixture_module": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+      "direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
+      "direct_c_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
+      "direct_c_case_generator": "zigux/tests/phase6_base64_c_casegen.zig",
+      "transient_generated_include": "zigux/tests/fixtures/phase6_base64_c_generated_cases.inc",
+      "transient_generated_include_committed": false,
+      "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
+      "perf_corpus_boundary": "keep the committed std and urlsafe slowdown baselines in phase6_base64_vectors.zig and gate IMAP slowdown coverage behind a later explicit perfReferenceSupportedVariant() baseline change"
+    },
     "inline_corpus_governance": {
       "bsearch": {
         "focused_replay": "zigux/tests/phase6_bsearch.zig",
@@ -255,7 +266,8 @@
       "invalid_decode_vectors": 24,
       "perf_payload_cases": 1,
       "perf_replay_cases": 4,
-      "c_parity_cases": 24
+      "c_parity_cases": 24,
+      "transient_generated_include_committed": false
     },
     "bsearch": {
       "inline_corpus": "15-element ascending and descending sorted integer slices plus sorted symbol and packed-record replays",
