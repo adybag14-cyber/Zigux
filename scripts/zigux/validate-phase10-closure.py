@@ -169,6 +169,13 @@ LEDGER_MIRROR_ERROR = (
     "PHASE10_CLOSURE_LEDGER_MIRROR_MISMATCH_END"
 )
 
+MANIFEST_PROVENANCE_ERROR = (
+    "PHASE10_CLOSURE_VALIDATION_MANIFEST_PROVENANCE=fail\n"
+    "PHASE10_CLOSURE_MANIFEST_PROVENANCE_MISMATCH_START\n"
+    "{details}\n"
+    "PHASE10_CLOSURE_MANIFEST_PROVENANCE_MISMATCH_END"
+)
+
 LEDGER_LANE_MAP = {
     "core": "PHASE10_LEDGER_SURVEY_CORE_LANE",
     "ring": "PHASE10_LEDGER_SURVEY_RING_LANE",
@@ -197,6 +204,22 @@ COMMANDS = [
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
 ]
 
+EXPECTED_SURVEY_PROVENANCE_SOURCE = "manifest_derived"
+
+EXPECTED_SURVEY_LANE_KEYS = {
+    "core": "P10-L01",
+    "ring": "P10-L07",
+    "input": "P10-L13",
+    "mmio": "P10-L10",
+}
+
+EXPECTED_SURVEYED_COMMITS = {
+    "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+    "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+    "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+    "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -219,6 +242,35 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
     return missing
+
+
+def collect_manifest_provenance_mismatches(root: Path) -> list[str]:
+    manifest = read_manifest(root)
+    provenance = manifest.get("survey_provenance", {})
+    mismatches: list[str] = []
+
+    if provenance.get("source") != EXPECTED_SURVEY_PROVENANCE_SOURCE:
+        mismatches.append(f"survey_provenance.source={provenance.get('source')}")
+
+    lane_keys = provenance.get("lane_keys", {})
+    for key, expected in EXPECTED_SURVEY_LANE_KEYS.items():
+        actual = lane_keys.get(key)
+        if actual != expected:
+            mismatches.append(f"survey_provenance.lane_keys.{key}={actual}")
+    for key in sorted(set(lane_keys) - set(EXPECTED_SURVEY_LANE_KEYS)):
+        mismatches.append(f"survey_provenance.lane_keys.extra.{key}={lane_keys[key]}")
+
+    surveyed_commits = provenance.get("surveyed_commits", {})
+    for key, expected in EXPECTED_SURVEYED_COMMITS.items():
+        actual = surveyed_commits.get(key)
+        if actual != expected:
+            mismatches.append(f"survey_provenance.surveyed_commits.{key}={actual}")
+    for key in sorted(set(surveyed_commits) - set(EXPECTED_SURVEYED_COMMITS)):
+        mismatches.append(
+            f"survey_provenance.surveyed_commits.extra.{key}={surveyed_commits[key]}"
+        )
+
+    return mismatches
 
 
 def build_ledger_mirror_markers(root: Path) -> list[str]:
@@ -380,6 +432,13 @@ def expect_marker_missing(root: Path, expected: str, error_label: str) -> None:
         raise SystemExit(error_label)
 
 
+def expect_manifest_provenance_mismatch(root: Path, expected: str, error_label: str) -> None:
+    mismatches = collect_manifest_provenance_mismatches(root)
+    if expected not in mismatches:
+        actual = ",".join(mismatches) if mismatches else "none"
+        raise SystemExit(f"{error_label}:actual={actual}")
+
+
 def expect_failed_commands(root: Path, expected: list[str], error_label: str) -> None:
     failed_commands = run_required_commands(root)
     if failed_commands != expected:
@@ -401,13 +460,21 @@ def run_self_test() -> int:
 
         missing_files = collect_missing_files(root)
         missing_markers = collect_missing_markers(root)
+        manifest_provenance_mismatches = collect_manifest_provenance_mismatches(root)
         ledger_mismatches = collect_ledger_exact_once_mismatches(root)
         ledger_mirror_mismatches = collect_ledger_mirror_mismatches(root)
-        if missing_files or missing_markers or ledger_mismatches or ledger_mirror_mismatches:
+        if (
+            missing_files
+            or missing_markers
+            or manifest_provenance_mismatches
+            or ledger_mismatches
+            or ledger_mirror_mismatches
+        ):
             raise SystemExit(
                 "phase10-closure-self-test:baseline_failed:"
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
+                f"manifest_provenance={','.join(manifest_provenance_mismatches) if manifest_provenance_mismatches else 'none'}:"
                 f"ledger={','.join(ledger_mismatches) if ledger_mismatches else 'none'}:"
                 f"ledger_mirrors={','.join(ledger_mirror_mismatches) if ledger_mirror_mismatches else 'none'}"
             )
@@ -592,16 +659,31 @@ def run_self_test() -> int:
 
         closure_manifest.write_text(
             closure_manifest.read_text(encoding="utf-8").replace(
+                '"input": "P10-L13"',
+                '"input": "P10-Y05"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_manifest_provenance_mismatch(
+            root,
+            "survey_provenance.lane_keys.input=P10-Y05",
+            "phase10-closure-self-test:manifest_lane_key_mismatch_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
                 '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
                 '"core": "0000000000000000000000000000000000000000"',
                 1,
             ),
             encoding="utf-8",
         )
-        expect_marker_missing(
+        expect_manifest_provenance_mismatch(
             root,
-            'manifest:"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
-            "phase10-closure-self-test:missing_manifest_commit_marker_not_detected",
+            "survey_provenance.surveyed_commits.core=0000000000000000000000000000000000000000",
+            "phase10-closure-self-test:manifest_commit_mismatch_not_detected",
         )
         write_fixture(root)
 
@@ -772,7 +854,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
@@ -802,6 +884,11 @@ def main() -> int:
         print("MISSING_PHASE10_CLOSURE_MARKERS_END")
         return 1
 
+    manifest_provenance_mismatches = collect_manifest_provenance_mismatches(ROOT)
+    if manifest_provenance_mismatches:
+        print(MANIFEST_PROVENANCE_ERROR.format(details="\n".join(manifest_provenance_mismatches)))
+        return 1
+
     ledger_mirror_mismatches = collect_ledger_mirror_mismatches(ROOT)
     if ledger_mirror_mismatches:
         print(LEDGER_MIRROR_ERROR.format(details="\n".join(ledger_mirror_mismatches)))
@@ -821,7 +908,14 @@ def main() -> int:
         print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_END")
         return 1
 
-    marker_count = sum(len(markers) for markers in MARKER_SETS.values()) + len(LEDGER_EXACT_ONCE_MARKERS) + len(build_ledger_mirror_markers(ROOT))
+    marker_count = (
+        sum(len(markers) for markers in MARKER_SETS.values())
+        + len(LEDGER_EXACT_ONCE_MARKERS)
+        + len(build_ledger_mirror_markers(ROOT))
+        + 1
+        + len(EXPECTED_SURVEY_LANE_KEYS)
+        + len(EXPECTED_SURVEYED_COMMITS)
+    )
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={marker_count}")
