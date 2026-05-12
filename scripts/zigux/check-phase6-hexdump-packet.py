@@ -134,6 +134,7 @@ PERF_TEST_MARKERS = [
 FIXTURE_MARKERS = [
     'test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {',
     '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },',
+    '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },',
     '.{ .name = "uneven group fallback line length", .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false, .expected_length = 26 },',
     'test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {',
     '.label = "16B-plain-g1",',
@@ -152,7 +153,7 @@ PERF_MATRIX_MARKERS = [
     'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
 ]
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 22
 
 
 class CheckError(RuntimeError):
@@ -318,6 +319,11 @@ def run_self_test() -> None:
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
         fixtures.write_text(fixtures.read_text(encoding="utf-8").replace('.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },\n', ""), encoding="utf-8")
         expect_failure(tmpdir, "empty plain line reports zero length")
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(fixtures.read_text(encoding="utf-8").replace('.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },\n', ""), encoding="utf-8")
+        expect_failure(tmpdir, "empty ascii line reports zero length")
 
         build_self_test_fixture(tmpdir)
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
