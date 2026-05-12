@@ -137,10 +137,14 @@ REQUIRED_MARKERS = {
         "## Phase 13 tests-root packet",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/validate-phase13-release.py`",
         "shared validator-first eight-test release packet",
+        "`zigux/bindings/notifier_abi.zig`",
+        "`include/zigux/abi.h`",
+        "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
     ],
     "scripts/zigux/README.md": [
         "Phase 13 flow",
@@ -183,6 +187,9 @@ EXACT_COUNTS = {
     },
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": {
         "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.": 1,
+    },
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": {
+        "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.": 1,
     },
     "scripts/zigux/README.md": {
         "eight-test shared helper replay": 1,
@@ -411,6 +418,9 @@ def run_self_test() -> int:
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/bindings/notifier_abi.zig`",
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/ruleset.zig`",
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/syscalls.zig`",
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
+                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.:expected=1:actual=0",
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`",
             ],
             "missing_adjacent_direct_evidence_markers_failed",
         )
@@ -451,6 +461,67 @@ def run_self_test() -> int:
             repeat_markers(
                 REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
                 EXACT_COUNTS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+                    if marker != "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
+                ],
+                {
+                    "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.": 1,
+                },
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+            ],
+            "missing_tests_companion_devres_guard_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+                    if marker != "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence."
+                ],
+                {},
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
+                "exact_count:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.:expected=1:actual=0",
+            ],
+            "missing_tests_companion_repo_reality_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
             ),
         )
         case_count += 1
@@ -527,14 +598,6 @@ def run_self_test() -> int:
                 "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path",
             ],
             "missing_devres_typo_guard_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"],
-                {},
-            ),
         )
         case_count += 1
 
