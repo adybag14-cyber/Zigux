@@ -4,19 +4,16 @@ This note keeps the closed Phase 1 host-helper packet reviewable without reopeni
 
 ## Scope
 
-Phase 1 stays limited to the roadmap-backed host-side helper tranche:
+Phase 1 stays limited to the roadmap-backed host-side helper tranche and the already-shipped shared validation surfaces that belong to that tranche.
 
-- `tools/lib/bitmap.zig`
-- `tools/lib/find_bit.zig`
-- `tools/lib/string.zig`
-- `tools/lib/rbtree.zig`
+- all thirteen closed `tools/lib/*.zig` helpers named in `zigux/tests/fixtures/phase1_helper_manifest.json`
 - tightly coupled parity, closure, benchmark, and review-surface gates that already belong to that helper packet
 
 Do not use this lane to widen into runtime helpers, Phase 3 ABI work, sample work, or later driver phases.
 
 ## Current Split
 
-The live Phase 1 packet on `master` is already closed as a bounded helper tranche, but it is intentionally split into two follow-up families.
+Current `master` keeps the closed Phase 1 helper packet split into two non-overlapping follow-up families.
 
 ### Shared-Replay Parked Helpers
 
@@ -41,81 +38,40 @@ These are the only helpers that still keep bounded direct helper-local follow-up
 - `tools/lib/rbtree.zig`
 - `tools/lib/string.zig`
 
+- `PHASE1_SHARED_REPLAY_PARKED_HELPERS=tools/lib/argv_split.zig,tools/lib/cmdline.zig,tools/lib/ctype.zig,tools/lib/hweight.zig,tools/lib/list_sort.zig,tools/lib/slab.zig,tools/lib/str_error_r.zig,tools/lib/vsprintf.zig,tools/lib/zalloc.zig`
+- `PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS=tools/lib/bitmap.zig,tools/lib/find_bit.zig,tools/lib/rbtree.zig,tools/lib/string.zig`
+- `PHASE1_LANE_RULE_SUMMARY=Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.`
+- `PHASE1_LANE_ANTI_OVERLAP_RULE=Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys.`
+
 ## Current Repo Reality
 
-Fresh repo-first inspection shows several older saved Phase 1 reopen cues are already closed on current `master`.
+Fresh repo-first inspection shows that the honest current owner map is the shared Phase 1 helper manifest plus the live helper-local anchors, not an older bitmap-only reopen guide.
 
-The earlier Phase 1 closure-validator marker sync for bitmap is already closed. `scripts/zigux/validate-phase1.py` now exact-checks the widened bitmap review packet against the live `zigux/tests/fixtures/phase1_helper_manifest.json`, and that shared manifest already agrees with `tools/lib/bitmap.zig` plus `zigux/tests/phase1_helpers.zig` on allocator sizing, zero-filled allocation words, complement masking, cross-word `scnprintf()` collapse, zero-and-aligned copy-and-extend behavior, zero-sized destination-view handling, zero-bit binary identity behavior, and the shared Phase 1 replay anchor. `scripts/zigux/validate-phase1-closure.py` is now a lighter closure wrapper, so future runs should not keep treating it as the owning expected-manifest surface for this bitmap packet.
+That means:
 
-The older saved `scripts/zigux/validate-phase1.py` write-text handoff is already closed on current `master` as well. The built-in Phase 1 validator self-test now uses `Path.write_text()`, so future runs should not replay that typo-only repair or keep treating it as the next same-lane deliverable.
-
-The docs-root Phase 1 summary still names this owner-map note, so the earlier `Documentation/zigux/README.md` truthfulness gap remains closed on current `master`.
-
-The earlier `find_bit` edge bench gap is now closed on current `master` too. `zigux/tests/phase1_bench.zig` now carries the underscore-alias and backward-edge `findLastBit()` replay calls inside `findBitEdgeBench()`, and `zigux/tests/fixtures/phase1_bench_expectations.json` already keeps the widened exact edge checksum at `23340000`.
-
-The earlier shared reminder gap is now fully closed on current `master`. `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep `Documentation/zigux/phase1-host-helper-lane-sequencing.md` inside the shared review packet.
-
-The earlier shared Phase 1 validator packet gap is now closed on current `master` too. `scripts/zigux/validate-phase1.py` exact-checks both the reviewer-facing `review_checklist_phase1_packet` reminder and the broader `tests_root_phase1_packet` marker with this lane note included.
-
-The earlier `find_bit` tail-word inclusive-boundary sync is also closed on current `master`. `scripts/zigux/validate-phase1.py` now exact-checks the direct `tools/lib/find_bit.zig` tail-word inclusive-boundary anchor and its paired contract text from the shared manifest packet.
-
-Fresh repo-first inspection also shows the older compact Phase 1 string memparse follow-through is no longer a live blocker on current `master`. `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` both keep `PHASE1_STRING_MEMPARSE_REVIEW=` explicit with the signed trailing-rest split, signed-overflow saturation, and suffix-after-saturation cues still visible beside the direct string anchors and the shared manifest wording.
-
-Fresh repo-first inspection now also shows the installer companion checker is part of the live Phase 1 validation route on current `master`. `zigux/Makefile` reruns `scripts/zigux/check-phase1-installer-companion-checks.py` and its self-test, the scripts helper index lists the checker directly, and the checker keeps `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md` aligned around that companion packet while still leaving the broader `Documentation/zigux/review-checklist.md` reminder undercount for a later same-family review-surface pass.
-
-Fresh repo-first inspection now also shows the tighter tests-root installer companion note is already closed on current `master`. `zigux/tests/README.md` now names `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and the paired live checker route, and `scripts/zigux/check-phase1-installer-companion-checks.py` exact-checks that wording so future runs should not keep treating the tests-root reminder as the next same-lane deliverable.
-
-Fresh repo-first inspection now also shows the broader docs-root and scripts-root installer companion reminders are already explicit on current `master`. `Documentation/zigux/README.md` names the dedicated installer-companion checker packet in the Phase 1 notes paragraph, and the Phase 1 flow paragraph in `scripts/zigux/README.md` lists both the checker and the same wider reminder packet.
-
-That means the older shared-reminder follow-up, the earlier `find_bit` sync, the earlier bitmap expected-manifest sync, the later string memparse closure-summary sync, and the newer tests-root installer companion repair are no longer the next bounded steps. Fresh repo-first inspection closes those earlier tests-root, validator, closure-summary, docs-root, and scripts-root omissions, so this lane should stay parked unless a new exact bitmap-local drift appears across the shared manifest, helper-local anchors, shared replay, or the validator-first packet on a later reread.
-
-Future host-tools follow-up should come only from another freshly observed exact-check drift across the shipped Phase 1 closure, manifest, validator, benchmark, installer-companion, or helper-local anchor surfaces.
+- `zigux/tests/fixtures/phase1_helper_manifest.json` is the authoritative owner-map split for all thirteen closed Phase 1 helpers
+- the nine shared-replay parked helpers stay parked unless their shared replay, fixture, build-route, or review-surface packet drifts
+- bitmap, find_bit, rbtree, and string are the only helpers eligible for bounded direct-anchor follow-up, and even those should reopen only inside their existing helper-local anchors or already-committed shared fixture keys
+- older helper-local reopen cues that are already closed on `master` should not be replayed as the generic next Phase 1 step or used to justify reopening a different helper family
 
 ## Anti-Overlap Rules
 
 When this lane reopens, stay inside one bounded step only.
 
-- Do not batch shared-replay parked helpers with the direct-anchor helper family.
-- Do not reopen the already-landed bitmap validator-first sync now owned by `scripts/zigux/validate-phase1.py` plus the shared Phase 1 helper manifest.
-- Do not reopen the superseded `scripts/zigux/validate-phase1-closure.py` expected-manifest handoff for this bitmap packet.
-- Do not reopen the already-landed `validate-phase1.py` write-text typo repair.
-- Do not reopen the already-landed docs-root owner-map sync.
-- Do not reopen the already-landed `find_bit` edge bench sync.
-- Do not reopen the already-landed portion of the shared closure-note owner-map sync in `Documentation/zigux/phase1-closure.md`.
-- Do not reopen the already-landed reviewer-facing owner-map sync in `Documentation/zigux/review-checklist.md`.
-- Do not reopen the already-landed tests-root owner-map sync in `zigux/tests/README.md`.
-- Do not reopen the already-landed `tests_root_phase1_packet` validator sync in `scripts/zigux/validate-phase1.py`.
-- Do not reopen the already-landed shared Phase 1 validator sync for the `find_bit` edge bench packet.
-- Do not reopen the already-landed `find_bit` tail-word inclusive-boundary sync.
-- Do not widen this bitmap-local lane into the later review-checklist installer companion reminder repair in the same slot.
-- Do not reopen the already-landed `PHASE1_STRING_MEMPARSE_REVIEW=` closure-summary sync unless a fresh repo-first reread finds a new exact wording drift across the closure note, validator, direct string anchors, or shared manifest.
-- Do not reopen the already-landed tests-root installer companion note repair in the same slot as a broader docs-root, scripts-root, or review-checklist reminder sync.
-- Do not reopen the already-aligned docs-root or scripts-root installer companion reminder wording unless a fresh repo-first reread finds a new exact drift there.
-- Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, installer-companion, or build-route repair before changing helper semantics.
-- If the exact direct-anchor gap is already closed on `master`, advance only to the next unfinished bounded step inside the same helper family.
+- Do not batch helpers across the shared-replay parked and direct-anchor follow-up families in one run.
+- Shared-replay parked helpers reopen only for packet drift, fixture drift, build-route drift, or review-surface truthfulness.
+- Direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys.
+- If a helper-local gap is already closed on `master`, do not keep replaying the older saved cue; advance only to the next unfinished bounded step inside that same helper family.
+- Do not treat bitmap-only validator or closure-note follow-through as the default Phase 1 reopen path now that the live owner map spans all thirteen helpers.
+- Prefer the smallest same-family reviewability, parity-gate, fixture, benchmark, or build-route repair before changing helper semantics.
 
 ## Next Bounded Step
 
-Keep the next host-tools-alpha slot inside one freshly observed same-lane truthfulness or checker-local gap before reopening any helper-local work.
+Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helper family only.
 
-Start with these already-shipped shared and direct Phase 1 packet surfaces:
-
-- `scripts/zigux/validate-phase1.py`
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
-- `Documentation/zigux/phase1-closure.md`
-- `tools/lib/bitmap.zig`
-- `zigux/tests/phase1_helpers.zig`
-- `Documentation/zigux/README.md`
-- `scripts/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase1-installer-companion-checks.py`
-- `zigux/Makefile`
-- `.github/workflows/zigux-bootstrap.yml`
-- `zigux/tests/README.md`
-
-The next run should first reread `scripts/zigux/validate-phase1.py` together with `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-closure.md`, `tools/lib/bitmap.zig`, and `zigux/tests/phase1_helpers.zig`. If those surfaces still agree on the current bitmap packet, leave this lane parked and move only when a fresh exact-check drift appears. If a new same-lane drift does show up, land only the smallest bitmap-local validator, manifest, closure-note, or helper-anchor truthfulness repair that keeps the validator-first packet aligned with current `master`.
-
-Any later broader review-checklist installer-companion reminder work belongs in a separate same-family review-surface slot after a fresh reread confirms that this bitmap-local packet still needs nothing.
+- If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.
+- If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.
+- If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.
 
 ## Footer
 
