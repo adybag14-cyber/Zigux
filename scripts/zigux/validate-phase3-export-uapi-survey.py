@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parent
 SURVEY = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 DOCS_README = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
@@ -19,6 +19,8 @@ ABI_HEADER = Path("include/zigux/abi.h")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
+ABI_SLICE = Path("Documentation/zigux/phase3-abi-slice.md")
+ABI_NEXT_STEP = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 BUILD_FILE = Path("zigux/tests/build.zig")
 MAKEFILE = Path("zigux/Makefile")
 VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
@@ -37,6 +39,20 @@ SURVEY_LINES = (
     f"`PHASE3_SHARED_MAKEFILE_PATH={MAKEFILE.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
+)
+ABI_SLICE_LINES = (
+    f"`{SURVEY.as_posix()}`",
+    f"`{ABI_NEXT_STEP.as_posix()}`",
+    f"`{EXPORT_SHIM.as_posix()}`",
+    f"`{UAPI_VERSION.as_posix()}`",
+    f"`{UAPI_DEV_T.as_posix()}`",
+)
+ABI_NEXT_STEP_LINES = (
+    f"`{SURVEY.as_posix()}`",
+    f"`{EXPORT_SHIM.as_posix()}`",
+    f"`{UAPI_VERSION.as_posix()}`",
+    f"`{UAPI_DEV_T.as_posix()}`",
+    f"`{VALIDATOR.as_posix()}`",
 )
 FORBIDDEN_SURVEY_MARKERS = (
     "PHASE3_EXPORT_UAPI_TEST_PATH=",
@@ -147,6 +163,8 @@ def validate(root: Path) -> list[str]:
         EXPORT_SHIM,
         UAPI_VERSION,
         UAPI_DEV_T,
+        ABI_SLICE,
+        ABI_NEXT_STEP,
         BUILD_FILE,
         MAKEFILE,
         VALIDATOR,
@@ -233,11 +251,17 @@ def validate(root: Path) -> list[str]:
     for marker in DOCS_README_LINES:
         require_exact(issues, docs_text, "docs_root_marker", marker)
 
-    review_checklist_path = root / REVIEW_CHECKLIST
-    if review_checklist_path.exists():
-        review_checklist_text = review_checklist_path.read_text(encoding="utf-8")
-        for marker in REVIEW_CHECKLIST_MARKERS:
-            require_contains(issues, review_checklist_text, "review_checklist_marker", marker)
+    review_checklist_text = (root / REVIEW_CHECKLIST).read_text(encoding="utf-8")
+    for marker in REVIEW_CHECKLIST_MARKERS:
+        require_contains(issues, review_checklist_text, "review_checklist_marker", marker)
+
+    abi_slice_text = (root / ABI_SLICE).read_text(encoding="utf-8")
+    for marker in ABI_SLICE_LINES:
+        require_exact(issues, abi_slice_text, "abi_slice_marker", marker)
+
+    abi_next_step_text = (root / ABI_NEXT_STEP).read_text(encoding="utf-8")
+    for marker in ABI_NEXT_STEP_LINES:
+        require_exact(issues, abi_next_step_text, "abi_next_step_marker", marker)
 
     scripts_readme_text = (root / SCRIPTS_README).read_text(encoding="utf-8")
     for marker in SCRIPTS_README_LINES:
@@ -335,6 +359,22 @@ def build_valid_workspace(root: Path) -> None:
         "- `include/zigux/abi.h`",
         "",
     )))
+    write(root / ABI_SLICE, "\n".join((
+        f"- `{SURVEY.as_posix()}`",
+        f"- `{ABI_NEXT_STEP.as_posix()}`",
+        f"- `{EXPORT_SHIM.as_posix()}`",
+        f"- `{UAPI_VERSION.as_posix()}`",
+        f"- `{UAPI_DEV_T.as_posix()}`",
+        "",
+    )))
+    write(root / ABI_NEXT_STEP, "\n".join((
+        f"- `{SURVEY.as_posix()}`",
+        f"- `{EXPORT_SHIM.as_posix()}`",
+        f"- `{UAPI_VERSION.as_posix()}`",
+        f"- `{UAPI_DEV_T.as_posix()}`",
+        f"- `{VALIDATOR.as_posix()}`",
+        "",
+    )))
     write(root / SCRIPTS_README, "\n".join((
         "- `validate-phase3-export-uapi-survey.py`",
         f"- `{HEADER_GOVERNANCE.as_posix()}`",
@@ -380,17 +420,28 @@ def run_self_test() -> int:
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_UAPI_DEV_T_BLOB_SHA:"), issues
         build_valid_workspace(root)
 
-        write(
-            root / DOCS_README,
-            (root / DOCS_README).read_text(encoding="utf-8").replace(
-                "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-                "`broken`",
-                1,
-            ),
-        )
-        assert validate(root) == [
-            "missing_docs_root_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`"
-        ]
+        write(root / DOCS_README, (root / DOCS_README).read_text(encoding="utf-8").replace(
+            "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == ["missing_docs_root_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`"]
+        build_valid_workspace(root)
+
+        write(root / ABI_SLICE, (root / ABI_SLICE).read_text(encoding="utf-8").replace(
+            f"`{SURVEY.as_posix()}`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_abi_slice_marker:`{SURVEY.as_posix()}`"]
+        build_valid_workspace(root)
+
+        write(root / ABI_NEXT_STEP, (root / ABI_NEXT_STEP).read_text(encoding="utf-8").replace(
+            f"`{VALIDATOR.as_posix()}`",
+            "`broken`",
+            1,
+        ))
+        assert validate(root) == [f"missing_abi_next_step_marker:`{VALIDATOR.as_posix()}`"]
         build_valid_workspace(root)
 
         write(root / REVIEW_CHECKLIST, "")
@@ -415,17 +466,12 @@ def run_self_test() -> int:
         assert validate(root) == [f"missing_file:{HEADER_GOVERNANCE.as_posix()}"]
         build_valid_workspace(root)
 
-        write(
-            root / WORKFLOW,
-            (root / WORKFLOW).read_text(encoding="utf-8").replace(
-                "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-                "run: python3 broken.py --self-test",
-                1,
-            ),
-        )
-        assert validate(root) == [
-            "missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"
-        ]
+        write(root / WORKFLOW, (root / WORKFLOW).read_text(encoding="utf-8").replace(
+            "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+            "run: python3 broken.py --self-test",
+            1,
+        ))
+        assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"]
         build_valid_workspace(root)
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8") + "phase3_export_uapi.zig\n")
@@ -445,20 +491,15 @@ def run_self_test() -> int:
         assert validate(root) == [f"missing_file:{LINUX_HEADER.as_posix()}"]
 
         build_valid_workspace(root)
-        write(
-            root / ABI_HEADER,
-            (root / ABI_HEADER).read_text(encoding="utf-8").replace(
-                "struct zigux_export_status { int code; };",
-                "",
-                1,
-            ),
-        )
-        assert validate(root) == [
-            "missing_marker:include/zigux/abi.h:struct zigux_export_status {"
-        ]
+        write(root / ABI_HEADER, (root / ABI_HEADER).read_text(encoding="utf-8").replace(
+            "struct zigux_export_status { int code; };",
+            "",
+            1,
+        ))
+        assert validate(root) == ["missing_marker:include/zigux/abi.h:struct zigux_export_status {"]
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -479,7 +520,7 @@ def main() -> int:
             print(issue)
         return 1
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=14")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=16")
     return 0
 
 
