@@ -124,6 +124,7 @@
     "review_checklist_has_productization_prompt": true,
     "review_checklist_has_rollback_threshold_prompt": true,
     "smoke_note_records_rollback_threshold": true,
+    "smoke_note_records_tests_readme_checker": true,
     "scripts_readme_records_rollback_threshold": true,
     "smoke_note_records_owner_and_rollback": true,
     "smoke_note_records_transfer_rationale": true,
