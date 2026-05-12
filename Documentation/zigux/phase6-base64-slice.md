@@ -28,4 +28,4 @@
 - the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs
 
 ## Next Step
-Leave this slice parked unless helper behavior, direct C parity evidence, focused fixture-backed replay coverage, or the dedicated perf replay drifts on current `master`.
+Leave this slice parked on current `master`. If the helper reopens, the next safe step is one perf-only extension that adds an explicit IMAP slowdown baseline through `zigux/tests/fixtures/phase6_base64_vectors.zig`'s `perfReferenceSupportedVariant()` boundary and reruns `zigux/tests/phase6_base64_perf.zig`, without widening `lib/base64.zig` semantics, the direct C parity packet, or the shared Phase 6 helper catalog.
