@@ -183,7 +183,6 @@ Key entrypoints
   * `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
   * `Documentation/zigux/phase12-virtio-net-survey.md`
   * `Documentation/zigux/phase12-libbpf-segment-survey.md`
-  * `zigux/tests/phase13_build.zig`
   * `zigux/tests/phase3_abi.zig`
   * `zigux/tests/phase3_low_level_wrappers.zig`
   * `zigux/tests/phase3_abi_dump.zig`
