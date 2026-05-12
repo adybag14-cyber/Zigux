@@ -27,6 +27,9 @@ REQUIRED_MARKERS = (
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
 )
+REQUIRED_CURRENT_PACKET_LINE_MARKERS = {
+    marker: f"- `{marker}`" for marker in REQUIRED_MARKERS
+}
 FORBIDDEN_CURRENT_PACKET_MARKERS = (
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
@@ -91,7 +94,15 @@ def validate_text(text: str) -> list[str]:
     current_packet = text.split("## Current packet", 1)[1].split(
         REVIEW_BOUNDARY_PREFIX, 1
     )[0]
-    issues = [marker for marker in REQUIRED_MARKERS if marker not in current_packet]
+    issues: list[str] = []
+    for marker, line_marker in REQUIRED_CURRENT_PACKET_LINE_MARKERS.items():
+        expected_count = 1
+        actual_count = current_packet.count(line_marker)
+        if actual_count != expected_count:
+            issues.append(
+                "current packet marker count drift: "
+                f"{marker} (expected {expected_count}, found {actual_count})"
+            )
     issues.extend(
         f"current packet still claims removed replay marker: {marker}"
         for marker in FORBIDDEN_CURRENT_PACKET_MARKERS
@@ -129,7 +140,7 @@ def validate_text(text: str) -> list[str]:
 def run_self_test() -> int:
     sample = (
         "## Current packet\n"
-        + "\n".join(REQUIRED_MARKERS)
+        + "\n".join(REQUIRED_CURRENT_PACKET_LINE_MARKERS.values())
         + "\n## Review boundary\n"
         + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKER_COUNTS.keys())
         + "\n## Non-goals\n"
@@ -146,21 +157,48 @@ def run_self_test() -> int:
         return 1
 
     broken = validate_text(sample.replace("include/zigux/abi.h", "", 1))
-    if "include/zigux/abi.h" not in broken:
+    expected = (
+        "current packet marker count drift: include/zigux/abi.h "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
-        print("expected missing marker was not reported")
+        print("expected missing current-packet marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("zigux/bindings/abi.zig", "", 1))
-    if "zigux/bindings/abi.zig" not in broken:
+    expected = (
+        "current packet marker count drift: zigux/bindings/abi.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected current-packet bindings marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("zigux/tests/phase3_abi_dump.zig", "", 1))
-    if "zigux/tests/phase3_abi_dump.zig" not in broken:
+    expected = (
+        "current packet marker count drift: zigux/tests/phase3_abi_dump.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
-        print("expected dump marker was not reported")
+        print("expected current-packet dump marker was not reported")
+        return 1
+
+    duplicate = sample.replace(
+        "- `zigux/uapi/dev_t.zig`\n",
+        "- `zigux/uapi/dev_t.zig`\n- `zigux/uapi/dev_t.zig`\n",
+        1,
+    )
+    broken = validate_text(duplicate)
+    expected = (
+        "current packet marker count drift: zigux/uapi/dev_t.zig "
+        "(expected 1, found 2)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected duplicate current-packet marker drift was not reported")
         return 1
 
     broken = validate_text(
