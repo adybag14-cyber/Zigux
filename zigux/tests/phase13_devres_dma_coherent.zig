@@ -29,6 +29,8 @@ test "phase13 devres coherent-dma manifest records the current helper packet bou
     try requireContains(manifest, "\"status\": \"starter_landed\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_scatterlist_state\"");
+    try requireContains(manifest, "still-shipped helper-first packet");
+    try requireContains(manifest, "wider shared build bundle stays absent");
 }
 
 test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {
