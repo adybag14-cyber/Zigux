@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase13-devres-packet-alignment.py",
+    "scripts/zigux/check-phase13-notifier-packet.py",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
     "zigux/tests/README.md",
@@ -279,6 +280,15 @@ def run_self_test() -> int:
             "missing_priority_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts/zigux/check-phase13-notifier-packet.py").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:scripts/zigux/check-phase13-notifier-packet.py"],
+            "missing_notifier_checker_file_failed",
+        )
+        write_text(root, "scripts/zigux/check-phase13-notifier-packet.py", "# stub\n")
         case_count += 1
 
         write_text(
