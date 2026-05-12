@@ -57,6 +57,15 @@ pub const PreviewResult = struct {
     truncated: bool,
 };
 
+pub const VisibleSpanSummary = struct {
+    head_index: usize,
+    tail_index: usize,
+    total_visible: usize,
+    first_window_len: usize,
+    second_window_len: usize,
+    wraps: bool,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -165,6 +174,20 @@ pub const BytestreamFifoSample = struct {
 
     fn tailIndex(self: *const Self) usize {
         return (self.head + self.len) % capacity;
+    }
+
+    pub fn visibleSpanSummary(self: *const Self) VisibleSpanSummary {
+        const first_window_len = @min(self.len, capacity - self.head);
+        const second_window_len = self.len - first_window_len;
+
+        return .{
+            .head_index = self.head,
+            .tail_index = self.tailIndex(),
+            .total_visible = self.len,
+            .first_window_len = first_window_len,
+            .second_window_len = second_window_len,
+            .wraps = second_window_len != 0,
+        };
     }
 
     pub fn pushByte(self: *Self, value: u8) bool {
@@ -474,6 +497,67 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
+
+test "bytestream fifo sample keeps queue-shape boundaries explicit" {
+    var sample = BytestreamFifoSample{};
+
+    const cold = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), cold.head_index);
+    try std.testing.expectEqual(@as(usize, 0), cold.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), cold.total_visible);
+    try std.testing.expectEqual(@as(usize, 0), cold.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), cold.second_window_len);
+    try std.testing.expect(!cold.wraps);
+
+    try sample.init();
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    const hello_summary = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), hello_summary.head_index);
+    try std.testing.expectEqual(@as(usize, 5), hello_summary.tail_index);
+    try std.testing.expectEqual(@as(usize, 5), hello_summary.total_visible);
+    try std.testing.expectEqual(@as(usize, 5), hello_summary.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), hello_summary.second_window_len);
+    try std.testing.expect(!hello_summary.wraps);
+
+    var value: u8 = 0;
+    while (value < 10) : (value += 1) {
+        try std.testing.expect(sample.pushByte(value));
+    }
+    var first_out: [5]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, first_out.len), sample.dequeueSlice(first_out[0..]));
+    var second_out: [2]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, second_out.len), sample.dequeueSlice(second_out[0..]));
+    try std.testing.expectEqual(@as(usize, second_out.len), sample.enqueueSlice(second_out[0..]));
+    try std.testing.expectEqual(@as(?u8, 2), sample.skipByte());
+
+    const post_skip = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 8), post_skip.head_index);
+    try std.testing.expectEqual(@as(usize, 17), post_skip.tail_index);
+    try std.testing.expectEqual(@as(usize, 9), post_skip.total_visible);
+    try std.testing.expectEqual(@as(usize, 9), post_skip.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), post_skip.second_window_len);
+    try std.testing.expect(!post_skip.wraps);
+
+    var fill_value: u8 = 20;
+    while (sample.pushByte(fill_value)) : (fill_value +%= 1) {}
+
+    const wrapped = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 8), wrapped.head_index);
+    try std.testing.expectEqual(@as(usize, 8), wrapped.tail_index);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped.total_visible);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 8), wrapped.first_window_len);
+    try std.testing.expectEqual(@as(usize, 8), wrapped.second_window_len);
+    try std.testing.expect(wrapped.wraps);
+
+    sample.reset();
+    const reset_summary = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.head_index);
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.total_visible);
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.second_window_len);
+    try std.testing.expect(!reset_summary.wraps);
 }
 
 test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
