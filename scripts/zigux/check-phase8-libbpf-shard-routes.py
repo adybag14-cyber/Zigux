@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
+    "zigux/tests/README.md",
 ]
 
 REQUIRED_MARKERS = {
@@ -46,12 +47,16 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
         "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
         "`zigux/tests/phase8_cpu_mask.zig`",
+        "`zigux/tests/phase8_cpu_mask_only_build.zig`",
         "`zigux/tests/phase8_logging.zig`",
         "`zigux/tests/phase8_pin_path.zig`",
         "`zigux/tests/phase8_bpf_type_names.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
         "Keep follow-up inside the shared wording lane",
@@ -90,6 +95,16 @@ REQUIRED_MARKERS = {
     "zigux/Makefile": [
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
+    ],
+    "zigux/tests/README.md": [
+        "scripts/zigux/validate-phase8.py",
+        "make -C zigux phase8-validate",
+        "`zigux/tests/phase8_cpu_mask_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "`make -C zigux phase8-libbpf-segments-test`",
     ],
 }
 
@@ -219,6 +234,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_logging.zig`",
         ),
         (
+            "lane_note_cpu_mask_only_build_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_cpu_mask_only_build.zig`",
+            "`zigux/tests/phase8_cpu_mask_review_build.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_cpu_mask_only_build.zig`",
+        ),
+        (
             "lane_note_type_names_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_bpf_type_names.zig`",
@@ -233,11 +255,32 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_file_path_handle_bridge.zig`",
         ),
         (
+            "lane_note_file_path_handle_bridge_only_build_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`zigux/tests/phase8_file_path_handle_bridge_review_build.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        ),
+        (
             "lane_note_perf_buffer_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_perf_buffer_poll.zig`",
             "`zigux/tests/phase8_perf_buffer_review.zig`",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_buffer_poll.zig`",
+        ),
+        (
+            "lane_note_perf_buffer_only_build_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "`zigux/tests/phase8_perf_buffer_poll_review_build.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        ),
+        (
+            "lane_note_libbpf_segments_only_build_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+            "`zigux/tests/phase8_libbpf_segments_review_build.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_libbpf_segments_only_build.zig`",
         ),
         (
             "lane_note_shared_wording_heading",
@@ -357,6 +400,27 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase8.py",
             "scripts/zigux/validate-phase8-lane.py",
             "zigux/Makefile: scripts/zigux/validate-phase8.py",
+        ),
+        (
+            "tests_readme_cpu_mask_only_build_anchor",
+            "zigux/tests/README.md",
+            "`zigux/tests/phase8_cpu_mask_only_build.zig`",
+            "`zigux/tests/phase8_cpu_mask_review_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_cpu_mask_only_build.zig`",
+        ),
+        (
+            "tests_readme_file_path_handle_bridge_only_build_anchor",
+            "zigux/tests/README.md",
+            "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+            "`zigux/tests/phase8_file_path_handle_bridge_review_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        ),
+        (
+            "tests_readme_perf_buffer_poll_only_build_anchor",
+            "zigux/tests/README.md",
+            "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "`zigux/tests/phase8_perf_buffer_poll_review_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         ),
     ]
 
