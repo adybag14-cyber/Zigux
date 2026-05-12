@@ -1,7 +1,10 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-const hex_digits = "0123456789abcdef";
+pub const hex_asc = "0123456789abcdef";
+pub const hex_asc_upper = "0123456789ABCDEF";
+
+const hex_digits = hex_asc;
 const native_endian = builtin.target.cpu.arch.endian();
 
 const LineWriter = struct {
@@ -67,6 +70,61 @@ fn printableAscii(byte: u8) u8 {
     return if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
 }
 
+pub fn hexToBin(ch: u8) ?u8 {
+    if (ch >= '0' and ch <= '9') {
+        return ch - '0';
+    }
+
+    const folded = ch | 0x20;
+    if (folded >= 'a' and folded <= 'f') {
+        return folded - 'a' + 10;
+    }
+
+    return null;
+}
+
+pub fn hex_to_bin(ch: u8) isize {
+    return if (hexToBin(ch)) |value| value else -1;
+}
+
+pub const Hex2BinError = error{
+    InvalidHex,
+    InvalidLength,
+};
+
+pub fn hex2Bin(dst: []u8, src: []const u8) Hex2BinError!void {
+    if (src.len != dst.len * 2) {
+        return error.InvalidLength;
+    }
+
+    for (dst, 0..) |*byte, idx| {
+        const hi = hexToBin(src[idx * 2]) orelse return error.InvalidHex;
+        const lo = hexToBin(src[idx * 2 + 1]) orelse return error.InvalidHex;
+        byte.* = (hi << 4) | lo;
+    }
+}
+
+pub fn hex2bin(dst: []u8, src: []const u8) Hex2BinError!void {
+    return hex2Bin(dst, src);
+}
+
+pub fn bin2Hex(dst: []u8, src: []const u8) []u8 {
+    std.debug.assert(dst.len >= src.len * 2);
+
+    var offset: usize = 0;
+    for (src) |byte| {
+        dst[offset] = hex_digits[byte >> 4];
+        dst[offset + 1] = hex_digits[byte & 0x0f];
+        offset += 2;
+    }
+
+    return dst[0..offset];
+}
+
+pub fn bin2hex(dst: []u8, src: []const u8) []u8 {
+    return bin2Hex(dst, src);
+}
+
 pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {
     const actual_rowsize = normalizedRowSize(rowsize);
     const actual_len = @min(len, actual_rowsize);
@@ -130,6 +188,35 @@ pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebu
 
 pub fn hex_dump_to_buffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {
     return hexDumpToBuffer(buf, rowsize, groupsize, linebuf, ascii);
+}
+
+test "hex_to_bin accepts numeric, lower, and upper digits" {
+    try std.testing.expectEqual(@as(?u8, 0), hexToBin('0'));
+    try std.testing.expectEqual(@as(?u8, 9), hexToBin('9'));
+    try std.testing.expectEqual(@as(?u8, 10), hexToBin('a'));
+    try std.testing.expectEqual(@as(?u8, 15), hexToBin('F'));
+    try std.testing.expectEqual(@as(isize, -1), hex_to_bin('g'));
+}
+
+test "hex2bin decodes mixed-case input" {
+    var decoded: [3]u8 = undefined;
+    try hex2Bin(&decoded, "0aF15c");
+    try std.testing.expectEqualSlices(u8, &.{ 0x0a, 0xf1, 0x5c }, &decoded);
+}
+
+test "hex2bin rejects malformed input" {
+    var decoded: [2]u8 = undefined;
+
+    try std.testing.expectError(error.InvalidLength, hex2Bin(&decoded, "0f0"));
+    try std.testing.expectError(error.InvalidHex, hex2bin(&decoded, "0x0f"));
+}
+
+test "bin2hex emits lowercase output and returns the written slice" {
+    var encoded: [8]u8 = undefined;
+    const written = bin2Hex(&encoded, &.{ 0x0a, 0xf1, 0x5c });
+
+    try std.testing.expectEqual(@as(usize, 6), written.len);
+    try std.testing.expectEqualStrings("0af15c", written);
 }
 
 test "hex dump formats one-byte groups without ascii" {
