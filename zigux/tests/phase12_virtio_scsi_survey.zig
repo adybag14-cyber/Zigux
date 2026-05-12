@@ -103,6 +103,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expectEqualStrings("starter_queue_host_limit_depth_io_map_recovery_present_direct_tests_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
     try std.testing.expectEqualStrings("starter_recovery_summary_present_runtime_execution_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
     try std.testing.expectEqualStrings("support_packet_and_survey_packet_present", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "host-scan restore-order") != null);
 
     var saw_support_packet = false;
     var saw_survey_note = false;
@@ -152,6 +153,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
             saw_io_map_recovery = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryEventBufferOwnershipSummary()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryHostScanSummary()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-request-flow")) {
             saw_runtime_gap = true;
@@ -189,6 +191,8 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureIoQueueMapSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryEventBufferOwnershipSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryHostScanSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-scan restore ordering stay reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_packet.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe request submission") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded request-submit sequencing follow-up") != null);
