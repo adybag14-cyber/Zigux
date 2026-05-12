@@ -225,6 +225,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         survey_note,
         "prepared selftest-hook drift rejection, prepared shared-plan drift rejection, and release-without-substrate behavior",
     );
+    try expectContains(
+        survey_note,
+        "`zig build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig`",
+    );
     try expectContains(survey_note, "`make -C zigux phase9-runtime-kretprobe-test`");
     try expectContains(survey_note, "`make -C zigux phase9`");
 
@@ -245,8 +249,17 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         "makes the kretprobe handoff and failure-mode evidence reviewable without claiming loadable-module parity",
     );
 
+    try expectContains(phase9_build, "runtime_kretprobe.zig");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-sample-tests");
+    try expectContains(phase9_build, "runtime_kretprobe_module.zig");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-module-tests");
+    try expectContains(phase9_build, "runtime_kretprobe_diff.zig");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-diff-tests");
+    try expectContains(phase9_build, "runtime_kretprobe_loader.zig");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-loader-tests");
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_kretprobe_survey.zig\")");
     try expectContains(phase9_build, ".name = \"phase9-runtime-kretprobe-survey-tests\"");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-tests");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_survey_tests.step);");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_contract_tests.step);");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_facade_tests.step);");
