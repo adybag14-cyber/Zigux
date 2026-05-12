@@ -137,6 +137,7 @@ REQUIRED_OWNERSHIP_MARKERS = (
     "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`make -C zigux phase13-validate`",
     "repo-reality gaps",
+    "helper-local truthfulness stays anchored to `security/landlock/ruleset.zig` and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
 )
 
 REQUIRED_VALIDATOR_MARKERS = (
@@ -285,6 +286,7 @@ def run_self_test() -> int:
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[3]),
             ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[1]),
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
+            ("ownership", OWNERSHIP_PATH, REQUIRED_OWNERSHIP_MARKERS[6]),
             ("validator", VALIDATOR_PATH, REQUIRED_VALIDATOR_MARKERS[3]),
         )
         for label, rel_path, needle in mutations:
