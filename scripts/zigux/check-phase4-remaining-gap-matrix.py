@@ -27,6 +27,8 @@ REQUIRED_MARKERS = [
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
     "### `Phase 4 perf thresholds`",
+    "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
+    "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
     "* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
     "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
     "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
@@ -44,6 +46,8 @@ SELF_TEST_CASES = [
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
     "test_fsmount_rollback_owner_drift",
+    "perf_gate_anchor_drift",
+    "perf_replay_path_drift",
     "perf_limit_status_drift",
     "perf_gate_owner_drift",
     "perf_owner_coordination_drift",
@@ -98,6 +102,8 @@ def build_fixture_text() -> str:
             "* rollback owner: `Validation and Perf Team`",
             "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
             "### `Phase 4 perf thresholds`",
+            "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
+            "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
             "* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
             "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
             "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
@@ -250,6 +256,40 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount rollback-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
+                "* current gate anchors: `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/phase4_bitmap_diff_survey.zig`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("perf gate-anchor drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
+                "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` only",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("perf replay-path drift case did not fail closed")
             return 1
         case_count += 1
 
