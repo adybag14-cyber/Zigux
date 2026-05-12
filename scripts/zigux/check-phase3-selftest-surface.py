@@ -102,6 +102,14 @@ SCRIPTS_README_PHASE3_MARKER_COUNTS = {
 }
 SCRIPTS_README_PHASE3_PREFIX = "Phase 3 flow - "
 SCRIPTS_README_PHASE3_NEXT_PREFIX = "Phase 4 flow - "
+SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX = "Phase 3 header-family reminder - "
+SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS = {
+    "validate-phase3-abi-header-family-survey.py": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "zigux/uapi/dev_t.zig": 1,
+}
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
@@ -225,6 +233,16 @@ def _check_note_next_step(path: Path) -> list[str]:
     )
 
 
+def _check_scripts_header_family_reminder(path: Path) -> list[str]:
+    return _check_section_marker_counts(
+        path,
+        SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX,
+        None,
+        SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS,
+        "scripts README header-family reminder",
+    )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     docs_readme = repo_root / README_PATH
@@ -277,6 +295,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             "scripts README Phase 3 flow",
         )
     )
+    issues.extend(_check_scripts_header_family_reminder(scripts_readme))
     issues.extend(
         _check_markers(
             repo_root / SELFTEST_DRIVER_PATH,
@@ -367,6 +386,8 @@ def _populate_repo(root: Path) -> None:
                 SCRIPTS_README_PHASE3_PREFIX,
                 *SCRIPTS_README_PHASE3_MARKER_COUNTS.keys(),
                 SCRIPTS_README_PHASE3_NEXT_PREFIX,
+                SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX,
+                *SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS.keys(),
             )
         )
         + "\n",
@@ -585,6 +606,52 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        scripts_path = root / SCRIPTS_README_PATH
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README header-family reminder marker count drift: "
+            "Documentation/zigux/phase3-linux-zigux-header-governance.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README header-governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+                "",
+                1,
+            ).replace(
+                SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX,
+                "Documentation/zigux/phase3-linux-zigux-header-governance.md\n"
+                + SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README header-family reminder marker count drift: "
+            "Documentation/zigux/phase3-linux-zigux-header-governance.md "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README section-bounded governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
         broken_path.write_text(
             _read(broken_path).replace(
                 "scripts/zigux/survey-phase3-abi-constant-parity.py",
@@ -743,7 +810,6 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        scripts_path = root / SCRIPTS_README_PATH
         scripts_path.write_text(
             _read(scripts_path).replace(
                 "zigux/uapi/dev_t.zig",
