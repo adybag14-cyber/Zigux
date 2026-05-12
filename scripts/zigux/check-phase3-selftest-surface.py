@@ -625,7 +625,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        broken_path.writeText(
+        broken_path.write_text(
             _read(broken_path).replace(
                 "Documentation/zigux/phase3-abi-header-family-survey.md",
                 "",
