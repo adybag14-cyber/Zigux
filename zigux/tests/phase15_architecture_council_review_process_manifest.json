@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if one same-lane reviewer-facing truthfulness repair is still needed before then, start with Documentation/zigux/review-checklist.md, because the shared Phase 15 governance checklist already names the review-process, readiness, handoff, validator, and replay routes but still omits Documentation/zigux/phase15-governance-lane-sequencing.md together with zigux/tests/phase15_handoff_next_steps_manifest.json and zigux/tests/phase15_readiness_gate_manifest.json from the current parked maintenance packet"
+    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if one same-lane reviewer-facing truthfulness repair is still needed before then, start with Documentation/zigux/README.md, because the compact Phase 15 docs-root reminder there still omits Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, and Documentation/zigux/phase15-governance-lane-sequencing.md even though those parked maintenance notes are already shipped on current master"
   },
   "gaps": [
     {
@@ -149,11 +149,11 @@
       "why_now": "The broader Phase 15 tests-root reminder now keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes on current master, so this follow-through is closed unless repo reality drifts again."
     },
     {
-      "id": "phase15-review-checklist-maintenance-packet-undercount",
+      "id": "phase15-docs-readme-maintenance-note-undercount",
       "status": "open",
       "kind": "governance",
-      "zigux_destination": "Documentation/zigux/review-checklist.md",
-      "why_now": "The shared Phase 15 checklist already names the review-process, handoff, readiness, validator, and replay routes on current master, but it still omits Documentation/zigux/phase15-governance-lane-sequencing.md together with zigux/tests/phase15_handoff_next_steps_manifest.json and zigux/tests/phase15_readiness_gate_manifest.json even though the current parked governance packet and its handoff notes already treat those companion surfaces as shipped reviewer-facing maintenance evidence. The older compact docs-root omission remains a broader shared-summaries follow-up only; this checklist undercount is now the smaller same-lane reviewer-facing truthfulness repair."
+      "zigux_destination": "Documentation/zigux/README.md",
+      "why_now": "The compact Phase 15 docs-root reminder still omits `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` even though those parked maintenance notes are already shipped reviewer-facing evidence on current master. The review-checklist maintenance packet is already closed, so the remaining same-lane truthfulness repair is now this narrower docs-root follow-up."
     }
   ]
 }
