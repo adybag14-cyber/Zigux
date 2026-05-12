@@ -160,7 +160,7 @@ pub const RuntimeTraceEventsLoader = struct {
                 .selftest_complete => trace_event_families[0..],
                 else => unreachable,
             },
-            .main_thread_events = module.main_iterations * 6,
+            .main_thread_events = module.main_thread_events,
             .fn_thread_events = module.fn_iterations * 2,
             .total_events = module.total_events,
             .conditional_paths_checked = module.saw_conditional_path,
@@ -341,9 +341,9 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
     const pending_snapshot = registrationSnapshot(pending_plan);
 
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
-    try std.testing.expectEqual(@as(usize, 16), live_summary.total_events);
+    try std.testing.expectEqual(@as(usize, 14), live_summary.total_events);
     try std.testing.expectEqual(@as(usize, 8), pending_plan.summary.total_events);
-    try std.testing.expectEqual(@as(usize, 12), live_summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 10), live_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 6), pending_plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), live_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 2), pending_plan.summary.fn_thread_events);
