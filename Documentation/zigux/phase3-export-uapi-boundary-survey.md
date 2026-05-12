@@ -8,9 +8,9 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`
 - `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=082b86e38f1842bd97eaf4993788c910b092810e`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=20f6b32c89d125977042681db55f3ca16140119c`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
-- `PHASE3_UAPI_VERSION_BLOB_SHA=c1ce4e6ff9ce19689e582491fd6a49d498b64306`
+- `PHASE3_UAPI_VERSION_BLOB_SHA=393694bf5d3ab3eaf1e8ea81f2cec073b40a50eb`
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
 - `PHASE3_UAPI_DEV_T_BLOB_SHA=bfbe71603907b2b951e4eebe29a007d9d761999c`
 - `PHASE3_SHARED_BUILD_PATH=zigux/tests/build.zig`
@@ -24,8 +24,8 @@ This note records the current export shim and starter UAPI boundary evidence tha
 
 The blob markers above are the packet-local evidence for the currently shipped starter export shim plus starter UAPI companions on the latest inspected `master` head. On current `master`, this packet stays narrow and routes through the shared Phase 3 build and review surfaces rather than through a dedicated export/UAPI-only replay pair.
 
-- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared header and compatibility types from `zigux/uapi/version.zig`, by exposing the explicit `compatibilityStatus()` relay for status-based callers, and by keeping success-versus-errno export status normalization reviewable.
-- `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through canonical-versus-future-compatible helpers, accepted-header classification, and canonicalization logic without widening into a deeper runtime-owned ABI claim.
+- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared header and compatibility types from `zigux/uapi/version.zig`, by exposing the explicit `compatibilityStatus()` and `requestedExtraBytes()` relays for status-based callers, and by keeping success-versus-errno export status normalization reviewable.
+- `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through canonical-versus-future-compatible helpers, accepted-header classification, explicit requested-extra-byte accounting for accepted headers, and canonicalization logic without widening into a deeper runtime-owned ABI claim.
 - `zigux/uapi/dev_t.zig` is now part of the shipped starter UAPI packet on current `master`, keeping the bounded chrdev encode, decode, and range checks readable beside the shared `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` contract.
 - `zigux/tests/phase3_abi_dump.zig` together with `zig build phase3-dump --build-file zigux/tests/build.zig` keeps the shared ABI dump readable beside this starter export/UAPI packet, so reviewers can still inspect the current boundary without reviving the removed export/UAPI-only replay files.
 - `zig build phase3-test --build-file zigux/tests/build.zig`, `zig build phase3-dump --build-file zigux/tests/build.zig`, `make -C zigux phase3-abi`, and `make -C zigux phase3` remain the shared compile, dump, and replay routes that cover this starter export/UAPI packet on live `master`.
@@ -43,7 +43,7 @@ The Phase 3 roadmap still wants a narrow and explicit permanent C/Zigux boundary
 
 The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, no direct same-lane export/UAPI survey gap is visible between that roadmap target and the shipped reminder packet.
 
-- current `master` already ships `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, packet-local validator, shared ABI slice, header-family survey, docs-root reminder, and manifest-backed inventory now keep that starter packet aligned.
+- current `master` already ships `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, packet-local validator, shared ABI slice, header-family survey, docs-root reminder, and manifest-backed inventory now keep that starter packet aligned, including the explicit accepted-header extension-byte accounting exposed through the starter version helper and export shim relay.
 - the remaining lane rule is to keep the shared build and shared dump wording accurate and to avoid claiming dedicated `phase3_export_uapi*` replay files unless those files actually land alongside the shared ABI packet and its reminder surfaces.
 - if a future run grows this packet again, reopen the lane only for that concrete starter-boundary change and refresh this survey plus one shared reminder surface in the same bounded step.
 
