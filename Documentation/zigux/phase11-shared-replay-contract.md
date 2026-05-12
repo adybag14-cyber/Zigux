@@ -53,9 +53,18 @@ These shared surfaces keep the build-backed replay route explicit without implyi
 The DesignWare watchdog lane now keeps its surviving bounded reminder packet explicit beside that shared route:
 
 * `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-dw-wdt-survey.md`
+* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 * `scripts/zigux/check-phase11-dw-wdt-packet.py`
+* `drivers/watchdog/dw_wdt.zig`
+* `drivers/watchdog/dw_wdt_verify.zig`
+* `zigux/tests/phase11_dw_wdt.zig`
+* `zigux/tests/phase11_dw_wdt_manifest.json`
+* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+* `zigux/tests/phase11_dw_wdt_survey.zig`
 
-Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`: they keep the next bounded step pinned to platform-backed registration scaffolding while the older manifest, survey, validation-matrix, and teardown reminder surfaces stay removed rather than being silently reintroduced as shared evidence.
+Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig` together as the current DesignWare continuity packet on `master`: they keep the landed direct teardown, verification, survey, and platform-registration scaffolding surfaces explicit beside the next bounded platform-backed follow-through.
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
@@ -63,15 +72,18 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+* `zigux/tests/phase11_hvc_console.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `make -C zigux phase11-hvc-survey`
 
-Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay recorded as the remaining repo-reality gaps rather than shared proof.
+Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`.
 
 The shared header-boundary evidence also stays explicit beside that shared route:
 
