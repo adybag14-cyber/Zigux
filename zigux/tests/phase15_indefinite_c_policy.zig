@@ -14,13 +14,6 @@ const Gap = struct {
     why_now: []const u8,
 };
 
-const Handoff = struct {
-    current_mode: []const u8,
-    replay_commands: []const []const u8,
-    blocker_posture_requirement: []const u8,
-    next_step: []const u8,
-};
-
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -29,7 +22,6 @@ const Manifest = struct {
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
     indefinite_c_requirements: []const Requirement,
-    handoff: Handoff,
     gaps: []const Gap,
 };
 
@@ -50,11 +42,29 @@ fn expectArtifactListContains(list: []const []const u8, needle: []const u8) !voi
     return error.TestUnexpectedResult;
 }
 
-fn isDatedReadbackMarker(text: []const u8) bool {
-    return std.mem.startsWith(u8, text, "current-master-readback-") and text.len >= "current-master-readback-2026-05-11".len;
+fn isLowerHexCommit(text: []const u8) bool {
+    if (text.len != 40) return false;
+    for (text) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
 }
 
-test "phase 15 indefinite-C policy packet matches the current policy, exception posture, and blocker evidence" {
+fn findRequirement(requirements: []const Requirement, id: []const u8) ?Requirement {
+    for (requirements) |requirement| {
+        if (std.mem.eql(u8, requirement.id, id)) return requirement;
+    }
+    return null;
+}
+
+fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
+    for (gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
+}
+
+test "phase 15 indefinite-C policy packet matches the live stay-in-C note, exception posture, and blocker accounting" {
     const policy_note = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 24 * 1024);
     defer std.testing.allocator.free(policy_note);
 
@@ -71,99 +81,90 @@ test "phase 15 indefinite-C policy packet matches the current policy, exception 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expect(isDatedReadbackMarker(manifest.surveyed_commit));
+    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
-    try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
-    try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
-    try std.testing.expectEqual(@as(usize, 3), manifest.handoff.replay_commands.len);
-    try std.testing.expectEqualStrings("make -C zigux phase15-validate", manifest.handoff.replay_commands[0]);
-    try std.testing.expectEqualStrings("make -C zigux phase15-test", manifest.handoff.replay_commands[1]);
-    try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[2]);
 
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/freeze-map.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectArtifactListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectArtifactListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectArtifactListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
+    try expectArtifactListContains(manifest.supporting_artifacts, "zigux/tests/phase15_build.zig");
 
-    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L02");
+    try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
+    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
+    try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=exact_master_commit_readback");
+    try expectContains(policy_note, "survey provenance refreshed against current `master` commit `");
+    try expectContains(policy_note, manifest.surveyed_commit);
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "existing blocker remains recorded");
-    try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
-    try expectContains(policy_note, "named owner");
-    try expectContains(policy_note, "required approver set");
-    try expectContains(policy_note, "benchmark-notes status");
-    try expectContains(policy_note, "replay command");
+    try expectContains(policy_note, "decision record ID, the lane owner, the required approver set, and the rollback owner");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
+    try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "named reopen-trigger catalog item");
     try expectContains(policy_note, "trigger-specific evidence refresh");
+    try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
 
     try expectContains(review_process, "named owner for the lane");
     try expectContains(review_process, "required approver set");
     try expectContains(review_process, "rollback threshold");
-    try expectContains(review_process, "retired_from_active_discussion");
+    try expectContains(review_process, "`retired_from_active_discussion`");
 
     try expectContains(parity_scorecard, "blocked status-change anchor count: `4`");
     try expectContains(parity_scorecard, "Architecture Council approvals recorded for status change: `0`");
     try expectContains(parity_scorecard, "keep the anchor frozen until");
 
-    var saw_recordkeeping = false;
-    var saw_exception_path = false;
-    var saw_reopen_gate = false;
-    var saw_reopen_catalog = false;
-    var saw_blocker_gap = false;
+    const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
+    try std.testing.expectEqual(@as(usize, 19), recordkeeping.required_terms.len);
+    try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[5]);
+    try std.testing.expectEqualStrings("required approver set", recordkeeping.required_terms[6]);
+    try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
+    try std.testing.expectEqualStrings("automatic return-to-blocked trigger", recordkeeping.required_terms[13]);
+    try std.testing.expectEqualStrings("retained discussion state", recordkeeping.required_terms[14]);
+    try std.testing.expectEqualStrings("reopen triggers", recordkeeping.required_terms[15]);
 
-    for (manifest.indefinite_c_requirements) |requirement| {
-        try std.testing.expect(requirement.id.len > 0);
-        try std.testing.expect(requirement.summary.len > 0);
-        try std.testing.expect(requirement.required_terms.len >= 2);
+    const exception_path = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-exception-path") orelse return error.MissingRequirement;
+    try std.testing.expectEqual(@as(usize, 3), exception_path.required_terms.len);
+    try expectContains(exception_path.required_terms[0], "no silent exception path");
+    try expectContains(exception_path.required_terms[1], "Architecture Council reopen request");
+    try expectContains(exception_path.required_terms[2], "existing blocker remains recorded");
 
-        if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) {
-            saw_recordkeeping = true;
-            try std.testing.expectEqualStrings("named owner", requirement.required_terms[5]);
-            try expectContains(requirement.required_terms[13], "automatic return-to-blocked trigger");
-            try std.testing.expect(std.mem.indexOfScalar(u8, requirement.summary, '\n') == null);
-        }
-        if (std.mem.eql(u8, requirement.id, "indefinite-c-exception-path")) {
-            saw_exception_path = true;
-            try std.testing.expectEqual(@as(usize, 3), requirement.required_terms.len);
-            try expectContains(requirement.required_terms[0], "no silent exception path");
-        }
-        if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-gate")) {
-            saw_reopen_gate = true;
-            try std.testing.expectEqual(@as(usize, 5), requirement.required_terms.len);
-            try expectContains(requirement.required_terms[0], "named reopen-trigger catalog item");
-            try expectContains(requirement.required_terms[4], "trigger-specific evidence refresh");
-        }
-        if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
-            saw_reopen_catalog = true;
-            try std.testing.expectEqual(@as(usize, 3), requirement.required_terms.len);
-        }
-    }
+    const reopen_gate = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-reopen-gate") orelse return error.MissingRequirement;
+    try std.testing.expectEqual(@as(usize, 5), reopen_gate.required_terms.len);
+    try expectContains(reopen_gate.required_terms[0], "named reopen-trigger catalog item");
+    try std.testing.expectEqualStrings("narrower_followup_answers_blocker", reopen_gate.required_terms[1]);
+    try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", reopen_gate.required_terms[2]);
+    try std.testing.expectEqualStrings("ownership_or_validation_changed", reopen_gate.required_terms[3]);
+    try expectContains(reopen_gate.required_terms[4], "trigger-specific evidence refresh");
 
+    const reopen_catalog = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-reopen-trigger-catalog") orelse return error.MissingRequirement;
+    try std.testing.expectEqual(@as(usize, 3), reopen_catalog.required_terms.len);
+    try std.testing.expectEqualStrings("narrower_followup_answers_blocker", reopen_catalog.required_terms[0]);
+    try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", reopen_catalog.required_terms[1]);
+    try std.testing.expectEqualStrings("ownership_or_validation_changed", reopen_catalog.required_terms[2]);
+
+    var landed_gap_count: usize = 0;
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.zigux_destination.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
-
-        if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
-            saw_blocker_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-        }
+        if (std.mem.eql(u8, gap.status, "landed")) landed_gap_count += 1;
     }
+    try std.testing.expectEqual(@as(usize, 5), landed_gap_count);
 
-    try std.testing.expect(saw_recordkeeping);
-    try std.testing.expect(saw_exception_path);
-    try std.testing.expect(saw_reopen_gate);
-    try std.testing.expect(saw_reopen_catalog);
-    try std.testing.expect(saw_blocker_gap);
+    const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
+    try std.testing.expectEqualStrings("freeze_map", blocker_gap.kind);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", blocker_gap.zigux_destination);
+    try expectContains(blocker_gap.why_now, "lacks evidence strong enough");
 }
