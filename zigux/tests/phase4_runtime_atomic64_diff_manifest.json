@@ -21,7 +21,7 @@
   "phase9_build_blob_sha": "7f855cce2b91c156d5c0373b3b0fa096eab0aeda",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8",
+  "phase4_validation_matrix_blob_sha": "5ba1599569548585203e7d94fcec188b06eec210",
   "phase4_review_checklist_blob_sha": "1ec1d3f4f98c4ed1fa324af1c0e6d26489320fa4",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
   "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is present as the Phase 4 wrapper, zigux/tests/phase4_build.zig still runs through it, zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet reuses directly, and the separate exact-readback note now keeps the same current named owner, rollback owner, matrix, validator, review-checklist, and gate-evidence surfaces again without forcing a self-referential gate-evidence blob pin inside this manifest, the dedicated local perf-baseline survey pair at zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig keeps the approved local benchmark commands and approved local-only acceptable limits measurable, the broader sample follow-ups remain intentionally open, and the next atomic64-adjacent perf decision is whether that approved local-only evidence should stay local-only or support a later shared CI perf promotion.",
