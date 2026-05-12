@@ -51,6 +51,11 @@ pub fn build(b: *std.Build) void {
     });
     const run_cmdline_survey_tests = b.addRunArtifact(cmdline_survey_tests);
     run_cmdline_survey_tests.setCwd(b.path("../.."));
+    const cmdline_survey_step = b.step(
+        "phase7-cmdline-survey",
+        "Run the Phase 7 cmdline survey replay",
+    );
+    cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);
 
     const argv_split_module = b.createModule(.{
         .root_source_file = b.path("../../lib/argv_split.zig"),
