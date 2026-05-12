@@ -10,10 +10,10 @@ It is a coordination artifact, not a closure claim.
 - shared validator-first entrypoint: `python3 scripts/zigux/validate-phase8.py`
 - shared make validation route: `make -C zigux phase8-validate`
 - shared reminder surfaces still present on current `master`: `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
-- exact 2026-05-11 public default-branch tree readback shows the current Phase 8 shard packet is still present on `master`, including `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/manifest.json`
+- exact 2026-05-12 public default-branch tree readback shows the current Phase 8 shard packet is still present on `master`, including `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/manifest.json`
 - targeted current-file readback also shows `tools/lib/bpf/zigux_segments/manifest.json` still marks `cpu-mask-parsing` and `perf-buffer-poll-bookkeeping` as landed while keeping `perf-buffer-online-cpu-routing` deferred as the interrupt-routing packet
 - runtime readback caution: authenticated contents reads for some Phase 8 files are inconsistent from this environment, so public default-branch tree evidence plus exact readable blob content should win over older absent-file assumptions
-- current authenticated 2026-05-12 contents readback now shows a concrete command-lane split: `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, and `zigux/tests/phase8_help.zig` still read cleanly, while `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` currently return `404` from the same route
+- current authenticated 2026-05-12 contents readback remains inconsistent around the direct exec-cmd shard: `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, and `zigux/tests/phase8_help.zig` still read cleanly, while the same contents route intermittently returns `404` for `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` even though the public tree still lists them on `master`
 - freeze-map posture: this lane stays in repo-hosted tooling review surfaces only and does not reopen any deep-core freeze anchor
 
 ## Lane map
@@ -23,10 +23,11 @@ Use this lane for bounded `exec-cmd` and `help` reminder, compile, or packet-tru
 
 Current repo reality:
 - the older parked Phase 8 packet and several shared reminder surfaces still name `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, and `zigux/tests/phase8_help_only_build.zig`
-- current authenticated readback keeps the help-side reminder surface readable but now returns `404` for the direct exec-cmd shard files `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`
+- public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, and `zigux/tests/phase8_help_only_build.zig`
+- authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment, so treat those `404` responses as route instability until both the public tree and readable blob evidence drop the same files
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` remains the dedicated boundary note that keeps the command-and-environment control surface smaller than broader process-launch and environment-plumbing parity claims
 
-Keep follow-up in this lane limited to truthful survey or reminder-surface repair until the direct exec-cmd shard is either restored or the shared Phase 8 wording stops overstating it as fully present.
+Keep follow-up in this lane limited to truthful survey or reminder-surface repair while the direct exec-cmd shard keeps this split between public-tree presence and intermittent authenticated blob reads.
 
 ### 2. Symbol lane
 Use this lane for bounded `kallsyms` reminder, compile, or packet-truthfulness work only.
@@ -64,7 +65,7 @@ Allowed surfaces:
 
 Current wording-lane caution:
 - do not let older absent-file assumptions overrule current tree evidence
-- current authenticated readback now shows the command lane itself has split state: the help-side reminder packet is still readable while the direct exec-cmd shard currently returns `404`, so keep shared wording follow-through smaller than a broad tooling rewrite
+- current authenticated readback remains noisy around the direct exec-cmd shard: the help-side reminder packet still reads cleanly and the public tree still lists the exec-cmd files, but the same contents route intermittently returns `404` for those exec-cmd paths, so keep shared wording follow-through smaller than a broad tooling rewrite
 - current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while trimming stale Phase 8 inventory
 - when this lane reopens, re-read the shared reminder surfaces against the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
@@ -78,4 +79,6 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`: current authenticated readback shows the Phase 8 shared reminder packet still names the direct exec-cmd shard as present even though `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` now read as absent while the help-side reminder surface stays readable. Keep the next reopen scoped to clarifying that command-lane split in the docs-root summary first; only widen to `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase8.py`, or `zigux/tests/README.md` if the same bounded command-lane mismatch still survives after the docs-root correction.
+The next honest shared-surface reopen cue now starts with keeping this sequencing note truthful: current public tree evidence still carries the direct exec-cmd shard on `master`, while authenticated contents reads for `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this environment.
+
+Keep the next reopen scoped to preserving that route-instability caution in the command-lane notes first; only widen to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase8.py`, or `zigux/tests/README.md` if both the public tree and the readable blob packet stop carrying the same exec-cmd shard.
