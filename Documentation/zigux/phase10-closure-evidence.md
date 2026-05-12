@@ -51,7 +51,7 @@ Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-
 
 The remaining broader shared-summary drift is now narrower than the older handoff suggested.
 
-- `Documentation/zigux/README.md` remains the wider undercount: it still keeps the shared Phase 10 packet, checker stack, manifest, and make routes visible, but it does not yet keep either `drivers/virtio/virtio_ring_verify.zig` or `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside the existing direct ring and manifest surfaces.
+- `Documentation/zigux/README.md` remains the wider undercount, but the undercount is now narrower than the older closure-note wording: the live docs-root Phase 10 summary already keeps `drivers/virtio/virtio_ring_verify.zig` explicit and already describes the drained-reset reuse replay at the sentence level, but it still does not name `zigux/tests/phase10_virtio_ring_reset_reuse.zig` directly beside `drivers/virtio/virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_manifest.json`.
 
 The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should start with the broader docs-root reminder sync instead of replaying the already-landed scripts-root exact-path repair.
 
@@ -68,6 +68,6 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder or checker surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. refresh `Documentation/zigux/README.md` so the broader Phase 10 docs-root inventory names `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig` directly beside `drivers/virtio/virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_manifest.json`
+2. refresh `Documentation/zigux/README.md` so the broader Phase 10 docs-root inventory names `zigux/tests/phase10_virtio_ring_reset_reuse.zig` directly beside `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, and `zigux/tests/phase10_virtio_ring_manifest.json`
 3. reread `scripts/zigux/check-phase10-harness-coverage.py` and the shared Phase 10 reminder surfaces after that docs-root sync lands, starting with whether the harness-coverage note should also advance its saved next-step wording to match the now-closed scripts-root exact-path repair
 4. if a fresh repo-first inspection finds another equally small same-lane drift after that docs-root repair, prefer one shared reminder, checker, manifest, or survey surface at a time
