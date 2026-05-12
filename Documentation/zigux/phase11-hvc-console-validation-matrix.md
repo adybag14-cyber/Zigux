@@ -25,7 +25,7 @@ This document records the bounded kernel-integration validation matrix for the Z
   - `make -C zigux phase11-hvc-survey`
   - `.github/workflows/zigux-bootstrap.yml`
 
-Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig` or `zigux/tests/phase11_hvc_console.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.
+Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.
 
 ## Why This Exists
 
@@ -61,7 +61,7 @@ Without this matrix, the archival packet names the right follow-through but does
 
 - the dedicated archival replay remains separate through `make -C zigux phase11-hvc-survey`
 - the HVC packet checker continues to keep the survey gate, survey note, teardown note, validation matrix, modem-control split, poll-retry split, and sysrq helper aligned
-- the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_console.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair
+- the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair
 - the shared Phase 11 packet still references this lane through `Documentation/zigux/phase11-shared-replay-contract.md` and `.github/workflows/zigux-bootstrap.yml` without absorbing the driver-local archival wording into a broader closure claim
 
 ## Review Rules
