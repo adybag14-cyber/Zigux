@@ -37,16 +37,16 @@ This document tracks the bounded Phase 10 MMIO lane around `drivers/virtio/virti
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary lab-driver anchor and requires MMIO wrappers plus VM-friendly validation before riskier transport work.
 
-Current `master` still keeps the shared Phase 10 closure packet, this MMIO survey note, and the broader freeze-map reminder surfaces explicit. This run re-verified the MMIO lane only partway: the public GitHub tree still shows `drivers/virtio/virtio_mmio.zig` and `drivers/virtio/virtio_mmio_verify.zig` under `drivers/virtio/`, but the authenticated contents bridge returned 404 for the driver-local verifier, the packet-local manifest, the focused MMIO replay files, the shared `phase10_build.zig` gate, and both dedicated MMIO checker paths. Keeping that split explicit makes the MMIO lane truthful without claiming a focused compile or lab replay that this run could not directly re-read.
+Current `master` still keeps the shared Phase 10 closure packet, this MMIO survey note, and the broader freeze-map reminder surfaces explicit. This run re-verified the MMIO lane only partway: the dedicated MMIO checker pair is directly readable again on current `master` through `scripts/zigux/check-phase10-mmio-packet.py` and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, but the authenticated contents bridge still returned 404 for the driver-local verifier, the packet-local manifest, the focused MMIO replay files, and the shared `phase10_build.zig` gate. Keeping that split explicit makes the MMIO lane truthful without claiming a focused compile or lab replay that this run could not directly re-read.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_mmio.c` remains the Phase 10 MMIO anchor from the roadmap.
-- the shared Phase 10 closure packet still records MMIO wrappers and helper-ladder progress, but this run only re-verified wrapper-surface visibility through the public GitHub tree; the authenticated contents bridge returned 404 for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`, so the focused MMIO replay packet was not directly re-readable here
+- the shared Phase 10 closure packet still records MMIO wrappers and helper-ladder progress, but this run only re-verified wrapper-surface visibility through the public GitHub tree plus the directly readable dedicated MMIO checker pair; the authenticated contents bridge still returned 404 for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`, so the focused MMIO replay packet was not directly re-readable here
 - the shared closure manifest still keeps the landed MMIO helper ladder explicit through `phase10-mmio-register-window-helper`, `phase10-mmio-queue-size-helper`, `phase10-mmio-feature-word-selector-helper`, `phase10-mmio-feature-negotiation-summary-helper`, `phase10-mmio-config-window-helper`, `phase10-mmio-config-write-plan-helper`, `phase10-mmio-transport-identity-helper`, `phase10-mmio-probe-preflight-helper`, `phase10-mmio-config-write-disposition-helper`, and `phase10-mmio-selected-queue-readiness-helper`
 - the same closure packet keeps the honest blocked transport-facing follow-through explicit through `phase10-mmio-lifecycle-and-irq-paths`, so the current MMIO lane is still a bounded wrapper and lab-validation packet rather than a claim of queue reset execution, IRQ parity, or full probe-remove lifecycle closure
 - the shared reminder surfaces still keep `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit, but this run could not directly re-read `zigux/tests/phase10_build.zig`, so those routes remain broader closure evidence rather than a fresh MMIO-only compile replay
-- this run also got 404s from the authenticated contents bridge for `scripts/zigux/check-phase10-mmio-packet.py` and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, so the dedicated checker pair should stay treated as previously recorded review surfaces until a fresh direct contents read or public blob fallback reconfirms them again
+- this run did directly re-read `scripts/zigux/check-phase10-mmio-packet.py` and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, so the dedicated checker pair remains live current-`master` review evidence even though the focused verifier, manifest, build-gate, and replay files could not be directly re-read here
 
 ## Recorded gaps
 
@@ -62,10 +62,10 @@ This survey keeps the MMIO lane concrete without overstating progress:
 - the landed `phase10-mmio-probe-preflight-helper`
 - the landed `phase10-mmio-config-write-disposition-helper`
 - the landed `phase10-mmio-selected-queue-readiness-helper`
-- the authenticated contents bridge returned 404 for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and `scripts/zigux/check-phase10-mmio-freeze-boundary.py` in this run, so direct compile and focused replay verification remain blocked by incomplete readback
+- the authenticated contents bridge still returned 404 for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` in this run, so direct compile and focused replay verification remain blocked by incomplete readback
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
-That keeps the MMIO lane aligned with current repo evidence: the helper ladder and blocked transport follow-through are still recorded in the shared closure packet, the public tree still shows the MMIO wrapper family under `drivers/virtio/`, and the focused compile or lab replay remains unverified until the missing direct reads become reproducible again.
+That keeps the MMIO lane aligned with current repo evidence: the helper ladder and blocked transport follow-through are still recorded in the shared closure packet, the public tree still shows the MMIO wrapper family under `drivers/virtio/`, the dedicated checker pair is directly readable again, and the focused compile or lab replay remains unverified until the missing direct reads become reproducible again.
 
 ## Freeze Boundary
 
@@ -100,10 +100,10 @@ This survey slice does not claim:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-3. keep the dedicated MMIO packet checker, dedicated freeze-boundary checker, and packet-local MMIO manifest aligned with the next successful direct-read or public-blob revalidation instead of treating this run's incomplete contents reads as proof that the focused MMIO packet was freshly replayed
+3. keep the dedicated MMIO packet checker and dedicated freeze-boundary checker aligned with the next successful direct-read or public-blob revalidation of the packet-local MMIO verifier, manifest, build gate, and replay files instead of treating checker readback alone as proof that the focused MMIO packet was freshly replayed
 
 Taken together, these gates keep the bounded MMIO wrapper packet reviewable without implying risky transport closure or a compile replay this run did not actually complete.
 
 ## Next bounded step
 
-Leave the Phase 10 MMIO lane parked unless fresh repo inspection finds another directly coupled drift inside this reminder packet. If the lane reopens, start by re-running direct contents reads or a public blob fallback for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, then only refresh one same-lane note or replay surface after that readback becomes reproducible again.
+Leave the Phase 10 MMIO lane parked unless fresh repo inspection finds another directly coupled drift inside this reminder packet. If the lane reopens, start by re-running direct contents reads or a public blob fallback for `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`, then only refresh one same-lane note or replay surface after that readback becomes reproducible again.
