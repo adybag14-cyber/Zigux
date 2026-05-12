@@ -17,6 +17,12 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE_PATH = Path("zigux/Makefile")
+BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
@@ -130,6 +136,39 @@ CATALOG_BASE64_SNIPPETS = [
     "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
     "- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
     "- current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines",
+]
+
+SCRIPTS_ROUTE_SNIPPETS = [
+    "- `check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
+    "- `make -C zigux phase6-perf` keeps the three dedicated base64, checksum, and hexdump slowdown gates visible together while `bsearch` stays on its bounded comparison-budget evidence path instead of a separate timing route.",
+]
+
+TESTS_ROUTE_SNIPPETS = [
+    "  * keep `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` explicit in the tests root so the shipped dedicated base64, checksum, and hexdump perf routes stay visible alongside the shared packet without implying that `make -C zigux phase6-perf` or `make -C zigux phase6` replays every helper-local slowdown gate",
+]
+
+REVIEW_ROUTE_SNIPPETS = [
+    "* if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-perf`, `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet plus the current split perf posture, where `make -C zigux phase6-perf` aggregates only the base64, checksum, and hexdump slowdown gates while `bsearch` stays on its bounded comparison-budget evidence path, without implying a removed shared `validate-phase6.py` or a broader external parity checker beyond `check-phase6-shared-surface.py`?",
+]
+
+BUILD_ROUTE_SNIPPETS = [
+    'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+    'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
+    "hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
+]
+
+MAKEFILE_ROUTE_SNIPPETS = [
+    "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "phase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "phase6-perf: phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf",
+]
+
+WORKFLOW_ROUTE_SNIPPETS = [
+    "- name: Run Phase 6 base64 perf gate\n        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+    "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+    "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
 ]
 
 
@@ -252,6 +291,12 @@ def run_checks(repo_root: Path) -> None:
     ensure_text_markers(SURVEY_PATH, SURVEY_SNIPPETS, repo_root)
     ensure_text_markers(CATALOG_PATH, CATALOG_BASE64_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_SLICE_PATH, BASE64_SLICE_SNIPPETS, repo_root)
+    ensure_text_markers(SCRIPTS_README_PATH, SCRIPTS_ROUTE_SNIPPETS, repo_root)
+    ensure_text_markers(TESTS_README_PATH, TESTS_ROUTE_SNIPPETS, repo_root)
+    ensure_text_markers(REVIEW_CHECKLIST_PATH, REVIEW_ROUTE_SNIPPETS, repo_root)
+    ensure_text_markers(BUILD_PATH, BUILD_ROUTE_SNIPPETS, repo_root)
+    ensure_text_markers(MAKEFILE_PATH, MAKEFILE_ROUTE_SNIPPETS, repo_root)
+    ensure_text_markers(WORKFLOW_PATH, WORKFLOW_ROUTE_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
     ensure_text_markers(BASE64_VECTORS_PATH, BASE64_VECTOR_SNIPPETS, repo_root)
     ensure_text_markers(BASE64_VECTORS_PATH, [case["fixture_marker"] for case in BASE64_CASES], repo_root)
@@ -354,6 +399,12 @@ def scaffold_repo(root: Path) -> None:
         + "\n".join(BASE64_SLICE_SNIPPETS)
         + "\n",
     )
+    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n" + "\n".join(SCRIPTS_ROUTE_SNIPPETS) + "\n")
+    write(root / TESTS_README_PATH, "# zigux/tests\n\n" + "\n".join(TESTS_ROUTE_SNIPPETS) + "\n")
+    write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n\n" + "\n".join(REVIEW_ROUTE_SNIPPETS) + "\n")
+    write(root / BUILD_PATH, "\n".join(BUILD_ROUTE_SNIPPETS) + "\n")
+    write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_ROUTE_SNIPPETS) + "\n")
+    write(root / WORKFLOW_PATH, "\n".join(WORKFLOW_ROUTE_SNIPPETS) + "\n")
     write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
     write(
         root / BASE64_VECTORS_PATH,
@@ -449,6 +500,18 @@ def run_self_test() -> None:
             HEXDUMP_VECTORS_PATH,
             '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 600, },',
             '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 650, },',
+        )
+        assert_failure(
+            root,
+            MAKEFILE_PATH,
+            "phase6-perf: phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf",
+            "phase6-perf: phase6-base64-perf phase6-hexdump-perf",
+        )
+        assert_failure(
+            root,
+            WORKFLOW_PATH,
+            "Run Phase 6 checksum perf gate",
+            "Run Phase 6 checksum perf replay",
         )
     print("self-test passed")
 
