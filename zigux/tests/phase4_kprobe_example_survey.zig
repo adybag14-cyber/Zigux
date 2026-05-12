@@ -50,13 +50,13 @@ test "phase4 kprobe survey keeps the local lab replay explicit" {
 
 test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
+        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
     );
 }
 
 test "phase4 kprobe survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 validation packet, the explicit local_lab_replay marker, and the dedicated local survey wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
+        "\"next_bounded_evidence_step\": \"keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter\"",
     );
 }
 
