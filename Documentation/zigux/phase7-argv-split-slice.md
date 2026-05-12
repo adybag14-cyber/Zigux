@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_LANE_KEY=P7-L09`
 * scope: first low-risk argument-vector parsing and teardown helpers only
 * lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
-* current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, but the broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports missing sibling paths `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `lib/cmdline.zig`
+* current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, but the broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`
 * product boundary:
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
@@ -44,6 +44,9 @@ This current slice keeps the work bounded to runtime-safe argument-vector helper
 * keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path
 * keep copied-buffer ownership so later source mutation does not affect split results
 * keep strict non-goal behavior where quote characters stay inside the returned tokens
+
+Current repo reality is narrower only at the shared bundle level: on `2026-05-12`, direct current `master` reads returned this slice note together with `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, and `zigux/tests/fixtures/phase7_argv_split_vectors.zig`.
+That means the argv_split-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains parked because the sibling string-helpers helper-plus-test pair is still missing from live `master`.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
@@ -80,6 +83,25 @@ The commands below still describe the intended shared replay surface, but they a
 
 * `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 * `make -C zigux phase7`
+
+## Current Repo Reality
+
+Current `master` still exposes the bounded argv_split helper packet:
+
+* `Documentation/zigux/phase7-argv-split-slice.md`
+* `lib/argv_split.zig`
+* `zigux/tests/phase7_argv_split.zig`
+* `zigux/tests/phase7_argv_split_survey.zig`
+* `zigux/tests/phase7_argv_split_manifest.json`
+* `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+
+Current `master` still does not expose the full shared Phase 7 helper bundle:
+
+* `lib/string_helpers.zig` currently fails direct current-path reads
+* `zigux/tests/phase7_string_helpers.zig` currently fails direct current-path reads
+
+That means the dedicated argv_split helper replay and dedicated argv_split survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is still a parked cross-packet target rather than an argv_split-local green claim.
+Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep argv_split-local follow-through under `P7-L09` instead of reusing the shared sequencing lane.
 
 ## Current parity surface
 
