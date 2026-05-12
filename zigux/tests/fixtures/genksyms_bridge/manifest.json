@@ -5,7 +5,7 @@
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
-  "case_count": 16,
+  "case_count": 19,
   "cases": [
     "minimal",
     "debug_reference_types",
