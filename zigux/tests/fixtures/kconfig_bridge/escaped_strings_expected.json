@@ -1,0 +1,1 @@
+{"counts":{"set":3,"unset":0},"entries":[{"name":"CONFIG_BANNER","kind":"string","value":"zigux \"bridge\""},{"name":"CONFIG_PATH","kind":"string","value":"drivers\\zigux"},{"name":"CONFIG_SUFFIX","kind":"string","value":"zigux"}]}
