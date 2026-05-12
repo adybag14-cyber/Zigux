@@ -126,7 +126,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
     try std.testing.expect(manifest.survey_summary.requirements_doc_lines >= 2800);
     try std.testing.expect(manifest.survey_summary.memory_order_doc_lines >= 600);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_tree_c);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase14_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase14_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_bridge_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
@@ -173,9 +173,9 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
 
         if (std.mem.eql(u8, gap.id, "phase14-build-gate")) {
             saw_build_gate = true;
-            try std.testing.expectEqualStrings("blocked_on_missing_review_artifact", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase14_build.zig", gap.zigux_destination);
-            try std.testing.expect(contains(gap.why_now, "does not expose `zigux/tests/phase14_build.zig`"));
+            try std.testing.expect(contains(gap.why_now, "full-bundle compile matrix"));
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-survey-gate")) {
@@ -246,9 +246,9 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), landed_count);
+    try std.testing.expectEqual(@as(usize, 13), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 3), blocked_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_note_gap);
