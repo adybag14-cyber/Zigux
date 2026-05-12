@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const expected_surveyed_commit = "00b92f22991e9124aefb308d7eb0e90f14923338";
+
 const DeliveryEvidence = struct {
     id: []const u8,
     kind: []const u8,
@@ -22,11 +24,21 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const RoadmapGapSummary = struct {
+    roadmap_phase_goal: []const u8,
+    landed_pilot_state: []const u8,
+    missing_capability: []const u8,
+    blocked_deliverable: []const u8,
+    next_gate: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    roadmap_gap_summary: RoadmapGapSummary,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
@@ -34,6 +46,20 @@ const Manifest = struct {
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn isLowerHexCommit(commit: []const u8) bool {
+    if (commit.len != 40) return false;
+    for (commit) |char| {
+        if (!((char >= '0' and char <= '9') or (char >= 'a' and char <= 'f'))) return false;
+    }
+    return true;
+}
+
+fn expectSurveyedCommitMarker(text: []const u8, commit: []const u8) !void {
+    var marker_buffer: [96]u8 = undefined;
+    const marker = try std.fmt.bufPrint(&marker_buffer, "`PHASE9_SURVEYED_COMMIT={s}`", .{commit});
+    try expectContains(text, marker);
 }
 
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
@@ -103,10 +129,32 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
 
     try std.testing.expectEqualStrings("P9-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("zigux/tests/runtime_*", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_*", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings(
+        "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+        manifest.roadmap_gap_summary.roadmap_phase_goal,
+    );
+    try std.testing.expectEqualStrings(
+        "starter_landed_without_loadable_runtime_substrate",
+        manifest.roadmap_gap_summary.landed_pilot_state,
+    );
+    try std.testing.expectEqualStrings(
+        "shared runtime substrate that can turn the bounded bitmap loader scaffold into a real loadable module path",
+        manifest.roadmap_gap_summary.missing_capability,
+    );
+    try std.testing.expectEqualStrings(
+        "loadable Phase 9 runtime bitmap pilot module parity",
+        manifest.roadmap_gap_summary.blocked_deliverable,
+    );
+    try std.testing.expectEqualStrings(
+        "keep the loader scaffold, top-bit companion contract, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
+        manifest.roadmap_gap_summary.next_gate,
+    );
     try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.gaps.len);
@@ -137,6 +185,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", substrate_gap.zigux_destination);
 
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
+    try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`zig test zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(survey_note, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`make -C zigux phase9-runtime-loader-shared-tests`");
@@ -145,6 +194,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_manifest.json`");
+    try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
     try expectContains(module_slice, "The live runtime substrate is still missing");
 
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_module.zig\")");
