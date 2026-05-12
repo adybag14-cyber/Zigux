@@ -281,7 +281,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         } else if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md")) {
             saw_shared_owner_map = true;
             try std.testing.expectEqualStrings("shared_owner_map", entry.role);
-            try std.testing.expectEqualStrings("P9-L04", entry.owner);
+            try std.testing.expectEqualStrings("P9-L11", entry.owner);
         } else if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
             saw_shared_build_bundle = true;
             try std.testing.expectEqualStrings("shared_build_bundle", entry.role);
