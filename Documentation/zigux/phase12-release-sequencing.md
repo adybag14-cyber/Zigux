@@ -2,7 +2,7 @@
 
 This note is the release-order companion for the active Phase 12 packet.
 
-It records the shared smoke-first order for the shipped `virtio_scsi` build-only packet on current `master` without claiming release closure, while keeping the broader Phase 12 planning and fallback notes explicitly separate from that wired replay surface.
+It records the shared smoke-first order for the starter-present `virtio_net` packet plus the shipped `virtio_scsi` build-only packet on current `master` without claiming release closure, while keeping the broader Phase 12 planning and fallback notes explicitly separate from that wired replay surface.
 
 ## Status
 - `PHASE12_STATUS=active`
@@ -30,10 +30,10 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py`
 
 ## Packet Reading
-- The active shared packet on current `master` is the docs-root, checklist, scripts-root, tests-root, workflow, Makefile, and `zigux/tests/phase12_build.zig` bundle that now wires only the shipped `virtio_scsi` tranche replay.
-- The active smoke-first direct shard is `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, because those are the files the current `smoke` step actually runs.
-- The shipped full replay then adds `zigux/tests/phase12_virtio_scsi.zig`, while the broader `nvme_pci`, `virtio_net`, and libbpf Phase 12 notes remain planning, fallback, or parked reviewability surfaces until new build wiring and direct replay files actually land on `master`.
-- Current `master` does not expose `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, the earlier `phase12_nvme_pci*` or `phase12_virtio_net*` direct replay files, or the parked libbpf replay files as shipped build outputs, so this sequencing note must not describe them as part of the wired release packet.
+- The active shared packet on current `master` is the docs-root, checklist, scripts-root, tests-root, workflow, Makefile, and `zigux/tests/phase12_build.zig` bundle that now wires the starter-present `virtio_net` direct and syntax-lab packet beside the shipped `virtio_scsi` tranche replay.
+- The active smoke-first direct shard set is `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, because those are the files the current `smoke` step actually runs.
+- The shipped full replay then adds `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig`, while the broader `nvme_pci` and libbpf Phase 12 notes remain planning, fallback, or parked reviewability surfaces until new build wiring and direct replay files actually land on `master`.
+- Current `master` does not expose `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, the earlier `phase12_nvme_pci*` direct replay files, or the parked libbpf replay files as shipped build outputs, so this sequencing note must not describe them as part of the wired release packet.
 - There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`, so this sequencing note must keep naming only the shipped checker pair, smoke shard, full test replay, and Linux-style `phase12` route.
 
 ## Fallback Split
@@ -44,8 +44,8 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 
 ## Boundaries
 - This note is a release-order record, not a release-closure claim.
-- DMA-safe, queueing, segmented-rollout, throughput, rollback, and recovery wording must stay bounded to the shipped driver-local `virtio_scsi` packet, the shared release-planning packet, the parked broader Phase 12 notes, and the lab-only reversible-delivery evidence already documented for `virtio_scsi`.
+- DMA-safe, queueing, segmented-rollout, throughput, rollback, and recovery wording must stay bounded to the starter-present `virtio_net` packet, the shipped driver-local `virtio_scsi` packet, the shared release-planning packet, and the parked broader Phase 12 notes.
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper transport and queueing anchors, so this sequencing note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
-When the shipped Phase 12 packet changes, reread this note beside `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO release wording. Current `master` already keeps `Documentation/zigux/phase12-release-closure-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned on the same smoke-first packet, so the next honest same-lane follow-through is a one-file review-checklist reread, starting with whether `Documentation/zigux/review-checklist.md` still overstates unpublished direct `zigux/tests/phase12_nvme_pci.zig`, absent direct `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_net_syntax_lab.zig`, or parked libbpf reviewability files `zigux/tests/phase12_libbpf_segments.zig` and `zigux/tests/phase12_libbpf_reviewability.zig` as shipped current-`master` evidence before reopening broader docs-root, checker, or fallback wording.
+When the shipped Phase 12 packet changes, reread this note beside `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO release wording. Current `master` already keeps the release-order, readiness, coordination, and closure companions aligned on the same starter-present `virtio_net` plus smoke-first `virtio_scsi` packet, so the next honest same-lane follow-through is a one-file scripts-root reread, starting with whether `scripts/zigux/README.md` still names absent `Documentation/zigux/phase12-nvme-pci-slice.md` and `Documentation/zigux/phase12-nvme-pci-survey.md` while still omitting `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, before reopening `Documentation/zigux/review-checklist.md` or broader docs-root wording.
