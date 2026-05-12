@@ -5,7 +5,7 @@
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
-  "case_count": 19,
+  "case_count": 22,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -17,7 +17,10 @@
     "positional_passthrough",
     "lone_dash_passthrough",
     "help",
+    "version_then_short_help",
+    "version_then_long_help",
     "abbreviated_help",
+    "unexpected_help_argument",
     "version",
     "abbreviated_version",
     "invalid_option",
@@ -40,6 +43,8 @@
   "process_packet": [
     "ambiguous_long_option_expected.json",
     "help_expected.json",
+    "version_then_help_expected.json",
+    "unexpected_help_argument_expected.json",
     "version_expected.json",
     "abbreviated_version_expected.json",
     "invalid_option_expected.json",
@@ -51,6 +56,7 @@
   ],
   "normalized_stderr_packet": [
     "ambiguous_long_option_expected.json",
+    "unexpected_help_argument_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
     "unsupported_long_option_expected.json",
@@ -58,6 +64,36 @@
     "missing_long_dump_types_argument_expected.json",
     "too_many_reference_files_expected.json"
   ],
+  "expected_output_governance": {
+    "stdout_json_fields": [
+      "tool",
+      "stdin",
+      "stdout",
+      "argv",
+      "options"
+    ],
+    "process_json_fields": [
+      "stdout",
+      "stderr",
+      "exit_code"
+    ],
+    "normalized_stderr_cases": [
+      "ambiguous_long_option",
+      "unexpected_help_argument",
+      "invalid_option",
+      "missing_reference_argument",
+      "unsupported_long_option",
+      "missing_long_reference_argument",
+      "missing_long_dump_types_argument",
+      "too_many_reference_files"
+    ],
+    "version_stderr_cases": [
+      "version_then_short_help",
+      "version_then_long_help",
+      "version",
+      "abbreviated_version"
+    ]
+  },
   "action_abbrev_cases": [
     "abbreviated_long_options",
     "abbreviated_help",
