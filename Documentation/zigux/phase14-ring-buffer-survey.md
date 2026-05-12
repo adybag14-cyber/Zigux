@@ -31,7 +31,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries, and the current packet now also lands a read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, and the `resize_disabled` handoff so later runs can deepen the tracefs-facing study without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries, and the current packet now also lands a read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, the `resize_disabled` handoff, and a tracefs reader-serialization audit around `trace_access_lock()`, `tracing_buffers_read()`, `tracing_buffers_splice_read()`, and the read-versus-splice consumed-page lifetime split so later runs do not reinvent `kernel/trace/ring_buffer.zig` as a wrapper-first seam.
 
 ## Decision checklist
 
@@ -88,6 +88,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The forced-copy branch also absorbs the cases where mapped-reader or writer-side state makes a page swap unsafe. That keeps `ring_buffer_read_page()` coupled to the same commit-page visibility, reader-page rotation, and `resize_disabled` handoff that already constrain consuming reads, iterator start, and tracefs splice fallback.
 - `tracing_buffers_splice_read()` reinforces that this is still one C-owned contract. The tracefs splice path allocates read pages and feeds them through `ring_buffer_read_page()` precisely because direct page export is conditional, which means exported-page extraction remains reviewable stay-in-C evidence rather than momentum toward `kernel/trace/ring_buffer.zig`.
 
+## Tracefs reader-serialization audit
+
+- `kernel/trace/trace.c` makes the high-level constraint explicit before the tracefs helpers run: the ring buffer only serializes low-level readers, while event validity and consumed-page lifetime still need extra protection because consumed pages can become ordinary writer-owned pages again or splice-owned pages that are later returned to the system. `trace_access_lock()` exists to serialize that broader tracefs access boundary.
+- `trace_access_lock()` is wider than the ring buffer's local reader lock. For an all-CPU read it takes `all_cpu_access_lock` for write; for a per-CPU read it first takes the same rwsem for read and then grabs the per-CPU `cpu_access_lock`, which keeps whole-buffer readers, per-CPU readers, and tracefs-facing page handoff from overlapping as if they were independent helper calls.
+- `tracing_buffers_read()` keeps page lifetime under the file-local spare-page contract instead of exporting a detached page. It allocates or reuses `info->spare`, takes `trace_access_lock(iter->cpu_file)`, calls `ring_buffer_read_page()` on that spare page, unlocks, and then copies data to user space while retaining the page across partial reads, so ordinary tracefs reads still depend on one C-owned page-lifetime rule.
+- `tracing_buffers_splice_read()` follows a different lifetime contract even though it enters through the same serialization gate. It also takes `trace_access_lock(iter->cpu_file)` and calls `ring_buffer_read_page()`, but it wraps each exported page in `buffer_ref` state and frees that page only through `buffer_spd_release()` and `buffer_ref_release()` after the pipe consumers drop it, so splice-read ownership remains a shared C-managed release boundary rather than a wrapper-safe variation of `tracing_buffers_read()`.
+- That read-versus-splice split is the reason this lane stays study-only here. The tracefs helpers share the same serialization gate, but one path keeps a file-owned spare page while the other defers release through pipe-buffer references, so reader serialization, consumed-page lifetime, and page return-to-kernel ownership still belong to the existing C implementation rather than a `ring_buffer.zig` seam.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -104,7 +112,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-extraction-followup`
-- ready-next `phase14-ring-buffer-tracefs-reader-serialization-followup`
+- landed `phase14-ring-buffer-tracefs-reader-serialization-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -131,4 +139,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only tracefs reader-serialization follow-up next, limited to `trace_access_lock()`, `tracing_buffers_read()`, and the read-versus-splice consumed-page lifetime rule before anyone proposes `kernel/trace/ring_buffer.zig`.
+Keep this ring-buffer lane parked unless the shared Phase 14 smoke packet or this survey note drifts. If it drifts, reopen only the smallest same-packet truthfulness repair inside `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before anyone proposes `kernel/trace/ring_buffer.zig` again.
