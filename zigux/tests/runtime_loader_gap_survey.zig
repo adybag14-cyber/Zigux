@@ -100,6 +100,8 @@ test "phase 9 runtime loader gap survey keeps the blocked trace-events boundary 
     try expectContains(trace_manifest, "runtime-trace-events-substrate-handoff");
     try expectContains(note, "`samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` still own the sample-only blocked runtime pilot boundary");
     try expectContains(note, "`samples/zigux/runtime_trace_events_loader.zig` now records the same bounded init or exit handoff shape");
+    try expectContains(note, "`samples/zigux/runtime_trace_events_loader.zig` owns the bounded trace-events loader-plan projection and without-substrate fallback while keeping `foo_bar_reg` and `foo_bar_unreg` review-only instead of executable registration");
+    try expectContains(note, "tracepoint-registration execution");
 }
 
 test "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit" {
@@ -127,6 +129,12 @@ test "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfac
     try expectContains(trace_events_loader, "tracepoint_probe_register");
     try expectContains(trace_events_loader, "tracepoint_probe_unregister");
     try expectContains(trace_events_loader, "registration_depth");
+    try expectContains(trace_events_loader, "registrationSnapshot");
+    try expectContains(trace_events_loader, "keepsRegistrationSnapshotExplicit");
+    try expectContains(trace_events_loader, "runtime trace-events loader bridges the shared request lifecycle without widening registration claims");
+    try expectContains(trace_events_loader, "runtime trace-events loader rejects registration snapshot drift");
+    try expectContains(trace_events_loader, "runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary");
+    try expectContains(trace_events_loader, "runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff");
 }
 
 test "phase 9 runtime loader gap survey keeps phase 8 argv and environment controls out of the shared runtime surface" {
