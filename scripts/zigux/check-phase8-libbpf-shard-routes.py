@@ -241,7 +241,7 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_cpu_mask_only_build.zig`",
             "`zigux/tests/phase8_cpu_mask_review_build.zig`",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_cpu_mask_ONLY_BUILD.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_cpu_mask_only_build.zig`",
         ),
         (
             "lane_note_type_names_anchor",
@@ -269,7 +269,7 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_perf_buffer_poll.zig`",
             "`zigux/tests/phase8_perf_buffer_review.zig`",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_BUFFER_POLL.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_perf_buffer_poll.zig`",
         ),
         (
             "lane_note_perf_buffer_only_build_anchor",
