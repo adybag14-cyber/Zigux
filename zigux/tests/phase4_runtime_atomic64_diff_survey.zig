@@ -1,4 +1,6 @@
 const std = @import("std");
+const phase4_build_source = @embedFile("phase4_build.zig");
+const phase9_build_source = @embedFile("phase9_build.zig");
 
 const Manifest = struct {
     lane_key: []const u8,
@@ -33,6 +35,31 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
+fn gitBlobShaHex(source: []const u8) ![40]u8 {
+    var header_buf: [64]u8 = undefined;
+    const header = try std.fmt.bufPrint(&header_buf, "blob {}\x00", .{source.len});
+
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    hasher.update(header);
+    hasher.update(source);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    var out: [40]u8 = undefined;
+    const alphabet = "0123456789abcdef";
+    for (digest, 0..) |byte, index| {
+        out[index * 2] = alphabet[byte >> 4];
+        out[index * 2 + 1] = alphabet[byte & 0x0f];
+    }
+    return out;
+}
+
+fn expectBlobShaMatchesSource(blob_sha: []const u8, source: []const u8) !void {
+    const computed = try gitBlobShaHex(source);
+    try std.testing.expectEqualStrings(computed[0..], blob_sha);
+}
+
 test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
@@ -59,12 +86,14 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
+    try expectBlobShaMatchesSource(manifest.phase4_build_blob_sha, phase4_build_source);
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expectEqualStrings("fe13b1d70cfccf071decf8a1d94a81b3eccf311e", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("7f855cce2b91c156d5c0373b3b0fa096eab0aeda", manifest.phase9_build_blob_sha);
+    try expectBlobShaMatchesSource(manifest.phase9_build_blob_sha, phase9_build_source);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
     try std.testing.expectEqualStrings("d16b8ac50c09ac728b6e2f3ff987a91cf4de35e8", manifest.phase4_validation_matrix_blob_sha);
