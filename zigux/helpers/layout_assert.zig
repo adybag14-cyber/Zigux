@@ -38,6 +38,22 @@ pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expec
     }
 }
 
+fn assertThreeU32FieldLayout(
+    comptime T: type,
+    comptime first: []const u8,
+    comptime second: []const u8,
+    comptime third: []const u8,
+) !void {
+    try size(T, 12);
+    try alignment(T, 4);
+    try offset(T, first, 0);
+    try offset(T, second, 4);
+    try offset(T, third, 8);
+    fieldType(T, first, u32);
+    fieldType(T, second, u32);
+    fieldType(T, third, u32);
+}
+
 pub fn assertBoundaryHeaderLayout() !void {
     try size(abi.BoundaryHeader, 8);
     try alignment(abi.BoundaryHeader, 4);
@@ -73,6 +89,42 @@ pub fn assertInteropPolicyLayout() !void {
     fieldType(abi.InteropPolicy, "reserved", u8);
 }
 
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {
+    try assertThreeU32FieldLayout(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView,
+        "ack_window",
+        "delivery_window",
+        "status",
+    );
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() !void {
+    try assertThreeU32FieldLayout(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary,
+        "applied",
+        "skipped",
+        "delivered",
+    );
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() !void {
+    try assertThreeU32FieldLayout(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView,
+        "budget",
+        "window",
+        "flags",
+    );
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() !void {
+    try assertThreeU32FieldLayout(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary,
+        "attempted",
+        "applied",
+        "skipped",
+    );
+}
+
 pub fn assertInteropPolicyModeValues() void {
     byteValue("panic_mode.abort", @intFromEnum(abi.PanicMode.abort), abi.PANIC_ABORT);
     byteValue("panic_mode.bug", @intFromEnum(abi.PanicMode.bug), abi.PANIC_BUG);
@@ -101,5 +153,9 @@ test "phase3 layout assertions cover canonical bindings" {
     try assertBoundaryHeaderLayout();
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
     assertInteropPolicyModeValues();
 }
