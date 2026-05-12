@@ -58,20 +58,11 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 
 Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof.
 
-The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:
+The DesignWare watchdog lane is still parked on a planning checkpoint beside that shared route:
 
-* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-* `Documentation/zigux/phase11-dw-wdt-survey.md`
-* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
-* `scripts/zigux/check-phase11-dw-wdt-packet.py`
-* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
-* `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`
-* `zigux/tests/phase11_dw_wdt_manifest.json`
-* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-* `zigux/tests/phase11_dw_wdt_survey.zig`
-* `drivers/watchdog/dw_wdt_verify.zig`
+* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 
-That dedicated DesignWare packet keeps the bounded `platform_set_drvdata` handoff, the pre-registration `watchdog_register_device` review surface, and the continued-heartbeat teardown and remove failure-mode split explicit without widening into live platform registration, clock or reset acquisition, IRQ ownership, or MMIO execution.
+Treat that plan note as the current DesignWare lane evidence on `master`: it keeps the next bounded platform-registration scaffold explicit while the repository still does not materialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `drivers/watchdog/dw_wdt_verify.zig`. Keep the lane below live platform registration, clock or reset acquisition, IRQ ownership, and MMIO execution until that first real scaffold lands.
 
 The shared header-boundary evidence also stays explicit beside that shared route:
 
@@ -91,4 +82,4 @@ The remaining bcm2835 and gpio watchdog evidence stays with the corresponding pa
 ## Follow-Through Rule
 
 Future shared Phase 11 work should stay inside the next smallest reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the dedicated DesignWare watchdog packet, and the shared header-boundary evidence remain aligned with live `master`.
+Prefer one shared note or checker at a time so the surviving replay route, the dedicated HVC archival route, the parked DesignWare planning note, and the shared header-boundary evidence remain aligned with live `master`.
