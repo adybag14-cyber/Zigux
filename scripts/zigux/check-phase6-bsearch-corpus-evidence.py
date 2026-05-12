@@ -75,6 +75,7 @@ EXACT_OCCURRENCE_MARKERS = {
 
 EXPECTED_BSEARCH_HELPER_ROW = {
     "id": "bsearch",
+    "roadmap_anchor": "lib/bsearch.c",
     "helper": "lib/bsearch.zig",
     "tests": [
         "zigux/tests/phase6_bsearch.zig",
@@ -288,6 +289,12 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         scaffold_repo(root)
         run_checks(root)
+        assert_failure(
+            root,
+            MANIFEST_PATH.as_posix(),
+            '"roadmap_anchor": "lib/bsearch.c"',
+            '"roadmap_anchor": "lib/bsearch-old.c"',
+        )
         assert_failure(
             root,
             MANIFEST_PATH.as_posix(),
