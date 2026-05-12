@@ -38,6 +38,12 @@ const AnchorPacket = struct {
     blocked_gap: []const u8,
 };
 
+const CompileShard = struct {
+    label: []const u8,
+    root_source: []const u8,
+    coverage: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -47,6 +53,7 @@ const Manifest = struct {
     anchor_packets: []const AnchorPacket,
     smoke_commands: []const []const u8,
     smoke_shard_commands: []const []const u8,
+    compile_shards: []const CompileShard,
     survey_summary: SurveySummary,
 };
 
@@ -78,6 +85,28 @@ fn hasString(items: []const []const u8, needle: []const u8) bool {
         }
     }
     return false;
+}
+
+fn hasCompileShard(shards: []const CompileShard, label: []const u8, root_source: []const u8, coverage: []const u8) bool {
+    for (shards) |shard| {
+        if (std.mem.eql(u8, shard.label, label) and
+            std.mem.eql(u8, shard.root_source, root_source) and
+            std.mem.eql(u8, shard.coverage, coverage))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn countCompileShardsWithCoverage(shards: []const CompileShard, coverage: []const u8) usize {
+    var count: usize = 0;
+    for (shards) |shard| {
+        if (std.mem.eql(u8, shard.coverage, coverage)) {
+            count += 1;
+        }
+    }
+    return count;
 }
 
 fn isLowerHex40(value: []const u8) bool {
@@ -131,6 +160,15 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.compile_shards.len);
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"));
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-workqueue-reviewability-tests", "phase14_workqueue_reviewability.zig", "full_bundle_only"));
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-skbuff-bridge-tests", "phase14_skbuff_bridge.zig", "full_bundle_only"));
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-ring-buffer-survey-tests", "phase14_ring_buffer_survey.zig", "full_bundle_only"));
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-rcu-tree-survey-tests", "phase14_rcu_tree_survey.zig", "full_bundle_only"));
+    try std.testing.expect(hasCompileShard(manifest.compile_shards, "phase14-end-to-end-smoke-tests", "phase14_end_to_end_smoke_survey.zig", "focused_and_full_bundle"));
+    try std.testing.expectEqual(@as(usize, 1), countCompileShardsWithCoverage(manifest.compile_shards, "focused_and_full_bundle"));
+    try std.testing.expectEqual(@as(usize, 5), countCompileShardsWithCoverage(manifest.compile_shards, "full_bundle_only"));
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
     try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_shared_smoke_step);
@@ -188,6 +226,12 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-end-to-end-smoke-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_end_to_end_smoke_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-smoke") != null);
+    for (smoke_manifest.value.compile_shards) |shard| {
+        try std.testing.expect(std.mem.indexOf(u8, build_file, shard.label) != null);
+        try std.testing.expect(std.mem.indexOf(u8, build_file, shard.root_source) != null);
+    }
+    try std.testing.expectEqual(@as(usize, 1), countCompileShardsWithCoverage(smoke_manifest.value.compile_shards, "focused_and_full_bundle"));
+    try std.testing.expectEqual(@as(usize, 5), countCompileShardsWithCoverage(smoke_manifest.value.compile_shards, "full_bundle_only"));
 
     const makefile = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -299,6 +343,12 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14") != null);
+    for (smoke_manifest.value.compile_shards) |shard| {
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.label) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.root_source) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.coverage) != null);
+    }
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard.") != null);
 
     const release_boundary_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
