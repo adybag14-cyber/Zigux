@@ -24,6 +24,52 @@ pub const HvOps = extern struct {
     dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void = null,
 };
 
+pub const CrLfWriteRequest = struct {
+    payload_len: usize,
+    newline_seen: bool,
+    already_crlf: bool,
+    can_sleep: bool,
+};
+
+pub const CrLfWriteSummary = struct {
+    payload_len: usize,
+    inserts_carriage_return: bool,
+    preserves_existing_crlf: bool,
+    can_sleep: bool,
+};
+
+pub fn summarizeCrLfWrite(request: CrLfWriteRequest) CrLfWriteSummary {
+    return .{
+        .payload_len = request.payload_len,
+        .inserts_carriage_return = request.newline_seen and !request.already_crlf,
+        .preserves_existing_crlf = request.already_crlf,
+        .can_sleep = request.can_sleep,
+    };
+}
+
+pub const FlushIntentRequest = struct {
+    flush_callback_present: bool,
+    buffered_write_pending: bool,
+    close_wait_ownership: bool,
+    final_close: bool,
+};
+
+pub const FlushIntentSummary = struct {
+    flush_callback_present: bool,
+    explicit_flush_intent: bool,
+    close_wait_ownership: bool,
+    final_close: bool,
+};
+
+pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {
+    return .{
+        .flush_callback_present = request.flush_callback_present,
+        .explicit_flush_intent = request.flush_callback_present and (request.buffered_write_pending or request.final_close),
+        .close_wait_ownership = request.close_wait_ownership,
+        .final_close = request.final_close,
+    };
+}
+
 pub const CloseTeardownRequest = struct {
     tty_detached: bool,
     hupcl: bool,
@@ -287,6 +333,34 @@ pub fn notifier_del_irq(hp: *HvcStruct, irq: c_int) void {
 pub fn notifier_hangup_irq(hp: *HvcStruct, irq: c_int) void {
     _ = hp;
     _ = irq;
+}
+
+test "phase11 hvc console keeps CRLF framing summary reviewable" {
+    const summary = summarizeCrLfWrite(.{
+        .payload_len = 4,
+        .newline_seen = true,
+        .already_crlf = false,
+        .can_sleep = true,
+    });
+
+    try std.testing.expectEqual(@as(usize, 4), summary.payload_len);
+    try std.testing.expect(summary.inserts_carriage_return);
+    try std.testing.expect(!summary.preserves_existing_crlf);
+    try std.testing.expect(summary.can_sleep);
+}
+
+test "phase11 hvc console keeps flush intent summary reviewable" {
+    const summary = summarizeFlushIntent(.{
+        .flush_callback_present = true,
+        .buffered_write_pending = true,
+        .close_wait_ownership = true,
+        .final_close = true,
+    });
+
+    try std.testing.expect(summary.flush_callback_present);
+    try std.testing.expect(summary.explicit_flush_intent);
+    try std.testing.expect(summary.close_wait_ownership);
+    try std.testing.expect(summary.final_close);
 }
 
 test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {
