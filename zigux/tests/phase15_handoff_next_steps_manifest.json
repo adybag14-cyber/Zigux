@@ -71,7 +71,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "If a new shared-summary truthfulness drift appears, route it through `shared-summaries` by rereading `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting.",
+    "If a new shared-summary truthfulness drift appears, route it through `shared-summaries` by rereading `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
