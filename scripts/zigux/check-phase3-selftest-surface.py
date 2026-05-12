@@ -785,7 +785,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        broken_path.writeText(
+        broken_path.write_text(
             _read(broken_path).replace(
                 "scripts/zigux/generate-phase3-check-wrappers.py --check",
                 "",
@@ -902,7 +902,7 @@ def run_self_test() -> int:
             print("expected abi.h next-step marker count drift was not reported")
             return 1
 
-        _populateRepo(root)
+        _populate_repo(root)
         broken_path.write_text(
             _read(broken_path).replace(
                 "Documentation/zigux/phase3-validator-support-surface.md",
