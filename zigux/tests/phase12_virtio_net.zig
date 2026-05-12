@@ -293,3 +293,45 @@ test "phase12 virtio net mergeable receive buffer plan rejects buffer counts pas
         .mergeable_rx_bufs = true,
     }));
 }
+
+test "phase12 virtio net control queue recovery plan keeps dirty control-state restores ahead of data queues" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expect(plan.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), plan.control_queue_index);
+    try std.testing.expect(plan.requires_control_queue_restore);
+    try std.testing.expect(plan.requires_receive_mode_sync);
+    try std.testing.expect(plan.requires_hash_report_restore);
+    try std.testing.expect(plan.requires_mac_table_sync);
+    try std.testing.expect(plan.requires_vlan_filter_sync);
+    try std.testing.expect(plan.requires_rss_config_sync);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(plan.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 6), plan.command_count);
+}
