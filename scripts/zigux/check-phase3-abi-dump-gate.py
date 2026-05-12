@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the focused Phase 3 ABI dump-gate reminder surface."""
+"""Fail-close the focused Phase 3 ABI dump and interop-gate reminder surface."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 VALIDATE_PHASE3_PATH = Path("scripts/zigux/validate-phase3.py")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_PACKET_FILES = (
     Path("zigux/tests/phase3_abi_dump.zig"),
@@ -61,6 +62,14 @@ MAKEFILE_MARKERS = (
     "phase3-validate:",
     "$(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
     "$(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
+    "phase3-interop:",
+    "$(PYTHON) scripts/zigux/run-phase3-checks.py",
+    "$(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
+)
+
+WORKFLOW_MARKERS = (
+    "run: python3 scripts/zigux/run-phase3-checks.py",
+    "run: zig build phase3-dump --build-file zigux/tests/build.zig",
 )
 
 
@@ -94,6 +103,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
     )
     issues.extend(_check_markers(repo_root / MAKEFILE_PATH, MAKEFILE_MARKERS, "makefile"))
+    issues.extend(_check_markers(repo_root / WORKFLOW_PATH, WORKFLOW_MARKERS, "workflow"))
     for rel_path in REQUIRED_PACKET_FILES:
         if not (repo_root / rel_path).is_file():
             issues.append(f"missing repo file: {rel_path.as_posix()}")
@@ -112,6 +122,7 @@ def _populate_repo(root: Path) -> None:
     _write(root / VALIDATE_PHASE3_PATH, "\n".join(VALIDATE_PHASE3_MARKERS) + "\n")
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
     _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
+    _write(root / WORKFLOW_PATH, "\n".join(WORKFLOW_MARKERS) + "\n")
     for rel_path in REQUIRED_PACKET_FILES:
         _write(root / rel_path, "# stub\n")
 
@@ -216,6 +227,34 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
             print("expected missing makefile dump-gate self-test marker was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / MAKEFILE_PATH
+        broken.write_text(
+            _read(broken).replace("phase3-interop:\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = "missing makefile marker: phase3-interop:"
+        if expected not in issues:
+            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
+            print("expected missing makefile interop target was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / WORKFLOW_PATH
+        broken.write_text(
+            _read(broken).replace("run: python3 scripts/zigux/run-phase3-checks.py\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = "missing workflow marker: run: python3 scripts/zigux/run-phase3-checks.py"
+        if expected not in issues:
+            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
+            print("expected missing workflow interop replay marker was not reported")
             return 1
         case_count += 1
 
