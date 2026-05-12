@@ -123,6 +123,8 @@ EXPECTED_CLOSURE_MARKERS = [
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
 ]
 
+EXPECTED_SELF_TEST_CASE_COUNT = 9
+
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
     try:
@@ -328,6 +330,21 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
+        phase2_tool_manifest["packet_manifests"] = [
+            manifest
+            for manifest in phase2_tool_manifest["packet_manifests"]
+            if manifest != GENKSYMS_MANIFEST_REL
+        ]
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert f"phase2_tool_manifest:missing_packet_manifest:{GENKSYMS_MANIFEST_REL}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
         tests_readme_path = root / TESTS_README_REL
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(
@@ -388,6 +405,7 @@ def run_self_test() -> int:
         assert f"missing_marker:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[0]}" in issues
         case_count += 1
 
+    assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
