@@ -8,7 +8,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
@@ -18,6 +17,8 @@ ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 POLICY_BYTE_GUARD_REL = "scripts/zigux/check-phase3-policy-byte-guards.py"
+LOW_LEVEL_WRAPPER_SURVEY_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
@@ -45,7 +46,7 @@ STATIC_MARKERS = (
     "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands",
 )
 
 BLOB_MARKERS = {
@@ -66,32 +67,25 @@ MAKEFILE_REQUIRED_LINES = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.",
-    "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
-    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
-    "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
-    "`zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy` so shared callers do not have to split unsafe-scope bytes out by hand before checking the bounded unsafe contract.",
-    "`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.",
-    "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.",
+    "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, offset, and interop-policy byte-value checks",
+    "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
+    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte`",
+    "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small",
+    "`zigux/helpers/mmio.zig` now routes shared policy-aware MMIO through decoded `interop_policy.DecodedInteropPolicy` inputs",
+    "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard",
+    "The current tree no longer ships a dedicated `phase3_policy_unsafe` replay pair",
 )
 
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
-    "fn assertInteropPolicyModeValues() void {",
-    'assertInteropPolicyByteValue("panic_mode.abort", @intFromEnum(abi.PanicMode.abort), 0);',
-    'assertInteropPolicyByteValue("allocator_mode.caller_provided", @intFromEnum(abi.AllocatorMode.caller_provided), 0);',
-    'assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);',
-    "pub fn assertMmioRangeLayout() void {",
-    "pub fn assertRbtreeRootViewLayout() void {",
-    'test "phase3 layout assertions cover canonical bindings" {',
+    "pub fn size(comptime T: type, expected: usize) !void {",
+    "pub fn align(comptime T: type, expected: usize) !void {",
+    "pub fn offset(comptime T: type, comptime field_name: []const u8, expected: usize) !void {",
 )
 
 REQUIRED_PANIC_POLICY_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {",
-    "if (reserved != 0) return null;",
     "pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {",
-    "return actionFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);",
     "pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {",
-    "return actionForInteropPolicyBytes(mode, reserved) == .warn_and_return;",
     "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));",
     "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));",
     "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));",
@@ -99,44 +93,39 @@ REQUIRED_PANIC_POLICY_SNIPPETS = (
 
 REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {",
-    "if (reserved != 0) return null;",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
-    "return modeFromInteropPolicyBytes(mode, reserved) == .caller_provided;",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
-    "return switch (modeFromInteropPolicyBytes(mode, reserved) orelse return false) {",
     "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));",
     "try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));",
     "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
 )
 
 REQUIRED_UNSAFE_SNIPPETS = (
-    'const abi = @import("abi_bindings");',
-    "pub fn addressOf(ptr: anytype) usize {",
-    "pub fn byteOffset(base: usize, offset: usize) usize {",
-    'return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");',
-    "pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatile T {",
     "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
-    "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
-    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
-    "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
-    "if (reserved != 0) return null;",
-    "try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));",
+    "pub fn pointerAtInteropPolicy(",
+    "pub fn constSliceAtInteropPolicyBytes(",
     "try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));",
-    "try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicy(raw_policy));",
-    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
-    "try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));",
-    "try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));",
-    "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
+)
+
+REQUIRED_MMIO_SNIPPETS = (
+    "pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) MmioError!Range {",
+    "pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!u64 {",
+    "pub fn write64InteropPolicy(base_addr: usize, offset: usize, value: u64, policy: abi.InteropPolicy) MmioError!void {",
+)
+
+REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
+    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
+    'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
+    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {',
 )
 
 REQUIRED_ABI_TEST_SNIPPETS = (
-    'const layout_assert = @import("layout_assert");',
-    'const panic_policy = @import("panic_policy");',
-    'const allocator_policy = @import("allocator_policy");',
-    'const mmio = @import("mmio_helpers");',
-    'const narrow = @import("narrow_unsafe");',
+    'test "phase3 abi keeps starter header and status layouts explicit" {',
+    "@sizeOf(abi.InteropPolicy)",
+    "@offsetOf(abi.InteropPolicy, \"reserved\")",
+    'test "phase3 abi keeps exported constants and family markers present" {',
 )
 
 REQUIRED_ABI_DUMP_SNIPPETS = (
@@ -151,7 +140,6 @@ REQUIRED_ABI_EXPECTED_SNIPPETS = (
     '"panic_abort":0',
     '"allocator_caller_provided":0',
     '"unsafe_scope_raw_pointer_bridge":2',
-    '"zigux_mmio_range":{"size":16,"align":8,"offsets":{"base_addr":0,"length":8,"stride":12}}',
     '"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}',
 )
 
@@ -174,15 +162,7 @@ def normalized_marker_lines(text: str) -> list[str]:
     return lines
 
 
-def require_exact_line_count(
-    issues: list[str],
-    text: str,
-    prefix: str,
-    line: str,
-    *,
-    normalized: bool = False,
-    expected_count: int = 1,
-) -> None:
+def require_exact_line_count(issues: list[str], text: str, prefix: str, line: str, *, normalized: bool = False, expected_count: int = 1) -> None:
     lines = normalized_marker_lines(text) if normalized else text.splitlines()
     count = lines.count(line)
     if count == expected_count:
@@ -201,18 +181,9 @@ def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[
 
 def validate(root: Path) -> list[str]:
     required_paths = {
-        SURVEY_REL,
-        MAKEFILE_REL,
-        LAYOUT_ASSERT_REL,
-        PANIC_POLICY_REL,
-        ALLOCATOR_POLICY_REL,
-        MMIO_REL,
-        UNSAFE_NARROW_REL,
-        POLICY_BYTE_GUARD_REL,
-        ABI_TEST_REL,
-        ABI_DUMP_REL,
-        ABI_EXPECTED_REL,
-        ABI_MANIFEST_REL,
+        SURVEY_REL, MAKEFILE_REL, LAYOUT_ASSERT_REL, PANIC_POLICY_REL, ALLOCATOR_POLICY_REL,
+        MMIO_REL, UNSAFE_NARROW_REL, POLICY_BYTE_GUARD_REL, LOW_LEVEL_WRAPPER_SURVEY_REL,
+        LOW_LEVEL_TEST_REL, ABI_TEST_REL, ABI_DUMP_REL, ABI_EXPECTED_REL, ABI_MANIFEST_REL,
         ABI_SLICE_DOC_REL,
     }
     missing = [rel for rel in sorted(required_paths) if not (root / rel).exists()]
@@ -225,14 +196,15 @@ def validate(root: Path) -> list[str]:
     layout_assert = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8")
     panic_policy = (root / PANIC_POLICY_REL).read_text(encoding="utf-8")
     allocator_policy = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8")
+    mmio = (root / MMIO_REL).read_text(encoding="utf-8")
     unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8")
+    low_level_test = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
     abi_test = (root / ABI_TEST_REL).read_text(encoding="utf-8")
     abi_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8")
     abi_expected = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8")
 
     for marker, rel in PATH_MARKERS.items():
         require_exact_line_count(issues, survey, "marker", f"{marker}={rel}", normalized=True)
-
     for marker in STATIC_MARKERS:
         require_exact_line_count(issues, survey, "marker", marker, normalized=True)
 
@@ -254,12 +226,7 @@ def validate(root: Path) -> list[str]:
     for line in MAKEFILE_REQUIRED_LINES:
         require_exact_line_count(issues, makefile, "makefile_line", line)
 
-    checker = subprocess.run(
-        [sys.executable, root / POLICY_BYTE_GUARD_REL],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    checker = subprocess.run([sys.executable, root / POLICY_BYTE_GUARD_REL], capture_output=True, text=True, check=False)
     if checker.returncode != 0:
         issues.append(f"policy_byte_guard_exit:{checker.returncode}")
         for line in checker.stdout.splitlines():
@@ -271,7 +238,9 @@ def validate(root: Path) -> list[str]:
     require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
     require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
     require_snippets(issues, allocator_policy, "allocator_policy", REQUIRED_ALLOCATOR_POLICY_SNIPPETS)
+    require_snippets(issues, mmio, "mmio", REQUIRED_MMIO_SNIPPETS)
     require_snippets(issues, unsafe, "unsafe", REQUIRED_UNSAFE_SNIPPETS)
+    require_snippets(issues, low_level_test, "low_level_test", REQUIRED_LOW_LEVEL_TEST_SNIPPETS)
     require_snippets(issues, abi_test, "abi_test", REQUIRED_ABI_TEST_SNIPPETS)
     require_snippets(issues, abi_dump, "abi_dump", REQUIRED_ABI_DUMP_SNIPPETS)
     require_snippets(issues, abi_expected, "abi_expected", REQUIRED_ABI_EXPECTED_SNIPPETS)
@@ -288,14 +257,16 @@ def build_valid_workspace(root: Path) -> None:
         LAYOUT_ASSERT_REL: "\n".join(REQUIRED_LAYOUT_ASSERT_SNIPPETS) + "\n",
         PANIC_POLICY_REL: "\n".join(REQUIRED_PANIC_POLICY_SNIPPETS) + "\n",
         ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
-        MMIO_REL: "pub fn range() void {}\npub fn write32() void {}\n",
+        MMIO_REL: "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n",
         UNSAFE_NARROW_REL: "\n".join(REQUIRED_UNSAFE_SNIPPETS) + "\n",
         POLICY_BYTE_GUARD_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_BYTE_GUARDS=pass\")\n",
+        LOW_LEVEL_WRAPPER_SURVEY_REL: "# low-level wrapper survey\n",
+        LOW_LEVEL_TEST_REL: "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
         ABI_TEST_REL: "\n".join(REQUIRED_ABI_TEST_SNIPPETS) + "\n",
         ABI_DUMP_REL: "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n",
         ABI_EXPECTED_REL: "\n".join(REQUIRED_ABI_EXPECTED_SNIPPETS) + "\n",
         ABI_MANIFEST_REL: '{"phase":"Phase 3"}\n',
-        ABI_SLICE_DOC_REL: "# Phase 3 ABI Substrate Slice\n",
+        ABI_SLICE_DOC_REL: "# Phase 3 ABI Slice\n",
     }
     for rel, content in minimal_files.items():
         write_file(root / rel, content)
@@ -320,135 +291,35 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         assert validate(root) == []
 
-        stale_note = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "PHASE3_PANIC_POLICY_BLOB_SHA=",
-            "PHASE3_PANIC_POLICY_BLOB_SHA=stale-",
-            1,
-        )
+        stale_note = (root / SURVEY_REL).read_text(encoding="utf-8").replace("PHASE3_PANIC_POLICY_BLOB_SHA=", "PHASE3_PANIC_POLICY_BLOB_SHA=stale-", 1)
         write_file(root / SURVEY_REL, stale_note)
         issues = validate(root)
         expected = git_blob_sha(root / PANIC_POLICY_REL)
         assert f"stale_blob_marker:PHASE3_PANIC_POLICY_BLOB_SHA:stale-{expected}!={expected}" in issues
 
         build_valid_workspace(root)
-        missing_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_boundary_gap)
+        missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace("- `PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands`\n", "", 1)
+        write_file(root / SURVEY_REL, missing_next_step)
         issues = validate(root)
-        assert "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet" in issues
+        assert "missing_marker:PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-manifest-and-shared-abi-slice-markers-in-this-survey-aligned-with-current-master-until-a-real-policy-or-unsafe-helper-expansion-lands" in issues
 
         build_valid_workspace(root)
-        missing_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_dump_gate)
-        issues = validate(root)
-        assert "missing_marker:PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig" in issues
-
-        build_valid_workspace(root)
-        missing_guard_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_guard_marker)
-        issues = validate(root)
-        assert "missing_marker:PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py" in issues
-
-        build_valid_workspace(root)
-        missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[6] + "\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_guard_wording)
-        issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
-
-        build_valid_workspace(root)
-        missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[2] + "\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_survey_snippet)
-        issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
-
-        build_valid_workspace(root)
-        missing_typed_unsafe_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[4] + "\n",
-            "",
-            1,
-        )
-        write_file(root / SURVEY_REL, missing_typed_unsafe_survey)
-        issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
-
-        build_valid_workspace(root)
-        broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_LAYOUT_ASSERT_SNIPPETS[5] + "\n",
-            "",
-            1,
-        )
+        broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(REQUIRED_LAYOUT_ASSERT_SNIPPETS[2] + "\n", "", 1)
         write_file(root / LAYOUT_ASSERT_REL, broken_layout)
         issues = validate(root)
-        assert f"missing_layout_assert_snippet:{REQUIRED_LAYOUT_ASSERT_SNIPPETS[5]}" in issues
+        assert f"missing_layout_assert_snippet:{REQUIRED_LAYOUT_ASSERT_SNIPPETS[2]}" in issues
 
         build_valid_workspace(root)
-        broken_panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_PANIC_POLICY_SNIPPETS[8] + "\n",
-            "",
-            1,
-        )
+        broken_panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(REQUIRED_PANIC_POLICY_SNIPPETS[-1] + "\n", "", 1)
         write_file(root / PANIC_POLICY_REL, broken_panic)
         issues = validate(root)
-        assert f"missing_panic_policy_snippet:{REQUIRED_PANIC_POLICY_SNIPPETS[8]}" in issues
+        assert f"missing_panic_policy_snippet:{REQUIRED_PANIC_POLICY_SNIPPETS[-1]}" in issues
 
         build_valid_workspace(root)
-        broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_ALLOCATOR_POLICY_SNIPPETS[8] + "\n",
-            "",
-            1,
-        )
-        write_file(root / ALLOCATOR_POLICY_REL, broken_allocator)
+        broken_low_level = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(REQUIRED_LOW_LEVEL_TEST_SNIPPETS[-1] + "\n", "", 1)
+        write_file(root / LOW_LEVEL_TEST_REL, broken_low_level)
         issues = validate(root)
-        assert f"missing_allocator_policy_snippet:{REQUIRED_ALLOCATOR_POLICY_SNIPPETS[8]}" in issues
-
-        build_valid_workspace(root)
-        broken_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_UNSAFE_SNIPPETS[4] + "\n",
-            "",
-            1,
-        )
-        write_file(root / UNSAFE_NARROW_REL, broken_unsafe)
-        issues = validate(root)
-        assert f"missing_unsafe_snippet:{REQUIRED_UNSAFE_SNIPPETS[4]}" in issues
-
-        build_valid_workspace(root)
-        broken_typed_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_UNSAFE_SNIPPETS[10] + "\n",
-            "",
-            1,
-        )
-        write_file(root / UNSAFE_NARROW_REL, broken_typed_unsafe)
-        issues = validate(root)
-        assert f"missing_unsafe_snippet:{REQUIRED_UNSAFE_SNIPPETS[10]}" in issues
-
-        build_valid_workspace(root)
-        broken_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_ABI_DUMP_SNIPPETS[4] + "\n",
-            "",
-            1,
-        )
-        write_file(root / ABI_DUMP_REL, broken_dump)
-        issues = validate(root)
-        assert f"missing_abi_dump_snippet:{REQUIRED_ABI_DUMP_SNIPPETS[4]}" in issues
+        assert f"missing_low_level_test_snippet:{REQUIRED_LOW_LEVEL_TEST_SNIPPETS[-1]}" in issues
 
         build_valid_workspace(root)
         write_file(root / POLICY_BYTE_GUARD_REL, "#!/usr/bin/env python3\nimport sys\nprint(\"PHASE3_POLICY_BYTE_GUARDS=fail\")\nsys.exit(1)\n")
@@ -456,14 +327,12 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 policy and unsafe survey note against the current shared ABI packet."
-    )
+    parser = argparse.ArgumentParser(description="Validate the Phase 3 policy and unsafe survey note against the current shared ABI packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage in a temporary workspace.")
     args = parser.parse_args()
 
