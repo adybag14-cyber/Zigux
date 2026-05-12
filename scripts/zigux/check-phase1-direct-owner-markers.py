@@ -100,6 +100,34 @@ def make_fixture_root(root: Path) -> None:
     makefile.write_text("\n".join(MAKEFILE_MARKERS) + "\n", encoding="utf-8")
 
 
+def expect_missing_marker(
+    root: Path,
+    label: str,
+    marker: str,
+) -> None:
+    lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
+    lane_note.write_text(
+        lane_note.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+        encoding="utf-8",
+    )
+    missing = collect_missing_markers(root)
+    assert f"{label}:{marker}:expected=1:actual=0" in missing
+
+
+def expect_duplicate_marker(
+    root: Path,
+    label: str,
+    marker: str,
+) -> None:
+    lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
+    lane_note.write_text(
+        lane_note.read_text(encoding="utf-8").replace(marker, marker + "\n" + marker, 1),
+        encoding="utf-8",
+    )
+    missing = collect_missing_markers(root)
+    assert f"{label}:{marker}:expected=1:actual=2" in missing
+
+
 def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_direct_owner_") as tmp_dir:
@@ -120,95 +148,55 @@ def run_self_test() -> None:
         assert collect_missing_files(root) == ["zigux/Makefile"]
         case_count += 1
 
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(DIRECT_OWNER_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
+        for marker in DIRECT_OWNER_MARKERS:
+            make_fixture_root(root)
+            expect_missing_marker(root, "phase1_direct_owner_marker", marker)
+            case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                DIRECT_OWNER_MARKERS[1],
-                DIRECT_OWNER_MARKERS[1] + "\n" + DIRECT_OWNER_MARKERS[1],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[1]}:expected=1:actual=2" in missing
-        )
+        expect_duplicate_marker(root, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS[-1])
         case_count += 1
 
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(COMPANION_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_companion:{COMPANION_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
+        for marker in COMPANION_MARKERS:
+            make_fixture_root(root)
+            expect_missing_marker(root, "phase1_direct_owner_companion", marker)
+            case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[1] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[1]}:expected=1:actual=0" in missing
-        )
+        expect_duplicate_marker(root, "phase1_direct_owner_companion", COMPANION_MARKERS[-1])
         case_count += 1
 
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                NEXT_STEP_MARKERS[4],
-                NEXT_STEP_MARKERS[4] + "\n" + NEXT_STEP_MARKERS[4],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[4]}:expected=1:actual=2"
-            in missing
-        )
-        case_count += 1
+        for marker in NEXT_STEP_MARKERS:
+            make_fixture_root(root)
+            expect_missing_marker(root, "phase1_direct_owner_next_step", marker)
+            case_count += 1
 
         make_fixture_root(root)
-        makefile.write_text(
-            makefile.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[0]}:expected=1:actual=0" in missing
-        )
+        expect_duplicate_marker(root, "phase1_direct_owner_next_step", NEXT_STEP_MARKERS[-1])
         case_count += 1
+
+        for marker in MAKEFILE_MARKERS:
+            make_fixture_root(root)
+            makefile.writeText = None
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                encoding="utf-8",
+            )
+            missing = collect_missing_markers(root)
+            assert f"phase1_direct_owner_makefile:{marker}:expected=1:actual=0" in missing
+            case_count += 1
 
         make_fixture_root(root)
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(
-                MAKEFILE_MARKERS[1],
-                MAKEFILE_MARKERS[1] + "\n" + MAKEFILE_MARKERS[1],
+                MAKEFILE_MARKERS[-1],
+                MAKEFILE_MARKERS[-1] + "\n" + MAKEFILE_MARKERS[-1],
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[1]}:expected=1:actual=2"
-            in missing
-        )
+        assert f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[-1]}:expected=1:actual=2" in missing
         case_count += 1
 
     print("PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=pass")
