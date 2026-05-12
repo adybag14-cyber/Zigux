@@ -4,9 +4,9 @@ This note records the current-master verification result for the bounded Phase 1
 
 ## Status
 
-- `PHASE12_STATUS=starter-present-queue-topology-summary`
-- `PHASE12_SLICE=virtio-net-queue-topology-followup`
-- scope: verify the bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, and mergeable receive-buffer planning without widening into live DMA, NAPI, XDP, XSK, control-virtqueue runtime commands, RSS table programming, or full `net_device` lifecycle work
+- `PHASE12_STATUS=starter-present-queue-recovery-planner`
+- `PHASE12_SLICE=virtio-net-queue-recovery-followup`
+- scope: verify the bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, mergeable receive-buffer planning, and queue-reset recovery planning without widening into live DMA, NAPI, XDP, XSK, control-virtqueue runtime commands, RSS table programming, or full `net_device` lifecycle work
 - verified on: `2026-05-12`
 - repo-truth boundary:
   - `drivers/net/virtio_net.zig`
@@ -27,14 +27,14 @@ That anchor remains high value because `virtio_net.c` still covers probe-time ne
 
 - current `master` still carries the earlier Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_build.zig`
 - current `master` now carries `drivers/net/virtio_net.zig`
-- the current bounded starter exposes `captureProbeSnapshot()` for queue-pair fallback plus header-shape selection, `summarizeQueueTopology()` for receive, transmit, and optional control-virtqueue placement, and `planMergeableReceiveBuffer()` for the probe-time packet-buffer choice
+- the current bounded starter exposes `captureProbeSnapshot()` for queue-pair fallback plus header-shape selection, `summarizeQueueTopology()` for receive, transmit, and optional control-virtqueue placement, `planMergeableReceiveBuffer()` for the probe-time packet-buffer choice, and `freezeForReset()`, `recoveryQueuePlan()`, plus `restoreAfterReset()` for bounded queue-reset recovery planning
 - current `master` now carries `zigux/tests/phase12_virtio_net.zig` as the direct starter replay for this bounded packet
 - current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig` as the dedicated syntax lab for this bounded packet
 - current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig` and `zigux/tests/phase12_virtio_net_manifest.json` as the survey-backed lane guard
 - current `master` now carries `zigux/tests/phase12_build.zig`, and that shared build route now carries the direct `virtio_net` syntax-lab smoke shard alongside the shipped `virtio_scsi` packet
 - `zigux/Makefile` still carries `phase12-smoke`, `phase12-test`, and `phase12`, and those shared routes now pick up the bounded `virtio_net` syntax-lab smoke shard through the shared Phase 12 build route
 
-Those checks mean the current lane has moved forward from a survey-only absence boundary into a bounded driver-local starter with a queue-topology follow-up, but it is still intentionally below any live runtime or DMA-backed data-path claim.
+Those checks mean the current lane has moved forward from a queue-topology follow-up into a bounded queue-recovery planner, but it is still intentionally below any live runtime or DMA-backed data-path claim.
 
 ## Truthful boundary
 
@@ -42,9 +42,9 @@ The truthful current boundary is:
 
 - the roadmap still wants a bounded `virtio_net` lane in Phase 12
 - the Phase 10 virtio foundation still exists and remains the nearest reusable substrate
-- current `master` now carries `drivers/net/virtio_net.zig`, but the current starter is still deliberately small and limited to probe fallback, queue-topology summary, and mergeable receive-buffer planning
-- the bounded queue-topology follow-up keeps receive and transmit pair counts plus optional control-virtqueue placement reviewable without claiming live queue execution, refill order, or recovery traffic
-- the bounded starter models packet-buffer choice through `planMergeableReceiveBuffer()` without claiming live DMA-safe receive ownership, page-pool wiring, refill execution, or transport-backed submit flow
+- current `master` now carries `drivers/net/virtio_net.zig`, and the current starter now covers probe fallback, queue-topology summary, mergeable receive-buffer planning, and queue-reset recovery planning
+- the bounded queue-topology follow-up keeps receive and transmit pair counts plus optional control-virtqueue placement reviewable without claiming live queue execution
+- the bounded starter models packet-buffer choice through `planMergeableReceiveBuffer()` and reset sequencing through `freezeForReset()`, `recoveryQueuePlan()`, and `restoreAfterReset()` without claiming live DMA-safe receive ownership, page-pool wiring, refill execution, or transport-backed submit flow
 - current `master` now carries `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_net_syntax_lab.zig`, so the current starter is directly executable and syntax-checked through the shared Phase 12 smoke route
 - current `master` still carries `zigux/tests/phase12_virtio_net_survey.zig`, so the survey-backed boundary continues to machine-check the starter-present packet and its blocked runtime claims
 - current `master` still does not claim live DMA-safe receive ownership, NAPI, XDP, XSK, control-virtqueue runtime traffic, RSS table programming, throughput parity, or full `net_device` lifecycle coverage
@@ -61,12 +61,12 @@ This note does not claim:
 
 ## Next bounded step
 
-The next honest same-lane move is now a bounded refill or recovery summary follow-up, not a runtime data-path jump.
+The next honest same-lane move is now a bounded refill-order or control-queue sequencing follow-up, not a runtime data-path jump.
 
 The next bounded step is:
 
-1. keep the current starter focused on probe-time fallback, queue-topology summary, and packet-buffer choice instead of widening into live DMA or lifecycle code
-2. reland one refill-order or recovery-summary follow-up beside the current starter so the next queue-facing contract is reviewable without overclaiming runtime behavior
+1. keep the current starter focused on probe fallback, queue-topology summary, packet-buffer choice, and queue-reset recovery planning instead of widening into live DMA or lifecycle code
+2. reland one refill-order or control-queue sequencing follow-up beside the current queue-recovery planner so the next queue-facing contract is reviewable without overclaiming runtime behavior
 3. revisit shared `phase12_build.zig` or `zigux/Makefile` wiring only after that follow-up exists and still fits the bounded starter packet
 
-Until then, treat the current starter as a real but deliberately small Phase 12 queue-summary step, not as a live runtime proof.
+Until then, treat the current starter as a real but deliberately small Phase 12 queue-recovery step, not as a live runtime proof.
