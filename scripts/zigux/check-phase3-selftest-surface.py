@@ -433,6 +433,48 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/run-phase3-checks.py --self-test",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "scripts/zigux/run-phase3-checks.py --self-test "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected phase3 run-phase3-checks self-test drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/check-phase3-selftest-surface.py",
+                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX
+                + "\n"
+                + "scripts/zigux/check-phase3-selftest-surface.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "scripts/zigux/check-phase3-selftest-surface.py "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected section-scoped tests README checker drift was not reported")
+            return 1
+
+        _populate_repo(root)
         checklist_path = root / CHECKLIST_PATH
         checklist_path.write_text(
             _read(checklist_path).replace(
@@ -735,25 +777,6 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected wrapper-check drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        broken_path.write_text(
-            _read(broken_path).replace(
-                "scripts/zigux/run-phase3-checks.py --self-test",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "tests README Phase 3 reminder marker count drift: scripts/zigux/run-phase3-checks.py --self-test "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected run-phase3-checks self-test drift was not reported")
             return 1
 
         _populate_repo(root)
