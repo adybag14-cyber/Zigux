@@ -20,19 +20,19 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_LOW_LEVEL_SURVEY_MARKERS = (
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
-    "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
+    "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.",
-    "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.",
+    "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, the paired `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` packet checks, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.",
 )
 
 REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS = (
-    "`zigux/helpers/mmio.zig` keeps the approved MMIO packet explicit through direct 8-, 16-, 32-, and 64-bit reads and writes plus the interop-policy and policy-byte entrypoints that the focused replay exercises.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet, including the MMIO interop-policy gate",
+    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
+    "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
 )
 
 REQUIRED_MMIO_SNIPPETS = (
@@ -65,6 +65,8 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32InteropPolicy(base, 4, no_unsafe_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16InteropPolicy(base, 2, 0x7777, raw_pointer_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8InteropPolicyBytes(base, 1, 1, 1));",
+    "mmio.write16(base, 1, 0x1234);",
+    "mmio.write64(base, 5, 0xfedc_ba98_7654_3210);",
 )
 
 
