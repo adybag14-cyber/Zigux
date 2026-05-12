@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 FILES = {
+    "contract_note": "Documentation/zigux/phase11-shared-replay-contract.md",
     "docs_root": "Documentation/zigux/README.md",
     "review_checklist": "Documentation/zigux/review-checklist.md",
     "scripts_root": "scripts/zigux/README.md",
@@ -14,97 +15,54 @@ FILES = {
     "tests_companion": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
 }
 
-MARKERS = {
+CONTRACT_MARKERS = [
+    "# Phase 11 Shared Replay Contract",
+    "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
+    "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+    "* direct GitHub contents reads do not materialize `zigux/tests/phase11_build.zig`",
+    "* direct GitHub contents reads also do not materialize the previously referenced direct replay files `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
+    "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, but treat them as reminder-only configuration markers until the missing Phase 11 build file and direct replay files land again",
+    "* no shared `validate-phase11.py`",
+    "* no shared `make -C zigux phase11-validate` target on `master`",
+    "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+]
+
+REQUIRED_MARKERS = {
     "docs_root": [
-        "Phase 11 flow -",
+        "Phase 11 notes -",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`zigux/tests/phase11_build.zig`",
-        "`make -C zigux phase11`",
-        "the landed HVC archival packet is the survey gate, modem-control split, poll-retry split, sysrq helper, teardown note, validation matrix, and dedicated `phase11-hvc-survey` route",
     ],
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "`zigux/tests/phase11_build.zig`",
-        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "`make -C zigux phase11`",
-        "five shipped Phase 11 checker scripts on current `master`",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
     ],
     "scripts_root": [
         "Phase 11 flow -",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-        "`zigux/tests/phase11_build.zig`",
-        "`make -C zigux phase11`",
-        "`make -C zigux phase11-hvc-survey`",
-        "the landed HVC archival packet is the survey gate, modem-control split, poll-retry split, sysrq helper, teardown note, validation matrix, and dedicated `phase11-hvc-survey` route",
     ],
     "tests_root": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too",
-        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-        "`zigux/tests/phase11_build.zig`",
-        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "`make -C zigux phase11`",
-        "five shipped Phase 11 checker scripts on `master`",
-        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "`zigux/tests/phase11_hvc_console_manifest.json`",
-        "`zigux/tests/phase11_hvc_console_survey.zig`",
-        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "`make -C zigux phase11-hvc-survey`",
-        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
     ],
     "tests_companion": [
-        "# Phase 10, 11, and 13 Tests-Root Review Companion",
         "## Phase 11 tests-root packet",
-        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
-        "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
-        "`zigux/tests/phase11_dw_wdt.zig`",
-        "`zigux/tests/phase11_dw_wdt_manifest.json`",
-        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-        "`zigux/tests/phase11_dw_wdt_survey.zig`",
-        "`drivers/watchdog/dw_wdt_verify.zig`",
-        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "`zigux/tests/phase11_hvc_console_manifest.json`",
-        "`zigux/tests/phase11_hvc_console_survey.zig`",
-        "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
-        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "`make -C zigux phase11-hvc-survey`",
-        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "`zigux/tests/phase11_hvc_cleanup.zig`",
-        "`zigux/tests/phase11_hvc_console.zig`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
-        "as the current directly re-readable Phase 11 evidence on `master`",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
     ],
 }
 
-FORBIDDEN_MARKERS = {
-    "review_checklist": [
-        "the bounded `hvc_cleanup()` teardown handoff, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated bcm2835 archival packet, the dedicated DesignWare teardown and registration-scaffold boundary, the dedicated `hvc_console` teardown and verify boundary",
-    ],
-    "scripts_root": [
-        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`",
-    ],
-    "tests_root": [
-        "the bounded `hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
-        "while `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
-    ],
-    "tests_companion": [
-        "framed as repo-reality gaps rather than shipped current-`master` evidence",
-    ],
-}
+ABSENT_DIRECT_REPLAY_PATHS = [
+    "`zigux/tests/phase11_build.zig`",
+    "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+    "`zigux/tests/phase11_gpio_wdt.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`zigux/tests/phase11_dw_wdt.zig`",
+    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    "`zigux/tests/phase11_hvc_console.zig`",
+    "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
+]
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 17
 
 
 class CheckError(RuntimeError):
@@ -124,18 +82,22 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
-def expect_forbidden_markers_absent(label: str, text: str) -> None:
-    for marker in FORBIDDEN_MARKERS.get(label, []):
-        if marker in text:
-            raise CheckError(f"forbidden marker in {label}: {marker}")
+def expect_absent_direct_replay_paths(label: str, text: str) -> None:
+    for path_marker in ABSENT_DIRECT_REPLAY_PATHS:
+        if path_marker in text:
+            raise CheckError(
+                f"stale direct replay path in {label}: {path_marker}"
+            )
 
 
 def run_check(root: Path) -> None:
-    for label, relative_path in FILES.items():
-        text = read_text(root, relative_path)
-        expect_markers(label, text, MARKERS[label])
-        expect_forbidden_markers_absent(label, text)
+    contract_text = read_text(root, FILES["contract_note"])
+    expect_markers("contract_note", contract_text, CONTRACT_MARKERS)
 
+    for label, markers in REQUIRED_MARKERS.items():
+        text = read_text(root, FILES[label])
+        expect_markers(label, text, markers)
+        expect_absent_direct_replay_paths(label, text)
 
 
 def write(path: Path, text: str) -> None:
@@ -144,8 +106,9 @@ def write(path: Path, text: str) -> None:
 
 
 def build_self_test_fixture(root: Path) -> None:
-    for label, relative_path in FILES.items():
-        write(root / relative_path, "\n".join(MARKERS[label]) + "\n")
+    write(root / FILES["contract_note"], "\n".join(CONTRACT_MARKERS) + "\n")
+    for label, markers in REQUIRED_MARKERS.items():
+        write(root / FILES[label], "\n".join(markers) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -165,33 +128,19 @@ def run_self_test() -> None:
         build_self_test_fixture(fixture_root)
         run_check(fixture_root)
 
-        cases = [
-            (FILES["docs_root"], MARKERS["docs_root"][5]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][2]),
-            (FILES["review_checklist"], MARKERS["review_checklist"][4]),
-            (FILES["scripts_root"], MARKERS["scripts_root"][2]),
-            (FILES["scripts_root"], MARKERS["scripts_root"][6]),
-            (FILES["tests_root"], MARKERS["tests_root"][5]),
-            (FILES["tests_root"], MARKERS["tests_root"][6]),
-            (FILES["tests_root"], MARKERS["tests_root"][8]),
-            (FILES["tests_root"], MARKERS["tests_root"][10]),
-            (FILES["tests_root"], MARKERS["tests_root"][11]),
-            (FILES["tests_root"], MARKERS["tests_root"][12]),
-            (FILES["tests_root"], MARKERS["tests_root"][14]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][2]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][4]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][7]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][11]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][13]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][17]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][18]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][20]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][22]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][24]),
+        required_cases = [
+            (FILES["contract_note"], CONTRACT_MARKERS[3]),
+            (FILES["contract_note"], CONTRACT_MARKERS[5]),
+            (FILES["contract_note"], CONTRACT_MARKERS[8]),
+            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][1]),
+            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
+            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][0]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][1]),
         ]
 
-        for idx, (relative_path, marker) in enumerate(cases, start=1):
-            case_root = tmpdir / f"case_{idx}"
+        for idx, (relative_path, marker) in enumerate(required_cases, start=1):
+            case_root = tmpdir / f"required_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             path.write_text(
@@ -201,21 +150,26 @@ def run_self_test() -> None:
             expect_failure(case_root, marker)
 
         forbidden_cases = [
-            ("tests_root", FORBIDDEN_MARKERS["tests_root"][0]),
-            ("tests_root", FORBIDDEN_MARKERS["tests_root"][1]),
-            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
-            ("tests_companion", FORBIDDEN_MARKERS["tests_companion"][0]),
+            ("docs_root", ABSENT_DIRECT_REPLAY_PATHS[0]),
+            ("review_checklist", ABSENT_DIRECT_REPLAY_PATHS[1]),
+            ("scripts_root", ABSENT_DIRECT_REPLAY_PATHS[5]),
+            ("tests_root", ABSENT_DIRECT_REPLAY_PATHS[7]),
+            ("tests_companion", ABSENT_DIRECT_REPLAY_PATHS[8]),
+            ("tests_root", ABSENT_DIRECT_REPLAY_PATHS[2]),
+            ("tests_companion", ABSENT_DIRECT_REPLAY_PATHS[4]),
+            ("scripts_root", ABSENT_DIRECT_REPLAY_PATHS[6]),
+            ("review_checklist", ABSENT_DIRECT_REPLAY_PATHS[3]),
         ]
 
-        for label, marker in forbidden_cases:
-            forbidden_case_root = tmpdir / f"case_forbidden_{label}_{abs(hash(marker))}"
-            shutil.copytree(fixture_root, forbidden_case_root, dirs_exist_ok=True)
-            forbidden_path = forbidden_case_root / FILES[label]
-            forbidden_path.write_text(
-                forbidden_path.read_text(encoding="utf-8") + marker + "\n",
+        for idx, (label, marker) in enumerate(forbidden_cases, start=1):
+            case_root = tmpdir / f"forbidden_{idx}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            path = case_root / FILES[label]
+            path.write_text(
+                path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
             )
-            expect_failure(forbidden_case_root, marker)
+            expect_failure(case_root, marker)
 
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
         print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
