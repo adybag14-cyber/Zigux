@@ -315,6 +315,10 @@ REQUIRED_FILES = {
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     ],
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": [
+        "zigux/tests/fixtures/phase2_tool_manifest.json",
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    ],
     "Documentation/zigux/review-checklist.md": [
         "zigux/tests/fixtures/phase2_tool_manifest.json",
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
@@ -495,6 +499,10 @@ def build_self_test_root(root: Path) -> None:
             ]
         ),
         "scripts/zigux/README.md": "\n".join(REQUIRED_FILES["scripts/zigux/README.md"]) + "\n",
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": "\n".join(
+            REQUIRED_FILES["Documentation/zigux/phase2-toolchain-bootstrap-notes.md"]
+        )
+        + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REQUIRED_FILES["Documentation/zigux/review-checklist.md"]) + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_FILES["zigux/tests/README.md"]) + "\n",
     }
@@ -582,6 +590,23 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        bootstrap_notes = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        bootstrap_notes.write_text(
+            bootstrap_notes.read_text(encoding="utf-8").replace(
+                "zigux/tests/fixtures/phase2_artifact_tools_manifest.json\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         review_checklist = root / "Documentation/zigux/review-checklist.md"
         review_checklist.write_text(
             review_checklist.read_text(encoding="utf-8").replace(
@@ -656,7 +681,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=9")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=10")
     return 0
 
 
