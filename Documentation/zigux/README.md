@@ -1,275 +1,40 @@
-# Zigux Documentation
-This directory is the product documentation root for Zigux.
-Scope
-- product charter
-- review rules
-- freeze map
-- phase closure records
-- phase policy
-- future porting guides
-- validation and artifact-diff policy
-Rules
-- keep product commitments here, not in ad hoc issue threads
-- keep deep-core freeze decisions explicit
-- require validation and rollback language for every new active port target
-- align all new product docs with `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
-Current closure records
-- `Documentation/zigux/phase1-closure.md`
-- `Documentation/zigux/phase2-closure.md`
-Phase 1 notes
-Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
-- `Documentation/zigux/phase1-closure.md`
-- `scripts/zigux/README.md`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-phase1-installer-review-surfaces.py`
-- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
-- `zigux/Makefile`
-- `zigux/tests/build.zig`
-- `zigux/tests/phase1_helpers.zig`
-- `zigux/tests/phase1_bench.zig`
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
-- `zigux/tests/fixtures/phase1_bench_expectations.json`
-- `scripts/zigux/validate-phase1.py`
-- `scripts/zigux/validate-phase1-closure.py`
-- `scripts/zigux/check-phase1-parity.py`
-- `scripts/zigux/check-phase1-bench.py`
-- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
-`Documentation/zigux/phase1-host-helper-lane-sequencing.md` keeps the shared owner-map note visible beside that same docs-root packet. `scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.
-Phase 2 notes
-- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
-- `Documentation/zigux/phase2-closure.md`
-- `scripts/zigux/README.md`
-- `scripts/zigux/check-phase2-tests-readme-alignment.py`
-- `scripts/zigux/check-phase2-kconfig-readme-alignment.py`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-zig-toolchain.py`
-- `zigux/Makefile`
-- `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` now keep the pinned Zig toolchain policy, the repo-local `.zig-toolchain` fallback reused by those Linux-style Phase 2 routes when `ZIG` is unset, and the scripts-root reminder packet visible from the docs root instead of overstating missing dedicated validator, manifest, cross-target, or bridge checker files as live current-`master` evidence.
-The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of shrinking the live Phase 2 packet back to a docs-root shorthand that undercounts the shared validator pair, the tests-root alignment checker pair, and the current bridge-facing replay surfaces on `master`.
-Phase 3 notes
-- `Documentation/zigux/phase3-abi-slice.md`
-- `Documentation/zigux/phase3-boundary-lane-sequencing.md`
-- `Documentation/zigux/phase3-kernel-export-shim-governance.md`
-- `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
-- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
-- `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `Documentation/zigux/phase3-abi-header-family-survey.md`
-- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
-- `Documentation/zigux/phase3-validator-support-surface.md`
-- `zigux/uapi/dev_t.zig`
-- `scripts/zigux/validate-phase3.py`
-- `scripts/zigux/validate_phase3_selftest.py`
-- `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
-- `scripts/zigux/check-phase3-policy-byte-guards.py`
-- `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-- `scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `scripts/zigux/validate-phase3-abi-header-family-survey.py`
-- `scripts/zigux/validate-phase3-validator-support-surface.py`
-- `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
-- `scripts/zigux/survey-phase3-abi-constant-parity.py`
-- `scripts/zigux/check-phase3-catalog-selftest.py`
-- `scripts/zigux/check-phase3-readme-tooling-inventory.py`
-- `scripts/zigux/check-phase3-abi-dump-gate.py`
-- `scripts/zigux/check-phase3-selftest-surface.py`
-- `scripts/zigux/phase3_catalog.py`
-- `scripts/zigux/phase3_check_lib.py`
-- `scripts/zigux/generate-phase3-check-wrappers.py`
-- `scripts/zigux/run-phase3-checks.py`
-- `zigux/tests/README.md`
-- `zigux/Makefile`
-- `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the dedicated substrate owner map, the dedicated kernel export-shim governance note, the policy-and-unsafe survey, the dedicated policy-byte guard, the low-level-wrapper survey, the export/UAPI boundary survey, the dedicated Linux `zigux.h` header-governance note, the dedicated ABI header-family survey, the dedicated `abi.h` next-step note, the dedicated validator-support surface note, its validator, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.
-- `python3 scripts/zigux/phase3_catalog.py --self-test` stays available as an opt-in support-script safety check without duplicating the default `phase3-validate` route.
+# Zigux Documentation This directory is the product documentation root for Zigux.
+Scope - product charter - review rules - freeze map - phase closure records - phase policy - future porting guides - validation and artifact-diff policy Rules - keep product commitments here, not in ad hoc issue threads - keep deep-core freeze decisions explicit - require validation and rollback language for every new active port target - align all new product docs with `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Current closure records - `Documentation/zigux/phase1-closure.md` - `Documentation/zigux/phase2-closure.md` Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `zigux/Makefile` - `zigux/tests/build.zig` - `zigux/tests/phase1_helpers.zig` - `zigux/tests/phase1_bench.zig` - `zigux/tests/fixtures/phase1_helper_manifest.json` - `zigux/tests/fixtures/phase1_bench_expectations.json` - `scripts/zigux/validate-phase1.py` - `scripts/zigux/validate-phase1-closure.py` - `scripts/zigux/check-phase1-parity.py` - `scripts/zigux/check-phase1-bench.py` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
+Phase 2 notes - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` - `Documentation/zigux/phase2-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/validate-phase2.py` - `scripts/zigux/validate-phase2-closure.py` - `scripts/zigux/check-phase2-tests-readme-alignment.py` - `scripts/zigux/check-phase2-cross-selftest-alignment.py` - `scripts/zigux/check-phase2-toolchain-pin-scope.py` - `zigux/Makefile` - `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `make -C zigux phase2-validate`, and `make -C zigux phase2` now keep the pinned Zig toolchain, the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet, the three-target compile matrix, and the shared tests-root plus review-checklist replay surface visible from the docs root instead of leaving the active Phase 2 tranche split across scripts, tests, and workflow wiring alone.
+Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/check-phase3-readme-tooling-inventory.py` - `scripts/zigux/check-phase3-selftest-surface.py` - `scripts/zigux/phase3_catalog.py` - `scripts/zigux/validate_phase3_selftest.py` - `zigux/Makefile` - `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, `make -C zigux phase3-selftest`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the policy-and-unsafe survey, the low-level-wrapper survey, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.
 - the current bounded Phase 3 decision is no longer whether this lane still needs broad allocator, panic, atomic, barrier, MMIO, or unsafe expansion; the live packet is the shared ABI substrate already kept reviewable through those shared gates, so future follow-up here should stay inside the smallest note, manifest, checker, or validator alignment step unless a real boundary helper surface moves.
-Phase 5 notes
-- `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
-- the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
-- `Documentation/zigux/phase5-kobject-sample-survey.md` now records the current narrower kobject packet: `zigux/tests/phase5_kobject_example.zig` plus `zigux/tests/phase5_kobject_example_manifest.json`, the exact registration, initialized-but-not-registered access-boundary, `ownershipSummary()`/sample-owned `runOwnershipReplay()` lifecycle, teardown-disposition, and attribute-roundtrip checks, and the remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration. The shared note keeps the missing direct sample-root readback for `samples/zigux/kobject_example.zig` explicit instead of overstating that path as shipped current-`master` evidence.
-- the same kobject survey note now doubles as the sample-backed contributor guide for the current narrower kobject slice by naming the descriptor, manifest, shared `phase5_build.zig` entrypoint, and ownership-and-lifetime prompts that reviewers should keep in sync without restating the missing sample-root path as already readable.
-- `Documentation/zigux/phase5-kretprobe-sample-survey.md` now records the landed `samples/zigux/kretprobe_example.zig` reference sample, its exact symbol-selection, skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` plus sample-owned `runOwnershipReplay()` lifecycle snapshots, and teardown-boundary replay checks, and the remaining non-goals around probe registration, `pt_regs`, and runtime module wiring.
-- the same kretprobe survey note now doubles as the sample-backed contributor guide for the landed non-runtime `kretprobe` slice by naming the descriptor, manifest, `ownershipSummary()`, sample-owned `runOwnershipReplay()`, lifecycle-guard, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
-- `Documentation/zigux/phase5-trace-events-sample-survey.md` now records the landed `samples/zigux/trace_events_sample.zig` reference sample, its exact payload, string-selection, formatted-message, public payload-boundary, conditional-family, callback-boundary, and ownership-lifetime replay checks, the event-family counts plus vararg-payload and relative-location markers, and the remaining non-goals around tracepoint macros, kernel scheduling, and module wiring.
-- the same trace-events survey note now doubles as the sample-backed contributor guide for the landed non-runtime `trace-events` slice by naming the descriptor, manifest, public `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, and `runCallbackBoundaryReplay()` helper prompts, `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, and the shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime pilot tranche.
-- `Documentation/zigux/phase5-sample-review-guide.md` together with `Documentation/zigux/review-checklist.md` now keeps the roadmap-required shared contributor guide and review checklist explicit for the whole four-sample Phase 5 packet, including the exact shared replay routes, the Phase 5-versus-Phase 9 boundary, and the no-extra-sample reminders around `string`, `cmdline`, `argv`, `rbtree`, and direct `bitmap` reviewability.
+Phase 5 notes - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity. - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
+- `Documentation/zigux/phase5-kobject-sample-survey.md` now records the landed `samples/zigux/kobject_example.zig` reference sample, its exact registration and attribute-roundtrip checks, and the remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration.
+- the same kobject survey note now doubles as the sample-backed contributor guide for the landed kobject slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync.
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md` now records the landed `samples/zigux/kretprobe_example.zig` reference sample, its exact skip, private-data-shape, return-value, duration, and `nmissed` replay checks, and the remaining non-goals around probe registration, `pt_regs`, and module wiring.
+- the same kretprobe survey note now doubles as the sample-backed contributor guide for the landed non-runtime `kretprobe` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
+- `Documentation/zigux/phase5-trace-events-sample-survey.md` now records the landed `samples/zigux/trace_events_sample.zig` reference sample, its exact payload, string-selection, formatted-message, event-family-count, vararg-payload, relative-location, callback-path, and callback-registration replay checks, and the remaining non-goals around tracepoint macros, kernel scheduling, and module wiring.
+- the same trace-events survey note now doubles as the sample-backed contributor guide for the landed non-runtime `trace-events` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime pilot tranche.
 - the trace-events Phase 5 packet still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample, so reviewers should keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the formatting idiom cue while standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet.
-- current `master` still ships no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so reviewers should keep direct bitmap helper reviewability under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, and `Documentation/zigux/phase4-validation-matrix.md`, while the separate runtime bitmap family stays under `samples/zigux/README.md`, `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` instead of counting bitmap as a fifth Phase 5 sample.
-- current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample, so reviewers should keep string-helper reviewability under `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/string_helpers.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
-- current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample, so reviewers should keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/cmdline.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
-- current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample, so reviewers should keep `argv_split` reviewability under `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
-- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample, so reviewers should keep `rbtree` reviewability under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
-- the Phase 5 notes now carry all four roadmap sample anchors as bounded Phase 5 reference readings, while keeping the current narrower kobject note-plus-tests packet explicit until `samples/zigux/kobject_example.zig` is directly readable again and still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
-- `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `zigux/Makefile`, `make -C zigux phase5-test`, and `make -C zigux phase5` now keep that same four-anchor packet reviewable through a Linux-style replay route backed by `zigux/tests/phase5_build.zig`, without inventing a dedicated Phase 5 validator or widening into the separate Phase 9 runtime lane.
-Phase 4 notes
-- `python3 scripts/zigux/validate-phase4.py` keeps the shared `scripts/zigux/check-artifact-diff-contract.py` contract replay, the dedicated `scripts/zigux/check-phase4-artifact-diff-determinism.py` deterministic catalog checker, the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` workflow-route-count checker, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed runtime atomic64 handoff pair `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, the manifest-backed bitmap rollback survey pair `zigux/tests/phase4_bitmap_diff_manifest.json` plus `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint, `zigux/Makefile`, `make -C zigux phase4-validate`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4`, and the bootstrap workflow.
-- `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` now keep the exact-readback packet, rollback owners, the lab or CI replay matrix, the dedicated local-only perf-baseline survey packet's approved benchmark commands and acceptable limits, and the intentionally unapproved perf-threshold posture explicit for the shipped Phase 4 gates instead of leaving that narrower validator-backed packet implied from the scripts root and tests root alone.
-Phase 6 notes
-- `Documentation/zigux/phase6-base64-slice.md`
-- `Documentation/zigux/phase6-bsearch-slice.md`
-- `Documentation/zigux/phase6-checksum-slice.md`
-- `Documentation/zigux/phase6-hexdump-slice.md`
-- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-base64-c-parity.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-bsearch-test`, `make -C zigux phase6-hexdump-test`, `make -C zigux phase6-base64-c-parity`, `make -C zigux phase6-checksum-c-parity`, `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, `make -C zigux phase6-hexdump-perf`, and `make -C zigux phase6-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the shipped direct base64 and checksum C parity companions, the focused bsearch and hexdump reruns, the dedicated base64, checksum, and hexdump perf gates, the aggregate helper-local perf replay, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.
-- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, `make -C zigux phase6-hexdump-perf`, and `make -C zigux phase6-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.
-Phase 7 notes
-- `Documentation/zigux/phase7-string-helpers-slice.md`
-- `Documentation/zigux/phase7-cmdline-slice.md`
-- `Documentation/zigux/phase7-argv-split-slice.md`
-- `Documentation/zigux/phase7-rbtree-slice.md`
-- `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
-- `samples/zigux/README.md`
-- `scripts/zigux/README.md`
-- `scripts/zigux/validate-phase7.py`
-- `scripts/zigux/check-phase7-make-wrapper.py`
-- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- `scripts/zigux/check-phase7-argv-split-packet.py`
-- `scripts/zigux/check-phase7-rbtree-parity.py`
-- `scripts/zigux/check-phase7-build-wiring.py`
-- `lib/string_helpers.zig`
-- `lib/cmdline.zig`
-- `lib/argv_split.zig`
-- `lib/rbtree.zig`
-- `zigux/tests/README.md`
-- `zigux/tests/phase7_build.zig`
-- `zigux/tests/phase7_string_helpers.zig`
-- `zigux/tests/phase7_string_helpers_survey.zig`
-- `zigux/tests/phase7_string_helpers_manifest.json`
-- `zigux/tests/phase7_string_helpers_sample_boundary.zig`
-- `zigux/tests/phase7_cmdline.zig`
-- `zigux/tests/phase7_cmdline_survey.zig`
-- `zigux/tests/phase7_cmdline_manifest.json`
-- `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
-- `zigux/tests/phase7_argv_split.zig`
-- `zigux/tests/phase7_argv_split_survey.zig`
-- `zigux/tests/phase7_argv_split_manifest.json`
-- `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
-- `zigux/tests/phase7_rbtree.zig`
-- `zigux/tests/phase7_rbtree_survey.zig`
-- `zigux/tests/phase7_rbtree_manifest.json`
-- `zigux/tests/fixtures/phase7_rbtree.json`
-- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
-- `.github/workflows/zigux-bootstrap.yml`
-- `zigux/Makefile`
-- `make -C zigux phase7-validate`, `make -C zigux phase7-test`, and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together through the shipped validator-first packet, the scripts-root index, the dedicated make-wrapper self-test alignment checker, the dedicated argvSplit packet checker, the dedicated rbtree parity checker, the dedicated build-wiring checker, the explicit Phase 5-versus-Phase 7 no-sample boundary note in `samples/zigux/README.md`, the dedicated string-helper survey gate, the dedicated string-helper manifest packet, the dedicated string-helper boundary replay, the dedicated cmdline survey gate plus manifest packet, the dedicated argvSplit survey gate and packet checker, and the dedicated rbtree survey gate plus committed parity packet, the bootstrap workflow replay, the shared build replay, and the Linux-style make route, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
-- the Phase 7 helper bundle is now parked as a shared validator-first packet: cmdline, argv-split, rbtree, and the bounded string-helpers slice all carry their current dedicated proofs through the shared `phase7_build.zig` gate, so future work here should reopen only for a concrete newly observed parity gap or a tiny same-packet drift in the shared make-wrapper, reviewer-summary, or no-sample boundary surfaces rather than for more speculative fixture expansion.
-Phase 8 notes
-- `Documentation/zigux/phase8-exec-cmd-slice.md`
-- `Documentation/zigux/phase8-help-slice.md`
-- `Documentation/zigux/phase8-kallsyms-slice.md`
-- `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
-- `Documentation/zigux/phase8-logging-slice.md`
-- `Documentation/zigux/phase8-bpf-type-names-slice.md`
-- `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
-- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
-- `Documentation/zigux/phase8-libbpf-segment-survey.md`
-- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
-- `Documentation/zigux/phase8-tooling-lane-sequencing.md`
-- `scripts/zigux/validate-phase8.py`
-- `scripts/zigux/check-phase8-tests-readme-alignment.py`
-- `scripts/zigux/check-phase8-exec-cmd-packet.py`
-- `scripts/zigux/check-phase8-help-kallsyms-packet.py`
-- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
-- `scripts/zigux/check-phase8-libbpf-segment-gate.py`
-- `scripts/zigux/check-phase8-libbpf-shard-routes.py`
-- `zigux/tests/phase8_build.zig`
-- `zigux/tests/phase8_exec_cmd.zig`
-- `zigux/tests/phase8_exec_cmd_only_build.zig`
-- `zigux/tests/phase8_help.zig`
-- `zigux/tests/phase8_help_only_build.zig`
-- `zigux/tests/phase8_help_kallsyms_only_build.zig`
-- `zigux/tests/phase8_kallsyms.zig`
-- `zigux/tests/phase8_cpu_mask.zig`
-- `zigux/tests/phase8_cpu_mask_only_build.zig`
-- `zigux/tests/phase8_logging.zig`
-- `zigux/tests/phase8_pin_path.zig`
-- `zigux/tests/phase8_bpf_type_names.zig`
-- `zigux/tests/phase8_file_path_handle_bridge.zig`
-- `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
-- `zigux/tests/phase8_perf_buffer_poll.zig`
-- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
-- `zigux/tests/phase8_libbpf_segments.zig`
-- `zigux/tests/phase8_libbpf_segments_only_build.zig`
-- `zigux/Makefile`
-- `make -C zigux phase8-validate`, `make -C zigux phase8-exec-cmd-test`, `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, `make -C zigux phase8-kallsyms-test`, `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8` now keep the current exec-cmd, help, kallsyms, and helper-first libbpf packet reviewable from the docs root while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master` instead of shrinking the current Phase 8 surface back toward older starter-only or missing-file assumptions.
-Phase 9 notes
-- `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
-- `Documentation/zigux/phase9-runtime-atomic64-survey.md`
-- `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`
-- `Documentation/zigux/phase9-runtime-bitmap-survey.md`
-- `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
-- `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
-- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
-- `Documentation/zigux/phase9-runtime-trace-events-survey.md`
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
-- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, dedicated lane-sequencing owner map, loader facade, contract, loader-gap survey, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or pretending that a dedicated shared `validate-phase9.py` or `phase9-validate` surface already exists on current `master`.
+- current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so reviewers should keep string-helper reviewability under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+- current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample, so reviewers should keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample, so reviewers should keep `rbtree` reviewability under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+- the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families. - `zigux/Makefile` plus `make -C zigux phase5` now keep that same four-sample packet reviewable through a Linux-style replay route backed by `zigux/tests/phase5_build.zig`, without inventing a dedicated Phase 5 validator or widening into the separate Phase 9 runtime lane.
+Phase 4 notes - `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` handoff survey, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
+- `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` now keep the exact-readback packet, rollback owners, lab or CI replay matrix, and intentionally unapproved perf-threshold posture explicit for the shipped Phase 4 gates instead of leaving that narrower validator-backed packet implied from the scripts root and tests root alone.
+Phase 6 notes - `Documentation/zigux/phase6-base64-slice.md` - `Documentation/zigux/phase6-bsearch-slice.md` - `Documentation/zigux/phase6-checksum-slice.md` - `Documentation/zigux/phase6-hexdump-slice.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the dedicated checksum and hexdump perf gates, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.
+- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.
+Phase 7 notes - `Documentation/zigux/phase7-string-helpers-slice.md` - `Documentation/zigux/phase7-cmdline-slice.md` - `Documentation/zigux/phase7-argv-split-slice.md` - `Documentation/zigux/phase7-rbtree-slice.md` - `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
+- the Phase 7 helper bundle is now parked end-to-end: cmdline, argv-split, rbtree, and the bounded string-helpers slice all carry their current dedicated proofs through the shared `phase7_build.zig` gate, so future work here should reopen only for a concrete newly observed parity gap rather than for more speculative fixture expansion.
+Phase 8 notes - `Documentation/zigux/phase8-exec-cmd-slice.md` - `Documentation/zigux/phase8-help-slice.md` - `Documentation/zigux/phase8-kallsyms-slice.md` - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md` - `Documentation/zigux/phase8-bpf-type-names-slice.md` - `Documentation/zigux/phase8-perf-buffer-poll-slice.md` - `Documentation/zigux/phase8-libbpf-segment-survey.md` - `zigux/tests/phase8_build.zig` and `make -C zigux phase8` now gate the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf logging, libbpf pin-path, libbpf type-name, libbpf perf-buffer-poll bookkeeping, and segment-survey bundle together, so new Phase 8 tooling work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- the current bounded Phase 8 decision is no longer whether `exec-cmd` still needs its pure `execl_cmd()` parity helper, whether `kallsyms.zig` still needs a direct parse wrapper, or whether `help.zig` still needs its pure pretty-print emission surface; those slices are now parked, so the next follow-up should come from the next helper-first libbpf segment or another still-active Phase 8 tooling slice.
+Phase 9 notes - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md` - `Documentation/zigux/phase9-runtime-atomic64-survey.md` - `Documentation/zigux/phase9-runtime-bitmap-module-slice.md` - `Documentation/zigux/phase9-runtime-bitmap-survey.md` - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md` - `Documentation/zigux/phase9-runtime-kretprobe-survey.md` - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` - `Documentation/zigux/phase9-runtime-trace-events-survey.md` - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.
 - the same shared Phase 9 summary should keep the older non-owner boundaries explicit: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the exact `P9-L04`/`P9-L08`/`P9-L10`/`P9-L13` split, the blocked module-metadata and depmod-publication boundary, and the shared loader-versus-pilot-family handoff, so later docs-root wording follow-through here should stay docs-only unless the shared runtime-loader packet itself changes.
-- that compact docs-root reminder is intentionally not the owner map: use `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` for the shared loader-versus-pilot-family split and `make -C zigux phase9-runtime-loader-shared-tests` when the work is only the focused shared-loader replay, instead of widening this docs-root summary into checker-local or pilot-family detail.
-- the shared Phase 9 packet is still review-first rather than loadable-runtime-complete: the four `samples/zigux/runtime_*_loader.zig` scaffolds, the shared loader facade and contract, the allocator/init-flow proof bundle, the loader-gap survey, and the shared build routes remain visible, but `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries rather than shipped publication surfaces.
 - the current bounded Phase 9 decision is no longer whether the runtime-pilot lane still needs starter samples, loader-handoff scaffolds, or a shared request surface; those surfaces plus the shared `phase9_build.zig` replay, `make -C zigux phase9` route, and the shipped runtime-loader facade plus allocator/init-flow contract are now in place on `master`, so the next follow-up should stay inside the smallest shared runtime-loader substrate or validation step that keeps those four handoffs, the shared `zigux/kernel/runtime_loader.zig` facade, and the `zigux/kernel/runtime_loader_contract.zig` plus allocator/init-flow replay reviewable without widening into a larger runtime-module implementation.
-Phase 10 notes
-- `Documentation/zigux/README.md`
-- `scripts/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
-- `Documentation/zigux/freeze-map.md`
-- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- `Documentation/zigux/phase10-closure-evidence.md`
-- `zigux/tests/README.md`
-- `scripts/zigux/check-phase10-core-packet.py`
-- `scripts/zigux/check-phase10-ring-packet.py`
-- `scripts/zigux/check-phase10-input-packet.py`
-- `scripts/zigux/check-phase10-mmio-packet.py`
-- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
-- `scripts/zigux/check-phase10-harness-coverage.py`
-- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-- `scripts/zigux/validate-phase10.py`
-- `scripts/zigux/validate-phase10-closure.py`
-- `zigux/tests/phase10_closure_manifest.json`
-- `drivers/virtio/virtio.zig`
-- `drivers/virtio/virtio_driver_id.zig`
-- `drivers/virtio/virtio_ring.zig`
-- `drivers/virtio/virtio_verify.zig`
-- `zigux/tests/phase10_virtio_core.zig`
-- `zigux/tests/phase10_virtio_core_reset_queue.zig`
-- `zigux/tests/phase10_virtio_core_manifest.json`
-- `zigux/tests/phase10_virtio_core_survey.zig`
-- `zigux/tests/phase10_virtio_ring.zig`
-- `drivers/virtio/virtio_ring_verify.zig`
-- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
-- `zigux/tests/phase10_virtio_ring_manifest.json`
-- `zigux/tests/phase10_virtio_ring_survey.zig`
-- `drivers/virtio/virtio_input.zig`
-- `drivers/virtio/virtio_input_verify.zig`
-- `zigux/tests/phase10_virtio_input.zig`
-- `zigux/tests/phase10_virtio_input_probe_preflight.zig`
-- `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
-- `zigux/tests/phase10_virtio_input_registration_preflight.zig`
-- `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-- `zigux/tests/phase10_virtio_input_status_drain.zig`
-- `zigux/tests/phase10_virtio_input_manifest.json`
-- `zigux/tests/phase10_virtio_input_survey.zig`
-- `drivers/virtio/virtio_mmio.zig`
-- `drivers/virtio/virtio_mmio_verify.zig`
-- `zigux/tests/phase10_virtio_mmio.zig`
-- `zigux/tests/phase10_virtio_mmio_manifest.json`
-- `zigux/tests/phase10_virtio_mmio_survey.zig`
-- `zigux/Makefile`
-- `make -C zigux phase10-validate`
-- `make -C zigux phase10-test`
-- `make -C zigux phase10`
-- these Phase 10 docs-root reminders now keep the direct ring verifier and the drained-reset reuse replay explicit beside the shared closure packet and Linux-style replay routes.
-- the missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`.
-Phase 15 notes
-- `Documentation/zigux/freeze-map.md`
-- `Documentation/zigux/phase15-freeze-map-governance.md`
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-parity-scorecard.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
-- `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `Documentation/zigux/phase15-governance-lane-sequencing.md`
-- `zigux/tests/phase15_build.zig`
-- `make -C zigux phase15-validate`
-- `make -C zigux phase15-test`
-- `make -C zigux phase15`
-- these Phase 15 docs-root reminders now keep the freeze map, dedicated freeze-map-governance note, Architecture Council review-process, parity scorecard, indefinite-C policy, parked readiness-gate note, parked handoff-next-steps note, governance-lane owner map, shared Phase 15 build replay, and Linux-style validation and replay routes visible together from the docs root instead of undercounting the shipped maintenance-mode packet.
-- the current bounded Phase 15 decision is still not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.
+Phase 10 notes - `Documentation/zigux/phase10-virtio-core-slice.md` - `Documentation/zigux/phase10-virtio-core-survey.md` - `Documentation/zigux/phase10-virtio-ring-slice.md` - `Documentation/zigux/phase10-virtio-ring-survey.md` - `Documentation/zigux/phase10-virtio-input-slice.md` - `Documentation/zigux/phase10-virtio-input-module-slice.md` - `Documentation/zigux/phase10-virtio-input-survey.md` - `Documentation/zigux/phase10-virtio-mmio-slice.md` - `Documentation/zigux/phase10-virtio-mmio-survey.md` - `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, and `make -C zigux phase10` now keep the current virtio core, virtio driver-id, virtio ring, virtio input, and virtio mmio packet reviewable through one shared build route plus the Linux-style Phase 10 test entrypoint without implying a dedicated `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` surface that does not exist on `master`.
+Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` - `Documentation/zigux/phase11-hvc-console-survey.md` - `Documentation/zigux/phase11-shared-replay-contract.md` - `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker, the shared build-and-make packet, the dedicated `hvc_console` survey note and replay, the bounded `hvc_cleanup()` handoff, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py` or missing build inventory.
+Phase 12 notes - `Documentation/zigux/phase12-release-sequencing.md` - `Documentation/zigux/phase12-nvme-pci-slice.md` - `Documentation/zigux/phase12-nvme-pci-survey.md` - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` - `Documentation/zigux/phase12-virtio-net-survey.md` - `Documentation/zigux/phase12-virtio-scsi-slice.md` - `Documentation/zigux/phase12-virtio-scsi-survey.md` - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` - `Documentation/zigux/phase12-libbpf-segment-survey.md` - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.
+- keep the current public fallback split explicit here too: only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors rather than implied fallback maps.
+- `make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone.
+- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
+Phase 13 notes - `Documentation/zigux/phase13-contributor-workflow-guide.md` - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` - `Documentation/zigux/phase13-libfs-slice.md` - `Documentation/zigux/phase13-libfs-survey.md` - `Documentation/zigux/phase13-devres-slice.md` - `Documentation/zigux/phase13-devres-survey.md` - `Documentation/zigux/phase13-landlock-ruleset-slice.md` - `Documentation/zigux/phase13-landlock-ruleset-survey.md` - `Documentation/zigux/phase13-landlock-syscalls-slice.md` - `Documentation/zigux/phase13-landlock-syscalls-survey.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` keep the current seven-test shared-helper release packet reviewable from the docs root and tests root, while `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` keep the current binding-only notifier or list packet visible as adjacent release-surface evidence rather than extra shared replay steps.
+Phase 14 notes - `Documentation/zigux/phase14-end-to-end-smoke-survey.md` - `Documentation/zigux/phase14-release-boundary-survey.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_rcu_tree_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/Makefile`, and `Documentation/zigux/freeze-map.md` keep the current workqueue bridge, skbuff bridge, ring-buffer survey, RCU-tree survey, shared smoke manifest, and anchor-local manifest evidence reviewable while the slice stays study-only.
+- `make -C zigux phase14-smoke`, `make -C zigux phase14`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` rerun the same bounded bridge-and-smoke packet without implying an active deep-core port claim.
+Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `zigux/Makefile` keep the current parked governance packet reviewable without implying any Architecture Council approval for a freeze-map status change.
+- `make -C zigux phase15` reruns the same parked governance packet, and no Architecture Council approval is recorded yet for a freeze-map status change.
+- the shared Phase 15 docs-root handoff should also keep `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` visible as the current lane-owner vocabulary and packet-alignment surfaces, so the docs index stays caught up with the newer validation and policy-maintenance work already wired into the shipped build and make routes.
