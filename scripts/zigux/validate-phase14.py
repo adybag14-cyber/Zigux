@@ -5,6 +5,7 @@ from pathlib import Path
 import argparse
 import json
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -13,9 +14,14 @@ ROOT = Path(__file__).resolve().parents[2]
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 
 FILES = [
     "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    TESTS_README_CHECKER_PATH,
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -279,6 +285,18 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
     )
 
 
+def run_python_checker(root: Path, rel_path: str) -> tuple[int, str]:
+    result = subprocess.run(
+        [sys.executable, str(root / rel_path)],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    output_parts = [part.strip() for part in (result.stdout, result.stderr) if part.strip()]
+    return result.returncode, "\n".join(output_parts)
+
+
 def require_exact_line_once(missing: list[str], name: str, source: str, markers: list[str]) -> None:
     lines = source.splitlines()
     for marker in markers:
@@ -326,6 +344,34 @@ def run_self_test() -> int:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        checker_path = tmp_root / TESTS_README_CHECKER_PATH
+        checker_path.parent.mkdir(parents=True, exist_ok=True)
+        checker_path.write_text(
+            "print('phase14 tests-readme smoke summary validated')\nraise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        returncode, output = run_python_checker(tmp_root, TESTS_README_CHECKER_PATH)
+        if returncode != 0 or output != "phase14 tests-readme smoke summary validated":
+            print("PHASE14_SELF_TEST=fail")
+            print("SELF_TEST_REASON=unexpected_tests_readme_checker_success_result")
+            print(f"SELF_TEST_CHECKER_RETURN_CODE={returncode}")
+            print(f"SELF_TEST_CHECKER_OUTPUT={output}")
+            return 1
+
+        checker_path.write_text(
+            "import sys\nprint('phase14 tests-readme smoke summary failed', file=sys.stderr)\nraise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        returncode, output = run_python_checker(tmp_root, TESTS_README_CHECKER_PATH)
+        if returncode != 1 or output != "phase14 tests-readme smoke summary failed":
+            print("PHASE14_SELF_TEST=fail")
+            print("SELF_TEST_REASON=unexpected_tests_readme_checker_failure_result")
+            print(f"SELF_TEST_CHECKER_RETURN_CODE={returncode}")
+            print(f"SELF_TEST_CHECKER_OUTPUT={output}")
+            return 1
 
     missing_reviewability_build = "\n".join(
         [f'.name = "{name}"' for name in EXPECTED_BUILD_TEST_NAMES]
@@ -619,6 +665,8 @@ def run_self_test() -> int:
 
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
+    print("PHASE14_SELF_TEST_TESTS_README_CHECKER_PASS_MARKER=phase14 tests-readme smoke summary validated")
+    print("PHASE14_SELF_TEST_TESTS_README_CHECKER_FAIL_MARKER=phase14 tests-readme smoke summary failed")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
     print(
@@ -648,6 +696,16 @@ def run_validation() -> int:
         for path in missing_files:
             print(path)
         print("MISSING_PHASE14_FILES_END")
+        return 1
+
+    tests_readme_checker_returncode, tests_readme_checker_output = run_python_checker(
+        ROOT, TESTS_README_CHECKER_PATH
+    )
+    if tests_readme_checker_returncode != 0:
+        print("PHASE14_VALIDATION=fail")
+        print("PHASE14_TESTS_README_CHECKER_OUTPUT_START")
+        print(tests_readme_checker_output or "tests-readme smoke checker exited without output")
+        print("PHASE14_TESTS_README_CHECKER_OUTPUT_END")
         return 1
 
     survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
