@@ -16,6 +16,9 @@ pub const DecodeError = error{
     InvalidInput,
 };
 
+pub const EncodeAllocError = std.mem.Allocator.Error || EncodeError;
+pub const DecodeAllocError = std.mem.Allocator.Error || DecodeError;
+
 const ReverseMap = [256]i8;
 const invalid_reverse_value: i8 = -1;
 
@@ -113,6 +116,15 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
     return dst_index;
 }
 
+pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) EncodeAllocError![]u8 {
+    const needed = chars(src.len, padding);
+    var out = try allocator.alloc(u8, needed);
+    errdefer allocator.free(out);
+
+    const written = try encode(out, src, padding, variant);
+    return out[0..written];
+}
+
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
@@ -174,6 +186,15 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     dst[dst_index] = @truncate((@as(u32, b) << 4) | (@as(u32, c) >> 2));
     dst_index += 1;
     return dst_index;
+}
+
+pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) DecodeAllocError![]u8 {
+    const exact_len = try bytes(src, padding, variant);
+    var out = try allocator.alloc(u8, exact_len);
+    errdefer allocator.free(out);
+
+    const written = try decode(out, src, padding, variant);
+    return out[0..written];
 }
 
 fn alphabetFor(variant: Variant) []const u8 {
@@ -317,6 +338,16 @@ test "base64 helpers keep padded and unpadded sizing explicit" {
     try std.testing.expectEqual(@as(usize, 3), maxDecodedBytes(4));
     try std.testing.expectEqual(@as(usize, 2), try bytes("aGk=", true, .std));
     try std.testing.expectEqual(@as(usize, 2), try bytes("aGk", false, .std));
+}
+
+test "base64 allocator wrappers allocate exact encoded and decoded lengths" {
+    const encoded = try encodeAlloc(std.testing.allocator, "hi", true, .std);
+    defer std.testing.allocator.free(encoded);
+    try std.testing.expectEqualStrings("aGk=", encoded);
+
+    const decoded = try decodeAlloc(std.testing.allocator, "-___", false, .urlsafe);
+    defer std.testing.allocator.free(decoded);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xfb, 0xff, 0xff }, decoded);
 }
 
 test "base64 reports exact destination-too-small errors" {
