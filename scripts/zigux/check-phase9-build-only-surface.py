@@ -65,10 +65,10 @@ PREPARED_STATE_LANDED_MARKER = (
     "`zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit"
 )
 GAP_SURVEY_DRIFT_MARKER = (
-    "`scripts/zigux/README.md` and `zigux/tests/README.md` still omit `zigux/tests/runtime_loader_gap_survey.zig`"
+    "`scripts/zigux/README.md` already keeps `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder drift has narrowed to `zigux/tests/README.md` undercounting that same survey even though `zigux/tests/phase9_build.zig` routes it through the same `phase9-runtime-loader-shared-tests` bundle"
 )
 GAP_SURVEY_NEXT_STEP_MARKER = (
-    "starting with `scripts/zigux/README.md` and then `zigux/tests/README.md`"
+    "refresh the smallest shipped shared summary that still undercounts `zigux/tests/runtime_loader_gap_survey.zig`, which is now `zigux/tests/README.md`, before widening into checker changes or another broader shared reminder pass"
 )
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
@@ -88,7 +88,7 @@ REQUIRED_MARKERS = {
         GAP_SURVEY_NEXT_STEP_MARKER,
         DEP_MOD_BOUNDARY_MARKER,
         *OWNER_MAP_MARKERS,
-        "the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should fail closed",
+        "the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should fail closed if this note regresses to the older two-file omission claim now that the scripts-root reminder is already aligned",
     ],
     REVIEW_CHECKLIST_PATH: [
         "`scripts/zigux/check-phase9-build-only-surface.py`",
@@ -232,7 +232,8 @@ def run_self_test() -> int:
         )
         expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{DEP_MOD_BOUNDARY_MARKER}")
 
-        write_fixture_tree(base)
+        write_fixtureTree = write_fixture_tree
+        write_fixtureTree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
         lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(
