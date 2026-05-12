@@ -115,6 +115,7 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn write32(base_addr: usize, offset: usize, value: u32) void {',
     'pub fn write64(base_addr: usize, offset: usize, value: u64) void {',
     'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
+    'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
 )
 
 REFERENCE_MARKERS = (
@@ -259,6 +260,25 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing direct mmio replay failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing odd-offset mmio replay failure")
             return 1
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
