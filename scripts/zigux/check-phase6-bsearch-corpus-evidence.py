@@ -54,6 +54,8 @@ REQUIRED_SNIPPETS = {
     ],
     SLICE_PATH.as_posix(): [
         "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
+        "- `equalRangeIndex`",
+        "- `bsearchEqualRangeIndex`",
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
@@ -348,6 +350,12 @@ def run_self_test() -> None:
             SLICE_PATH.as_posix(),
             "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
             "- lane state: helper slice drifted",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "- `equalRangeIndex`",
+            "- `equalRangeDrift`",
         )
         assert_failure(
             root,
