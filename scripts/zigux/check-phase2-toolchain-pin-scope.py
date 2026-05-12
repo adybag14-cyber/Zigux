@@ -93,7 +93,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"scripts/zigux/check-zig-toolchain.py": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
-    'issues.extend(validate_exact_makefile_runs(PHASE2_MAKEFILE.read_text(encoding="utf-8")))',
+    'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
 ]
 
 MAKEFILE_MARKERS = [
@@ -406,6 +406,27 @@ def run_self_test() -> int:
         issues = validate_exact_marker_counts(duplicated, label=label, checks=checks)
         assert issues and issues[0].startswith(f"{label}:exact_count:")
 
+    closure_validator_text = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS)
+    assert (
+        validate_required_markers(
+            closure_validator_text,
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+        )
+        == []
+    )
+
+    closure_validator_issues = validate_required_markers(
+        "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS[:-1]),
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    )
+    expected_closure_validator_issue = (
+        "phase2_closure_validator:missing_marker:"
+        'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))'
+    )
+    assert closure_validator_issues == [expected_closure_validator_issue]
+
     assert "policy:phase='Phase 3':expected='Phase 2'" in validate_policy({**valid_policy, "phase": "Phase 3"})
     assert any(issue.startswith("workflow_forbidden_fragment:") for issue in validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64", payload=valid_policy))
     assert "makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1" in validate_exact_makefile_runs(valid_makefile + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py")
@@ -430,7 +451,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
