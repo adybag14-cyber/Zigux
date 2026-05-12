@@ -92,6 +92,18 @@ test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     try std.testing.expectEqual(@as(i32, 2147483647), negative_value);
     try std.testing.expectEqualStrings("", negative);
 
+    var positive_full: []const u8 = "18446744073709551615";
+    var positive_full_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&positive_full, &positive_full_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_full_value);
+    try std.testing.expectEqualStrings("", positive_full);
+
+    var negative_full: []const u8 = "-18446744073709551615";
+    var negative_full_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&negative_full, &negative_full_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_full_value);
+    try std.testing.expectEqualStrings("", negative_full);
+
     var values = [_]i32{ 0, 0, 0 };
     const rest = cmdline.getOptions("2147483648,-2147483649", values.len, &values);
     try std.testing.expectEqualStrings("", rest);
@@ -101,6 +113,16 @@ test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     const validate_rest = cmdline.getOptions("2147483648,-2147483649", 0, &validate_only);
     try std.testing.expectEqualStrings("", validate_rest);
     try std.testing.expectEqual(@as(i32, 2), validate_only[0]);
+
+    var full_values = [_]i32{ 0, 0, 0 };
+    const full_rest = cmdline.getOptions("18446744073709551615,-18446744073709551615", full_values.len, &full_values);
+    try std.testing.expectEqualStrings("", full_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &full_values);
+
+    var full_validate_only = [_]i32{0};
+    const full_validate_rest = cmdline.getOptions("18446744073709551615,-18446744073709551615", 0, &full_validate_only);
+    try std.testing.expectEqualStrings("", full_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), full_validate_only[0]);
 }
 
 test "phase 7 getOption preserves validator-only numeric acceptance" {
