@@ -19,6 +19,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
+  - `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
   - `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
   - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   - `scripts/zigux/README.md`
@@ -73,7 +74,8 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Shared smoke findings
 
 - `zigux/tests/phase14_build.zig` is the shared Phase 14 replay entrypoint and now includes the dedicated smoke survey, the four anchor-local packets, and the focused workqueue reviewability replay.
-- `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, docs-root summary, tests-root summary, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` now fail-closes the tests-root packet order and exact line counts around the shared Phase 14 smoke anchor, so the shared inventory no longer relies on manual readback alone to keep `zigux/tests/README.md` aligned with the manifest-backed packet.
 - `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.
 - the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
 - `zigux/tests/phase14_build.zig` still exposes a dedicated `phase14-smoke` shard so the shared smoke packet can be replayed without compiling the heavier anchor-local bundle.
@@ -124,4 +126,4 @@ This shared smoke slice does not claim:
 
 ## Next bounded step
 
-Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts. If current `master` does drift again, reopen only the smallest same-packet truthfulness repair inside `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/Makefile`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before touching any deeper Phase 14 study surfaces. All four anchor packets are currently parked on blocked or governance-only posture with no smaller ready-next gap recorded in the shared packet, so the next honest same-lane move is another shared-smoke truthfulness repair only if the shared packet drifts again.
+Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts. If current `master` does drift again, reopen only the smallest same-packet truthfulness repair inside `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/README.md`, `zigux/Makefile`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before touching any deeper Phase 14 study surfaces. All four anchor packets are currently parked on blocked or governance-only posture with no smaller ready-next gap recorded in the shared packet, so the next honest same-lane move is another shared-smoke truthfulness repair only if the shared packet drifts again.
