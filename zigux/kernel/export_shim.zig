@@ -88,6 +88,14 @@ pub fn canonicalizeHeader(header_value: Header) ?Header {
     return uapi_version.canonicalizeHeader(header_value);
 }
 
+pub fn extendsBoundary(header_value: Header) bool {
+    return uapi_version.evaluateHeader(header_value).extendsBoundary();
+}
+
+pub fn requestedExtraBytes(header_value: Header) ?u32 {
+    return uapi_version.evaluateHeader(header_value).requestedExtraBytes();
+}
+
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
     return normalize(.{
         .code = 0,
@@ -140,7 +148,8 @@ test "phase3 export shim reuses the shared boundary-header compatibility rules" 
     try std.testing.expectEqual(HeaderCompatibility.canonical, headerCompatibility(canonical).?);
 
     const accepted_canonical = acceptHeader(canonical).?;
-    try std.testing.expectEqual(HeaderCompatibility.canonical, accepted_canonical.compatibility);
+    try std.testing.expect(accepted_canonical.isCanonical());
+    try std.testing.expect(!accepted_canonical.extendsBoundary());
     try std.testing.expectEqual(canonical, accepted_canonical.canonical);
 
     try std.testing.expect(!isCanonicalHeader(future_compatible));
@@ -148,7 +157,8 @@ test "phase3 export shim reuses the shared boundary-header compatibility rules" 
     try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
 
     const accepted_future = acceptHeader(future_compatible).?;
-    try std.testing.expectEqual(HeaderCompatibility.future_compatible, accepted_future.compatibility);
+    try std.testing.expect(!accepted_future.isCanonical());
+    try std.testing.expect(accepted_future.extendsBoundary());
     try std.testing.expectEqual(boundaryHeader(0x22), accepted_future.canonical);
     try std.testing.expectEqual(boundaryHeader(0x22), canonicalizeHeader(future_compatible).?);
 
@@ -184,18 +194,32 @@ test "phase3 export shim relays compatibility through explicit status packets" {
 }
 
 test "phase3 export shim evaluation keeps compatibility evidence and status together" {
+    const canonical = boundaryHeader(0x77);
     const future_compatible = compatibleHeader(header_size + 24, 0x77);
     const version_mismatch = versionedHeader(header_size, abi_version + 1, 0x77);
 
     const accepted = evaluateHeader(future_compatible, -75, .helpers);
     try std.testing.expect(accepted.evaluation.isAccepted());
     try std.testing.expectEqual(future_compatible, accepted.evaluation.requested);
+    try std.testing.expect(accepted.evaluation.extendsBoundary());
+    try std.testing.expectEqual(@as(u32, 24), accepted.evaluation.requestedExtraBytes().?);
     try std.testing.expectEqual(boundaryHeader(0x77), accepted.evaluation.acceptance.?.canonical);
     try std.testing.expect(isOk(accepted.status));
+
+    const direct_canonical = evaluateHeader(canonical, -22, .kernel);
+    try std.testing.expect(direct_canonical.evaluation.isAccepted());
+    try std.testing.expect(!direct_canonical.evaluation.extendsBoundary());
+    try std.testing.expectEqual(@as(u32, 0), direct_canonical.evaluation.requestedExtraBytes().?);
+    try std.testing.expectEqual(@as(u32, 24), requestedExtraBytes(future_compatible).?);
+    try std.testing.expect(extendsBoundary(future_compatible));
+    try std.testing.expect(!extendsBoundary(canonical));
 
     const rejected = evaluateHeader(version_mismatch, -71, .kernel);
     try std.testing.expectEqual(version_mismatch, rejected.evaluation.requested);
     try std.testing.expect(!rejected.evaluation.isAccepted());
+    try std.testing.expect(!rejected.evaluation.extendsBoundary());
+    try std.testing.expect(rejected.evaluation.requestedExtraBytes() == null);
+    try std.testing.expect(requestedExtraBytes(version_mismatch) == null);
     try std.testing.expectEqual(@as(i32, -71), rejected.status.code);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), rejected.status.flags);
 }
