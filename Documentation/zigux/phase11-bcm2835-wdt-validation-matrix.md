@@ -5,7 +5,7 @@ This document records the bounded bcm2835 watchdog validation matrix for the cur
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
-- archival packet identity remains `P11-L08` for traceability, while current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L10`
+- archival packet identity remains `P11-L08` for traceability, while current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`
 - the last directly rechecked bcm2835 packet head recorded in this matrix is `55568844ac3ce835b0e0bef624c24c17f22b78a1`; public `master` has advanced since that packet-local replay pin
 - scope: keep the current `bcm2835_wdt` packet honest about what is already reviewable in the driver-owned metadata, ownership, lifecycle, teardown, and register-state helpers without overclaiming full platform registration, PM base wiring, live poweroff coordination, or hardware-backed execution
 - last directly rechecked focused replays at that packet-local head: `zig test zigux/tests/phase11_bcm2835_wdt.zig`, `zig test drivers/watchdog/bcm2835_wdt_verify.zig`, and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig`
