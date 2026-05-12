@@ -44,8 +44,10 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
         "the current tree exposes `tools/lib/bpf/zigux_segments/manifest.json`",
         "`zigux/tests/phase8_cpu_mask.zig`",
+        "`zigux/tests/phase8_logging.zig`",
         "`zigux/tests/phase8_pin_path.zig`",
         "`zigux/tests/phase8_bpf_type_names.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "do not let older absent-file assumptions overrule current tree evidence",
@@ -193,11 +195,25 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_pin_path.zig`",
         ),
         (
+            "lane_note_logging_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_logging.zig`",
+            "`zigux/tests/phase8_logging_review.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_logging.zig`",
+        ),
+        (
             "lane_note_type_names_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
             "`zigux/tests/phase8_bpf_type_names.zig`",
             "`zigux/tests/phase8_type_names_review.zig`",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_bpf_type_names.zig`",
+        ),
+        (
+            "lane_note_file_path_handle_bridge_anchor",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+            "`zigux/tests/phase8_file_path_bridge_review.zig`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `zigux/tests/phase8_file_path_handle_bridge.zig`",
         ),
         (
             "lane_note_perf_buffer_anchor",
