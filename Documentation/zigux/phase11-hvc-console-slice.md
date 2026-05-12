@@ -23,7 +23,7 @@ The current bounded HVC archival packet is reviewed through:
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-These archival packet surfaces keep the bounded `drivers/tty/hvc/hvc_console.zig` starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.
+These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.
 
 ## Teardown And Failure-Mode Cues
 
