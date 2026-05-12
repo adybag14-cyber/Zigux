@@ -82,7 +82,7 @@ The current landed slice covers the bounded cmdline review packet under `lib/cmd
 The current tests keep these packet edges explicit:
 
 * `getOption()` and `getOptions()` preserve Linux-style range parsing, including validator-only counting paths
-* `getOption()` and `getOptions()` keep the oversized wrap contract explicit: `2147483648` wraps to `-2147483648`, `-2147483649` wraps to `2147483647`, and the paired `getOptions("2147483648,-2147483649", ...)` replay preserves the same wrapped values together with the validation-only count path
+* `getOption()` and `getOptions()` keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses: `2147483648` wraps to `-2147483648`, `-2147483649` wraps to `2147483647`, `18446744073709551615` wraps to `-1`, `-18446744073709551615` wraps to `1`, and the paired `getOptions()` replays preserve the same wrapped values together with the validation-only count path
 * `memparse()` preserves suffix scaling, leading plus handling, and stop-index reporting
 * exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`
 * caller-owned `nextArg()` buffer slicing stays explicit for `param`, `value`, and `rest`
