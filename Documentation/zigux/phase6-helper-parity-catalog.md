@@ -52,6 +52,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - direct local C parity checker route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route: `make -C zigux phase6-checksum-c-parity`
 - exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
+- Linux-style perf rerun route: `make -C zigux phase6-checksum-perf`
 - current review posture: fixture-backed carry-discipline, pseudo-header, and incremental replacement parity plus the direct C-vs-Zig replay keep the shipped checksum packet reviewable without widening helper semantics, while the dedicated slowdown gate stays helper-local through the committed threshold-backed perf replay
 
 ### hexdump
