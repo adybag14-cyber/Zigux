@@ -234,3 +234,62 @@ test "phase12 virtio net recovery plan distinguishes recycled-room refill from m
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
 }
+
+test "phase12 virtio net recovery plan keeps control queue restore separate from refill claims" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+
+    const frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 5), frozen.remembered_total_queue_count);
+    try std.testing.expect(!frozen.receive_buffer_refill_required);
+    try std.testing.expect(!frozen.mergeable_buffer_refill_required);
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(?u16, 4), plan.first_control_queue_index);
+    try std.testing.expect(plan.requires_control_queue_restore);
+    try std.testing.expect(!plan.requires_receive_buffer_refill);
+    try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+}
+
+test "phase12 virtio net mergeable receive buffer plan keeps an exact page fit on the single-page path" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    const plan = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = virtio_net.page_size - virtio_net.default_headroom_bytes,
+        .headroom_bytes = virtio_net.default_headroom_bytes,
+        .mergeable_rx_bufs = false,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.single_page, plan.buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, plan.big_packet_reason);
+    try std.testing.expectEqual(virtio_net.page_size, plan.total_bytes);
+    try std.testing.expectEqual(@as(u16, 1), plan.required_buffers);
+    try std.testing.expect(!plan.reuses_existing_room);
+    try std.testing.expect(plan.fits_single_page);
+    try std.testing.expect(!plan.uses_mergeable_path);
+}
+
+test "phase12 virtio net mergeable receive buffer plan rejects buffer counts past u16 capacity" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    try std.testing.expectError(error.BufferCountOverflow, lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = virtio_net.page_size * (@as(u32, std.math.maxInt(u16)) + 1),
+        .headroom_bytes = 0,
+        .mergeable_rx_bufs = true,
+    }));
+}
