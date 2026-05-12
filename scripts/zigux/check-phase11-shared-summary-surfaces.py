@@ -63,6 +63,14 @@ MARKERS = {
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
         "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+        "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+        "`zigux/tests/phase11_dw_wdt.zig`",
+        "`zigux/tests/phase11_dw_wdt_manifest.json`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "`zigux/tests/phase11_dw_wdt_survey.zig`",
+        "`drivers/watchdog/dw_wdt_verify.zig`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
@@ -76,7 +84,7 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`zigux/tests/phase11_hvc_console.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
-        "framed as repo-reality gaps rather than shipped current-`master` evidence",
+        "as the current directly re-readable Phase 11 evidence on `master`",
     ],
 }
 
@@ -90,6 +98,9 @@ FORBIDDEN_MARKERS = {
     "tests_root": [
         "the bounded `hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
         "while `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
+    ],
+    "tests_companion": [
+        "framed as repo-reality gaps rather than shipped current-`master` evidence",
     ],
 }
 
@@ -168,15 +179,15 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_companion"], MARKERS["tests_companion"][2]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][4]),
             (FILES["tests_companion"], MARKERS["tests_companion"][7]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][9]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][10]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][11]),
             (FILES["tests_companion"], MARKERS["tests_companion"][13]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][14]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][15]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][16]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][17]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][18]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][20]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][22]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][24]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
@@ -193,7 +204,7 @@ def run_self_test() -> None:
             ("tests_root", FORBIDDEN_MARKERS["tests_root"][0]),
             ("tests_root", FORBIDDEN_MARKERS["tests_root"][1]),
             ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
-            ("review_checklist", FORBIDDEN_MARKERS["review_checklist"][0]),
+            ("tests_companion", FORBIDDEN_MARKERS["tests_companion"][0]),
         ]
 
         for label, marker in forbidden_cases:
