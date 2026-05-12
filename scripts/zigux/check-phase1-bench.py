@@ -10,6 +10,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPECTATIONS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
+PHASE1_BENCH = ROOT / 'zigux' / 'tests' / 'phase1_bench.zig'
 EXPECTED_ITERATIONS = {
     'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS': 20000,
     'PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS': 20000,
@@ -38,6 +39,16 @@ REQUIRED_EXACT_CHECKSUMS = {
     'PHASE1_BENCH_STRING_CHECKSUM',
     'PHASE1_BENCH_RBTREE_CHECKSUM',
 }
+REQUIRED_RBTREE_SOURCE_MARKERS = [
+    'rbtree.findAdd(&find_add_entries[3].node, &find_add_root, cmpNode)',
+    'rbtree.find(&wanted, &duplicate_root, cmpKey)',
+    'rbtree.findFirst(&wanted, &duplicate_root, cmpKey)',
+    'rbtree.nextMatch(&wanted, cursor, cmpKey)',
+    'rbtree.addCached(&entry.node, &cached_root, less);',
+    'rbtree.eraseCached(&cached_entries[1].node, &cached_root)',
+    'rbtree.replaceNodeCached(&cached_entries[0].node, &cached_replacement.node, &cached_root)',
+    'rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)',
+]
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -170,6 +181,13 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         return ('expectations_unexpected_exact_checksums', unexpected_exact_checksums)
 
     return ('pass', expectations)
+
+
+def validate_bench_source(source: str) -> tuple[str, object]:
+    missing = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]
+    if missing:
+        return ('missing_rbtree_source_markers', missing)
+    return ('pass', None)
 
 
 def clone_expectations(expectations: dict[str, object]) -> dict[str, object]:
@@ -930,6 +948,22 @@ def main() -> int:
         print('UNEXPECTED_EXPECTATION_EXACT_CHECKSUMS_END')
         return 1
 
+    try:
+        bench_source = PHASE1_BENCH.read_text(encoding='utf-8')
+    except FileNotFoundError:
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'PHASE1_BENCH_SOURCE_MISSING={PHASE1_BENCH}')
+        return 1
+
+    kind, payload = validate_bench_source(bench_source)
+    if kind == 'missing_rbtree_source_markers':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_PHASE1_BENCH_RBTREE_SOURCE_MARKERS_START')
+        for marker in payload:
+            print(marker)
+        print('MISSING_PHASE1_BENCH_RBTREE_SOURCE_MARKERS_END')
+        return 1
+
     zig = find_zig(args.zig)
 
     result = subprocess.run(
@@ -1015,6 +1049,7 @@ def main() -> int:
 
     print('PHASE1_BENCH_CHECK=pass')
     print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')
+    print(f'PHASE1_BENCH_SOURCE={PHASE1_BENCH}')
     print(f'PHASE1_BENCH_ZIG={zig}')
     return 0
 
