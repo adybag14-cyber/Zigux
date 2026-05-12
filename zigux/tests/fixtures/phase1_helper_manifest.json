@@ -161,6 +161,7 @@
         "next_match_serials",
         "next_match_terminal_null"
       ],
+      "ordered_alias_anchor": "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
       "duplicate_search_anchors": [
         "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
         "test \"rbtree nextMatch walks the duplicate range in order\"",
