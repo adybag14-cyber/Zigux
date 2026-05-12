@@ -177,7 +177,7 @@ LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS = [
 LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
     "`PHASE12_STATUS=parked`",
     "`scripts/zigux/check-build-only-phase12-surface.py`",
-    "snapshot-only readback set",
+    "public verify-shard file set plus snapshot anchor as the truthful bounded signal",
 ]
 
 RAW_GITHUB_COVERAGE_SURVEY_MARKERS = [
