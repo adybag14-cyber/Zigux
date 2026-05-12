@@ -62,9 +62,11 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
         "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:",
+        "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.",
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
+        "Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
         "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
         "`security/landlock/ruleset.zig`",
@@ -185,7 +187,9 @@ EXACT_COUNTS = {
         "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
         "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
         "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
+        "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+        "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
     },
     "Documentation/zigux/README.md": {
         "the current eight-test shared-helper release packet": 1,
@@ -315,7 +319,9 @@ def run_self_test() -> int:
                     "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                     "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
                     "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
+                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
                     "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
                 },
             ),
         )
@@ -351,7 +357,9 @@ def run_self_test() -> int:
                     "Broad summaries should keep the active shared-helper release handle visible through:": 1,
                     "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                     "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
+                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
                     "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
                 },
             ),
         )
@@ -387,7 +395,9 @@ def run_self_test() -> int:
                     "Broad summaries should keep the active shared-helper release handle visible through:": 1,
                     "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
                     "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
+                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
                     "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
                 },
             ),
         )
@@ -398,6 +408,44 @@ def run_self_test() -> int:
                 "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through::expected=1:actual=0",
             ],
             "missing_devres_truthfulness_guard_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                    if marker
+                    != "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift."
+                ],
+                {
+                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
+                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
+                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
+                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
+                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
+                },
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.",
+                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.:expected=1:actual=0",
+            ],
+            "missing_devres_checker_label_phrase_failed",
         )
         write_text(
             root,
@@ -434,6 +482,44 @@ def run_self_test() -> int:
                 "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/syscalls.zig`",
             ],
             "missing_adjacent_direct_evidence_markers_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
+                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
+            ),
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            repeat_markers(
+                [
+                    marker
+                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                    if marker
+                    != "Broad summaries should also keep the shipped adjacent notifier release surface visible through:"
+                ],
+                {
+                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
+                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
+                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
+                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
+                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
+                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
+                },
+            ),
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
+                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped adjacent notifier release surface visible through::expected=1:actual=0",
+            ],
+            "missing_notifier_release_surface_phrase_failed",
         )
         write_text(
             root,
