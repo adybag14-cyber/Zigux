@@ -14,11 +14,11 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 ### Workqueue
   * manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`
   * survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`
-  * lane key: `P14-L01`
-  * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`
-  * ready-next gap: `phase14-workqueue-pending-bit-audit`
+  * lane key: `P14-L04`
+  * surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`
+  * ready-next gap: none currently recorded
   * blocked gap: `phase14-workqueue-live-execution-blocker`
-  * retained-in-C boundary: live worker-pool execution, draining, delayed-work requeue ownership, timer-base and CPU-affinity handoff, hotplug transitions, rescuer behavior, scheduler callbacks, and forward-progress correctness still remain in C because they share `worker_pool` state, pending-bit handoff, delayed timer expiry, and scheduler-visible ownership that the current boundary map only records for reviewability.
+  * retained-in-C boundary: live worker-pool execution, delayed-work requeue ownership, flush and drain completion ownership, timer-base and CPU-affinity handoff, hotplug transitions, rescuer behavior, scheduler-visible worker state, runtime `max_active` retuning, and forward-progress correctness still remain in C because the current review-only bridge packet records the manager-role, pending-bit, delayed-submission alias, timer-expiry, delayed-requeue, flush-drain, and rescuer-mayday audits for reviewability without claiming live ownership.
 ### Ring buffer
   * manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
   * survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
