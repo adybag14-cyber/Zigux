@@ -137,7 +137,7 @@ test "phase13 devres plans a non-posted managed ioremap resource mapping" {
             try std.testing.expect(!plan.releases_region_on_remap_failure);
         },
         .err => |failure| {
-            std.debug.print("unexpected failure: {any}\n", .{failure});
+            std.debug.print("unexpected failure: {any}\\n", .{failure});
             return error.UnexpectedFailure;
         },
     }
@@ -553,19 +553,27 @@ test "phase13 devres rejects phys WC token planning when the release record cann
 }
 
 test "phase13 devres manifest records the current dma/scatterlist boundary packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L05\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"10369315cba5d146a7c6c4c6480ef9d279dc490f\"");
-    try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": true");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L08\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-11\"");
+    try expectContains(manifest_text, "\"preexisting_phase13_build_present\": false");
+    try expectContains(manifest_text, "\"preexisting_phase13_make_target_present\": true");
+    try expectContains(manifest_text, "\"preexisting_devres_zig_present\": true");
+    try expectContains(manifest_text, "\"preexisting_phase13_devres_test_present\": false");
+    try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": false");
+    try expectContains(manifest_text, "\"preexisting_phase13_devres_dma_coherent_present\": true");
+    try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-test-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-reviewability-gate\"");
-    try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-dma-coherent-replay\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
-    try expectContains(manifest_text, "devm_ioremap_wc()");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_missing_shared_build_surface\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_missing_direct_devres_test_surface\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_missing_reviewability_surface\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
     try expectContains(manifest_text, "dmam_alloc_*");
     try expectContains(manifest_text, "machine-checkable");
-    try expectContains(manifest_text, "arch_phys_wc_del()");
     try expectContains(manifest_text, "dma_map_sgtable()");
     try expectContains(manifest_text, "struct scatterlist");
     try expectContains(manifest_text, "sg_table lifecycle");
