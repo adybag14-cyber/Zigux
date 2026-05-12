@@ -303,7 +303,7 @@ The helper-local zero-bit binary identity proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap zero-bit binary helpers stay explicit identity operations"` stays present and review-visible whenever `andBits()`, `andNotBits()`, `bitmap_and()`, `bitmap_andnot()`, `complement()`, `bitmap_complement()`, `equal()`, `bitmap_equal()`, `intersects()`, `bitmap_intersects()`, `subset()`, or `bitmap_subset()` changes. This helper-local test is the bounded proof that zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift from out-of-range state.
+That means `test "bitmap zero-bit binary helpers stay explicit identity operations"` stays present and review-visible whenever `andBits()`, `andNotBits()`, `bitmap_and()`, `bitmap_andnot()`, `complement()`, `bitmap_complement()`, `equal()`, `bitmap_equal()`, `intersects()`, `bitmap_intersects()`, `subset()`, `bitmap_subset()` changes. This helper-local test is the bounded proof that zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift from out-of-range state.
 
 - `PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor so zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift`
 
@@ -349,7 +349,7 @@ That means `test "strtobool accepts common Linux forms"`, `test "strlcpy copies 
 
 The direct helper-local follow-up `test "memchrInv follows the earliest dirty byte as long buffers change"` must also stay review-visible whenever `memchrInv()` changes. The shared Phase 1 fixture still pins one fixed first-dirty-byte position and the all-clean case, so this direct follow-up remains the owning proof that the earliest mismatch advances correctly as later dirty bytes become the next live divergence instead of drifting to a stale earlier offset.
 
-The direct helper-local follow-up test `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` must also stay review-visible whenever `trimSpaces()`, `strim()` changes. The shared Phase 1 string fixture still records the trimmed bytes but not the preserved tail bytes beyond the first terminator, so this direct follow-up remains the owning proof that trailing-whitespace trimming stops at the first embedded NUL instead of mutating bytes past the C-string boundary.
+The direct helper-local follow-up test `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` must also stay review-visible whenever `trimSpaces()`, `strim()`, or `strstrip()` changes. The shared Phase 1 string fixture still records the trimmed bytes but not the preserved tail bytes beyond the first terminator, so this direct follow-up remains the owning proof that trailing-whitespace trimming stops at the first embedded NUL instead of mutating bytes past the C-string boundary.
 
 ## Rollback
 
