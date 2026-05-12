@@ -55,12 +55,14 @@ MARKERS = {
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "`hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 9
 
 
 class CheckError(RuntimeError):
@@ -119,6 +121,8 @@ def run_self_test() -> None:
             (FILES["tests_root"], MARKERS["tests_root"][5]),
             (FILES["tests_root"], MARKERS["tests_root"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][2]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][4]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][5]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
