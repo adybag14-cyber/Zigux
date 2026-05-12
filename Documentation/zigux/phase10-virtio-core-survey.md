@@ -22,9 +22,9 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 
 The Phase 10 roadmap names `drivers/virtio/virtio.c` as the first virtio-core anchor, and the live repo already ships a bounded `drivers/virtio/virtio.zig` helper plus dedicated implementation tests.
 
-Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path, and the shipped bounded status_show and features_show-style summaries were only implicit in the helper and tests. This survey restores the small manifest-backed governance packet so the core lane is machine-checkable again without widening into new helper behavior.
+Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path, and the shipped bounded status_show and features_show-style summaries were only implicit in the helper and tests. This survey restores the small manifest-backed governance packet so the core lane is reviewable again without widening into new helper behavior, but the packet is not yet fully machine-checkable because the dedicated checker and survey gate still lag the refreshed note and manifest state.
 
-This same packet is now the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The slice note already keeps the roadmap's dual-implementation boundary explicit too, so this survey packet must carry that same blocked bridge instead of naming only the later probe or remove step.
+This same packet is still the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated tests-root core-surfaces checker, the dedicated survey gate, the direct `drivers/virtio/virtio_verify.zig` replay, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims. The slice note already keeps the roadmap's dual-implementation boundary explicit too, so this survey packet must carry that same blocked bridge instead of naming only the later probe or remove step, and the packet-local enforcement now needs to catch up to that two-blocker posture.
 
 ## Survey findings
 
@@ -34,7 +34,8 @@ This same packet is now the roadmap-facing `lab-only driver validation` evidence
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
 - the landed driver-id coverage helper now makes exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes explicit without widening into probe or bus registration
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`
-- the honest roadmap gap here is no longer missing lab-driver evidence: the manifest-backed survey note, survey gate, dedicated packet checker, dedicated tests-root core-surfaces checker, direct core verify replay, shared build replay, and shared Linux-style Phase 10 routes already keep the bounded starter reviewable as `lab-only driver validation`
+- the honest roadmap gap here is no longer missing lab-driver evidence on the note, manifest, direct verify replay, tests-root companion, or shared build surfaces: those packet pieces already keep the bounded starter reviewable as `lab-only driver validation`
+- the remaining packet-local drift is validation enforcement: `scripts/zigux/check-phase10-core-packet.py` still expects the older surveyed commit `7a4454d0474106972cad7e164b79293bd54a40c6`, only nine preexisting Phase 10 test files, and only the later probe/remove blocker, while `zigux/tests/phase10_virtio_core_manifest.json` now records surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`, eleven preexisting Phase 10 test files, and both the dual-implementation bridge plus the probe/remove lifecycle bridge as blocked transport-facing work
 - the remaining roadmap bridges to a true lab driver are still blocked outside this lane: dual implementations for risky transport-facing paths plus probe, full remove, and reset lifecycle state remain too risky to claim from the core helper alone
 
 ## Freeze Boundary
@@ -75,7 +76,7 @@ The restored survey manifest records:
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence through the survey packet, the dedicated tests-root core-surfaces checker, the direct core verify replay, bounded status_show and features_show review surfaces, the driver-id coverage disposition helper, and shared build routes, the still-missing dual-implementation boundary for risky transport-facing paths remains explicit, and the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied.
+This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence on the survey note, manifest, direct verify replay, tests-root companion, and shared build surfaces; the still-missing dual-implementation boundary for risky transport-facing paths remains explicit; the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied; and the next lane-local repair is to refresh the dedicated checker and the survey gate so they enforce this same two-blocker packet instead of the older single-blocker snapshot.
 
 ## Non-goals
 
@@ -88,20 +89,20 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated core governance checker
+1. refresh the dedicated core governance checker to the current packet state
 - `python3 scripts/zigux/check-phase10-core-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-core-packet.py`
 
-2. run the restored core survey gate
+2. refresh the dedicated core survey gate to the same packet state
 - `zig test zigux/tests/phase10_virtio_core_survey.zig`
 
-3. run the shared Phase 10 build
+3. rerun the shared Phase 10 build once the packet-local enforcement is aligned
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-4. run the Linux-style Phase 10 entrypoints when the wider packet is available
+4. rerun the Linux-style Phase 10 entrypoints when the wider packet is available
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
 ## Next bounded step
 
-Leave the Phase 10 virtio-core governance lane parked again unless fresh repo inspection finds another directly coupled drift across this lab-validation evidence, the blocked dual-implementation or transport bridge wording, the core slice note, the direct core verify replay, the restored survey packet, or the shared build wiring. Any new helper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
+Refresh `scripts/zigux/check-phase10-core-packet.py` and `zigux/tests/phase10_virtio_core_survey.zig` so both surfaces accept the refreshed `c11221dc7a68d7511ae1c69d64b3f08528287ed8` survey snapshot, eleven preexisting Phase 10 test files, and the two blocked transport-facing bridges recorded in `zigux/tests/phase10_virtio_core_manifest.json`, then rerun the dedicated checker, survey gate, and shared Phase 10 build without widening into ring, MMIO, input, or transport-backed lifecycle work.
