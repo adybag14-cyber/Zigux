@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const RepoEvidence = struct {
+    phase15_validator_script_present: bool,
     phase15_validate_target_present: bool,
     phase15_test_target_present: bool,
     shared_ci_phase15_present: bool,
@@ -36,6 +37,7 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-11", manifest.surveyed_commit);
+    try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
