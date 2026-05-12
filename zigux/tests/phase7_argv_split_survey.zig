@@ -114,6 +114,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
+    try expectContains(slice_note, "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
 
@@ -159,6 +160,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
     try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
+    try expectContains(helper_tests, "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact");
+    try expectContains(helper_tests, "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
     try expectContains(helper_tests, "split.cArgv()");
 
