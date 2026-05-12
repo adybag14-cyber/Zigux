@@ -166,6 +166,8 @@ FILE_MARKERS = {
 FORBIDDEN_FILE_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        "scripts/zigux/genksyms_crc.zig",
+        "scripts/zigux/mk_elfconfig.zig",
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -247,15 +249,12 @@ MISSING_FILE_CASES = [
     "zigux/Makefile",
 ]
 
-
 def count_occurrences(text: str, marker: str) -> int:
     pattern = rf"(?<![A-Za-z0-9_.-]){re.escape(marker)}(?![A-Za-z0-9_.-])"
     return len(re.findall(pattern, text))
 
-
 def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
     return [f"{prefix}:missing:{marker}" for marker in markers if marker not in text]
-
 
 def collect_forbidden_marker_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
     issues: list[str] = []
@@ -265,7 +264,6 @@ def collect_forbidden_marker_issues(text: str, markers: list[str], *, prefix: st
             issues.append(f"{prefix}:forbidden:{marker}:count={count}:expected=0")
     return issues
 
-
 def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
     issues: list[str] = []
     for marker, expected in checks.items():
@@ -273,7 +271,6 @@ def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str
         if count != expected:
             issues.append(f"{prefix}:exact_count:{marker}:count={count}:expected={expected}")
     return issues
-
 
 def collect_line_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
     issues: list[str] = []
@@ -283,7 +280,6 @@ def collect_line_exact_count_issues(text: str, checks: dict[str, int], *, prefix
         if count != expected:
             issues.append(f"{prefix}:line_exact_count:{marker}:count={count}:expected={expected}")
     return issues
-
 
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
@@ -310,11 +306,9 @@ def validate_root(root: Path) -> list[str]:
             issues.extend(collect_line_exact_count_issues(text, LINE_EXACT_COUNT_CHECKS[rel_path], prefix=rel_path))
     return issues
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def render_file_text(rel_path: str) -> str:
     if rel_path == ".github/workflows/zigux-bootstrap.yml":
@@ -362,11 +356,9 @@ def render_file_text(rel_path: str) -> str:
         return "placeholder\n"
     return "\n".join(markers) + "\n"
 
-
 def build_self_test_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, render_file_text(rel_path))
-
 
 def remove_marker_once(text: str, marker: str) -> str:
     needle = marker + "\n"
@@ -374,10 +366,8 @@ def remove_marker_once(text: str, marker: str) -> str:
         return text.replace(needle, "", 1)
     return text.replace(marker, "", 1)
 
-
 def duplicate_marker(text: str, marker: str) -> str:
     return text + marker + "\n"
-
 
 def run_self_test() -> int:
     case_count = 0
@@ -473,7 +463,6 @@ def run_self_test() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check the current Phase 2 shared reminder packet stays aligned with the live docs, scripts, tests, workflow, and Makefile surfaces."
@@ -497,7 +486,6 @@ def main() -> int:
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT={marker_count}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
