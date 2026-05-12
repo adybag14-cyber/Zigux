@@ -147,8 +147,9 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 18), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.shared_smoke_surfaces.len);
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
@@ -332,6 +333,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-docs-root-smoke-summary.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-tests-readme-smoke-summary.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14-workqueue-reviewability-tests") != null);
