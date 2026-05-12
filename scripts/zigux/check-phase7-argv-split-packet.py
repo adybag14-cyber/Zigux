@@ -83,6 +83,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split.zig",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
         "make -C zigux phase7-validate",
@@ -267,6 +268,13 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase7-argv-split-packet.py",
             "",
             "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py",
+        ),
+        (
+            "scripts_readme_helper_marker",
+            "scripts/zigux/README.md",
+            "zigux/tests/phase7_argv_split.zig",
+            "",
+            "scripts/zigux/README.md: zigux/tests/phase7_argv_split.zig",
         ),
         (
             "makefile_checker_selftest_marker",
