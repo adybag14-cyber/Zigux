@@ -248,9 +248,19 @@ test "runtime bitmap loader emits the shared runtime-loader contract plan" {
 
     var shared_request = try runtime_loader.prepareRequest(shared_plan);
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_plan,
+    ));
 
     const pending_plan = try shared_request.requestRuntimeLoad();
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
     try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
@@ -262,6 +272,11 @@ test "runtime bitmap loader emits the shared runtime-loader contract plan" {
 
     try shared_request.releaseWithoutSubstrate();
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
 }
 
 test "runtime bitmap loader keeps initialized-stage shared contract plans explicit" {
@@ -279,7 +294,20 @@ test "runtime bitmap loader keeps initialized-stage shared contract plans explic
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
 
     var shared_request = try runtime_loader.prepareRequest(shared_plan);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_plan,
+    ));
+
     const pending_plan = try shared_request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
     try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
@@ -288,6 +316,14 @@ test "runtime bitmap loader keeps initialized-stage shared contract plans explic
         shared_plan.init_flow,
     ));
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try shared_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
 }
 
 test "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity" {
@@ -303,6 +339,11 @@ test "runtime bitmap loader keeps initialized shared-request snapshots stable ac
     try std.testing.expect(prepared_plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_plan,
+    ));
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(prepared_plan));
 
     const selftest = try module.runSelftest();
@@ -315,6 +356,11 @@ test "runtime bitmap loader keeps initialized shared-request snapshots stable ac
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expectEqualStrings(prepared_plan.module_name, pending_plan.module_name);
     try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
     try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
@@ -337,6 +383,11 @@ test "runtime bitmap loader keeps initialized shared-request snapshots stable ac
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
 }
 
 test "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity" {
@@ -416,10 +467,20 @@ test "runtime bitmap loader bridges the shared request lifecycle without widenin
     var shared_request = try loader.prepareSharedRequest(&module);
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
 
     const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expectEqualStrings("runtime_bitmap", pending_plan.module_name);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", pending_plan.anchor);
     try std.testing.expect(pending_plan.provides_selftest_hook);
@@ -438,6 +499,11 @@ test "runtime bitmap loader bridges the shared request lifecycle without widenin
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
 }
 
 test "runtime bitmap loader keeps shared release failures from desynchronizing loader state" {
