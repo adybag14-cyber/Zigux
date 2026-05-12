@@ -47,7 +47,7 @@
       "id": "trace-events-module-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "The direct module gate is visible again on current master and keeps the bounded lifecycle and failed-exit packet machine-checkable."
+      "why_now": "The direct module gate is visible again on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, and registration-drain packet machine-checkable."
     },
     {
       "id": "trace-events-diff-gate",
@@ -71,13 +71,13 @@
       "id": "trace-events-survey-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The survey note records the current reviewable family-local packet while keeping the shared runtime-substrate blocker explicit."
+      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue, while keeping the shared runtime-substrate blocker explicit."
     },
     {
       "id": "trace-events-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "why_now": "The module-slice note keeps the same packet-local proof and shared-loader boundary visible for reviewers."
+      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, and shared-loader boundary visible for reviewers."
     },
     {
       "id": "trace-events-shared-owner-map",
@@ -109,7 +109,7 @@
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
       "owner": "P9-L10",
-      "boundary": "Tracks the same packet-local proof and shared-loader adjacency without claiming completed runtime-substrate parity."
+      "boundary": "Tracks the same packet-local proof, including the selftest-ready failed-exit rollback note, and shared-loader adjacency without claiming completed runtime-substrate parity."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
