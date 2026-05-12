@@ -154,6 +154,11 @@ pub fn build(b: *std.Build) void {
         .root_module = argv_split_root_module,
     });
     const run_argv_split_tests = b.addRunArtifact(argv_split_tests);
+    const argv_split_step = b.step(
+        "phase7-argv-split-test",
+        "Run the Phase 7 argv split helper tests",
+    );
+    argv_split_step.dependOn(&run_argv_split_tests.step);
 
     const rbtree_tests = b.addTest(.{
         .name = "phase7-rbtree-tests",
