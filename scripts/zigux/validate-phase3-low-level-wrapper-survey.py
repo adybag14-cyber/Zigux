@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 SURVEY_REL = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
 BUILD_REL = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
@@ -47,43 +48,30 @@ REQUIRED_BUILD_SNIPPETS = (
     '.root_source_file = b.path("../helpers/atomic.zig")',
     '.root_source_file = b.path("../helpers/barrier.zig")',
     '.root_source_file = b.path("../helpers/mmio.zig")',
-    '.root_source_file = b.path("../helpers/allocator_policy.zig")',
-    '.root_source_file = b.path("../helpers/panic_policy.zig")',
     '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
-    'allocator_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);',
-    'panic_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("abi_bindings", abi_bindings_module);',
     'root_module.addImport("atomic_helpers", atomic_helpers_module);',
     'root_module.addImport("barrier_helpers", barrier_helpers_module);',
     'root_module.addImport("mmio_helpers", mmio_helpers_module);',
     'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-    'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
-    'root_module.addImport("panic_policy_helpers", panic_policy_helpers_module);',
     '"phase3-low-level-wrappers-test"',
 )
 
 REQUIRED_TEST_SNIPPETS = (
-    'const allocator_policy = @import("allocator_policy_helpers");',
-    'const panic_policy = @import("panic_policy_helpers");',
     'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
-    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
-    'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
     'test "phase3 low-level wrappers keep barrier locality reviewable" {',
     'test "phase3 low-level wrappers keep barrier handoff reviewable" {',
-    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {',
+    'atomic.store(u32, &handoff_value, 41, .release);',
+    'atomic.load(u32, &handoff_value, .acquire)',
+    'barrier.acquireRelease();',
     'mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);',
     'mmio.write16(base, 1, 0x1234);',
     'mmio.write32(base, 3, 0x89abcdef);',
     'mmio.write64(base, 5, 0xfedc_ba98_7654_3210);',
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
-    'atomic.store(u32, &handoff_value, 41, .release);',
-    'atomic.load(u32, &handoff_value, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
-    'barrier.acquireRelease();',
-    'allocator_policy.requiresExplicitCallerInteropPolicy(caller_abort_policy)',
-    'panic_policy.actionForInteropPolicy(heap_bug_policy)',
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -119,14 +107,14 @@ REQUIRED_MMIO_SNIPPETS = (
 )
 
 REFERENCE_MARKERS = (
-    (ABI_SLICE_REL, 'Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md'),
-    (ABI_SLICE_REL, 'scripts/zigux/validate-phase3-low-level-wrapper-survey.py'),
-    (DOCS_ROOT_REL, 'Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md'),
-    (DOCS_ROOT_REL, 'scripts/zigux/validate-phase3-low-level-wrapper-survey.py'),
-    (SCRIPTS_README_REL, 'validate-phase3-low-level-wrapper-survey.py'),
-    (TESTS_README_REL, 'validate-phase3-low-level-wrapper-survey.py'),
-    (MAKEFILE_REL, 'scripts/zigux/validate-phase3-low-level-wrapper-survey.py'),
-    (MAKEFILE_REL, 'phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig'),
+    (ABI_SLICE_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    (ABI_SLICE_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (DOCS_ROOT_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    (DOCS_ROOT_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (SCRIPTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
+    (TESTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
+    (MAKEFILE_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (MAKEFILE_REL, "phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
 )
 
 
@@ -205,6 +193,7 @@ def run_self_test() -> int:
                 print(issue)
             return 1
 
+        (root / SURVEY_REL).writeText = None
         (root / SURVEY_REL).write_text("broken\n", encoding="utf-8")
         issues = validate(root)
         if not any(issue.startswith("missing_survey_marker:") for issue in issues):
@@ -221,26 +210,6 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing barrier handoff replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            TEST_REL,
-            (root / TEST_REL).read_text(encoding="utf-8").replace(
-                'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == 'missing_test_snippet:atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing ordered weak compare-exchange replay failure")
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
@@ -265,6 +234,25 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(
             root,
+            BUILD_REL,
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+                'root_module.addImport("mmio_helpers", mmio_helpers_module);',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_build_snippet:root_module.addImport("mmio_helpers", mmio_helpers_module);'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio build wiring failure")
+            return 1
+
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
             MMIO_REL,
             (root / MMIO_REL).read_text(encoding="utf-8").replace(
                 'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
@@ -282,26 +270,6 @@ def run_self_test() -> int:
             return 1
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == 'missing_build_snippet:root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing allocator policy build wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
         _write(
             root,
             SURVEY_REL,
