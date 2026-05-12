@@ -81,9 +81,10 @@ Keep helper-local work under:
 - `zigux/tests/phase6_hexdump_perf.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-hexdump-slice.md`
+- `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, and `P6-Y08` as the serialized empty-ASCII length-packet closure lane when the same helper-local review packet could otherwise overlap itself.
+Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, and `P6-Y08` as the hexdump perf-evidence or serialized empty-ASCII length-packet closure lane when the same helper-local review packet could otherwise overlap itself.
 
 ## Anti-Overlap Rules
 - Do not treat a shared file as shared-lane work when the diff only changes one helper row.
