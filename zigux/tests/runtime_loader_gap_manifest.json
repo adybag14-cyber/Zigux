@@ -1,0 +1,133 @@
+{
+  "lane_key": "P9-L15",
+  "phase": "Phase 9",
+  "scope": "runtime validation scaffolding",
+  "bounded_task": "shared runtime loader gap evidence, gating, and rollback",
+  "current_repo_reality": {
+    "shared_runtime_loader_files_present": false,
+    "shared_runtime_loader_contract_present": false,
+    "shared_phase9_build_route_present": true,
+    "shared_phase9_build_route_replayable": false,
+    "current_honest_gate": "zig test zigux/tests/runtime_loader_gap_survey.zig"
+  },
+  "delivery_evidence_catalog": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "kind": "survey_note",
+      "why_now": "Keeps the missing shared runtime-loader files, the blocked shared-build route, and the explicit without-substrate rollback posture reviewable."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_manifest.json",
+      "kind": "packet_truth_manifest",
+      "why_now": "Records the current repo reality for the shared runtime-loader gap packet."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_survey.zig",
+      "kind": "survey_gate",
+      "why_now": "Machine-checks the note, manifest, missing shared runtime-loader files, and the loader-scaffold rollback evidence."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "kind": "adjacent_stale_shared_build_scaffold",
+      "why_now": "Still names the missing shared runtime-loader files, so it remains present but not replayable on current master."
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps initialized and selftest-complete shared-request snapshots plus releaseSharedWithoutSubstrate reviewable without claiming live runtime execution."
+    },
+    {
+      "surface": "samples/zigux/runtime_bitmap_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps initialized and selftest-complete shared-request snapshots plus releaseSharedWithoutSubstrate reviewable without claiming live runtime execution."
+    },
+    {
+      "surface": "samples/zigux/runtime_kretprobe_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps initialized and selftest-complete shared-request snapshots plus releaseSharedWithoutSubstrate reviewable without claiming live runtime execution."
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps registration-snapshot drift, drain handling, initialized and selftest-complete shared-request snapshots, and releaseSharedWithoutSubstrate reviewable without claiming live runtime execution."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_manifest.json",
+      "kind": "adjacent_family_local_blocker",
+      "why_now": "Keeps the trace-events substrate blocker explicit while this shared gap lane stays loader-facing."
+    },
+    {
+      "surface": "zigux/tests/runtime_kretprobe_manifest.json",
+      "kind": "adjacent_family_local_blocker",
+      "why_now": "Keeps the kretprobe substrate blocker explicit while this shared gap lane stays loader-facing."
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L15",
+      "boundary": "Owns the shared gap note for current master."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_manifest.json",
+      "role": "packet_truth_manifest",
+      "owner": "P9-L15",
+      "boundary": "Records the exact missing-file and blocked-route posture for this lane."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_survey.zig",
+      "role": "survey_gate",
+      "owner": "P9-L15",
+      "boundary": "Keeps the gap packet machine-checkable without claiming live runtime substrate parity."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "role": "adjacent_stale_shared_build_scaffold",
+      "owner": "P9-L11",
+      "boundary": "Still exists, but its shared runtime-loader targets are missing on current master so it stays a blocked boundary reference."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_manifest.json",
+      "role": "adjacent_family_local_blocker",
+      "owner": "P9-L10",
+      "boundary": "Keeps the trace-events substrate blocker explicit while this shared gap lane stays loader-facing."
+    },
+    {
+      "surface": "zigux/tests/runtime_kretprobe_manifest.json",
+      "role": "adjacent_family_local_blocker",
+      "owner": "P9-L13",
+      "boundary": "Keeps the kretprobe substrate blocker explicit while this shared gap lane stays loader-facing."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "shared-runtime-loader-files",
+      "status": "missing_on_current_master",
+      "kind": "shared_runtime_surface",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared runtime-loader file returns missing-file results on current master, so no honest shared request surface is currently shipped."
+    },
+    {
+      "id": "shared-runtime-loader-contract",
+      "status": "missing_on_current_master",
+      "kind": "shared_runtime_surface",
+      "zigux_destination": "zigux/kernel/runtime_loader_contract.zig",
+      "why_now": "The shared runtime-loader contract file also returns missing-file results on current master, so the shared loader packet must stay fail-closed."
+    },
+    {
+      "id": "phase9-shared-build-route",
+      "status": "present_but_not_replayable",
+      "kind": "shared_build_route",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build bundle still points at the missing shared runtime-loader files, so it remains an adjacent stale scaffold rather than a replayable gate."
+    },
+    {
+      "id": "without-substrate-rollback-only",
+      "status": "starter_landed",
+      "kind": "rollback_surface",
+      "zigux_destination": "samples/zigux/runtime_*_loader.zig",
+      "why_now": "The current rollback evidence is the reviewable waiting_on_runtime_substrate to released_without_substrate fallback inside the four sample-side loader scaffolds."
+    }
+  ]
+}
