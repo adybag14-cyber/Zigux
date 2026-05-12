@@ -24,11 +24,16 @@ MARKERS = {
         "This note records the next bounded follow-up for the landed Phase 11 DesignWare watchdog packet on current `master`.",
         "The live repository already ships a bounded `dw_wdt` packet under the DesignWare lane:",
         "`drivers/watchdog/dw_wdt.zig` keeps fixed and custom TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and the registration-facing handoff reviewable",
+        "`drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig` keep the current teardown, registration-order, and survey packet replayable",
+        "`zigux/tests/phase11_dw_wdt_manifest.json`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md` keep the current lane evidence and ownership boundaries explicit",
         "That means the honest next step is no longer to invent a first DesignWare packet.",
+        "The next bounded follow-up is to attach the already-landed registration-facing handoff to one acquisition-facing platform-registration scaffold while keeping the current validation matrix and teardown note as the lane's truth surfaces.",
         "Keep the next implementation bounded to one acquisition-facing scaffold inside the existing DesignWare packet without claiming a full probe path.",
         "3. reuse the existing ordering around `platform_set_drvdata`, timeout-programming intent, stop-on-reboot intent, restart-priority sequencing, and `watchdog_register_device`",
         "- `drivers/watchdog/dw_wdt.zig`",
         "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "- update `zigux/tests/phase11_dw_wdt_manifest.json` and `Documentation/zigux/phase11-dw-wdt-survey.md` only if the new scaffold changes shipped lane evidence",
+        "- keep `Documentation/zigux/phase11-dw-wdt-teardown-note.md` unchanged unless `stop()`, `teardownSummary()`, or `removeSummary()` ownership actually moves",
         "If neither acquisition branch lands yet, keep this note aligned with the already-landed DesignWare packet instead of reopening shared Phase 11 reminder surfaces.",
     ],
     "validation_matrix": [
@@ -55,7 +60,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 12
 
 
 class CheckError(RuntimeError):
@@ -112,12 +117,16 @@ def run_self_test() -> None:
 
         cases = [
             (FILES["plan_note"], MARKERS["plan_note"][1]),
-            (FILES["plan_note"], MARKERS["plan_note"][6]),
+            (FILES["plan_note"], MARKERS["plan_note"][4]),
+            (FILES["plan_note"], MARKERS["plan_note"][5]),
+            (FILES["plan_note"], MARKERS["plan_note"][7]),
+            (FILES["plan_note"], MARKERS["plan_note"][9]),
+            (FILES["plan_note"], MARKERS["plan_note"][12]),
+            (FILES["plan_note"], MARKERS["plan_note"][13]),
             (FILES["validation_matrix"], MARKERS["validation_matrix"][3]),
             (FILES["survey_note"], MARKERS["survey_note"][1]),
             (FILES["teardown_note"], MARKERS["teardown_note"][2]),
             (FILES["manifest"], MARKERS["manifest"][0]),
-            (FILES["manifest"], MARKERS["manifest"][1]),
             (FILES["manifest"], MARKERS["manifest"][2]),
         ]
 
