@@ -192,6 +192,11 @@
       "name": "empty_config_symbol_names",
       "input": "empty_config_symbol_names.config",
       "expected": "empty_config_symbol_names_expected.json"
+    },
+    {
+      "name": "last_state_transitions",
+      "input": "last_state_transitions.config",
+      "expected": "last_state_transitions_expected.json"
     }
   ]
 }
