@@ -41,6 +41,7 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `scripts/zigux/check-phase3-abi.py`
 - `scripts/zigux/check-phase3-abi-dump-gate.py`
 - `scripts/zigux/check-phase3-policy-byte-guards.py`
 - `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
