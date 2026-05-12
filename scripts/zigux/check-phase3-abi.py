@@ -26,6 +26,7 @@ REQUIRED_FILES = (
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
@@ -68,6 +69,8 @@ CHECK_LIB_PATH = Path("scripts/zigux/phase3_check_lib.py")
 MAKE_MARKERS = (
     "phase3-abi:",
     "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+    "phase3-low-level-wrappers-test:",
+    "$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 RUNNER_MARKERS = (
     "from phase3_check_lib import run_phase3_slice_entry",
@@ -222,6 +225,19 @@ def run_self_test() -> int:
             case_count += 1
             _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
 
+        low_level_build_rel = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+        (root / low_level_build_rel).unlink()
+        issues = validate_repo(root)
+        expected_low_level_build_missing = (
+            f"missing repo file: {low_level_build_rel.as_posix()}"
+        )
+        if expected_low_level_build_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing low-level-wrapper build file was not reported")
+            return 1
+        case_count += 1
+        _write(root / low_level_build_rel)
+
         mmio_consumer_rel = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
         (root / mmio_consumer_rel).unlink()
         issues = validate_repo(root)
@@ -250,6 +266,26 @@ def run_self_test() -> int:
         if expected_make_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / MAKEFILE_PATH,
+            _read(root / MAKEFILE_PATH).replace(
+                "$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_low_level_make_marker = (
+            "missing make marker: $(ZIG) build phase3-low-level-wrappers-test "
+            "--build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        )
+        if expected_low_level_make_marker not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing low-level-wrapper make marker was not reported")
             return 1
         case_count += 1
 
