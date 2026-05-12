@@ -545,6 +545,119 @@ pub const RulesetHelperLab = struct {
     }
 };
 
+test "landlock ruleset creation keeps the first-layer access mask packet explicit" {
+    const plan = try RulesetHelperLab.planRulesetCreation(.{
+        .fs_access_mask = 0x3,
+        .net_access_mask = 0x8,
+        .scope_mask = 0x10,
+    });
+
+    try std.testing.expectEqualStrings(RulesetHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expectEqual(@as(u32, 1), plan.num_layers);
+    try std.testing.expectEqual(@as(u32, 0x3), plan.access_masks.fs);
+    try std.testing.expectEqual(@as(u32, 0x8), plan.access_masks.net);
+    try std.testing.expectEqual(@as(u32, 0x10), plan.access_masks.scope);
+    try std.testing.expectError(error.EmptyRuleset, RulesetHelperLab.planRulesetCreation(.{}));
+}
+
+test "landlock ruleset mask helpers keep inode handling and union math explicit" {
+    const combined = RulesetHelperLab.unionAccessMasks(&.{
+        .{ .fs = 0x3, .net = 0x4, .scope = 0x8 },
+        .{ .fs = 0x10, .net = 0x20, .scope = 0x40 },
+    });
+    try std.testing.expectEqual(@as(u32, 0x13), combined.fs);
+    try std.testing.expectEqual(@as(u32, 0x24), combined.net);
+    try std.testing.expectEqual(@as(u32, 0x48), combined.scope);
+
+    const inode_masks = RulesetHelperLab.initLayerMasks(&.{
+        .{ .fs = 0x3 },
+        .{ .fs = 0x10 },
+    }, 0x2013, .inode);
+    try std.testing.expectEqualStrings(RulesetHelperLab.descriptor().anchor, inode_masks.anchor);
+    try std.testing.expectEqual(@as(u32, 0x2003), inode_masks.masks[0]);
+    try std.testing.expectEqual(@as(u32, 0x2010), inode_masks.masks[1]);
+    try std.testing.expectEqual(@as(u32, 0x2013), inode_masks.handled_accesses);
+
+    const net_masks = RulesetHelperLab.initLayerMasks(&.{
+        .{ .net = 0x1 },
+        .{ .net = 0x6 },
+    }, 0x7, .net_port);
+    try std.testing.expectEqual(@as(u32, 0x1), net_masks.masks[0]);
+    try std.testing.expectEqual(@as(u32, 0x6), net_masks.masks[1]);
+    try std.testing.expectEqual(@as(u32, 0x7), net_masks.handled_accesses);
+}
+
+test "landlock ruleset unmasking reports whether any layer access is still pending" {
+    var masks = [_]u32{0} ** max_num_layers;
+    masks[0] = 0x3;
+    masks[1] = 0x4;
+    try std.testing.expect(try RulesetHelperLab.unmaskLayers(&.{
+        .{ .level = 1, .access = 0x3 },
+        .{ .level = 2, .access = 0x4 },
+    }, &masks));
+
+    var partial_masks = [_]u32{0} ** max_num_layers;
+    partial_masks[0] = 0x7;
+    try std.testing.expect(!(try RulesetHelperLab.unmaskLayers(&.{
+        .{ .level = 1, .access = 0x3 },
+    }, &partial_masks)));
+    try std.testing.expectEqual(@as(u32, 0x4), partial_masks[0]);
+}
+
+test "landlock ruleset insertion plans cover fresh rules and merged followups" {
+    const created = try RulesetHelperLab.planRuleInsertion(null, &.{
+        .{ .level = 1, .access = 0x3 },
+        .{ .level = 3, .access = 0x8 },
+    }, 2);
+    try std.testing.expectEqual(RuleInsertionMode.insert_new_rule, created.mode);
+    try std.testing.expectEqual(@as(u32, 3), created.resulting_num_rules);
+    try std.testing.expectEqual(@as(usize, 2), created.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 1), created.resulting_rule.layers[0].level);
+    try std.testing.expectEqual(@as(u32, 0x8), created.resulting_rule.layers[1].access);
+
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+    const merged = try RulesetHelperLab.planRuleInsertion(existing, &.{
+        .{ .level = 5, .access = 0x10 },
+    }, 6);
+    try std.testing.expectEqual(RuleInsertionMode.append_merged_layer, merged.mode);
+    try std.testing.expectEqual(@as(u32, 6), merged.resulting_num_rules);
+    try std.testing.expectEqual(@as(usize, 3), merged.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 5), merged.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x10), merged.resulting_rule.layers[2].access);
+}
+
+test "landlock ruleset tree search and link keep root and attachment sites explicit" {
+    const root_search = try RulesetHelperLab.planRuleTreeSearch(.inode, false, 40, &.{}, 4);
+    try std.testing.expectEqual(TreeRoot.inode, root_search.root);
+    try std.testing.expectEqual(@as(usize, 0), root_search.search_depth);
+    try std.testing.expectEqual(@as(?InsertionSite, .root), root_search.insertion_site);
+    try std.testing.expectEqual(@as(u32, 5), root_search.resulting_num_rules);
+
+    const root_link = try RulesetHelperLab.planRuleTreeLink(root_search);
+    try std.testing.expectEqual(TreeLinkMode.initialize_root, root_link.mode);
+    try std.testing.expectEqual(@as(?u64, null), root_link.parent_key_data);
+    try std.testing.expect(root_link.performs_rb_link_node);
+    try std.testing.expect(root_link.performs_rb_insert_color);
+
+    const attach_search = try RulesetHelperLab.planRuleTreeSearch(.net_port, true, 50, &.{ 10, 30, 40 }, 7);
+    try std.testing.expectEqual(TreeRoot.net_port, attach_search.root);
+    try std.testing.expectEqual(@as(usize, 3), attach_search.search_depth);
+    try std.testing.expectEqual(@as(?u64, 40), attach_search.parent_key_data);
+    try std.testing.expectEqual(@as(?InsertionSite, .right), attach_search.insertion_site);
+    try std.testing.expectEqual(@as(u32, 8), attach_search.resulting_num_rules);
+
+    const attach_link = try RulesetHelperLab.planRuleTreeLink(attach_search);
+    try std.testing.expectEqual(TreeLinkMode.attach_right, attach_link.mode);
+    try std.testing.expectEqual(@as(?u64, 40), attach_link.parent_key_data);
+    try std.testing.expectEqual(@as(u32, 8), attach_link.resulting_num_rules);
+}
+
 test "landlock ruleset insertion rejects empty access when extending a level-zero rule" {
     const base_rule = RulePlan{
         .num_layers = 1,
