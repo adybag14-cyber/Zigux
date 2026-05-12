@@ -88,6 +88,16 @@ EXPECTED_CONTRACT_CASES = [
     "sha256_drift",
     "sha256_drift_repeat",
 ]
+EXPECTED_REPEAT_CONTRACT_CASES = [
+    "helper_self_test_repeat",
+    "cli_help_output_repeat",
+    "text_pass_repeat",
+    "json_mismatch_repeat",
+    "sha256_drift_repeat",
+]
+EXPECTED_BASE_CONTRACT_CASES = [
+    case for case in EXPECTED_CONTRACT_CASES if case not in EXPECTED_REPEAT_CONTRACT_CASES
+]
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "phase4_use_marker_round_trip",
@@ -119,11 +129,11 @@ REQUIRED_PHASE4_USE_MARKERS = [
 REQUIRED_SURVEY_NOTE_MARKERS = [
     "- `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`",
     "- `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18`",
-    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`",
+    f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(EXPECTED_BASE_CONTRACT_CASES)}`",
     "- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`",
-    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`",
-    "- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`",
-    "- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=21`",
+    f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(EXPECTED_REPEAT_CONTRACT_CASES)}`",
+    f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}`",
+    f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}`",
 ]
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
@@ -200,6 +210,24 @@ def assert_contract_self_test_summary(lines: list[str]) -> None:
 def assert_contract_summary(lines: list[str]) -> None:
     if extract_output_value(lines, "ARTIFACT_DIFF_CONTRACT=") != "pass":
         raise AssertionError(f"unexpected contract summary status: {lines}")
+    base_cases = parse_case_catalog(
+        lines,
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=",
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASES=",
+    )
+    if base_cases != EXPECTED_BASE_CONTRACT_CASES:
+        raise AssertionError(
+            f"contract base catalog drifted: expected {EXPECTED_BASE_CONTRACT_CASES}, got {base_cases}"
+        )
+    repeat_cases = parse_case_catalog(
+        lines,
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=",
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=",
+    )
+    if repeat_cases != EXPECTED_REPEAT_CONTRACT_CASES:
+        raise AssertionError(
+            f"contract repeat catalog drifted: expected {EXPECTED_REPEAT_CONTRACT_CASES}, got {repeat_cases}"
+        )
     cases = parse_case_catalog(
         lines,
         "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=",
@@ -369,28 +397,51 @@ def run_self_test() -> int:
 
     contract_lines = [
         "ARTIFACT_DIFF_CONTRACT=pass",
-        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
-        "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(
-            [
-                case
-                for case in EXPECTED_CONTRACT_CASES
-                if case
-                not in {
-                    "helper_self_test_repeat",
-                    "cli_help_output_repeat",
-                    "text_pass_repeat",
-                    "json_mismatch_repeat",
-                    "sha256_drift_repeat",
-                }
-            ]
-        ),
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
+        f"ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(EXPECTED_BASE_CONTRACT_CASES)}",
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(EXPECTED_BASE_CONTRACT_CASES),
+        f"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(EXPECTED_REPEAT_CONTRACT_CASES)}",
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(EXPECTED_REPEAT_CONTRACT_CASES),
         f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}",
         "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(EXPECTED_CONTRACT_CASES),
     ]
     assert_contract_summary(contract_lines)
     covered_cases.append("contract_summary_round_trip")
+
+    bad_contract_base_count = contract_lines.copy()
+    bad_contract_base_count[1] = (
+        f"ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(EXPECTED_BASE_CONTRACT_CASES) - 1}"
+    )
+    expect_assertion(
+        "contract_summary_case_count_drift",
+        lambda: assert_contract_summary(bad_contract_base_count),
+    )
+
+    bad_contract_base_order = contract_lines.copy()
+    bad_contract_base_order[2] = "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(
+        ["cli_help_output", "helper_self_test", *EXPECTED_BASE_CONTRACT_CASES[2:]]
+    )
+    expect_assertion(
+        "contract_summary_case_order_drift",
+        lambda: assert_contract_summary(bad_contract_base_order),
+    )
+
+    bad_contract_repeat_count = contract_lines.copy()
+    bad_contract_repeat_count[3] = (
+        f"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(EXPECTED_REPEAT_CONTRACT_CASES) - 1}"
+    )
+    expect_assertion(
+        "contract_summary_case_count_drift",
+        lambda: assert_contract_summary(bad_contract_repeat_count),
+    )
+
+    bad_contract_repeat_order = contract_lines.copy()
+    bad_contract_repeat_order[4] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(
+        ["cli_help_output_repeat", "helper_self_test_repeat", *EXPECTED_REPEAT_CONTRACT_CASES[2:]]
+    )
+    expect_assertion(
+        "contract_summary_case_order_drift",
+        lambda: assert_contract_summary(bad_contract_repeat_order),
+    )
 
     bad_contract_count = contract_lines.copy()
     bad_contract_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
