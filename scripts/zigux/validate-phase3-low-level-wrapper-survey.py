@@ -21,7 +21,7 @@ MAKEFILE_REL = Path("zigux/Makefile")
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
-    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-compareexchange-compareexchangeweak",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak",
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
@@ -34,8 +34,9 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
+    "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
     "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet's direct wrapper surface, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay consumes those helpers as prerequisites.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
 )
@@ -73,8 +74,12 @@ REQUIRED_ATOMIC_SNIPPETS = (
     'pub fn fetchNand(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
     'pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
     'pub fn fetchMax(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
+    'pub fn bitSet(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
+    'pub fn bitReset(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
+    'pub fn bitToggle(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
     'pub fn compareExchangeWeak(',
     'test "phase3 atomic wrappers keep non-seq-cst orderings reviewable"',
+    'test "phase3 atomic wrappers keep bit wrappers reviewable"',
 )
 
 REQUIRED_BARRIER_SNIPPETS = (
@@ -225,7 +230,7 @@ def run_self_test() -> int:
             root,
             SURVEY_REL,
             (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
+                "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
                 "",
                 1,
             ),
