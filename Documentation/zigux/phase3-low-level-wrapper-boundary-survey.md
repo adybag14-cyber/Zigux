@@ -5,7 +5,7 @@ This note records the current low-level wrapper packet that `master` still route
 ## Status
 
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
-- `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-compareexchange-compareexchangeweak`
+- `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
@@ -20,12 +20,12 @@ This note records the current low-level wrapper packet that `master` still route
 
 Current `master` already carries a real low-level wrapper packet.
 The approved helper surface here is the direct wrapper family, not the adjacent policy-and-unsafe owner packet.
-The focused replay keeps that direct surface explicit.
+The direct helper files plus the focused replay keep that surface explicit.
 
-- `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, including non-`seq_cst` orderings and signed min/max edges.
+- `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.
 - `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `acquire`, `release`, `full`, and `acquireRelease`, including the barrier-locality and handoff replays that current `master` already ships.
 - `zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.
-- `zigux/tests/phase3_low_level_wrappers.zig` is the current exact replay for this packet's direct wrapper surface, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs.
+- `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 ## Adjacent Packet Boundary
@@ -50,8 +50,9 @@ It does not justify broad new helper-family growth on its own.
 
 ## Boundary Reading
 
-The current focused replay shows that the shipped direct wrapper packet now includes:
+The current helper-and-replay packet shows that the shipped direct wrapper surface now includes:
 
+- helper-local atomic bit-set, bit-reset, and bit-toggle coverage in `zigux/helpers/atomic.zig`
 - 64-bit direct MMIO coverage in the focused test route
 - direct MMIO width, alignment, and odd-offset behavior in the focused test route
 - non-`seq_cst` ordering coverage and signed atomic edges in the focused test route
@@ -65,6 +66,6 @@ This lane should only reopen for one more survey, validator, or focused build re
 
 The next honest follow-on inside `shared-subsystems` stays small:
 
-- keep the dedicated survey, validator, and focused build route aligned with the current atomic, barrier, and direct-MMIO replay
+- keep the dedicated survey, validator, helper-local atomic proof surface, and focused build route aligned with the current atomic, barrier, and direct-MMIO packet
 - keep policy admission, allocator policy, panic policy, and raw-pointer bridge follow-through in the adjacent policy-and-unsafe packet
 - avoid widening this lane into broader ABI, policy, export, or generated-wrapper cleanup
