@@ -58,14 +58,14 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - helper: `lib/hexdump.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
-- dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`
+- dedicated perf replay: `zigux/tests/phase6_hexdump_perf_matrix.zig` and `zigux/tests/phase6_hexdump_perf.zig`
 - fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - Linux-style packet review route: `make -C zigux phase6-hexdump-review`
 - direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-hexdump-test`
-- dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper and perf replays on the same `PYTHON` and `ZIG` selection path instead of asking reviewers to stitch those commands together by hand
-- current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle today
+- dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper replay, exact perf-matrix preflight, and ReleaseSafe perf gate on the same `PYTHON` and `ZIG` selection path instead of asking reviewers to stitch those commands together by hand
+- current review posture: focused helper formatting parity plus the exact four-case perf-matrix preflight and dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle today
 
 ## Shared Replay Routes
 - `make -C zigux phase6-hexdump-test`
