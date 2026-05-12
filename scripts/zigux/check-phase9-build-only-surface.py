@@ -232,8 +232,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{DEP_MOD_BOUNDARY_MARKER}")
 
-        write_fixtureTree = write_fixture_tree
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
         lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(
