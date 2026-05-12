@@ -16,6 +16,7 @@ The current bounded HVC archival packet on `master` is:
 
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
+* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
@@ -23,7 +24,7 @@ The current bounded HVC archival packet on `master` is:
 * `make -C zigux phase11-hvc-survey`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
 
-The survey note exists to keep those surfaces and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
+The survey note exists to keep those surfaces, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
 ## What Landed
 
