@@ -9,6 +9,8 @@ pub const default_seg_max: u32 = 1;
 pub const default_cmd_per_lun: u32 = 1;
 pub const default_max_sectors: u32 = 0xFFFF;
 pub const max_lun_format_one_bias: u32 = 0x4001;
+pub const default_command_buffer_bytes: u32 = 32;
+pub const default_sense_buffer_bytes: u32 = 96;
 
 pub const RequestQueueKind = enum {
     request,
@@ -27,6 +29,7 @@ pub const ModuleDescriptor = struct {
     provides_probe_config_snapshot: bool,
     provides_host_limit_summary: bool,
     provides_queue_depth_summary: bool,
+    provides_command_buffer_ownership_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -186,6 +189,26 @@ pub const QueueDepthSummary = struct {
     uses_change_queue_depth: bool,
 };
 
+pub const CommandBufferOwnershipRequest = struct {
+    queue_depth: QueueDepthRequest,
+    command_bytes: u32 = 0,
+    sense_bytes: u32 = 0,
+};
+
+pub const CommandBufferOwnershipSummary = struct {
+    anchor: []const u8,
+    requested_depth: u32,
+    clamped_queue_depth: u32,
+    command_bytes_per_request: u32,
+    sense_bytes_per_request: u32,
+    total_command_bytes: u64,
+    total_sense_bytes: u64,
+    owns_one_command_buffer_per_request: bool,
+    owns_one_sense_buffer_per_request: bool,
+    requires_dma_mapping_later: bool,
+    preserves_pre_registration_scope: bool,
+};
+
 pub const RecoveryQueueDepthSummary = struct {
     anchor: []const u8,
     requested_depth: u32,
@@ -216,6 +239,7 @@ pub const VirtioScsiQueueLab = struct {
     last_probe_snapshot: ?ProbeSnapshot = null,
     last_host_limit_summary: ?HostLimitSummary = null,
     last_queue_depth_summary: ?QueueDepthSummary = null,
+    last_command_buffer_ownership_summary: ?CommandBufferOwnershipSummary = null,
     last_io_queue_map_summary: ?IoQueueMapSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
     frozen_queue_depth_summary: ?QueueDepthSummary = null,
@@ -230,6 +254,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_probe_config_snapshot = true,
             .provides_host_limit_summary = true,
             .provides_queue_depth_summary = true,
+            .provides_command_buffer_ownership_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -361,6 +386,37 @@ pub const VirtioScsiQueueLab = struct {
             .uses_change_queue_depth = true,
         };
         self.last_queue_depth_summary = summary;
+        return summary;
+    }
+
+    pub fn captureCommandBufferOwnershipSummary(
+        self: *Self,
+        request: CommandBufferOwnershipRequest,
+    ) !CommandBufferOwnershipSummary {
+        const queue_depth = try self.captureQueueDepthSummary(request.queue_depth);
+        const command_bytes = if (request.command_bytes == 0)
+            default_command_buffer_bytes
+        else
+            request.command_bytes;
+        const sense_bytes = if (request.sense_bytes == 0)
+            default_sense_buffer_bytes
+        else
+            request.sense_bytes;
+
+        const summary = CommandBufferOwnershipSummary{
+            .anchor = descriptor().anchor,
+            .requested_depth = queue_depth.requested_depth,
+            .clamped_queue_depth = queue_depth.clamped_queue_depth,
+            .command_bytes_per_request = command_bytes,
+            .sense_bytes_per_request = sense_bytes,
+            .total_command_bytes = @as(u64, queue_depth.clamped_queue_depth) * @as(u64, command_bytes),
+            .total_sense_bytes = @as(u64, queue_depth.clamped_queue_depth) * @as(u64, sense_bytes),
+            .owns_one_command_buffer_per_request = true,
+            .owns_one_sense_buffer_per_request = true,
+            .requires_dma_mapping_later = true,
+            .preserves_pre_registration_scope = true,
+        };
+        self.last_command_buffer_ownership_summary = summary;
         return summary;
     }
 
@@ -529,6 +585,7 @@ pub const VirtioScsiQueueLab = struct {
         self.last_probe_snapshot = null;
         self.last_host_limit_summary = null;
         self.last_queue_depth_summary = null;
+        self.last_command_buffer_ownership_summary = null;
         self.last_io_queue_map_summary = null;
         self.frozen_queue_depth_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
