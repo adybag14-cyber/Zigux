@@ -34,7 +34,6 @@ REQUIRED_FILES = (
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
@@ -109,23 +108,34 @@ REVIEW_PROCESS_NOTE_MARKERS = (
     "Keep the Phase 15 governance lane in maintenance mode.",
 )
 
-MANIFEST_LANE_MARKERS = (
-    "scripts-root validator path",
-    "Linux-style `make -C zigux phase15-validate` route",
-    "tests-root guidance path",
-    "dedicated handoff-checker route",
+MANIFEST_CURRENT_APPROVAL_STATE = "no_freeze_map_status_change_approved"
+MANIFEST_HANDOFF_CURRENT_MODE = "maintenance_mode"
+MANIFEST_HANDOFF_BLOCKER_POSTURE = "deep_core_blocker_posture_change"
+MANIFEST_HANDOFF_REPLAY_COMMANDS = (
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
 )
-
-CURRENT_REPO_HANDOFF_MARKERS = (
+MANIFEST_HANDOFF_NEXT_STEP_MARKERS = (
+    "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
-    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/tests/phase15_governance_lane_sequencing.zig",
-    "zigux/tests/phase15_build.zig",
+    "shared-summaries",
+    "required review fields",
+    "decision buckets",
+    "reopen-trigger catalog",
+    "no-approval posture recorded here",
 )
 
 BUILD_MARKERS = (
@@ -191,29 +201,33 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
     _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
 
-    handoff_evidence = manifest.get("handoff_evidence")
-    if not isinstance(handoff_evidence, dict):
-        issues.append("manifest:missing:handoff_evidence")
+    if manifest.get("current_approval_state") != MANIFEST_CURRENT_APPROVAL_STATE:
+        issues.append(f"manifest:missing:current_approval_state:{MANIFEST_CURRENT_APPROVAL_STATE}")
+
+    handoff = manifest.get("handoff")
+    if not isinstance(handoff, dict):
+        issues.append("manifest:missing:handoff")
     else:
-        current_repo_handoff = handoff_evidence.get("current_repo_handoff")
-        if not isinstance(current_repo_handoff, str):
-            issues.append("manifest:missing:handoff_evidence.current_repo_handoff")
-        else:
-            _require_markers_present(
-                current_repo_handoff,
-                CURRENT_REPO_HANDOFF_MARKERS,
-                "manifest_current_repo_handoff",
-                issues,
+        if handoff.get("current_mode") != MANIFEST_HANDOFF_CURRENT_MODE:
+            issues.append(f"manifest:missing:handoff.current_mode:{MANIFEST_HANDOFF_CURRENT_MODE}")
+        if handoff.get("blocker_posture_requirement") != MANIFEST_HANDOFF_BLOCKER_POSTURE:
+            issues.append(
+                "manifest:missing:"
+                f"handoff.blocker_posture_requirement:{MANIFEST_HANDOFF_BLOCKER_POSTURE}"
             )
 
-        current_bounded_lane = handoff_evidence.get("current_bounded_lane")
-        if not isinstance(current_bounded_lane, str):
-            issues.append("manifest:missing:handoff_evidence.current_bounded_lane")
+        replay_commands = handoff.get("replay_commands")
+        if replay_commands != list(MANIFEST_HANDOFF_REPLAY_COMMANDS):
+            issues.append("manifest:missing:handoff.replay_commands")
+
+        next_step = handoff.get("next_step")
+        if not isinstance(next_step, str):
+            issues.append("manifest:missing:handoff.next_step")
         else:
             _require_markers_present(
-                current_bounded_lane,
-                MANIFEST_LANE_MARKERS,
-                "manifest_current_bounded_lane",
+                next_step,
+                MANIFEST_HANDOFF_NEXT_STEP_MARKERS,
+                "manifest_handoff_next_step",
                 issues,
             )
 
@@ -309,10 +323,31 @@ def _baseline_review_process_note() -> str:
 def _baseline_manifest() -> str:
     return json.dumps(
         {
-            "handoff_evidence": {
-                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_handoff_next_steps_manifest.json, zigux/tests/phase15_readiness_gate_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_blocker_evidence.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/tests/phase15_governance_lane_sequencing.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
-                "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
-            }
+            "current_approval_state": MANIFEST_CURRENT_APPROVAL_STATE,
+            "handoff": {
+                "current_mode": MANIFEST_HANDOFF_CURRENT_MODE,
+                "replay_commands": list(MANIFEST_HANDOFF_REPLAY_COMMANDS),
+                "blocker_posture_requirement": MANIFEST_HANDOFF_BLOCKER_POSTURE,
+                "next_step": (
+                    "stay in maintenance mode unless a named reopen trigger or deep-core blocker "
+                    "posture change fires first; if a new same-lane shared-summary truthfulness "
+                    "drift appears first, reread Documentation/zigux/README.md, "
+                    "Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and "
+                    "zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, "
+                    "Documentation/zigux/phase15-architecture-council-review-process.md, "
+                    "Documentation/zigux/phase15-readiness-gate-survey.md, "
+                    "Documentation/zigux/phase15-handoff-next-steps-survey.md, "
+                    "Documentation/zigux/phase15-governance-lane-sequencing.md, "
+                    "scripts/zigux/validate-phase15.py, "
+                    "zigux/tests/phase15_handoff_next_steps_manifest.json, and "
+                    "zigux/tests/phase15_readiness_gate_manifest.json, then keep any repair "
+                    "scoped to shared-summaries plus its direct validator surface instead of "
+                    "reopening packet-local backlog unless broader scripts-root or tests-root "
+                    "reminder drift routed through the shared-summary companion lane changes the "
+                    "truthfulness of the required review fields, decision buckets, reopen-trigger "
+                    "catalog, or no-approval posture recorded here"
+                ),
+            },
         },
         indent=2,
     ) + "\n"
@@ -454,7 +489,11 @@ def run_self_test() -> int:
         baseline_checker = _read(checker_path)
         _write(
             root / HANDOFF_CHECKER_REL,
-            baseline_checker.replace('MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"\n', "", 1),
+            baseline_checker.replace(
+                'MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"\n',
+                "",
+                1,
+            ),
         )
         _assert_only(
             validate(root),
@@ -492,7 +531,11 @@ def run_self_test() -> int:
 
         _write(
             root / REVIEW_CHECKLIST_REL,
-            baseline_review_checklist.replace("`Documentation/zigux/phase15-governance-lane-sequencing.md`, ", "", 1),
+            baseline_review_checklist.replace(
+                "`Documentation/zigux/phase15-governance-lane-sequencing.md`, ",
+                "",
+                1,
+            ),
         )
         _assert_only(
             validate(root),
@@ -504,7 +547,11 @@ def run_self_test() -> int:
 
         _write(
             root / REVIEW_CHECKLIST_REL,
-            baseline_review_checklist.replace("`zigux/tests/phase15_handoff_next_steps_manifest.json`, ", "", 1),
+            baseline_review_checklist.replace(
+                "`zigux/tests/phase15_handoff_next_steps_manifest.json`, ",
+                "",
+                1,
+            ),
         )
         _assert_only(
             validate(root),
@@ -516,7 +563,11 @@ def run_self_test() -> int:
 
         _write(
             root / REVIEW_CHECKLIST_REL,
-            baseline_review_checklist.replace("`zigux/tests/phase15_readiness_gate_manifest.json`, ", "", 1),
+            baseline_review_checklist.replace(
+                "`zigux/tests/phase15_readiness_gate_manifest.json`, ",
+                "",
+                1,
+            ),
         )
         _assert_only(
             validate(root),
@@ -540,42 +591,110 @@ def run_self_test() -> int:
 
         manifest_path = root / MANIFEST_REL
         baseline_manifest = _read(manifest_path)
-        _write(root / MANIFEST_REL, json.dumps({"handoff_evidence": {}}, indent=2) + "\n")
+
+        _write(root / MANIFEST_REL, json.dumps({"handoff": {}}, indent=2) + "\n")
         _assert_only(
             validate(root),
             [
-                "manifest:missing:handoff_evidence.current_repo_handoff",
-                "manifest:missing:handoff_evidence.current_bounded_lane",
+                f"manifest:missing:current_approval_state:{MANIFEST_CURRENT_APPROVAL_STATE}",
+                f"manifest:missing:handoff.current_mode:{MANIFEST_HANDOFF_CURRENT_MODE}",
+                f"manifest:missing:handoff.blocker_posture_requirement:{MANIFEST_HANDOFF_BLOCKER_POSTURE}",
+                "manifest:missing:handoff.replay_commands",
+                "manifest:missing:handoff.next_step",
             ],
-            "missing_manifest_lane_string_guard_failed",
+            "missing_manifest_fields_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
         case_count += 1
 
         manifest_data = json.loads(baseline_manifest)
-        manifest_data["handoff_evidence"]["current_repo_handoff"] = manifest_data["handoff_evidence"][
-            "current_repo_handoff"
-        ].replace("zigux/tests/phase15_handoff_next_steps_manifest.json, ", "", 1)
+        manifest_data["current_approval_state"] = "approved"
         _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
         _assert_only(
             validate(root),
-            [
-                "manifest_current_repo_handoff:missing:zigux/tests/phase15_handoff_next_steps_manifest.json"
-            ],
-            "missing_manifest_repo_handoff_marker_guard_failed",
+            [f"manifest:missing:current_approval_state:{MANIFEST_CURRENT_APPROVAL_STATE}"],
+            "wrong_manifest_approval_state_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
         case_count += 1
 
         manifest_data = json.loads(baseline_manifest)
-        manifest_data["handoff_evidence"]["current_bounded_lane"] = manifest_data["handoff_evidence"][
-            "current_bounded_lane"
-        ].replace("Linux-style `make -C zigux phase15-validate` route, ", "", 1)
+        manifest_data["handoff"]["current_mode"] = "open"
         _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["manifest_current_bounded_lane:missing:Linux-style `make -C zigux phase15-validate` route"],
-            "missing_manifest_validate_route_guard_failed",
+            [f"manifest:missing:handoff.current_mode:{MANIFEST_HANDOFF_CURRENT_MODE}"],
+            "wrong_manifest_current_mode_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["blocker_posture_requirement"] = "none"
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [
+                "manifest:missing:"
+                f"handoff.blocker_posture_requirement:{MANIFEST_HANDOFF_BLOCKER_POSTURE}"
+            ],
+            "wrong_manifest_blocker_posture_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["replay_commands"] = list(MANIFEST_HANDOFF_REPLAY_COMMANDS[:-1])
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest:missing:handoff.replay_commands"],
+            "missing_manifest_replay_command_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "scripts/zigux/validate-phase15.py, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:scripts/zigux/validate-phase15.py"],
+            "missing_manifest_next_step_validator_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "shared-summaries ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:shared-summaries"],
+            "missing_manifest_next_step_shared_summaries_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "decision buckets, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:decision buckets"],
+            "missing_manifest_next_step_decision_buckets_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
         case_count += 1
@@ -687,7 +806,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_HANDOFF_REPLAY_COMMANDS) + len(MANIFEST_HANDOFF_NEXT_STEP_MARKERS) + 3}"
     )
     return 0
 
