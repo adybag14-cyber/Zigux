@@ -81,7 +81,7 @@ Current `master` also needs one helper-specific owner map for the four direct-an
 - `PHASE1_RBTREE_DIRECT_OWNER=rbtree iterator and cached-root coverage stay helper-local until exactly one dedicated shared iterator or cached-root leftmost-return fixture key lands`
 - `PHASE1_STRING_DIRECT_OWNER=string already has shared helper-manifest anchor validation in validate-phase1-closure.py, so reopen only for direct anchor drift or committed shared replay drift`
 
-These four helper-specific owner markers are still lane-local reread surfaces on current `master`: `scripts/zigux/validate-phase1.py` exact-checks the shared helper split, manifest packet, helper anchors, and committed replay keys, but it does not exact-check these four direct-owner lines yet.
+These four helper-specific owner markers are now exact-checked by `scripts/zigux/check-phase1-direct-owner-markers.py` on current `master`, so nearby Phase 1 follow-through should leave this owner-map packet parked unless a fresh reread shows direct-anchor drift or the dedicated checker itself drifts.
 
 ## Next Bounded Step
 
@@ -90,7 +90,7 @@ Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helpe
 - If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.
 - If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.
 - For `tools/lib/bitmap.zig`, do not replay the older closed exact-marker validator cue; current `master` already exact-requires and self-tests `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW` and `PHASE1_BITMAP_LINUX_ALIAS_REVIEW`, so leave the bitmap closure-validator packet parked unless a fresh reread shows direct-anchor drift or committed shared replay drift.
-- The next smallest same-lane shared-validation step is to teach `scripts/zigux/validate-phase1.py` to exact-check the four `PHASE1_BITMAP_DIRECT_OWNER`, `PHASE1_FIND_BIT_DIRECT_OWNER`, `PHASE1_RBTREE_DIRECT_OWNER`, and `PHASE1_STRING_DIRECT_OWNER` lines in this note before widening into any helper-local replay change.
+- The next smallest same-lane shared-validation step is closed for this owner-map packet: `scripts/zigux/check-phase1-direct-owner-markers.py` exact-checks the four `PHASE1_*_DIRECT_OWNER` lines in this note before any helper-local replay widening.
 - If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.
 
 ## Footer
