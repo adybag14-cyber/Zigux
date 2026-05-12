@@ -127,7 +127,7 @@ REQUIRED_MARKERS = {
         "### 1. Command lane",
         "### 4. Shared wording lane",
         "runtime readback caution: authenticated contents reads for some Phase 8 files are inconsistent from this environment, so public default-branch tree evidence plus exact readable blob content should win over older absent-file assumptions",
-        "The next honest shared-surface reopen cue now starts with `Documentation/zigux/README.md`",
+        "The next honest shared-surface reopen cue now starts with keeping this sequencing note truthful:",
     ],
     DOCS_ROOT_PATH: [
         "`Documentation/zigux/phase8-exec-cmd-slice.md`",
@@ -519,6 +519,13 @@ def run_self_test() -> None:
             "### 1. Command lane",
             "### 1. Command packet",
             f"{SEQUENCING_PATH}: ### 1. Command lane",
+        ),
+        (
+            "sequencing_next_step_marker",
+            SEQUENCING_PATH,
+            "The next honest shared-surface reopen cue now starts with keeping this sequencing note truthful:",
+            "The next honest shared-surface reopen cue now starts with a broader shared reminder:",
+            f"{SEQUENCING_PATH}: The next honest shared-surface reopen cue now starts with keeping this sequencing note truthful:",
         ),
         (
             "docs_root_exec_cmd_route_marker",
