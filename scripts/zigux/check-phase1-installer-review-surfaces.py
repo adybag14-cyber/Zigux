@@ -51,7 +51,9 @@ TESTS_README_MARKERS = [
     ),
 ]
 
-CLOSURE_EXACT_MARKERS = [
+CLOSURE_SHARED_REVIEW_PACKET_START = "## Shared Review Packet"
+CLOSURE_SHARED_REVIEW_PACKET_END = "## Find Bit Review Rule"
+CLOSURE_SHARED_REVIEW_PACKET_MARKERS = [
     (
         "phase1_closure_installer_checker_anchor",
         "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
@@ -62,13 +64,24 @@ CLOSURE_EXACT_MARKERS = [
         "- `scripts/zigux/check-phase1-installer-companion-checks.py`",
         1,
     ),
+    (
+        "phase1_closure_install_zig_selftest_route",
+        "- `python3 scripts/zigux/install-zig.py --self-test`",
+        1,
+    ),
+    (
+        "phase1_closure_installer_companion_selftest_route",
+        "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
+        1,
+    ),
+    (
+        "phase1_closure_installer_companion_live_route",
+        "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+        1,
+    ),
 ]
 
 CLOSURE_PRESENCE_MARKERS = [
-    "- `scripts/zigux/install-zig.py`",
-    "- `python3 scripts/zigux/install-zig.py --self-test`",
-    "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
-    "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
@@ -145,11 +158,9 @@ def extract_bounded_block(text: str, label: str, start_marker: str, end_marker: 
     start_index = text.find(start_marker)
     if start_index == -1:
         return "", [f"{label}:missing_start:{start_marker}"]
-
     end_index = text.find(end_marker, start_index + len(start_marker))
     if end_index == -1:
         return "", [f"{label}:missing_end:{end_marker}"]
-
     return text[start_index:end_index], []
 
 
@@ -170,10 +181,9 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
-    issues.extend(collect_exact_count_markers(phase1_closure, CLOSURE_EXACT_MARKERS))
-    issues.extend(collect_presence_markers(phase1_closure, "phase1_closure_installer_packet", CLOSURE_PRESENCE_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
     issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
+    issues.extend(collect_presence_markers(phase1_closure, "phase1_closure_installer_packet", CLOSURE_PRESENCE_MARKERS))
     issues.extend(
         collect_presence_markers(
             review_checklist,
@@ -181,6 +191,16 @@ def validate_root(root: Path) -> list[str]:
             REVIEW_CHECKLIST_PACKET_MARKERS,
         )
     )
+
+    closure_packet, closure_errors = extract_bounded_block(
+        phase1_closure,
+        "phase1_closure_shared_review_packet",
+        CLOSURE_SHARED_REVIEW_PACKET_START,
+        CLOSURE_SHARED_REVIEW_PACKET_END,
+    )
+    issues.extend(closure_errors)
+    if not closure_errors:
+        issues.extend(collect_exact_count_markers(closure_packet, CLOSURE_SHARED_REVIEW_PACKET_MARKERS))
 
     review_phase1_block, block_errors = extract_bounded_block(
         review_checklist,
@@ -222,7 +242,15 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root / "Documentation/zigux/phase1-closure.md",
-        "\n".join([marker for _, marker, _ in CLOSURE_EXACT_MARKERS] + CLOSURE_PRESENCE_MARKERS) + "\n",
+        "\n".join(
+            [
+                *CLOSURE_PRESENCE_MARKERS,
+                CLOSURE_SHARED_REVIEW_PACKET_START,
+                *(marker for _, marker, _ in CLOSURE_SHARED_REVIEW_PACKET_MARKERS),
+                CLOSURE_SHARED_REVIEW_PACKET_END,
+            ]
+        )
+        + "\n",
     )
     write_text(
         root / ".github/workflows/zigux-bootstrap.yml",
@@ -283,10 +311,7 @@ def run_self_test() -> int:
             review_path,
             review_text.replace("`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`\n", "", 1),
         )
-        expect(
-            validate_root(root),
-            "review_checklist_phase1_route:expected=1:actual=0",
-        )
+        expect(validate_root(root), "review_checklist_phase1_route:expected=1:actual=0")
         build_self_test_root(root)
 
         review_text = review_path.read_text(encoding="utf-8")
@@ -294,10 +319,7 @@ def run_self_test() -> int:
             review_path,
             review_text.replace("`python3 scripts/zigux/check-phase1-installer-companion-checks.py`\n", "", 1),
         )
-        expect(
-            validate_root(root),
-            "review_checklist_phase1_route:expected=1:actual=0",
-        )
+        expect(validate_root(root), "review_checklist_phase1_route:expected=1:actual=0")
         build_self_test_root(root)
 
         write_text(root / "Documentation/zigux/review-checklist.md", "")
@@ -315,10 +337,19 @@ def run_self_test() -> int:
             closure_path,
             closure_text.replace("- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`\n", "", 1),
         )
-        expect(
-            validate_root(root),
-            "phase1_closure_installer_packet:- `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected>=1:actual=0",
+        expect(validate_root(root), "phase1_closure_installer_companion_selftest_route:expected=1:actual=0")
+        build_self_test_root(root)
+
+        closure_text = closure_path.read_text(encoding="utf-8")
+        write_text(
+            closure_path,
+            closure_text.replace(
+                "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`\n",
+                "- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`\n- `python3 scripts/zigux/check-phase1-installer-companion-checks.py`\n",
+                1,
+            ),
         )
+        expect(validate_root(root), "phase1_closure_installer_companion_live_route:expected=1:actual=2")
         build_self_test_root(root)
 
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
@@ -327,10 +358,7 @@ def run_self_test() -> int:
             workflow_path,
             workflow_text.replace("run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n", "", 1),
         )
-        expect(
-            validate_root(root),
-            "workflow_phase1_installer_companion_selftest:expected=1:actual=0",
-        )
+        expect(validate_root(root), "workflow_phase1_installer_companion_selftest:expected=1:actual=0")
         build_self_test_root(root)
 
         makefile_path = root / "zigux/Makefile"
@@ -339,10 +367,7 @@ def run_self_test() -> int:
             makefile_path,
             makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n", "", 1),
         )
-        expect(
-            validate_root(root),
-            "makefile_phase1_installer_companion_selftest:expected=1:actual=0",
-        )
+        expect(validate_root(root), "makefile_phase1_installer_companion_selftest:expected=1:actual=0")
         build_self_test_root(root)
 
         (root / "scripts/zigux/check-phase1-installer-companion-checks.py").unlink()
@@ -379,7 +404,7 @@ def main() -> int:
     print("PHASE1_INSTALLER_REVIEW_SURFACES=pass")
     print(
         "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(CLOSURE_EXACT_MARKERS) + len(CLOSURE_PRESENCE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(REVIEW_CHECKLIST_PACKET_MARKERS) + len(REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(CLOSURE_SHARED_REVIEW_PACKET_MARKERS) + len(CLOSURE_PRESENCE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(REVIEW_CHECKLIST_PACKET_MARKERS) + len(REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS)}"
     )
     return 0
 
