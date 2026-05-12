@@ -59,6 +59,26 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
 }
 
+test "phase 7 getOption clears caller output on malformed signed and unsigned input" {
+    var hyphen_only: []const u8 = "-";
+    var hyphen_only_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&hyphen_only, &hyphen_only_value));
+    try std.testing.expectEqual(@as(i32, 0), hyphen_only_value);
+    try std.testing.expectEqualStrings("", hyphen_only);
+
+    var malformed_negative: []const u8 = "-x";
+    var malformed_negative_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&malformed_negative, &malformed_negative_value));
+    try std.testing.expectEqual(@as(i32, 0), malformed_negative_value);
+    try std.testing.expectEqualStrings("x", malformed_negative);
+
+    var malformed_unsigned: []const u8 = "x";
+    var malformed_unsigned_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&malformed_unsigned, &malformed_unsigned_value));
+    try std.testing.expectEqual(@as(i32, 0), malformed_unsigned_value);
+    try std.testing.expectEqualStrings("x", malformed_unsigned);
+}
+
 test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     var positive: []const u8 = "2147483648";
     var positive_value: i32 = 0;
