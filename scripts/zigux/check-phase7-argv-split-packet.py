@@ -53,6 +53,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "there is no standalone `samples/zigux/*argv*` reference sample",
         "lib/argv_split.zig",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -254,6 +255,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "Documentation/zigux/review-checklist.md",
+            "there is no standalone `samples/zigux/*argv*` reference sample",
+            "",
+            "review_checklist_no_sample_boundary_marker",
+        )
+        expect_missing_marker(
+            "review_checklist_no_sample_boundary_marker",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: there is no standalone `samples/zigux/*argv*` reference sample",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
             "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
             "",
@@ -364,7 +379,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 9
+    case_count = 10
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
