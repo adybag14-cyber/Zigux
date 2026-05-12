@@ -42,15 +42,8 @@ PHASE3_VALIDATE_SUPPORT_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
 )
-REQUIRED_SELFTEST_DRIVER_PATHS = (
-    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
-    Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
-    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
-    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
-    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
-    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
-    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
-    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+REQUIRED_SELFTEST_DRIVER_PATHS = tuple(
+    rel_path for rel_path, _args in SELFTEST_COMMANDS
 )
 
 
