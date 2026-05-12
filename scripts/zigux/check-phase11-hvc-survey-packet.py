@@ -417,7 +417,6 @@ def run_self_test() -> None:
 
         commit = reset_fixture(tmpdir)
         note_missing = tmpdir / REQUIRED_FILES["survey_note"]
-        note_missing.writeText = None
         note_missing.write_text(
             note_missing.read_text(encoding="utf-8").replace(commit + "\n", ""),
             encoding="utf-8",
