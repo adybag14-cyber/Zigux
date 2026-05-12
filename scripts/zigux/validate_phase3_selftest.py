@@ -38,6 +38,20 @@ PHASE3_VALIDATE_TARGET = "phase3-validate"
 PHASE3_SELFTEST_DRIVER_COMMAND = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py"
 )
+REQUIRED_SELFTEST_DRIVER_PATHS = (
+    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+)
+
+
+def validate_driver_inventory(
+    commands: tuple[tuple[Path, tuple[str, ...]], ...] = SELFTEST_COMMANDS,
+) -> list[str]:
+    command_paths = {rel_path for rel_path, _args in commands}
+    return [
+        f"missing selftest command entry: {rel_path.as_posix()}"
+        for rel_path in REQUIRED_SELFTEST_DRIVER_PATHS
+        if rel_path not in command_paths
+    ]
 
 
 def validate_script_list(repo_root: Path) -> list[str]:
@@ -92,7 +106,8 @@ def validate_makefile(repo_root: Path) -> list[str]:
 
 
 def run_packet(repo_root: Path) -> int:
-    missing = validate_script_list(repo_root)
+    missing = validate_driver_inventory()
+    missing.extend(validate_script_list(repo_root))
     missing.extend(validate_makefile(repo_root))
     if missing:
         print("PHASE3_VALIDATE_SELFTEST=fail")
@@ -149,6 +164,10 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        if validate_driver_inventory():
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic selftest command inventory to validate")
+            return 1
         if validate_script_list(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic self-test script set to validate")
@@ -156,6 +175,20 @@ def run_self_test() -> int:
         if validate_makefile(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic makefile self-test route to validate")
+            return 1
+
+        header_family_path = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
+        missing = validate_driver_inventory(
+            tuple(
+                entry
+                for entry in SELFTEST_COMMANDS
+                if entry[0] != header_family_path
+            )
+        )
+        expected = f"missing selftest command entry: {header_family_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing header-family selftest command was not reported")
             return 1
 
         first_path = SELFTEST_COMMANDS[0][0]
@@ -207,7 +240,7 @@ def run_self_test() -> int:
             "",
             1,
         )
-        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        (root / MAKEFILE_PATH).writeText(makefile, encoding="utf-8")
         missing = validate_makefile(root)
         expected = f"missing make command: {PHASE3_SELFTEST_DRIVER_COMMAND}"
         if expected not in missing:
