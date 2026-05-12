@@ -4,9 +4,16 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Current `master` does not expose the approved non-runtime Phase 5 reference samples under this directory.
+Current `master` now exposes the bounded non-runtime Phase 5 reference-sample packet directly from this directory:
 
-The files directly readable here today are the runtime-oriented sample family:
+* `samples/zigux/bytestream_fifo.zig`
+* `samples/zigux/kobject_example.zig`
+* `samples/zigux/kretprobe_example.zig`
+* `samples/zigux/trace_events_sample.zig`
+
+Treat those four files as the shipped non-runtime Phase 5 sample packet on current `master`.
+
+The same tree also still carries the later runtime-oriented sample family:
 
 * `samples/zigux/runtime_atomic64_loader.zig`
 * `samples/zigux/runtime_bitmap.zig`
@@ -16,7 +23,7 @@ The files directly readable here today are the runtime-oriented sample family:
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_loader.zig`
 
-Treat those files as the separate runtime sample family. Do not count them as shipped Phase 5 evidence.
+Treat those files as the separate runtime sample family. Do not count them as extra Phase 5 evidence.
 
 ## Separate Phase 9 runtime pilot family
 
@@ -33,15 +40,15 @@ The roadmap-backed Phase 5 sample anchors are still limited to these four Linux 
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Those anchors remain the approved Phase 5 target set, but they are not currently materialized as non-runtime `samples/zigux/*.zig` files in this directory on `master`.
+Those anchors remain the approved Phase 5 target set, and the corresponding non-runtime `samples/zigux/*.zig` files above are now directly readable on current `master`.
 
 ## Contributor guidance
 
 When touching Phase 5 contributor guidance:
 
 * keep roadmap scope narrow to the four approved anchors above
-* do not describe a Phase 5 sample as shipped from this directory unless the corresponding `samples/zigux/*.zig` file is directly readable on current `master`
-* do not treat review notes by themselves as proof that a sample file is present in this directory
+* keep shared Phase 5 wording aligned with the directly readable `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig` packet instead of falling back to older pre-landing wording
+* do not treat review notes by themselves as proof of additional sample files beyond that four-sample packet
 * keep runtime-facing `runtime_*` files in the separate later runtime lane instead of folding them into Phase 5
 * keep direct `bitmap` helper reviewability in its existing helper or runtime lanes instead of implying an extra Phase 5 sample
 
@@ -70,4 +77,4 @@ For shared Phase 5 guidance, use:
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
-Use those shared surfaces to keep roadmap scope, contributor wording, and the Phase 5-versus-runtime boundary honest until actual non-runtime sample files land in this directory.
+Use those shared surfaces to keep roadmap scope, contributor wording, the exact four-sample packet, and the Phase 5-versus-runtime boundary honest.
