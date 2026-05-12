@@ -62,7 +62,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 10
 
 
 class CheckError(RuntimeError):
@@ -118,6 +118,7 @@ def run_self_test() -> None:
             (FILES["review_checklist"], MARKERS["review_checklist"][2]),
             (FILES["review_checklist"], MARKERS["review_checklist"][4]),
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
+            (FILES["scripts_root"], MARKERS["scripts_root"][6]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
             (FILES["tests_root"], MARKERS["tests_root"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][2]),
