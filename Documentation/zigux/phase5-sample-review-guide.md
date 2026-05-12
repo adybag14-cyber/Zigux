@@ -93,6 +93,16 @@ Treat the current Phase 5 packet as landed but still intentionally non-runtime:
 
 Do not reopen sample behavior broadly, and do not count runtime-loader or runtime-pilot work as part of the non-runtime Phase 5 packet.
 
+## Shared ownership map
+
+When Phase 5 follow-through is doc-only, keep the shared-versus-sample-local split explicit so reminder-surface work does not reopen neighboring sample packets by accident.
+
+* shared Phase 5 packet work belongs in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` only when the change preserves the same four-sample non-runtime packet and the same shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay
+* sample-local contract work belongs in exactly one landed packet at a time: the sample file under `samples/zigux/`, its paired survey note under `Documentation/zigux/`, the focused replay under `zigux/tests/phase5_*.zig`, the paired manifest, and the paired survey replay
+* if a shared doc needs to remind reviewers about one sample-specific ownership cue, point to the exact landed packet for that sample instead of re-describing behavior from memory or borrowing cues from a different sample family
+* keep the later `samples/zigux/runtime_*.zig` and `*_loader.zig` families out of shared Phase 5 reminder work unless the only purpose is to restate the already-landed Phase 5-versus-Phase 9 boundary
+* when a sample-local contract moves, update the directly coupled sample packet first, then refresh the shared Phase 5 reminder surfaces only after those per-sample paths are directly readable on current `master`
+
 ## Boundary reminders
 
 Phase 5 stays non-runtime.
