@@ -62,7 +62,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
-        "PHASE7_LANE_KEY=P7-L11",
+        "PHASE7_LANE_KEY=P7-L09",
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
         'phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup',
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
-        'const active_lane_key = "P7-L11";',
+        'const active_lane_key = "P7-L09";',
         'try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);',
         'scripts/zigux/check-phase7-argv-split-packet.py',
         'zigux/tests/phase7_argv_split_manifest.json',
