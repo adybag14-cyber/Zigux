@@ -12,18 +12,21 @@ fn requireAbsent(text: []const u8, needle: []const u8) !void {
     }
 }
 
-test "phase13 devres coherent-dma manifest records current helper packet drift and blocked runtime ownership" {
+test "phase13 devres coherent-dma manifest records the current helper packet boundary" {
     const manifest = @embedFile("phase13_devres_manifest.json");
 
     try requireContains(manifest, "\"preexisting_phase13_build_present\": false");
     try requireContains(manifest, "\"preexisting_phase13_make_target_present\": true");
     try requireContains(manifest, "\"preexisting_devres_zig_present\": true");
-    try requireContains(manifest, "\"preexisting_phase13_devres_test_present\": false");
-    try requireContains(manifest, "\"preexisting_phase13_devres_reviewability_present\": false");
+    try requireContains(manifest, "\"preexisting_phase13_devres_test_present\": true");
+    try requireContains(manifest, "\"preexisting_phase13_devres_reviewability_present\": true");
     try requireContains(manifest, "\"preexisting_phase13_devres_survey_present\": true");
+    try requireContains(manifest, "\"id\": \"phase13-devres-test-gate\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-reviewability-gate\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-dma-coherent-replay\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
+    try requireContains(manifest, "\"status\": \"starter_landed\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_scatterlist_state\"");
 }
@@ -49,5 +52,5 @@ test "phase13 devres coherent-dma survey keeps dma-backed helpers and scatterlis
     try requireContains(survey, "dmam_alloc_*");
     try requireContains(survey, "dma_unmap_*");
     try requireContains(survey, "sg_table");
-    try requireContains(survey, "missing wider Phase 13 packet");
+    try requireContains(survey, "helper-first packet");
 }
