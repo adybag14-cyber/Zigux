@@ -105,12 +105,13 @@ REQUIRED_BUILD_MARKERS = [
 ]
 
 REQUIRED_CONTRACT_MARKERS = [
-    "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable",
+    "PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful",
     "zigux/tests/phase11_build.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
-    "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
-    "there is no broader multi-checker Phase 11 validator stack on `master`",
+    "no shared `validate-phase11.py`",
+    "no shared `make -C zigux phase11-validate` target on `master`",
+    "The dedicated archival HVC evidence still stays explicit beside that shared route:",
 ]
 
 REQUIRED_HVC_HEADER_MARKERS = [
@@ -284,6 +285,20 @@ def run_self_test() -> int:
         )
         expect_failure(
             root,
+            "Documentation/zigux/phase11-shared-replay-contract.md",
+            "PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful",
+            "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable",
+            "contract missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-shared-replay-contract.md",
+            "no shared `validate-phase11.py`",
+            "there is no broader multi-checker Phase 11 validator stack on `master`",
+            "contract missing markers",
+        )
+        expect_failure(
+            root,
             "drivers/tty/hvc/hvc_console.h",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
@@ -304,7 +319,7 @@ def run_self_test() -> int:
             "zigux_destination mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=7")
+    print("phase11-header-boundary-packet: self-test cases=9")
     return 0
 
 
