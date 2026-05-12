@@ -195,6 +195,35 @@ test "phase4 perf baseline survey keeps the shared review checklist perf-governa
     );
 }
 
+test "phase4 perf baseline survey keeps the shared gate-evidence perf-governance packet aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "including the dedicated local-only perf-baseline survey files plus the matching direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and Linux-style `make -C zigux phase4-perf-baseline-survey` replay routes.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
+    );
+}
+
+test "phase4 perf baseline survey keeps the scripts README perf-governance packet aligned" {
+    try requireRepoMarker("scripts/zigux/README.md", "phase4_perf_baseline_manifest.json");
+    try requireRepoMarker("scripts/zigux/README.md", "phase4_perf_baseline_survey.zig");
+    try requireRepoMarker(
+        "scripts/zigux/README.md",
+        "approved local-only benchmark commands and acceptable limits",
+    );
+    try requireRepoMarker("scripts/zigux/README.md", "shared-CI perf promotion");
+}
+
 test "phase4 perf baseline survey stays outside the shared test and workflow packet" {
     try requireRepoMarker(
         "zigux/tests/phase4_build.zig",
