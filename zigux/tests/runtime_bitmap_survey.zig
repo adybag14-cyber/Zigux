@@ -127,6 +127,13 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(module_slice);
 
+    const sample_root_readme = try readRepoFileAlloc(
+        std.testing.allocator,
+        "samples/zigux/README.md",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     const phase9_build = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase9_build.zig",
@@ -206,6 +213,12 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(survey_note, "rather than a fifth approved Phase 5 sample idiom");
     for (phase5_reference_anchors) |marker| try expectContains(survey_note, marker);
     for (runtime_bitmap_family_files) |marker| try expectContains(survey_note, marker);
+
+    try expectContains(sample_root_readme, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
+    try expectContains(sample_root_readme, "`samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay");
+    try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
+    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
+    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
