@@ -37,6 +37,7 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
     const oversized_lookup = libfs.LibfsHelperLab.planSimpleLookup(libfs.name_max + 1);
     const relative_seek = libfs.LibfsHelperLab.planOffsetDirectorySeek(libfs.dir_offset_first, -1, .cur);
     const unsupported_seek = libfs.LibfsHelperLab.planOffsetDirectorySeek(libfs.dir_offset_first, 8, .unsupported);
+    const negative_readdir = libfs.LibfsHelperLab.planOffsetReaddir(-1, true);
     const blocked_readdir = libfs.LibfsHelperLab.planOffsetReaddir(libfs.dir_offset_first + 1, false);
     const terminal_readdir = libfs.LibfsHelperLab.planOffsetReaddir(libfs.dir_offset_end_of_directory, true);
 
@@ -51,6 +52,12 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
     try std.testing.expectEqual(libfs.OffsetSeekStatus.unsupported_whence, unsupported_seek.status);
     try std.testing.expectEqual(@as(?i64, null), unsupported_seek.resolved_offset);
 
+    try std.testing.expectEqual(libfs.OffsetReaddirStatus.negative_position, negative_readdir.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetReaddirMode, null), negative_readdir.mode);
+    try std.testing.expect(!negative_readdir.returns_zero);
+    try std.testing.expect(!negative_readdir.keeps_current_pos);
+    try std.testing.expect(!negative_readdir.treats_end_of_directory_as_terminal);
+
     try std.testing.expectEqual(libfs.OffsetReaddirStatus.ok, blocked_readdir.status);
     try std.testing.expectEqual(libfs.OffsetReaddirMode.blocked_on_emit_dots, blocked_readdir.mode.?);
     try std.testing.expect(!blocked_readdir.enters_offset_iteration);
@@ -64,20 +71,31 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
 
 test "offset rename helpers stay reviewable as managed-slot planners rather than live directory mutation" {
     try std.testing.expectEqual(libfs.OffsetSlotClass.missing, libfs.LibfsHelperLab.classifyOffsetSlot(null));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.out_of_range, libfs.LibfsHelperLab.classifyOffsetSlot(-1));
     try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, libfs.LibfsHelperLab.classifyOffsetSlot(0));
     try std.testing.expectEqual(libfs.OffsetSlotClass.first_real_entry, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_first));
     try std.testing.expectEqual(libfs.OffsetSlotClass.managed_entry, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_min));
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_end_of_directory));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.out_of_range, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_end_of_directory + 1));
 
     const rename_ok = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 4, libfs.dir_offset_min + 9);
+    const rename_missing_destination = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 5, null);
     const rename_reserved = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_first);
     const exchange_ok = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 2, libfs.dir_offset_min + 8);
+    const exchange_missing_source = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(null, libfs.dir_offset_min + 6);
+    const exchange_reserved_source = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(0, libfs.dir_offset_min + 7);
     const exchange_reserved = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 3, libfs.dir_offset_end_of_directory);
 
     try std.testing.expectEqualStrings("fs/libfs.c", rename_ok.anchor);
     try std.testing.expectEqual(libfs.OffsetRenameStatus.ok, rename_ok.status);
     try std.testing.expect(rename_ok.clears_destination_offset_before_replace);
     try std.testing.expect(rename_ok.preserves_destination_offset_value);
+
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.missing_destination_offset, rename_missing_destination.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.missing, rename_missing_destination.destination_slot_class);
+    try std.testing.expect(!rename_missing_destination.clears_destination_offset_before_replace);
+    try std.testing.expect(!rename_missing_destination.installs_source_at_destination_offset);
+    try std.testing.expect(!rename_missing_destination.preserves_destination_offset_value);
 
     try std.testing.expectEqual(libfs.OffsetRenameStatus.reserved_destination_offset, rename_reserved.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.first_real_entry, rename_reserved.destination_slot_class);
@@ -86,6 +104,18 @@ test "offset rename helpers stay reviewable as managed-slot planners rather than
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.ok, exchange_ok.status);
     try std.testing.expect(exchange_ok.swaps_recorded_offsets);
     try std.testing.expect(exchange_ok.rolls_back_destination_store_on_second_store_failure);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.missing_source_offset, exchange_missing_source.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.missing, exchange_missing_source.source_slot_class);
+    try std.testing.expect(!exchange_missing_source.stores_source_in_destination_map);
+    try std.testing.expect(!exchange_missing_source.stores_destination_in_source_map);
+    try std.testing.expect(!exchange_missing_source.swaps_recorded_offsets);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_source_offset, exchange_reserved_source.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, exchange_reserved_source.source_slot_class);
+    try std.testing.expect(!exchange_reserved_source.stores_source_in_destination_map);
+    try std.testing.expect(!exchange_reserved_source.stores_destination_in_source_map);
+    try std.testing.expect(!exchange_reserved_source.swaps_recorded_offsets);
 
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, exchange_reserved.destination_slot_class);
