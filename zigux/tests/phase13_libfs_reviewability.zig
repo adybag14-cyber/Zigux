@@ -10,6 +10,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_directory_emptiness_planning);
     try std.testing.expect(descriptor.provides_lookup_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
+    try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
@@ -136,4 +137,20 @@ test "transaction release planner stays helper-only and unconditional-zero" {
     try std.testing.expect(!release_without_private.frees_page_backed_private_data);
     try std.testing.expect(!release_without_private.clears_private_data);
     try std.testing.expect(release_without_private.returns_zero);
+}
+
+test "transaction publish planner stays helper-only and barrier-ordered" {
+    const publish = try libfs.LibfsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit, true);
+    const empty_publish = try libfs.LibfsHelperLab.simpleTransactionSetPlan(0, true);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", publish.anchor);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, publish.requested_response_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, publish.transaction_limit);
+    try std.testing.expect(publish.requires_private_data);
+    try std.testing.expect(publish.publishes_after_barrier);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, publish.published_response_size);
+    try std.testing.expectEqual(@as(usize, 0), empty_publish.published_response_size);
+
+    try std.testing.expectError(error.InputTooLarge, libfs.LibfsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1, true));
+    try std.testing.expectError(error.MissingPrivateData, libfs.LibfsHelperLab.simpleTransactionSetPlan(4, false));
 }
