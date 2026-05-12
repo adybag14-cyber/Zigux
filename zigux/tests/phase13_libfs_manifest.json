@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L01",
+  "lane_key": "P13-L02",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-12",
   "anchor": "fs/libfs.c",
@@ -22,7 +22,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, simple transaction release, and offset-based directory planning."
+      "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, simple transaction release, transaction publish planning, and offset-based directory planning."
     },
     {
       "id": "phase13-libfs-offset-rename-planner",
@@ -30,6 +30,20 @@
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "Current master ships helper-only offset-based rename planning that keeps reserved dot-window and end-of-directory slots explicit without mutating live directory maps."
+    },
+    {
+      "id": "phase13-libfs-transaction-publish-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure simple_transaction_set() publish path, including the response-size limit, the required private-data handoff, the publish barrier, and published response-size bookkeeping before any live readback or release state is claimed."
+    },
+    {
+      "id": "phase13-libfs-transaction-acquire-helper",
+      "status": "ready_next",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The next honest transaction-family step is a tiny simple_transaction_get() planner that keeps the work in page-bounded buffer acquisition and one-write-per-open staging before any live readback, dentry, or pseudo-filesystem state is modeled."
     },
     {
       "id": "phase13-libfs-reviewability-gate",
