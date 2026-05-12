@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
     "drivers/scsi/virtio_scsi.zig",
+    "drivers/nvme/host/pci_verify.zig",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "zigux/tests/phase12_virtio_net.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
@@ -64,6 +65,7 @@ REQUIRED_MARKERS = {
         "PHASE12_VALIDATOR_SELF_TEST=pass",
         "UNEXPECTED_PHASE12_FILES_START",
         "drivers/nvme/host/pci.zig",
+        "drivers/nvme/host/pci_verify.zig",
         "zigux/tests/phase12_nvme_pci.zig",
         "zigux/tests/phase12_nvme_pci_manifest.json",
         "zigux/tests/phase12_nvme_pci_survey.zig",
@@ -73,14 +75,13 @@ REQUIRED_MARKERS = {
         "phase12_virtio_net_survey.zig",
         "phase12_virtio_net_manifest.json",
         "phase12-virtio-net-survey.md",
-        "phase12_virtio_scsi_syntax_lab.zig",
-        "phase12_virtio_scsi_repeated_replan_gate.zig",
     ],
 }
 
 FIXTURE_OVERRIDES = {
     "drivers/net/virtio_net.zig": "// fixture\n",
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
+    "drivers/nvme/host/pci_verify.zig": "// fixture\n",
     "Documentation/zigux/phase12-virtio-net-survey.md": "# fixture\n",
     "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
@@ -165,6 +166,8 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_phase12_virtio_net_driver", "drivers/net/virtio_net.zig"),
+        ("missing_phase12_virtio_scsi_driver", "drivers/scsi/virtio_scsi.zig"),
+        ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         (
             "missing_phase12_virtio_net_survey_note",
             "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -182,7 +185,6 @@ def run_self_test() -> None:
             "missing_phase12_virtio_net_manifest",
             "zigux/tests/phase12_virtio_net_manifest.json",
         ),
-        ("missing_phase12_driver", "drivers/scsi/virtio_scsi.zig"),
         ("missing_phase12_contract_test", "zigux/tests/phase12_virtio_scsi.zig"),
         (
             "missing_phase12_syntax_lab",
@@ -295,6 +297,13 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: drivers/nvme/host/pci.zig",
         ),
         (
+            "missing_validator_nvme_verify_marker",
+            "scripts/zigux/validate-phase12.py",
+            "drivers/nvme/host/pci_verify.zig",
+            "drivers/nvme/host/pci_verify_missing.zig",
+            "scripts/zigux/validate-phase12.py: drivers/nvme/host/pci_verify.zig",
+        ),
+        (
             "missing_validator_virtio_net_manifest_marker",
             "scripts/zigux/validate-phase12.py",
             "phase12_virtio_net_manifest.json",
@@ -340,8 +349,9 @@ def run_self_test() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the current Phase 12 virtio packet and fail closed if parked "
-            "direct NVMe replay files appear without validator maintenance."
+            "Validate the current Phase 12 shipped packet, require the parked "
+            "NVMe verifier shard, and fail closed if direct NVMe replay files "
+            "appear without validator maintenance."
         )
     )
     parser.add_argument(
