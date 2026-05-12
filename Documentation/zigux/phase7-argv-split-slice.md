@@ -89,6 +89,7 @@ The current tests keep these packet edges explicit:
 * copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
 * separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
 * `argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result
+* non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact
 * blank-input reuse of the empty exported argv view
 * blank-input reuse of the empty storage sentinel without allocator space
 * blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller
