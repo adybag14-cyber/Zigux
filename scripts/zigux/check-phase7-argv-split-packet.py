@@ -64,6 +64,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
+        "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
         "zigux/tests/phase7_argv_split_manifest.json",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     ],
@@ -270,6 +271,13 @@ def run_self_test() -> None:
             "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
             "",
             "Documentation/zigux/phase7-argv-split-slice.md: separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
+        ),
+        (
+            "slice_cross_result_teardown_marker",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
+            "",
+            "Documentation/zigux/phase7-argv-split-slice.md: `argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
         ),
         (
             "samples_make_wrapper_alignment_marker",
