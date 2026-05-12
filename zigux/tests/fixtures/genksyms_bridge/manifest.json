@@ -88,10 +88,10 @@
       "too_many_reference_files"
     ],
     "version_stderr_cases": [
-      "version_then_short_help",
-      "version_then_long_help",
       "version",
-      "abbreviated_version"
+      "abbreviated_version",
+      "version_then_short_help",
+      "version_then_long_help"
     ]
   },
   "action_abbrev_cases": [
