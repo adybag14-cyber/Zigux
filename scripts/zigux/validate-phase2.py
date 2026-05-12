@@ -107,14 +107,15 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/Makefile",
     "zigux/tests/README.md",
+    "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
-PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 28
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 11
+PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 12
 
 
 def build_validation_commands(
@@ -313,8 +314,22 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=27:expected=28",
+                "phase2_validation_required_files:count=28:expected=29",
                 "phase2_validation_required_files:missing:scripts/zigux/check-genksyms-bridge.py",
+            ],
+        ),
+        (
+            "required_file_inventory_missing_conf_manifest",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"
+                )
+            ),
+            [
+                "phase2_validation_required_files:count=28:expected=29",
+                "phase2_validation_required_files:missing:zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
             ],
         ),
         (
@@ -327,7 +342,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=27:expected=28",
+                "phase2_validation_required_files:count=28:expected=29",
                 "phase2_validation_required_files:missing:zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
             ],
         ),
