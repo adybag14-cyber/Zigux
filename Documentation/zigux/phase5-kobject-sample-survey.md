@@ -5,7 +5,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=parked`
-- `PHASE5_LANE_KEY=P5-L10`
+- `PHASE5_LANE_KEY=P5-L20`
 - `PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the first `samples/zigux/` kobject-style replay
@@ -137,7 +137,7 @@ Fresh focused current-`master` review-surface readback on 2026-05-11 kept the sh
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux kobject example
-   - `rg -n "samples/kobject/kobject-example.c|PHASE5_LANE_KEY=P5-L10|PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e|Phase 5" Documentation/zigux samples`
+   - `rg -n "samples/kobject/kobject-example.c|PHASE5_LANE_KEY=P5-L20|PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e|Phase 5" Documentation/zigux samples`
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
    - `find samples/zigux -maxdepth 1 -type f | sort`
 3. run the exact bounded Phase 5 sample checks
