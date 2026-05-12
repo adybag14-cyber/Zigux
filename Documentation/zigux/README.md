@@ -188,3 +188,18 @@ Phase 8 notes
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase8-validate`, `make -C zigux phase8-exec-cmd-test`, `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, `make -C zigux phase8-kallsyms-test`, `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8` now keep the current exec-cmd, help, kallsyms, and helper-first libbpf packet reviewable from the docs root while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master` instead of shrinking the current Phase 8 surface back toward older starter-only or missing-file assumptions.
+Phase 15 notes
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `zigux/tests/phase15_build.zig`
+- `make -C zigux phase15-validate`
+- `make -C zigux phase15-test`
+- `make -C zigux phase15`
+- these Phase 15 docs-root reminders now keep the freeze map, dedicated freeze-map-governance note, Architecture Council review-process, parity scorecard, indefinite-C policy, parked readiness-gate note, parked handoff-next-steps note, governance-lane owner map, shared Phase 15 build replay, and Linux-style validation and replay routes visible together from the docs root instead of undercounting the shipped maintenance-mode packet.
+- the current bounded Phase 15 decision is still not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.
