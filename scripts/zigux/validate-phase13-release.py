@@ -26,6 +26,8 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
     "zigux/tests/README.md",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/abi.h",
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
@@ -285,6 +287,15 @@ def run_self_test() -> int:
             "missing_priority_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        (root / "zigux/bindings/notifier_abi.zig").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:zigux/bindings/notifier_abi.zig"],
+            "missing_notifier_abi_shard_failed",
+        )
+        write_text(root, "zigux/bindings/notifier_abi.zig", "# stub\n")
         case_count += 1
 
         write_text(
