@@ -73,6 +73,16 @@ fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
 test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
@@ -343,8 +353,14 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     );
     defer std.testing.allocator.free(gate_evidence_source);
 
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
 }
