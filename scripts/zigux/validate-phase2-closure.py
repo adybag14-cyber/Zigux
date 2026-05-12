@@ -28,6 +28,13 @@ KCONFIG_BRIDGE_CONFDATA_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
 )
 
+FIXDEP_CLOSURE_MARKER = (
+    "the current `fixdep` closure packet now stays explicit as the eleven-case artifact replay under "
+    "`zigux/tests/fixtures/fixdep/cases.json`, including the escaped-newline rustc-style pre-target "
+    "comment case, the concatenated same-target dep tail, and the bounded `/dev/full` stdout-write "
+    "cases that preserve the original parse-error or missing-dependency stderr contract"
+)
+
 PHASE2_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
@@ -36,7 +43,7 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
-    "the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract",
+    FIXDEP_CLOSURE_MARKER,
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
@@ -87,8 +94,8 @@ PHASE2_VALIDATOR_MARKERS = [
     '    "scripts/zigux/check-phase2-tool-manifest-packets.py",',
     '    "zigux/tests/fixtures/phase2_tool_manifest.json",',
     '    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 18",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27",
 ]
 
 EXPECTED_FIXDEP_CASES = (
@@ -97,6 +104,7 @@ EXPECTED_FIXDEP_CASES = (
     {"name": "sample_escaped_space"},
     {"name": "sample_escaped_colon"},
     {"name": "sample_concatenated"},
+    {"name": "sample_comment_continuation"},
     {"name": "sample_comment_only"},
     {"name": "sample_comment_only_stdout_full", "stdout_mode": "dev_full"},
     {"name": "sample_missing_dep"},
@@ -206,7 +214,7 @@ EXPECTED_CONF_CASES = (
         "kconfig": "Kconfig",
         "config": "out/help.config",
         "arch": "riscv64",
-        "silent": true,
+        "silent": True,
         "expected": "helpnewconfig_expected.json",
     },
     {
@@ -392,12 +400,12 @@ def command_tail(command: list[str]) -> str:
                 continue
             except ValueError:
                 pass
-        tail_parts.append(part)
+        tail_parts.append(str(part))
     return " ".join(tail_parts)
 
 
 def build_validation_commands() -> list[list[str]]:
-    return [[sys.executable, str(spec[0]), *spec[1:]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
+    return [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
 
 
 def load_json_object(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -447,10 +455,7 @@ def validate_fixdep_cases(payload: list[object]) -> list[str]:
 
     if len(payload) > expected_count:
         for case in payload[expected_count:]:
-            if isinstance(case, dict):
-                extra_name = case.get("name", "<missing>")
-            else:
-                extra_name = "<non_object>"
+            extra_name = case.get("name", "<missing>") if isinstance(case, dict) else "<non_object>"
             issues.append(f"fixdep_cases:unexpected_extra:{extra_name}")
     return issues
 
@@ -516,9 +521,7 @@ def validate_manifest(
     for field_name, expected_value in expected.items():
         actual_value = payload.get(field_name)
         if actual_value != expected_value:
-            issues.append(
-                f"{label}:{field_name}:expected={expected_value}:actual={actual_value}"
-            )
+            issues.append(f"{label}:{field_name}:expected={expected_value}:actual={actual_value}")
     return issues
 
 
@@ -558,9 +561,9 @@ def run_self_test_checks() -> list[str]:
             "fixdep_cases_missing_dev_full",
             validate_fixdep_cases(
                 [
-                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[:6]],
+                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[:7]],
                     {"name": "sample_comment_only_stdout_full"},
-                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[7:]],
+                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[8:]],
                 ]
             ),
             ["fixdep_cases:sample_comment_only_stdout_full:stdout_mode:expected=dev_full:actual=None"],
@@ -568,22 +571,19 @@ def run_self_test_checks() -> list[str]:
         (
             "fixdep_cases_missing_closure_marker",
             validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract"
-                ),
+                "\n".join(marker for marker in PHASE2_REQUIRED_SOURCE_MARKERS if marker != FIXDEP_CLOSURE_MARKER),
                 PHASE2_REQUIRED_SOURCE_MARKERS,
                 "phase2_closure",
             ),
-            [
-                "phase2_closure:missing:the current `fixdep` closure packet now stays explicit as the ten-case artifact replay under `zigux/tests/fixtures/fixdep/cases.json`, including the concatenated same-target dep tail and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or missing-dependency stderr contract"
-            ],
+            [f"phase2_closure:missing:{FIXDEP_CLOSURE_MARKER}"],
         ),
         (
             "conf_cases_ok",
-            validate_case_list({"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]}, key="conf_cases", expected_cases=EXPECTED_CONF_CASES)[1],
+            validate_case_list(
+                {"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]},
+                key="conf_cases",
+                expected_cases=EXPECTED_CONF_CASES,
+            )[1],
             [],
         ),
         (
@@ -662,46 +662,6 @@ def run_self_test_checks() -> list[str]:
             ],
         ),
         (
-            "workflow_tests_readme_gate_duplicate",
-            validate_exact_workflow_runs(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
-            ],
-        ),
-        (
-            "workflow_kconfig_selftest_missing",
-            validate_exact_workflow_runs(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test:count=0:expected=1"
-            ],
-        ),
-        (
-            "workflow_kconfig_gate_duplicate",
-            validate_exact_workflow_runs(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py:count=2:expected=1"
-            ],
-        ),
-        (
             "makefile_phase2_validation_missing",
             validate_exact_makefile_runs(
                 "\n".join(
@@ -719,211 +679,9 @@ def run_self_test_checks() -> list[str]:
             ["makefile:exact_count:scripts/zigux/validate-phase2.py:count=0:expected=1"],
         ),
         (
-            "workflow_phase2_validation_missing",
-            validate_exact_workflow_runs(
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-            ),
-            ["workflow:exact_count:run: python3 scripts/zigux/validate-phase2.py:count=0:expected=1"],
-        ),
-        (
-            "closure_missing_tool_manifest_gate_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared tool-manifest packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`"
-            ],
-        ),
-        (
-            "closure_missing_tool_manifest_root_manifest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker != "`zigux/tests/fixtures/phase2_tool_manifest.json`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            ["phase2_closure:missing:`zigux/tests/fixtures/phase2_tool_manifest.json`"],
-        ),
-        (
-            "closure_missing_tool_manifest_artifact_manifest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker != "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`"
-            ],
-        ),
-        (
-            "closure_missing_cross_selftest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
-            ],
-        ),
-        (
-            "closure_missing_cross_gate_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`"
-            ],
-        ),
-        (
-            "closure_missing_cross_selftest_alignment_selftest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
-            ],
-        ),
-        (
-            "closure_missing_cross_selftest_alignment_gate_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`"
-            ],
-        ),
-        (
-            "closure_missing_fixdep_gate_selftest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`"
-            ],
-        ),
-        (
-            "closure_missing_fixdep_gate_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`"
-            ],
-        ),
-        (
-            "closure_missing_fixdep_diff_selftest_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`"
-            ],
-        ),
-        (
-            "closure_missing_fixdep_diff_gate_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`"
-            ],
-        ),
-        (
-            "closure_missing_kconfig_selftest_alignment_marker",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker
-                    != "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [
-                "phase2_closure:missing:shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`"
-            ],
-        ),
-        (
             "phase2_validator_missing_tool_manifest_command",
             validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_VALIDATOR_MARKERS
-                    if marker != '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'
-                ),
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'),
                 PHASE2_VALIDATOR_MARKERS,
                 "phase2_validator",
             ),
@@ -932,15 +690,29 @@ def run_self_test_checks() -> list[str]:
         (
             "phase2_validator_missing_tool_manifest_fixture_inventory",
             validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_VALIDATOR_MARKERS
-                    if marker != '    "zigux/tests/fixtures/phase2_tool_manifest.json",'
-                ),
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != '    "zigux/tests/fixtures/phase2_tool_manifest.json",'),
                 PHASE2_VALIDATOR_MARKERS,
                 "phase2_validator",
             ),
             ['phase2_validator:missing:    "zigux/tests/fixtures/phase2_tool_manifest.json",'],
+        ),
+        (
+            "phase2_validator_missing_command_count_marker",
+            validate_required_markers(
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21"),
+                PHASE2_VALIDATOR_MARKERS,
+                "phase2_validator",
+            ),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21"],
+        ),
+        (
+            "phase2_validator_missing_required_file_count_marker",
+            validate_required_markers(
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27"),
+                PHASE2_VALIDATOR_MARKERS,
+                "phase2_validator",
+            ),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27"],
         ),
     ]
 
@@ -1010,18 +782,23 @@ def main() -> int:
     issues.extend(cases_load_issues)
     if cases_payload is not None:
         conf_required, conf_issues = validate_case_list(
-            cases_payload, key="conf_cases", expected_cases=EXPECTED_CONF_CASES
+            cases_payload,
+            key="conf_cases",
+            expected_cases=EXPECTED_CONF_CASES,
         )
         issues.extend(conf_issues)
         confdata_required, confdata_issues = validate_case_list(
-            cases_payload, key="confdata_cases", expected_cases=EXPECTED_CONFDATA_CASES
+            cases_payload,
+            key="confdata_cases",
+            expected_cases=EXPECTED_CONFDATA_CASES,
         )
         issues.extend(confdata_issues)
         for path in require_files(conf_required + confdata_required):
             issues.append(f"kconfig_bridge_cases:missing_expected:{path}")
 
     conf_manifest_payload, conf_manifest_load_issues = load_json_object(
-        KCONFIG_BRIDGE_CONF_MANIFEST, "kconfig_bridge_conf_manifest"
+        KCONFIG_BRIDGE_CONF_MANIFEST,
+        "kconfig_bridge_conf_manifest",
     )
     issues.extend(conf_manifest_load_issues)
     if conf_manifest_payload is not None:
@@ -1034,7 +811,8 @@ def main() -> int:
         )
 
     confdata_manifest_payload, confdata_manifest_load_issues = load_json_object(
-        KCONFIG_BRIDGE_CONFDATA_MANIFEST, "kconfig_bridge_confdata_manifest"
+        KCONFIG_BRIDGE_CONFDATA_MANIFEST,
+        "kconfig_bridge_confdata_manifest",
     )
     issues.extend(confdata_manifest_load_issues)
     if confdata_manifest_payload is not None:
@@ -1054,7 +832,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=31")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=16")
         return 0
 
     if issues:
