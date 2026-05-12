@@ -53,7 +53,7 @@ That means:
 - the nine shared-replay parked helpers stay parked unless their shared replay, fixture, build-route, or review-surface packet drifts
 - bitmap, find_bit, rbtree, and string are the only helpers eligible for bounded direct-anchor follow-up, and even those should reopen only inside their existing helper-local anchors or already-committed shared fixture keys
 - the bitmap owner map now also includes the already-landed shared closure-validator review markers recorded in `Documentation/zigux/phase1-closure.md` and enforced by `scripts/zigux/validate-phase1-closure.py`, so nearby runs should not keep treating that validator packet as a separate generic Phase 1 reopen cue
-- if bitmap needs another shared-gate follow-up after a fresh reread, narrow it to the remaining `scripts/zigux/validate-phase1.py` manifest-anchor exactness surface instead of replaying the older already-landed `scripts/zigux/validate-phase1-closure.py` marker sync
+- the direct-anchor manifest exactness surface in `scripts/zigux/validate-phase1.py` is now also closed, so nearby runs should leave bitmap parked unless a fresh reread shows new direct-anchor drift or shared replay drift instead of replaying older validator follow-through
 - older helper-local reopen cues that are already closed on `master` should not be replayed as the generic next Phase 1 step or used to justify reopening a different helper family
 
 ## Anti-Overlap Rules
@@ -71,7 +71,7 @@ When this lane reopens, stay inside one bounded step only.
 
 Current `master` also needs one helper-specific owner map for the four direct-anchor helpers so nearby lanes do not keep reaching for the same shared follow-up surface from different helper families.
 
-- `tools/lib/bitmap.zig` owns its helper-local bitmap anchors, the committed bitmap replay keys in `zigux/tests/fixtures/phase1_helpers.json`, and the already-landed shared closure-validator bitmap review markers in `Documentation/zigux/phase1-closure.md` plus `scripts/zigux/validate-phase1-closure.py`. Do not use bitmap to reopen shared validator, manifest, or closure-note work for `find_bit`, `rbtree`, or `string`. If a nearby run needs a shared-gate follow-up inside bitmap, narrow it to the remaining `scripts/zigux/validate-phase1.py` manifest-anchor exactness surface instead of replaying the older closure-validator cue.
+- `tools/lib/bitmap.zig` owns its helper-local bitmap anchors, the committed bitmap replay keys in `zigux/tests/fixtures/phase1_helpers.json`, and the already-landed shared closure-validator bitmap review markers in `Documentation/zigux/phase1-closure.md` plus `scripts/zigux/validate-phase1-closure.py`. That shared manifest-anchor exactness surface in `scripts/zigux/validate-phase1.py` is now closed too, so a nearby bitmap reopen should start from fresh direct-anchor or committed shared replay drift instead of replaying an older validator cue.
 - `tools/lib/find_bit.zig` owns only its helper-local start-mask, boundary, zero-window, past-`nbits`, alias, and tail-word anchors plus the committed `find_bit` replay fields already emitted by `zigux/tests/fixtures/phase1_helpers_c_harness.c` and consumed by `zigux/tests/fixtures/phase1_helpers.json`. Reopen shared replay only if that committed `find_bit` packet drifts.
 - `tools/lib/rbtree.zig` keeps iterator and cached-root coverage helper-local until `master` ships exactly one dedicated shared iterator or cached-root leftmost-return fixture key. Do not batch both widenings into one reopen step.
 - `tools/lib/string.zig` already keeps the shared string helper-manifest anchor lists aligned through `scripts/zigux/validate-phase1-closure.py`, so the next honest string reopen is direct helper-local anchor drift or committed shared replay drift, not a generic closure-validator tightening pass.
@@ -87,7 +87,7 @@ Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helpe
 
 - If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.
 - If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.
-- For `tools/lib/bitmap.zig`, prefer any remaining `scripts/zigux/validate-phase1.py` manifest-anchor exactness gap before reopening `Documentation/zigux/phase1-closure.md` or `scripts/zigux/validate-phase1-closure.py` again.
+- For `tools/lib/bitmap.zig`, do not replay the closed `scripts/zigux/validate-phase1.py` or `scripts/zigux/validate-phase1-closure.py` validator cue; only reopen if a fresh reread shows new direct-anchor drift or committed shared replay drift.
 - If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.
 
 ## Footer
