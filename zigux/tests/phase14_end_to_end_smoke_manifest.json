@@ -49,7 +49,7 @@
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
-      "lane_key": "P14-L06",
+      "lane_key": "P14-L08",
       "anchor": "kernel/trace/ring_buffer.c",
       "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
