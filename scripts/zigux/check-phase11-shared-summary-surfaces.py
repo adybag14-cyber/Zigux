@@ -64,12 +64,14 @@ MARKERS = {
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`zigux/tests/phase11_hvc_console_manifest.json`",
+        "`zigux/tests/phase11_hvc_console_survey.zig`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-        "`hvc_cleanup()` teardown handoff, the dedicated archival `hvc_console` teardown note plus the validation matrix, manifest-backed survey gate, modem-control split, poll-retry split, and sysrq-helper boundary",
+        "the dedicated archival `hvc_console` teardown note plus the validation matrix, manifest-backed survey gate, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` plus `make -C zigux phase11-hvc-survey` checker-backed replay route, modem-control split, poll-retry split, and sysrq-helper boundary",
     ],
 }
 
@@ -141,9 +143,9 @@ def run_self_test() -> None:
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][4]),
             (FILES["tests_companion"], MARKERS["tests_companion"][5]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][7]),
-            (FILES["tests_companion"], MARKERS["tests_companion"][9]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][8]),
+            (FILES["tests_companion"], MARKERS["tests_companion"][11]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
