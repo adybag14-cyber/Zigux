@@ -109,6 +109,8 @@ TESTS_README_MARKERS = [
     "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
+    "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
+    "the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
     "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12-smoke`",
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -564,6 +566,21 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        tests_readme_path = base / TESTS_README_PATH
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(
+                TESTS_README_MARKERS[13],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"tests_readme:{TESTS_README_MARKERS[13]}",
+        )
+
+        write_fixture_tree(base)
         scripts_readme_path = base / SCRIPTS_README_PATH
         scripts_readme_path.write_text(
             scripts_readme_path.read_text(encoding="utf-8").replace(
@@ -636,7 +653,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
