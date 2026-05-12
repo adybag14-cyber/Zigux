@@ -26,7 +26,7 @@ Those are useful footholds, but the live Phase 12 survey has to explain how they
 
 ## Survey findings
 - `tools/lib/bpf/libbpf.c` is present on `master` at 14,771 lines, which is large enough to cross helper, bridge, queue-routing, object-model, relocation, and verifier-facing concerns in one file.
-- the live repo already ships the older segment catalog at `tools/lib/bpf/zigux_segments/manifest.json` plus the landed helper-first surfaces in `type_names.zig`, `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `perf_buffer_poll.zig`, `file_path_handle_bridge.zig`, and `verify.zig`.
+- the live repo still carries the older Phase 8 rooted segment catalog at `tools/lib/bpf/zigux_segments/manifest.json`, and that file remains useful as legacy helper-first scaffolding beside the landed helper-first surfaces in `type_names.zig`, `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `perf_buffer_poll.zig`, `file_path_handle_bridge.zig`, and `verify.zig`.
 - the dedicated Phase 12 libbpf reviewability companions are publicly present on current `master`: `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`.
 - the shared shipped replay order is still narrower than that parked reviewability packet. Current `zigux/tests/phase12_build.zig` wires only the `virtio_net` and `virtio_scsi` Phase 12 shards, and current `zigux/Makefile` keeps `phase12-smoke`, `phase12-test`, and `phase12` tied to that same build file.
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the parked libbpf reviewability files have been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.
@@ -44,6 +44,8 @@ That means this survey should keep three facts explicit at the same time:
 - the shared Phase 12 smoke and test routes still do not exercise that parked packet directly
 
 Keeping those three facts aligned is the bounded roadmap gap for this lane. It prevents Phase 12 libbpf wording from collapsing back into stale Phase 8 framing, and it also prevents the release-facing Phase 12 packet from quietly promoting the parked libbpf reviewability files into shipped replay evidence before `zigux/tests/phase12_build.zig` or `zigux/Makefile` actually adopt them.
+
+The same boundary applies to `tools/lib/bpf/zigux_segments/manifest.json`: current repo reality still treats that file as a legacy Phase 8 rooted helper catalog, so Phase 12 wording should keep naming it as scaffolding beside the parked reviewability packet instead of treating it like a current Phase 12 lane-keyed reviewability artifact.
 
 ## Non-goals
 This survey slice does not claim:
