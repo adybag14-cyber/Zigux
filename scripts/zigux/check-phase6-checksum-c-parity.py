@@ -18,6 +18,9 @@ FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vector
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
     [
+        "add16\tsaturated plus one wraps with carry\t0x0001",
+        "add16\tsaturated plus saturated preserves ones complement\t0xffff",
+        "add16\tsaturated plus zero stays saturated\t0xffff",
         "carry-discipline\tall-ones even payload with zero seed\t0x0000",
         "carry-discipline\tall-ones odd payload with saturated seed\t0x00ff",
         "carry-discipline\tsingle-byte no-carry seed stays one step below overflow\t0x0004",
@@ -36,6 +39,8 @@ EXPECTED_SORTED_LINES = sorted(
         "replace-by-diff\tipv4-total-length\t0x9c59",
         "replace2\tipv4-total-length\t0x9c59",
         "replace4\tipv4-saddr\t0x9c58",
+        "sub16\tsubtracting a prior addend recovers the original word\t0x1234",
+        "sub16\tzero minus one borrows across ones complement\t0xfffe",
         "tcpudp-nofold\tudp pseudo header\t0x000085e4",
         "tcpudpv6-nofold\ticmpv6 preserves upper declared length bits\t0x00007e10",
         "tcpudpv6-nofold\ttcp carry payload even\t0x0000b842",
@@ -50,6 +55,7 @@ FIXTURE_IPV6_PSEUDO_HEADER_CASE_MARKER = "pub const ipv6_pseudo_header_cases = [
 FIXTURE_CARRY_DISCIPLINE_CASE_MARKER = "pub const carry_discipline_cases = [_]CarryDisciplineCase"
 FIXTURE_CASE_NAME_MARKER = ".name = "
 FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT = 4
+FIXED_DIRECT_16BIT_CARRY_CASE_COUNT = 5
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -128,6 +134,7 @@ def expected_fixture_case_count(fixture_text: str) -> int:
         + ipv6_pseudo_header_cases
         + carry_discipline_cases
         + FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT
+        + FIXED_DIRECT_16BIT_CARRY_CASE_COUNT
     )
 
 
@@ -144,36 +151,36 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import("std");
+        const std = @import(\"std\");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const checksum_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{HELPER_SOURCE}" }},
+                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const fixtures_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{FIXTURE_SOURCE}" }},
+                .root_source_file = .{{ .cwd_relative = \"{FIXTURE_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport("checksum", checksum_module);
-            root_module.addImport("phase6_checksum_vectors", fixtures_module);
+            root_module.addImport(\"checksum\", checksum_module);
+            root_module.addImport(\"phase6_checksum_vectors\", fixtures_module);
 
             const exe = b.addExecutable(.{{
-                .name = "phase6-checksum-c-parity",
+                .name = \"phase6-checksum-c-parity\",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step("run", "Run Phase 6 checksum C parity spot check");
+            const step = b.step(\"run\", \"Run Phase 6 checksum C parity spot check\");
             step.dependOn(&run.step);
         }}
         """
@@ -290,7 +297,7 @@ def run_self_test() -> int:
         """
     )
     expected_case_count = expected_fixture_case_count(fixture_text)
-    assert_equal("expected_surface_case_count", expected_case_count, 22)
+    assert_equal("expected_surface_case_count", expected_case_count, 27)
     assert_equal(
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
