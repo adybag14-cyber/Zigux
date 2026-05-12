@@ -7,7 +7,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-plus-tree-fallback-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=15d4af53a8bebee16f1272fee694592a6f4a2825`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=2a72bb87c3e6ecec0c336ced708cbffe2b32ac81`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=8bb6db9c5625d3f04369e034d88ef4eff9048bcf`
@@ -53,7 +53,7 @@ This survey is anchored to packet-local blob IDs because the current connector r
 
 The current tree still carries a real bounded policy-and-unsafe packet, but the shared ABI replay owns more of the visible proof surface than older versions of this survey claimed:
 
-- `zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values, so the canonical starter ABI invariants do not live only in the shared replays anymore.
+- `zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values, and it now also keeps the current chrdev notify ack-window policy budget-window delivery-window view, summary, budget-view, and budget-summary layouts explicit so those ABI structs no longer live only in the shared replays.
 - `zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
 - `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
@@ -80,7 +80,7 @@ Current same-family progress already includes helper-local explicit-byte decodin
 - the allocator helper decodes ABI allocator-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
 - the narrow unsafe helper decodes ABI unsafe-scope bytes explicitly and mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers, instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand
 - the MMIO helper routes policy-aware reads and writes through explicit byte and typed `InteropPolicy` relays while keeping denied-scope accesses fail-closed instead of spreading that contract across unrelated callers
-- the layout helper now keeps the canonical starter layouts and interop byte values explicit again, while the shared ABI proof packet still owns the broader exported-constant and chrdev budget-window evidence
+- the layout helper now keeps the canonical starter layouts, the chrdev budget-window delivery-window layouts, and the interop byte values explicit again, while the shared ABI proof packet still owns the broader exported-constant evidence and the emitted dump-surface replay
 - the remaining same-lane gap is only to keep this survey aligned with the live helper roles, shared ABI replay surfaces, and current blob markers without implying a retired focused replay family or a broader runtime policy subsystem
 
 ## Next Bounded Step
