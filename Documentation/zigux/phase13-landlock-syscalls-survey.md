@@ -19,7 +19,7 @@ The Phase 13 roadmap explicitly names `security/landlock/syscalls.c` as one of t
 
 That matters because the syscall side of Landlock sits right at the boundary between reviewable policy planning and live kernel enforcement. A truthful Zigux packet has to keep the credential gate, add-rule branch split, and release-side file-operation shaping explicit without pretending to mutate live credentials, live rulesets, or real syscall state.
 
-Current `master` already ships a small `security/landlock/syscalls.zig` helper starter, but it still does not ship the direct helper-local slice note, replay, reviewability gate, or manifest companions that would turn this into a fuller helper-local packet. The highest-value bounded work in this lane is therefore to keep the shipped helper surface and its roadmap posture easy to reread instead of widening into ruleset ownership or shared reminder churn.
+Current `master` already ships a small `security/landlock/syscalls.zig` helper starter, plus the dedicated helper-local governance and survey notes, but it still does not ship the direct helper-local slice note, replay, reviewability gate, or manifest companions that would turn this into a fuller helper-local packet. The highest-value bounded work in this lane is therefore to keep the shipped helper surface and its roadmap posture easy to reread instead of widening into ruleset ownership or shared reminder churn.
 
 ## Survey findings
 
@@ -28,7 +28,7 @@ Current `master` already ships a small `security/landlock/syscalls.zig` helper s
 - the shipped `planAddRule()` planner keeps the `landlock_add_rule()` branches explicit by separating `AddRuleAction.path_beneath` from `AddRuleAction.net_port`, requiring ruleset write access for both, keeping parent-fd lookup local to `path_beneath`, and keeping port handoff local to `net_port`.
 - the helper starter also carries the release-side `planFopRulesetRelease()` and `planRulesetFops()` planners so the `fop_ruleset_release()` ownership drop and the combined `ruleset_fops` read or write `-EINVAL` contract remain visible as bounded helper evidence.
 - current `master` already pairs the helper with `Documentation/zigux/phase13-landlock-syscalls-governance.md`, but it still does not ship `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, or `zigux/tests/phase13_landlock_syscalls_manifest.json`.
-- the immediate repo-reality gap versus the roadmap is therefore not an absent helper starter. It is the lack of direct helper-local survey or replay companions around the helper that current `master` already ships.
+- the immediate repo-reality gap versus the roadmap is therefore not an absent helper starter or an absent survey companion. It is the lack of direct helper-local slice, replay, reviewability, and manifest companions around the helper that current `master` already ships.
 
 ## Exact Live Readback
 
