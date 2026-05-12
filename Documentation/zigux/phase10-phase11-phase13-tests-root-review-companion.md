@@ -9,14 +9,9 @@ Keep `Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zi
 Keep the current bounded virtio closure packet explicit through these shared surfaces and closure-manifest-backed packet-local inventory claims:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- `Documentation/zigux/phase10-virtio-core-slice.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
-- `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `Documentation/zigux/phase10-virtio-input-slice.md`
-- `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
-- `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
@@ -62,10 +57,10 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Treat the shared reminder notes, validators, and Linux-style make routes above together with the directly readable `zigux/tests/phase10_closure_manifest.json` plus `zigux/tests/phase10_virtio_ring_manifest.json` as the currently re-readable Phase 10 anchors. Treat the wider packet-local file list above as closure-manifest-backed inventory rather than as a claim that every path was directly re-read in the same review. If packet-local companions such as `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, or `zigux/tests/phase10_virtio_mmio_manifest.json` still cannot be materialized through the authenticated contents bridge on current `master`, record them as repo-reality gaps instead of presenting them as independently re-read shipped evidence.
+Treat the shared reminder notes, validators, and Linux-style make routes above together with the directly readable `zigux/tests/phase10_closure_manifest.json` plus `zigux/tests/phase10_virtio_ring_manifest.json` as the currently re-readable Phase 10 anchors. Keep the direct `drivers/virtio/virtio_ring.zig` ring surface explicit beside `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_reset_reuse.zig` when broader shared summaries refresh. Current repo-reality gaps on `master` still include `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`; keep those absent packet-local companions recorded as gaps instead of presenting them as shipped shared-review evidence.
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still describe the same bounded virtio core, ring, input, and MMIO closure packet, the focused core reset-queue replay, ring drained-reset reuse replay, the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig`, input preflight and status-drain replays, and MMIO verify replays, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, the already-shipped `samples/zigux/runtime_trace_events_loader.zig` scaffold as adjacent Phase 9 evidence rather than Phase 10 closure progress, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit, and do any packet-local direct-read misses stay framed as repo-reality gaps rather than silently re-presented as directly re-read evidence?
+- Do the docs-root notes, scripts-root guards, tests-root packet, and Linux-style make routes still describe the same bounded virtio core, ring, input, and MMIO closure packet, the focused core reset-queue replay, ring drained-reset reuse replay, the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig`, input preflight and status-drain replays, and MMIO verify replays, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, the already-shipped `samples/zigux/runtime_trace_events_loader.zig` scaffold as adjacent Phase 9 evidence rather than Phase 10 closure progress, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit, and do the known missing Phase 10 slice-note companions stay framed as repo-reality gaps rather than silently re-presented as directly re-read evidence?
 
 ## Phase 11 tests-root packet
 
