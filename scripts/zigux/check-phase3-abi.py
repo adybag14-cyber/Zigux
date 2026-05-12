@@ -56,6 +56,7 @@ RUNNER_MARKERS = (
     'if slug == "abi":',
     '(sys.executable, "scripts/zigux/check-phase3-abi.py"),',
     '("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),',
+    '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),',
 )
 
 
@@ -154,6 +155,23 @@ def run_self_test() -> int:
         if expected_runner_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing runner marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
+        _write(
+            root / RUNNER_PATH,
+            _read(root / RUNNER_PATH).replace(
+                '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_dump_runner_marker = 'missing runner marker: ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),'
+        if expected_dump_runner_marker not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing dump runner marker was not reported")
             return 1
         case_count += 1
 
