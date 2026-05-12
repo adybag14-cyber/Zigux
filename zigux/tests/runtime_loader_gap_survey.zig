@@ -1,180 +1,171 @@
 const std = @import("std");
 
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(max_bytes));
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), path, allocator, .limited(max_bytes));
 }
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    if (std.mem.indexOf(u8, haystack, needle) == null) {
-        std.debug.print("missing marker: {s}\n", .{needle});
-        return error.MissingMarker;
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectMissingRepoFile(path: []const u8) !void {
+    const maybe_bytes = readRepoFileAlloc(std.testing.allocator, path, 1024);
+    if (maybe_bytes) |bytes| {
+        defer std.testing.allocator.free(bytes);
+        return error.ExpectedMissingRepoFile;
+    } else |err| switch (err) {
+        error.FileNotFound => {},
+        else => return err,
     }
 }
 
-fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
-    if (std.mem.indexOf(u8, haystack, needle) != null) {
-        std.debug.print("unexpected marker: {s}\n", .{needle});
-        return error.UnexpectedMarker;
-    }
-}
-
-test "phase 9 runtime loader gap survey keeps manifest and note aligned" {
+test "phase 9 runtime loader gap survey keeps note, manifest, and stale shared-build boundary aligned" {
     const allocator = std.testing.allocator;
-    const manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_loader_gap_manifest.json", 128 * 1024);
+
+    const manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        64 * 1024,
+    );
     defer allocator.free(manifest);
 
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
-    defer allocator.free(note);
-
-    try expectContains(manifest, "\"path\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
-    try expectContains(manifest, "\"role\": \"machine-checks the manifest, the blocker note, the shared request contract, the explicit without-substrate rollback path, the new shared command_name field, and the still-absent argv or environment control surface\"");
-    try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
-    try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture");
-    try expectContains(note, "`make -C zigux phase9-runtime-loader-shared-tests`");
-    try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet");
-}
-
-test "phase 9 runtime loader gap survey keeps phase 2 or phase 3 non-owner boundaries explicit" {
-    const allocator = std.testing.allocator;
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
-    defer allocator.free(note);
-
-    try expectContains(
-        note,
-        "`scripts/zigux/kconfig/conf_bridge.zig` and\n`scripts/zigux/kconfig/confdata_bridge.zig` stay in the Phase 2 config-surface\nbridge packet, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay\nin the Phase 3 export-boundary packet.",
+    const note = try readRepoFileAlloc(
+        allocator,
+        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        64 * 1024,
     );
-    try expectContains(note, "only as boundary references instead of Phase 9 runtime evidence");
-}
-
-test "phase 9 runtime loader gap survey keeps the shared request surface explicit" {
-    const allocator = std.testing.allocator;
-    const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
-    defer allocator.free(runtime_loader);
-
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
     defer allocator.free(note);
 
-    try expectContains(runtime_loader, "command_name");
-    try expectContains(runtime_loader, "released_without_substrate");
-    try expectContains(runtime_loader, "releaseWithoutSubstrate");
-    try expectContains(note, "the shared request shape carries module identity, an optional shared `command_name` field");
-    try expectContains(note, "the current fallback path for the pre-execution packet");
+    const phase9_build = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/phase9_build.zig",
+        64 * 1024,
+    );
+    defer allocator.free(phase9_build);
+
+    try expectContains(manifest, "\"lane_key\": \"P9-L15\"");
+    try expectContains(manifest, "\"phase\": \"Phase 9\"");
+    try expectContains(manifest, "\"shared_runtime_loader_files_present\": false");
+    try expectContains(manifest, "\"shared_runtime_loader_contract_present\": false");
+    try expectContains(manifest, "\"shared_phase9_build_route_replayable\": false");
+    try expectContains(manifest, "\"current_honest_gate\": \"zig test zigux/tests/runtime_loader_gap_survey.zig\"");
+    try expectContains(manifest, "\"role\": \"adjacent_stale_shared_build_scaffold\"");
+    try expectContains(manifest, "\"status\": \"missing_on_current_master\"");
+    try expectContains(manifest, "\"status\": \"present_but_not_replayable\"");
+    try expectContains(manifest, "\"status\": \"starter_landed\"");
+    try expectContains(manifest, "\"surface\": \"samples/zigux/runtime_trace_events_loader.zig\"");
+    try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
+
+    try expectContains(note, "PHASE9_STATUS=active");
+    try expectContains(note, "PHASE9_SLICE=runtime-loader-gap-survey");
+    try expectContains(note, "PHASE9_LANE_KEY=P9-L15");
+    try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
+    try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectContains(note, "`zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig`\nreturn missing-file results on current `master`");
+    try expectContains(note, "`zigux/tests/phase9_build.zig` remains an adjacent stale shared-build scaffold");
+    try expectContains(note, "`zig test zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectContains(note, "`make -C zigux phase9-runtime-loader-shared-tests` stays blocked until the\nshared runtime-loader files land");
+    try expectContains(note, "`make -C zigux phase9` stays blocked until the shared runtime-loader files\nland");
+    try expectContains(note, "`tools/lib/subcmd/exec-cmd.zig`");
+    try expectContains(note, "`tools/lib/subcmd/help.zig`");
+
+    try expectContains(phase9_build, "../kernel/runtime_loader.zig");
+    try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
 }
 
-test "phase 9 runtime loader gap survey keeps bitmap shared-request snapshots explicit" {
+test "phase 9 runtime loader gap survey keeps missing shared runtime-loader surfaces explicit" {
+    try expectMissingRepoFile("zigux/kernel/runtime_loader.zig");
+    try expectMissingRepoFile("zigux/kernel/runtime_loader_contract.zig");
+}
+
+test "phase 9 runtime loader gap survey keeps loader-scaffold rollback and lifecycle evidence reviewable" {
     const allocator = std.testing.allocator;
-    const bitmap_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_bitmap_loader.zig", 128 * 1024);
+
+    const atomic64_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_atomic64_loader.zig",
+        128 * 1024,
+    );
+    defer allocator.free(atomic64_loader);
+
+    const bitmap_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        128 * 1024,
+    );
     defer allocator.free(bitmap_loader);
 
-    try expectContains(bitmap_loader, "keepsSharedLoadPlanSnapshotExplicit");
-    try expectContains(bitmap_loader, "runtime bitmap loader rejects shared-load-plan snapshot drift");
+    const kretprobe_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        160 * 1024,
+    );
+    defer allocator.free(kretprobe_loader);
+
+    const trace_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_trace_events_loader.zig",
+        192 * 1024,
+    );
+    defer allocator.free(trace_loader);
+
+    try expectContains(atomic64_loader, "releaseSharedWithoutSubstrate");
+    try expectContains(atomic64_loader, "runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(atomic64_loader, "runtime atomic64 loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(atomic64_loader, "runtime_loader.RequestState.released_without_substrate");
+
+    try expectContains(bitmap_loader, "releaseSharedWithoutSubstrate");
     try expectContains(bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
-    try expectContains(bitmap_loader, "runtime_loader.RequestState.waiting_on_runtime_substrate");
     try expectContains(bitmap_loader, "runtime_loader.RequestState.released_without_substrate");
-    try expectContains(bitmap_loader, "releaseSharedWithoutSubstrate");
-}
 
-test "phase 9 runtime loader gap survey keeps kretprobe shared-request snapshots explicit" {
-    const allocator = std.testing.allocator;
-    const kretprobe_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_kretprobe_loader.zig", 128 * 1024);
-    defer allocator.free(kretprobe_loader);
-
-    try expectContains(kretprobe_loader, "keepsSharedLoadPlanSnapshotExplicit");
-    try expectContains(kretprobe_loader, "runtime kretprobe loader rejects shared-load-plan snapshot drift");
+    try expectContains(kretprobe_loader, "releaseSharedWithoutSubstrate");
     try expectContains(kretprobe_loader, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(kretprobe_loader, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
-    try expectContains(kretprobe_loader, "runtime_loader.RequestState.waiting_on_runtime_substrate");
     try expectContains(kretprobe_loader, "runtime_loader.RequestState.released_without_substrate");
-    try expectContains(kretprobe_loader, "releaseSharedWithoutSubstrate");
+
+    try expectContains(trace_loader, "releaseSharedWithoutSubstrate");
+    try expectContains(trace_loader, "runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(trace_loader, "runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(trace_loader, "runtime trace-events loader rejects registration snapshot drift");
+    try expectContains(trace_loader, "runtime_loader.RequestState.released_without_substrate");
 }
 
-test "phase 9 runtime loader gap survey keeps the blocked trace-events boundary visible" {
+test "phase 9 runtime loader gap survey keeps adjacent family-local blockers explicit" {
     const allocator = std.testing.allocator;
-    const trace_manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_trace_events_manifest.json", 128 * 1024);
+
+    const manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        64 * 1024,
+    );
+    defer allocator.free(manifest);
+
+    const trace_manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_trace_events_manifest.json",
+        64 * 1024,
+    );
     defer allocator.free(trace_manifest);
 
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
-    defer allocator.free(note);
+    const kretprobe_manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_kretprobe_manifest.json",
+        32 * 1024,
+    );
+    defer allocator.free(kretprobe_manifest);
+
+    try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_trace_events_manifest.json\"");
+    try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_kretprobe_manifest.json\"");
+    try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase9_build.zig\"");
+    try expectContains(manifest, "\"zigux_destination\": \"zigux/kernel/runtime_loader.zig\"");
 
     try expectContains(trace_manifest, "runtime-trace-events-substrate-handoff");
-    try expectContains(note, "`samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` still own the sample-only blocked runtime pilot boundary");
-    try expectContains(note, "`samples/zigux/runtime_trace_events_loader.zig` now records the same bounded init or exit handoff shape");
-    try expectContains(note, "`samples/zigux/runtime_trace_events_loader.zig` owns the bounded trace-events loader-plan projection and without-substrate fallback while keeping `foo_bar_reg` and `foo_bar_unreg` review-only instead of executable registration");
-    try expectContains(note, "tracepoint-registration execution");
-}
+    try expectContains(trace_manifest, "\"live_registration_parity\": \"blocked_on_runtime_substrate\"");
 
-test "phase 9 runtime loader gap survey keeps lifecycle-boundary manifest surfaces explicit" {
-    const allocator = std.testing.allocator;
-    const manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_loader_gap_manifest.json", 128 * 1024);
-    defer allocator.free(manifest);
-
-    const kretprobe_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_kretprobe_loader.zig", 128 * 1024);
-    defer allocator.free(kretprobe_loader);
-
-    const trace_events_loader = try readRepoFileAlloc(allocator, "samples/zigux/runtime_trace_events_loader.zig", 128 * 1024);
-    defer allocator.free(trace_events_loader);
-
-    try expectContains(manifest, "\"shared_request_boundary_surface\": \"zigux/kernel/runtime_loader.zig\"");
-    try expectContains(manifest, "\"shared_request_boundary_guard\": \"RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit\"");
-    try expectContains(manifest, "\"review_only_loader_plan_surfaces\": [");
-    try expectContains(manifest, "\"samples/zigux/runtime_atomic64_loader.zig\"");
-    try expectContains(manifest, "\"samples/zigux/runtime_bitmap_loader.zig\"");
-    try expectContains(manifest, "\"samples/zigux/runtime_kretprobe_loader.zig\"");
-    try expectContains(manifest, "\"samples/zigux/runtime_trace_events_loader.zig\"");
-    try expectContains(manifest, "\"metadata_only_registration_surfaces\": [");
-    try expectContains(manifest, "\"forbidden_live_calls\": [ \"module_init()\", \"module_exit()\", \"register_kretprobe()\", \"unregister_kretprobe()\" ]");
-    try expectContains(kretprobe_loader, "register_kretprobe");
-    try expectContains(kretprobe_loader, "unregister_kretprobe");
-    try expectContains(trace_events_loader, "tracepoint_probe_register");
-    try expectContains(trace_events_loader, "tracepoint_probe_unregister");
-    try expectContains(trace_events_loader, "registration_depth");
-    try expectContains(trace_events_loader, "registrationSnapshot");
-    try expectContains(trace_events_loader, "keepsRegistrationSnapshotExplicit");
-    try expectContains(trace_events_loader, "runtime trace-events loader bridges the shared request lifecycle without widening registration claims");
-    try expectContains(trace_events_loader, "runtime trace-events loader rejects registration snapshot drift");
-    try expectContains(trace_events_loader, "runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary");
-    try expectContains(trace_events_loader, "runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff");
-}
-
-test "phase 9 runtime loader gap survey keeps phase 8 argv and environment controls out of the shared runtime surface" {
-    const allocator = std.testing.allocator;
-    const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
-    defer allocator.free(runtime_loader);
-
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
-    defer allocator.free(note);
-
-    try expectNotContains(runtime_loader, "PERF_EXEC_PATH");
-    try expectNotContains(runtime_loader, "Config.exec_path_env");
-    try expectNotContains(runtime_loader, "LINES");
-    try expectNotContains(runtime_loader, "COLUMNS");
-    try expectContains(note, "`tools/lib/subcmd/exec-cmd.zig` owns the live Phase 8 command-name and path-shaping surfaces");
-    try expectContains(note, "`tools/lib/subcmd/help.zig` owns the live Phase 8 terminal-cue surfaces");
-    try expectContains(note, "the shared request contract now records an optional shared `command_name` field, but no broader shared runtime command or environment control surface yet records argv policy or environment-derived activation cues");
-}
-
-test "phase 9 runtime loader gap survey keeps module metadata and depmod boundaries explicit" {
-    const allocator = std.testing.allocator;
-    const manifest = try readRepoFileAlloc(allocator, "zigux/tests/runtime_loader_gap_manifest.json", 128 * 1024);
-    defer allocator.free(manifest);
-
-    const note = try readRepoFileAlloc(allocator, "Documentation/zigux/phase9-runtime-loader-gap-survey.md", 128 * 1024);
-    defer allocator.free(note);
-
-    const runtime_loader = try readRepoFileAlloc(allocator, "zigux/kernel/runtime_loader.zig", 128 * 1024);
-    defer allocator.free(runtime_loader);
-
-    try expectContains(manifest, "\"module_metadata_depmod_boundaries\"");
-    try expectContains(manifest, "\"surface\": \".modinfo\"");
-    try expectContains(manifest, "\"surface\": \"MODULE_ALIAS()\"");
-    try expectContains(manifest, "\"surface\": \"modules.alias\"");
-    try expectContains(manifest, "\"surface\": \"scripts/depmod.sh\"");
-    try expectContains(note, "the shared loader-gap manifest also keeps the blocked module-metadata and depmod-publication boundary explicit: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` stay named only as blocked boundary surfaces until a real depmod bridge exists");
-    try expectContains(note, "no path here claims `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, or `scripts/depmod.sh` parity while the depmod bridge remains absent");
-    try expectContains(note, "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` remain blocked boundary references in `zigux/tests/runtime_loader_gap_manifest.json` until a real depmod bridge exists");
-    try expectNotContains(runtime_loader, ".modinfo");
-    try expectNotContains(runtime_loader, "MODULE_ALIAS()");
-    try expectNotContains(runtime_loader, "modules.alias");
-    try expectNotContains(runtime_loader, "scripts/depmod.sh");
+    try expectContains(kretprobe_manifest, "runtime-kretprobe-substrate-handoff");
+    try expectContains(kretprobe_manifest, "\"live_registration_parity\": \"blocked_on_runtime_substrate\"");
 }
