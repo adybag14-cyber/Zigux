@@ -188,6 +188,68 @@ Phase 8 notes
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase8-validate`, `make -C zigux phase8-exec-cmd-test`, `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, `make -C zigux phase8-kallsyms-test`, `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8` now keep the current exec-cmd, help, kallsyms, and helper-first libbpf packet reviewable from the docs root while the docs-root summary stays aligned with the live scripts-root and tests-root reminder packet on `master` instead of shrinking the current Phase 8 surface back toward older starter-only or missing-file assumptions.
+Phase 10 notes
+- `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `zigux/tests/README.md`
+- `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `scripts/zigux/check-phase10-core-packet.py`
+- `scripts/zigux/check-phase10-ring-packet.py`
+- `scripts/zigux/check-phase10-input-packet.py`
+- `scripts/zigux/check-phase10-mmio-packet.py`
+- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
+- `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/validate-phase10.py`
+- `scripts/zigux/validate-phase10-closure.py`
+- `zigux/tests/phase10_closure_manifest.json`
+- `drivers/virtio/virtio.zig`
+- `drivers/virtio/virtio_driver_id.zig`
+- `drivers/virtio/virtio_ring.zig`
+- `drivers/virtio/virtio_input.zig`
+- `drivers/virtio/virtio_mmio.zig`
+- `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_core_reset_queue.zig`
+- `zigux/tests/phase10_virtio_core_manifest.json`
+- `zigux/tests/phase10_virtio_core_survey.zig`
+- `drivers/virtio/virtio_verify.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
+- `drivers/virtio/virtio_ring_verify.zig`
+- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
+- `zigux/tests/phase10_virtio_input.zig`
+- `drivers/virtio/virtio_input_verify.zig`
+- `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+- `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+- `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+- `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+- `zigux/tests/phase10_virtio_input_status_drain.zig`
+- `zigux/tests/phase10_virtio_input_manifest.json`
+- `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
+- `drivers/virtio/virtio_mmio_verify.zig`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
+- `zigux/Makefile`
+- `make -C zigux phase10-validate`
+- `make -C zigux phase10-test`
+- `make -C zigux phase10`
+- these Phase 10 docs-root reminders now keep the shared closure packet reviewable through the shipped validators, the dedicated harness-coverage checker, the direct core tests-root checker, the direct ring surface, the direct ring verifier, the drained-reset reuse replay, the input and MMIO verifier replays, the closure manifest, and the Linux-style replay routes instead of undercounting the live ring packet.
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
