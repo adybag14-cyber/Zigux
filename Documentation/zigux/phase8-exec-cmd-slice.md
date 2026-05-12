@@ -23,10 +23,11 @@ Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd
 
 ## Gates
 1. Run the focused Zig module tests: `zig test tools/lib/subcmd/exec-cmd.zig`
-2. Run the shared validator route: `make -C zigux phase8-validate`
-3. Run the focused exec-cmd replay: `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
-4. Run the focused convenience target: `make -C zigux phase8-exec-cmd-test`
-5. Run the bundled Phase 8 tooling gate: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+2. Run the dedicated exec-cmd packet checker: `python3 scripts/zigux/check-phase8-exec-cmd-packet.py`
+3. Run the shared validator route: `make -C zigux phase8-validate`
+4. Run the focused exec-cmd replay: `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
+5. Run the focused convenience target: `make -C zigux phase8-exec-cmd-test`
+6. Run the bundled Phase 8 tooling gate: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Current Parity Surface
 The current parked deferred-exec packet covers:
