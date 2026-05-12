@@ -14,15 +14,12 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
-    Path("Documentation/zigux/phase3-rbtree-slice.md"),
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
     Path("include/zigux/dev_t.h"),
-    Path("include/zigux/rbtree.h"),
     Path("zigux/bindings/abi.zig"),
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
-    Path("zigux/bindings/rbtree.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
@@ -32,9 +29,6 @@ REQUIRED_FILES = (
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
     ABI_MANIFEST_PATH,
-    Path("zigux/tests/phase3_rbtree_shared_contract.zig"),
-    Path("zigux/tests/phase3_rbtree_manifest.json"),
-    Path("zigux/tests/fixtures/phase3_rbtree/expected.json"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
@@ -196,17 +190,6 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        rbtree_contract_rel = Path("zigux/tests/phase3_rbtree_shared_contract.zig")
-        (root / rbtree_contract_rel).unlink()
-        issues = validate_repo(root)
-        expected_rbtree_contract_missing = f"missing repo file: {rbtree_contract_rel.as_posix()}"
-        if expected_rbtree_contract_missing not in issues:
-            print("PHASE3_ABI_SELF_TEST=fail")
-            print("expected missing rbtree shared-contract file was not reported")
-            return 1
-        case_count += 1
-
-        _write(root / rbtree_contract_rel)
         for manifest_entry_rel in REQUIRED_MANIFEST_ENTRIES:
             _write(
                 root / ABI_MANIFEST_PATH,
@@ -276,7 +259,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the focused Phase 3 ABI replay route and its core packet, including the landed shared rbtree root-view packet."
+        description="Validate the focused Phase 3 ABI replay route against the live shared ABI packet."
     )
     parser.add_argument(
         "--repo-root",
