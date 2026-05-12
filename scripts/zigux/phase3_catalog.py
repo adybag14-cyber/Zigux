@@ -247,7 +247,7 @@ def audit_artifact_diff_reality(root: Path = ROOT) -> list[str]:
     issues: list[str] = []
     artifact_diff = root / "Documentation/zigux/artifact-diff.md"
     if not artifact_diff.exists():
-        return [f"missing repo file: {artifact_diff.relative_to(root).as_posix()}]
+        return [f"missing repo file: {artifact_diff.relative_to(root).as_posix()}"]
 
     documented = {
         match.group("slug")
