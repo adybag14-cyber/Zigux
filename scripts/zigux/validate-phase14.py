@@ -443,6 +443,28 @@ def run_self_test() -> int:
         print("SELF_TEST_MARKERS_END")
         return 1
 
+    exact_line_missing = []
+    require_exact_line_once(
+        exact_line_missing,
+        "make",
+        good_phase14_make.replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py\n",
+            "",
+            1,
+        ),
+        MAKE_EXACT_LINES,
+    )
+    if exact_line_missing != [
+        "make:exact_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py:count=0"
+    ]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_makefile_release_boundary_route_gap_markers")
+        print("SELF_TEST_MARKERS_START")
+        for item in exact_line_missing:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     good_release_boundary = "\n".join(RELEASE_BOUNDARY_MARKERS) + "\n"
     missing_release_boundary_markers = [
         marker
@@ -509,6 +531,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test")
     print("PHASE14_SELF_TEST_MISSING_ROLLBACK_ROUTE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py")
     print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_SELFTEST_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test")
+    print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_ROUTE_LINE_MARKER=\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py")
     print("PHASE14_SELF_TEST_MISSING_RELEASE_BOUNDARY_ROUTE_MARKER=make -C zigux phase14-test")
     print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
     print("PHASE14_SELF_TEST_FORBIDDEN_REVIEWABILITY_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
