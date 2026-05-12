@@ -89,6 +89,16 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
+pub const AddRuleSyscallPlan = struct {
+    anchor: []const u8,
+    ruleset_fd: i32,
+    validates_ruleset_fd: bool,
+    validates_zero_flags: bool,
+    requires_ruleset_write_access: bool,
+    reuses_add_rule_planning: bool,
+    dispatched_rule: AddRulePlan,
+};
+
 pub const RulesetReleaseRequest = struct {
     file_present: bool = true,
     ruleset_present: bool = true,
@@ -165,7 +175,7 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
-    pub fn planAddRule(input: AddRuleInput) !AddRulePlan {
+    fn validateAddRuleSyscallContext(input: AddRuleInput) !void {
         if (input.ruleset_fd < 0) {
             return error.InvalidRulesetFd;
         }
@@ -175,7 +185,9 @@ pub const SyscallsHelperLab = struct {
         if (input.ruleset_mode & fmode_can_write == 0) {
             return error.InsufficientRulesetMode;
         }
+    }
 
+    fn planAddRuleDispatch(input: AddRuleInput) !AddRulePlan {
         switch (input.rule_type) {
             rule_type_path_beneath => {
                 if (input.path_allowed_access == 0 or input.handled_access_fs == 0) {
@@ -221,6 +233,25 @@ pub const SyscallsHelperLab = struct {
             },
             else => return error.InvalidRuleType,
         }
+    }
+
+    pub fn planAddRule(input: AddRuleInput) !AddRulePlan {
+        try validateAddRuleSyscallContext(input);
+        return try planAddRuleDispatch(input);
+    }
+
+    pub fn planLandlockAddRule(input: AddRuleInput) !AddRuleSyscallPlan {
+        try validateAddRuleSyscallContext(input);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .ruleset_fd = input.ruleset_fd,
+            .validates_ruleset_fd = true,
+            .validates_zero_flags = true,
+            .requires_ruleset_write_access = true,
+            .reuses_add_rule_planning = true,
+            .dispatched_rule = try planAddRuleDispatch(input),
+        };
     }
 
     pub fn planFopRulesetRelease(request: RulesetReleaseRequest) !RulesetReleasePlan {
@@ -369,6 +400,71 @@ test "landlock add-rule planning keeps net-port handoff explicit" {
     try std.testing.expectEqual(@as(u64, 0x30), plan.handled_access);
     try std.testing.expectEqual(@as(u64, 0x10), plan.requested_access);
     try std.testing.expectEqual(@as(?u16, 443), plan.port);
+}
+
+test "landlock add-rule syscall wrapper planning keeps top-level dispatch explicit" {
+    const path_plan = try SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 21,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x7,
+        .path_allowed_access = 0x3,
+        .parent_fd = 42,
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, path_plan.anchor);
+    try std.testing.expectEqual(@as(i32, 21), path_plan.ruleset_fd);
+    try std.testing.expect(path_plan.validates_ruleset_fd);
+    try std.testing.expect(path_plan.validates_zero_flags);
+    try std.testing.expect(path_plan.requires_ruleset_write_access);
+    try std.testing.expect(path_plan.reuses_add_rule_planning);
+    try std.testing.expectEqual(AddRuleAction.path_beneath, path_plan.dispatched_rule.action);
+    try std.testing.expect(path_plan.dispatched_rule.requires_ruleset_write_access);
+    try std.testing.expect(path_plan.dispatched_rule.requires_path_lookup);
+    try std.testing.expectEqual(@as(i32, 42), path_plan.dispatched_rule.parent_fd);
+
+    const net_plan = try SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 22,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_net_port,
+        .handled_access_net = 0x30,
+        .net_allowed_access = 0x10,
+        .port = 443,
+    });
+
+    try std.testing.expectEqual(AddRuleAction.net_port, net_plan.dispatched_rule.action);
+    try std.testing.expect(!net_plan.dispatched_rule.requires_path_lookup);
+    try std.testing.expectEqual(@as(?u16, 443), net_plan.dispatched_rule.port);
+}
+
+test "landlock add-rule syscall wrapper planning rejects invalid wrapper state" {
+    try std.testing.expectError(error.InvalidRulesetFd, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = -1,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_allowed_access = 0x1,
+        .parent_fd = 3,
+    }));
+
+    try std.testing.expectError(error.UnsupportedFlags, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 7,
+        .ruleset_mode = fmode_can_write,
+        .flags = 1,
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_allowed_access = 0x1,
+        .parent_fd = 3,
+    }));
+
+    try std.testing.expectError(error.InsufficientRulesetMode, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 7,
+        .ruleset_mode = fmode_can_read,
+        .rule_type = rule_type_net_port,
+        .handled_access_net = 0x10,
+        .net_allowed_access = 0x10,
+        .port = 443,
+    }));
 }
 
 test "landlock ruleset release planning rejects missing file or ruleset state" {
