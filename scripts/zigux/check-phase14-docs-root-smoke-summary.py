@@ -22,6 +22,8 @@ MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+CORE_TRACEABILITY_NONE_READY_NEXT_LINE = "  * ready-next gap: none currently recorded"
+CORE_TRACEABILITY_NONE_READY_NEXT_COUNT = 4
 
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -76,20 +78,26 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
 CORE_TRACEABILITY_MARKERS = [
     "manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`",
     "survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`",
-    "lane key: `P14-L01`",
-    "surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
-    "ready-next gap: `phase14-workqueue-pending-bit-audit`",
+    "lane key: `P14-L04`",
+    "surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`",
     "blocked gap: `phase14-workqueue-live-execution-blocker`",
+    "manifest: `zigux/tests/phase14_ring_buffer_manifest.json`",
+    "survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`",
+    "lane key: `P14-L06`",
+    "surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`",
+    "blocked gap: `phase14-ring-buffer-zig-port-blocker`",
     "full-bundle reviewability replay: `zigux/tests/phase14_workqueue_reviewability.zig`",
     "focused smoke shard: `make -C zigux phase14-smoke`",
     "shared full replay: `make -C zigux phase14-test`",
 ]
 
 CORE_TRACEABILITY_EXACT_LINE_MARKERS = [
-    "  * lane key: `P14-L01`",
-    "  * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
-    "  * ready-next gap: `phase14-workqueue-pending-bit-audit`",
+    "  * lane key: `P14-L04`",
+    "  * surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`",
     "  * blocked gap: `phase14-workqueue-live-execution-blocker`",
+    "  * lane key: `P14-L06`",
+    "  * surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`",
+    "  * blocked gap: `phase14-ring-buffer-zig-port-blocker`",
 ]
 
 MAKEFILE_MARKERS = [
@@ -157,6 +165,17 @@ def require_exact_line_count(
             errors.append(
                 f"marker count drift in {rel_path}: {marker} (expected 1, found {count})"
             )
+
+
+def require_exact_line_occurrence(
+    errors: list[str], rel_path: str, text: str, marker: str, expected_count: int
+) -> None:
+    lines = text.splitlines()
+    count = sum(1 for line in lines if line == marker)
+    if count != expected_count:
+        errors.append(
+            f"marker count drift in {rel_path}: {marker} (expected {expected_count}, found {count})"
+        )
 
 
 def check_manifest(errors: list[str], root: Path) -> None:
@@ -229,6 +248,15 @@ def check(root: Path) -> list[str]:
         CORE_TRACEABILITY_EXACT_LINE_MARKERS,
         exact_line_match=True,
     )
+    core_traceability_file = root / CORE_TRACEABILITY_PATH
+    if core_traceability_file.exists():
+        require_exact_line_occurrence(
+            errors,
+            CORE_TRACEABILITY_PATH.as_posix(),
+            read_text(core_traceability_file),
+            CORE_TRACEABILITY_NONE_READY_NEXT_LINE,
+            CORE_TRACEABILITY_NONE_READY_NEXT_COUNT,
+        )
     check_text_file(
         errors,
         root,
@@ -272,10 +300,21 @@ def good_core_traceability_text() -> str:
             "### Workqueue",
             "  * manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`",
             "  * survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`",
-            "  * lane key: `P14-L01`",
-            "  * surveyed commit: `007f00d0c6b6b430bfbb2110555544cc5faefe8b`",
-            "  * ready-next gap: `phase14-workqueue-pending-bit-audit`",
+            "  * lane key: `P14-L04`",
+            "  * surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`",
+            "  * ready-next gap: none currently recorded",
             "  * blocked gap: `phase14-workqueue-live-execution-blocker`",
+            "### Ring buffer",
+            "  * manifest: `zigux/tests/phase14_ring_buffer_manifest.json`",
+            "  * survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`",
+            "  * lane key: `P14-L06`",
+            "  * surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`",
+            "  * ready-next gap: none currently recorded",
+            "  * blocked gap: `phase14-ring-buffer-zig-port-blocker`",
+            "### Skbuff",
+            "  * ready-next gap: none currently recorded",
+            "### RCU tree",
+            "  * ready-next gap: none currently recorded",
             "## Shared replay contract",
             "  * full-bundle reviewability replay: `zigux/tests/phase14_workqueue_reviewability.zig`",
             "  * focused smoke shard: `make -C zigux phase14-smoke`",
@@ -456,18 +495,18 @@ def run_self_test() -> int:
         write_text(
             root / CORE_TRACEABILITY_PATH,
             good_core_traceability_text().replace(
-                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
+                "  * ready-next gap: none currently recorded\n",
                 "",
                 1,
             ),
         )
         if not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: ready-next gap: `phase14-workqueue-pending-bit-audit`"
+            f"marker count drift in {CORE_TRACEABILITY_PATH.as_posix()}: {CORE_TRACEABILITY_NONE_READY_NEXT_LINE} (expected 4, found 3)"
             in error
             for error in check(root)
         ):
             print(
-                "self-test expected missing traceability ready-next marker failure",
+                "self-test expected reduced traceability ready-next count failure",
                 file=sys.stderr,
             )
             return 1
@@ -476,18 +515,18 @@ def run_self_test() -> int:
         write_text(
             root / CORE_TRACEABILITY_PATH,
             good_core_traceability_text().replace(
-                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
-                "  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n  * ready-next gap: `phase14-workqueue-pending-bit-audit`\n",
+                "  * ready-next gap: none currently recorded\n",
+                "  * ready-next gap: none currently recorded\n  * ready-next gap: none currently recorded\n",
                 1,
             ),
         )
         if not any(
-            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md:   * ready-next gap: `phase14-workqueue-pending-bit-audit` (expected 1, found 2)"
+            f"marker count drift in {CORE_TRACEABILITY_PATH.as_posix()}: {CORE_TRACEABILITY_NONE_READY_NEXT_LINE} (expected 4, found 5)"
             in error
             for error in check(root)
         ):
             print(
-                "self-test expected duplicate traceability ready-next line failure",
+                "self-test expected duplicate traceability ready-next count failure",
                 file=sys.stderr,
             )
             return 1
