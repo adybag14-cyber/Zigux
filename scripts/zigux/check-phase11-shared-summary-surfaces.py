@@ -48,7 +48,6 @@ MARKERS = {
         "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "`make -C zigux phase11`",
         "five shipped Phase 11 checker scripts on `master`",
-        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
@@ -56,7 +55,7 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`make -C zigux phase11-hvc-survey`",
-        "framed as repo-reality gap references",
+        "while `zigux/tests/phase11_hvc_cleanup.zig` and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as repo-reality gaps",
     ],
     "tests_companion": [
         "# Phase 10, 11, and 13 Tests-Root Review Companion",
@@ -77,7 +76,13 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 18
+FORBIDDEN_MARKERS = {
+    "tests_root": [
+        "the bounded `hvc_cleanup()` teardown handoff through `zigux/tests/phase11_hvc_cleanup.zig`, the dedicated archival `hvc_console` teardown note plus the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary, manifest-backed survey gate, modem-control split, poll-retry split, and `drivers/tty/hvc/hvc_console_sysrq.zig` sysrq-helper boundary",
+    ],
+}
+
+SELF_TEST_CASE_COUNT = 19
 
 
 class CheckError(RuntimeError):
@@ -97,9 +102,17 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
+def expect_forbidden_markers_absent(label: str, text: str) -> None:
+    for marker in FORBIDDEN_MARKERS.get(label, []):
+        if marker in text:
+            raise CheckError(f"forbidden marker in {label}: {marker}")
+
+
 def run_check(root: Path) -> None:
     for label, relative_path in FILES.items():
-        expect_markers(label, read_text(root, relative_path), MARKERS[label])
+        text = read_text(root, relative_path)
+        expect_markers(label, text, MARKERS[label])
+        expect_forbidden_markers_absent(label, text)
 
 
 def write(path: Path, text: str) -> None:
@@ -136,12 +149,12 @@ def run_self_test() -> None:
             (FILES["scripts_root"], MARKERS["scripts_root"][2]),
             (FILES["scripts_root"], MARKERS["scripts_root"][6]),
             (FILES["tests_root"], MARKERS["tests_root"][5]),
-            (FILES["tests_root"], MARKERS["tests_root"][7]),
-            (FILES["tests_root"], MARKERS["tests_root"][9]),
+            (FILES["tests_root"], MARKERS["tests_root"][6]),
+            (FILES["tests_root"], MARKERS["tests_root"][8]),
+            (FILES["tests_root"], MARKERS["tests_root"][10]),
             (FILES["tests_root"], MARKERS["tests_root"][11]),
             (FILES["tests_root"], MARKERS["tests_root"][12]),
             (FILES["tests_root"], MARKERS["tests_root"][13]),
-            (FILES["tests_root"], MARKERS["tests_root"][14]),
             (FILES["tests_companion"], MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], MARKERS["tests_companion"][8]),
@@ -159,6 +172,17 @@ def run_self_test() -> None:
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
+
+        forbidden_case_root = tmpdir / "case_forbidden"
+        shutil.copytree(fixture_root, forbidden_case_root, dirs_exist_ok=True)
+        forbidden_path = forbidden_case_root / FILES["tests_root"]
+        forbidden_path.write_text(
+            forbidden_path.read_text(encoding="utf-8")
+            + FORBIDDEN_MARKERS["tests_root"][0]
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(forbidden_case_root, FORBIDDEN_MARKERS["tests_root"][0])
 
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
         print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
