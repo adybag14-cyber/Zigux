@@ -64,7 +64,7 @@ Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` re
 * model FIFO state and ordered operations entirely in memory
 * keep the storage backing explicit as an embedded fixed-buffer ring, so the approved idiom stays reviewable as a bounded sample instead of drifting toward an implicit allocation or runtime-substrate claim
 * keep the Linux anchor path explicit in a descriptor or note
-* include a tiny self-check or fixture-backed replay for the queue-order expectations that make the sample useful to reviewers
+* keep both the tiny sample-local self-check and the shared manifest-backed replay route explicit, so the same approved idiom stays reviewable in the sample file and repeatable through the shipped Phase 5 packet instead of leaving contributors to infer one route from the other
 * show ownership and lifetime boundaries clearly, especially initialization, reset, and teardown
 * keep queue-shape cues explicit too, so remaining-capacity and wrapped-window state stay reviewable as part of the bounded ring idiom instead of being left implicit inside helper internals
 * keep procfs, user-copy, blocking lock behavior, and module-registration claims out of scope unless a later lane lands the required substrate first
@@ -133,7 +133,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 * the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters, loader-side follow-ons, and the focused `runtime_bitmap_top_bit_contract.zig` companion replay in `samples/zigux/`
 * the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters, loader-side follow-ons, and the focused runtime bitmap companion replay for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
 * the shared docs-root, checklist, Phase 5 guide, sample-root, scripts-root, tests-root, and workflow contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
-* the approved kfifo idiom should keep the embedded fixed-buffer storage cue explicit in the survey note as part of what makes the landed sample reviewable and repeatable instead of leaving that storage boundary implicit in code only
+* the approved kfifo idiom should keep the embedded fixed-buffer storage cue and both repeatability routes explicit in the survey note too, so reviewers can see the sample-local self-check and the shared manifest-backed replay as one roadmap-backed contract instead of inferring one route from the other
 * the kfifo sample now covers queue-order replay, explicit queue-shape rollover cues, the wrapped-preview boundary, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice now documents the already-landed `kfifo` side-by-side sample port against the roadmap's approved-idiom goal and keeps its exact checks visible so future Phase 5 work advances from a concrete baseline instead of drifting back into ambiguous sample naming or runtime-substrate claims.
