@@ -62,6 +62,36 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
     try std.testing.expect(terminal_readdir.treats_end_of_directory_as_terminal);
 }
 
+test "offset rename helpers stay reviewable as managed-slot planners rather than live directory mutation" {
+    try std.testing.expectEqual(libfs.OffsetSlotClass.missing, libfs.LibfsHelperLab.classifyOffsetSlot(null));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, libfs.LibfsHelperLab.classifyOffsetSlot(0));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.first_real_entry, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_first));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.managed_entry, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_min));
+    try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_end_of_directory));
+
+    const rename_ok = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 4, libfs.dir_offset_min + 9);
+    const rename_reserved = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_first);
+    const exchange_ok = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 2, libfs.dir_offset_min + 8);
+    const exchange_reserved = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 3, libfs.dir_offset_end_of_directory);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", rename_ok.anchor);
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.ok, rename_ok.status);
+    try std.testing.expect(rename_ok.clears_destination_offset_before_replace);
+    try std.testing.expect(rename_ok.preserves_destination_offset_value);
+
+    try std.testing.expectEqual(libfs.OffsetRenameStatus.reserved_destination_offset, rename_reserved.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.first_real_entry, rename_reserved.destination_slot_class);
+    try std.testing.expect(!rename_reserved.installs_source_at_destination_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.ok, exchange_ok.status);
+    try std.testing.expect(exchange_ok.swaps_recorded_offsets);
+    try std.testing.expect(exchange_ok.rolls_back_destination_store_on_second_store_failure);
+
+    try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
+    try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, exchange_reserved.destination_slot_class);
+    try std.testing.expect(!exchange_reserved.stores_destination_in_source_map);
+}
+
 test "transaction release planner stays helper-only and unconditional-zero" {
     const release_with_private = libfs.LibfsHelperLab.simpleTransactionReleasePlan(true);
     const release_without_private = libfs.LibfsHelperLab.simpleTransactionReleasePlan(false);
