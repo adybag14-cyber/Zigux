@@ -43,6 +43,7 @@ PHASE2_TOOL_MANIFEST_EXPECTED = {
     ],
     "packet_manifests": [
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        "zigux/tests/fixtures/genksyms_bridge/manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     ],
