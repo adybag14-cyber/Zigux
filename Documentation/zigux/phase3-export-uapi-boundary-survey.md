@@ -38,11 +38,11 @@ The Phase 3 roadmap still wants a narrow and explicit permanent C/Zigux boundary
 
 ## Current Gap
 
-The current export/UAPI lane has real starter-UAPI growth in `zigux/uapi/dev_t.zig`, but some reminder surfaces can still overstate the packet beyond what the live manifest-backed ABI packet shows.
+The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, no direct same-lane export/UAPI survey gap is visible between that roadmap target and the shipped reminder packet.
 
-- current `master` already ships `zigux/uapi/dev_t.zig`, so this packet should not collapse back to version-only wording.
-- current `master` does not need to claim dedicated `phase3_export_uapi*` replay files unless those files land in the shared ABI packet and its aligned reminder surfaces together.
-- if a future run grows this packet again, refresh this survey and its packet-local checker in the same bounded step so the review surface does not lag the tree.
+- current `master` already ships `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig`, and the dedicated survey, packet-local validator, shared ABI slice, header-family survey, docs-root reminder, and manifest-backed inventory now keep that starter packet aligned.
+- the remaining lane rule is to avoid backsliding into version-only wording and to avoid claiming dedicated `phase3_export_uapi*` replay files unless those files actually land alongside the shared ABI packet and its reminder surfaces.
+- if a future run grows this packet again, reopen the lane only for that concrete starter-boundary change and refresh this survey plus one shared reminder surface in the same bounded step.
 
 ## Scope
 
