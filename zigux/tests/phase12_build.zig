@@ -31,6 +31,12 @@ pub fn build(b: *std.Build) void {
     });
     repeated_replan_root_module.addImport("virtio_scsi", virtio_scsi_module);
 
+    const packet_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const contract_tests = b.addTest(.{
         .name = "phase12-virtio-scsi-tests",
         .root_module = contract_root_module,
@@ -52,12 +58,21 @@ pub fn build(b: *std.Build) void {
     const run_repeated_replan_tests = b.addRunArtifact(repeated_replan_tests);
     run_repeated_replan_tests.setCwd(b.path("../.."));
 
+    const packet_tests = b.addTest(.{
+        .name = "phase12-virtio-scsi-packet-tests",
+        .root_module = packet_root_module,
+    });
+    const run_packet_tests = b.addRunArtifact(packet_tests);
+    run_packet_tests.setCwd(b.path("../.."));
+
     const smoke_step = b.step("smoke", "Run Phase 12 virtio-scsi syntax smoke");
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
+    smoke_step.dependOn(&run_packet_tests.step);
 
-    const test_step = b.step("test", "Run Phase 12 virtio-scsi tranche tests");
+    const test_step = b.step("test", "Run Phase 12 virtio-scsi packet tests");
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
     test_step.dependOn(&run_repeated_replan_tests.step);
+    test_step.dependOn(&run_packet_tests.step);
 }
