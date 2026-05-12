@@ -103,6 +103,9 @@ TESTS_README_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -113,6 +116,10 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate.zig",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "`make -C zigux phase15` should continue to keep",
+    "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -268,9 +275,8 @@ def _validate_phase15_governance_manifests(root: Path, missing: list[str]) -> No
     posture = parity_scorecard.get("posture")
     if not isinstance(posture, dict):
         missing.append("phase15_parity_scorecard:posture")
-    else:
-        if posture.get("architecture_council_status_change_approval_recorded") is not False:
-            missing.append("phase15_parity_scorecard:posture.architecture_council_status_change_approval_recorded")
+    elif posture.get("architecture_council_status_change_approval_recorded") is not False:
+        missing.append("phase15_parity_scorecard:posture.architecture_council_status_change_approval_recorded")
 
     metrics = parity_scorecard.get("metrics")
     if not isinstance(metrics, dict):
@@ -318,56 +324,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing_markers: list[str] = []
     _require_markers("make", _read(root, "zigux/Makefile"), MAKE_MARKERS, missing_markers)
-    _require_markers(
-        "workflow",
-        _read(root, ".github/workflows/zigux-bootstrap.yml"),
-        WORKFLOW_MARKERS,
-        missing_markers,
-    )
-    _require_markers(
-        "docs_readme",
-        _read(root, "Documentation/zigux/README.md"),
-        DOCS_README_MARKERS,
-        missing_markers,
-    )
-    _require_markers(
-        "scripts_readme",
-        _read(root, "scripts/zigux/README.md"),
-        SCRIPTS_README_MARKERS,
-        missing_markers,
-    )
-    _require_markers(
-        "tests_readme",
-        _read(root, "zigux/tests/README.md"),
-        TESTS_README_MARKERS,
-        missing_markers,
-    )
-    _require_markers(
-        "review_checklist",
-        _read(root, "Documentation/zigux/review-checklist.md"),
-        REVIEW_CHECKLIST_MARKERS,
-        missing_markers,
-    )
-    _require_markers(
-        "readiness_survey",
-        _read(root, "Documentation/zigux/phase15-readiness-gate-survey.md"),
-        READINESS_SURVEY_MARKERS,
-        missing_markers,
-    )
+    _require_markers("workflow", _read(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS, missing_markers)
+    _require_markers("docs_readme", _read(root, "Documentation/zigux/README.md"), DOCS_README_MARKERS, missing_markers)
+    _require_markers("scripts_readme", _read(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS, missing_markers)
+    _require_markers("tests_readme", _read(root, "zigux/tests/README.md"), TESTS_README_MARKERS, missing_markers)
+    _require_markers("review_checklist", _read(root, "Documentation/zigux/review-checklist.md"), REVIEW_CHECKLIST_MARKERS, missing_markers)
+    _require_markers("readiness_survey", _read(root, "Documentation/zigux/phase15-readiness-gate-survey.md"), READINESS_SURVEY_MARKERS, missing_markers)
     _validate_readiness_manifest(root, missing_markers)
     _validate_phase15_governance_manifests(root, missing_markers)
     return [], missing_markers
-
-
-def _baseline_docs_readme() -> str:
-    return "\n".join(
-        (
-            "# Zigux Documentation",
-            "Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `Documentation/zigux/phase15-readiness-gate-survey.md` - `Documentation/zigux/phase15-handoff-next-steps-survey.md` - `Documentation/zigux/phase15-governance-lane-sequencing.md` - `zigux/tests/phase15_build.zig` - `make -C zigux phase15-validate` - `make -C zigux phase15-test` - `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, the parked readiness-gate survey, the parked handoff-next-steps survey, the governance-lane owner map, and the stay-in-C governance packet reviewable through the shipped validator-first route, the shared build replay, and the full Linux-style Phase 15 lane instead of widening into ad hoc deep-core status claims.",
-            "- the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.",
-            "",
-        )
-    )
 
 
 def _phase15_freeze_map_manifest_fixture() -> dict:
@@ -411,9 +376,7 @@ def _phase15_freeze_map_manifest_fixture() -> dict:
 def _phase15_parity_scorecard_fixture() -> dict:
     return {
         "surveyed_commit": "current-master-readback-2026-05-11",
-        "posture": {
-            "architecture_council_status_change_approval_recorded": False,
-        },
+        "posture": {"architecture_council_status_change_approval_recorded": False},
         "metrics": {
             "active_freeze_in_c_anchor_count": len(EXPECTED_FREEZE_IN_C_TARGETS),
             "blocked_status_change_anchor_count": EXPECTED_BLOCKED_STATUS_CHANGE_COUNT,
@@ -424,33 +387,25 @@ def _phase15_parity_scorecard_fixture() -> dict:
                 "path": "kernel/sched/core.c",
                 "required_approver_set": "Architecture Council + PMO / Release Management",
                 "rollback_owner": "Architecture Council + PMO / Release Management",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"},
             },
             {
                 "path": "mm/page_alloc.c",
                 "required_approver_set": "Architecture Council + Validation and Perf Team",
                 "rollback_owner": "Architecture Council + Validation and Perf Team",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_allocator_seam"},
             },
             {
                 "path": "kernel/rcu/tree.c",
                 "required_approver_set": "Architecture Council + ABI and Runtime Team",
                 "rollback_owner": "Architecture Council + ABI and Runtime Team",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"},
             },
             {
                 "path": "net/core/skbuff.c",
                 "required_approver_set": "Architecture Council + Shared Subsystems Pod",
                 "rollback_owner": "Architecture Council + Shared Subsystems Pod",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"},
             },
         ],
     }
@@ -461,30 +416,18 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root, "scripts/zigux/check-phase15-scripts-readme-alignment.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-review-process-handoff.py", "# stub\n")
     _write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    _write(root, "Documentation/zigux/README.md", _baseline_docs_readme())
+    _write(root, "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
     _write(root, "Documentation/zigux/freeze-map.md", "# freeze map\n")
     _write(root, "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     _write(root, "Documentation/zigux/phase15-freeze-map-governance.md", "# freeze governance\n")
-    _write(
-        root,
-        "Documentation/zigux/phase15-architecture-council-review-process.md",
-        "# review process\n",
-    )
+    _write(root, "Documentation/zigux/phase15-architecture-council-review-process.md", "# review process\n")
     _write(root, "Documentation/zigux/phase15-parity-scorecard.md", "# parity\n")
     _write(root, "Documentation/zigux/phase15-indefinite-c-policy.md", "# policy\n")
-    _write(
-        root,
-        "Documentation/zigux/phase15-readiness-gate-survey.md",
-        "\n".join(READINESS_SURVEY_MARKERS) + "\n",
-    )
+    _write(root, "Documentation/zigux/phase15-readiness-gate-survey.md", "\n".join(READINESS_SURVEY_MARKERS) + "\n")
     _write(root, "Documentation/zigux/phase15-handoff-next-steps-survey.md", "# handoff\n")
     _write(root, "Documentation/zigux/phase15-governance-lane-sequencing.md", "# lane sequencing\n")
     _write(root, "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
-    _write(
-        root,
-        ".github/workflows/zigux-bootstrap.yml",
-        "\n".join(WORKFLOW_MARKERS) + "\n",
-    )
+    _write(root, ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_MARKERS) + "\n")
     _write(root, "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     for rel in (
         "zigux/tests/phase15_build.zig",
@@ -500,6 +443,7 @@ def _seed_fixture_tree(root: Path) -> None:
     ):
         _write(root, rel, "// stub\n")
     for rel in (
+        "zigux/tests/phase15_parity_scorecard.json",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_handoff_next_steps_manifest.json",
         "zigux/tests/phase15_indefinite_c_policy.json",
@@ -522,16 +466,8 @@ def _seed_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
-    _write(
-        root,
-        FREEZE_MAP_MANIFEST_REL,
-        json.dumps(_phase15_freeze_map_manifest_fixture(), indent=2) + "\n",
-    )
-    _write(
-        root,
-        PARITY_SCORECARD_REL,
-        json.dumps(_phase15_parity_scorecard_fixture(), indent=2) + "\n",
-    )
+    _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(_phase15_freeze_map_manifest_fixture(), indent=2) + "\n")
+    _write(root, PARITY_SCORECARD_REL, json.dumps(_phase15_parity_scorecard_fixture(), indent=2) + "\n")
 
 
 def _assert_result(
@@ -558,456 +494,89 @@ def run_self_test() -> int:
 
         docs_rel = "Documentation/zigux/README.md"
         docs_text = _read(root, docs_rel)
-        missing_docs_marker = "make -C zigux phase15-validate"
-        _write(root, docs_rel, docs_text.replace(missing_docs_marker, "", 1))
-        _assert_result(*validate(root), [], [f"docs_readme:{missing_docs_marker}"], "docs_marker")
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        docs_text = _read(root, docs_rel)
-        missing_docs_test_marker = "make -C zigux phase15-test"
-        _write(root, docs_rel, docs_text.replace(missing_docs_test_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"docs_readme:{missing_docs_test_marker}"],
-            "docs_test_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        docs_text = _read(root, docs_rel)
-        missing_docs_readiness_marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
-        _write(root, docs_rel, docs_text.replace(missing_docs_readiness_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"docs_readme:{missing_docs_readiness_marker}"],
-            "docs_readiness_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        docs_text = _read(root, docs_rel)
-        missing_docs_handoff_marker = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
-        _write(root, docs_rel, docs_text.replace(missing_docs_handoff_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"docs_readme:{missing_docs_handoff_marker}"],
-            "docs_handoff_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        docs_text = _read(root, docs_rel)
-        missing_docs_lane_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
-        _write(root, docs_rel, docs_text.replace(missing_docs_lane_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"docs_readme:{missing_docs_lane_marker}"],
-            "docs_lane_marker",
-        )
+        marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
+        _write(root, docs_rel, docs_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"docs_readme:{marker}"], "docs_readiness_marker")
         _seed_fixture_tree(root)
         case_count += 1
 
         checklist_rel = "Documentation/zigux/review-checklist.md"
         checklist_text = _read(root, checklist_rel)
-        missing_checklist_freeze_map_marker = "Documentation/zigux/freeze-map.md"
-        _write(root, checklist_rel, checklist_text.replace(missing_checklist_freeze_map_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_checklist_freeze_map_marker}"],
-            "review_checklist_freeze_map_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_checklist_governance_marker = "Documentation/zigux/phase15-freeze-map-governance.md"
-        _write(root, checklist_rel, checklist_text.replace(missing_checklist_governance_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_checklist_governance_marker}"],
-            "review_checklist_governance_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_checklist_parity_marker = "Documentation/zigux/phase15-parity-scorecard.md"
-        _write(root, checklist_rel, checklist_text.replace(missing_checklist_parity_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_checklist_parity_marker}"],
-            "review_checklist_parity_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_checklist_policy_marker = "Documentation/zigux/phase15-indefinite-c-policy.md"
-        _write(root, checklist_rel, checklist_text.replace(missing_checklist_policy_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_checklist_policy_marker}"],
-            "review_checklist_policy_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_checklist_lane_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
-        _write(root, checklist_rel, checklist_text.replace(missing_checklist_lane_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_checklist_lane_marker}"],
-            "review_checklist_lane_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_handoff_manifest_marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
-        _write(root, checklist_rel, checklist_text.replace(missing_handoff_manifest_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_handoff_manifest_marker}"],
-            "review_checklist_handoff_manifest_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_readiness_manifest_marker = "zigux/tests/phase15_readiness_gate_manifest.json"
-        _write(root, checklist_rel, checklist_text.replace(missing_readiness_manifest_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_readiness_manifest_marker}"],
-            "review_checklist_readiness_manifest_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_freeze_governance_zig_marker = "zigux/tests/phase15_freeze_map_governance.zig"
-        _write(root, checklist_rel, checklist_text.replace(missing_freeze_governance_zig_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_freeze_governance_zig_marker}"],
-            "review_checklist_freeze_governance_zig_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_policy_json_marker = "zigux/tests/phase15_indefinite_c_policy.json"
-        _write(root, checklist_rel, checklist_text.replace(missing_policy_json_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_policy_json_marker}"],
-            "review_checklist_policy_json_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_blocker_evidence_marker = "zigux/tests/phase15_indefinite_c_blocker_evidence.zig"
-        _write(root, checklist_rel, checklist_text.replace(missing_blocker_evidence_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_blocker_evidence_marker}"],
-            "review_checklist_blocker_evidence_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_lane_owner_alignment_marker = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
-        _write(root, checklist_rel, checklist_text.replace(missing_lane_owner_alignment_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_lane_owner_alignment_marker}"],
-            "review_checklist_lane_owner_alignment_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_governance_lane_zig_marker = "zigux/tests/phase15_governance_lane_sequencing.zig"
-        _write(root, checklist_rel, checklist_text.replace(missing_governance_lane_zig_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_governance_lane_zig_marker}"],
-            "review_checklist_governance_lane_zig_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        checklist_text = _read(root, checklist_rel)
-        missing_phase15_test_marker = "make -C zigux phase15-test"
-        _write(
-            root,
-            checklist_rel,
-            checklist_text.replace(missing_phase15_test_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"review_checklist:{missing_phase15_test_marker}"],
-            "review_checklist_phase15_test_marker",
-        )
+        marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+        _write(root, checklist_rel, checklist_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"review_checklist:{marker}"], "review_checklist_handoff_manifest")
         _seed_fixture_tree(root)
         case_count += 1
 
         readiness_rel = "Documentation/zigux/phase15-readiness-gate-survey.md"
         readiness_text = _read(root, readiness_rel)
-        missing_readiness_marker = "make -C zigux phase15-test"
-        _write(root, readiness_rel, readiness_text.replace(missing_readiness_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_readiness_marker}"],
-            "readiness_marker",
-        )
+        marker = "scripts/zigux/check-phase15-review-process-handoff.py"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_handoff_checker")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_readiness_scope_marker = "Documentation/zigux/review-checklist.md"
-        _write(
-            root,
-            readiness_rel,
-            readiness_text.replace(missing_readiness_scope_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_readiness_scope_marker}"],
-            "readiness_scope_marker",
-        )
+        tests_rel = "zigux/tests/README.md"
+        tests_text = _read(root, tests_rel)
+        marker = "scripts/zigux/check-phase15-review-process-handoff.py"
+        _write(root, tests_rel, tests_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_handoff_checker")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_docs_root_marker = "Documentation/zigux/README.md"
-        _write(root, readiness_rel, readiness_text.replace(missing_docs_root_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_docs_root_marker}"],
-            "readiness_docs_root_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+        _write(root, tests_rel, tests_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_handoff_manifest")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_handoff_note_marker = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
-        _write(root, readiness_rel, readiness_text.replace(missing_handoff_note_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_handoff_note_marker}"],
-            "readiness_handoff_note_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "zigux/tests/phase15_readiness_gate_manifest.json"
+        _write(root, tests_rel, tests_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_readiness_manifest")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_lane_note_marker = "Documentation/zigux/phase15-governance-lane-sequencing.md"
-        _write(root, readiness_rel, readiness_text.replace(missing_lane_note_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_lane_note_marker}"],
-            "readiness_lane_note_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "make -C zigux phase15-validate"
+        _write(root, tests_rel, tests_text.replace(marker + "\n", "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_phase15_validate_route")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_scripts_alignment_marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
-        _write(
-            root,
-            readiness_rel,
-            readiness_text.replace(missing_scripts_alignment_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_scripts_alignment_marker}"],
-            "readiness_scripts_alignment_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "make -C zigux phase15-test"
+        _write(root, tests_rel, tests_text.replace(marker + "\n", "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_phase15_test_route")
         _seed_fixture_tree(root)
         case_count += 1
 
-        readiness_text = _read(root, readiness_rel)
-        missing_handoff_checker_marker = "scripts/zigux/check-phase15-review-process-handoff.py"
-        _write(
-            root,
-            readiness_rel,
-            readiness_text.replace(missing_handoff_checker_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_handoff_checker_marker}"],
-            "readiness_handoff_checker_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "`make -C zigux phase15` should continue to keep"
+        _write(root, tests_rel, tests_text.replace(marker + "\n", "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_phase15_route")
         _seed_fixture_tree(root)
         case_count += 1
 
-        tests_readme_rel = "zigux/tests/README.md"
-        tests_readme_text = _read(root, tests_readme_rel)
-        missing_tests_checklist_marker = "Documentation/zigux/review-checklist.md"
-        _write(
-            root,
-            tests_readme_rel,
-            tests_readme_text.replace(missing_tests_checklist_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"tests_readme:{missing_tests_checklist_marker}"],
-            "tests_readme_checklist_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        tests_readme_text = _read(root, tests_readme_rel)
-        missing_tests_scripts_alignment_marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
-        _write(
-            root,
-            tests_readme_rel,
-            tests_readme_text.replace(missing_tests_scripts_alignment_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"tests_readme:{missing_tests_scripts_alignment_marker}"],
-            "tests_readme_scripts_alignment_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        readiness_text = _read(root, readiness_rel)
-        missing_tests_readme_marker = "zigux/tests/README.md"
-        _write(root, readiness_rel, readiness_text.replace(missing_tests_readme_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_tests_readme_marker}"],
-            "readiness_tests_readme_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        readiness_text = _read(root, readiness_rel)
-        missing_phase15_make_marker = "`make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture"
-        _write(root, readiness_rel, readiness_text.replace(missing_phase15_make_marker, "", 1))
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_phase15_make_marker}"],
-            "readiness_phase15_make_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        readiness_text = _read(root, readiness_rel)
-        missing_alignment_blocker_marker = "phase15-docs-root-summary-alignment"
-        _write(
-            root,
-            readiness_rel,
-            readiness_text.replace(missing_alignment_blocker_marker, "", 1),
-        )
-        _assert_result(
-            *validate(root),
-            [],
-            [f"readiness_survey:{missing_alignment_blocker_marker}"],
-            "readiness_alignment_blocker_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        make_rel = "zigux/Makefile"
-        make_text = _read(root, make_rel)
-        missing_make_marker = "scripts/zigux/check-phase15-review-process-handoff.py --self-test"
-        _write(root, make_rel, make_text.replace(missing_make_marker + "\n", "", 1))
-        _assert_result(*validate(root), [], [f"make:{missing_make_marker}"], "make_marker")
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
-        manifest_text["repo_evidence"]["phase15_validate_target_present"] = False
-        _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["readiness_manifest:phase15_validate_target_present"],
-            "manifest_validate_target_marker",
-        )
+        tests_text = _read(root, tests_rel)
+        marker = "without implying any Architecture Council approval for a freeze-map status change"
+        _write(root, tests_rel, tests_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"tests_readme:{marker}"], "tests_no_approval_wording")
         _seed_fixture_tree(root)
         case_count += 1
 
         manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
         manifest_text["phase15_validate_checkers"] = [READINESS_CHECKERS[0]]
         _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["readiness_manifest:phase15_validate_checkers"],
-            "manifest_checker_pair_marker",
-        )
+        _assert_result(*validate(root), [], ["readiness_manifest:phase15_validate_checkers"], "readiness_checker_pair")
         _seed_fixture_tree(root)
         case_count += 1
 
         freeze_manifest = _phase15_freeze_map_manifest_fixture()
         freeze_manifest["freeze_in_c_targets"] = EXPECTED_FREEZE_IN_C_TARGETS[:-1]
         _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(freeze_manifest, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["phase15_freeze_map_manifest:freeze_in_c_targets"],
-            "freeze_map_targets_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        freeze_manifest = _phase15_freeze_map_manifest_fixture()
-        freeze_manifest["blocker_ownership"][0]["anchor"] = "kernel/sched/core.zig"
-        _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(freeze_manifest, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["phase15_freeze_map_manifest:blocker_ownership"],
-            "freeze_map_blocker_ownership_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        parity_scorecard = _phase15_parity_scorecard_fixture()
-        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-10"
-        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["phase15_governance_manifests:surveyed_commit"],
-            "governance_surveyed_commit_marker",
-        )
+        _assert_result(*validate(root), [], ["phase15_freeze_map_manifest:freeze_in_c_targets"], "freeze_map_targets")
         _seed_fixture_tree(root)
         case_count += 1
 
@@ -1018,19 +587,7 @@ def run_self_test() -> int:
             *validate(root),
             [],
             ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
-            "parity_scorecard_approval_count_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        parity_scorecard = _phase15_parity_scorecard_fixture()
-        parity_scorecard["anchors"][0]["required_approver_set"] = "Architecture Council"
-        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["phase15_governance_manifests:anchor_alignment"],
-            "governance_anchor_alignment_marker",
+            "parity_scorecard_approval_count",
         )
         _seed_fixture_tree(root)
         case_count += 1
