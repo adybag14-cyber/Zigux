@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-11",
+  "surveyed_commit": "current-master-readback-2026-05-12",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -28,7 +28,7 @@
     {
       "lane_family": "shared-summaries",
       "zigux_destination": "Documentation/zigux/README.md",
-      "why_out_of_scope": "Compact docs-root and shared reminder repairs stay here; once the shared `validate-phase15.py` tests-root packet catches up with current `zigux/tests/README.md`, any remaining prose-only Phase 15 summary drift should stay in shared-summaries instead of reopening the parked handoff packet."
+      "why_out_of_scope": "Compact docs-root and shared reminder repairs stay here; once the shared docs-root and checklist packet is already truthful on current `master`, any remaining prose-only Phase 15 summary drift should stay in shared-summaries instead of reopening the parked handoff packet."
     },
     {
       "lane_family": "review-process",
@@ -52,7 +52,7 @@
       "status": "named_reopen_trigger_only",
       "kind": "truthfulness",
       "zigux_destination": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-      "why_now": "Reopen this lane only if the dedicated handoff note, manifest, or Zig guard stops matching the current governance packet, or if the shared `validate-phase15.py` tests-root packet still undercounts the dedicated handoff and readiness manifest pair enough to make this parked handoff summary misleading."
+      "why_now": "Reopen this lane only if the dedicated handoff note, manifest, or Zig guard stops matching the current governance packet."
     },
     {
       "id": "narrower_followup_answers_blocker",
@@ -71,7 +71,7 @@
   ],
   "pending_next_steps": [
     "Keep this handoff packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "If a new same-lane follow-up becomes necessary before any blocker-posture change, reread `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json` together, starting with whether the shared validator still undercounts the tests-root manifest pair, the dedicated `check-phase15-*` routes, and the no-approval-yet wording that the broader tests-root packet already keeps explicit.",
-    "Only if that shared validator packet is already aligned, route any remaining prose-only drift to `shared-summaries` by rechecking `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
+    "If a new shared-summary truthfulness drift appears, route it through `shared-summaries` by rereading `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting.",
+    "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
