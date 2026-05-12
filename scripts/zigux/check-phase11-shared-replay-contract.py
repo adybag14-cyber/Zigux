@@ -16,16 +16,28 @@ FILES = {
 
 NOTE_EXISTENCE_FILES = [
     "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
+    "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-dw-wdt-survey.md",
+    "Documentation/zigux/phase11-dw-wdt-teardown-note.md",
     "scripts/zigux/check-phase11-dw-wdt-packet.py",
+    "drivers/watchdog/dw_wdt.zig",
+    "drivers/watchdog/dw_wdt_verify.zig",
+    "zigux/tests/phase11_dw_wdt.zig",
+    "zigux/tests/phase11_dw_wdt_manifest.json",
+    "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
+    "zigux/tests/phase11_dw_wdt_survey.zig",
     "scripts/zigux/check-phase11-shared-summary-surfaces.py",
     "Documentation/zigux/phase11-hvc-console-slice.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-console-teardown-note.md",
+    "zigux/tests/phase11_hvc_console.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "scripts/zigux/check-phase11-header-boundary-packet.py",
@@ -37,60 +49,49 @@ MARKERS = {
     "note": [
         "# Phase 11 Shared Replay Contract",
         "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
-        "* `Documentation/zigux/phase11-shared-replay-contract.md`",
-        "* `Documentation/zigux/phase11-closure-note.md`",
-        "* `Documentation/zigux/phase11-driver-lane-sequencing.md`",
-        "* `scripts/zigux/check-phase11-shared-replay-contract.py`",
         "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-        "* `zigux/tests/phase11_build.zig`",
-        "* `make -C zigux phase11`",
         "* no shared `validate-phase11.py`",
-        "* no shared `make -C zigux phase11-validate` target on `master`",
-        "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
-        "The DesignWare watchdog lane now keeps its surviving bounded reminder packet explicit beside that shared route:",
-        "* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "* `scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`: they keep the next bounded step pinned to platform-backed registration scaffolding while the older manifest, survey, validation-matrix, and teardown reminder surfaces stay removed rather than being silently reintroduced as shared evidence.",
-        "The dedicated archival HVC evidence still stays explicit beside that shared route:",
-        "* `Documentation/zigux/phase11-hvc-console-slice.md`",
-        "* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "* `Documentation/zigux/phase11-hvc-console-survey.md`",
-        "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "* `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "* `scripts/zigux/check-phase11-hvc-survey-packet.py`",
-        "* `zigux/tests/phase11_hvc_console_manifest.json`",
-        "* `zigux/tests/phase11_hvc_console_survey.zig`",
-        "* `make -C zigux phase11-hvc-survey`",
-        "Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay recorded as the remaining repo-reality gaps rather than shared proof.",
-        "The shared header-boundary evidence also stays explicit beside that shared route:",
-        "* `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
-        "* `scripts/zigux/check-phase11-header-boundary-packet.py`",
-        "* `zigux/tests/phase11_uapi_header_parity_manifest.json`",
-        "* `zigux/tests/phase11_uapi_header_parity_survey.zig`",
+        "* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "* `Documentation/zigux/phase11-dw-wdt-survey.md`",
+        "* `Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+        "* `drivers/watchdog/dw_wdt_verify.zig`",
+        "* `zigux/tests/phase11_dw_wdt.zig`",
+        "* `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "* `zigux/tests/phase11_hvc_console.zig`",
+        "* `zigux/tests/phase11_hvc_cleanup.zig`",
+        "* `drivers/tty/hvc/hvc_console_verify.zig`",
+        "Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`",
     ],
     "closure_note": [
         "# Phase 11 Closure Note",
         "* `PHASE11_CLOSURE_STATUS=shared_packet_truthful`",
-        "* `zigux/tests/phase11_build.zig`",
-        "* DesignWare watchdog continuity now stays with `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`, which keep the surviving bounded DesignWare packet and the next platform-registration scaffold explicit while the older manifest, survey, validation-matrix, and teardown reminder surfaces remain removed on current `master`",
-        "* HVC archival continuity stays with `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `make -C zigux phase11-hvc-survey`, while direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` stay framed as the remaining repo-reality gaps rather than shared closure evidence",
-        "* shared header boundary continuity stays with `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`",
-        "* there is no shared `validate-phase11.py`",
+        "* DesignWare watchdog continuity now stays with `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`",
+        "* HVC archival continuity stays with `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
-        "* there is no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
     ],
     "lane_note": [
         "# Phase 11 Driver Lane Sequencing",
-        "- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; the next same-lane follow-through is platform-backed registration scaffolding rather than reviving removed manifest, survey, validation-matrix, or teardown reminder surfaces without new evidence",
-        "The shared packet surfaces still living together on current `master` are `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, and `make -C zigux phase11`.",
-        "Keep the current validator posture explicit: there is a shared `zigux/tests/phase11_build.zig` route and a shared `make -C zigux phase11` wrapper on current `master`, but there is no shared `validate-phase11.py`, no shared `zigux/tests/fixtures/phase11_build_inventory.json`, and no shared `make -C zigux phase11-validate` target, so reminder-surface edits should stay aligned with the surviving build-backed packet instead of reviving the older inventory-driven validator story.",
-        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, and the next bounded step is platform-backed registration scaffolding rather than pretending removed manifest-backed reminder surfaces are still shipped.",
-        "8. Keep the HVC split honest: on current `master` the landed HVC archival packet is the teardown note, validation matrix, survey note, manifest-backed survey gate, modem-control split, poll-retry split, sysrq helper, and dedicated `phase11-hvc-survey` route, while direct driver-file follow-through now stays on `P11-Y04` inside `drivers/tty/hvc/hvc_console.zig` plus at most one directly coupled teardown-note wording repair. Do not reopen the archival survey gate, modem-control split, poll-retry split, sysrq helper, or shared reminder packet from that driver-only lane unless those exact packet surfaces are the thing moving.",
+        "- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`",
+        "- HVC archival packet lane `P11-L16` owns `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`",
+        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`",
+        "8. Keep the HVC split honest: on current `master` the landed HVC archival packet is the teardown note, validation matrix, survey note, direct `zigux/tests/phase11_hvc_console.zig` plus `zigux/tests/phase11_hvc_cleanup.zig` replays",
     ],
 }
 
+FORBIDDEN_MARKERS = {
+    "note": [
+        "the older manifest, survey, validation-matrix, and teardown reminder surfaces stay removed rather than being silently reintroduced as shared evidence",
+        "stay recorded as the remaining repo-reality gaps rather than shared proof",
+    ],
+    "closure_note": [
+        "the older manifest, survey, validation-matrix, and teardown reminder surfaces remain removed on current `master`",
+        "stay framed as the remaining repo-reality gaps rather than shared closure evidence",
+    ],
+    "lane_note": [
+        "instead of a shipped `drivers/watchdog/dw_wdt_verify.zig` helper",
+        "Do not reopen the archival survey gate, modem-control split, poll-retry split, sysrq helper, or shared reminder packet from that driver-only lane unless those exact packet surfaces are the thing moving.",
+    ],
+}
 
 class CheckError(RuntimeError):
     pass
@@ -109,9 +110,17 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
+def expect_forbidden_markers_absent(label: str, text: str) -> None:
+    for marker in FORBIDDEN_MARKERS.get(label, []):
+        if marker in text:
+            raise CheckError(f"forbidden marker in {label}: {marker}")
+
+
 def run_check(root: Path) -> None:
     for label, relative_path in FILES.items():
-        expect_markers(label, read_text(root, relative_path), MARKERS[label])
+        text = read_text(root, relative_path)
+        expect_markers(label, text, MARKERS[label])
+        expect_forbidden_markers_absent(label, text)
     for relative_path in NOTE_EXISTENCE_FILES:
         read_text(root, relative_path)
 
@@ -147,22 +156,15 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         cases = [
-            (FILES["note"], "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`"),
-            (FILES["note"], "* `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
-            (FILES["note"], "Treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`: they keep the next bounded step pinned to platform-backed registration scaffolding while the older manifest, survey, validation-matrix, and teardown reminder surfaces stay removed rather than being silently reintroduced as shared evidence."),
-            (FILES["note"], "* `zigux/tests/phase11_hvc_console_manifest.json`"),
-            (FILES["note"], "* `drivers/tty/hvc/hvc_console_sysrq.zig`"),
-            (FILES["closure_note"], "* DesignWare watchdog continuity now stays with `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` and `scripts/zigux/check-phase11-dw-wdt-packet.py`, which keep the surviving bounded DesignWare packet and the next platform-registration scaffold explicit while the older manifest, survey, validation-matrix, and teardown reminder surfaces remain removed on current `master`"),
-            (FILES["closure_note"], "* there is no shared `make -C zigux phase11-validate` target on `master`"),
-            (FILES["lane_note"], "- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; the next same-lane follow-through is platform-backed registration scaffolding rather than reviving removed manifest, survey, validation-matrix, or teardown reminder surfaces without new evidence"),
-            (FILES["lane_note"], "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, and the next bounded step is platform-backed registration scaffolding rather than pretending removed manifest-backed reminder surfaces are still shipped."),
-            ("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md", "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
-            ("scripts/zigux/check-phase11-dw-wdt-packet.py", "scripts/zigux/check-phase11-dw-wdt-packet.py"),
-            ("Documentation/zigux/phase11-hvc-console-teardown-note.md", "Documentation/zigux/phase11-hvc-console-teardown-note.md"),
-            ("zigux/tests/phase11_hvc_console_manifest.json", "zigux/tests/phase11_hvc_console_manifest.json"),
-            ("drivers/tty/hvc/hvc_console_sysrq.zig", "drivers/tty/hvc/hvc_console_sysrq.zig"),
-            ("Documentation/zigux/phase11-uapi-header-parity-survey.md", "Documentation/zigux/phase11-uapi-header-parity-survey.md"),
-            ("zigux/tests/phase11_uapi_header_parity_manifest.json", "zigux/tests/phase11_uapi_header_parity_manifest.json"),
+            (FILES["note"], MARKERS["note"][4]),
+            (FILES["note"], MARKERS["note"][10]),
+            (FILES["closure_note"], MARKERS["closure_note"][2]),
+            (FILES["closure_note"], MARKERS["closure_note"][3]),
+            (FILES["lane_note"], MARKERS["lane_note"][1]),
+            (FILES["lane_note"], MARKERS["lane_note"][3]),
+            ("drivers/watchdog/dw_wdt_verify.zig", "drivers/watchdog/dw_wdt_verify.zig"),
+            ("zigux/tests/phase11_hvc_cleanup.zig", "zigux/tests/phase11_hvc_cleanup.zig"),
+            ("drivers/tty/hvc/hvc_console_verify.zig", "drivers/tty/hvc/hvc_console_verify.zig"),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
@@ -170,14 +172,33 @@ def run_self_test() -> None:
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             if relative_path in FILES.values():
-                path.write_text(path.read_text(encoding="utf-8").replace(marker + "\n", "", 1), encoding="utf-8")
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
                 expect_failure(case_root, marker)
             else:
                 path.unlink()
                 expect_failure(case_root, relative_path)
 
+        forbidden_cases = [
+            ("note", FORBIDDEN_MARKERS["note"][0]),
+            ("closure_note", FORBIDDEN_MARKERS["closure_note"][1]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
+        ]
+
+        for label, marker in forbidden_cases:
+            case_root = tmpdir / f"forbidden_{label}_{abs(hash(marker))}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            path = case_root / FILES[label]
+            path.write_text(
+                path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            expect_failure(case_root, marker)
+
         print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-        print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={len(cases)}")
+        print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=12")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
