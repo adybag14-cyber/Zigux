@@ -37,7 +37,7 @@ Current `master` also still exposes the adjacent shared loader-facing packet:
 - `zigux/tests/phase9_build.zig`
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
-That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, and still leaves the broader runtime-substrate handoff as a separate blocked step. That blocked handoff still stops before `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state; those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.
+That means the honest current review surface is no longer a missing-family reminder packet. The family-local trace-events sample, loader scaffold, direct module and diff gates, dedicated survey gate, and paired report surfaces are all visible again. The loader scaffold now also keeps prepared snapshots stable across later selftest or exit activity, rejects shared-request drift around allocator/init-flow and selftest-hook evidence before local handoff, keeps registration-snapshot and outstanding-registration-drain proofs explicit, and leaves the family-local module gate owning the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step. That blocked handoff still stops before `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state; those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.
 
 ## What this slice owns
 
@@ -54,6 +54,7 @@ This module-slice note owns the narrow trace-events family statement that sits b
 The honest current review posture is:
 
 - the family-local trace-events sample, loader, module, diff, survey, and manifest packet is visible on current `master`
+- the family-local module gate already proves that a selftest-ready failed exit preserves the current replay summary until registration drain completes
 - the shared Phase 9 loader-facing packet is also shipped and reviewable
 - the packet still remains review-first because runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate
 - the remaining same-lane work should keep the packet-local notes and manifest aligned with the shipped family-local trace-events proof instead of drifting back to missing-file reminder wording
