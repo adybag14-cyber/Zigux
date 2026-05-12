@@ -11,6 +11,12 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
+TRANSPORT_MANIFEST_FILES = [
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+]
+
 REQUIRED_FILES = [
     "scripts/zigux/validate-phase10-closure.py",
     "Documentation/zigux/phase10-closure-evidence.md",
@@ -22,6 +28,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    *TRANSPORT_MANIFEST_FILES,
 ]
 
 MAKE_MARKERS = [
@@ -81,6 +88,49 @@ MMIO_SURVEY_MARKERS = [
     "the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
 ]
 
+TRANSPORT_MANIFEST_MARKERS = [
+    '"freeze_map": "Documentation/zigux/freeze-map.md"',
+    '"freeze_boundary_status": "aligned"',
+    '"freeze_status_change_claimed": false',
+    '"risky_transport_posture": "blocked_on_risky_transport"',
+    '"allowed_evidence_kinds": [',
+    '"driver_local_lab_slices"',
+    '"survey_manifests"',
+    '"shared_validation_gates"',
+    '"forbidden_transport_claims": [',
+    '"queue_setup_reset_paths"',
+    '"irq_parity"',
+    '"dma_paths"',
+    '"input_registration_lifecycle"',
+    '"probe_remove_lifecycle"',
+    '"architecture_council_reopen_required": true',
+    '"architecture_council_reopen_attached": false',
+]
+
+MARKER_SETS = {
+    "zigux/Makefile": MAKE_MARKERS,
+    "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
+    "Documentation/zigux/phase10-virtio-mmio-survey.md": MMIO_SURVEY_MARKERS,
+    "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
+    "zigux/tests/phase10_closure_manifest.json": MANIFEST_MARKERS,
+    "zigux/tests/phase10_virtio_ring_manifest.json": TRANSPORT_MANIFEST_MARKERS,
+    "zigux/tests/phase10_virtio_input_manifest.json": TRANSPORT_MANIFEST_MARKERS,
+    "zigux/tests/phase10_virtio_mmio_manifest.json": TRANSPORT_MANIFEST_MARKERS,
+}
+
+MARKER_LABELS = {
+    "zigux/Makefile": "make",
+    "Documentation/zigux/phase10-closure-evidence.md": "closure",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "lane",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md": "mmio-survey",
+    "Documentation/zigux/review-checklist.md": "review",
+    "zigux/tests/phase10_closure_manifest.json": "manifest",
+    "zigux/tests/phase10_virtio_ring_manifest.json": "ring-manifest",
+    "zigux/tests/phase10_virtio_input_manifest.json": "input-manifest",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "mmio-manifest",
+}
+
 LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/validate-phase10.py",
     "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py",
@@ -124,15 +174,8 @@ def collect_missing_files(root: Path) -> list[str]:
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
-    checks = [
-        ("make", "zigux/Makefile", MAKE_MARKERS),
-        ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
-        ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
-        ("mmio-survey", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
-        ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
-        ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_MARKERS),
-    ]
-    for label, rel_path, markers in checks:
+    for rel_path, markers in MARKER_SETS.items():
+        label = MARKER_LABELS[rel_path]
         text = read_text(root, rel_path)
         for marker in markers:
             if marker not in text:
@@ -151,7 +194,11 @@ def collect_ledger_exact_once_mismatches(root: Path) -> list[str]:
 
 
 def run_command(root: Path, cmd: list[str]) -> int:
-    return subprocess.run([sys.executable, str(root / cmd[0]), *cmd[1:]], cwd=root, check=False).returncode
+    return subprocess.run(
+        [sys.executable, str(root / cmd[0]), *cmd[1:]],
+        cwd=root,
+        check=False,
+    ).returncode
 
 
 def run_required_commands(root: Path) -> list[str]:
@@ -163,6 +210,7 @@ def run_required_commands(root: Path) -> list[str]:
 
 
 def write_fixture(root: Path) -> None:
+    transport_manifest_body = "\n".join(TRANSPORT_MANIFEST_MARKERS) + "\n"
     files = {
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
@@ -188,11 +236,26 @@ def write_fixture(root: Path) -> None:
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_EXACT_ONCE_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_ring_manifest.json": transport_manifest_body,
+        "zigux/tests/phase10_virtio_input_manifest.json": transport_manifest_body,
+        "zigux/tests/phase10_virtio_mmio_manifest.json": transport_manifest_body,
     }
     for rel_path, content in files.items():
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
+
+
+def expect_marker_missing(root: Path, expected: str, error_label: str) -> None:
+    if expected not in collect_missing_markers(root):
+        raise SystemExit(error_label)
+
+
+def expect_failed_commands(root: Path, expected: list[str], error_label: str) -> None:
+    failed_commands = run_required_commands(root)
+    if failed_commands != expected:
+        actual = ",".join(failed_commands) if failed_commands else "none"
+        raise SystemExit(f"{error_label}:actual={actual}")
 
 
 def run_self_test() -> int:
@@ -210,17 +273,14 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
                 f"ledger={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
             )
-        failed_commands = run_required_commands(root)
-        if failed_commands:
-            raise SystemExit(
-                "phase10-closure-self-test:baseline_command_failed:"
-                f"commands={','.join(failed_commands)}"
-            )
+        expect_failed_commands(root, [], "phase10-closure-self-test:baseline_command_failed")
 
         makefile = root / "zigux/Makefile"
-        makefile.write_text(makefile.read_text(encoding="utf-8").replace("phase10-validate:\n", "", 1), encoding="utf-8")
-        if "make:phase10-validate:" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_make_marker_not_detected")
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace("phase10-validate:\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(root, "make:phase10-validate:", "phase10-closure-self-test:missing_make_marker_not_detected")
         write_fixture(root)
 
         closure = root / "Documentation/zigux/phase10-closure-evidence.md"
@@ -228,8 +288,11 @@ def run_self_test() -> int:
             closure.read_text(encoding="utf-8").replace("shared reminder-surface drift\n", "", 1),
             encoding="utf-8",
         )
-        if "closure:shared reminder-surface drift" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_closure_marker_not_detected")
+        expect_marker_missing(
+            root,
+            "closure:shared reminder-surface drift",
+            "phase10-closure-self-test:missing_closure_marker_not_detected",
+        )
         write_fixture(root)
 
         lane = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
@@ -237,8 +300,11 @@ def run_self_test() -> int:
             lane.read_text(encoding="utf-8").replace("scripts/zigux/validate-phase10-closure.py\n", "", 1),
             encoding="utf-8",
         )
-        if "lane:scripts/zigux/validate-phase10-closure.py" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_lane_marker_not_detected")
+        expect_marker_missing(
+            root,
+            "lane:scripts/zigux/validate-phase10-closure.py",
+            "phase10-closure-self-test:missing_lane_marker_not_detected",
+        )
         write_fixture(root)
 
         mmio_survey = root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
@@ -246,8 +312,11 @@ def run_self_test() -> int:
             mmio_survey.read_text(encoding="utf-8").replace("phase10-mmio-selected-queue-readiness-helper\n", "", 1),
             encoding="utf-8",
         )
-        if "mmio-survey:phase10-mmio-selected-queue-readiness-helper" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:mmio_survey_marker_not_detected")
+        expect_marker_missing(
+            root,
+            "mmio-survey:phase10-mmio-selected-queue-readiness-helper",
+            "phase10-closure-self-test:mmio_survey_marker_not_detected",
+        )
         write_fixture(root)
 
         mmio_survey.write_text(
@@ -258,11 +327,11 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        if (
-            "mmio-survey:the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`"
-            not in collect_missing_markers(root)
-        ):
-            raise SystemExit("phase10-closure-self-test:mmio_survey_manifest_marker_not_detected")
+        expect_marker_missing(
+            root,
+            "mmio-survey:the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`",
+            "phase10-closure-self-test:mmio_survey_manifest_marker_not_detected",
+        )
         write_fixture(root)
 
         mmio_survey.write_text(
@@ -273,11 +342,11 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        if (
-            "mmio-survey:the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`"
-            not in collect_missing_markers(root)
-        ):
-            raise SystemExit("phase10-closure-self-test:mmio_survey_freeze_boundary_marker_not_detected")
+        expect_marker_missing(
+            root,
+            "mmio-survey:the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+            "phase10-closure-self-test:mmio_survey_freeze_boundary_marker_not_detected",
+        )
         write_fixture(root)
 
         review = root / "Documentation/zigux/review-checklist.md"
@@ -285,29 +354,42 @@ def run_self_test() -> int:
             review.read_text(encoding="utf-8").replace("zigux/tests/phase10_closure_manifest.json\n", "", 1),
             encoding="utf-8",
         )
-        if "review:zigux/tests/phase10_closure_manifest.json" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_review_marker_not_detected")
-        write_fixture(root)
-
-        manifest = root / "zigux/tests/phase10_closure_manifest.json"
-        manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace('"scripts/zigux/check-phase10-harness-coverage.py"\n', "", 1),
-            encoding="utf-8",
+        expect_marker_missing(
+            root,
+            "review:zigux/tests/phase10_closure_manifest.json",
+            "phase10-closure-self-test:missing_review_marker_not_detected",
         )
-        if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
         write_fixture(root)
 
-        manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace(
-                '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"\n',
-                '"mmio": "0000000000000000000000000000000000000000"\n',
+        closure_manifest = root / "zigux/tests/phase10_closure_manifest.json"
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"scripts/zigux/check-phase10-harness-coverage.py"\n',
+                "",
                 1,
             ),
             encoding="utf-8",
         )
-        if 'manifest:"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"' not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_manifest_commit_marker_not_detected")
+        expect_marker_missing(
+            root,
+            'manifest:"scripts/zigux/check-phase10-harness-coverage.py"',
+            "phase10-closure-self-test:missing_manifest_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"\n',
+                '"core": "0000000000000000000000000000000000000000"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
+            "phase10-closure-self-test:missing_manifest_commit_marker_not_detected",
+        )
         write_fixture(root)
 
         ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
@@ -321,9 +403,10 @@ def run_self_test() -> int:
         )
         ledger_mismatches = collect_ledger_exact_once_mismatches(root)
         if "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-core-packet.py:count=0" not in ledger_mismatches:
+            actual = ",".join(ledger_mismatches) if ledger_mismatches else "none"
             raise SystemExit(
                 "phase10-closure-self-test:missing_ledger_exact_once_mismatch_not_detected:"
-                f"actual={','.join(ledger_mismatches) if ledger_mismatches else 'none'}"
+                f"actual={actual}"
             )
         write_fixture(root)
 
@@ -337,12 +420,11 @@ def run_self_test() -> int:
             "raise SystemExit(1)\n",
             encoding="utf-8",
         )
-        failed_commands = run_required_commands(root)
-        if failed_commands != ["scripts/zigux/check-phase10-harness-coverage.py"]:
-            raise SystemExit(
-                "phase10-closure-self-test:failed_command_not_detected:"
-                f"actual={','.join(failed_commands) if failed_commands else 'none'}"
-            )
+        expect_failed_commands(
+            root,
+            ["scripts/zigux/check-phase10-harness-coverage.py"],
+            "phase10-closure-self-test:failed_command_not_detected",
+        )
         write_fixture(root)
 
         tests_readme_checker = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
@@ -355,15 +437,69 @@ def run_self_test() -> int:
             "raise SystemExit(1)\n",
             encoding="utf-8",
         )
-        failed_commands = run_required_commands(root)
-        if failed_commands != ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"]:
-            raise SystemExit(
-                "phase10-closure-self-test:tests_readme_checker_failure_not_detected:"
-                f"actual={','.join(failed_commands) if failed_commands else 'none'}"
-            )
+        expect_failed_commands(
+            root,
+            ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
+            "phase10-closure-self-test:tests_readme_checker_failure_not_detected",
+        )
+        write_fixture(root)
+
+        ring_manifest = root / "zigux/tests/phase10_virtio_ring_manifest.json"
+        ring_manifest.write_text(
+            ring_manifest.read_text(encoding="utf-8").replace('"freeze_boundary_status": "aligned"\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'ring-manifest:"freeze_boundary_status": "aligned"',
+            "phase10-closure-self-test:ring_manifest_freeze_status_not_detected",
+        )
+        write_fixture(root)
+
+        input_manifest = root / "zigux/tests/phase10_virtio_input_manifest.json"
+        input_manifest.write_text(
+            input_manifest.read_text(encoding="utf-8").replace(
+                '"risky_transport_posture": "blocked_on_risky_transport"\n',
+                '"risky_transport_posture": "starter_landed"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'input-manifest:"risky_transport_posture": "blocked_on_risky_transport"',
+            "phase10-closure-self-test:input_manifest_risky_transport_not_detected",
+        )
+        write_fixture(root)
+
+        mmio_manifest = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+        mmio_manifest.write_text(
+            mmio_manifest.read_text(encoding="utf-8").replace('"dma_paths"\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'mmio-manifest:"dma_paths"',
+            "phase10-closure-self-test:mmio_manifest_dma_guard_not_detected",
+        )
+        write_fixture(root)
+
+        ring_manifest.write_text(
+            ring_manifest.read_text(encoding="utf-8").replace(
+                '"architecture_council_reopen_attached": false\n',
+                '"architecture_council_reopen_attached": true\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'ring-manifest:"architecture_council_reopen_attached": false',
+            "phase10-closure-self-test:ring_manifest_reopen_attachment_not_detected",
+        )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -407,12 +543,10 @@ def main() -> int:
         print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_END")
         return 1
 
+    marker_count = sum(len(markers) for markers in MARKER_SETS.values()) + len(LEDGER_EXACT_ONCE_MARKERS)
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(MMIO_SURVEY_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS) + len(LEDGER_EXACT_ONCE_MARKERS)}"
-    )
+    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={marker_count}")
     print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
     return 0
 
