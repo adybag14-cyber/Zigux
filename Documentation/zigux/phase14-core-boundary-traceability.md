@@ -38,7 +38,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 ### RCU tree
   * manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
   * survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-  * lane key: `P14-L16`
+  * lane key: `P14-L14`
   * surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
   * ready-next gap: none currently recorded
   * blocked gap: `phase14-rcu-tree-bridge-blocker`
@@ -56,7 +56,7 @@ The four anchor packets above are also carried together by the Phase 14 shared s
   * shared full replay: `make -C zigux phase14-test`
   * direct shared replay: `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   * convenience target: `make -C zigux phase14`
-That shared packet matters because it keeps the workqueue, ring-buffer, skbuff, and RCU anchor notes tied to the same surveyed commits, parked-or-blocked posture, stay-in-C decisions, shared smoke manifest, full-bundle workqueue reviewability replay, and validator-backed smoke plus full-replay routes instead of drifting independently or disappearing from the shared evidence path. It also acts as the current owner-map surface for bounded-internal follow-through: workqueue routes through `P14-L04`, ring buffer routes through `P14-L08`, skbuff routes through `P14-Y03`, and RCU currently routes through the manifest-backed `P14-L16` owner. Shared-lane runs should treat older packet-local owner labels as packet-local cleanup work only, not as permission to reopen a different bounded-internal lane.
+That shared packet matters because it keeps the workqueue, ring-buffer, skbuff, and RCU anchor notes tied to the same surveyed commits, parked-or-blocked posture, stay-in-C decisions, shared smoke manifest, full-bundle workqueue reviewability replay, and validator-backed smoke plus full-replay routes instead of drifting independently or disappearing from the shared evidence path. It also acts as the current owner-map surface for bounded-internal follow-through: workqueue routes through `P14-L04`, ring buffer routes through `P14-L08`, skbuff routes through `P14-Y03`, and RCU currently routes through the manifest-backed `P14-L14` owner. Shared-lane runs should treat older packet-local owner labels as packet-local cleanup work only, not as permission to reopen a different bounded-internal lane.
 ## What this lane does not claim
 
   * `kernel/workqueue.zig`
