@@ -23,6 +23,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
 - Linux-style C parity rerun route: `make -C zigux phase6-base64-c-parity`
+- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - Linux-style perf rerun route: `make -C zigux phase6-base64-perf`
 - current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the dedicated slowdown gate stays helper-local through the committed fixture-backed perf replay
 
@@ -64,6 +65,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - Linux-style packet review route: `make -C zigux phase6-hexdump-review`
 - direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-hexdump-test`
+- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper replay, exact perf-matrix preflight, and ReleaseSafe perf gate on the same `PYTHON` and `ZIG` selection path instead of asking reviewers to stitch those commands together by hand
 - current review posture: focused helper formatting parity plus the exact four-case perf-matrix preflight and dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle today
 
