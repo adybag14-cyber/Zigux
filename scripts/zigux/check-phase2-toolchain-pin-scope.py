@@ -91,9 +91,9 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
-    '"scripts/zigux/check-zig-toolchain.py": 1,',
-    '"scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
-    '"scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
     'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
 ]
 
