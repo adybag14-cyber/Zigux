@@ -65,6 +65,8 @@ SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
+    "`drivers/virtio/virtio_ring.zig`",
+    "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
 ]
 
@@ -461,6 +463,36 @@ def run_self_test() -> int:
 
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "`drivers/virtio/virtio_ring.zig`",
+                "`drivers/virtio/virtio_ring_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_ring_surface",
+            root,
+            "scripts_readme:`drivers/virtio/virtio_ring.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`drivers/virtio/virtio_ring_verify.zig`",
+                "`drivers/virtio/virtio_ring_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_ring_verify_surface",
+            root,
+            "scripts_readme:`drivers/virtio/virtio_ring_verify.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
@@ -562,7 +594,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
