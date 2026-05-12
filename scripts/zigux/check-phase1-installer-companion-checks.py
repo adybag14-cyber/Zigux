@@ -42,6 +42,12 @@ TESTS_README_MARKERS = [
     "keep `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces",
 ]
 
+REVIEW_CHECKLIST_PHASE1_BLOCK_START = (
+    "  * if the change touches the closed Phase 1 host-tools packet,"
+)
+REVIEW_CHECKLIST_PHASE1_BLOCK_END = (
+    "  * if the change touches the shared Phase 2 toolchain packet,"
+)
 REVIEW_CHECKLIST_MARKERS = [
     "`scripts/zigux/check-phase1-installer-companion-checks.py`",
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
@@ -81,6 +87,18 @@ def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> 
     return missing
 
 
+def extract_bounded_block(text: str, label: str, start_marker: str, end_marker: str) -> tuple[str, list[str]]:
+    start_index = text.find(start_marker)
+    if start_index == -1:
+        return "", [f"{label}:missing_start:{start_marker}"]
+
+    end_index = text.find(end_marker, start_index + len(start_marker))
+    if end_index == -1:
+        return "", [f"{label}:missing_end:{end_marker}"]
+
+    return text[start_index:end_index], []
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
     docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
@@ -104,13 +122,22 @@ def collect_missing_markers(root: Path) -> list[str]:
     )
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
-    missing.extend(
-        collect_exact_count_markers(
-            review_checklist,
-            "review_checklist",
-            REVIEW_CHECKLIST_MARKERS,
-        )
+
+    review_phase1_block, block_errors = extract_bounded_block(
+        review_checklist,
+        "review_checklist_phase1_block",
+        REVIEW_CHECKLIST_PHASE1_BLOCK_START,
+        REVIEW_CHECKLIST_PHASE1_BLOCK_END,
     )
+    missing.extend(block_errors)
+    if not block_errors:
+        missing.extend(
+            collect_exact_count_markers(
+                review_phase1_block,
+                "review_checklist_phase1_block",
+                REVIEW_CHECKLIST_MARKERS,
+            )
+        )
     return missing
 
 
@@ -149,7 +176,14 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
-        "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+        "\n".join(
+            [
+                REVIEW_CHECKLIST_PHASE1_BLOCK_START,
+                *REVIEW_CHECKLIST_MARKERS,
+                REVIEW_CHECKLIST_PHASE1_BLOCK_END,
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -171,12 +205,34 @@ def run_self_test() -> None:
 
         review_path = root / "Documentation/zigux/review-checklist.md"
         review_path.write_text(
-            review_path.read_text(encoding="utf-8") + REVIEW_CHECKLIST_MARKERS[0] + "\n",
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_MARKERS[0],
+                "",
+                1,
+            )
+            + REVIEW_CHECKLIST_MARKERS[0]
+            + "\n",
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=2"
+            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[0] + "\n" + REVIEW_CHECKLIST_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=2"
             in missing
         )
         case_count += 1
@@ -287,7 +343,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected=1:actual=0"
+            "review_checklist_phase1_block:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -303,7 +359,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -319,7 +375,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            "review_checklist_phase1_block:`python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
             in missing
         )
         case_count += 1
