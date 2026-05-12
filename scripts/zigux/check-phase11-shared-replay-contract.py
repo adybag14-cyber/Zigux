@@ -14,6 +14,19 @@ FILES = {
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
 }
 
+NOTE_EXISTENCE_FILES = [
+    "Documentation/zigux/phase11-hvc-console-slice.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-teardown-note.md",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "scripts/zigux/check-phase11-hvc-survey-packet.py",
+    "zigux/tests/phase11_hvc_console_manifest.json",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+]
+
 MARKERS = {
     "note": [
         "# Phase 11 Shared Replay Contract",
@@ -27,7 +40,6 @@ MARKERS = {
         "* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "* `Documentation/zigux/phase11-hvc-console-survey.md`",
         "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "* `zigux/tests/phase11_hvc_cleanup.zig`",
         "* `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "* `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "* `drivers/tty/hvc/hvc_console_sysrq.zig`",
@@ -35,7 +47,7 @@ MARKERS = {
         "* `zigux/tests/phase11_hvc_console_manifest.json`",
         "* `zigux/tests/phase11_hvc_console_survey.zig`",
         "* `make -C zigux phase11-hvc-survey`",
-        "Treat `zigux/tests/phase11_hvc_cleanup.zig` as landed dedicated cleanup evidence beside that survey packet, while missing direct `zigux/tests/phase11_hvc_console.zig` and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof.",
+        "Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof.",
         "The dedicated DesignWare watchdog evidence also stays explicit beside that shared route:",
         "* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "* `Documentation/zigux/phase11-dw-wdt-survey.md`",
@@ -72,7 +84,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 18
 
 
 class CheckError(RuntimeError):
@@ -95,6 +107,8 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
 def run_check(root: Path) -> None:
     for label, relative_path in FILES.items():
         expect_markers(label, read_text(root, relative_path), MARKERS[label])
+    for relative_path in NOTE_EXISTENCE_FILES:
+        read_text(root, relative_path)
 
 
 def write(path: Path, text: str) -> None:
@@ -106,6 +120,8 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
     for label, relative_path in FILES.items():
         write(root / relative_path, "\n".join(MARKERS[label]) + "\n")
+    for relative_path in NOTE_EXISTENCE_FILES:
+        write(root / relative_path, f"{relative_path}\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -129,9 +145,9 @@ def run_self_test() -> None:
             (FILES["note"], "* `zigux/tests/phase11_build.zig`"),
             (FILES["note"], "* no shared `make -C zigux phase11-validate` target on `master`"),
             (FILES["note"], "* `Documentation/zigux/phase11-hvc-console-slice.md`"),
-            (FILES["note"], "* `zigux/tests/phase11_hvc_cleanup.zig`"),
+            (FILES["note"], "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (FILES["note"], "* `drivers/tty/hvc/hvc_console_sysrq.zig`"),
-            (FILES["note"], "Treat `zigux/tests/phase11_hvc_cleanup.zig` as landed dedicated cleanup evidence beside that survey packet, while missing direct `zigux/tests/phase11_hvc_console.zig` and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof."),
+            (FILES["note"], "Treat `Documentation/zigux/phase11-hvc-console-teardown-note.md` together with `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey` as the landed dedicated HVC archival evidence on current `master`, while direct `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console.zig`, and `drivers/tty/hvc/hvc_console_verify.zig` companions stay recorded as repo-reality gaps rather than shared proof."),
             (FILES["note"], "* `drivers/watchdog/dw_wdt_verify.zig`"),
             (FILES["closure_note"], "* `zigux/tests/phase11_build.zig`"),
             (FILES["closure_note"], "* DesignWare watchdog continuity stays with `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_survey.zig`"),
@@ -141,14 +157,21 @@ def run_self_test() -> None:
             (FILES["lane_note"], "Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the shared notes, the shared contract checker, the shared `phase11_build.zig` route, and `make -C zigux phase11`, while `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains the focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when reminder wording moves."),
             (FILES["lane_note"], "Keep the DesignWare lane honest: on current `master` the landed DesignWare packet is the validation matrix, survey note, teardown note, registration-scaffold replay, verify helper, dedicated packet checker, and shared Phase 11 replay route rather than a docs-only planning placeholder."),
             (FILES["lane_note"], "Keep the HVC delivery-gate lane honest: on current `master` the landed HVC archival packet is the manifest-backed survey gate, teardown-note cleanup handoff, modem-control split, poll-retry split, sysrq helper, validation matrix, and dedicated `phase11-hvc-survey` route rather than a missing or purely reminder-only packet."),
+            ("Documentation/zigux/phase11-hvc-console-teardown-note.md", "Documentation/zigux/phase11-hvc-console-teardown-note.md"),
+            ("zigux/tests/phase11_hvc_console_modem_control_split.zig", "zigux/tests/phase11_hvc_console_modem_control_split.zig"),
+            ("zigux/tests/phase11_hvc_console_survey.zig", "zigux/tests/phase11_hvc_console_survey.zig"),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
             case_root = tmpdir / f"case_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
-            path.write_text(path.read_text(encoding="utf-8").replace(marker + "\n", "", 1), encoding="utf-8")
-            expect_failure(case_root, marker)
+            if relative_path in FILES.values():
+                path.write_text(path.read_text(encoding="utf-8").replace(marker + "\n", "", 1), encoding="utf-8")
+                expect_failure(case_root, marker)
+            else:
+                path.unlink()
+                expect_failure(case_root, relative_path)
 
         print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
         print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
