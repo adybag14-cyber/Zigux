@@ -50,7 +50,7 @@ REQUIRED_FILES = (
 )
 
 README_SNIPPETS = (
-    "- keep the parked Phase 15 governance packet explicit in the tests root too: `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/Makefile`, and `make -C zigux phase15` should continue to keep the current freeze-map, review-process, parity-scorecard, handoff-next-steps, blocker-evidence, indefinite-C policy, lane-owner alignment, governance-lane sequencing, and readiness-gate governance packet reviewable through the shipped scripts-root validator-first route, the workflow-backed replay, and the shared build-and-make path without implying any Architecture Council approval for a freeze-map status change.",
+    "- keep the parked Phase 15 governance packet explicit in the tests root too: `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_ALIGNMENT.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/Makefile`, and `make -C zigux phase15` should continue to keep the current freeze-map, review-process, parity-scorecard, handoff-next-steps, blocker-evidence, indefinite-C policy, lane-owner alignment, governance-lane sequencing, and readiness-gate governance packet reviewable through the shipped scripts-root validator-first route, the workflow-backed replay, and the shared build-and-make path without implying any Architecture Council approval for a freeze-map status change.",
     "- `zigux/tests/phase15_handoff_next_steps_manifest.json` remains part of the parked Phase 15 governance packet evidence.",
     "- `zigux/tests/phase15_readiness_gate_manifest.json` remains part of the parked Phase 15 governance packet evidence.",
     "- `Documentation/zigux/phase15-handoff-next-steps-survey.md` remains the dedicated handoff note for the parked Phase 15 governance packet and its next-step record.",
@@ -81,8 +81,14 @@ HANDOFF_CHECKER_MARKERS = (
 
 REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 15 governance packet",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "scripts/zigux/validate-phase15.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
@@ -282,7 +288,7 @@ def _baseline_review_checklist() -> str:
     return "\n".join(
         (
             "# Checklist",
-            "- if the change touches the shared Phase 15 governance packet, do `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
+            "- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
             "",
         )
     )
@@ -460,6 +466,54 @@ def run_self_test() -> int:
 
         review_checklist_path = root / REVIEW_CHECKLIST_REL
         baseline_review_checklist = _read(review_checklist_path)
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_review_checklist.replace("`scripts/zigux/validate-phase15.py`, ", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:scripts/zigux/validate-phase15.py"],
+            "missing_validate_phase15_review_checklist_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_review_checklist)
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_review_checklist.replace("`Documentation/zigux/phase15-governance-lane-sequencing.md`, ", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:Documentation/zigux/phase15-governance-lane-sequencing.md"],
+            "missing_lane_sequencing_review_checklist_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_review_checklist)
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_review_checklist.replace("`zigux/tests/phase15_handoff_next_steps_manifest.json`, ", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:zigux/tests/phase15_handoff_next_steps_manifest.json"],
+            "missing_handoff_manifest_review_checklist_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_review_checklist)
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_review_checklist.replace("`zigux/tests/phase15_readiness_gate_manifest.json`, ", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["review_checklist:missing:zigux/tests/phase15_readiness_gate_manifest.json"],
+            "missing_readiness_manifest_review_checklist_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_review_checklist)
+        case_count += 1
+
         _write(
             root / REVIEW_CHECKLIST_REL,
             baseline_review_checklist.replace("`make -C zigux phase15-test`, ", "", 1),
