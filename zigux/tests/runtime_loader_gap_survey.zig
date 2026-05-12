@@ -158,3 +158,31 @@ test "phase 9 runtime loader gap survey keeps rollback and metadata-only trace-e
     try expectContains(trace_loader, "waiting_on_runtime_substrate");
     try expectContains(trace_loader, "released_without_substrate");
 }
+
+test "phase 9 runtime loader gap survey keeps kretprobe prepared-snapshot ownership evidence explicit" {
+    const allocator = std.testing.allocator;
+
+    const kretprobe_manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_kretprobe_manifest.json",
+        32 * 1024,
+    );
+    defer allocator.free(kretprobe_manifest);
+
+    const kretprobe_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(kretprobe_loader);
+
+    try expectContains(kretprobe_manifest, "\"prepared_snapshot_owned_by_loader_request\": true");
+    try expectContains(kretprobe_manifest, "\"shared_request_surface\": \"zigux/kernel/runtime_loader.zig\"");
+    try expectContains(kretprobe_manifest, "\"id\": \"runtime-kretprobe-shared-prepared-plan-drift\"");
+    try expectContains(kretprobe_manifest, "\"status\": \"starter_landed\"");
+    try expectContains(kretprobe_loader, "requestSharedRuntimeLoad");
+    try expectContains(kretprobe_loader, "releaseSharedWithoutSubstrate");
+    try expectContains(kretprobe_loader, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(kretprobe_loader, "runtime kretprobe loader surfaces shared request drift before any live registration claim");
+    try expectContains(kretprobe_loader, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+}
