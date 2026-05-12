@@ -237,11 +237,19 @@ pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: us
     return findNextClump8(clump, addr, nbits, offset);
 }
 
+pub fn _find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {
+    return findNextClump8(clump, addr, nbits, offset);
+}
+
 pub fn findFirstClump8(clump: *u8, addr: []const Word, nbits: usize) usize {
     return findNextClump8(clump, addr, nbits, 0);
 }
 
 pub fn find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {
+    return findFirstClump8(clump, addr, nbits);
+}
+
+pub fn _find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {
     return findFirstClump8(clump, addr, nbits);
 }
 
@@ -580,6 +588,7 @@ test "low-level underscore aliases mirror the primary find helpers" {
     const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
     const and_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    const clump_map = [_]Word{@as(Word, 1)};
 
     try std.testing.expectEqual(findFirstBit(&bitmap, nbits), _find_first_bit(&bitmap, nbits));
     try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), _find_first_and_bit(&and_lhs, &and_rhs, nbits));
@@ -588,6 +597,13 @@ test "low-level underscore aliases mirror the primary find helpers" {
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), _find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), _find_next_zero_bit(&zero_map, nbits, 5));
     try std.testing.expectEqual(findLastBit(&bitmap, nbits), _find_last_bit(&bitmap, nbits));
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &clump_map, 8));
+    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, 0), _find_next_clump8(&clump, &clump_map, 8, 0));
+    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
 
 test "Linux-style aliases mirror the primary find helpers" {
