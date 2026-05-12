@@ -52,10 +52,10 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   `scripts/zigux/validate-phase3-abi-bindings-syntax.py` as the first review
   gates before broader ABI slice follow-through reopens
 - keep broad shared reminders honest whenever they name the header-family
-  packet, keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey,
-  next-step note, direct replay files, focused checker, and manifest-backed ABI
-  packet while leaving the narrower `zigux/uapi/version.zig` starter-companion
-  detail anchored here and in
+  packet, keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey
+  and next-step notes while leaving the narrower `zigux/uapi/version.zig`
+  starter-companion detail anchored here, beside the direct replay files,
+  focused checker, and manifest-backed ABI packet, and in
   `Documentation/zigux/phase3-abi-header-family-survey.md` unless the broader
   export/UAPI packet actually grows
 
