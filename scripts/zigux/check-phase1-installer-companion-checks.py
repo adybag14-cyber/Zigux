@@ -53,6 +53,9 @@ REVIEW_CHECKLIST_MARKERS = [
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
 ]
+REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS = [
+    "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+]
 
 MAKEFILE_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-companion-checks.py --self-test",
@@ -138,6 +141,13 @@ def collect_missing_markers(root: Path) -> list[str]:
                 REVIEW_CHECKLIST_MARKERS,
             )
         )
+        missing.extend(
+            collect_exact_count_markers(
+                review_phase1_block,
+                "review_checklist_phase1_route_split",
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS,
+            )
+        )
     return missing
 
 
@@ -178,8 +188,7 @@ def make_fixture_root(root: Path) -> None:
     (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
         "\n".join(
             [
-                REVIEW_CHECKLIST_PHASE1_BLOCK_START,
-                *REVIEW_CHECKLIST_MARKERS,
+                REVIEW_CHECKLIST_PHASE1_BLOCK_START + " " + ", ".join(REVIEW_CHECKLIST_MARKERS),
                 REVIEW_CHECKLIST_PHASE1_BLOCK_END,
             ]
         )
@@ -225,7 +234,7 @@ def run_self_test() -> None:
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
                 REVIEW_CHECKLIST_MARKERS[0],
-                REVIEW_CHECKLIST_MARKERS[0] + "\n" + REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[0] + ", " + REVIEW_CHECKLIST_MARKERS[0],
                 1,
             ),
             encoding="utf-8",
@@ -335,7 +344,23 @@ def run_self_test() -> None:
 
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
-                "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`\n",
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "review_checklist_phase1_route_split:`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_MARKERS[1],
                 "",
                 1,
             ),
@@ -351,7 +376,7 @@ def run_self_test() -> None:
 
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
-                "`scripts/zigux/check-phase1-installer-companion-checks.py`",
+                REVIEW_CHECKLIST_MARKERS[0],
                 "",
                 1,
             ),
@@ -367,7 +392,7 @@ def run_self_test() -> None:
 
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
-                "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`\n",
+                REVIEW_CHECKLIST_MARKERS[2],
                 "",
                 1,
             ),
@@ -419,7 +444,7 @@ def main() -> int:
     print(f"PHASE1_INSTALLER_COMPANION_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_INSTALLER_COMPANION_REQUIRED_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_PHASE1_FLOW_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_PHASE1_FLOW_MARKERS) + len(WORKFLOW_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS)}"
     )
     return 0
 
