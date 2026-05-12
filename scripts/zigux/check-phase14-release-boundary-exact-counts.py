@@ -81,6 +81,7 @@ RELEASE_BOUNDARY_MARKERS = [
 SURVEY_EXACT_COUNT_MARKERS = [
     "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
     "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test",
     "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
 ]
@@ -335,6 +336,15 @@ def run_self_test() -> int:
 
         write_text(
             root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace("- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n", "", 1),
+        )
+        if not any("PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test" in error for error in check(root)):
+            print("self-test expected missing survey test-entrypoint failure", file=sys.stderr)
+            return 1
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write_text(
+            root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
             good_survey_text().replace("- `PHASE14_ANCHOR_PACKET_COUNT=4`\n", "", 1),
         )
         if not any("PHASE14_ANCHOR_PACKET_COUNT=4" in error for error in check(root)):
@@ -395,7 +405,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
