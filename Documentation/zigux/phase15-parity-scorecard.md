@@ -5,8 +5,8 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 ## Status
 
 - `PHASE15_STATUS=parity_scorecard_slice_landed`
-- `PHASE15_LANE_KEY=P15-L09`
-- `PHASE15_SLICE=freeze-map-parity-scorecard-baseline`
+- `PHASE15_LANE_KEY=P15-Y03`
+- `PHASE15_SLICE=parity-scorecard-baseline`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SCORECARD_ROLE=blocked_posture_accounting_not_port_readiness`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-11`
