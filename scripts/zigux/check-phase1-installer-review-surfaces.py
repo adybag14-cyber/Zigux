@@ -12,9 +12,11 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "scripts/zigux/README.md",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase1-installer-review-surfaces.py",
+    "scripts/zigux/check-phase1-installer-companion-checks.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -310,6 +312,14 @@ def run_self_test() -> int:
 
         (root / "Documentation/zigux/review-checklist.md").unlink()
         expect(validate_root(root), "missing_file:Documentation/zigux/review-checklist.md")
+        build_self_test_root(root)
+
+        (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").unlink()
+        expect(validate_root(root), "missing_file:Documentation/zigux/phase1-host-helper-lane-sequencing.md")
+        build_self_test_root(root)
+
+        (root / "scripts/zigux/check-phase1-installer-companion-checks.py").unlink()
+        expect(validate_root(root), "missing_file:scripts/zigux/check-phase1-installer-companion-checks.py")
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
     print(f"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT={case_count}")
