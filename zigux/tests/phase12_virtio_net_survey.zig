@@ -71,14 +71,6 @@ fn pathExists(path: []const u8) !bool {
     return true;
 }
 
-fn expectSurveyedCommitProvenance(note: []const u8, surveyed_commit: []const u8) !void {
-    try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
-    for (surveyed_commit) |byte| {
-        try std.testing.expect(std.ascii.isHex(byte));
-    }
-    try std.testing.expect(std.mem.indexOf(u8, note, surveyed_commit) != null);
-}
-
 test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -89,7 +81,8 @@ test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" 
 
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("2026-05-11", manifest.verified_on);
+    try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -101,13 +94,13 @@ test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_virtio_net_zig_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
-    try std.testing.expectEqualStrings("starter_landed_but_data_path_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-    try std.testing.expectEqualStrings("starter_landed_without_direct_gate", manifest.roadmap_gap_check.queueing_correctness.status);
-    try std.testing.expectEqualStrings("recovery_planning_surface_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-    try std.testing.expectEqualStrings("starter_landed_shared_route_present_direct_gate_missing", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expectEqualStrings("starter_missing_data_path_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
+    try std.testing.expectEqualStrings("driver_starter_missing_direct_gate_missing", manifest.roadmap_gap_check.queueing_correctness.status);
+    try std.testing.expectEqualStrings("driver_starter_missing_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
+    try std.testing.expectEqualStrings("survey_present_shared_route_present_driver_starter_missing", manifest.roadmap_gap_check.segmented_rollout.status);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.current_surface, "shared `phase12_build.zig` route") != null);
 
     var saw_survey_gate = false;
@@ -122,9 +115,9 @@ test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" 
         try std.testing.expect(gap.why_now.len > 0);
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-survey-gate")) {
             saw_survey_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("survey_present", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current repo-truth boundary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey-only repo-truth boundary") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {
             saw_syntax_lab_gap = true;
@@ -132,7 +125,7 @@ test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" 
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-probe-snapshot-starter")) {
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("missing_on_master", gap.status);
         }
         if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
             saw_build_gap = true;
@@ -140,7 +133,7 @@ test "phase12 virtio net parked survey manifest keeps the roadmap gap truthful" 
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_runtime_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_dma_transport_and_runtime_gates", gap.status);
+            try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime_and_starter_absence", gap.status);
         }
     }
 
@@ -161,23 +154,21 @@ test "phase12 virtio net parked survey note stays aligned with the surviving sur
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-validation-incomplete") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
+    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=survey-only-driver-absent") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` does not carry `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_net_survey.zig` as the dedicated survey gate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "now carries `zigux/tests/phase12_build.zig`, but that shared build route still wires only the shipped `virtio_scsi` smoke-first packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not carry `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`freezeForRecovery`, `restoreAfterRecovery`, `planQueueResume`, `planReceiveRefill`, `planMergeableBufferLength`, and `planTransmitRecycle`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "starter-present and validation-incomplete boundary is executable as a direct survey gate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "keep `zigux/tests/phase12_build.zig` explicit as the shipped shared `virtio_scsi` smoke-first route") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reland the matching direct syntax-lab shard under `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared build route still wires only the shipped `virtio_scsi` smoke-first packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not carry `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey-only and driver-absent boundary is executable as a direct survey gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reland the driver-local starter under `drivers/net/virtio_net.zig`") != null);
 }
 
 test "phase12 virtio net parked survey gate keeps present and absent lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
-    try std.testing.expect(try pathExists("drivers/net/virtio_net.zig"));
+    try std.testing.expect(!(try pathExists("drivers/net/virtio_net.zig")));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
     try std.testing.expect(!(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig")));
 }
