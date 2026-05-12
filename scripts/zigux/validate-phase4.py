@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
@@ -259,6 +260,8 @@ GENERIC_CHECKS = [
     ("ARTIFACT_DIFF_CONTRACT_CHECK", ["scripts/zigux/check-artifact-diff-contract.py"], "ARTIFACT_DIFF_CONTRACT=pass"),
     ("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-gate-evidence.py", "--self-test"], "PHASE4_GATE_EVIDENCE_SELF_TEST=pass"),
     ("PHASE4_GATE_EVIDENCE_CHECK", ["scripts/zigux/check-phase4-gate-evidence.py"], "PHASE4_GATE_EVIDENCE_CHECK=pass"),
+    ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-remaining-gap-matrix.py", "--self-test"], "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass"),
+    ("PHASE4_REMAINING_GAP_MATRIX_CHECK", ["scripts/zigux/check-phase4-remaining-gap-matrix.py"], "PHASE4_REMAINING_GAP_MATRIX_CHECK=pass"),
     ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-workflow-route-counts.py", "--self-test"], "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
     ("PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK", ["scripts/zigux/check-phase4-workflow-route-counts.py"], "PHASE4_WORKFLOW_ROUTE_COUNTS=pass"),
 ]
@@ -407,6 +410,10 @@ def _write_fixture_tree(root: Path) -> None:
     _write_stub_checker(root / "scripts/zigux/check-phase4-gate-evidence.py", [
         "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
         "PHASE4_GATE_EVIDENCE_CHECK=pass",
+    ])
+    _write_stub_checker(root / "scripts/zigux/check-phase4-remaining-gap-matrix.py", [
+        "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
+        "PHASE4_REMAINING_GAP_MATRIX_CHECK=pass",
     ])
     _write_stub_checker(root / "scripts/zigux/check-phase4-workflow-route-counts.py", [
         "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
@@ -733,6 +740,22 @@ def run_self_test() -> int:
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
             return 1
         matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        remaining_gap_checker_path = root / "scripts/zigux/check-phase4-remaining-gap-matrix.py"
+        original_remaining_gap_checker = remaining_gap_checker_path.read_text(encoding="utf-8")
+        remaining_gap_checker_path.write_text(
+            "#!/usr/bin/env python3\nprint('PHASE4_REMAINING_GAP_MATRIX_CHECK=pass')\n",
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CHECK:missing_pass_marker" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        remaining_gap_checker_path.write_text(original_remaining_gap_checker, encoding="utf-8")
 
         makefile_path = root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
