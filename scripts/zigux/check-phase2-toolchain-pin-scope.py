@@ -30,6 +30,11 @@ NOTE_STATIC_MARKERS = [
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
 ]
+PHASE2_ROUTE_COUNT_MARKER = "PHASE2_LINUX_STYLE_ROUTE_COUNT=6"
+PHASE2_ROUTE_LIST_MARKER = (
+    "PHASE2_LINUX_STYLE_ROUTES="
+    "phase2-toolchain,phase2-validate,phase2-tools,phase2-kconfig,phase2-cross,phase2"
+)
 
 README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py",
@@ -69,6 +74,8 @@ CLOSURE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json",
+    PHASE2_ROUTE_COUNT_MARKER,
+    PHASE2_ROUTE_LIST_MARKER,
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
@@ -127,6 +134,10 @@ TOOLCHAIN_TARGET_REQUIRED_LINES = [
 ]
 
 EXACT_SURFACE_COUNTS = {
+    "phase2_toolchain_notes": {
+        PHASE2_ROUTE_COUNT_MARKER: 1,
+        PHASE2_ROUTE_LIST_MARKER: 1,
+    },
     "scripts_readme": {
         "check-phase2-toolchain-pin-scope.py": 2,
     },
@@ -149,6 +160,8 @@ EXACT_SURFACE_COUNTS = {
         "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1": 1,
         "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json": 1,
+        PHASE2_ROUTE_COUNT_MARKER: 1,
+        PHASE2_ROUTE_LIST_MARKER: 1,
     },
 }
 
@@ -240,6 +253,9 @@ def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]
                 issues.append(f"phase2_toolchain_notes:missing_marker:{digest_marker}")
 
     for marker in NOTE_STATIC_MARKERS:
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+    for marker in (PHASE2_ROUTE_COUNT_MARKER, PHASE2_ROUTE_LIST_MARKER):
         if marker not in text:
             issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
     return issues
@@ -351,6 +367,8 @@ def run_self_test() -> int:
             f"- current minimum Zig version: `{SELF_TEST_CHANNEL}`",
             f"- current pinned bootstrap archive target: `{pin_target}`",
             f"- current pinned bootstrap archive sha256 (`{pin_target}`): `{SELF_TEST_ARCHIVE_SHA256}`",
+            f"- `{PHASE2_ROUTE_COUNT_MARKER}`",
+            f"- `{PHASE2_ROUTE_LIST_MARKER}`",
             *[f"- {marker}" if not marker.startswith("the ") else f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
     )
@@ -412,7 +430,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -452,6 +470,13 @@ def main() -> int:
     issues: list[str] = []
     issues.extend(validate_policy(policy_payload))
     issues.extend(validate_phase2_notes(NOTES_DOC.read_text(encoding="utf-8"), payload=policy_payload))
+    issues.extend(
+        validate_exact_marker_counts(
+            NOTES_DOC.read_text(encoding="utf-8"),
+            label="phase2_toolchain_notes",
+            checks=EXACT_SURFACE_COUNTS["phase2_toolchain_notes"],
+        )
+    )
 
     scripts_readme_text = README.read_text(encoding="utf-8")
     issues.extend(validate_required_markers(scripts_readme_text, label="scripts_readme", markers=README_MARKERS))
