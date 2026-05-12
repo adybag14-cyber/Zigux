@@ -151,6 +151,12 @@ def run_self_test() -> None:
         assert collect_missing_markers(root) == []
         case_count += 1
 
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_path.unlink()
+        assert collect_missing_files(root) == ["Documentation/zigux/README.md"]
+        case_count += 1
+        make_fixture_root(root)
+
         review_path = root / "Documentation/zigux/review-checklist.md"
         review_path.write_text(
             review_path.read_text(encoding="utf-8") + REVIEW_CHECKLIST_MARKERS[0] + "\n",
