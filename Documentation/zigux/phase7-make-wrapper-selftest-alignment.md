@@ -39,11 +39,11 @@ surface:
 
 The same parked packet also depends on the shared docs-root Phase 5 no-sample
 reminders staying honest for `string_helpers`, `cmdline`, `argv_split`, and
-`rbtree`. Current `master` keeps the full parked packet explicit for
-`string_helpers`, while the `cmdline`, `argv_split`, and `rbtree` docs-root
-reminders still rely on `Documentation/zigux/review-checklist.md`,
-`samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`,
-and the four Phase 7 slice notes for the fuller packet map.
+`rbtree`. Current `master` now keeps the fuller parked packet explicit from
+`Documentation/zigux/README.md` for all four helper families, while
+`Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`,
+`scripts/zigux/README.md`, `zigux/tests/README.md`, and the four Phase 7 slice
+notes keep the sibling review surfaces aligned around that same packet map.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
