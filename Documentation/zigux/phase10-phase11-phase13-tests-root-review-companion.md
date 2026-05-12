@@ -71,9 +71,6 @@ Keep the current shared-versus-dedicated simple-driver packet explicit through t
 - `Documentation/zigux/phase11-closure-note.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
-- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
