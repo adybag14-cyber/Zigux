@@ -34,6 +34,7 @@ REPO_FILES = (
     Path("Documentation/zigux/review-checklist.md"),
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
@@ -646,8 +647,23 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
+        kernel_export_governance_rel = Path(
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md"
+        )
         _write(root / next_step_rel, "# restored\n")
+        (root / kernel_export_governance_rel).unlink()
+        issues = validate_repo(root)
+        expected_kernel_export_governance_missing = (
+            f"missing repo file: {kernel_export_governance_rel.as_posix()}"
+        )
+        if expected_kernel_export_governance_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing kernel export-shim governance note was not reported")
+            return 1
+        case_count += 1
+
+        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
+        _write(root / kernel_export_governance_rel, "# restored\n")
         (root / validator_support_rel).unlink()
         issues = validate_repo(root)
         expected_validator_support_missing = (
