@@ -1,11 +1,19 @@
 {
   "lane_key": "P9-L04",
   "phase": "Phase 9",
+  "surveyed_commit": "ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
     "samples/zigux/runtime_*"
   ],
+  "survey_summary": {
+    "atomic64_test_c_lines": 277,
+    "preexisting_runtime_test_files": 3,
+    "preexisting_samples_zigux_present": true,
+    "preexisting_phase9_build_present": true,
+    "preexisting_phase9_doc_present": true
+  },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
     "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
@@ -15,11 +23,53 @@
   },
   "gaps": [
     {
+      "id": "phase9-build-gate",
+      "status": "starter_landed",
+      "kind": "shared_build_route",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build route keeps the exact `phase9-runtime-atomic64-tests` replay and the shared loader shard reviewable while the runtime substrate stays blocked."
+    },
+    {
+      "id": "runtime-atomic64-survey-gate",
+      "status": "starter_landed",
+      "kind": "survey_gate",
+      "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
+      "why_now": "The dedicated runtime survey gate fails closed on the survey note, manifest, and direct sample packet so the lane can keep the loader-backed review surface explicit without claiming live runtime parity."
+    },
+    {
+      "id": "runtime-atomic64-sample-module",
+      "status": "starter_landed",
+      "kind": "sample_module",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The bounded sample keeps the direct atomic64 starter and guarded lifecycle parity evidence reviewable under the `lib/atomic64_test.c` anchor."
+    },
+    {
+      "id": "runtime-atomic64-selftest-hook",
+      "status": "starter_landed",
+      "kind": "selftest_hook",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The sample descriptor and `runSelftest()` contract keep the roadmap selftest hook surface explicit without implying a live runtime substrate."
+    },
+    {
+      "id": "runtime-atomic64-module-tests",
+      "status": "starter_landed",
+      "kind": "module_gate",
+      "zigux_destination": "zigux/tests/runtime_atomic64_module.zig",
+      "why_now": "The dedicated module tests keep the bounded starter lifecycle and direct sample-backed module gate reviewable on current master."
+    },
+    {
+      "id": "runtime-atomic64-diff-gate",
+      "status": "starter_landed",
+      "kind": "differential_validation",
+      "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
+      "why_now": "The narrow diff gate keeps add, sub, bitwise, swap, compare-swap, and add-unless expectations from `lib/atomic64_test.c` machine-checkable without widening the runtime packet."
+    },
+    {
       "id": "runtime-atomic64-loader-scaffold",
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()`, and shared-request lifecycle proofs reviewable without implying live runtime registration parity."
+      "why_now": "A bounded loader scaffold keeps `requires_runtime_substrate`, `toSharedLoadPlan()`, `runtime_loader.prepareRequest()`, and shared-request lifecycle proofs reviewable without implying live runtime registration parity."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
