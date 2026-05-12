@@ -58,7 +58,8 @@ REQUIRED_SNIPPETS = {
         "- `bsearchEqualRangeIndex`",
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
+        "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
+        "Current `master` also still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig` as a compact shared seed companion for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases.",
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
@@ -84,7 +85,11 @@ EXPECTED_BSEARCH_HELPER_ROW = {
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig",
     ],
+    "fixtures": [
+        "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    ],
     "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+    "corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
 }
 
 
@@ -126,6 +131,8 @@ EXPECTED_BSEARCH_INLINE_CORPUS_GOVERNANCE = {
     "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+    "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    "fixture_companion_role": "compact shared seed evidence for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases while executable comparison-budget replays stay inline in the focused bsearch test files",
     "policy": "keep representative sorted slices, duplicate-bearing lower- and upper-bound insertion probes, direct c abi equality probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module",
 }
 
@@ -143,6 +150,7 @@ EXPECTED_BSEARCH_EVIDENCE = {
     "c_abi_equality_dynamic_lengths": 33,
     "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
     "c_abi_equality_record_member_size_replay": true,
+    "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
 }
 
 
@@ -300,6 +308,12 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH.as_posix(),
+            '"fixtures": [\n        "zigux/tests/fixtures/phase6_bsearch_vectors.zig"\n      ]',
+            '"fixtures": []',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH.as_posix(),
             '"representative_lookup_len": 15',
             '"representative_lookup_len": 14',
         )
@@ -308,6 +322,12 @@ def run_self_test() -> None:
             MANIFEST_PATH.as_posix(),
             '"upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"',
             '"upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_upper_bound_only.zig"',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH.as_posix(),
+            '"fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig"',
+            '"fixture_companion": "zigux/tests/fixtures/phase6_bsearch_seed_vectors.zig"',
         )
         assert_failure(
             root,
@@ -356,6 +376,12 @@ def run_self_test() -> None:
             SLICE_PATH.as_posix(),
             "- `equalRangeIndex`",
             "- `equalRangeDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "Current `master` also still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig` as a compact shared seed companion for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases.",
+            "Current `master` still carries no fixture companion.",
         )
         assert_failure(
             root,
