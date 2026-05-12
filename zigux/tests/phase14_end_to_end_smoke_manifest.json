@@ -49,12 +49,12 @@
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
-      "lane_key": "P14-L08",
+      "lane_key": "P14-L06",
       "anchor": "kernel/trace/ring_buffer.c",
-      "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+      "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "ready_next_gap": "phase14-ring-buffer-read-page-copy-followup",
+      "ready_next_gap": "phase14-ring-buffer-tracefs-reader-serialization-followup",
       "blocked_gap": "phase14-ring-buffer-zig-port-blocker"
     },
     {
