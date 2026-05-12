@@ -46,11 +46,14 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 ## Current Truthfulness Posture
 
-Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `zigux/tests/phase10_closure_manifest.json` keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
+Fresh rereads confirmed that `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/phase10_closure_manifest.json` already keep the ring packet explicit through both `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` together with `zigux/tests/phase10_virtio_ring_reset_reuse.zig`.
 
-The broader shared-summary follow-through is narrower. `scripts/zigux/README.md` still describes the same ring evidence as the ring verifier plus drained-reset reuse replay, but this run did not re-establish an exact path-level shared-summary claim for `zigux/tests/phase10_virtio_ring_reset_reuse.zig` across the broader docs-root and scripts-root reminder surfaces.
+The remaining broader shared-summary drift is now narrower and more specific than the older handoff suggested.
 
-The older shared reminder-surface drift is therefore narrowed, not fully closed. The Phase 10 closure note remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should start with the smallest shared-summary repair that makes that ring replay explicit without widening into risky transport claims.
+- `scripts/zigux/README.md` still names `drivers/virtio/virtio_ring_verify.zig` and the ring verifier plus drained-reset reuse replay, but it does not yet keep the exact `zigux/tests/phase10_virtio_ring_reset_reuse.zig` path explicit inside the broad Phase 10 scripts-root inventory.
+- `Documentation/zigux/README.md` remains the wider undercount: it still keeps the shared Phase 10 packet, checker stack, manifest, and make routes visible, but it does not yet keep either `drivers/virtio/virtio_ring_verify.zig` or `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside the existing direct ring and manifest surfaces.
+
+The Phase 10 closure note therefore remains an active truthfulness checkpoint rather than evidence of tranche closure: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the next same-lane follow-through should start with the smaller scripts-root exact-path sync before widening to the broader docs-root reminder.
 
 ## Parked Boundary
 
@@ -65,5 +68,6 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder or checker surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. reread `Documentation/zigux/README.md` plus `scripts/zigux/README.md` against `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, starting with whether the broader shared Phase 10 summaries should also keep `zigux/tests/phase10_virtio_ring_reset_reuse.zig` explicit beside `drivers/virtio/virtio_ring_verify.zig`
-3. if a fresh repo-first inspection finds another equally small same-lane drift after that, prefer one shared reminder, checker, manifest, or survey surface at a time
+2. refresh `scripts/zigux/README.md` first so the broad Phase 10 scripts-root inventory names `zigux/tests/phase10_virtio_ring_reset_reuse.zig` directly beside `drivers/virtio/virtio_ring_verify.zig`
+3. reread `Documentation/zigux/README.md` only after that scripts-root sync lands, starting with whether the broader docs-root summary should then add both the direct ring verifier path and the drained-reset reuse replay path beside the existing ring and manifest surfaces
+4. if a fresh repo-first inspection finds another equally small same-lane drift after those two shared-summary repairs, prefer one shared reminder, checker, manifest, or survey surface at a time
