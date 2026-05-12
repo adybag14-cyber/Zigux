@@ -9,6 +9,41 @@ test "runtime atomic64 sample advertises the bounded pilot-module contract" {
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
+test "runtime atomic64 sample keeps lifecycle snapshot replay explicit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+
+    const cold_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.cold, cold_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.exit_runs);
+    try std.testing.expect(!cold_snapshot.allows_counter_ops);
+
+    try module.init(7);
+    const initialized_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
+    try std.testing.expect(initialized_snapshot.allows_counter_ops);
+
+    _ = try module.runSelftest();
+    const selftest_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftest_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_snapshot.exit_runs);
+    try std.testing.expect(selftest_snapshot.allows_counter_ops);
+
+    try module.exit();
+    const exited_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expect(!exited_snapshot.allows_counter_ops);
+}
+
 test "runtime atomic64 sample keeps post-selftest mutation replay explicit at the module boundary" {
     var module = sample.RuntimeAtomic64Sample{};
     const seed = 0x0102_0304_0506_0708;
