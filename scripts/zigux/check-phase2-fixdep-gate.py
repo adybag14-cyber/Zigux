@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-fixdep-next-step-note.md",
     "scripts/basic/fixdep.c",
     "scripts/include/xalloc.h",
     "scripts/zigux/check-fixdep-diff.py",
@@ -34,6 +35,13 @@ CLOSURE_MARKERS = [
     "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`",
     "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`",
     "zig test scripts/zigux/fixdep.zig",
+]
+
+PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
+    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live eleven-case packet, including `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
+    "`zigux/tests/fixtures/fixdep/cases.json` names that same eleven-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
+    "The dedicated shared `fixdep` gate no longer trails the live docs-and-fixtures packet: `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and `zigux/tests/fixtures/fixdep/cases.json` now agree on the same eleven-case packet.",
+    "When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the dedicated gate and the direct replay stay aligned as one packet.",
 ]
 
 ARTIFACT_DIFF_MARKERS = [
@@ -80,6 +88,7 @@ FILE_MARKERS = {
     "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": TOOLCHAIN_NOTE_MARKERS,
     "Documentation/zigux/phase2-closure.md": CLOSURE_MARKERS,
+    "Documentation/zigux/phase2-fixdep-next-step-note.md": PHASE2_FIXDEP_NEXT_STEP_MARKERS,
     "scripts/zigux/validate-phase2.py": VALIDATE_PHASE2_MARKERS,
     "zigux/tests/README.md": TESTS_README_MARKERS,
 }
@@ -316,9 +325,28 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        path = root / "Documentation/zigux/phase2-fixdep-next-step-note.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(PHASE2_FIXDEP_NEXT_STEP_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"Documentation/zigux/phase2-fixdep-next-step-note.md:{PHASE2_FIXDEP_NEXT_STEP_MARKERS[2]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-fixdep-diff.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-fixdep-diff.py" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "Documentation/zigux/phase2-fixdep-next-step-note.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/phase2-fixdep-next-step-note.md" in issues
         case_count += 1
 
         build_self_test_root(root)
