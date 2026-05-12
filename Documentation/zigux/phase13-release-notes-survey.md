@@ -46,6 +46,11 @@ Broad summaries should also keep the shipped devres packet-truthfulness guard ex
 
 Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.
 
+Broad summaries should also keep the currently materialized manifest-backed helper anchors explicit through:
+- `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+
 Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
@@ -83,7 +88,7 @@ Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
 - the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
 - direct missing companions should stay recorded as repo-reality gaps until current `master` can materialize them again
-- `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the shipped `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps
+- `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the shipped `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
 - contributor-facing notes should prefer one bounded wording repair at a time
 - broad summaries should stay grounded in the shipped docs packet rather than speculative future closure language
