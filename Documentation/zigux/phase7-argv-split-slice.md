@@ -9,6 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_LANE_KEY=P7-L09`
 * scope: first low-risk argument-vector parsing and teardown helpers only
 * lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
+* current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, but the broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports missing sibling paths `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `lib/cmdline.zig`
 * product boundary:
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
@@ -73,7 +74,9 @@ Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;
 * `python3 scripts/zigux/check-phase7-build-wiring.py`
 * `make -C zigux phase7-validate`
 
-6. keep the shared Phase 7 helper gate explicit
+6. keep the shared Phase 7 helper gate explicit as a parked cross-packet target
+
+The commands below still describe the intended shared replay surface, but they are not a current argv_split-local green claim while the missing sibling imports above remain absent from live `master`.
 
 * `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 * `make -C zigux phase7`
@@ -98,7 +101,7 @@ The current tests keep these packet edges explicit:
 * allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns
 * safe and repeatable sentinel teardown through `argvFree()`
 * explicit `argvFree()` ownership mirroring that keeps the `argv_free` teardown contract reviewable for C-style callers
-* the dedicated packet checker, the shared build replay, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together instead of drifting into separate ad hoc reminders
+* the dedicated packet checker, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together, while the broader shared build replay stays parked until its missing sibling imports are restored
 
 The helper entrypoints remain explicit:
 
