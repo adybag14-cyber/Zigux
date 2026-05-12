@@ -77,6 +77,8 @@ REQUIRED_TEST_SNIPPETS = (
     'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable"',
     'mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);',
     'mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
+    'const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);',
+    'try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);',
     'atomic.fetchNand(u32, &value, 10, .seq_cst)',
     'atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire)',
     'atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
@@ -119,8 +121,21 @@ REQUIRED_NARROW_SNIPPETS = (
     'volatile_mmio = 1,',
     'raw_pointer_bridge = 2,',
     'pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {',
+    'pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {',
+    'pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {',
+    'pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {',
+    'pub fn pointerAtInteropPolicyBytes(',
     'pub fn pointerAtInteropPolicy(',
+    'pub fn pointerAtByte(',
+    'pub fn constSliceAtInteropPolicyBytes(',
+    'pub fn constSliceAtInteropPolicy(',
+    'pub fn constSliceAtByte(',
+    'pub fn constPointerAtInteropPolicyBytes(',
+    'pub fn constPointerAtInteropPolicy(',
+    'pub fn constPointerAtByte(',
     'pub fn writeValueAtInteropPolicyBytes(',
+    'pub fn writeValueAtInteropPolicy(',
+    'pub fn writeValueAtByte(',
 )
 
 REFERENCE_MARKERS = (
@@ -246,6 +261,64 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing allocator/panic helper replay failure")
+            return 1
+
+        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            TEST_REL,
+            (root / TEST_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing raw-pointer bridge replay failure")
+            return 1
+
+        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            NARROW_REL,
+            (root / NARROW_REL).read_text(encoding="utf-8").replace(
+                "pub fn pointerAtInteropPolicyBytes(",
+                "pub fn removedPointerAtInteropPolicyBytes(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == "missing_narrow_snippet:pub fn pointerAtInteropPolicyBytes("
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing raw-pointer bridge helper failure")
+            return 1
+
+        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints",
+                "PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-entrypoints",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_survey_marker:PHASE3_MMIO_SCOPE=range-read-write-8-16-32-64-plus-interop-policy-and-policy-byte-entrypoints"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio scope marker failure")
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
