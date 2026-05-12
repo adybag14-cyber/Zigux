@@ -8,6 +8,7 @@ test "phase12 virtio net probe starter stays anchored to virtio_net.c" {
     try std.testing.expect(descriptor.provides_probe_snapshot);
     try std.testing.expect(descriptor.provides_queue_topology_summary);
     try std.testing.expect(descriptor.provides_mergeable_receive_buffer_planner);
+    try std.testing.expect(descriptor.provides_receive_refill_summary);
     try std.testing.expect(descriptor.provides_queue_recovery_planner);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_net_device);
@@ -30,7 +31,6 @@ test "phase12 virtio net probe starter stays anchored to virtio_net.c" {
     try std.testing.expect(snapshot.rss_enabled);
     try std.testing.expectEqual(virtio_net.HeaderShape.hash_report_tunnel, snapshot.header_shape);
     try std.testing.expectEqual(@as(u16, virtio_net.tunnel_header_len_bytes), snapshot.hdr_len_bytes);
-
 }
 
 test "phase12 virtio net queue topology summary keeps queue-pair layout explicit" {
@@ -92,6 +92,25 @@ test "phase12 virtio net mergeable receive buffer plan spreads oversized packets
     try std.testing.expect(!plan.reuses_existing_room);
     try std.testing.expect(!plan.fits_single_page);
     try std.testing.expect(plan.uses_mergeable_path);
+}
+
+test "phase12 virtio net receive refill summary keeps posting order reviewable" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    const summary = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 6000,
+        .existing_room_bytes = 0,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 6064), summary.total_bytes);
+    try std.testing.expectEqual(@as(u16, 2), summary.required_buffers);
+    try std.testing.expectEqual(virtio_net.ReceiveRefillPath.allocate_mergeable_chain, summary.refill_path);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable, summary.buffer_mode);
+    try std.testing.expect(summary.publishes_receive_buffers);
+    try std.testing.expect(!summary.reuses_existing_room);
+    try std.testing.expect(summary.requires_mergeable_buffers);
 }
 
 test "phase12 virtio net mergeable receive buffer plan rejects oversized packets without feature" {
@@ -192,6 +211,12 @@ test "phase12 virtio net recovery plan distinguishes recycled-room refill from m
         .uses_udp_tunnel_headers = false,
     });
     _ = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
         .packet_bytes = 2048,
         .existing_room_bytes = 4096,
         .headroom_bytes = 32,
