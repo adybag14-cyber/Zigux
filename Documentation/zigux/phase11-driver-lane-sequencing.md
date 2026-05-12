@@ -1,61 +1,55 @@
 # Phase 11 Driver Lane Sequencing
 
-This note keeps the active Phase 11 simple-driver packet split into bounded owner lanes so shared reminders do not collapse bcm2835, gpio, DesignWare, HVC archival evidence, and direct HVC driver follow-through into one noisy bucket.
+This note keeps the active Phase 11 simple-driver packet split into bounded owner lanes so shared reminders do not collapse bcm2835, gpio, DesignWare, HVC, header-boundary, and contributor-surface follow-through into one noisy bucket.
 
 ## Scope
 
-Use this note when a Phase 11 change touches any part of the shipped simple-driver packet under `drivers/watchdog/*.zig`, `drivers/tty/hvc/*.zig`, `Documentation/zigux/phase11-*.md`, `scripts/zigux/check-phase11-*.py`, `zigux/Makefile`, or the shared Phase 11 reminder surfaces.
+Use this note when a Phase 11 change touches any part of the shared reminder packet under `Documentation/zigux/phase11-*.md`, `scripts/zigux/check-phase11-*.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the shared contributor-facing summaries.
+
+## Lane Split
 
 Keep the current lane split explicit:
-- shared sequencing lane `P11-Y06` owns the shared packet truthfulness surfaces only: `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `scripts/zigux/check-phase11-shared-summary-surfaces.py`
-- bcm2835 lane `P11-L08` owns `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
-- gpio lane `P11-L04` owns `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
-- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`; the next same-lane follow-through stays platform-backed registration and failure-mode parity instead of reviving older absent-surfaces claims
-- HVC archival packet lane `P11-L16` owns `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey`
-- HVC driver-follow-through lane `P11-Y04` owns `drivers/tty/hvc/hvc_console.zig` when the reopen stays inside driver-local close, cleanup, or ownership summaries already landed in the starter file; it must not absorb the archival survey gate, modem-control split, poll-retry split, sysrq helper, or shared reminder surfaces unless those packet files move too
-- contributor-note lane `P11-L18` owns the shared reminder wording follow-up across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` when Phase 11 contributor-facing wording moves
-- shared header-boundary evidence stays split: deterministic checker-chain drift belongs to `P11-L11` through `scripts/zigux/check-phase11-header-boundary-packet.py`, while `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig` stay as adjacent shared public-surface evidence rather than HVC or contributor-note ownership
 
-## Owner Split
+* shared sequencing lane `P11-Y06` owns the shared packet truthfulness surfaces only: `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `scripts/zigux/check-phase11-shared-summary-surfaces.py`, plus the shared Phase 11 route markers in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`
+* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through; treat direct bcm2835 Zig replay files as repo-reality gaps until they are materialized again on `master`
+* gpio lane `P11-L04` owns gpio watchdog reminder-note and checker follow-through; treat direct gpio Zig replay files as repo-reality gaps until they are materialized again on `master`
+* DesignWare lane `P11-L10` owns DesignWare reminder-note and checker follow-through; treat direct DesignWare Zig replay files as repo-reality gaps until they are materialized again on `master`
+* HVC archival packet lane `P11-L16` owns HVC reminder-note and checker follow-through; treat direct HVC Zig replay files plus `drivers/tty/hvc/hvc_console_verify.zig` as repo-reality gaps until they are materialized again on `master`
+* HVC driver-follow-through lane `P11-Y04` owns direct `drivers/tty/hvc/hvc_console.zig` reopen work only when that driver-local file is materially present and moving
+* contributor-note lane `P11-L18` owns the shared contributor-facing wording across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+* shared header-boundary evidence stays split: deterministic checker drift belongs to `P11-L11` through `scripts/zigux/check-phase11-header-boundary-packet.py`, while the public header-boundary reminder note stays adjacent shared evidence rather than HVC or contributor-note ownership
 
-Keep the current owner map explicit:
-- shared packet truthfulness lane `P11-Y06` owns `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `scripts/zigux/check-phase11-shared-summary-surfaces.py`
-- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper
-- gpio packet review stays with `P11-L04` through `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
-- DesignWare packet review stays with `P11-L10` through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`, while the next bounded DesignWare follow-through remains platform-backed registration and failure-mode parity instead of pretending shipped direct evidence is absent
-- shared header-boundary deterministic tooling stays with `P11-L11` for `scripts/zigux/check-phase11-header-boundary-packet.py`, while the dedicated survey note plus manifest-backed survey stay packet-local shared evidence and contributor-facing wording follow-up stays with `P11-L18`
-- HVC archival packet stays with `P11-L16` through `scripts/zigux/check-phase11-hvc-survey-packet.py`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`
-- HVC driver-local reopen stays with `P11-Y04` through `drivers/tty/hvc/hvc_console.zig`; keep that lane limited to driver-file ownership or teardown-summary follow-through unless the paired archival packet surfaces move in the same change
+## Shared Packet Boundaries
 
-The shared packet surfaces still living together on current `master` are `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, and `make -C zigux phase11`.
+The shared Phase 11 packet still living together on current `master` is the reminder-and-checker stack:
 
-## Shared Packet Surfaces
+* `Documentation/zigux/phase11-shared-replay-contract.md`
+* `Documentation/zigux/phase11-closure-note.md`
+* `Documentation/zigux/phase11-driver-lane-sequencing.md`
+* `scripts/zigux/check-phase11-shared-replay-contract.py`
+* `scripts/zigux/check-phase11-shared-summary-surfaces.py`
+* `zigux/Makefile`
+* `.github/workflows/zigux-bootstrap.yml`
 
-When a real Phase 11 shared reminder-surface change lands, keep these shared surfaces aligned:
-- `Documentation/zigux/phase11-shared-replay-contract.md`
-- `Documentation/zigux/phase11-closure-note.md`
-- `Documentation/zigux/phase11-driver-lane-sequencing.md`
-- `scripts/zigux/check-phase11-shared-replay-contract.py`
-- `scripts/zigux/check-phase11-shared-summary-surfaces.py`
-- `zigux/tests/phase11_build.zig`
-- `make -C zigux phase11`
+Direct GitHub contents reads do not currently materialize `zigux/tests/phase11_build.zig` or the previously referenced direct watchdog and HVC replay files, so the shared sequencing lane must keep treating those paths as repo-reality gaps rather than as shipped replay evidence.
 
 ## Sequencing Rules
 
 Use this note to keep the bounded work order honest:
-1. Prefer one Phase 11 lane at a time instead of batching bcm2835, gpio, DesignWare, HVC, and header-boundary reminders into one mixed change.
-2. Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the shared notes, the shared contract checker, the shared `phase11_build.zig` route, and `make -C zigux phase11`, while `scripts/zigux/check-phase11-shared-summary-surfaces.py` remains the focused direct audit for the docs-root, scripts-root, tests-root, and checklist summaries when reminder wording moves.
-3. Keep the shared sequencing lane honest: `P11-Y06` may repair only the shared packet truthfulness surfaces and must not absorb, rename, or edit driver-local bcm2835 (`P11-L08`), gpio (`P11-L04`), DesignWare (`P11-L10`), HVC archival packet (`P11-L16`), HVC driver-file follow-through (`P11-Y04`), or header-boundary evidence unless the matching owner lane is the one moving.
-4. Keep the current validator posture explicit: there is a shared `zigux/tests/phase11_build.zig` route and a shared `make -C zigux phase11` wrapper on current `master`, but there is no shared `validate-phase11.py`, no shared `zigux/tests/fixtures/phase11_build_inventory.json`, and no shared `make -C zigux phase11-validate` target, so reminder-surface edits should stay aligned with the surviving build-backed packet instead of reviving the older inventory-driven validator story.
-5. Treat the shared header-boundary packet as public-surface evidence, not as a fifth driver port; keep deterministic checker drift with `P11-L11` and contributor-note wording with `P11-L18` instead of folding either surface into the HVC lane.
-6. Do not imply broader registration, notifier, sysrq, khvcd, live cleanup, poweroff, reset, or hardware-backed parity closure beyond the lane-local notes and replays already shipped on `master`.
-7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `zigux/tests/phase11_dw_wdt_survey.zig`, pinned to `P11-L10`, and the next bounded step stays platform-backed registration and failure-mode parity rather than pretending shipped direct evidence is absent.
-8. Keep the HVC split honest: on current `master` the landed HVC archival packet is the teardown note, validation matrix, survey note, direct `zigux/tests/phase11_hvc_console.zig` plus `zigux/tests/phase11_hvc_cleanup.zig` replays, manifest-backed survey gate, modem-control split, poll-retry split, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and the dedicated `phase11-hvc-survey` route, while direct driver-file follow-through now stays on `P11-Y04` inside `drivers/tty/hvc/hvc_console.zig` plus at most one directly coupled teardown-note wording repair. Do not reopen the archival survey gate, modem-control split, poll-retry split, sysrq helper, direct archival replays, or shared reminder packet from that driver-only lane unless those exact packet surfaces are the thing moving.
+
+1. Prefer one Phase 11 lane at a time instead of batching bcm2835, gpio, DesignWare, HVC, header-boundary, and contributor-note reminder work into one mixed change.
+2. Keep the shared-versus-dedicated split explicit: the shared packet stays parked on the shared notes, the shared contract checker, the shared summary-surfaces checker, and the shared Phase 11 route markers in `zigux/Makefile` plus `.github/workflows/zigux-bootstrap.yml` while the direct build and replay files remain absent.
+3. Keep the shared sequencing lane honest: `P11-Y06` may repair only the shared packet truthfulness surfaces and must not absorb driver-local reminder-note work or contributor-note wording unless those owner lanes are the things moving.
+4. Keep the current validator posture explicit: there is no shared `validate-phase11.py`, no shared `zigux/tests/fixtures/phase11_build_inventory.json`, and no materialized shared `zigux/tests/phase11_build.zig` on current `master`, so reminder-surface edits should stay aligned with the surviving reminder packet instead of reviving an unshipped build-backed replay story.
+5. Treat the shared header-boundary packet as adjacent public-surface evidence, not as a fifth driver port; keep deterministic checker drift with `P11-L11` and contributor-note wording with `P11-L18` instead of folding either surface into the HVC lane.
+6. Do not imply broader registration, notifier, sysrq, khvcd, live cleanup, poweroff, reset, or hardware-backed parity closure beyond the reminder notes and checkers currently materialized on `master`.
+7. Keep the next bounded shared follow-through inside the smallest reminder-surface truthfulness repair unless a direct Phase 11 build or replay file actually lands again on `master`.
 
 ## Non-Goals
 
 This note does not widen Phase 11 into:
-- a claim that the overall simple-driver tranche is closed
-- a dedicated shared validator or replay stack beyond the landed reminder checkers plus the shared build-backed replay route
-- broader hardware-backed watchdog validation, tty registration parity, notifier execution, sysrq dispatch, or khvcd execution
-- a migration of driver-local teardown, survey, validation-matrix, or manifest ownership into the shared packet
+
+* a claim that the overall simple-driver tranche is closed
+* a dedicated shared validator or replay stack beyond the landed reminder checkers and the still-parked Makefile plus workflow route markers
+* broader hardware-backed watchdog validation, tty registration parity, notifier execution, sysrq dispatch, or khvcd execution
+* a migration of driver-local reminder-note ownership into the shared packet
