@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_SLICE=indefinite-c-policy-lane-owner-and-exception-posture-sync`
 - `PHASE15_PROVENANCE_MODE=exact_master_commit_readback`
 - survey provenance refreshed against current `master` commit `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one packet-local maintenance handoff that keeps future truthfulness repairs inside the stay-in-C packet
 
 ## Why this slice exists
 
@@ -80,6 +80,20 @@ The bounded reopen-trigger catalog for a retained stay-in-C packet is:
 - `evidence_packet_stale_or_contradictory`
 - `ownership_or_validation_changed`
 
+## Maintenance-Mode Handoff
+
+- current lane posture: `maintenance_mode`
+- replay before trusting this parked handoff:
+  - `zig test zigux/tests/phase15_indefinite_c_policy.zig`
+  - `zig test zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
+  - `zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+  - `zig build test --build-file zigux/tests/phase15_build.zig`
+- reopen only when one of the packet-local conditions below becomes true:
+  - a named reopen-trigger catalog item now fits fresh stay-in-C evidence and includes the trigger-specific evidence refresh
+  - the deep-core blocker posture, parity scorecard blocker record, or freeze-in-C anchor inventory changes enough to invalidate the parked policy packet
+  - the Architecture Council review-process fields, lane-owner vocabulary, or supporting-artifact route drift enough to change the policy packet's truthfulness
+- next future target: keep this lane in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is indefinite-C-policy-local, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and `Documentation/zigux/phase15-parity-scorecard.md` together, then keep the repair inside the policy packet and its direct replays instead of reopening freeze-map, readiness, handoff, or shared-summary maintenance
+
 ## Recorded gaps
 
 The current lane state is:
@@ -89,6 +103,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-maintenance-handoff`
 - blocked `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
