@@ -34,7 +34,7 @@ Keep follow-up in this lane limited to truthful survey or reminder-surface repai
 Use this lane for bounded `kallsyms` reminder, compile, or packet-truthfulness work only.
 
 Current repo reality:
-- the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, and `zigux/tests/phase8_help_kallsyms_only_build.zig`
+- the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`
 - shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet
 
 Keep follow-up parked unless a concrete symbol-lane packet drift appears on current `master`.
