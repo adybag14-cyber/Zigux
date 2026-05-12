@@ -86,6 +86,11 @@ MMIO_SURVEY_MARKERS = [
     "phase10-mmio-lifecycle-and-irq-paths",
     "the live packet-local manifest `zigux/tests/phase10_virtio_mmio_manifest.json`",
     "the live dedicated MMIO freeze-boundary checker `scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+    "This survey stays aligned with `Documentation/zigux/freeze-map.md` and the shared Phase 10 closure packet.",
+    "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
+    "Allowed roadmap destinations remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this note does not widen the tranche into new transport homes.",
+    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.",
+    "The Phase 14 study-only anchors `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain outside this lane, and this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.",
 ]
 
 TRANSPORT_MANIFEST_MARKERS = [
@@ -349,6 +354,81 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "This survey stays aligned with `Documentation/zigux/freeze-map.md` and the shared Phase 10 closure packet.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "mmio-survey:This survey stays aligned with `Documentation/zigux/freeze-map.md` and the shared Phase 10 closure packet.",
+            "phase10-closure-self-test:mmio_survey_freeze_map_alignment_not_detected",
+        )
+        write_fixture(root)
+
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "mmio-survey:Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
+            "phase10-closure-self-test:mmio_survey_allowed_evidence_not_detected",
+        )
+        write_fixture(root)
+
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "Allowed roadmap destinations remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this note does not widen the tranche into new transport homes.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "mmio-survey:Allowed roadmap destinations remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this note does not widen the tranche into new transport homes.",
+            "phase10-closure-self-test:mmio_survey_allowed_destinations_not_detected",
+        )
+        write_fixture(root)
+
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "mmio-survey:Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.",
+            "phase10-closure-self-test:mmio_survey_forbidden_transport_not_detected",
+        )
+        write_fixture(root)
+
+        mmio_survey.write_text(
+            mmio_survey.read_text(encoding="utf-8").replace(
+                "The Phase 14 study-only anchors `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain outside this lane, and this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "mmio-survey:The Phase 14 study-only anchors `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain outside this lane, and this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.",
+            "phase10-closure-self-test:mmio_survey_phase14_boundary_not_detected",
+        )
+        write_fixture(root)
+
         review = root / "Documentation/zigux/review-checklist.md"
         review.write_text(
             review.read_text(encoding="utf-8").replace("zigux/tests/phase10_closure_manifest.json\n", "", 1),
@@ -499,7 +579,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
