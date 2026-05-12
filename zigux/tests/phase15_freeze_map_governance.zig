@@ -233,6 +233,11 @@ test "phase 15 freeze-map required terms, maintenance handoff, and scorecard own
     try std.testing.expectEqual(parsed.value.blocker_ownership.len, scorecard.value.metrics.blocked_status_change_anchor_count);
     try std.testing.expectEqual(parsed.value.deep_core_blocker_survey.len, scorecard.value.metrics.blocked_status_change_anchor_count);
 
+    try expectContains(scorecard_doc, "validator-first gate wording");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(scorecard_doc, "make -C zigux phase15-validate");
+    try expectContains(scorecard_doc, "## Gates");
+
     for (parsed.value.governance_requirements) |requirement| {
         for (requirement.required_terms) |term| {
             try expectContains(freeze_map, term);
