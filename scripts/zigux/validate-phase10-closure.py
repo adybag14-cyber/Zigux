@@ -65,7 +65,7 @@ MANIFEST_MARKERS = [
     '"scripts/zigux/check-phase10-harness-coverage.py"',
     '"source": "manifest_derived"',
     '"surveyed_commits": {',
-    '"core": "31e9763eea7964dad7085d1a24bc098b4af49789"',
+    '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
     '"ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9"',
     '"input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
     '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"',
