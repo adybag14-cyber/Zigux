@@ -75,6 +75,8 @@ DOCS_README_MARKERS = [
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
@@ -497,6 +499,20 @@ def run_self_test() -> int:
         marker = "Documentation/zigux/phase15-readiness-gate-survey.md"
         _write(root, docs_rel, docs_text.replace(marker, "", 1))
         _assert_result(*validate(root), [], [f"docs_readme:{marker}"], "docs_readiness_marker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+        _write(root, docs_rel, docs_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"docs_readme:{marker}"], "docs_scripts_readme_alignment_checker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        docs_text = _read(root, docs_rel)
+        marker = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+        _write(root, docs_rel, docs_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"docs_readme:{marker}"], "docs_lane_owner_alignment_surface")
         _seed_fixture_tree(root)
         case_count += 1
 
