@@ -12,10 +12,10 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 REQUIRED_FILES = [
     "zigux/Makefile",
     "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/README.md",
+    "Documentation/zigux/review-checklist.md",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -66,15 +66,6 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> li
     return missing
 
 
-def collect_min_count_markers(text: str, label: str, markers: list[str], minimum: int = 1) -> list[str]:
-    missing: list[str] = []
-    for marker in markers:
-        count = text.count(marker)
-        if count < minimum:
-            missing.append(f"{label}:{marker}:expected_at_least={minimum}:actual={count}")
-    return missing
-
-
 def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> list[str]:
     lines = text.splitlines()
     missing: list[str] = []
@@ -102,7 +93,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
     missing.extend(collect_exact_count_markers(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(
-        collect_min_count_markers(
+        collect_exact_count_markers(
             review_checklist,
             "review_checklist",
             REVIEW_CHECKLIST_MARKERS,
@@ -146,15 +137,7 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
-        "\n".join(
-            [
-                REVIEW_CHECKLIST_MARKERS[0],
-                REVIEW_CHECKLIST_MARKERS[1],
-                REVIEW_CHECKLIST_MARKERS[2],
-                REVIEW_CHECKLIST_MARKERS[0],
-            ]
-        )
-        + "\n",
+        "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         encoding="utf-8",
     )
 
@@ -167,6 +150,19 @@ def run_self_test() -> None:
         assert collect_missing_files(root) == []
         assert collect_missing_markers(root) == []
         case_count += 1
+
+        review_path = root / "Documentation/zigux/review-checklist.md"
+        review_path.write_text(
+            review_path.read_text(encoding="utf-8") + REVIEW_CHECKLIST_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "review_checklist:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=2"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
 
         (root / "Documentation/zigux/README.md").write_text("", encoding="utf-8")
         missing = collect_missing_markers(root)
@@ -226,7 +222,6 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        review_path = root / "Documentation/zigux/review-checklist.md"
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
                 "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`\n",
@@ -237,7 +232,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected_at_least=1:actual=0"
+            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -247,12 +242,13 @@ def run_self_test() -> None:
             review_path.read_text(encoding="utf-8").replace(
                 "`scripts/zigux/check-phase1-installer-companion-checks.py`",
                 "",
+                1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected_at_least=1:actual=0"
+            "review_checklist:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -268,7 +264,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected_at_least=1:actual=0"
+            "review_checklist:`python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
             in missing
         )
         case_count += 1
