@@ -95,6 +95,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split_manifest.json",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_build.zig",
+        ".github/workflows/zigux-bootstrap.yml",
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -303,6 +304,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "samples/zigux/README.md",
+            ".github/workflows/zigux-bootstrap.yml",
+            "",
+            "samples_readme_workflow_marker",
+        )
+        expect_missing_marker(
+            "samples_readme_workflow_marker",
+            tmp_root,
+            "samples/zigux/README.md: .github/workflows/zigux-bootstrap.yml",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md",
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
             "",
@@ -455,7 +470,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 15
+    case_count = 16
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
