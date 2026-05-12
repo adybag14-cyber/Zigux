@@ -17,6 +17,7 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 Phase 1 notes
+Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/install-zig.py`
