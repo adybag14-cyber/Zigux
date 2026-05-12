@@ -73,7 +73,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
     try std.testing.expectEqualStrings("7010c4816a604be03ef46876765925edb9852e47", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("2c47e64abefd1846ae419974160791e9f6833334", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("65f09070ed5687f7aa4bf57c5696a17f81c8f98d", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
@@ -92,7 +92,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_diff_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane survey step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "helper-backed replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Linux anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "fill-vs-Linux rounded prefix mismatch explicit") != null);
@@ -138,11 +138,11 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "final_nth_seven=123");
     try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
     try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
-    try expectContains(gate_evidence_source, "twelve copy-tail cases");
+    try expectContains(gate_evidence_source, "thirteen copy-tail cases");
     try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
     try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
-    try expectContains(gate_evidence_source, "13 `DiffCase`, 12 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "13 `DiffCase`, `13 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
