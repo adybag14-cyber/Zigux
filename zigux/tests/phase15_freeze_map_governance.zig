@@ -27,6 +27,13 @@ const DeepCoreBlockerSurvey = struct {
     current_blocker: []const u8,
 };
 
+const MaintenanceHandoff = struct {
+    current_lane_posture: []const u8,
+    replay_before_trusting: []const []const u8,
+    reopen_conditions: []const []const u8,
+    next_future_target: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -47,6 +54,7 @@ const Manifest = struct {
     governance_requirements: []const GovernanceRequirement,
     blocker_ownership: []const BlockerOwnership,
     deep_core_blocker_survey: []const DeepCoreBlockerSurvey,
+    maintenance_handoff: MaintenanceHandoff,
     gaps: []const Gap,
 };
 
@@ -88,6 +96,17 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectContainsWithoutBackticks(haystack: []const u8, needle: []const u8) !void {
+    var normalized: std.ArrayList(u8) = .empty;
+    defer normalized.deinit(std.testing.allocator);
+
+    for (haystack) |byte| {
+        if (byte != '`') try normalized.append(std.testing.allocator, byte);
+    }
+
+    try expectContains(normalized.items, needle);
+}
+
 fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     for (gaps) |gap| {
         if (std.mem.eql(u8, gap.id, id)) return gap;
@@ -99,7 +118,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 40 * 1024);
+    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 48 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -117,7 +136,10 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqual(@as(usize, 4), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     const sched = manifest.blocker_ownership[0];
     try std.testing.expectEqualStrings("kernel/sched/core.c", sched.anchor);
@@ -129,6 +151,11 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try expectContains(skbuff.repo_reality, "phase14-skbuff-live-ownership-blocker");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "validate-phase15.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[3], "phase15_freeze_map_governance.zig");
+    try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "no-silent-exception posture");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "freeze-map-local");
+
     const required_field_sync = findGap(manifest.gaps, "phase15-review-process-required-field-sync") orelse return error.MissingGap;
     try expectContains(required_field_sync.why_now, "required approver set");
 
@@ -137,13 +164,16 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
 
     const dated_refresh = findGap(manifest.gaps, "phase15-dated-readback-provenance-refresh") orelse return error.MissingGap;
     try expectContains(dated_refresh.why_now, "drifted behind current master");
+
+    const maintenance_handoff = findGap(manifest.gaps, "phase15-freeze-map-maintenance-handoff") orelse return error.MissingGap;
+    try expectContains(maintenance_handoff.why_now, "when to reopen");
 }
 
 test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 24 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 28 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     try expectContains(governance_note, "PHASE15_STATUS=governance_slice_landed");
@@ -159,22 +189,27 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
     try expectContains(governance_note, "lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker");
     try expectContains(governance_note, "lane P14-Y03 still records blocked phase14-skbuff-live-ownership-blocker");
+    try expectContains(governance_note, "## Maintenance-Mode Handoff");
+    try expectContains(governance_note, "current lane posture: `maintenance_mode`");
+    try expectContains(governance_note, "check-phase15-review-process-handoff.py");
+    try expectContains(governance_note, "shared-summary, parity-scorecard, or readiness packets");
     try expectContains(governance_note, "phase15-review-process-required-field-sync");
     try expectContains(governance_note, "phase15-freeze-map-required-approver-sync");
     try expectContains(governance_note, "phase15-dated-readback-provenance-refresh");
+    try expectContains(governance_note, "phase15-freeze-map-maintenance-handoff");
 }
 
-test "phase 15 freeze-map required terms and scorecard ownership stay aligned" {
+test "phase 15 freeze-map required terms, maintenance handoff, and scorecard ownership stay aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 40 * 1024);
+    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 48 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const freeze_map = try loadFile(io_instance.io(), "Documentation/zigux/freeze-map.md", 20 * 1024);
     defer std.testing.allocator.free(freeze_map);
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 24 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 28 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     const scorecard_doc = try loadFile(io_instance.io(), "Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
@@ -199,6 +234,15 @@ test "phase 15 freeze-map required terms and scorecard ownership stay aligned" {
             try expectContains(freeze_map, term);
         }
     }
+
+    try expectContains(governance_note, parsed.value.maintenance_handoff.current_lane_posture);
+    for (parsed.value.maintenance_handoff.replay_before_trusting) |command| {
+        try expectContains(governance_note, command);
+    }
+    for (parsed.value.maintenance_handoff.reopen_conditions) |condition| {
+        try expectContainsWithoutBackticks(governance_note, condition);
+    }
+    try expectContainsWithoutBackticks(governance_note, parsed.value.maintenance_handoff.next_future_target);
 
     for (parsed.value.blocker_ownership) |ownership| {
         try expectContains(governance_note, ownership.anchor);
