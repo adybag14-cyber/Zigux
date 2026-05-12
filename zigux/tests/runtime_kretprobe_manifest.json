@@ -24,7 +24,7 @@
     "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
     "missing_capability": "shared runtime substrate that can turn the bounded register_kretprobe and unregister_kretprobe handoff plan into a real loadable module path",
     "blocked_deliverable": "loadable Phase 9 runtime kretprobe pilot module parity",
-    "next_gate": "keep the loader scaffold and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan"
+    "next_gate": "keep the loader scaffold, shared-request lifecycle proof, and prepared-plan drift guard explicit until the shared runtime loader substrate can consume the handoff plan"
   },
   "rollback_boundary_summary": {
     "release_without_substrate_path": "samples/zigux/runtime_kretprobe_loader.zig",
@@ -45,6 +45,13 @@
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
       "why_now": "A bounded loader plan keeps the register_kretprobe and unregister_kretprobe lifecycle explicit through prepared, initialized, selftest-complete, and release-without-substrate handoff proofs without implying live runtime registration parity."
+    },
+    {
+      "id": "runtime-kretprobe-shared-prepared-plan-drift",
+      "status": "verification_gap",
+      "kind": "shared_loader_review_guard",
+      "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
+      "why_now": "The current requestSharedRuntimeLoad review surface still needs an explicit prepared-plan drift guard before the sample-side loader advances to waiting_on_runtime_substrate, so shared request drift cannot desynchronize the local kretprobe loader stage from the shared runtime_loader request state during compile and selftest review."
     },
     {
       "id": "runtime-kretprobe-substrate-handoff",
