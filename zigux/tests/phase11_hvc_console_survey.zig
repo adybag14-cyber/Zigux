@@ -448,6 +448,57 @@ test "phase11 hvc console survey keeps the dedicated archival packet explicit" {
     try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps sysrq handoff unavailable after teardown") != null);
 }
 
+test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed_manifest = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed_manifest.deinit();
+    const manifest = parsed_manifest.value;
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const workflow = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(workflow);
+
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
+    try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "the dedicated archival replay remains separate through `make -C zigux phase11-hvc-survey`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`make -C zigux phase11-hvc-survey` archival route fail-closed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase11-hvc-survey:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase11: phase11-contract phase11-test phase11-hvc-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "- name: Run dedicated Phase 11 hvc survey replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "run: make -C zigux phase11-hvc-survey") != null);
+}
+
 test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
