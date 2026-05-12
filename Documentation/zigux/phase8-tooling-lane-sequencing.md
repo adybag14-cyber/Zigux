@@ -14,6 +14,7 @@ It is a coordination artifact, not a closure claim.
 - targeted current-file readback also shows `tools/lib/bpf/zigux_segments/manifest.json` still marks `cpu-mask-parsing` and `perf-buffer-poll-bookkeeping` as landed while keeping `perf-buffer-online-cpu-routing` deferred as the interrupt-routing packet
 - runtime readback caution: authenticated contents reads for some Phase 8 files are inconsistent from this environment, so public default-branch tree evidence plus exact readable blob content should win over older absent-file assumptions
 - current authenticated 2026-05-12 contents readback remains inconsistent around the direct exec-cmd shard: `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, and `zigux/tests/phase8_help.zig` still read cleanly, while the same contents route intermittently returns `404` for `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` even though the public tree still lists them on `master`
+- `Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback, so the remaining overlap risk is the broader shared reminder packet rather than the dedicated libbpf survey lane itself
 - freeze-map posture: this lane stays in repo-hosted tooling review surfaces only and does not reopen any deep-core freeze anchor
 
 ## Lane map
@@ -65,11 +66,11 @@ Allowed surfaces:
 
 Current wording-lane caution:
 - do not let older absent-file assumptions overrule current tree evidence
-- current authenticated readback remains noisy around the direct exec-cmd shard: the help-side reminder packet still reads cleanly and the public tree still lists the exec-cmd files, but the same contents route intermittently returns `404` for those exec-cmd paths, so keep shared wording follow-through smaller than a broad tooling rewrite
-- current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while trimming stale Phase 8 inventory
-- when this lane reopens, re-read the shared reminder surfaces against the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
+- the dedicated `Documentation/zigux/phase8-libbpf-segment-survey.md` note already carries the refreshed mixed 2026-05-12 libbpf readback, so shared wording follow-through should now focus on reminder surfaces that still speak more broadly than that dedicated survey proves
+- current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while it narrows the libbpf reminder packet
+- when this lane reopens, re-read the shared reminder surfaces against `Documentation/zigux/phase8-libbpf-segment-survey.md`, the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
-- Keep follow-up inside the shared wording lane until the public survey packet and the current readable helper-plus-build evidence agree again.
+- Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.
 
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
@@ -79,6 +80,6 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The next honest shared-surface reopen cue now starts with keeping this sequencing note truthful: current public tree evidence still carries the direct exec-cmd shard on `master`, while authenticated contents reads for `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this environment.
+The next honest shared-surface reopen cue now starts with the shared libbpf wording drift: `Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 readback, but the broader shared Phase 8 docs-root, checklist, scripts-root, tests-root, and Makefile reminder packet still names the libbpf helper packet as if it were directly re-verified current-tree evidence.
 
-Keep the next reopen scoped to preserving that route-instability caution in the command-lane notes first; only widen to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase8.py`, or `zigux/tests/README.md` if both the public tree and the readable blob packet stop carrying the same exec-cmd shard.
+Keep the next reopen scoped to one shared wording lane repair inside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, or `zigux/Makefile`; do not reopen the command, symbol, or helper-local lanes unless a fresh same-lane drift appears.
