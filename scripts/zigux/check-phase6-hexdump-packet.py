@@ -25,14 +25,14 @@ REQUIRED_FILES = {
 }
 
 HELPER_SOURCE_MARKERS = [
-    "pub const HexError = error{",
-    "pub fn hexDumpLineLength(",
-    "pub fn hexDumpToBuffer(",
-    "if (len == 0) {",
-    "linebuf[0] = 0;",
-    "fn normalizedRowsize(rowsize_input: usize) usize {",
-    "fn normalizedGroupsize(len: usize, groupsize_input: usize) usize {",
-    'test "hexdump grouped plain output stays exact at full and truncated buffer capacity" {',
+    "const native_endian = builtin.target.cpu.arch.endian();",
+    "fn normalizedRowSize(rowsize: usize) usize {",
+    "fn normalizedGroupSize(len: usize, groupsize: usize) usize {",
+    "fn asciiColumn(rowsize: usize, groupsize: usize) usize {",
+    "pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {",
+    "pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {",
+    "if (linebuf.len == 0) {",
+    'test "hex dump grouped output follows native-endian group order" {',
 ]
 
 SLICE_NOTE_MARKERS = [
@@ -60,17 +60,19 @@ PERF_REFRESH_NOTE_MARKERS = [
 
 CATALOG_MARKERS = [
     "### hexdump",
-    "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-    "- Linux-style packet review route: `make -C zigux phase6-hexdump-review`",
+    "- focused helper replay: `zigux/tests/phase6_hexdump.zig`",
+    "- dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`",
     "- direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
     "- Linux-style rerun route: `make -C zigux phase6-hexdump-test`",
-    "- dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper and perf replays on the same `PYTHON` and `ZIG` selection path",
+    "- current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle",
 ]
 
 PERF_SURVEY_MARKERS = [
-    "hexdump shared posture: the dedicated slowdown gate remains wired through the exact preflight in `zigux/tests/phase6_hexdump_perf_matrix.zig`, the timed replay in `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
-    "hexdump helper-local command posture: `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-review`",
-    "hexdump environment posture: the helper-local review route still inherits `PYTHON ?= python3` and `ZIG ?= zig` from `zigux/Makefile`",
+    "hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
+    "hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`",
+    "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`",
+    "`16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`",
+    "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
 MANIFEST_MARKERS = [
@@ -221,8 +223,8 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         helper_source = tmpdir / REQUIRED_FILES["helper_source"]
-        helper_source.write_text(helper_source.read_text(encoding="utf-8").replace("pub fn hexDumpToBuffer(\n", ""), encoding="utf-8")
-        expect_failure(tmpdir, "pub fn hexDumpToBuffer(")
+        helper_source.write_text(helper_source.read_text(encoding="utf-8").replace("pub fn hexDumpToBuffer(", "hexDumpToBuffer_missing("), encoding="utf-8")
+        expect_failure(tmpdir, "pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {")
 
         build_self_test_fixture(tmpdir)
         helper_source = tmpdir / REQUIRED_FILES["helper_source"]
@@ -246,13 +248,13 @@ def run_self_test() -> None:
 
         build_self_test_fixture(tmpdir)
         catalog = tmpdir / REQUIRED_FILES["catalog"]
-        catalog.write_text(catalog.read_text(encoding="utf-8").replace("`python3 scripts/zigux/check-phase6-hexdump-packet.py`\n", ""), encoding="utf-8")
-        expect_failure(tmpdir, "`python3 scripts/zigux/check-phase6-hexdump-packet.py`")
+        catalog.write_text(catalog.read_text(encoding="utf-8").replace("`zigux/tests/phase6_hexdump_perf.zig`", "`zigux/tests/phase6_hexdump_perf_missing.zig`", 1), encoding="utf-8")
+        expect_failure(tmpdir, "`zigux/tests/phase6_hexdump_perf.zig`")
 
         build_self_test_fixture(tmpdir)
         perf_survey = tmpdir / REQUIRED_FILES["perf_survey"]
-        perf_survey.write_text(perf_survey.read_text(encoding="utf-8").replace("`PYTHON ?= python3` and `ZIG ?= zig`", "`PYTHON` only"), encoding="utf-8")
-        expect_failure(tmpdir, "`PYTHON ?= python3` and `ZIG ?= zig`")
+        perf_survey.write_text(perf_survey.read_text(encoding="utf-8").replace("`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`", "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 650`"), encoding="utf-8")
+        expect_failure(tmpdir, "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`")
 
         build_self_test_fixture(tmpdir)
         manifest = tmpdir / REQUIRED_FILES["manifest"]
