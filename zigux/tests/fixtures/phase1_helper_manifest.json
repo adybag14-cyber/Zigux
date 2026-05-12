@@ -71,7 +71,7 @@
       "final_partial_word_anchor": "test \"bitmap range helpers clamp the final partial word\"",
       "predicate_tail_mask_anchor": "test \"bitmap predicates ignore out-of-range tail bits\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
-      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
+      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
       "parity_fixture_keys": [
         "alloc_words",
         "zalloc_words",
@@ -87,10 +87,17 @@
         "partial_xor_nbits",
         "partial_xor_masked_values"
       ],
+      "scnprintf_cross_word_anchor": "test \"bitmap scnprintf collapses contiguous ranges across word boundaries\"",
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
+      "empty_buffer_anchor": "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
       "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
+      "copy_zero_and_aligned_anchors": [
+        "test \"bitmap copy and extend handles zero and aligned counts\"",
+        "test \"bitmap copy helpers keep zero-sized destination views untouched\""
+      ],
       "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\"",
+      "zero_bit_binary_identity_anchor": "test \"bitmap zero-bit binary helpers stay explicit identity operations\"",
       "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\""
     },
     "tools/lib/find_bit.zig": {
@@ -248,7 +255,7 @@
       "trim_nul_review_summary": "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the trimmed bytes but not the preserved tail bytes beyond the first embedded terminator",
       "memchr_moving_dirty_anchor": "test \"memchrInv follows the earliest dirty byte as long buffers change\"",
       "memchr_moving_dirty_review_summary": "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one fixed dirty index and the clean case, but not the moving earliest-mismatch ownership as later dirty bytes become the next live divergence",
-      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
+      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
       "parity_fixture_keys": [
