@@ -76,17 +76,21 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_build.zig`
 - `zigux/Makefile`
+- `make -C zigux phase11-contract`
 - `make -C zigux phase11`
 - `make -C zigux phase11-hvc-survey`
 
 Contributor reminder:
-- keep the shared replay split explicit instead of collapsing bcm2835, gpio, DesignWare, HVC, and header-boundary evidence into one generic driver note
+- keep the shared replay split explicit instead of collapsing bcm2835, gpio, DesignWare, HVC, header-boundary, and the inventory-backed shared contract route into one generic driver note
+- keep the inventory-backed shared contract explicit through `scripts/zigux/check-phase11-build-inventory.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `make -C zigux phase11-contract`; direct contents reads can still 404 on `zigux/tests/phase11_build.zig`, so broader contributor wording should treat that inventory-backed contract as shipped shared evidence rather than as a missing validator-first packet
 - treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` together with `scripts/zigux/check-phase11-dw-wdt-packet.py` as the current DesignWare continuity packet on `master`
 - keep the removed DesignWare reminder-note family `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md` framed as no longer shipped contributor-facing evidence on current `master`
 - keep the landed HVC archival packet explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, and `make -C zigux phase11-hvc-survey`
