@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split.zig",
@@ -30,6 +31,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.",
+    ],
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
@@ -190,6 +194,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+            "",
+            "helper_lane_alias_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_alias_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
             "copied token-buffer ownership and later source-mutation isolation",
             "",
@@ -257,7 +275,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 8
+    case_count = 9
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
