@@ -337,7 +337,7 @@
       "fixture_dynamic_case_lengths": 33
     },
     "checksum": {
-      "c_parity_cases": 22
+      "c_parity_cases": 27
     },
     "hexdump": {
       "perf_replay_cases": 4
