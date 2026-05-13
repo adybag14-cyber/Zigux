@@ -22,6 +22,13 @@ REQUIRED_SURVEY_MARKERS = (
     "shared dump gate",
 )
 
+REQUIRED_SURVEY_EXACT_ANCHORS = (
+    "dedicated reserved-byte and typed-wrapper guard",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "shared dump gate",
+)
+
 REQUIRED_PANIC_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {",
     "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {",
@@ -136,6 +143,16 @@ def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: l
             issues.append(f"{prefix}:{snippet}")
 
 
+def _check_exact_count(text: str, needle: str, prefix: str, issues: list[str]) -> None:
+    count = text.count(needle)
+    if count == 1:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{needle}")
+        return
+    issues.append(f"duplicate_{prefix}:{needle}:{count}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = _read_text(root, SURVEY_REL, issues)
@@ -147,6 +164,8 @@ def validate(root: Path) -> list[str]:
 
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
+        for anchor in REQUIRED_SURVEY_EXACT_ANCHORS:
+            _check_exact_count(survey, anchor, "survey_anchor", issues)
     if panic:
         _check_snippets(panic, REQUIRED_PANIC_SNIPPETS, "missing_panic_snippet", issues)
     if allocator:
@@ -190,6 +209,26 @@ def run_self_test() -> int:
         assert f"missing_survey_marker:{REQUIRED_SURVEY_MARKERS[-1]}" in issues
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
+        _write(root, SURVEY_REL, (root / SURVEY_REL).read_text(encoding="utf-8") + REQUIRED_SURVEY_EXACT_ANCHORS[0] + "\n")
+        issues = validate(root)
+        assert f"duplicate_survey_anchor:{REQUIRED_SURVEY_EXACT_ANCHORS[0]}:2" in issues
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
+        _write(root, SURVEY_REL, (root / SURVEY_REL).read_text(encoding="utf-8") + REQUIRED_SURVEY_EXACT_ANCHORS[1] + "\n")
+        issues = validate(root)
+        assert f"duplicate_survey_anchor:{REQUIRED_SURVEY_EXACT_ANCHORS[1]}:2" in issues
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
+        _write(root, SURVEY_REL, (root / SURVEY_REL).read_text(encoding="utf-8") + REQUIRED_SURVEY_EXACT_ANCHORS[2] + "\n")
+        issues = validate(root)
+        assert f"duplicate_survey_anchor:{REQUIRED_SURVEY_EXACT_ANCHORS[2]}:2" in issues
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
+        _write(root, SURVEY_REL, (root / SURVEY_REL).read_text(encoding="utf-8") + REQUIRED_SURVEY_EXACT_ANCHORS[3] + "\n")
+        issues = validate(root)
+        assert f"duplicate_survey_anchor:{REQUIRED_SURVEY_EXACT_ANCHORS[3]}:2" in issues
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
         _write(root, NARROW_REL, "\n".join(snippet for snippet in REQUIRED_NARROW_SNIPPETS if snippet != "pub fn constPointerAtInteropPolicy(") + "\n")
         issues = validate(root)
         assert (
@@ -229,7 +268,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
