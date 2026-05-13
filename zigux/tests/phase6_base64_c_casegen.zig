@@ -1,5 +1,5 @@
 const std = @import("std");
-const fixtures = @import("fixtures/phase6_base64_vectors.zig");
+const fixtures = @import("fixtures/phase6_base64_c_parity_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -7,7 +7,7 @@ pub fn main(init: std.process.Init) !void {
     var stdout = std.Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout.interface;
 
-    try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\n\n");
+    try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig. */\n\n");
 
     for (fixtures.standard_cases, 0..) |case, idx| {
         try emitBytesDecl(writer, "enc_input", idx, case.input);
