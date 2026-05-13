@@ -49,18 +49,18 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - the shared review checklist now carries an explicit Phase 3 header-family
   prompt; keep `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase3-abi-header-family-survey.md`,
-  `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
-  `zigux/uapi/dev_t.zig` aligned there whenever the bounded header-family
-  packet moves without implying a broader exported UAPI family
+  `include/zigux/dev_t.h`, and the paired starter-companion policy aligned
+  there whenever the bounded header-family packet moves without implying a
+  broader exported UAPI family
 - if `include/zigux/abi.h` grows, refresh `zigux/bindings/abi.zig`,
   `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
   `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
   `zigux/tests/fixtures/phase3_abi/expected.json`,
-  `zigux/tests/fixtures/phase3_abi_manifest.json`, `include/zigux/dev_t.h`,
-  `zigux/bindings/dev_t.zig`, `zigux/uapi/version.zig`, and the shared ABI
-  reminder packet together; only add a new `zigux/uapi/*` companion when that
-  companion lands with its own bounded export or UAPI packet instead of letting
-  the shared reminder surfaces get ahead of the tree
+  `zigux/tests/fixtures/phase3_abi_manifest.json`, the paired starter
+  companions, and the shared ABI reminder packet together; only add a new
+  `zigux/uapi/*` companion when that companion lands with its own bounded
+  export or UAPI packet instead of letting the shared reminder surfaces get
+  ahead of the tree
 - treat `scripts/zigux/check-phase3-abi.py`,
   `scripts/zigux/survey-phase3-abi-constant-parity.py`,
   `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
@@ -74,6 +74,10 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   focused validator, focused checker, and manifest-backed ABI packet, and in
   `Documentation/zigux/phase3-abi-header-family-survey.md` unless the broader
   export/UAPI packet actually grows
+- the next shared reminder follow-through is `scripts/zigux/README.md`: its
+  Phase 3 header-family line still trails the dedicated survey by collapsing the
+  starter companion wording to the already-named Zig-side foothold, so refresh
+  that scripts-root reminder before widening any broader Phase 3 summary work
 
 ## Non-goals
 
