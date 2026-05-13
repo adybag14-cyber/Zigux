@@ -24,13 +24,10 @@ The current bounded HVC archival packet on `master` is:
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `zigux/tests/phase11_hvc_console.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 
 The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
-The current archival packet also materializes the direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof.
+The current archival packet does not yet ship direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence.
 
 ## What Landed
 
@@ -42,8 +39,8 @@ It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, 
 
 The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey, the paired teardown checkpoint, and the validation matrix without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
 
-The materialized `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions keep the direct verify-only, cleanup-teardown, and replay-only follow-through readable beside the archival survey-backed packet.
-They stay bounded to the same host-free HVC evidence story rather than widening the lane into live notifier callbacks, khvcd execution, or host-backed transport.
+The bounded HVC survey keeps direct verify-only and cleanup follow-through explicitly deferred.
+Those paths remain same-lane follow-up work and should not be described as landed replay evidence while the archival packet stays host-free.
 
 The bounded starter and its archival replay now keep these focused cues explicit:
 
