@@ -90,7 +90,9 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
-    try expectContains(build_file, "\"phase7_string_helpers.zig\"");
+    try expectNotContains(build_file, "\"phase7_string_helpers.zig\"");
+    try expectNotContains(build_file, "../../lib/string_helpers.zig");
+    try expectNotContains(build_file, "phase7-string-helpers-tests");
     try expectContains(build_file, "\"phase7_string_helpers_survey.zig\"");
     try expectContains(build_file, "\"phase7_string_helpers_sample_boundary.zig\"");
 }
