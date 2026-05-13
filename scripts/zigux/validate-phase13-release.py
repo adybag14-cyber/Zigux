@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "scripts/zigux/check-phase13-devres-packet-alignment.py",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
@@ -152,6 +153,23 @@ REQUIRED_MARKERS = {
         "while the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
         "direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps",
     ],
+    "zigux/tests/README.md": [
+        "keep the shared Phase 13 contributor packet explicit in the tests root too:",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase13-release-notes-survey.md`",
+        "`Documentation/zigux/phase13-roadmap-traceability.md`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/bindings/notifier_abi.zig`",
+        "`include/zigux/abi.h`",
+        "`zigux/helpers/notifier_chain_view.zig`",
+        "`drivers/tty/hvc/hvc_console.h`",
+        "`zigux/tests/phase13_build.zig`",
+        "`scripts/zigux/check-phase13-notifier-packet.py`",
+    ],
     "zigux/Makefile": [
         "PHONY += phase13-validate phase13-test phase13",
         "phase13-validate",
@@ -229,6 +247,15 @@ def run_self_test() -> int:
             "missing_priority_signal_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        (root / "zigux/tests/README.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/README.md"],
+            "missing_tests_readme_failed",
+        )
+        write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
         case_count += 1
 
         write_text(
@@ -408,6 +435,30 @@ def run_self_test() -> int:
             root,
             "scripts/zigux/README.md",
             "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["zigux/tests/README.md"]
+                if marker != "`zigux/helpers/notifier_chain_view.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:zigux/tests/README.md:`zigux/helpers/notifier_chain_view.zig`"
+            ],
+            "missing_tests_readme_notifier_chain_view_failed",
+        )
+        write_text(
+            root,
+            "zigux/tests/README.md",
+            "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
         )
         case_count += 1
 
