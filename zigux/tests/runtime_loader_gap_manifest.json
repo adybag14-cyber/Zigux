@@ -11,6 +11,25 @@
     "dedicated_validate_phase9_present": false,
     "current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"
   },
+  "lifecycle_boundary_summary": {
+    "shared_request_states": [
+      "prepared",
+      "waiting_on_runtime_substrate",
+      "released_without_substrate"
+    ],
+    "shared_request_boundary_surface": "samples/zigux/runtime_trace_events_loader.zig",
+    "shared_request_boundary_guard": "error.OutstandingRegistrationForLoader",
+    "review_only_loader_plan_surfaces": [
+      "prepareSharedRequest",
+      "requestSharedRuntimeLoad",
+      "releaseSharedWithoutSubstrate"
+    ],
+    "metadata_only_registration_surfaces": [
+      "registrationSnapshot",
+      "tracepoint_probe_register",
+      "tracepoint_probe_unregister"
+    ]
+  },
   "delivery_evidence_catalog": [
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
