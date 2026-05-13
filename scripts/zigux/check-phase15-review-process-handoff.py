@@ -39,6 +39,12 @@ NOTE_MARKERS = (
     "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
 )
 
+NOTE_MAINTENANCE_CLOSURE_MARKERS = (
+    "shared docs-root and review-checklist maintenance undercounts are already closed on current `master`",
+    "shared docs-root and review-checklist maintenance undercounts are now closed on current `master`",
+    "`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned",
+)
+
 POLICY_MARKERS = (
     "required approver set",
     "retained discussion state",
@@ -324,7 +330,9 @@ def validate(root: Path) -> list[str]:
     if issues:
         return issues
 
-    _require_text_markers(_read(root / NOTE_PATH), NOTE_MARKERS, "note", issues)
+    note_text = _read(root / NOTE_PATH)
+    _require_text_markers(note_text, NOTE_MARKERS, "note", issues)
+    _require_text_markers(note_text, NOTE_MAINTENANCE_CLOSURE_MARKERS, "note", issues)
     _require_text_markers(_read(root / POLICY_PATH), POLICY_MARKERS, "policy", issues)
     _require_text_markers(_read(root / LANE_NOTE_PATH), LANE_NOTE_MARKERS, "lane_note", issues)
     _require_text_markers(_read(root / VALIDATOR_PATH), VALIDATOR_MARKERS, "validator", issues)
@@ -399,7 +407,7 @@ def validate(root: Path) -> list[str]:
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(root / NOTE_PATH, "\n".join(NOTE_MARKERS) + "\n")
+    _write(root / NOTE_PATH, "\n".join(NOTE_MARKERS + NOTE_MAINTENANCE_CLOSURE_MARKERS) + "\n")
     _write(root / POLICY_PATH, "\n".join(POLICY_MARKERS) + "\n")
     _write(root / LANE_NOTE_PATH, "\n".join(LANE_NOTE_MARKERS) + "\n")
     _write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_MARKERS) + "\n")
@@ -460,7 +468,7 @@ def _seed_fixture_tree(root: Path) -> None:
                         "anchor": "net/core/skbuff.c",
                         "owner": "Shared Subsystems Pod",
                         "required_approver_set": "Architecture Council + Shared Subsystems Pod",
-                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                        "rollback_owner": "Shared Subsystems Pod",
                         "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
                     },
                 ],
@@ -515,7 +523,7 @@ def _seed_fixture_tree(root: Path) -> None:
                         "path": "net/core/skbuff.c",
                         "lane_owner": "Shared Subsystems Pod",
                         "required_approver_set": "Architecture Council + Shared Subsystems Pod",
-                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                        "rollback_owner": "Shared Subsystems Pod",
                         "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
                         "evidence_archive": {
                             "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
@@ -568,6 +576,40 @@ def run_self_test() -> int:
             validate(root),
             [f"note:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
             "missing_note_parity_scorecard_survey_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        note_path = root / NOTE_PATH
+        _write(
+            note_path,
+            _read(note_path).replace(
+                "shared docs-root and review-checklist maintenance undercounts are already closed on current `master`\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["note:missing:shared docs-root and review-checklist maintenance undercounts are already closed on current `master`"],
+            "missing_note_maintenance_handoff_closure_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        note_path = root / NOTE_PATH
+        _write(
+            note_path,
+            _read(note_path).replace(
+                "`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["note:missing:`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned"],
+            "missing_note_review_checklist_alignment_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -793,7 +835,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 11}"
+        f"{len(NOTE_MARKERS) + len(NOTE_MAINTENANCE_CLOSURE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 11}"
     )
     return 0
 
