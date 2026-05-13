@@ -121,6 +121,7 @@ EXPECTED_SELF_TEST_CASES = [
     "helper_summary_case_order_drift",
     "contract_self_test_round_trip",
     "contract_self_test_count_drift",
+    "contract_self_test_duplicate_case_drift",
     "contract_self_test_missing_owner_review_note_drift",
     "contract_self_test_case_order_drift",
     "contract_summary_round_trip",
@@ -374,6 +375,24 @@ def run_self_test() -> int:
         lambda: assert_contract_self_test_summary(bad_contract_self_test_count),
     )
     covered_cases.append("contract_self_test_count_drift")
+
+    bad_contract_self_test_duplicate = contract_self_test_lines.copy()
+    bad_contract_self_test_duplicate[2] = (
+        "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=" + ",".join(
+            [
+                "catalog_shape",
+                "catalog_shape",
+                *EXPECTED_CONTRACT_SELF_TEST_CASES[2:],
+            ]
+        )
+    )
+    expect_assertion(
+        "contract_self_test_duplicate_case_drift",
+        lambda: assert_contract_self_test_summary(
+            bad_contract_self_test_duplicate
+        ),
+    )
+    covered_cases.append("contract_self_test_duplicate_case_drift")
 
     bad_contract_self_test_missing_owner = contract_self_test_lines.copy()
     bad_contract_self_test_missing_owner[2] = (
