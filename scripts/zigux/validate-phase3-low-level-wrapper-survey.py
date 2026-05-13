@@ -24,7 +24,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bittest-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak",
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
-    "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
+    "PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -36,11 +36,13 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
+    "`zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` still ships the barrier-locality and handoff replays in the focused route.",
     "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
     "`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.",
+    "helper-local `compiler()` barrier coverage in `zigux/helpers/barrier.zig`",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -111,7 +113,9 @@ REQUIRED_ATOMIC_SNIPPETS = (
 )
 
 REQUIRED_BARRIER_SNIPPETS = (
+    'pub fn compiler() void {',
     'pub fn acquireRelease() void {',
+    'test "phase3 barrier wrappers compile"',
     'test "phase3 barrier wrappers keep barrier locality reviewable"',
     'test "phase3 barrier wrappers keep barrier handoff reviewable"',
 )
@@ -417,6 +421,25 @@ def run_self_test() -> int:
             return 1
 
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
+        _write(
+            root,
+            BARRIER_REL,
+            (root / BARRIER_REL).read_text(encoding="utf-8").replace(
+                'pub fn compiler() void {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_barrier_snippet:pub fn compiler() void {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing compiler barrier helper failure")
+            return 1
+
+        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
         _write(
             root,
             MAKEFILE_REL,
