@@ -38,26 +38,26 @@ surface:
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 Current `master` keeps this shared Phase 7 control surface parked, not green:
-`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still
-missing from the live tree. Treat `make -C zigux phase7-validate`,
+`zigux/tests/phase7_rbtree.zig` still fails direct current-path reads even
+though `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`
+are back on `master`. Treat `make -C zigux phase7-validate`,
 `make -C zigux phase7-test`, `zig build test --build-file
 zigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the
-authoritative blocker-bearing bundle routes until that missing implementation
-pair is restored; this shared note is not evidence that the full four-helper
+authoritative blocker-bearing bundle routes until that missing dedicated rbtree
+replay returns; this shared note is not evidence that the full four-helper
 packet currently passes on `master`.
 
-`Documentation/zigux/phase7-string-helpers-slice.md` and
-`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of
-the missing-helper record. Their `P7-L04` marker is now only a packet-local
-historical helper-slice tag, while this shared note stays on `P7-Y05` and
-should not be read as the active bootstrap-glue schedule owner for restoring
-that missing implementation pair.
+The older string-helpers missing-pair reminder is no longer the live blocker for
+this shared note. Keep helper-local owner routing under
+`Documentation/zigux/phase7-helper-lane-sequencing.md`; this shared note stays
+on `P7-Y05` and should not be read as the helper-local owner for restoring the
+missing `zigux/tests/phase7_rbtree.zig` replay.
 
 `zigux/tests/README.md` is also a shared-control reminder surface owned by
 `P7-Y05`. Its Phase 7 entry list is not a helper-local proof packet: while
-current `master` still lists the missing `zigux/tests/phase7_string_helpers.zig`
+current `master` still lists the missing `zigux/tests/phase7_rbtree.zig`
 replay beside the parked shared build bundle, any tests-root truthfulness repair
-that narrows that missing-pair wording or the blocked shared-build reminder
+that narrows that missing-replay wording or the blocked shared-build reminder
 belongs here instead of `P7-L04`, `P7-L05`, `P7-L09`, or `P7-L13`.
 
 `Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated
@@ -67,18 +67,13 @@ own `P7-L*` lane keys.
 
 The same parked packet also depends on the shared docs-root and scripts-root
 Phase 5 no-sample reminders staying honest for `string_helpers`, `cmdline`,
-`argv_split`, and `rbtree`. Current `master` now keeps the fuller parked packet
-equally explicit from both `Documentation/zigux/README.md` and
-`scripts/zigux/README.md`: the docs-root summary names the parked string-helpers
-survey, manifest, sample-boundary, validator, build-wiring, Makefile, and
-workflow surfaces beside the sibling Phase 7 slice surfaces, while the
-scripts-root summary also keeps `Documentation/zigux/review-checklist.md`,
-`Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, the parked
-string-helpers survey and sample-boundary packet, the shared validator, the
-build-wiring checker, the Makefile route, and the workflow-backed replay packet
-visible beside the same parked helper bundle. Treat those docs-root and
-scripts-root README syncs as landed shared context for this note rather than as
-pending backlog.
+`argv_split`, and `rbtree`. Current `master` still keeps those README surfaces
+visible, but they have not all caught up to the latest shared-build blocker
+readback: some shared summaries still talk as if the parked blocker lives under
+the older string-helpers gap even though the direct current-path miss is now
+`zigux/tests/phase7_rbtree.zig`. Treat those docs-root and scripts-root README
+surfaces as adjacent shared-reminder backlog, not as the source of truth for
+this note.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
@@ -112,10 +107,10 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `zigux/tests/fixtures/phase7_rbtree_c_harness.c`,
 `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and
 `zigux/tests/phase7_build.zig` aligned around that same shared replay packet,
-the parked string-helpers blocker, and the already-synced docs-root and
-scripts-root packet so the parked `string_helpers`, `cmdline`, `argv_split`,
-and `rbtree` bundle does not drift back toward per-slice ad hoc checks or a
-false all-green shared status.
+the parked dedicated-rbtree-replay blocker, and the still-partially-stale
+docs-root and scripts-root packet so the parked `string_helpers`, `cmdline`,
+`argv_split`, and `rbtree` bundle does not drift back toward per-slice ad hoc
+checks or a false all-green shared status.
 
 `make -C zigux phase7-validate`, the dedicated survey and sample-boundary
 replays, `make -C zigux phase7-test`, and `make -C zigux phase7` remain the
@@ -123,6 +118,6 @@ Linux-style review routes for this shared control surface while the bundle stays
 parked.
 
 this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`,
-`lib/argv_split.zig`, `lib/rbtree.zig`, or the missing string-helpers
-implementation pair; it only keeps the already-landed shared control surface
-truthful and the `P7-L04` ownership split explicit.
+`lib/argv_split.zig`, `lib/rbtree.zig`, or the missing
+`zigux/tests/phase7_rbtree.zig` replay; it only keeps the already-landed
+shared control surface truthful and the `P7-L*` ownership split explicit.
