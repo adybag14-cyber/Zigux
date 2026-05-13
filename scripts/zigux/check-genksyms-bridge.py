@@ -165,6 +165,13 @@ EXPECTED_GENKSYMS_CASES = [
         "normalize_stderr": True,
     },
     {
+        "name": "missing_dump_types_argument",
+        "argv": ["-T"],
+        "mode": "process_json",
+        "expected": "missing_dump_types_argument_expected.json",
+        "normalize_stderr": True,
+    },
+    {
         "name": "unsupported_long_option",
         "argv": ["--unknown"],
         "mode": "process_json",
@@ -572,8 +579,8 @@ def run_self_test() -> int:
         payload.pop()
         write_text(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
         issues = validate_root(root)
-        assert "genksyms_cases:case_count:expected=22:actual=21" in issues
-        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
+        assert "genksyms_cases:case_count:expected=23:actual=22" in issues
+        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
         case_count += 1
 
         build_self_test_root(root)
