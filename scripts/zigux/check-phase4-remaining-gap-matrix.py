@@ -253,8 +253,8 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "make -C zigux phase4-kprobe-example-survey",
-                "make -C zigux phase4-kprobe-gap-survey",
+                "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+                "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-gap-survey`",
                 ),
         )
         if not expect_failure(
@@ -509,7 +509,7 @@ def run_self_test() -> int:
             replace_once(
                 baseline,
                 "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
-                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the shared replay surface rather than reopening measurability wording alone",
             ),
         )
         if not expect_failure(
