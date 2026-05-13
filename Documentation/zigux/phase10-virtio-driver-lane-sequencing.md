@@ -35,6 +35,9 @@ When a real Phase 10 change lands, keep these shared surfaces aligned:
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
