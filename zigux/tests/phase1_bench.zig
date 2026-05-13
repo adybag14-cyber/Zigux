@@ -48,6 +48,12 @@ fn bitmapBench() struct { checksum: u64 } {
 
 fn bitmapWindowBench() struct { checksum: u64 } {
     const nbits = bitmap.bits_per_long + 5;
+    const copy_count = bitmap.bits_per_long + 5;
+    const copy_size = bitmap.bits_per_long * 3;
+    const aligned_copy_count = bitmap.bits_per_long;
+    const copy_sentinel = @as(bitmap.Word, 0x55aa_55aa_55aa_55aa);
+    const partial_copy_src = [_]bitmap.Word{ ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0), 0x0123_4567_89ab_cdef };
+    const aligned_copy_src = [_]bitmap.Word{ 0x0123_4567_89ab_cdef, ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0) };
     var lhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
     var rhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
     var dst = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
@@ -95,6 +101,27 @@ fn bitmapWindowBench() struct { checksum: u64 } {
         checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
         checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_intersects(&lhs, &rhs, nbits)));
         checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_subset(&rhs, &dst, nbits)));
+
+        var cleared = [_]bitmap.Word{ 0, 0, copy_sentinel };
+        bitmap.copyClearTail(cleared[0..2], partial_copy_src[0..2], copy_count);
+        checksum +%= @intCast(bitmap.weight(cleared[0..2], copy_count));
+        checksum +%= @as(u64, @intFromBool(cleared[1] == bitmap.lastWordMask(copy_count)));
+        checksum +%= @as(u64, @intFromBool(cleared[2] == copy_sentinel));
+
+        var extended = [_]bitmap.Word{ copy_sentinel, copy_sentinel, copy_sentinel, copy_sentinel };
+        bitmap.copyAndExtend(extended[0..3], partial_copy_src[0..2], copy_count, copy_size);
+        checksum +%= @intCast(bitmap.weight(extended[0..3], copy_size));
+        checksum +%= @as(u64, @intFromBool(extended[1] == bitmap.lastWordMask(copy_count)));
+        checksum +%= @as(u64, @intFromBool(extended[2] == 0));
+        checksum +%= @as(u64, @intFromBool(extended[3] == copy_sentinel));
+
+        var aligned_extended = [_]bitmap.Word{ copy_sentinel, copy_sentinel, copy_sentinel, copy_sentinel };
+        bitmap.copyAndExtend(aligned_extended[0..3], aligned_copy_src[0..1], aligned_copy_count, copy_size);
+        checksum +%= @intCast(bitmap.weight(aligned_extended[0..3], copy_size));
+        checksum +%= @as(u64, @intFromBool(aligned_extended[0] == aligned_copy_src[0]));
+        checksum +%= @as(u64, @intFromBool(aligned_extended[1] == 0));
+        checksum +%= @as(u64, @intFromBool(aligned_extended[2] == 0));
+        checksum +%= @as(u64, @intFromBool(aligned_extended[3] == copy_sentinel));
     }
 
     return .{ .checksum = checksum };
