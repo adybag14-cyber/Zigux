@@ -3,7 +3,7 @@
   "lane_key": "P15-Y03",
   "slice": "parity-scorecard-baseline",
   "provenance_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit": "current-master-readback-2026-05-13",
   "posture": {
     "architecture_council_status_change_approval_recorded": false,
     "scorecard_role": "blocked_posture_accounting_not_port_readiness"
