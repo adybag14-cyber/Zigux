@@ -13,6 +13,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - `include/zigux/dev_t.h`
 - `zigux/bindings/abi.zig`
 - `zigux/bindings/dev_t.zig`
+- `zigux/helpers/layout_assert.zig`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
@@ -35,10 +36,16 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - keep same-lane follow-through here limited to one header-family truthfulness,
   syntax-guard, or layout-survey adjustment at a time
 - `scripts/zigux/survey-phase3-abi-constant-parity.py` now holds four exact
-  nested chrdev ack-window policy budget family constants plus two direct
-  view-and-summary sibling pairs across `include/zigux/abi.h` and
-  `zigux/bindings/abi.zig`; keep extending that family one bounded sibling pair
-  at a time instead of widening into another packet
+  nested chrdev ack-window policy budget family constants, four direct
+  header-and-binding type markers, the dedicated
+  `zigux/helpers/layout_assert.zig` three-`u32` helper quartet, and the
+  committed dump, C harness, and expected-fixture keys across
+  `include/zigux/abi.h`, `zigux/bindings/abi.zig`,
+  `zigux/helpers/layout_assert.zig`, `zigux/tests/phase3_abi_dump.zig`,
+  `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and
+  `zigux/tests/fixtures/phase3_abi/expected.json`; keep extending that
+  header-family survey one bounded sibling family at a time instead of
+  widening into another packet
 - the shared review checklist now carries an explicit Phase 3 header-family
   prompt; keep `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase3-abi-header-family-survey.md`,
@@ -55,6 +62,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   companion lands with its own bounded export or UAPI packet instead of letting
   the shared reminder surfaces get ahead of the tree
 - treat `scripts/zigux/check-phase3-abi.py`,
+  `scripts/zigux/survey-phase3-abi-constant-parity.py`,
   `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
   `scripts/zigux/validate-phase3-abi-header-family-survey.py`, and
   `scripts/zigux/validate-phase3-abi-bindings-syntax.py` as the first review
