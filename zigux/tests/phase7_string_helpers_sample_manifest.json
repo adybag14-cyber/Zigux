@@ -64,6 +64,23 @@
       "try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);"
     ]
   },
+  "verification_checks": [
+    "descriptor stays `string_helpers_sample` and anchors to `lib/string_helpers.c`",
+    "lifecycle starts at `cold`, `init()` moves to `initialized`, replay moves to `replay_complete`, and `exit()` finishes at `exited`",
+    "`runAnchorReplay()` rejects calls before `init()` with `error.InvalidLifecycleTransition`",
+    "`sysfsStreq(\"mode\", \"mode\\n\")` returns `true` for newline-tolerant matching",
+    "`sysfsMatchString([disabled, enabled, null, ignored], \"enabled\\n\")` returns index `1`",
+    "`matchString([disabled, enabled], \"ignored\")` returns `-EINVAL` when the bounded table misses",
+    "`stringGetSize(1536, 1, STRING_UNITS_2)` renders `1.50 KiB` with reported length `8`",
+    "`stringGetSize(1536, 1, STRING_UNITS_2 | STRING_UNITS_NO_SPACE | STRING_UNITS_NO_BYTES)` renders `1.50Ki` with reported length `6`",
+    "`stringUnescape(\"line\\\\n\")` produces `line` plus a trailing newline byte",
+    "exact-fit `stringUnescape(\"\\\\n\", size=2)` returns length `1` and leaves a trailing NUL terminator",
+    "`stringEscapeMem(\"\\n\", ESCAPE_HEX)` produces `\\\\x0a`",
+    "bounded `stringEscapeMem(\"\\n\", dst[0..5], ESCAPE_HEX)` reports length `4` and leaves the untouched `?` sentinel in `\\\\x0a?`",
+    "dictionary-limited `stringEscapeMem(\"A\\n\\tZ\", ESCAPE_SPACE, only=\"\\n\")` produces `A\\\\n\\tZ`",
+    "append-selected `stringEscapeMem(\"A\\nZ\", ESCAPE_NAP | ESCAPE_HEX | ESCAPE_APPEND, only=\"\\n\")` produces `A\\\\x0aZ`",
+    "the replay records exactly five checked focus markers"
+  ],
   "gaps": [
     {
       "id": "phase7-build-gate",
