@@ -8,8 +8,8 @@ This document records the bounded gpio watchdog validation matrix for the curren
 - lane: `P11-L04`
 - reviewed against live `master`
 - scope: keep the current `gpio_wdt` packet honest about what is already reviewable in the landed starter, the bounded survey note, the manifest-backed replay route, and the teardown note without overclaiming live GPIO descriptor acquisition, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, or hardware-backed validation
-- latest focused replays recorded by the current packet: `zig test zigux/tests/phase11_gpio_wdt.zig` and `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
-- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still keeps the starter and survey paths together, while the missing focused `phase11_gpio_wdt_platform_drvdata.zig` replay remains explicitly unlanded instead of part of the shared Phase 11 route
+- latest focused replays recorded by the current packet: `zig test zigux/tests/phase11_gpio_wdt.zig`, `zig test zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, and `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
+- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still keeps the starter and survey paths together, while the dedicated focused `phase11_gpio_wdt_platform_drvdata.zig` replay still stays outside the shared `phase11_build.zig` route
 
 ## Current Repo Reality
 
@@ -17,6 +17,7 @@ The live gpio watchdog packet visible on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -51,12 +52,12 @@ This gpio-local matrix does not claim that the whole current shared Phase 11 rep
 
 - descriptor preflight boundary: `descriptorPreflightSummary()` plus the landed gpio tests keep the exact `devm_gpiod_get()` flag choice, the probe-ordering boundary, and the still-blocked live descriptor lookup explicit.
 - timeout-property checkpoint: `timeoutPropertyCheckpointSummary()` plus the landed gpio tests keep the required `hw_margin_ms` property, its accepted range, and the fail-closed ordering before later handoffs reviewable.
-- platform-drvdata checkpoint: `platformDrvdataCheckpointSummary()` keeps the early `platform_set_drvdata()` ordering boundary explicit even though the dedicated focused replay file is not currently present on `master`.
+- platform-drvdata checkpoint: `platformDrvdataCheckpointSummary()` plus the dedicated focused `phase11_gpio_wdt_platform_drvdata.zig` replay keep the early `platform_set_drvdata()` ordering boundary explicit while still staying outside the shared `phase11_build.zig` route.
 - drvdata checkpoint: `drvdataCheckpointSummary()` plus the landed gpio tests keep the `watchdog_set_drvdata()` ordering boundary explicit before registration handoff and register-device request surfaces without claiming execution.
 - runtime and stop-policy surface: the landed starter and gpio tests keep the bounded start, ping, stop, disable, and nowayout-aware stop outcomes explicit without promoting them into live GPIO or reboot-backed behavior.
 - registration handoff and register-device request surface: the landed starter and gpio tests keep the pre-registration bookkeeping, registration handoff summary, and first bounded `devm_watchdog_register_device()` request surface reviewable without claiming platform-driver registration or watchdog-core side effects.
 - teardown and reboot-glue surface: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` keeps the stop-policy split, bounded teardown handoff, and reboot-glue checkpoint explicit without claiming remove hooks or live shutdown execution.
-- intentionally missing focused replay: `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig` is not currently present on `master`, so the platform-drvdata checkpoint remains documented through the landed driver, tests, survey, manifest, and this matrix rather than being overstated as a shipped dedicated harness.
+- dedicated focused replay boundary: `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig` is now present on `master`, but it remains intentionally dedicated rather than part of the shared Phase 11 replay route so the packet can keep one extra local proof without widening the archive packet.
 - out of scope for now: live GPIO descriptor acquisition, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog-core registration, remove hooks, reboot-backed teardown execution, failure-mode parity beyond the landed bounded starter checks, and hardware-backed validation.
 
 ## Review Guardrails
@@ -67,4 +68,4 @@ This gpio-local matrix does not claim that the whole current shared Phase 11 rep
 
 ## Next Blocked Step
 
-The next honest gpio-only follow-up is still one focused platform-drvdata or failure-mode parity replay that turns one existing checkpoint into its own dedicated local harness without widening into live GPIO, broader platform glue, or hardware-backed execution. Until then, keep the lane bounded to the landed starter, survey note, manifest-backed replay, teardown note, and this matrix.
+The next honest gpio-only follow-up is still one focused failure-mode parity or broader hardware-backed validation step that stays adjacent to the landed descriptor, platform-drvdata, drvdata, reboot-glue, teardown, handoff, and register-device request surfaces without widening into live GPIO or platform registration.
