@@ -10,6 +10,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+  - `zigux/tests/phase8_build.zig`
   - `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
 
 ## Why this slice exists
@@ -31,6 +32,7 @@ The `perf_buffer__poll(timeout_ms)` path is a reasonable bounded adjunct because
    - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 6. run the shared Phase 8 tooling replay
    - `make -C zigux phase8-test`
+   - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 7. run the convenience target
    - `make -C zigux phase8`
 
