@@ -11,10 +11,10 @@ SURVEY_NOTE_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
 VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 
 REQUIRED_SURVEY_MARKERS = (
-    "archival checkpoint",
-    "`ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839` as the archived landing review",
+    "This note restores the compact archival survey",
+    "archival landing checkpoint:",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "`Documentation/zigux/phase11-shared-replay-contract.md`",
+    "the paired teardown checkpoint readable together",
 )
 
 FORBIDDEN_SURVEY_MARKERS = (
@@ -24,8 +24,8 @@ FORBIDDEN_SURVEY_MARKERS = (
 
 REQUIRED_MATRIX_MARKERS = (
     "archival landing checkpoint",
-    "not as a rolling promise about the current `master` head",
-    "keep `Documentation/zigux/phase11-hvc-console-survey.md` aligned with this matrix",
+    "not as a rolling promise about runtime parity",
+    "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned",
 )
 
 
@@ -85,17 +85,21 @@ def write_fixture_tree(root: Path) -> None:
     (root / SURVEY_NOTE_PATH).write_text(
         "# Phase 11 HVC Console Survey\n"
         "\n"
-        "This survey note now serves as the archival checkpoint for the original Phase 11 roadmap gap around `drivers/tty/hvc/hvc_console.c`.\n"
+        "This note restores the compact archival survey for the bounded Phase 11 `hvc_console` packet on current `master`.\n"
         "\n"
-        "Treat `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839` as the archived landing review for the bounded starter instead of a rolling live-head claim.\n"
+        "* archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`\n"
+        "* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`\n"
         "\n"
-        "Keep `Documentation/zigux/phase11-hvc-console-validation-matrix.md` and `Documentation/zigux/phase11-shared-replay-contract.md` aligned with this archival note whenever the shared HVC review packet moves.\n",
+        "The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.\n",
         encoding="utf-8",
     )
     (root / VALIDATION_MATRIX_PATH).write_text(
         "## Status\n"
-        "- treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the archival landing checkpoint for the bounded starter, not as a rolling promise about the current `master` head\n"
-        "- keep `Documentation/zigux/phase11-hvc-console-survey.md` aligned with this matrix whenever the dedicated HVC packet moves\n",
+        "- archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`\n"
+        "\n"
+        "## Review Rules\n"
+        "- treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the landing checkpoint for the archived packet at `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`, not as a rolling promise about runtime parity\n"
+        "- keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes\n",
         encoding="utf-8",
     )
 
