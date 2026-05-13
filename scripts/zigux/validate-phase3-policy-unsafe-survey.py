@@ -48,7 +48,7 @@ STATIC_MARKERS = (
     "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands",
+    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again",
 )
 
 BLOB_MARKERS = {
@@ -367,14 +367,14 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands`\n",
+            "- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again`\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_next_step)
         issues = validate(root)
         assert (
-            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands"
+            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again"
             in issues
         )
 
