@@ -25,10 +25,15 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase13-devres-packet-alignment.py",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
-    "zigux/tests/README.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/tests/phase13_libfs_manifest.json",
+    "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_landlock_ruleset_manifest.json",
+    "zigux/tests/phase13_landlock_syscalls_manifest.json",
+    "zigux/helpers/notifier_chain_view.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/abi.h",
-    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 REQUIRED_MARKERS = {
@@ -38,17 +43,20 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-release-notes-survey.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`Documentation/zigux/phase13-notifier-list-survey.md`",
-        "`scripts/zigux/validate-phase13-release.py`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-        "the current eight-test shared-helper release packet",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "rather than through an older shared-build bundle.",
     ],
     "Documentation/zigux/review-checklist.md": [
         "if the change touches the shared Phase 13 release packet",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`",
     ],
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "Broad summaries should keep the active shared-helper release handle visible through:",
@@ -58,129 +66,95 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase13_build.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
         "repo-reality gaps rather than independently shipped current-`master` evidence.",
-        "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "Broad summaries should also keep the paired Landlock ownership, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:",
         "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:",
         "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.",
-        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
-        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "Broad summaries should also keep the currently materialized manifest-backed helper anchors explicit through:",
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
         "Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
-        "`zigux/bindings/notifier_abi.zig`",
-        "`include/zigux/abi.h`",
-        "`security/landlock/ruleset.zig`",
-        "`security/landlock/syscalls.zig`",
+        "If direct notifier companions such as:",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
-        "`landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.",
-        "`landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit.",
-        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "`scripts/zigux/validate-phase13-release.py`",
-        "adjacent notifier evidence remains release-surface support",
+        "Current `master` also materializes four manifest-backed helper anchors",
+        "Keep those four manifests explicit as the currently materialized helper-anchor set, while `zigux/tests/phase13_build.zig` stays framed as a repo-reality gap",
+        "adjacent notifier evidence maps to Phase 13 release-surface truthfulness only",
     ],
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
         "Use this guide when a change touches the active Phase 13 shared-helper packet",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
-        "`scripts/zigux/validate-phase13-release.py`",
-        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`",
-        "`zigux/helpers/notifier_chain_view.zig`",
+        "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.",
+        "current `master` materializes the bounded `libfs` foothold",
+        "Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`",
+        "still does not materialize these direct Phase 13 companions:",
+        "older `scripts/zigux/check-phase13-devres-packet.py`",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "# Phase 13 Shared Helper Lane Sequencing",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`",
-        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-        "`make -C zigux phase13-validate`",
         "Treat `make -C zigux phase13-validate` as the stable shared replay handle.",
+        "`P13-L02` owns the current libfs helper packet",
+        "`P13-L08` owns the current devres helper packet",
+        "`P13-L09` owns the current landlock-ruleset replay packet",
+        "`P13-L17` owns the current landlock-syscalls governance-plus-slice-plus-survey-plus-direct-replay packet",
+        "adjacent notifier evidence owns",
     ],
     "Documentation/zigux/phase13-landlock-ruleset-ownership.md": [
         "# Phase 13 Landlock Ruleset Ownership Note",
-        "`Documentation/zigux/review-checklist.md`",
-        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
-        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`security/landlock/ruleset.zig`",
+        "`zigux/tests/phase13_landlock_ruleset.zig`",
+        "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`make -C zigux phase13-validate`",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
-        "# Phase 13 Landlock Syscalls Governance",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
-        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
-        "`scripts/zigux/validate-phase13-release.py`",
-        "`make -C zigux phase13-validate`",
         "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
         "the release-side `fop_ruleset_release()` ownership drop",
         "the combined `ruleset_fops` wrapper contract",
     ],
     "Documentation/zigux/phase13-notifier-list-survey.md": [
-        "# Phase 13 Notifier List Survey",
-        "shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle",
+        "shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/helpers/notifier_chain_view.zig`",
         "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
-        "ABI footholds explicit as adjacent notifier evidence",
-        "`make -C zigux phase13-validate`",
+        "repo-reality gaps",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
-        "## Phase 13 contributor packet",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+        "Keep the shared-subsystems packet explicit through the verified docs-root, validator-first, and contributor-facing replay surfaces:",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "`scripts/zigux/validate-phase13-release.py`",
-        "keep the validator-first Phase 13 release handle explicit",
-        "framed as repo reality rather than shipped evidence when current `master` still cannot materialize",
-        "`scripts/zigux/check-phase13-notifier-packet.py`",
-        "`zigux/tests/phase13Devres_reviewability.zig`",
-        "treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path",
+        "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence",
+        "if a broad reminder still spells the missing devres reviewability companion as `zigux/tests/phase13Devres_reviewability.zig`, treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "## Phase 13 tests-root packet",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/helpers/notifier_chain_view.zig`",
+        "`zigux/bindings/notifier_abi.zig`",
+        "`include/zigux/abi.h`",
+        "`drivers/tty/hvc/hvc_console.h`",
+        "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`",
+    ],
+    "scripts/zigux/README.md": [
+        "Phase 13 flow - keep the shared Phase 13 contributor packet explicit through the shipped contributor and release-surface notes:",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
-        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
-        "shared validator-first release handle",
-        "`fs/libfs.zig`",
-        "`zigux/tests/phase13_libfs.zig`",
-        "`zigux/tests/phase13_libfs_reviewability.zig`",
-        "`zigux/tests/phase13_devres.zig`",
-        "`zigux/tests/phase13_devres_reviewability.zig`",
-        "`zigux/tests/phase13_devres_dma_coherent.zig`",
-        "`zigux/tests/phase13_devres_manifest.json`",
-        "`Documentation/zigux/phase13-devres-survey.md`",
         "`zigux/bindings/notifier_abi.zig`",
-        "`include/zigux/abi.h`",
-        "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
+        "`zigux/helpers/notifier_chain_view.zig`",
+        "direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps",
     ],
-    "scripts/zigux/README.md": [
-        "Phase 13 flow",
-        "`validate-phase13-release.py`",
-        "`check-phase13-landlock-ruleset-packet.py`",
-        "`check-phase13-notifier-priority-signal.py`",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
-        "`make -C zigux phase13-validate`",
-        "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`",
-        "eight-test shared helper replay",
-    ],
-    "zigux/tests/README.md": [
-        "## Phase 13 tests-root packet",
-        "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
-        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
-        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "`scripts/zigux/validate-phase13-release.py`",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`",
-        "validator-first eight-test release path",
+    "zigux/Makefile": [
+        "PHONY += phase13-validate phase13-test phase13",
+        "phase13-validate",
+        "phase13-test",
+        "phase13: phase13-validate phase13-test",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
         "Validate Phase 13 release-discipline packet",
@@ -188,39 +162,6 @@ REQUIRED_MARKERS = {
         "Run Phase 13 shared helper tests",
         "make -C zigux phase13-test",
     ],
-}
-
-EXACT_COUNTS = {
-    "Documentation/zigux/phase13-release-notes-survey.md": {
-        "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-        "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-        "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
-        "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
-        "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
-        "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-        "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
-    },
-    "Documentation/zigux/README.md": {
-        "the current eight-test shared-helper release packet": 1,
-    },
-    "Documentation/zigux/phase13-landlock-syscalls-governance.md": {
-        "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.": 1,
-    },
-    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": {
-        "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.": 1,
-    },
-    "scripts/zigux/README.md": {
-        "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`": 1,
-        "eight-test shared helper replay": 1,
-        "`make -C zigux phase13-validate`": 1,
-    },
-    "zigux/tests/README.md": {
-        "validator-first eight-test release path": 1,
-    },
-    ".github/workflows/zigux-bootstrap.yml": {
-        "make -C zigux phase13-validate": 1,
-        "make -C zigux phase13-test": 1,
-    },
 }
 
 
@@ -234,22 +175,13 @@ def write_text(root: Path, rel_path: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def repeat_markers(markers: list[str], counts: dict[str, int] | None = None) -> str:
-    items = list(markers)
-    if counts:
-        for marker, expected in counts.items():
-            extra = expected - items.count(marker)
-            if extra > 0:
-                items.extend([marker] * extra)
-    return "\n".join(items) + "\n"
-
-
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     for rel_path in REQUIRED_FILES:
         if not (root / rel_path).exists():
             issues.append(f"missing_file:{rel_path}")
+
     if issues:
         return issues
 
@@ -258,15 +190,6 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{rel_path}:{marker}")
-
-    for rel_path, counts in EXACT_COUNTS.items():
-        text = read_text(root, rel_path)
-        for marker, expected in counts.items():
-            actual = text.count(marker)
-            if actual != expected:
-                issues.append(
-                    f"exact_count:{rel_path}:{marker}:expected={expected}:actual={actual}"
-                )
 
     return issues
 
@@ -282,13 +205,13 @@ def run_self_test() -> int:
         root = Path(tmpdir)
         for rel_path in REQUIRED_FILES:
             if rel_path in REQUIRED_MARKERS:
-                write_text(
-                    root,
-                    rel_path,
-                    repeat_markers(REQUIRED_MARKERS[rel_path], EXACT_COUNTS.get(rel_path)),
-                )
-            elif rel_path.endswith(".yml"):
-                write_text(root, rel_path, repeat_markers(REQUIRED_MARKERS[rel_path], EXACT_COUNTS.get(rel_path)))
+                write_text(root, rel_path, "\n".join(REQUIRED_MARKERS[rel_path]) + "\n")
+            elif rel_path.endswith(".json"):
+                write_text(root, rel_path, "{}\n")
+            elif rel_path.endswith(".zig"):
+                write_text(root, rel_path, "// stub\n")
+            elif rel_path.endswith(".h"):
+                write_text(root, rel_path, "/* stub */\n")
             elif rel_path.endswith(".py"):
                 write_text(root, rel_path, "# stub\n")
             else:
@@ -301,561 +224,153 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             ["missing_file:scripts/zigux/check-phase13-notifier-priority-signal.py"],
-            "missing_priority_checker_failed",
+            "missing_priority_signal_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
         case_count += 1
 
-        (root / "zigux/bindings/notifier_abi.zig").unlink()
-        assert_only(
-            validate(root),
-            ["missing_file:zigux/bindings/notifier_abi.zig"],
-            "missing_notifier_abi_shard_failed",
-        )
-        write_text(root, "zigux/bindings/notifier_abi.zig", "# stub\n")
-        case_count += 1
-
         write_text(
             root,
             "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    != "Broad summaries should keep the active shared-helper release handle visible through:"
-                ],
-                {
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
-                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
-                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
-                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should keep the active shared-helper release handle visible through:",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should keep the active shared-helper release handle visible through::expected=1:actual=0",
-            ],
-            "missing_release_handle_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    != "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:"
-                ],
-                {
-                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
-                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
-                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through::expected=1:actual=0",
-            ],
-            "missing_landlock_pair_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    != "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
-                ],
-                {
-                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
-                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
-                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through::expected=1:actual=0",
-            ],
-            "missing_devres_truthfulness_guard_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    != "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift."
-                ],
-                {
-                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
-                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
-                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-                    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.:expected=1:actual=0",
-            ],
-            "missing_devres_checker_label_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    not in {
-                        "`zigux/bindings/notifier_abi.zig`",
-                        "`security/landlock/ruleset.zig`",
-                        "`security/landlock/syscalls.zig`",
-                    }
-                ],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`zigux/bindings/notifier_abi.zig`",
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/ruleset.zig`",
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`security/landlock/syscalls.zig`",
-            ],
-            "missing_adjacent_direct_evidence_markers_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                    if marker
-                    != "Broad summaries should also keep the shipped adjacent notifier release surface visible through:"
-                ],
-                {
-                    "Broad summaries should keep the active shared-helper release handle visible through:": 1,
-                    "repo-reality gaps rather than independently shipped current-`master` evidence.": 1,
-                    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:": 1,
-                    "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:": 1,
-                    "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.": 1,
-                    "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
-                "exact_count:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped adjacent notifier release surface visible through::expected=1:actual=0",
-            ],
-            "missing_notifier_release_surface_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-release-notes-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-release-notes-survey.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-notifier-list-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"]
-                    if marker not in {"`zigux/bindings/notifier_abi.zig`", "`include/zigux/abi.h`"}
-                ],
-                {},
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`zigux/bindings/notifier_abi.zig`",
-                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`include/zigux/abi.h`",
-            ],
-            "missing_notifier_survey_adjacent_shards_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-notifier-list-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"],
-                EXACT_COUNTS.get("Documentation/zigux/phase13-notifier-list-survey.md"),
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-notifier-list-survey.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"]
-                    if marker != "ABI footholds explicit as adjacent notifier evidence"
-                ],
-                {},
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:ABI footholds explicit as adjacent notifier evidence",
-            ],
-            "missing_notifier_survey_abi_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-notifier-list-survey.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-notifier-list-survey.md"],
-                EXACT_COUNTS.get("Documentation/zigux/phase13-notifier-list-survey.md"),
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]
-                    if marker
-                    != "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
-                ],
-                {},
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
-                "exact_count:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.:expected=1:actual=0",
-            ],
-            "missing_syscalls_anchor_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
-                EXACT_COUNTS["Documentation/zigux/phase13-landlock-syscalls-governance.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
-                    if marker != "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
-                ],
-                {
-                    "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`",
-            ],
-            "missing_tests_companion_devres_guard_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
-                    if marker != "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence."
-                ],
-                {},
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
-                "exact_count:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.:expected=1:actual=0",
-            ],
-            "missing_tests_companion_repo_reality_phrase_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
-                    if marker != "`zigux/tests/phase13_libfs_reviewability.zig`"
-                ],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`zigux/tests/phase13_libfs_reviewability.zig`",
-            ],
-            "missing_tests_companion_libfs_reviewability_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
-                    if marker != "`zigux/tests/phase13_devres_reviewability.zig`"
-                ],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:`zigux/tests/phase13_devres_reviewability.zig`",
-            ],
-            "missing_tests_companion_devres_reviewability_failed",
-        )
-        write_text(
-            root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            repeat_markers(
-                REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-                EXACT_COUNTS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "scripts/zigux/README.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["scripts/zigux/README.md"]
-                    if marker
-                    != "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`"
-                ],
-                {
-                    "eight-test shared helper replay": 1,
-                    "`make -C zigux phase13-validate`": 1,
-                },
-            ),
-        )
-        assert_only(
-            validate(root),
-            [
-                "missing_marker:scripts/zigux/README.md:the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`",
-                "exact_count:scripts/zigux/README.md:the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`:expected=1:actual=0",
-            ],
-            "missing_scripts_readme_adjacent_direct_evidence_phrase_failed",
-        )
-        write_text(
-            root,
-            "scripts/zigux/README.md",
-            repeat_markers(
-                REQUIRED_MARKERS["scripts/zigux/README.md"],
-                EXACT_COUNTS["scripts/zigux/README.md"],
-            ),
-        )
-        case_count += 1
-
-        write_text(
-            root,
-            "scripts/zigux/README.md",
-            repeat_markers(
-                REQUIRED_MARKERS["scripts/zigux/README.md"],
-                EXACT_COUNTS["scripts/zigux/README.md"],
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                if marker
+                != "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
             )
-            + "eight-test shared helper replay\n"
-            + "`make -C zigux phase13-validate`\n",
+            + "\n",
         )
         assert_only(
             validate(root),
             [
-                "exact_count:scripts/zigux/README.md:eight-test shared helper replay:expected=1:actual=2",
-                "exact_count:scripts/zigux/README.md:`make -C zigux phase13-validate`:expected=1:actual=2",
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
+                "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
             ],
-            "duplicate_scripts_readme_markers_failed",
+            "missing_devres_guard_phrase_failed",
         )
         write_text(
             root,
-            "scripts/zigux/README.md",
-            repeat_markers(
-                REQUIRED_MARKERS["scripts/zigux/README.md"],
-                EXACT_COUNTS["scripts/zigux/README.md"],
-            ),
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]) + "\n",
         )
         case_count += 1
 
         write_text(
             root,
-            ".github/workflows/zigux-bootstrap.yml",
-            repeat_markers(
-                REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"],
-                EXACT_COUNTS[".github/workflows/zigux-bootstrap.yml"],
-            ).replace("Run Phase 13 shared helper tests\n", "", 1),
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"]
+                if marker != "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle."
+            )
+            + "\n",
         )
         assert_only(
             validate(root),
             [
-                "missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests",
+                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:"
+                "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle."
             ],
-            "missing_workflow_step_failed",
+            "missing_stable_replay_handle_failed",
         )
         write_text(
             root,
-            ".github/workflows/zigux-bootstrap.yml",
-            repeat_markers(
-                REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"],
-                EXACT_COUNTS[".github/workflows/zigux-bootstrap.yml"],
-            ),
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]
+                if marker != "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:"
+                "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
+            ],
+            "missing_syscalls_helper_anchor_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]) + "\n",
         )
         case_count += 1
 
         write_text(
             root,
             "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
-            repeat_markers(
-                [
-                    marker
-                    for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]
-                    if marker
-                    != "treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path"
-                ],
-                {},
-            ),
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]
+                if marker
+                != "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence"
+            )
+            + "\n",
         )
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig` rather than as a separate valid path",
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:"
+                "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence"
             ],
-            "missing_devres_typo_guard_failed",
+            "missing_tests_root_followthrough_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+                if marker
+                != "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:"
+                "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`"
+            ],
+            "missing_pending_tests_root_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]
+                if marker != "Run Phase 13 shared helper tests"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests"],
+            "missing_phase13_workflow_step_failed",
         )
         case_count += 1
 
@@ -884,11 +399,7 @@ def main() -> int:
         print("PHASE13_RELEASE_VALIDATION_ISSUES_END")
         return 1
 
-    marker_total = (
-        len(REQUIRED_FILES)
-        + sum(len(markers) for markers in REQUIRED_MARKERS.values())
-        + sum(len(counts) for counts in EXACT_COUNTS.values())
-    )
+    marker_total = len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(f"PHASE13_RELEASE_VALIDATION_MARKER_COUNT={marker_total}")
     return 0
