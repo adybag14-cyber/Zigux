@@ -570,9 +570,20 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(root / MMIO_HELPER_PATH, "# restored\n")
-        panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
         allocator_policy_rel = Path("zigux/helpers/allocator_policy.zig")
+        _write(root / MMIO_HELPER_PATH, "# restored\n")
+        (root / allocator_policy_rel).unlink()
+        issues = validate_repo(root)
+        expected_allocator_policy_missing = (
+            f"missing repo file: {allocator_policy_rel.as_posix()}"
+        )
+        if expected_allocator_policy_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing allocator-policy helper was not reported")
+            return 1
+        case_count += 1
+
+        panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
         _write(root / allocator_policy_rel, "pub fn allocatorPolicy() void {}\n")
         (root / panic_policy_rel).unlink()
         issues = validate_repo(root)
