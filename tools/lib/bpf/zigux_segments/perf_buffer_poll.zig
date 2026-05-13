@@ -97,6 +97,23 @@ pub const BufferFdLookupSummary = struct {
     disposition: BufferFdLookupDisposition,
 };
 
+pub const BufferWindowObservation = struct {
+    mapped_size: usize = 0,
+};
+
+pub const BufferWindowLookupDisposition = enum {
+    found_window,
+    invalid_index,
+    missing_window,
+};
+
+pub const BufferWindowLookupSummary = struct {
+    slot_count: usize,
+    requested_index: usize,
+    mapped_size: ?usize,
+    disposition: BufferWindowLookupDisposition,
+};
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -462,6 +479,40 @@ pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {
     };
 }
 
+pub fn summarizeBufferWindowLookup(
+    buffer_windows: []const ?BufferWindowObservation,
+    buffer_index: usize,
+) BufferWindowLookupSummary {
+    if (buffer_index >= buffer_windows.len) {
+        return .{
+            .slot_count = buffer_windows.len,
+            .requested_index = buffer_index,
+            .mapped_size = null,
+            .disposition = .invalid_index,
+        };
+    }
+
+    return if (buffer_windows[buffer_index]) |window| .{
+        .slot_count = buffer_windows.len,
+        .requested_index = buffer_index,
+        .mapped_size = window.mapped_size,
+        .disposition = .found_window,
+    } else .{
+        .slot_count = buffer_windows.len,
+        .requested_index = buffer_index,
+        .mapped_size = null,
+        .disposition = .missing_window,
+    };
+}
+
+pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {
+    return switch (summary.disposition) {
+        .found_window => 0,
+        .invalid_index => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        .missing_window => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    };
+}
+
 test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
     try std.testing.expectEqual(WaitClass.indefinite, try classifyWaitClass(-1));
     try std.testing.expectEqual(WaitClass.nonblocking, try classifyWaitClass(0));
@@ -794,6 +845,49 @@ test "resolveBufferFdLookupReturn keeps errno-shaped buffer-fd lookup returns ex
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         resolveBufferFdLookupReturn(summarizeBufferFdLookup(&buffer_fds, 5)),
+    );
+}
+
+test "summarizeBufferWindowLookup keeps perf_buffer__buffer slot classification and mapped-size passthrough compact" {
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    const found = summarizeBufferWindowLookup(&buffer_windows, 2);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.found_window, found.disposition);
+    try std.testing.expectEqual(@as(usize, 3), found.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), found.requested_index);
+    try std.testing.expectEqual(@as(?usize, 8192), found.mapped_size);
+
+    const missing = summarizeBufferWindowLookup(&buffer_windows, 1);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.missing_window, missing.disposition);
+    try std.testing.expectEqual(@as(?usize, null), missing.mapped_size);
+
+    const invalid = summarizeBufferWindowLookup(&buffer_windows, 4);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(@as(?usize, null), invalid.mapped_size);
+}
+
+test "resolveBufferWindowLookupReturn keeps errno-shaped perf_buffer__buffer returns explicit" {
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(&buffer_windows, 0)),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(&buffer_windows, 1)),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(&buffer_windows, 5)),
     );
 }
 
