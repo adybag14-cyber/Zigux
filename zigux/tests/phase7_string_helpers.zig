@@ -39,6 +39,20 @@ test "phase 7 string helpers starter matches tables through the first null entry
     try std.testing.expectEqual(@as(?usize, null), string_helpers.matchString(&values, "ignored"));
 }
 
+test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
+    var padded = [_]u8{ '#', '#', '#', '#', '#', '#' };
+    string_helpers.memcpyAndPad(&padded, "zig", 3, '.');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'i', 'g', '.', '.', '.' }, &padded);
+
+    var truncated = [_]u8{ '#', '#', '#', '#' };
+    string_helpers.memcpy_and_pad(&truncated, "alphabet", 8, '.');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'l', 'p', 'h' }, &truncated);
+
+    var short_source = [_]u8{ '#', '#', '#', '#', '#' };
+    string_helpers.memcpyAndPad(&short_source, "go", 4, '!');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'g', 'o', '!', '!', '!' }, &short_source);
+}
+
 test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {
     var replace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
     try std.testing.expectEqual(@as(usize, 3), string_helpers.strreplace(&replace_buf, '-', '_'));
