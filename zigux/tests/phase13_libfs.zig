@@ -196,6 +196,7 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-release-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
@@ -205,6 +206,7 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
     try expectContains(manifest_text, "simple directory emptiness");
     try expectContains(manifest_text, "transaction acquire planning");
+    try expectContains(manifest_text, "simple_transaction_release()");
     try expectContains(manifest_text, "transaction publish planning");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
