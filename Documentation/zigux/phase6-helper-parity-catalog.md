@@ -29,9 +29,11 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
 - focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+- compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
+- direct local corpus evidence checker: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-bsearch-test`
-- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
+- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion, the dedicated direct C ABI equality-budget replay, and the compact shared seed fixture companion that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
 
 ### checksum
 - roadmap anchor: `lib/checksum.c`
@@ -52,6 +54,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
 - dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`
+- exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - Linux-style packet review route: `make -C zigux phase6-hexdump-review`
