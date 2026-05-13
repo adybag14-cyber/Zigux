@@ -120,6 +120,7 @@ REQUIRED_SNIPPETS = {
     ],
     SLICE_PATH.as_posix(): [
         "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
+        "- `IndexRange`",
         "- `equalRangeIndex`",
         "- `bsearchEqualRangeIndex`",
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
@@ -127,6 +128,7 @@ REQUIRED_SNIPPETS = {
         "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
         "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
         "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
+        "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.",
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
@@ -527,6 +529,12 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
+            "- `IndexRange`",
+            "- `IndexRangeDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
             "- `equalRangeIndex`",
             "- `equalRangeDrift`",
         )
@@ -541,6 +549,12 @@ def run_self_test() -> None:
             SLICE_PATH.as_posix(),
             "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
             "Reviewers should treat that file as the live executable packet.",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.",
+            "Within that helper-local surface, the exported `IndexRange` result type drifted.",
         )
         assert_failure(
             root,
