@@ -79,7 +79,7 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `23-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",
-    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `12-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, the `defconfig` and `savedefconfig` mode-argument packet, the rewrite-mode trio (`yes2modconfig`, `mod2yesconfig`, `mod2noconfig`), and the current confdata packet all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
+    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `13-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, the `defconfig` and `savedefconfig` mode-argument packet, the rewrite-mode trio (`yes2modconfig`, `mod2yesconfig`, `mod2noconfig`), and the duplicate-malformed quoted reassignment replay all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
 ]
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
@@ -352,6 +352,11 @@ EXPECTED_CONFDATA_CASES = (
         "input": "last_state_transitions.config",
         "expected": "last_state_transitions_expected.json",
     },
+    {
+        "name": "duplicate_malformed_quoted_assignment",
+        "input": "duplicate_malformed_quoted_assignment.config",
+        "expected": "duplicate_malformed_quoted_assignment_expected.json",
+    },
 )
 
 EXPECTED_CONFDATA_MANIFEST = {
@@ -360,7 +365,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     "mode": "bounded config bridge",
     "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
     "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-    "case_count": 12,
+    "case_count": 13,
     "cases": [case["name"] for case in EXPECTED_CONFDATA_CASES],
     "input_packet": [case["input"] for case in EXPECTED_CONFDATA_CASES],
     "expected_packet": [case["expected"] for case in EXPECTED_CONFDATA_CASES],
@@ -710,7 +715,7 @@ def run_self_test_checks() -> list[str]:
                 expected=EXPECTED_CONFDATA_MANIFEST,
                 label="kconfig_bridge_confdata_manifest",
             ),
-            ["kconfig_bridge_confdata_manifest:case_count:expected=12:actual=11"],
+            ["kconfig_bridge_confdata_manifest:case_count:expected=13:actual=11"],
         ),
         (
             "workflow_tests_readme_selftest_missing",
