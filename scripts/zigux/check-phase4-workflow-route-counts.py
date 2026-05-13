@@ -178,6 +178,7 @@ SELFTEST_CASES = [
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
     "missing_workflow_artifact_diff_determinism_self_test_route",
+    "missing_workflow_artifact_diff_determinism_route",
     "missing_workflow_remaining_gap_self_test_route",
     "missing_workflow_remaining_gap_route",
     "missing_workflow_route_counts_self_test_route",
@@ -679,6 +680,29 @@ def run_selftest() -> None:
         )
         expect_failure(
             "missing workflow artifact-diff determinism self-test route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing workflow artifact-diff determinism route",
             lambda: check(
                 makefile,
                 workflow,
