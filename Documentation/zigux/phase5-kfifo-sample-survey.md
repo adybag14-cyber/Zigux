@@ -8,7 +8,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 * `PHASE5_LANE_KEY=P5-L01`
 * `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
 * `PHASE5_SLICE=kfifo-reference-sample-starter`
-* scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, exact bounded checks for the shipped `samples/zigux/bytestream_fifo.zig` replay, and current shared-packet truthfulness around the narrower kobject caveat and the missing dedicated bytestream survey path
+* scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, exact bounded checks for the shipped `samples/zigux/bytestream_fifo.zig` replay, and current shared-packet truthfulness around the narrower kobject caveat plus the directly readable bytestream survey companion
 * product boundary:
   * `Documentation/zigux/phase5-kfifo-sample-survey.md`
   * `Documentation/zigux/phase5-sample-review-guide.md`
@@ -22,6 +22,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   * `zigux/tests/phase5_build.zig`
   * `zigux/tests/phase5_bytestream_fifo.zig`
   * `zigux/tests/phase5_bytestream_fifo_manifest.json`
+  * `zigux/tests/phase5_bytestream_fifo_survey.zig`
 
 ## Why this slice exists
 
@@ -51,7 +52,7 @@ Current `master` also keeps the later runtime-oriented family separate from thes
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_loader.zig`
 
-For the `kfifo` anchor, current `master` already ships the roadmap-backed side-by-side sample port. The remaining same-lane job in this note is to keep its exact checks, approved in-memory idiom, and non-goals visible while keeping the bytestream packet aligned with the live three-file sample-root packet, the narrower kobject caveat, and the separate Phase 9 runtime family.
+For the `kfifo` anchor, current `master` already ships the roadmap-backed side-by-side sample port. The remaining same-lane job in this note is to keep its exact checks, approved in-memory idiom, and non-goals visible while keeping the bytestream packet aligned with the live three-file sample-root packet, the directly readable bytestream survey companion, the narrower kobject caveat, and the separate Phase 9 runtime family.
 
 ## Survey findings
 
@@ -60,8 +61,7 @@ For the `kfifo` anchor, current `master` already ships the roadmap-backed side-b
   * bounded in-memory FIFO behavior such as `kfifo_in`, `kfifo_out`, `kfifo_put`, `kfifo_get`, `kfifo_skip`, and `kfifo_peek`
   * lifecycle setup and teardown around `example_init()` and `example_exit()`
   * procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
-* the live Zigux repo ships the bytestream sample itself in `samples/zigux/bytestream_fifo.zig`, the focused replay in `zigux/tests/phase5_bytestream_fifo.zig`, the manifest in `zigux/tests/phase5_bytestream_fifo_manifest.json`, and the shared build route in `zigux/tests/phase5_build.zig`
-* the live repo does not currently expose a dedicated `zigux/tests/phase5_bytestream_fifo_survey.zig` readback path, so this note should keep the bytestream packet scoped to the sample, focused replay, manifest, shared build entrypoint, and shared reminder surfaces that are directly readable today
+* the live Zigux repo ships the bytestream sample itself in `samples/zigux/bytestream_fifo.zig`, the focused replay in `zigux/tests/phase5_bytestream_fifo.zig`, the manifest in `zigux/tests/phase5_bytestream_fifo_manifest.json`, the dedicated survey companion in `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the shared build route in `zigux/tests/phase5_build.zig`
 * the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml` already help keep this FIFO note aligned with the same bounded Phase 5 packet described from the docs root, shared guide, checklist, sample root, scripts root, tests root, and workflow surface
 * the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice and its current sample-owned review packet
 
@@ -120,26 +120,25 @@ Shared no-extra-sample reminders for `bitmap`, `string`, `cmdline`, `argv_split`
 * does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 * does the same sample packet still keep `StorageBacking.embedded_fixed_buffer` explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue?
 * does `BytestreamFifoSample.reviewContract().focus` still keep the sample-owned cue order explicit for `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`, with `zigux/tests/phase5_bytestream_fifo.zig` still exact-checking that same order?
-* do `previewInto()`, `snapshotInto()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, and the reset-bookkeeping checks still stay aligned across this note, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_manifest.json` through `zigux/tests/phase5_build.zig` instead of leaving reviewers to infer the bounded packet from only one surface?
+* do `previewInto()`, `snapshotInto()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, the dedicated `zigux/tests/phase5_bytestream_fifo_survey.zig` companion, and the reset-bookkeeping checks still stay aligned across this note, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_manifest.json` through `zigux/tests/phase5_build.zig` instead of leaving reviewers to infer the bounded packet from only one surface?
 * does that same lifecycle packet still keep the bounded `init()` -> `runAnchorReplay()` -> `exit()` path and the `cold -> initialized -> replay_complete -> exited` ownership boundary visible instead of leaving lifetime review to the shared tests alone?
 * do the shared Phase 5 contributor surfaces still keep this exact bytestream FIFO packet aligned with `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`, while the direct `zig test samples/zigux/bytestream_fifo.zig` replay remains a sample-local focused check and `.github/workflows/zigux-bootstrap.yml` stays honest about rerunning only the direct `zig build test --build-file zigux/tests/phase5_build.zig --summary all` command instead of the local `make` wrappers?
 * does that same approved in-memory FIFO idiom still keep its preview and snapshot evidence explicit so `previewInto()` stays non-destructive, `snapshotInto()` preserves the full anchor order for review, and the bounded overflow or reset edges remain visible from the same sample-backed packet?
 * do `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the narrower kobject caveat plus the later Phase 9 runtime starters, loader-side follow-ons, and focused bitmap companion replay instead of leaving this note to carry those boundaries alone?
 * does that same helper-facing packet still keep the bounded helper contract explicit so empty-queue peek and skip return `null`, empty enqueue copies `0` bytes, an empty preview reports `0` visible bytes without mutating its destination buffer, overflow push is rejected at the 32-byte capacity, a full-capacity preview copies all `32` visible bytes without truncation, draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and `reset()` clears queue state without rewinding lifecycle bookkeeping?
-* if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
+* if the sample behavior changes, is the manifest updated alongside the replay expectations and the dedicated survey companion instead of leaving reviewers to infer the new contract from code alone?
 * do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
-These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete sample behavior test, descriptor, manifest, and build entrypoint that current `master` already ships.
+These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete sample behavior test, descriptor, manifest, survey companion, and build entrypoint that current `master` already ships.
 
 ## Recorded gap vs roadmap
 
 The current gap is not "Zigux lacks every sample." The more precise gap is:
 
-* the repo already ships the roadmap-backed bytestream sample itself plus its focused replay, manifest, and shared `phase5_build.zig` route
+* the repo already ships the roadmap-backed bytestream sample itself plus its focused replay, manifest, dedicated survey companion, and shared `phase5_build.zig` route
 * the directly readable sample-root half of the broader non-runtime Phase 5 packet is currently three files, while the approved kobject anchor remains reviewable through the narrower note-plus-tests packet instead of a sample-root file
-* the bytestream packet does not currently include a directly readable `zigux/tests/phase5_bytestream_fifo_survey.zig` companion, so this note should not overstate that missing path as shipped evidence
 * the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters, loader-side follow-ons, and the focused `runtime_bitmap_top_bit_contract.zig` companion replay for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
-* the approved kfifo idiom should keep the embedded fixed-buffer storage cue and both repeatability routes explicit in the survey note too, so reviewers can see the sample-local self-check and the shared manifest-backed replay as one roadmap-backed contract instead of inferring one route from the other
+* the approved kfifo idiom should keep the embedded fixed-buffer storage cue and both repeatability routes explicit in the survey note too, so reviewers can see the sample-local self-check, dedicated survey companion, and shared manifest-backed replay as one roadmap-backed contract instead of inferring one route from the other
 * the kfifo sample now covers queue-order replay, preview truncation, full snapshot inspection, helper-boundary edge checks, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice therefore documents the already-landed `kfifo` side-by-side sample port against the roadmap's approved-idiom goal while keeping the bytestream note aligned with current repo reality instead of reviving absent bytestream-survey or kobject sample-root paths.
@@ -148,13 +147,13 @@ This slice therefore documents the already-landed `kfifo` side-by-side sample po
 
 The underlying bytestream sample contract remains anchored to the last focused replay recorded for `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`.
 
-This note was refreshed again on 2026-05-13 through connector-backed current-`master` inspection so the review surface stays truthful about the live packet.
+This note was refreshed again on 2026-05-13 through repo-first current-`master` inspection so the review surface stays truthful about the live packet.
 
 * connector-backed readback confirmed that `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_build.zig` remain directly readable on current `master`
-* the same readback confirmed that `zigux/tests/phase5_bytestream_fifo_survey.zig` is not currently present on `master`, so this note now keeps the bytestream packet scoped to the surfaces that are actually readable today
-* the same readback confirmed that the broader shared Phase 5 contributor packet already keeps the direct sample-root packet at three files and keeps the kobject anchor on the narrower note-plus-tests packet instead of a shipped `samples/zigux/kobject_example.zig` path
-* the same readback confirmed that the later `runtime_*` family remains present and separate from the non-runtime Phase 5 reference packet
-* no new local `zig` replay was run for this note-only truthfulness refresh; validation for this update stayed on current-`master` repo inspection and roadmap-to-note alignment rather than claiming a fresh end-to-end sample rerun
+* public GitHub read fallback confirmed that `zigux/tests/phase5_bytestream_fifo_survey.zig` is directly readable on current `master`, so this note now keeps the bytestream packet scoped to the survey-backed surfaces that are actually visible today
+* the same repo-first comparison confirmed that the broader shared Phase 5 contributor packet already keeps the direct sample-root packet at three files and keeps the kobject anchor on the narrower note-plus-tests packet instead of a shipped `samples/zigux/kobject_example.zig` path
+* the same repo-first comparison confirmed that the later `runtime_*` family remains present and separate from the non-runtime Phase 5 reference packet
+* no new local `zig` replay was run for this note-only truthfulness refresh; validation for this update stayed on current-`master` repo inspection, public GitHub fallback for the flaky survey-path readback, and roadmap-to-note alignment rather than claiming a fresh end-to-end sample rerun
 
 ## Review gates for this survey
 
@@ -184,4 +183,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows another real same-lane drift on current `master`. If the bytestream packet itself changes later, keep the survey note, sample, focused replay, manifest, and shared build route aligned together; if a dedicated bytestream survey companion ever lands on `master`, add it here only after direct readback confirms the path exists.
+Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows another real same-lane drift on current `master`. If the bytestream packet itself changes later, keep the survey note, sample, focused replay, manifest, dedicated survey companion, and shared build route aligned together.
