@@ -45,10 +45,12 @@ FIXDEP_CLOSURE_MARKER = (
 PHASE2_COMPANION_NOTES_MARKER = (
     "`Documentation/zigux/phase2-fixdep-next-step-note.md` and "
     "`Documentation/zigux/phase2-confdata-bridge-survey.md` are active Phase 2 companion notes "
-    "on current `master`: the fixdep note keeps the bounded checker follow-through explicit after "
-    "the live eleven-case packet moved ahead of the older gate wording, and the confdata survey "
-    "keeps the roadmap-backed scaffold marked closed so future reopening stays bridge-local "
-    "instead of recreating missing-scaffold claims."
+    "on current `master`: the fixdep note records that `scripts/zigux/check-phase2-fixdep-gate.py`, "
+    "`Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and "
+    "`zigux/tests/fixtures/fixdep/cases.json` already agree on the same live eleven-case packet "
+    "and keeps the parked validation rerun explicit, and the confdata survey keeps the roadmap-backed "
+    "scaffold marked closed so future reopening stays bridge-local instead of recreating "
+    "missing-scaffold claims."
 )
 
 PHASE2_REQUIRED_SOURCE_MARKERS = [
