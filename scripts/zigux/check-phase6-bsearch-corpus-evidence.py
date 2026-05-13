@@ -24,7 +24,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 
 
-FIXTURE_BASELINE = """const std = @import(\"std\");
+FIXTURE_BASELINE = """const std = @import("std");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
@@ -33,10 +33,10 @@ pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
 
 pub const sorted_symbols = [_][]const u8{
-    \"do_exit\",
-    \"kfree\",
-    \"kmalloc\",
-    \"schedule\",
+    "do_exit",
+    "kfree",
+    "kmalloc",
+    "schedule",
 };
 
 pub const RawRecord = extern struct {
@@ -69,7 +69,7 @@ pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
 }
 
-test \"phase 6 bsearch vectors stay deterministic and sorted\" {
+test "phase 6 bsearch vectors stay deterministic and sorted" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
     try std.testing.expectEqual(@as(usize, 33), dynamic_case_lengths.len);
@@ -116,7 +116,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
     ],
     CATALOG_PATH.as_posix(): [
-        "- exact corpus evidence: `zigux/tests/phase6_bsearch.zig` still anchors 15-element ascending and descending equality replays with five representative hit-or-miss probes each across typed and raw lookup paths, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig` still sweep dynamic lengths `0...32` plus packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` comparison budget",
+        "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a 15-element representative inline corpus, `10` typed and `10` raw lookup budget checks capped at `4` comparator calls, plus lower- and upper-bound as well as direct C ABI equality sweeps across dynamic lengths `0...32` and packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` budget",
     ],
     SLICE_PATH.as_posix(): [
         "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
@@ -132,7 +132,7 @@ REQUIRED_SNIPPETS = {
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
-        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
+        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture-backed timing route; the compact `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains supporting seed evidence outside the executable perf packet",
     ],
 }
 
@@ -412,8 +412,7 @@ def scaffold_repo(root: Path) -> None:
             "inline_corpus_governance": {"bsearch": dict(EXPECTED_BSEARCH_INLINE_CORPUS_GOVERNANCE)},
         },
         "determinism_evidence": {
-            "bsearch": dict(EXPECTED_BSEARCH_EVIDENCE),
-        },
+            "bsearch": dict(EXPECTED_BSEARCH_EVIDENCE)},
         "exact_checks": list(REQUIRED_EXACT_CHECKS),
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
@@ -517,8 +516,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             CATALOG_PATH.as_posix(),
-            "- exact corpus evidence: `zigux/tests/phase6_bsearch.zig` still anchors 15-element ascending and descending equality replays with five representative hit-or-miss probes each across typed and raw lookup paths, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig` still sweep dynamic lengths `0...32` plus packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` comparison budget",
-            "- exact corpus evidence: drifted",
+            "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a 15-element representative inline corpus, `10` typed and `10` raw lookup budget checks capped at `4` comparator calls, plus lower- and upper-bound as well as direct C ABI equality sweeps across dynamic lengths `0...32` and packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` budget",
+            "- exact manifest-backed evidence: drifted",
         )
         assert_failure(
             root,
@@ -559,7 +558,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             PERF_SURVEY_PATH.as_posix(),
-            "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
+            "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture-backed timing route; the compact `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains supporting seed evidence outside the executable perf packet",
             "- bsearch review-surface posture: drifted",
         )
     print("self-test passed")
