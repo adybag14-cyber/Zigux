@@ -398,6 +398,28 @@ fn expectExhaustiveUnpaddedTailCanonicality(variant: Variant) !void {
     }
 }
 
+fn expectExhaustiveReverseMapClassification(variant: Variant) !void {
+    const alphabet = alphabetFor(variant);
+    const map = reverseMap(variant);
+    var expected_lookup = [_]i8{invalid_reverse_value} ** 256;
+
+    for (alphabet, 0..) |ch, idx| {
+        expected_lookup[ch] = @as(i8, @intCast(idx));
+    }
+
+    for (0..256) |raw_ch| {
+        const ch: u8 = @intCast(raw_ch);
+        const expected = expected_lookup[ch];
+        try std.testing.expectEqual(expected, map[ch]);
+
+        if (expected < 0) {
+            try std.testing.expectError(error.InvalidInput, decodeMapValue(map, ch));
+        } else {
+            try std.testing.expectEqual(@as(u6, @intCast(expected)), try decodeMapValue(map, ch));
+        }
+    }
+}
+
 test "base64 standard encoding matches Linux-style padded output" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], "hi", true, .std);
@@ -544,4 +566,10 @@ test "base64 decode exhaustively accepts only canonical unpadded short tails acr
     try expectExhaustiveUnpaddedTailCanonicality(.std);
     try expectExhaustiveUnpaddedTailCanonicality(.urlsafe);
     try expectExhaustiveUnpaddedTailCanonicality(.imap);
+}
+
+test "base64 reverse maps exhaustively classify each shipped alphabet" {
+    try expectExhaustiveReverseMapClassification(.std);
+    try expectExhaustiveReverseMapClassification(.urlsafe);
+    try expectExhaustiveReverseMapClassification(.imap);
 }
