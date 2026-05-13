@@ -32,11 +32,6 @@
       "zigux/tests/phase10_virtio_input_manifest.json",
       "Documentation/zigux/phase10-virtio-input-survey.md",
       "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-      "zigux/tests/phase10_virtio_input_teardown_observation.zig"
-    ],
-    "missing_direct_input_paths": [
-      "Documentation/zigux/phase10-virtio-input-slice.md",
-      "Documentation/zigux/phase10-virtio-input-module-slice.md",
       "drivers/virtio/virtio_input.zig",
       "drivers/virtio/virtio_input_verify.zig",
       "scripts/zigux/check-phase10-input-packet.py",
@@ -45,7 +40,12 @@
       "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
       "zigux/tests/phase10_virtio_input_registration_preflight.zig",
       "zigux/tests/phase10_virtio_input_status_drain.zig",
+      "zigux/tests/phase10_virtio_input_teardown_observation.zig",
       "zigux/tests/phase10_virtio_input_survey.zig"
+    ],
+    "missing_direct_input_paths": [
+      "Documentation/zigux/phase10-virtio-input-slice.md",
+      "Documentation/zigux/phase10-virtio-input-module-slice.md"
     ]
   },
   "gaps": [
@@ -54,35 +54,42 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_manifest.json",
-      "why_now": "Current master still needs one fail-closed manifest that records the live reminder packet honestly while the wider direct helper and checker surfaces remain missing."
+      "why_now": "Current master still needs one fail-closed manifest that records the live reminder packet honestly while risky transport work remains blocked."
     },
     {
       "id": "phase10-virtio-input-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
-      "why_now": "The lane still needs one directly readable survey note that compares the roadmap anchor against repo reality without claiming missing helper, checker, or slice-note surfaces as landed."
+      "why_now": "The lane still needs one directly readable survey note that compares the roadmap anchor against repo reality without widening into transport-backed lifecycle claims."
+    },
+    {
+      "id": "phase10-virtio-input-direct-packet-restore",
+      "status": "starter_landed",
+      "kind": "reviewability",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "Fresh current-master public-tree rereads now materialize the direct helper, verify, checker, and focused preflight plus status-drain packet again, so the reminder surfaces should keep that landed bundle explicit instead of recording it as missing."
     },
     {
       "id": "phase10-virtio-input-teardown-observation-replay",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-      "why_now": "The teardown-observation replay is the only directly readable input-local replay left on current master, so the reminder packet should keep that bounded teardown evidence explicit."
+      "why_now": "The teardown-observation replay remains part of the direct input packet and keeps one bounded reset-facing runtime-state foothold explicit below risky transport."
     },
     {
-      "id": "phase10-virtio-input-direct-packet-restore",
+      "id": "phase10-virtio-input-slice-companions",
       "status": "repo_reality_gap",
-      "kind": "reviewability",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "Fresh current-master reads still return 404 for the direct helper, verify replay, checker, focused preflight replays, status-drain replay, survey gate, and slice-note companions, so the next same-lane move is a bounded restore or another reminder-packet truthfulness repair rather than pretending the full packet is already shipped."
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-input-slice.md",
+      "why_now": "The packet-local slice-note companions still do not materialize on current master, so same-lane reminder work should keep them explicit as gaps instead of flattening them into shipped review evidence."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-      "why_now": "Real event delivery, input registration parity, freeze or restore behavior, and transport-backed queue callbacks remain blocked even if the missing direct packet is restored later."
+      "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+      "why_now": "Real event delivery, input registration parity, freeze or restore behavior, and transport-backed queue callbacks remain blocked even with the direct reviewability packet restored."
     }
   ]
 }
