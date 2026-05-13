@@ -168,6 +168,24 @@ test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
     try expectContains(workqueue_survey_source, "live execution in C");
 }
 
+test "phase14 workqueue survey keeps reviewer guardrails explicit" {
+    const workqueue_survey_source = try readWorkqueueSurveySource();
+    defer std.testing.allocator.free(workqueue_survey_source);
+
+    try expectContains(workqueue_survey_source, "## Reviewability guardrails");
+    try expectContains(workqueue_survey_source, "`zigux/tests/phase14_workqueue_bridge.zig`");
+    try expectContains(workqueue_survey_source, "`zigux/tests/phase14_workqueue_reviewability.zig`");
+    try expectContains(workqueue_survey_source, "lane `P14-L04`");
+    try expectContains(workqueue_survey_source, "surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`");
+    try expectContains(workqueue_survey_source, "delayed-work requeue");
+    try expectContains(workqueue_survey_source, "flush or drain completion");
+    try expectContains(workqueue_survey_source, "scheduler-visible worker state");
+    try expectContains(workqueue_survey_source, "rescuer execution");
+    try expectContains(workqueue_survey_source, "hotplug rebinding");
+    try expectContains(workqueue_survey_source, "runtime `max_active` retuning");
+    try expectContains(workqueue_survey_source, "Do not treat this lane as permission to claim wrapper ownership");
+}
+
 test "phase14 workqueue survey keeps the wrapper-backed full-bundle replay explicit" {
     const workqueue_survey_source = try readWorkqueueSurveySource();
     defer std.testing.allocator.free(workqueue_survey_source);
