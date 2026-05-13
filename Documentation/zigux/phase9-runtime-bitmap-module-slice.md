@@ -25,6 +25,8 @@ This document tracks the current bounded runtime bitmap starter packet.
 
 The runtime bitmap packet needs a family-local review surface that keeps the sample lifecycle, focused diff cases, shared-request handoff, top-bit boundary contract, and focused tests visible without implying live runtime substrate parity.
 
+The `zigux/tests/runtime_bitmap_diff.zig` gate owns the bounded `lib/test_bitmap.c` replay plus the selftest-complete and exit lifecycle guards, so those checks stay bitmap-local review proof instead of borrowing coverage from the shared loader packet.
+
 The live runtime substrate is still missing, so this slice must stay review-only and keep the broader blocked handoff explicit.
 
 ## Roadmap Gap
