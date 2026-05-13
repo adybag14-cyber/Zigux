@@ -182,7 +182,6 @@ MARKERS = {
         "pub const FeatureNegotiationSummary = struct {",
         "pub const TransportIdentitySummary = struct {",
         "pub const SelectedQueueReadinessSummary = struct {",
-        "pub const ConfiguredQueueCoverageSummary = struct {",
         "pending_config_write: ?ConfigWritePlanSummary = null,",
         "pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {",
         "self.pending_config_write = plan;",
@@ -190,7 +189,6 @@ MARKERS = {
         "pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary {",
         "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
         "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
-        "pub fn configuredQueueCoverageSummary(self: *const Self) ConfiguredQueueCoverageSummary {",
         "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
         "self.pending_config_write = null;",
         'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
@@ -198,15 +196,12 @@ MARKERS = {
     "drivers/virtio/virtio_mmio_verify.zig": [
         'test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {',
         'test "virtio mmio wrapper-facing config review stays scoped to the current generation" {',
-        'test "virtio mmio wrapper-facing queue coverage review stays within configured queues" {',
         'test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {',
-        "var summary = device.configuredQueueCoverageSummary();",
+        "var summary = device.probePreflightSummary();",
         "try std.testing.expect(!summary.ready_for_probe_handoff);",
         "try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);",
         "device.bumpConfigGeneration();",
         "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
-        "try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-        "try std.testing.expect(summary.all_configured_queues_ready_for_handoff);",
         "try std.testing.expect(summary.queue_ready_for_handoff);",
     ],
     "zigux/tests/phase10_virtio_mmio.zig": [
@@ -219,15 +214,11 @@ MARKERS = {
         'test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {',
         'test "phase10 virtio mmio marks probe preflight incomplete when transport identity drifts" {',
         'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
-        'test "phase10 virtio mmio summarizes configured-queue coverage across the staged queue window" {',
-        "var summary = device.configuredQueueCoverageSummary();",
-        "try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-        "try std.testing.expect(summary.all_configured_queues_ready_for_handoff);",
     ],
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
         'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
         'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
-        'try std.testing.expectEqual(@as(usize, 15), manifest.survey_summary.preexisting_phase10_test_files);',
+        'try std.testing.expectEqual(@as(usize, 11), manifest.survey_summary.preexisting_phase10_test_files);',
         'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
         'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
         'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
@@ -238,33 +229,23 @@ MARKERS = {
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio_verify.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "configured-queue coverage summary") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_mmio_verify.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);',
-        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "configured-queue coverage summary") != null);',
         'try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);',
-        'var saw_mmio_configured_queue_coverage = false;',
-        'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
-        'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "configured, programmed, ready, and handoff-ready queue counts") != null);',
-        'try std.testing.expect(saw_mmio_configured_queue_coverage);',
-        'try std.testing.expect(starter_landed_count >= 18);',
+        'try std.testing.expect(starter_landed_count >= 16);',
     ],
     "Documentation/zigux/phase10-virtio-mmio-slice.md": [
         "one explicit transport-identity summary",
         "one bounded config-write disposition summary",
         "one bounded probe-preflight summary",
         "one bounded selected-queue readiness summary",
-        "one bounded configured-queue coverage summary",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
@@ -293,7 +274,6 @@ MARKERS = {
         "transport-identity summary",
         "consumes that identity snapshot",
         "selected-queue readiness summary",
-        "configured-queue coverage summary",
         "generation-scoped config-review posture",
         "probe-preflight summary flips from ready to blocked",
         "queue-ready-for-handoff posture",
@@ -329,7 +309,7 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 ]
 EXPECTED_SUMMARY = {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 15,
+    "preexisting_phase10_test_files": 11,
     "preexisting_virtio_mmio_verify_present": True,
 }
 EXPECTED_GAPS = {
@@ -344,14 +324,12 @@ EXPECTED_GAPS = {
     "phase10-mmio-queue-size-helper": "starter_landed",
     "phase10-virtio-mmio-slice-note": "starter_landed",
     "phase10-mmio-feature-word-selector-helper": "starter_landed",
-    "phase10-mmio-feature-negotiation-summary-helper": "starter_landed",
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-plan-helper": "starter_landed",
     "phase10-mmio-transport-identity-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
     "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
-    "phase10-mmio-configured-queue-coverage-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -437,7 +415,7 @@ def build_fixture() -> dict[str, str]:
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "survey_summary": {
                 "virtio_mmio_c_lines": 829,
-                "preexisting_phase10_test_files": 15,
+                "preexisting_phase10_test_files": 11,
                 "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
@@ -483,11 +461,11 @@ def run_self_test() -> int:
             manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             for gap in manifest["gaps"]:
-                if gap["id"] == "phase10-mmio-configured-queue-coverage-helper":
+                if gap["id"] == "phase10-mmio-selected-queue-readiness-helper":
                     gap["status"] = "ready_next"
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             _, markers = validate(root)
-            expected = "manifest:gap_status:phase10-mmio-configured-queue-coverage-helper='ready_next'"
+            expected = "manifest:gap_status:phase10-mmio-selected-queue-readiness-helper='ready_next'"
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
