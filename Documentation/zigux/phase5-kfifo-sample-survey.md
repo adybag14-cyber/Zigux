@@ -6,7 +6,7 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
 
 * `PHASE5_STATUS=parked-doc-accuracy`
 * `PHASE5_LANE_KEY=P5-L01`
-* `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
+* `PHASE5_SURVEYED_COMMIT=00655f9a038c77a0d54f216d69e2a7b5f5355a17`
 * `PHASE5_SLICE=kfifo-reference-sample-starter`
 * scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and current bytestream packet truthfulness for the directly readable sample-root contract
 * directly readable same-lane surfaces in this run:
@@ -131,7 +131,7 @@ This note was refreshed on 2026-05-13 through repo-first current-`master` inspec
 
 1. confirm the Phase 5 anchor is still the Linux bytestream example
 
-* `rg -n "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5" Documentation/zigux samples zigux/tests`
+* `rg -n "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=00655f9a038c77a0d54f216d69e2a7b5f5355a17|Phase 5" Documentation/zigux samples zigux/tests`
 
 2. confirm the current sample-root surface for this slice
 
