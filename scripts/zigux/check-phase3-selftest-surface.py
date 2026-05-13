@@ -36,6 +36,22 @@ NOTE_POLICY_MARKERS = (
 NOTE_NEXT_STEP_PREFIX = "## Next bounded step"
 NOTE_NEXT_STEP_NEXT_PREFIX = "## Non-goals"
 
+HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX = "## Current packet"
+HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX = "## Review boundary"
+HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS = {
+    "include/zigux/dev_t.h": 1,
+    "zigux/bindings/abi.zig": 1,
+    "zigux/bindings/dev_t.zig": 1,
+    "zigux/uapi/version.zig": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/tests/phase3_abi_dump.zig": 1,
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
+    "zigux/tests/fixtures/phase3_abi/expected.json": 1,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
+    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
+}
+
 HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
@@ -204,6 +220,16 @@ def _check_note_next_step(path: Path) -> list[str]:
     )
 
 
+def _check_header_family_survey_current_packet(path: Path) -> list[str]:
+    return _check_prefix_section_marker_counts(
+        path,
+        HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
+        HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
+        HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS,
+        "header-family survey current packet",
+    )
+
+
 def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
     return _check_prefix_section_marker_counts(
         path,
@@ -250,6 +276,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     )
 
     issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
+    issues.extend(_check_header_family_survey_current_packet(repo_root / SURVEY_PATH))
     issues.extend(_check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH))
 
     tests_readme = repo_root / TESTS_README_PATH
@@ -309,9 +336,10 @@ def _populate_repo(root: Path) -> None:
         "\n".join(
             (
                 "# Phase 3 ABI Header Family Survey",
-                "## Current packet",
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
                 "current packet marker",
-                "## Review boundary",
+                *HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS.keys(),
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
                 "review boundary marker",
                 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
                 *HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS.keys(),
@@ -440,6 +468,53 @@ def run_self_test() -> int:
         _populate_repo(root)
         survey_path = root / SURVEY_PATH
         survey_path.write_text(
+            _read(survey_path).replace("include/zigux/dev_t.h", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "include/zigux/dev_t.h (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected current-packet dev_t header drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace("zigux/uapi/version.zig\n", "", 1)
+            + "\n## Future follow-through\nzigux/uapi/version.zig\n",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "zigux/uapi/version.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected current-packet version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace("zigux/bindings/dev_t.zig\n", "", 1)
+            + "\n## Future follow-through\nzigux/bindings/dev_t.zig\n",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "zigux/bindings/dev_t.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected current-packet bindings/dev_t drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
             _read(survey_path).replace(
                 "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
                 "",
@@ -496,12 +571,10 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        survey_text = _read(survey_path)
+        before, separator, after = survey_text.partition(HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX + "\n")
         survey_path.write_text(
-            _read(survey_path).replace(
-                "zigux/bindings/dev_t.zig",
-                "## Future follow-through\nzigux/bindings/dev_t.zig",
-                1,
-            ),
+            before + separator + after.replace("zigux/bindings/dev_t.zig", "", 1),
             encoding="utf-8",
         )
         issues = validate_repo(root)
