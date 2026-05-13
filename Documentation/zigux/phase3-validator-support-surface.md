@@ -20,12 +20,15 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3-validator-support-surface.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+- `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
 - `scripts/zigux/survey-phase3-abi-constant-parity.py`
 - `scripts/zigux/phase3_catalog.py`
 - `scripts/zigux/phase3_check_lib.py`
 - `scripts/zigux/generate-phase3-check-wrappers.py`
 - `scripts/zigux/run-phase3-checks.py`
 - `Documentation/zigux/phase3-abi-slice.md`
+- `Documentation/zigux/phase3-abi-bindings-survey.md`
+- `Documentation/zigux/phase3-bindings-governance.md`
 - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 - `Documentation/zigux/phase3-kernel-export-shim-governance.md`
 - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
@@ -58,6 +61,9 @@ Phase 3 ABI and runtime tranche.
   not as historical-only references
 - keep `Documentation/zigux/phase3-validator-support-surface.md` paired with
   `scripts/zigux/validate-phase3-validator-support-surface.py`,
+  `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`,
+  `Documentation/zigux/phase3-abi-bindings-survey.md`,
+  `Documentation/zigux/phase3-bindings-governance.md`,
   `Documentation/zigux/phase3-kernel-export-shim-governance.md`, and
   `Documentation/zigux/phase3-abi-h-boundary-next-step.md` so the shipped
   validator-support inventory and the broad next-step reminder policy fail
@@ -78,6 +84,9 @@ Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/validate_phase3_selftest.py`,
 `scripts/zigux/validate-phase3-validator-support-surface.py`,
+`scripts/zigux/validate-phase3-linux-zigux-header-governance.py`,
+`Documentation/zigux/phase3-abi-bindings-survey.md`,
+`Documentation/zigux/phase3-bindings-governance.md`,
 `Documentation/zigux/phase3-abi-header-family-survey.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `Documentation/zigux/review-checklist.md`,
