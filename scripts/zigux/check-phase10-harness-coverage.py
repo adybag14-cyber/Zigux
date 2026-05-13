@@ -102,6 +102,9 @@ TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`drivers/virtio/virtio.zig`",
     "`drivers/virtio/virtio_driver_id.zig`",
+    "`drivers/virtio/virtio_ring.zig`",
+    "`drivers/virtio/virtio_ring_verify.zig`",
+    "`zigux/tests/phase10_virtio_ring_manifest.json`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
 ]
 
@@ -801,6 +804,51 @@ def run_self_test() -> int:
 
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "`drivers/virtio/virtio_ring.zig`",
+                "`drivers/virtio/virtio_ring_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_ring_surface",
+            root,
+            "tests_readme:`drivers/virtio/virtio_ring.zig`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`drivers/virtio/virtio_ring_verify.zig`",
+                "`drivers/virtio/virtio_ring_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_ring_verify_surface",
+            root,
+            "tests_readme:`drivers/virtio/virtio_ring_verify.zig`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`zigux/tests/phase10_virtio_ring_manifest.json`",
+                "`zigux/tests/phase10_virtio_ring_manifest_missing.json`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_ring_manifest",
+            root,
+            "tests_readme:`zigux/tests/phase10_virtio_ring_manifest.json`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
@@ -823,7 +871,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
