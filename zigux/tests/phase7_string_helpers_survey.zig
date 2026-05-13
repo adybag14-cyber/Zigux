@@ -30,6 +30,7 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     try expectContains(manifest, "\"current_master_state\": \"restored_starter_packet\"");
     try expectContains(manifest, "\"lib/string_helpers.zig\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(manifest, "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet.");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
@@ -58,6 +59,9 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
 
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
+    try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(scripts_root, "lib/string_helpers.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
@@ -65,6 +69,7 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
+    try expectContains(samples_root, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(samples_root, "lib/string_helpers.zig");
     try expectContains(samples_root, "zigux/tests/phase7_string_helpers.zig");
 
