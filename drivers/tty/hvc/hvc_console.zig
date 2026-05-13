@@ -128,6 +128,32 @@ pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegis
     };
 }
 
+pub const ResizeHandoffRequest = struct {
+    tty_present: bool,
+    winsize: Winsize,
+    keeps_live_resize_execution_out_of_scope: bool = true,
+};
+
+pub const ResizeHandoffSummary = struct {
+    tty_present: bool,
+    geometry_visible: bool,
+    keeps_live_resize_execution_out_of_scope: bool,
+};
+
+pub fn summarizeResizeHandoff(request: ResizeHandoffRequest) ResizeHandoffSummary {
+    const geometry_visible =
+        request.winsize.ws_row != 0 or
+        request.winsize.ws_col != 0 or
+        request.winsize.ws_xpixel != 0 or
+        request.winsize.ws_ypixel != 0;
+
+    return .{
+        .tty_present = request.tty_present,
+        .geometry_visible = geometry_visible,
+        .keeps_live_resize_execution_out_of_scope = request.keeps_live_resize_execution_out_of_scope,
+    };
+}
+
 pub const NotifierAddRequest = struct {
     notifier_add_success: bool,
     polling_fallback: bool,
@@ -322,6 +348,11 @@ pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSum
 
 pub fn hvc_kick() void {}
 
+pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
+    _ = hp;
+    _ = ws;
+}
+
 pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) c_int {
     _ = hp;
     return if (irq >= 0) 0 else -1;
@@ -399,6 +430,46 @@ test "phase11 hvc console keeps tty-registration handoff summary reviewable" {
     try std.testing.expect(summary.tty_port_linked);
     try std.testing.expect(summary.open_time_irq_request_ready);
     try std.testing.expect(summary.wakeup_after_registration);
+}
+
+test "phase11 hvc console keeps resize handoff summary reviewable" {
+    const summary = summarizeResizeHandoff(.{
+        .tty_present = true,
+        .winsize = .{
+            .ws_row = 40,
+            .ws_col = 120,
+            .ws_xpixel = 800,
+            .ws_ypixel = 600,
+        },
+    });
+    const fake_hp: *HvcStruct = @ptrFromInt(1);
+
+    try std.testing.expect(summary.tty_present);
+    try std.testing.expect(summary.geometry_visible);
+    try std.testing.expect(summary.keeps_live_resize_execution_out_of_scope);
+
+    __hvc_resize(fake_hp, .{
+        .ws_row = 25,
+        .ws_col = 80,
+        .ws_xpixel = 0,
+        .ws_ypixel = 0,
+    });
+}
+
+test "phase11 hvc console keeps zeroed resize geometry explicit" {
+    const summary = summarizeResizeHandoff(.{
+        .tty_present = false,
+        .winsize = .{
+            .ws_row = 0,
+            .ws_col = 0,
+            .ws_xpixel = 0,
+            .ws_ypixel = 0,
+        },
+    });
+
+    try std.testing.expect(!summary.tty_present);
+    try std.testing.expect(!summary.geometry_visible);
+    try std.testing.expect(summary.keeps_live_resize_execution_out_of_scope);
 }
 
 test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {
