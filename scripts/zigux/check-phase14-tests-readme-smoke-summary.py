@@ -49,6 +49,7 @@ REQUIRED_ANCHOR_MANIFESTS = [
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
 ]
+EXPECTED_ANCHOR_PACKET_COUNT = len(REQUIRED_ANCHOR_MANIFESTS)
 
 
 def repo_root() -> Path:
@@ -164,6 +165,11 @@ def require_manifest_alignment(errors: list[str], manifest: dict[str, object]) -
     if not isinstance(anchor_packets, list):
         errors.append(
             f"manifest shape drift in {SMOKE_MANIFEST_PATH.as_posix()}: anchor_packets"
+        )
+        return
+    if len(anchor_packets) != EXPECTED_ANCHOR_PACKET_COUNT:
+        errors.append(
+            f"manifest packet count drift in {SMOKE_MANIFEST_PATH.as_posix()}: expected {EXPECTED_ANCHOR_PACKET_COUNT}, found {len(anchor_packets)}"
         )
         return
 
@@ -619,6 +625,21 @@ def run_self_test() -> int:
         )
         write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
 
+        manifest = json.loads(good_smoke_manifest_text())
+        manifest["anchor_packets"].append(
+            {"manifest_path": "zigux/tests/phase14_extra_anchor_manifest.json"}
+        )
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "manifest packet count drift",
+            "self-test expected anchor-packet count drift failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
         write_text(root / SMOKE_MANIFEST_PATH, "{\n")
         expect_contains(
             check(root, source_text=MARKER),
@@ -634,7 +655,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=24")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
@@ -646,6 +667,10 @@ def run_self_test() -> int:
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_ANCHOR_MANIFEST_COUNT="
         f"{len(REQUIRED_ANCHOR_MANIFESTS)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_EXPECTED_ANCHOR_PACKET_COUNT="
+        f"{EXPECTED_ANCHOR_PACKET_COUNT}"
     )
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_ROUTE_MARKER_COUNT="
