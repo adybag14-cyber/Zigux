@@ -42,6 +42,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
     "`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
     "helper-local `compiler()` barrier coverage in `zigux/helpers/barrier.zig`",
 )
 
@@ -404,7 +405,7 @@ def run_self_test() -> int:
             print("expected missing odd-offset mmio replay failure")
             return 1
 
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(
             root,
             TEST_REL,
@@ -574,6 +575,25 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing byte-scoped owner-split survey failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue.startswith("missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers")
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing raw-pointer owner-split survey failure")
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
