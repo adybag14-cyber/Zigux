@@ -880,6 +880,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        closure_checklist_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
+        closure_checklist_path.write_text(
+            closure_checklist_path.read_text(encoding="utf-8").replace(
+                RELEASE_CLOSURE_CHECKLIST_MARKERS[6], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[6]}",
+        )
+
+        write_fixture_tree(base)
         lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
@@ -963,7 +976,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=29")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
