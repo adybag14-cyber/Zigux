@@ -110,6 +110,8 @@ EXPECTED_SELF_TEST_CASES = [
     "phase4_use_marker_drift",
     "survey_note_marker_round_trip",
     "survey_note_marker_drift",
+    "survey_replay_marker_round_trip",
+    "survey_replay_marker_drift",
     "review_note_marker_round_trip",
     "review_note_marker_drift",
     "docs_root_marker_round_trip",
@@ -145,15 +147,24 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}`",
     f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES={','.join(EXPECTED_SELF_TEST_CASES)}`",
 ]
+REQUIRED_SURVEY_REPLAY_MARKERS = [
+    "- `python3 scripts/zigux/artifact_diff.py --self-test`",
+    "- `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`",
+    "- `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`",
+    "- `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`",
+    "- `python3 scripts/zigux/check-artifact-diff-contract.py`",
+    "- `python3 scripts/zigux/validate-phase4.py`",
+    "- `make -C zigux phase4-validate`",
+]
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
     "- deterministic survey self-test catalog: `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, survey-note, review-note, docs-root, scripts-root, helper-summary, and contract-catalog drift coverage",
 ]
 REQUIRED_DOCS_ROOT_MARKERS = [
-    "- `python3 scripts/zigux/validate-phase4.py` keeps the shared `scripts/zigux/check-artifact-diff-contract.py` contract replay, the dedicated `scripts/zigux/check-phase4-artifact-diff-determinism.py` deterministic catalog checker, the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` workflow-route-count checker, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed runtime atomic64 handoff pair `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, the manifest-backed bitmap rollback survey pair `zigux/tests/phase4_bitmap_diff_manifest.json` plus `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint, `zigux/Makefile`, `make -C zigux phase4-validate`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4`, and the bootstrap workflow.",
+    "- `python3 scripts/zigux/validate-phase4.py` keeps the shared `scripts/zigux/check-artifact-diff-contract.py` contract replay, the dedicated `scripts/zigux/check-phase4-artifact-diff-determinism.py` deterministic catalog checker, the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` workflow-route-count checker, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, the manifest-backed runtime atomic64 handoff pair `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, the manifest-backed bitmap rollback survey pair `zigux/tests/phase4_bitmap_diff_manifest.json` plus `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint, `zigux/Makefile`, `make -C zigux phase4-validate`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4`, and the bootstrap workflow.`",
 ]
 REQUIRED_SCRIPTS_ROOT_MARKERS = [
-    "Phase 4 flow - `validate-phase4.py` checks that the shared Phase 4 rollback-readiness packet stays aligned across `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_manifest.json`, `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/phase4_bitmap_live_helper_replay.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/phase4_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` before the rollback and survey replays run.",
+    "Phase 4 flow - `validate-phase4.py` checks that the shared Phase 4 rollback-readiness packet stays aligned across `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_manifest.json`, `zigux/tests/phase4_bitmap_diff_survey.zig`, `zigux/tests/phase4_bitmap_live_helper_replay.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/phase4_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` before the rollback and survey replays run.`",
 ]
 
 
@@ -300,6 +311,16 @@ def run_self_test() -> int:
         lambda: assert_markers(REQUIRED_SURVEY_NOTE_MARKERS[0], REQUIRED_SURVEY_NOTE_MARKERS, "survey_note"),
     )
     covered_cases.append("survey_note_marker_drift")
+
+    survey_replay_text = "\n".join(REQUIRED_SURVEY_REPLAY_MARKERS)
+    assert_markers(survey_replay_text, REQUIRED_SURVEY_REPLAY_MARKERS, "survey_replay")
+    covered_cases.append("survey_replay_marker_round_trip")
+
+    expect_assertion(
+        "survey_replay_marker_drift",
+        lambda: assert_markers(REQUIRED_SURVEY_REPLAY_MARKERS[0], REQUIRED_SURVEY_REPLAY_MARKERS, "survey_replay"),
+    )
+    covered_cases.append("survey_replay_marker_drift")
 
     review_note_text = "\n".join(REQUIRED_REVIEW_NOTE_MARKERS)
     assert_markers(review_note_text, REQUIRED_REVIEW_NOTE_MARKERS, "review_note")
@@ -526,6 +547,7 @@ def main() -> int:
 
     survey_note_text = ARTIFACT_DIFF_TOOLING_SURVEY.read_text(encoding="utf-8")
     assert_markers(survey_note_text, REQUIRED_SURVEY_NOTE_MARKERS, "survey_note")
+    assert_markers(survey_note_text, REQUIRED_SURVEY_REPLAY_MARKERS, "survey_replay")
 
     docs_root_text = DOCS_ROOT_NOTE.read_text(encoding="utf-8")
     assert_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "docs_root")
