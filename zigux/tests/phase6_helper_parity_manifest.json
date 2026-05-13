@@ -95,6 +95,36 @@
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile"
   ],
+  "tests_root_present_entrypoints": [
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+    "zigux/tests/phase6_bsearch.zig",
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+    "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    "zigux/tests/phase6_checksum_c_parity.zig",
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
+    "zigux/tests/phase6_hexdump.zig",
+    "zigux/tests/phase6_hexdump_perf.zig",
+    "zigux/tests/phase6_hexdump_perf_matrix.zig",
+    "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+  ],
+  "tests_root_public_tree_gaps": [
+    "zigux/tests/phase6_base64.zig",
+    "zigux/tests/phase6_base64_perf.zig",
+    "zigux/tests/fixtures/phase6_base64_vectors.zig",
+    "lib/checksum.zig",
+    "zigux/tests/phase6_checksum.zig",
+    "zigux/tests/phase6_checksum_perf.zig",
+    "zigux/tests/fixtures/phase6_checksum_vectors.zig"
+  ],
+  "tests_root_truthfulness_note": "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 tests-root evidence packet and keep tests_root_public_tree_gaps explicit as missing public-tree files until those helper-owned base64 and checksum assets return.",
   "perf_posture": {
     "relative_slowdown_helpers": [
       "base64",
