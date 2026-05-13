@@ -307,7 +307,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -644,6 +644,18 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(EXPECTED_WORKFLOW_LINES[1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=0:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
         phase2_tool_manifest["packet_manifests"] = [
             manifest
@@ -751,40 +763,4 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        write_text(root / GENKSYMS_CASES_REL, json.dumps({"cases": EXPECTED_GENKSYMS_CASES}, indent=2) + "\n")
-        issues = validate_root(root)
-        assert "invalid_shape:genksyms_cases:expected_list" in issues
-        case_count += 1
-
-    assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
-    print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
-    print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={case_count}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check the Phase 2 genksyms bridge packet and workflow wiring."
-    )
-    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    issues = validate_root(ROOT)
-    if issues:
-        print("PHASE2_GENKSYMS_BRIDGE=fail")
-        for issue in issues:
-            print(issue)
-        return 1
-
-    print("PHASE2_GENKSYMS_BRIDGE=pass")
-    print(
-        f"PHASE2_GENKSYMS_BRIDGE_HELPER_ANCHOR_COUNT={len(EXPECTED_GENKSYMS_MANIFEST['helper_local_anchors'])}"
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        writeText = None
