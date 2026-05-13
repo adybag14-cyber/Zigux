@@ -53,11 +53,13 @@ the missing-helper record, and restoring that implementation pair stays under
 
 The same parked packet also depends on the shared docs-root Phase 5 no-sample
 reminders staying honest for `string_helpers`, `cmdline`, `argv_split`, and
-`rbtree`. Current `master` now keeps the fuller parked packet explicit from
-`Documentation/zigux/README.md` for all four helper families, while
-`Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`,
-`scripts/zigux/README.md`, `zigux/tests/README.md`, and the four Phase 7 slice
-notes keep the sibling review surfaces aligned around that same packet map.
+`rbtree`. Current `master` does not yet keep the fuller parked packet equally
+explicit from `Documentation/zigux/README.md`: the docs-root summary still uses
+shorter Phase 7 shorthands, while `Documentation/zigux/review-checklist.md`,
+`samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`,
+and the four Phase 7 slice notes already keep the broader parked packet map
+explicit. Treat the docs-root README sync as pending shared backlog rather than
+as a landed companion of this note.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
@@ -90,10 +92,11 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `zigux/tests/fixtures/phase7_rbtree.json`,
 `zigux/tests/fixtures/phase7_rbtree_c_harness.c`,
 `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and
-`zigux/tests/phase7_build.zig` aligned around that same shared replay packet and
-the parked string-helpers blocker so the parked `string_helpers`, `cmdline`,
-`argv_split`, and `rbtree` bundle does not drift back toward per-slice ad hoc
-checks or a false all-green shared status.
+`zigux/tests/phase7_build.zig` aligned around that same shared replay packet,
+the parked string-helpers blocker, and the still-pending docs-root backlog so
+the parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does
+not drift back toward per-slice ad hoc checks or a false all-green shared
+status.
 
 `make -C zigux phase7-validate`, the dedicated survey and sample-boundary
 replays, `make -C zigux phase7-test`, and `make -C zigux phase7` remain the
