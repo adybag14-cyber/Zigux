@@ -60,6 +60,8 @@ MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
 )
 
 SCRIPTS_README_MARKERS = (
@@ -108,7 +110,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "same 11-case packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 def read_text(path: Path) -> str:
     try:
@@ -370,6 +372,27 @@ def run_self_test() -> int:
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[4]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[4]}:count=2") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                MAKEFILE_LINES[7],
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other-kconfig.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[7]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[8]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[8]}:count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
