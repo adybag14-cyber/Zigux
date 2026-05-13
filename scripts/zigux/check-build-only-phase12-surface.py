@@ -22,6 +22,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
@@ -59,6 +60,7 @@ PHASE12_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
 
 REQUIRED_FILES = [
     DOCS_README_PATH,
+    REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     RELEASE_READINESS_SURVEY_PATH,
@@ -105,6 +107,18 @@ DOCS_ROOT_MARKERS = [
 DOCS_ROOT_FORBIDDEN_MARKERS = [
     "`Documentation/zigux/phase12-nvme-pci-slice.md`",
     "`Documentation/zigux/phase12-nvme-pci-survey.md`",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "`Documentation/zigux/phase12-release-sequencing.md`",
+    "`Documentation/zigux/phase12-release-readiness-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`make -C zigux phase12-smoke`",
+    "`make -C zigux phase12`",
+    "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
+    "and the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
+    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -336,6 +350,7 @@ def validate(root: Path) -> list[str]:
 
     checks = [
         ("docs_root", DOCS_README_PATH, DOCS_ROOT_MARKERS),
+        ("review_checklist", REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
         ("scripts_readme", SCRIPTS_README_PATH, SCRIPTS_README_MARKERS),
         ("tests_readme", TESTS_README_PATH, TESTS_README_MARKERS),
         (
@@ -529,6 +544,9 @@ pub fn build(b: *std.Build) void {
 def placeholder_for(rel_path: str) -> str:
     mapping = {
         DOCS_README_PATH: minimal_join("# Zigux Documentation", DOCS_ROOT_MARKERS),
+        REVIEW_CHECKLIST_PATH: minimal_join(
+            "# Zigux Review Checklist", REVIEW_CHECKLIST_MARKERS
+        ),
         SCRIPTS_README_PATH: minimal_join("# scripts/zigux", SCRIPTS_README_MARKERS),
         TESTS_README_PATH: minimal_join("# zigux/tests", TESTS_README_MARKERS),
         RELEASE_READINESS_SURVEY_PATH: minimal_join(
@@ -617,6 +635,19 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"docs_root_forbidden:{DOCS_ROOT_FORBIDDEN_MARKERS[0]}")
+
+        write_fixture_tree(base)
+        review_checklist_path = base / REVIEW_CHECKLIST_PATH
+        review_checklist_path.write_text(
+            review_checklist_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_MARKERS[6], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"review_checklist:{REVIEW_CHECKLIST_MARKERS[6]}",
+        )
 
         write_fixture_tree(base)
         readiness_path = base / RELEASE_READINESS_SURVEY_PATH
@@ -773,7 +804,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -816,6 +847,7 @@ def main() -> int:
         len(REQUIRED_FILES)
         + len(DOCS_ROOT_MARKERS)
         + len(DOCS_ROOT_FORBIDDEN_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(RELEASE_READINESS_SURVEY_MARKERS)
