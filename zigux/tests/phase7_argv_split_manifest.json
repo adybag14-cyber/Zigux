@@ -28,6 +28,7 @@
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
