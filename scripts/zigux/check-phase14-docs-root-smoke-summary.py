@@ -25,6 +25,22 @@ ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequenci
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 CORE_TRACEABILITY_NONE_READY_NEXT_LINE = "  * ready-next gap: none currently recorded"
 CORE_TRACEABILITY_NONE_READY_NEXT_COUNT = 4
+ATTACHED_TOOLCHAIN_FALLBACK_INTRO = (
+    "- attached-toolchain fallback examples for this note's shared replay routes only:"
+)
+ATTACHED_TOOLCHAIN_FALLBACK_CONTEXT = (
+    "- `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed "
+    "full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared "
+    "smoke shard, and still honors the standard `ZIG` environment override so the attached "
+    "archive can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` "
+    "examples above when neither the repo-local `.zig-toolchain` fallback nor the shell's "
+    "default `zig` binary is available in the local environment."
+)
+ATTACHED_TOOLCHAIN_FALLBACK_LINES = [
+    "  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
+    "  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
+    "  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
+]
 
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -73,6 +89,8 @@ SMOKE_SURVEY_MARKERS = [
     "make -C zigux phase14-smoke",
     "make -C zigux phase14-test",
     "make -C zigux phase14",
+    ATTACHED_TOOLCHAIN_FALLBACK_INTRO,
+    ATTACHED_TOOLCHAIN_FALLBACK_CONTEXT,
 ]
 
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
@@ -81,6 +99,7 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+    *ATTACHED_TOOLCHAIN_FALLBACK_LINES,
 ]
 
 CORE_TRACEABILITY_MARKERS = [
@@ -298,6 +317,9 @@ def good_smoke_survey_text() -> str:
             "- `make -C zigux phase14-smoke`",
             "- `make -C zigux phase14-test`",
             "- `make -C zigux phase14`",
+            ATTACHED_TOOLCHAIN_FALLBACK_INTRO,
+            *ATTACHED_TOOLCHAIN_FALLBACK_LINES,
+            ATTACHED_TOOLCHAIN_FALLBACK_CONTEXT,
         ]
     ) + "\n"
 
@@ -611,14 +633,44 @@ def run_self_test() -> int:
 
         write_text(
             root / SMOKE_SURVEY_PATH,
-            good_smoke_survey_text().replace("- `make -C zigux phase14-test`\n", "", 1),
+            good_smoke_survey_text().replace(
+                ATTACHED_TOOLCHAIN_FALLBACK_LINES[1] + "\n",
+                "",
+                1,
+            ),
         )
         if not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: make -C zigux phase14-test"
+            f"marker count drift in {SMOKE_SURVEY_PATH.as_posix()}: {ATTACHED_TOOLCHAIN_FALLBACK_LINES[1]} (expected 1, found 0)"
             in error
             for error in check(root)
         ):
-            print("self-test expected missing smoke-survey test-route failure", file=sys.stderr)
+            print(
+                "self-test expected missing attached-toolchain phase14-test fallback failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+
+        write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke_survey_text().replace(
+                ATTACHED_TOOLCHAIN_FALLBACK_LINES[0] + "\n",
+                ATTACHED_TOOLCHAIN_FALLBACK_LINES[0]
+                + "\n"
+                + ATTACHED_TOOLCHAIN_FALLBACK_LINES[0]
+                + "\n",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {SMOKE_SURVEY_PATH.as_posix()}: {ATTACHED_TOOLCHAIN_FALLBACK_LINES[0]} (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate attached-toolchain phase14-smoke fallback failure",
+                file=sys.stderr,
+            )
             return 1
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
 
@@ -806,7 +858,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
