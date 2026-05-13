@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/phase2-closure.md",
@@ -19,6 +20,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/validate-phase2.py",
+    "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/fixdep/cases.json",
 ]
@@ -64,6 +66,21 @@ VALIDATE_PHASE2_MARKERS = [
     "(FIXDEP_GATE_CHECKER,),",
 ]
 
+MAKEFILE_MARKERS = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+]
+
+WORKFLOW_MARKERS = [
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
+]
+
 TESTS_README_MARKERS = [
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -85,11 +102,13 @@ EXPECTED_CASE_NAMES = [
 ]
 
 FILE_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
     "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": TOOLCHAIN_NOTE_MARKERS,
     "Documentation/zigux/phase2-closure.md": CLOSURE_MARKERS,
     "Documentation/zigux/phase2-fixdep-next-step-note.md": PHASE2_FIXDEP_NEXT_STEP_MARKERS,
     "scripts/zigux/validate-phase2.py": VALIDATE_PHASE2_MARKERS,
+    "zigux/Makefile": MAKEFILE_MARKERS,
     "zigux/tests/README.md": TESTS_README_MARKERS,
 }
 
@@ -335,6 +354,26 @@ def run_self_test() -> int:
             f"Documentation/zigux/phase2-fixdep-next-step-note.md:{PHASE2_FIXDEP_NEXT_STEP_MARKERS[2]}"
             in issues
         )
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "zigux/Makefile"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"zigux/Makefile:{MAKEFILE_MARKERS[2]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[4]}" in issues
         case_count += 1
 
         build_self_test_root(root)
