@@ -152,6 +152,17 @@ test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 bu
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`");
 
+    const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
+    defer allocator.free(survey);
+    try expectContains(survey, "current `master` also still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(survey, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
+    try expectContains(survey, "the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet");
+
+    const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
+    defer allocator.free(manifest);
+    try expectContains(manifest, "\"phase7-string-helpers-no-sample-boundary\"");
+    try expectContains(manifest, "the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet");
+
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
     try expectContains(build_file, "\"phase7_string_helpers_sample_boundary.zig\"");
