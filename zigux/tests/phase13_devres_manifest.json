@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, and the blocked live-state boundaries explicit in `P13-L01` terms."
+      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries explicit in `P13-L01` terms."
     },
     {
       "id": "phase13-devres-test-gate",
@@ -59,7 +59,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the adjacent coherent-DMA evidence summary and the blocked live-state boundaries."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the adjacent coherent-DMA evidence summary, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries."
     },
     {
       "id": "phase13-devres-iounmap-planner",
@@ -102,6 +102,13 @@
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Live arch memtype state remains blocked because the current `devm_arch_io_reserve_memtype_wc()` and `devm_arch_phys_wc_add()` helpers stop at detach-time bookkeeping and failure shaping instead of mutating real memtype state."
+    },
+    {
+      "id": "phase13-devres-live-scatterlist-ownership",
+      "status": "blocked_on_live_scatterlist_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live scatterlist ownership remains blocked because the current helper packet and adjacent coherent-DMA evidence shard still stop at a helper-only DMA/scatterlist boundary instead of claiming DMA mapping helpers, `sg_table` lifecycle control, or scatterlist ownership."
     }
   ]
 }
