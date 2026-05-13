@@ -20,16 +20,17 @@ It is a coordination artifact, not a closure claim.
 
 ## Lane map
 
-### 1. Command lane
-Use this lane for bounded `exec-cmd` and `help` reminder, compile, or packet-truthfulness work only.
+### 1. Exec-cmd lane
+Use this lane for bounded `exec-cmd` reminder, compile, or packet-truthfulness work only.
 
 Current repo reality:
-- the older parked Phase 8 packet and several shared reminder surfaces still name `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, and `zigux/tests/phase8_help_only_build.zig`
-- public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, and `zigux/tests/phase8_help_only_build.zig`
+- the older parked Phase 8 packet and several shared reminder surfaces still name `zigux/tests/phase8_exec_cmd.zig` and `zigux/tests/phase8_exec_cmd_only_build.zig`
+- public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`
 - authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment, so treat those `404` responses as route instability until both the public tree and readable blob evidence drop the same files
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` remains the dedicated boundary note that keeps the command-and-environment control surface smaller than broader process-launch and environment-plumbing parity claims
+- the help packet is no longer co-owned here: `tools/lib/subcmd/help.zig`, `zigux/tests/phase8_help.zig`, and `Documentation/zigux/phase8-help-slice.md` already carry their own parked helper-local packet, so exec-cmd follow-through should not reopen that help-local surface unless a directly coupled shared reminder line needs the same correction
 
-Keep follow-up in this lane limited to truthful survey or reminder-surface repair while the direct exec-cmd shard keeps this split between public-tree presence and intermittent authenticated blob reads.
+Keep follow-up in this lane limited to truthful survey or reminder-surface repair while the direct exec-cmd shard keeps this split between public-tree presence and intermittent authenticated blob reads. Do not reopen help-local output or slice-note drift from this lane.
 
 ### 2. Symbol lane
 Use this lane for bounded `kallsyms` reminder, compile, or packet-truthfulness work only.
@@ -72,6 +73,7 @@ Current wording-lane caution:
 - current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`, so shared wording follow-through should not undercount that live checker while it narrows the libbpf reminder packet
 - current 2026-05-12 exact readback also shows `scripts/zigux/README.md` now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet, so the earlier scripts-root filename repair is no longer the active reopen cue
 - `Documentation/zigux/review-checklist.md` already keeps the live pin-path, perf-buffer-poll, and focused libbpf-segment replay markers explicit beside the dedicated survey note and public tree readback, so the checklist is no longer the first shared wording reopen cue
+- the help packet no longer shares ownership with exec-cmd: keep `tools/lib/subcmd/help.zig`, `zigux/tests/phase8_help.zig`, and `Documentation/zigux/phase8-help-slice.md` under the dedicated help packet unless a shared reminder surface truly cannot be made truthful without one directly coupled help line
 - when this lane reopens, re-read the shared reminder surfaces against `Documentation/zigux/phase8-libbpf-segment-survey.md`, the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
 - Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.
@@ -79,9 +81,10 @@ Current wording-lane caution:
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
 2. Confirm repo reality through the current default-branch tree and exact readable file content before trusting older Phase 8 inventories.
-3. Keep command, symbol, and libbpf follow-up inside their parked shard packets unless a concrete same-lane drift appears.
+3. Keep exec-cmd, help, symbol, and libbpf follow-up inside their parked packets unless a concrete same-lane drift appears.
 4. Keep interrupt-routing follow-up smaller than the deferred `perf-buffer-online-cpu-routing` boundary.
 5. Validate through exact readback before treating the packet as parked again.
+6. When the command-family packet reopens, treat `help` and `exec-cmd` as separate owners; do not reuse one parked tool lane as the fallback owner for the other.
 
 ## Next bounded step
-Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary. Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.
+Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary. The older combined command-lane assumption is closed too: `Documentation/zigux/phase8-help-slice.md` and `Documentation/zigux/phase8-exec-cmd-slice.md` already describe separate parked packets, so future sequencing follow-through should keep help-local output or slice-note drift out of the exec-cmd lane and out of the shared wording lane unless a shared reminder surface is the real blocker. Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.
