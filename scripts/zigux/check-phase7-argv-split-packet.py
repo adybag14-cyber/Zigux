@@ -173,18 +173,21 @@ REQUIRED_MARKERS = {
         'phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup',
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
-        'copied token-buffer ownership and later source-mutation isolation',
-        'owned-storage reuse keeps token pointers inside caller-managed storage',
-        'non-blank results keep storage, argv slices, and C-argv views distinct across callers',
-        'argvFree on one live non-blank result does not disturb another caller-owned split result',
-        'deinit on one live non-blank result does not disturb another caller-owned split result',
-        'blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller',
+        "copied token-buffer ownership and later source-mutation isolation",
+        "owned-storage reuse keeps token pointers inside caller-managed storage",
+        "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+        "argvFree on one live non-blank result does not disturb another caller-owned split result",
+        "deinit on one live non-blank result does not disturb another caller-owned split result",
+        "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+    ],
+    "lib/argv_split.zig": [
+        "blank-input deinit on one caller keeps the shared sentinel views usable for another",
     ],
 }
 
 FIXTURE_OVERRIDES = {
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
-    "lib/argv_split.zig": "// fixture\n",
+    "lib/argv_split.zig": "blank-input deinit on one caller keeps the shared sentinel views usable for another\n",
 }
 
 
@@ -472,6 +475,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "lib/argv_split.zig",
+            "blank-input deinit on one caller keeps the shared sentinel views usable for another",
+            "",
+            "helper_shared_blank_sentinel_marker",
+        )
+        expect_missing_marker(
+            "helper_shared_blank_sentinel_marker",
+            tmp_root,
+            "lib/argv_split.zig: blank-input deinit on one caller keeps the shared sentinel views usable for another",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
             "deinit on one live non-blank result does not disturb another caller-owned split result",
             "",
@@ -484,7 +501,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 17
+    case_count = 18
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
