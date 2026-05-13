@@ -14,7 +14,6 @@ REQUIRED_FILES = (
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "scripts/zigux/README.md",
-    "zigux/tests/README.md",
     LANE_NOTE_REL,
 )
 
@@ -29,10 +28,6 @@ FILE_MARKERS = {
     "scripts/zigux/README.md": (
         SURVEY_MARKER,
         "Phase 15 flow",
-    ),
-    "zigux/tests/README.md": (
-        SURVEY_MARKER,
-        "Phase 15 governance packet",
     ),
     LANE_NOTE_REL: (
         SURVEY_MARKER,
@@ -72,7 +67,6 @@ def _seed(root: Path) -> None:
     _write(root / "Documentation/zigux/review-checklist.md", "# review\nshared Phase 15 governance packet\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard-survey.md", "# survey\n")
     _write(root / "scripts/zigux/README.md", "# scripts\nPhase 15 flow\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n")
-    _write(root / "zigux/tests/README.md", "# tests\nPhase 15 governance packet\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n")
     _write(
         root / LANE_NOTE_REL,
         "# lane\n`shared-summaries`\nscripts/zigux/check-phase15-shared-summary-gap.py\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n",
@@ -114,16 +108,6 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
-        path = root / "zigux/tests/README.md"
-        _write(path, _read(path).replace(SURVEY_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"zigux/tests/README.md:missing:{SURVEY_MARKER}"],
-            "tests_readme_missing_survey",
-        )
-        _seed(root)
-        case_count += 1
-
         path = root / LANE_NOTE_REL
         _write(path, _read(path).replace(CHECKER_MARKER + "\n", "", 1))
         _assert_only(
@@ -158,7 +142,10 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the known Phase 15 parity-scorecard survey is explicitly carried by the shared-summary surfaces."
+        description=(
+            "Check that the currently open Phase 15 parity-scorecard-survey reminder stays explicit "
+            "in the scripts-root shared summary and its companion owner-map surfaces."
+        )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
