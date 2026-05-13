@@ -9,22 +9,25 @@ This note tracks the bounded Phase 5 verification packet for the roadmap's `samp
 - scope: verify current kobject sample behavior and record the exact checks that still define the non-runtime packet on `master`
 - current directly verified kobject packet on `master`:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
-  - `zigux/tests/phase5_kobject_example.zig`
-  - `zigux/tests/phase5_kobject_example_manifest.json`
   - `Documentation/zigux/phase5-sample-review-guide.md`
   - `samples/zigux/README.md`
+  - `samples/zigux/kobject_example.zig`
+  - `zigux/tests/phase5_build.zig`
+  - `zigux/tests/phase5_kobject_example.zig`
+  - `zigux/tests/phase5_kobject_example_manifest.json`
+  - `zigux/tests/phase5_kobject_example_survey.zig`
 
 ## Why this note exists
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and still names `samples/kobject/kobject-example.c` as one of the approved Linux anchors.
 
-The bounded job for this note is to record the current kobject behavior that the directly verified replay surfaces still enforce on `master`. The same-lane task is no longer to repeat the older missing-path caveat. The current packet already carries the focused test and manifest-backed exact checks; this note should describe those checks plainly so review work stays inside the landed kobject packet.
+The bounded job for this note is to record the current kobject behavior that the directly verified replay surfaces still enforce on `master`. The same-lane task is no longer to repeat older missing-path caveats. The current packet already carries the sample root, the focused test, the survey replay, the manifest-backed exact checks, and the shared `phase5_build.zig` route; this note should describe those checks plainly so review work stays inside the landed kobject packet.
 
 ## Current verified behavior on `master`
 
 Fresh repo-first inspection on 2026-05-13 confirmed that the current directly verified kobject packet still keeps these sample behaviors explicit:
 
-- `zigux/tests/phase5_kobject_example.zig` still keeps the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor, including the in-memory `kobject_example` directory name, `requires_runtime_substrate = false`, and `provides_selfcheck = true`
+- `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example.zig` still keep the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor, including the in-memory `kobject_example` directory name, `requires_runtime_substrate = false`, and `provides_selfcheck = true`
 - `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the attribute group unnamed, keeps the shared `baz` and `bar` handlers explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
 - `runPreRegistrationBoundaryReplay()` still keeps the sample initialized, keeps `active_attr_count` at zero, and keeps pre-registration `show` and `store` rejection explicit
 - calling `init()` twice still keeps the sample initialized, leaves `active_attr_count` at zero, and returns `InvalidLifecycleTransition` on the second init without advancing `register_runs` or `exit_runs`
@@ -34,6 +37,7 @@ Fresh repo-first inspection on 2026-05-13 confirmed that the current directly ve
 - the initialized-only exit path still reports `abandoned_before_registration`, while the registered exit path still reports `tore_down_registered_attributes`
 - `runTeardownReplay()` still keeps the registered teardown reset explicit by clearing tracked values from `42`, `7`, and `-5` to `0`, `0`, and `0`, dropping the active attribute count back to zero, and rejecting reinit, reregister, post-exit `show`, post-exit `store`, second `exit()`, and post-exit anchor replay
 - the public sample-facing replay surface still keeps direct `InvalidInteger` and `UnknownAttribute` failures visible through the focused test instead of hiding them behind survey wording alone
+- `zigux/tests/phase5_kobject_example_survey.zig` plus `zigux/tests/phase5_build.zig` keep the same lifecycle, ownership, and shared replay route explicit instead of leaving the sample packet implied from the note and manifest alone
 
 ## Exact checks recorded today
 
@@ -54,9 +58,9 @@ The current manifest-backed exact checks for the kobject packet are now recorded
 
 ## Recorded gap vs roadmap
 
-The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, and the current kobject packet still satisfies that bounded goal through the focused test plus manifest-backed replay contract.
+The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, and the current kobject packet still satisfies that bounded goal through the directly readable sample root, the focused test, the survey replay, the manifest-backed replay contract, and the shared `phase5_build.zig` route.
 
-The honest same-lane gap was review-note drift: this survey note had fallen behind the current packet and was still missing the now-explicit one-time init ownership boundary even though the focused test and manifest already kept it reviewable. This refresh closes that note-only gap without widening the sample surface.
+The honest same-lane gap was contributor-guidance drift: shared reminder surfaces had split between older missing-path wording and the current restored sample packet. This refresh closes the survey-note side of that reviewability gap without widening the sample surface.
 
 ## Non-goals
 
@@ -69,4 +73,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless a fresh kobject sample reread shows behavior drift inside the current packet. If the behavior changes, refresh this survey note and `zigux/tests/phase5_kobject_example_manifest.json` together, then rerun the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route when a writable checkout is available.
+Leave this lane parked unless a fresh kobject sample reread shows behavior drift inside the current packet. If the behavior changes, refresh this survey note, `zigux/tests/phase5_kobject_example_manifest.json`, and the coupled shared reminder surfaces together, then rerun the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route when a writable checkout is available.
