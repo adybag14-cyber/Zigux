@@ -157,7 +157,7 @@
         "test \"rbtree inserts and traverses in sorted order\"",
         "test \"rbtree erase and replace keep traversal consistent\"",
         "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
-        "test \"rbtree eraseInit detaches nodes while keeping traversal stable\"",
+        "test \"rbtree eraseInit detaches erased node\"",
         "test \"rbtree postorder and empty node helpers behave\"",
         "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
         "test \"rbtree nextMatch walks the duplicate range in order\"",
@@ -214,7 +214,7 @@
         "test \"skip trim remove and replace spaces work in place\"",
         "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
         "test \"strreplace mirrors replaceChar C-string semantics\"",
-        "test \"strHasPrefix honors C-string boundaries\"",
+        "test \"strHasPrefix returns the matched prefix length with C-string semantics\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\"",
         "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
@@ -251,7 +251,7 @@
         "test \"memparse applies suffixes before signed clamping\""
       ],
       "prefix_suffix_review_anchors": [
-        "test \"strHasPrefix honors C-string boundaries\"",
+        "test \"strHasPrefix returns the matched prefix length with C-string semantics\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\""
       ],
