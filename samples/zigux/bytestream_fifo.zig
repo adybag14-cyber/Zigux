@@ -129,6 +129,14 @@ pub const LifecycleSummary = struct {
     storage_backing: StorageBacking,
 };
 
+pub const OccupancySummary = struct {
+    used: usize,
+    available: usize,
+    empty: bool,
+    full: bool,
+    wrapped_window: bool,
+};
+
 pub const BytestreamFifoSample = struct {
     const Self = @This();
 
@@ -179,6 +187,18 @@ pub const BytestreamFifoSample = struct {
             .exit_run_count = self.exit_runs,
             .queue_len = self.count(),
             .storage_backing = .embedded_fixed_buffer,
+        };
+    }
+
+    pub fn occupancySummary(self: *const Self) OccupancySummary {
+        const used = self.count();
+        const free = self.available();
+        return .{
+            .used = used,
+            .available = free,
+            .empty = used == 0,
+            .full = free == 0,
+            .wrapped_window = self.usesWrappedStorageWindow(),
         };
     }
 
@@ -637,6 +657,60 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
+
+test "bytestream fifo sample keeps occupancy review helper explicit" {
+    var sample = BytestreamFifoSample{};
+
+    const cold = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), cold.used);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), cold.available);
+    try std.testing.expect(cold.empty);
+    try std.testing.expect(!cold.full);
+    try std.testing.expect(!cold.wrapped_window);
+
+    try sample.init();
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    const partial = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 5), partial.used);
+    try std.testing.expectEqual(@as(usize, 27), partial.available);
+    try std.testing.expect(!partial.empty);
+    try std.testing.expect(!partial.full);
+    try std.testing.expect(!partial.wrapped_window);
+
+    var fill_value: u8 = 0;
+    while (sample.pushByte(fill_value)) : (fill_value +%= 1) {}
+    const full = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, fifo_capacity), full.used);
+    try std.testing.expectEqual(@as(usize, 0), full.available);
+    try std.testing.expect(!full.empty);
+    try std.testing.expect(full.full);
+    try std.testing.expect(!full.wrapped_window);
+
+    try std.testing.expectEqual(@as(?u8, 'h'), sample.skipByte());
+    try std.testing.expect(sample.pushByte(200));
+    const wrapped_full = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_full.used);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_full.available);
+    try std.testing.expect(!wrapped_full.empty);
+    try std.testing.expect(wrapped_full.full);
+    try std.testing.expect(wrapped_full.wrapped_window);
+
+    sample.reset();
+    const after_reset = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), after_reset.used);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), after_reset.available);
+    try std.testing.expect(after_reset.empty);
+    try std.testing.expect(!after_reset.full);
+    try std.testing.expect(!after_reset.wrapped_window);
+
+    try sample.exit();
+    const after_exit = sample.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), after_exit.used);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), after_exit.available);
+    try std.testing.expect(after_exit.empty);
+    try std.testing.expect(!after_exit.full);
+    try std.testing.expect(!after_exit.wrapped_window);
 }
 
 test "bytestream fifo sample keeps queue-shape review helpers explicit" {
