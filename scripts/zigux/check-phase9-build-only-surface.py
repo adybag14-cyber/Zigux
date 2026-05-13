@@ -140,6 +140,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase9-build-only-surface.py`",
         "without overstating missing shared-loader paths as shipped current-`master` evidence",
         "the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
+        "workflow-backed `make -C zigux phase9` route",
+        "no-dedicated-`validate-phase9.py` posture",
         REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER,
         REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER,
         REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER,
@@ -385,6 +387,30 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:Documentation/zigux/review-checklist.md:the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace("workflow-backed `make -C zigux phase9` route", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:Documentation/zigux/review-checklist.md:workflow-backed `make -C zigux phase9` route",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace("no-dedicated-`validate-phase9.py` posture", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:Documentation/zigux/review-checklist.md:no-dedicated-`validate-phase9.py` posture",
         )
 
         write_fixture_tree(base)
