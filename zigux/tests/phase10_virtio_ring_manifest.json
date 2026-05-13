@@ -148,10 +148,10 @@
     },
     {
       "id": "phase10-virtio-ring-slice-note",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "Shared Phase 10 reminder surfaces still frame `Documentation/zigux/phase10-virtio-ring-slice.md` as a missing packet-local companion on current `master`, so the manifest must keep that slice-note path explicit as a repo-reality gap rather than claiming it already landed."
+      "why_now": "The ring lane now has a packet-local slice note that records the landed queue-local helper ladder, the direct verify and replay packet, and the blocked MMIO-owned transport bridge so shared reminder work no longer has to treat ring note coverage as absent."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
