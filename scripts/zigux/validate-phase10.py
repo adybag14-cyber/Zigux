@@ -377,7 +377,7 @@ def run_self_test() -> int:
             "manifest:survey_summary:missing_direct_input_paths",
             "phase10-self-test:missing_path_list",
         )
-        writeFixture(root)
+        write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
