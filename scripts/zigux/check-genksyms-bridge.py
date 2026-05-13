@@ -307,7 +307,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -656,6 +656,21 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert f"phase2_tool_manifest:missing_packet_manifest:{GENKSYMS_MANIFEST_REL}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
+        phase2_tool_manifest["families"] = [
+            family
+            for family in phase2_tool_manifest["families"]
+            if family != "genksyms_bridge"
+        ]
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert "phase2_tool_manifest:missing_family:genksyms_bridge" in issues
         case_count += 1
 
         build_self_test_root(root)
