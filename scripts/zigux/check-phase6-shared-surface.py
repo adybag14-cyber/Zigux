@@ -29,29 +29,49 @@ PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
+BASE64_HELPER_PATH = Path("lib/base64.zig")
+BASE64_REPLAY_PATH = Path("zigux/tests/phase6_base64.zig")
+BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 BASE64_PARITY_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
 BASE64_CASEGEN_PATH = Path("zigux/tests/phase6_base64_c_casegen.zig")
 BASE64_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
 BASE64_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
 BASE64_GENERATED_INCLUDE_PATH = Path("zigux/tests/fixtures/phase6_base64_c_generated_cases.inc")
 
+BSEARCH_HELPER_PATH = Path("lib/bsearch.zig")
+BSEARCH_REPLAY_PATH = Path("zigux/tests/phase6_bsearch.zig")
+BSEARCH_LOWER_BOUND_PATH = Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig")
+BSEARCH_BUDGET_PATH = Path("zigux/tests/phase6_bsearch_c_abi_budget.zig")
+BSEARCH_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
+
+CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
+CHECKSUM_REPLAY_PATH = Path("zigux/tests/phase6_checksum.zig")
+CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
+CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
+CHECKSUM_PARITY_PATH = Path("zigux/tests/phase6_checksum_c_parity.zig")
+CHECKSUM_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_checksum_c_harness.c")
+
+HEXDUMP_HELPER_PATH = Path("lib/hexdump.zig")
+HEXDUMP_REPLAY_PATH = Path("zigux/tests/phase6_hexdump.zig")
+HEXDUMP_PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
+HEXDUMP_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
+HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+HEXDUMP_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
+
 BASE64_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 BSEARCH_CORPUS_SCRIPT_PATH = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 CHECKSUM_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-checksum-c-parity.py")
 HEXDUMP_PACKET_SCRIPT_PATH = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 PERF_THRESHOLD_SCRIPT_PATH = Path("scripts/zigux/check-phase6-perf-threshold-markers.py")
-HEXDUMP_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
-HEXDUMP_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
 
 ABSENT_PATHS = [
-    Path("zigux/tests/phase6_base64.zig"),
-    Path("zigux/tests/phase6_base64_perf.zig"),
-    Path("zigux/tests/fixtures/phase6_base64_vectors.zig"),
+    BASE64_PERF_PATH,
     BASE64_GENERATED_INCLUDE_PATH,
-    Path("lib/checksum.zig"),
-    Path("zigux/tests/phase6_checksum.zig"),
-    Path("zigux/tests/phase6_checksum_perf.zig"),
-    Path("zigux/tests/fixtures/phase6_checksum_vectors.zig"),
+    CHECKSUM_HELPER_PATH,
+    CHECKSUM_REPLAY_PATH,
+    CHECKSUM_PERF_PATH,
+    CHECKSUM_VECTORS_PATH,
 ]
 
 PRESENT_PATHS = [
@@ -67,93 +87,81 @@ PRESENT_PATHS = [
     HEXDUMP_SLICE_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
+    PHASE6_BUILD_PATH,
+    WORKFLOW_PATH,
+    MAKEFILE_PATH,
+    BASE64_HELPER_PATH,
+    BASE64_REPLAY_PATH,
+    BASE64_VECTORS_PATH,
     BASE64_PARITY_PATH,
     BASE64_CASEGEN_PATH,
     BASE64_PARITY_VECTORS_PATH,
     BASE64_C_HARNESS_PATH,
+    BSEARCH_HELPER_PATH,
+    BSEARCH_REPLAY_PATH,
+    BSEARCH_LOWER_BOUND_PATH,
+    BSEARCH_BUDGET_PATH,
+    BSEARCH_VECTORS_PATH,
+    CHECKSUM_PARITY_PATH,
+    CHECKSUM_C_HARNESS_PATH,
+    HEXDUMP_HELPER_PATH,
+    HEXDUMP_REPLAY_PATH,
+    HEXDUMP_PERF_PATH,
+    HEXDUMP_MATRIX_PATH,
+    HEXDUMP_VECTORS_PATH,
+    HEXDUMP_REFRESH_PATH,
     BASE64_PARITY_SCRIPT_PATH,
     BSEARCH_CORPUS_SCRIPT_PATH,
     CHECKSUM_PARITY_SCRIPT_PATH,
     HEXDUMP_PACKET_SCRIPT_PATH,
     PERF_THRESHOLD_SCRIPT_PATH,
-    HEXDUMP_REFRESH_PATH,
-    Path("zigux/tests/phase6_hexdump.zig"),
-    Path("zigux/tests/phase6_hexdump_perf.zig"),
-    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"),
-    HEXDUMP_MATRIX_PATH,
-    PHASE6_BUILD_PATH,
-    WORKFLOW_PATH,
-    MAKEFILE_PATH,
 ]
 
 REQUIRED_SNIPPETS = {
     DOCS_README_PATH.as_posix(): [
-        "while `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` stay explicit as current public-tree gaps rather than shipped replay evidence.",
-        "- the current bounded Phase 6 decision is no longer whether the base64 and checksum helper packet is fully runnable on `master`; the live shared lane is the partially blocked packet already kept truthful by `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so future follow-up here should stay inside one shared summary or checker step at a time unless one of the missing helper-owned base64 or checksum files actually returns.",
+        "`zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `scripts/zigux/check-phase6-base64-c-parity.py`, `zigux/tests/phase6_bsearch.zig`",
+        "while `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` stay explicit as current public-tree gaps rather than shipped replay evidence.",
+        "the current bounded Phase 6 decision is no longer whether the base64 and checksum helper packet is fully runnable on `master`",
     ],
     CATALOG_PATH.as_posix(): [
-        "# Phase 6 Helper Parity Catalog",
-        "- `PHASE6_STATUS=partially_blocked`",
-        "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
-        "- still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
-        "- currently missing helper-local replay surfaces on `master`: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- focused helper replay: `zigux/tests/phase6_base64.zig`",
+        "- focused slowdown-fixture companion: `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64_perf.zig`",
         "- current missing helper-local helper and perf packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
-        "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- current perf-route posture: the shared perf survey above keeps the base64 and checksum slowdown routes documentary until their missing helper-owned replay files return, so the aggregate `phase6-perf` route should be read as inventory evidence rather than a truthful current-`master` replay summary",
     ],
     PERF_SURVEY_PATH.as_posix(): [
-        "# Phase 6 Perf Gate Survey",
-        "* aggregated route note: `make -C zigux phase6-perf` still exists as a narrow convenience wrapper for `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, but current `master` only keeps the hexdump leg runnable from the committed tree because the base64 and checksum replay files listed below are absent",
-        "* base64 shared posture: `lib/base64.zig` still ships the helper, but current `master` no longer carries `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, or `zigux/tests/fixtures/phase6_base64_vectors.zig`, even though `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise `phase6-base64-perf`; that slowdown gate is currently documentary rather than runnable from the committed tree",
-        "* checksum shared posture: `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise a dedicated checksum slowdown gate, but current `master` lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`, so that replay is currently not runnable from the committed tree",
-        "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
-        "* the convenience `make -C zigux phase6-perf` route is not a fully truthful summary of shared perf posture on `master` until the base64 and checksum helper packets are restored or the shared route is rewritten to exclude those absent slowdown gates",
+        "* base64 shared posture: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` are directly readable on current `master`, but `zigux/tests/phase6_base64_perf.zig` is still absent",
+        "* checksum shared posture: `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise a dedicated checksum slowdown gate, but current `master` lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "* the current bundled Phase 6 route inventory still advertises three dedicated helper-local perf gates beside the aggregate `phase6-perf` marker, but the base64 leg remains documentary because its committed perf replay file is absent and the checksum leg remains documentary because its helper-local replay packet is absent from `master`",
     ],
     LANE_PATH.as_posix(): [
-        "# Phase 6 Leaf-Helper Lane Sequencing",
-        "- shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`",
-        "If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.",
-        "The current backlog-backed next safe step for `P6-Y10` is one shared-surface-only correction in `zigux/tests/README.md` or one matching fail-closed sync in `scripts/zigux/check-phase6-shared-surface.py`: `Documentation/zigux/README.md` now tells the truth about the partially blocked base64 and checksum packet on current `master`, but `zigux/tests/README.md` still advertises `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` as live Phase 6 packet evidence even though `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, and `Documentation/zigux/phase6-perf-gate-survey.md` already mark those base64 and checksum helper-owned surfaces absent or blocked.",
-        "Prefer the smallest tests-root summary sync first or pair it with the corresponding shared-checker hardening if both changes stay inside one bounded shared-surface patch, then route any actual base64 helper restoration back to `P6-L01` or `P6-Y01`, and route any actual checksum helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16` instead of reopening the shared lane.",
+        "The current backlog-backed next safe step for `P6-Y11` is one shared closure-note or ledger sync before any broader tests-root or checker rewrite",
+        "direct current-`master` file reads still show `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_bsearch.zig`, while `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are not directly readable from that same head",
     ],
     BASE64_SLICE_PATH.as_posix(): [
-        "# Phase 6 Base64 Slice",
-        "- `PHASE6_STATUS=blocked`",
-        "- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
-        "- current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
-        "- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
-        "- this slice remains partially landed until the missing focused replay and fixture-backed perf packet return, but the direct local C parity runner is again a truthful review surface on current `master`",
+        "- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- current `master` lacks `zigux/tests/phase6_base64_perf.zig`",
+        "- helper-local truthfulness note: the focused helper replay and shared vectors are directly readable again on current `master`",
     ],
     BSEARCH_SLICE_PATH.as_posix(): [
         "# Phase 6 Bsearch Slice",
-        "- `PHASE6_STATUS=parked`",
         "- direct local corpus evidence checker route: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- focused direct C ABI equality-budget parity across typed and raw ascending and descending sorted inputs plus packed-record `member_size` ranges through `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
     ],
     CHECKSUM_SLICE_PATH.as_posix(): [
-        "# Phase 6 Checksum Slice",
-        "- `PHASE6_STATUS=blocked`",
-        "- current `master` still lacks the broader checksum helper packet under `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
-        "- current `master` still keeps the direct checksum C parity scaffolding under `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
-        "- stale shared routes that still point at the absent broader checksum helper packet: `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
-        "- the checked-in direct C parity surface is not currently runnable as a complete packet because `zigux/tests/phase6_checksum_c_parity.zig` still imports the absent `lib/checksum.zig` helper and the absent `zigux/tests/fixtures/phase6_checksum_vectors.zig` fixture module",
-        "- this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
+        "- current `master` still lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- current `master` still keeps `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+        "- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet",
     ],
     HEXDUMP_SLICE_PATH.as_posix(): [
         "# Phase 6 Hexdump Slice",
-        "- `PHASE6_STATUS=parked`",
         "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
         "- `make -C zigux phase6-hexdump-review`",
-        "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle; `16B-plain-g1` stays capped at `max_slowdown_pct = 175`, `32B-ascii-g2` and `16B-ascii-g4` stay capped at `max_slowdown_pct = 550`, and `16B-ascii-g8` stays capped at `max_slowdown_pct = 600`, with `zigux/tests/phase6_hexdump_perf_matrix.zig` exact-checking the documented case labels, lengths, row sizes, group sizes, ascii flags, replay counts, slowdown caps, and buffer-fit guard before `zigux/tests/phase6_hexdump_perf.zig` times expected output and required length for every fixture-backed perf case",
     ],
     BASE64_PARITY_SCRIPT_PATH.as_posix(): [
         'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
     ],
     BSEARCH_CORPUS_SCRIPT_PATH.as_posix(): [
         '"""Fail-closed exact evidence checks for the Phase 6 bsearch corpus packet."""',
-        'MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")',
         'print("Phase 6 bsearch corpus evidence looks aligned.")',
     ],
     CHECKSUM_PARITY_SCRIPT_PATH.as_posix(): [
@@ -170,7 +178,7 @@ REQUIRED_SNIPPETS = {
 }
 
 EXPECTED_PACKET_STATE_SUMMARY = {
-    "base64": "partial_direct_c_parity_only",
+    "base64": "partial_replay_present_perf_missing",
     "bsearch": "parked_reviewable",
     "checksum": "blocked_helper_packet_missing",
     "hexdump": "parked_reviewable",
@@ -184,10 +192,12 @@ EXPECTED_HELPER_SLICE_NOTES = {
 }
 
 EXPECTED_SHARED_ROUTE_NOTE = (
-    "base64 still keeps lib/base64.zig plus the direct C parity packet while its focused replay "
-    "and perf files remain absent, and checksum still lacks lib/checksum.zig plus its helper-owned "
-    "replay, perf, and fixture files even though shared routes and reminder surfaces still need "
-    "follow-up to stop advertising that broader packet as fully runnable."
+    "base64 now keeps lib/base64.zig, zigux/tests/phase6_base64.zig, and "
+    "zigux/tests/fixtures/phase6_base64_vectors.zig plus the direct C parity "
+    "packet while zigux/tests/phase6_base64_perf.zig remains absent, and checksum "
+    "still lacks lib/checksum.zig plus its helper-owned replay, perf, and shared-vector "
+    "files even though zigux/tests/phase6_checksum_c_parity.zig plus "
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c remain directly readable."
 )
 
 EXPECTED_SHARED_GATES = [
@@ -209,36 +219,38 @@ EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS = [
     MANIFEST_PATH.as_posix(),
     CATALOG_PATH.as_posix(),
     PERF_SURVEY_PATH.as_posix(),
+    BASE64_REPLAY_PATH.as_posix(),
     BASE64_PARITY_PATH.as_posix(),
+    BASE64_VECTORS_PATH.as_posix(),
     BASE64_C_HARNESS_PATH.as_posix(),
     BASE64_PARITY_SCRIPT_PATH.as_posix(),
-    Path("zigux/tests/phase6_bsearch.zig").as_posix(),
-    Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig").as_posix(),
-    Path("zigux/tests/phase6_bsearch_c_abi_budget.zig").as_posix(),
-    Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig").as_posix(),
-    Path("zigux/tests/phase6_checksum_c_parity.zig").as_posix(),
-    Path("zigux/tests/fixtures/phase6_checksum_c_harness.c").as_posix(),
+    BSEARCH_REPLAY_PATH.as_posix(),
+    BSEARCH_LOWER_BOUND_PATH.as_posix(),
+    BSEARCH_BUDGET_PATH.as_posix(),
+    BSEARCH_VECTORS_PATH.as_posix(),
+    CHECKSUM_PARITY_PATH.as_posix(),
+    CHECKSUM_C_HARNESS_PATH.as_posix(),
     CHECKSUM_PARITY_SCRIPT_PATH.as_posix(),
-    Path("zigux/tests/phase6_hexdump.zig").as_posix(),
-    Path("zigux/tests/phase6_hexdump_perf.zig").as_posix(),
+    HEXDUMP_REPLAY_PATH.as_posix(),
+    HEXDUMP_PERF_PATH.as_posix(),
     HEXDUMP_MATRIX_PATH.as_posix(),
-    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig").as_posix(),
+    HEXDUMP_VECTORS_PATH.as_posix(),
 ]
 
 EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS = [
-    Path("zigux/tests/phase6_base64.zig").as_posix(),
-    Path("zigux/tests/phase6_base64_perf.zig").as_posix(),
-    Path("zigux/tests/fixtures/phase6_base64_vectors.zig").as_posix(),
-    Path("lib/checksum.zig").as_posix(),
-    Path("zigux/tests/phase6_checksum.zig").as_posix(),
-    Path("zigux/tests/phase6_checksum_perf.zig").as_posix(),
-    Path("zigux/tests/fixtures/phase6_checksum_vectors.zig").as_posix(),
+    BASE64_PERF_PATH.as_posix(),
+    CHECKSUM_HELPER_PATH.as_posix(),
+    CHECKSUM_REPLAY_PATH.as_posix(),
+    CHECKSUM_PERF_PATH.as_posix(),
+    CHECKSUM_VECTORS_PATH.as_posix(),
 ]
 
 EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE = (
-    "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 "
-    "tests-root evidence packet and keep tests_root_public_tree_gaps explicit as missing "
-    "public-tree files until those helper-owned base64 and checksum assets return."
+    "zigux/tests/README.md should keep tests_root_present_entrypoints as the current "
+    "Phase 6 tests-root evidence packet, keep zigux/tests/phase6_base64_perf.zig "
+    "explicit as the remaining base64 public-tree gap, and keep the still-missing "
+    "checksum helper, focused replay, perf replay, and shared vectors explicit "
+    "until those checksum-owned assets return."
 )
 
 EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
@@ -251,6 +263,21 @@ EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
     "make -C zigux phase6-validate",
     "make -C zigux phase6-perf",
     "make -C zigux phase6",
+]
+
+EXPECTED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
+    "make -C zigux phase6-bsearch-test",
+    "make -C zigux phase6-hexdump-test",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-hexdump-review",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py --self-test",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
 ]
 
 
@@ -285,37 +312,28 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected Phase 6 status in {MANIFEST_PATH}")
 
     if manifest.get("packet_state_summary") != EXPECTED_PACKET_STATE_SUMMARY:
-        raise ValidationError(
-            f"Phase 6 packet_state_summary drifted in {MANIFEST_PATH}: "
-            f"{manifest.get('packet_state_summary')!r}"
-        )
+        raise ValidationError(f"unexpected packet_state_summary in {MANIFEST_PATH}")
 
     if manifest.get("shared_route_truthfulness_note") != EXPECTED_SHARED_ROUTE_NOTE:
         raise ValidationError(f"unexpected shared_route_truthfulness_note in {MANIFEST_PATH}")
 
     if manifest.get("shared_gates") != EXPECTED_SHARED_GATES:
-        raise ValidationError(f"unexpected shared_gates in {MANIFEST_PATH}: {manifest.get('shared_gates')!r}")
+        raise ValidationError(f"unexpected shared_gates in {MANIFEST_PATH}")
 
     if manifest.get("tests_root_present_entrypoints") != EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS:
-        raise ValidationError(
-            "unexpected tests_root_present_entrypoints in "
-            f"{MANIFEST_PATH}: {manifest.get('tests_root_present_entrypoints')!r}"
-        )
+        raise ValidationError(f"unexpected tests_root_present_entrypoints in {MANIFEST_PATH}")
 
     if manifest.get("tests_root_public_tree_gaps") != EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS:
-        raise ValidationError(
-            "unexpected tests_root_public_tree_gaps in "
-            f"{MANIFEST_PATH}: {manifest.get('tests_root_public_tree_gaps')!r}"
-        )
+        raise ValidationError(f"unexpected tests_root_public_tree_gaps in {MANIFEST_PATH}")
 
     if manifest.get("tests_root_truthfulness_note") != EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE:
         raise ValidationError(f"unexpected tests_root_truthfulness_note in {MANIFEST_PATH}")
 
     if manifest.get("inventory_only_blocked_routes") != EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES:
-        raise ValidationError(
-            "unexpected inventory_only_blocked_routes in "
-            f"{MANIFEST_PATH}: {manifest.get('inventory_only_blocked_routes')!r}"
-        )
+        raise ValidationError(f"unexpected inventory_only_blocked_routes in {MANIFEST_PATH}")
+
+    if manifest.get("exact_checks") != EXPECTED_EXACT_CHECKS:
+        raise ValidationError(f"unexpected exact_checks in {MANIFEST_PATH}")
 
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
@@ -323,9 +341,7 @@ def validate_manifest(repo_root: Path) -> None:
 
     catalog_text = read_text(repo_root / CATALOG_PATH)
     if f"- surveyed head: `{surveyed_commit}`" not in catalog_text:
-        raise ValidationError(
-            f"catalog surveyed head does not match manifest surveyed_commit in {CATALOG_PATH}"
-        )
+        raise ValidationError(f"catalog surveyed head does not match manifest surveyed_commit in {CATALOG_PATH}")
 
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
@@ -341,35 +357,27 @@ def validate_manifest(repo_root: Path) -> None:
         if not isinstance(helper, dict):
             raise ValidationError(f"missing helper row for {helper_id} in {MANIFEST_PATH}")
         if helper.get("slice_note") != slice_path:
-            raise ValidationError(
-                f"unexpected slice_note for {helper_id} in {MANIFEST_PATH}: "
-                f"{helper.get('slice_note')!r}"
-            )
-
-    exact_checks = manifest.get("exact_checks")
-    if not isinstance(exact_checks, list):
-        raise ValidationError(f"missing exact_checks list in {MANIFEST_PATH}")
-    for command in [
-        "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
-        "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-hexdump-packet.py --self-test",
-        "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
-        "make -C zigux phase6-hexdump-review",
-    ]:
-        if command not in exact_checks:
-            raise ValidationError(f"missing exact Phase 6 command in {MANIFEST_PATH}: {command}")
+            raise ValidationError(f"unexpected slice_note for {helper_id} in {MANIFEST_PATH}")
 
     determinism = manifest.get("determinism_evidence")
     if not isinstance(determinism, dict):
         raise ValidationError(f"missing determinism_evidence in {MANIFEST_PATH}")
-
     base64 = determinism.get("base64")
+    bsearch = determinism.get("bsearch")
     checksum = determinism.get("checksum")
+    hexdump = determinism.get("hexdump")
     if not isinstance(base64, dict) or base64.get("c_parity_cases") != 24:
-        raise ValidationError(f"unexpected base64 parity case count in {MANIFEST_PATH}")
+        raise ValidationError(f"unexpected base64 determinism evidence in {MANIFEST_PATH}")
+    if base64.get("transient_generated_include_committed") is not False:
+        raise ValidationError(f"unexpected base64 generated-include posture in {MANIFEST_PATH}")
+    if not isinstance(bsearch, dict) or bsearch.get("comparison_budget_max_compare_calls") != 4:
+        raise ValidationError(f"unexpected bsearch determinism evidence in {MANIFEST_PATH}")
+    if bsearch.get("fixture_dynamic_case_lengths") != 33:
+        raise ValidationError(f"unexpected bsearch fixture dynamic lengths in {MANIFEST_PATH}")
     if not isinstance(checksum, dict) or checksum.get("c_parity_cases") != 27:
-        raise ValidationError(f"unexpected checksum parity case count in {MANIFEST_PATH}")
+        raise ValidationError(f"unexpected checksum determinism evidence in {MANIFEST_PATH}")
+    if not isinstance(hexdump, dict) or hexdump.get("perf_replay_cases") != 4:
+        raise ValidationError(f"unexpected hexdump determinism evidence in {MANIFEST_PATH}")
 
 
 def validate_paths(repo_root: Path) -> None:
@@ -399,11 +407,6 @@ def scaffold_repo(root: Path) -> None:
         "status": "partially_blocked",
         "packet_state_summary": dict(EXPECTED_PACKET_STATE_SUMMARY),
         "shared_route_truthfulness_note": EXPECTED_SHARED_ROUTE_NOTE,
-        "shared_gates": list(EXPECTED_SHARED_GATES),
-        "tests_root_present_entrypoints": list(EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS),
-        "tests_root_public_tree_gaps": list(EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS),
-        "tests_root_truthfulness_note": EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE,
-        "inventory_only_blocked_routes": list(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
         "surveyed_commit": "a0f4d7e",
         "helpers": [
             {"id": "base64", "slice_note": BASE64_SLICE_PATH.as_posix()},
@@ -411,43 +414,74 @@ def scaffold_repo(root: Path) -> None:
             {"id": "checksum", "slice_note": CHECKSUM_SLICE_PATH.as_posix()},
             {"id": "hexdump", "slice_note": HEXDUMP_SLICE_PATH.as_posix()},
         ],
-        "exact_checks": [
-            "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-            "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
-            "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
-            "python3 scripts/zigux/check-phase6-hexdump-packet.py --self-test",
-            "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
-            "make -C zigux phase6-hexdump-review",
-        ],
+        "shared_gates": list(EXPECTED_SHARED_GATES),
+        "tests_root_present_entrypoints": list(EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS),
+        "tests_root_public_tree_gaps": list(EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS),
+        "tests_root_truthfulness_note": EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE,
+        "inventory_only_blocked_routes": list(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
+        "exact_checks": list(EXPECTED_EXACT_CHECKS),
         "determinism_evidence": {
-            "base64": {"c_parity_cases": 24},
-            "checksum": {"c_parity_cases": 27},
+            "base64": {
+                "c_parity_cases": 24,
+                "transient_generated_include_committed": False,
+            },
+            "bsearch": {
+                "comparison_budget_max_compare_calls": 4,
+                "fixture_dynamic_case_lengths": 33,
+            },
+            "checksum": {
+                "c_parity_cases": 27,
+            },
+            "hexdump": {
+                "perf_replay_cases": 4,
+            },
         },
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-    write(root / REVIEW_CHECKLIST_PATH, "# Review checklist placeholder\n")
-    write(root / SCRIPTS_README_PATH, "# Scripts root placeholder\n")
-    write(root / TESTS_README_PATH, "# Tests root placeholder\n")
+
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
-        write(root / rel_path, "\n".join(snippets) + "\n")
-    catalog_text = read_text(root / CATALOG_PATH)
-    if "- surveyed head: `a0f4d7e`" not in catalog_text:
-        write(root / CATALOG_PATH, catalog_text + "- surveyed head: `a0f4d7e`\n")
-    write(root / BASE64_PARITY_PATH, 'pub fn main() void {}\n')
-    write(root / BASE64_CASEGEN_PATH, 'pub fn main() void {}\n')
-    write(root / BASE64_PARITY_VECTORS_PATH, 'pub const standard_cases = .{};\n')
-    write(root / BASE64_C_HARNESS_PATH, 'int main(void) { return 0; }\n')
-    write(root / HEXDUMP_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n\nhelper-local perf refresh note\n")
-    write(root / Path("zigux/tests/phase6_hexdump.zig"), 'test "phase6 hexdump packet placeholder" {}\n')
-    write(root / Path("zigux/tests/phase6_hexdump_perf.zig"), 'pub fn main() void {}\n')
-    write(root / Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"), "pub const cases = .{};\n")
-    write(root / PHASE6_BUILD_PATH, 'const std = @import("std");\n')
-    write(root / WORKFLOW_PATH, "name: zigux-bootstrap\n")
-    write(root / MAKEFILE_PATH, "phase6:\n\t@true\n")
-    write(
-        root / HEXDUMP_MATRIX_PATH,
-        'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {}\n',
-    )
+        body = "\n".join(snippets)
+        if rel_path == CATALOG_PATH.as_posix():
+            body += "\n- surveyed head: `a0f4d7e`\n"
+        else:
+            body += "\n"
+        write(root / rel_path, body)
+
+    placeholder_files = {
+        REVIEW_CHECKLIST_PATH: "# review checklist\n",
+        SCRIPTS_README_PATH: "# scripts root\n",
+        TESTS_README_PATH: "# tests root\n",
+        BASE64_HELPER_PATH: "pub fn encode() void {}\n",
+        BASE64_REPLAY_PATH: 'test "phase6 base64 replay" {}\n',
+        BASE64_VECTORS_PATH: "pub const perf_cases = .{};\n",
+        BASE64_PARITY_PATH: 'test "phase6 base64 c parity" {}\n',
+        BASE64_CASEGEN_PATH: "pub fn main() void {}\n",
+        BASE64_PARITY_VECTORS_PATH: "pub const standard_cases = .{};\n",
+        BASE64_C_HARNESS_PATH: "int main(void) { return 0; }\n",
+        BSEARCH_HELPER_PATH: "pub fn locate() void {}\n",
+        BSEARCH_REPLAY_PATH: 'test "phase6 bsearch" {}\n',
+        BSEARCH_LOWER_BOUND_PATH: 'test "phase6 bsearch lower bound" {}\n',
+        BSEARCH_BUDGET_PATH: 'test "phase6 bsearch budget" {}\n',
+        BSEARCH_VECTORS_PATH: "pub const seed_cases = .{};\n",
+        CHECKSUM_PARITY_PATH: 'test "phase6 checksum c parity" {}\n',
+        CHECKSUM_C_HARNESS_PATH: "int main(void) { return 0; }\n",
+        HEXDUMP_HELPER_PATH: "pub fn format() void {}\n",
+        HEXDUMP_REPLAY_PATH: 'test "phase6 hexdump" {}\n',
+        HEXDUMP_PERF_PATH: "pub fn main() void {}\n",
+        HEXDUMP_MATRIX_PATH: 'test "phase6 hexdump matrix" {}\n',
+        HEXDUMP_VECTORS_PATH: "pub const cases = .{};\n",
+        HEXDUMP_REFRESH_PATH: "# hexdump refresh\n",
+        PHASE6_BUILD_PATH: 'const std = @import("std");\n',
+        WORKFLOW_PATH: "name: zigux-bootstrap\n",
+        MAKEFILE_PATH: "phase6:\n\t@true\n",
+        BASE64_PARITY_SCRIPT_PATH: 'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")\n',
+        BSEARCH_CORPUS_SCRIPT_PATH: '"""Fail-closed exact evidence checks for the Phase 6 bsearch corpus packet."""\nprint("Phase 6 bsearch corpus evidence looks aligned.")\n',
+        CHECKSUM_PARITY_SCRIPT_PATH: 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")\n',
+        HEXDUMP_PACKET_SCRIPT_PATH: '"""Fail-closed checker for the bounded Phase 6 hexdump review packet."""\nprint("PHASE6_HEXDUMP_PACKET_SELF_TEST=pass")\n',
+        PERF_THRESHOLD_SCRIPT_PATH: '"""Fail-closed checks for the current Phase 6 exact perf-threshold packet."""\nprint("self-test passed")\n',
+    }
+    for rel_path, content in placeholder_files.items():
+        write(root / rel_path, content)
 
 
 def assert_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -474,105 +508,55 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH,
-            '"status": "partially_blocked"',
-            '"status": "active"',
+            '"base64": "partial_replay_present_perf_missing"',
+            '"base64": "blocked_helper_packet_missing"',
         )
         assert_failure(
             root,
-            CATALOG_PATH,
-            "- `PHASE6_STATUS=partially_blocked`",
-            "- `PHASE6_STATUS=parked`",
-        )
-        assert_failure(
-            root,
-            CATALOG_PATH,
-            "- surveyed head: `a0f4d7e`",
-            "- surveyed head: `deadbeef`",
+            MANIFEST_PATH,
+            '"zigux/tests/phase6_base64_perf.zig"',
+            '"zigux/tests/phase6_base64.zig"',
         )
         assert_failure(
             root,
             DOCS_README_PATH,
-            "current public-tree gaps rather than shipped replay evidence.",
-            "shipped replay evidence.",
+            "zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`",
+            "lib/checksum.zig`",
+        )
+        assert_failure(
+            root,
+            CATALOG_PATH,
+            "- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64_perf.zig`",
+            "- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64.zig`",
         )
         assert_failure(
             root,
             PERF_SURVEY_PATH,
-            "* the convenience `make -C zigux phase6-perf` route is not a fully truthful summary of shared perf posture on `master` until the base64 and checksum helper packets are restored or the shared route is rewritten to exclude those absent slowdown gates",
-            "* the convenience `make -C zigux phase6-perf` route is a fully truthful summary of shared perf posture on `master`.",
-        )
-        assert_failure(
-            root,
-            LANE_PATH,
-            "zigux/tests/README.md` still advertises `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` as live Phase 6 packet evidence",
-            "zigux/tests/README.md` already matches the partially blocked packet",
+            "`zigux/tests/phase6_base64_perf.zig` is still absent",
+            "`zigux/tests/phase6_base64_perf.zig` is present",
         )
         assert_failure(
             root,
             BASE64_SLICE_PATH,
-            "- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
-            "- the shipped direct C parity surface still depends on the absent focused replay fixture module",
+            "- current `master` lacks `zigux/tests/phase6_base64_perf.zig`",
+            "- current `master` lacks nothing in the base64 packet",
         )
         assert_failure(
             root,
             CHECKSUM_SLICE_PATH,
-            "- this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
-            "- this slice is blocked until a later review",
+            "- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet",
+            "- current review posture: runnable",
         )
-        assert_failure(
-            root,
-            MANIFEST_PATH,
-            '"shared_gates": [',
-            '"shared_gate_inventory": [',
-        )
-        assert_failure(
-            root,
-            MANIFEST_PATH,
-            '"tests_root_truthfulness_note": "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 tests-root evidence packet and keep tests_root_public_tree_gaps explicit as missing public-tree files until those helper-owned base64 and checksum assets return."',
-            '"tests_root_truthfulness_note": "zigux/tests/README.md may summarize any broader helper packet it wants."',
-        )
-        assert_failure(
-            root,
-            MANIFEST_PATH,
-            '"make -C zigux phase6-perf"',
-            '"make -C zigux phase6-perf-review"',
-        )
-        present_should_be_absent = root / ABSENT_PATHS[0]
-        write(present_should_be_absent, "unexpected\n")
+        unexpected_present = root / BASE64_PERF_PATH
+        write(unexpected_present, "unexpected\n")
         try:
             run_checks(root)
         except ValidationError as exc:
-            if ABSENT_PATHS[0].as_posix() not in str(exc):
+            if BASE64_PERF_PATH.as_posix() not in str(exc):
                 raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
         else:
             raise AssertionError("expected absent-path failure")
-        present_should_be_absent.unlink()
-        present_should_be_absent = root / BASE64_GENERATED_INCLUDE_PATH
-        write(present_should_be_absent, "unexpected\n")
-        try:
-            run_checks(root)
-        except ValidationError as exc:
-            if BASE64_GENERATED_INCLUDE_PATH.as_posix() not in str(exc):
-                raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
-        else:
-            raise AssertionError("expected absent-path failure")
-        present_should_be_absent.unlink()
-        required_should_be_present = root / BASE64_PARITY_VECTORS_PATH
-        required_should_be_present.unlink()
-        try:
-            run_checks(root)
-        except ValidationError as exc:
-            if BASE64_PARITY_VECTORS_PATH.as_posix() not in str(exc):
-                raise AssertionError(f"unexpected present-path failure: {exc}") from exc
-        else:
-            raise AssertionError("expected present-path failure")
-        write(required_should_be_present, "pub const standard_cases = .{};\n")
-        assert_failure(
-            root,
-            BASE64_PARITY_SCRIPT_PATH,
-            'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
-            'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")',
-        )
+        unexpected_present.unlink()
     print("self-test passed")
 
 
