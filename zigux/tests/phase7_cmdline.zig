@@ -185,3 +185,23 @@ test "phase 7 nextArg keeps caller-owned buffer slices and sentinel writes expli
     try std.testing.expectEqual(@as(u8, 0), buffer[15]);
     try std.testing.expectEqual(@as(u8, 0), buffer[16]);
 }
+
+test "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit" {
+    var empty = [_]u8{};
+    const empty_args = empty[0..];
+    const parsed_empty = cmdline.nextArg(empty_args);
+    try std.testing.expectEqualStrings("", parsed_empty.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_empty.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed_empty.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed_empty.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed_empty.rest.ptr)));
+
+    var leading_whitespace = [_]u8{ ' ', '\t', 'f', 'o', 'o', '=', '1', 0 };
+    const parsed_leading_whitespace = cmdline.nextArg(&leading_whitespace);
+    try std.testing.expectEqualStrings("", parsed_leading_whitespace.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_leading_whitespace.value);
+    try std.testing.expectEqualStrings("foo=1", cStringPrefix(parsed_leading_whitespace.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[0])), @as(usize, @intFromPtr(parsed_leading_whitespace.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[2])), @as(usize, @intFromPtr(parsed_leading_whitespace.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), leading_whitespace[0]);
+}
