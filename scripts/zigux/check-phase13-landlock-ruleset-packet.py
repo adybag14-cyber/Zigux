@@ -52,7 +52,7 @@ REQUIRED_DOCS_README_MARKERS = (
 )
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = (
-    "if the change touches the shared Phase 13 release packet",
+    "if the change touches the shared Phase 13 contributor packet",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
