@@ -79,10 +79,26 @@ pub fn build(b: *std.Build) void {
     });
     const run_bsearch_c_abi_budget_tests = b.addRunArtifact(bsearch_c_abi_budget_tests);
 
+    const bsearch_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_bsearch_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bsearch_perf_root_module.addImport("bsearch", bsearch_module);
+
+    const bsearch_perf = b.addExecutable(.{
+        .name = "phase6-bsearch-perf",
+        .root_module = bsearch_perf_root_module,
+    });
+    const run_bsearch_perf = b.addRunArtifact(bsearch_perf);
+
     const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");
     bsearch_test_step.dependOn(&run_bsearch_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+
+    const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch perf bench");
+    bsearch_perf_step.dependOn(&run_bsearch_perf.step);
 
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
