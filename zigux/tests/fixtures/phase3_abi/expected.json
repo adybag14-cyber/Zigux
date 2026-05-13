@@ -19,6 +19,16 @@
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1
   },
+  "dev_t": {
+    "minor_bits": 20,
+    "minor_mask": 1048575,
+    "max_major": 4095,
+    "sample_major": 42,
+    "sample_minor": 7,
+    "sample_encoded": 44040199,
+    "range_count": 4,
+    "range_last_encoded": 44040202
+  },
   "structs": {
     "boundary_header": {
       "size": 8,
