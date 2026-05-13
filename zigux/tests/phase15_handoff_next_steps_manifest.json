@@ -15,7 +15,7 @@
     "review_process_present": true,
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
-    "docs_index_handoff_pointer_present": false,
+    "docs_index_handoff_pointer_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
@@ -28,7 +28,7 @@
     {
       "lane_family": "shared-summaries",
       "zigux_destination": "Documentation/zigux/README.md",
-      "why_out_of_scope": "Compact docs-root and checklist reminder repairs stay here; current `master` still undercounts the parked readiness, handoff, and sequencing notes in those shared summaries, so the next truthful follow-up belongs to `shared-summaries` instead of reopening the dedicated handoff packet after this queue update."
+      "why_out_of_scope": "Scripts-root and tests-root parity-scorecard-survey reminder repairs stay here; docs-root and checklist reminders are already aligned on current `master`, so the remaining shared-summary follow-up belongs to `shared-summaries` instead of reopening the dedicated handoff packet after this queue update."
     },
     {
       "lane_family": "review-process",
@@ -76,7 +76,7 @@
   ],
   "pending_next_steps": [
     "Keep the dedicated handoff packet parked after this queue refresh unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "Current `master` still shows shared-summary truthfulness drift in `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`; queue that follow-up through `shared-summaries` by first running `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, then rereading `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting after the shared-summary repair lands.",
+    "Current `master` still shows shared-summary truthfulness drift in `scripts/zigux/README.md` and `zigux/tests/README.md`: both summaries still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md` even though the docs root and checklist are already aligned. Queue that follow-up through `shared-summaries` by first running `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, then rereading `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting after the shared-summary repair lands.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
