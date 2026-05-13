@@ -27,6 +27,10 @@ COMPANION_MARKERS = [
     "- The next smallest same-lane shared-validation step is closed for this owner-map packet: `scripts/zigux/check-phase1-direct-owner-markers.py` exact-checks the four `PHASE1_*_DIRECT_OWNER` lines in this note before any helper-local replay widening.",
 ]
 
+CURRENT_REPO_REALITY_MARKERS = [
+    "- the dedicated owner-map checker itself is now part of the live Phase 1 closure-maintenance packet beside `Documentation/zigux/phase1-closure.md`, the shared `phase1-validate` route, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, so future reminder surfaces should keep that checker explicit instead of treating the owner-map note as docs-only context",
+]
+
 NEXT_STEP_MARKERS = [
     "## Next Bounded Step",
     "Start from `zigux/tests/fixtures/phase1_helper_manifest.json` and pick one helper family only.",
@@ -87,6 +91,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
+    missing.extend(
+        collect_exact_count_markers(
+            lane_note,
+            "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS,
+        )
+    )
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_companion", COMPANION_MARKERS))
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_next_step", NEXT_STEP_MARKERS))
     missing.extend(
@@ -115,6 +126,10 @@ def make_fixture_root(root: Path) -> None:
         "\n".join(
             [
                 "# Phase 1 Host-Helper Lane Sequencing",
+                "",
+                "## Current Repo Reality",
+                "",
+                *CURRENT_REPO_REALITY_MARKERS,
                 "",
                 "## Direct-Anchor Owner Map",
                 "",
@@ -181,6 +196,7 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        makefile.writeText = None
         makefile.write_text("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
         assert collect_missing_markers(root) == []
         case_count += 1
@@ -217,6 +233,34 @@ def run_self_test() -> None:
         missing = collect_missing_markers(root)
         assert (
             f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[1]}:expected=1:actual=2" in missing
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note.write_text(
+            lane_note.read_text(encoding="utf-8").replace(CURRENT_REPO_REALITY_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "phase1_direct_owner_current_repo_reality:"
+            f"{CURRENT_REPO_REALITY_MARKERS[0]}:expected=1:actual=0" in missing
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note.write_text(
+            lane_note.read_text(encoding="utf-8").replace(
+                CURRENT_REPO_REALITY_MARKERS[0],
+                CURRENT_REPO_REALITY_MARKERS[0] + "\n" + CURRENT_REPO_REALITY_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "phase1_direct_owner_current_repo_reality:"
+            f"{CURRENT_REPO_REALITY_MARKERS[0]}:expected=1:actual=2" in missing
         )
         case_count += 1
 
@@ -386,7 +430,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DIRECT_OWNER_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
+        f"{len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
     )
     return 0
 
