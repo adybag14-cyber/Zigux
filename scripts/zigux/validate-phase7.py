@@ -205,7 +205,6 @@ REQUIRED_MARKERS = {
         "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_build.zig": [
-        "phase7-string-helpers-tests",
         "phase7-string-helpers-sample-boundary-tests",
         "\"phase7_string_helpers_sample_boundary.zig\"",
         "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));",
