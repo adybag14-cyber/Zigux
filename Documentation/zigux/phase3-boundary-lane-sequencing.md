@@ -34,7 +34,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - Linux-facing aggregation-header packet, lane baseline `P3-Y05`:
   - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
   - `include/linux/zigux.h`
-- Zigux-owned ABI header-family packet, lane baseline `P3-Y06`:
+- Zigux-owned ABI header family packet, lane baseline `P3-Y06`:
   - `Documentation/zigux/phase3-abi-header-family-survey.md`
   - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
   - `include/zigux/abi.h`
@@ -63,15 +63,39 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - validator-support packet:
   - `Documentation/zigux/phase3-validator-support-surface.md`
+  - `Documentation/zigux/phase3-abi-bindings-survey.md`
+  - `Documentation/zigux/phase3-bindings-governance.md`
+  - `Documentation/zigux/phase3-kernel-export-shim-governance.md`
+  - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
+  - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+  - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
+  - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
+  - `Documentation/zigux/phase3-abi-header-family-survey.md`
+  - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
   - `scripts/zigux/validate-phase3.py`
   - `scripts/zigux/validate_phase3_selftest.py`
   - `scripts/zigux/check-phase3-selftest-surface.py`
   - `scripts/zigux/check-phase3-readme-tooling-inventory.py`
   - `scripts/zigux/check-phase3-catalog-selftest.py`
+  - `scripts/zigux/check-phase3-abi-dump-gate.py`
+  - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
+  - `scripts/zigux/check-phase3-policy-byte-guards.py`
+  - `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
+  - `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`
+  - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+  - `scripts/zigux/validate-phase3-export-uapi-survey.py`
+  - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
+  - `scripts/zigux/validate-phase3-validator-support-surface.py`
+  - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+  - `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
+  - `scripts/zigux/survey-phase3-abi-constant-parity.py`
   - `scripts/zigux/phase3_catalog.py`
   - `scripts/zigux/phase3_check_lib.py`
   - `scripts/zigux/generate-phase3-check-wrappers.py`
   - `scripts/zigux/run-phase3-checks.py`
+  - `zigux/uapi/dev_t.zig`
+  - `zigux/bindings/abi.zig`
+  - `zigux/Makefile`
 - shared anti-overlap owner-map packet, lane `P3-X12`:
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 - shared closure and lane-state packet, lane `P3-X11`:
@@ -86,7 +110,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - Zigux-owned ABI header family owns `include/zigux/abi.h`, `include/zigux/dev_t.h`, and the curated binding mirrors plus the dedicated next-step note that keeps same-family syntax, layout-survey, and truthfulness follow-through bounded
 - policy and unsafe owns panic-mode, allocator-mode, unsafe-scope, and MMIO interop-policy admission drift, including the typed and byte-policy relays that decide whether callers may cross into the narrow unsafe surface
 - low-level wrapper owns direct MMIO ranges and read or write behavior, width coverage, alignment rules, odd offsets, atomic behavior, barrier behavior, and the focused replay wording that proves those direct low-level helpers
-- validator-support owns shared scripts-root, docs-sync, self-test, catalog, wrapper-generation, and runner-route truthfulness for the current Phase 3 packet without claiming helper, kernel, or header behavior on its own
+- validator-support owns shared scripts-root, docs-sync, self-test, catalog, wrapper-generation, and runner-route truthfulness for the current Phase 3 packet, including the dedicated Linux-facing header-governance checker plus the shared ABI-and-bindings reminder notes that keep that validator-support inventory fail-closed, without claiming helper, kernel, or header behavior on its own
 
 ## Anti-overlap rules
 
@@ -101,7 +125,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - if the drift is about `include/linux/zigux.h` aggregation or Linux-facing header governance, keep it in the Linux-facing aggregation-header packet
 - if the drift is about `include/zigux/abi.h`, `include/zigux/dev_t.h`, curated bindings, header-family syntax guards, or the dedicated same-family next-step note, keep it in the Zigux-owned ABI header-family packet
 - if the drift is about manifest accounting, broad ABI summary wording, the dedicated ABI-and-bindings survey, shared dump or compile routes, or shared binding truthfulness that touches more than one substrate family, keep it in the shared ABI and bindings packet
-- if the drift is about `scripts/zigux/README.md`, `zigux/Makefile`, self-test routes, wrapper generation, catalog discovery, or shared validator entrypoints, keep it in the validator-support packet
+- if the drift is about `scripts/zigux/README.md`, `zigux/Makefile`, self-test routes, wrapper generation, catalog discovery, shared validator entrypoints, the dedicated Linux-facing header-governance checker, or the shared ABI-and-bindings reminder notes that keep that validator-support packet truthful, keep it in the validator-support packet
 
 ## Current bounded rule
 
