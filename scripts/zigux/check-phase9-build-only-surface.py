@@ -462,6 +462,46 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        scripts_readme_path = base / SCRIPTS_README_PATH
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme.replace(
+                "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:scripts/zigux/README.md:`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
+        )
+
+        write_fixture_tree(base)
+        tests_readme_path = base / TESTS_README_PATH
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace("`zigux/tests/runtime_loader_gap_survey.zig`", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/README.md:`zigux/tests/runtime_loader_gap_survey.zig`",
+        )
+
+        write_fixture_tree(base)
+        samples_readme_path = base / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme.replace("the focused `phase9-runtime-loader-shared-tests` step", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:samples/zigux/README.md:the focused `phase9-runtime-loader-shared-tests` step",
+        )
+
+        write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
