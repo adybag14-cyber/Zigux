@@ -42,17 +42,20 @@ SURVEY_MARKERS = [
     "`PHASE10_STATUS=parked`",
     "`PHASE10_SLICE=virtio-input-survey`",
     "`PHASE10_LANE_KEY=P10-L13`",
-    "keep the current `virtio_input` packet fail-closed against live current-`master` rereads now that the broader direct helper-facing packet is visible again through public-tree fallback while risky transport remains blocked",
+    "keep the current `virtio_input` packet fail-closed around the landed lab-only driver validation evidence while risky transport remains blocked and the adjacent shared build-graph follow-through stays parked in `P10-L15`",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
-    "scripts/zigux/check-phase10-input-packet.py",
+    "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
-    "landed `phase10-virtio-input-direct-packet-restore`",
-    "repo-reality gap `phase10-virtio-input-slice-companions`",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "`phase10-virtio-input-queue-callback-preflight-helper` keeps the queue-callback preflight summary explicit",
+    "`phase10-virtio-input-status-drain-helper` keeps the bounded status-drain helper explicit",
+    "`phase10-virtio-input-teardown-observation-helper` keeps the teardown-observation summary explicit",
+    "`phase10-virtio-input-registration-lifecycle` remains blocked",
     "Documentation/zigux/phase10-virtio-input-slice.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
 ]
@@ -64,6 +67,15 @@ LANE_NOTE_MARKERS = [
     "`drivers/virtio/virtio_input.zig`",
     "`drivers/virtio/virtio_input_probe_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
+    "`zigux/tests/phase10_virtio_input.zig`",
+    "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_registration_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_status_drain.zig`",
+    "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
+    "`zigux/tests/phase10_virtio_input_survey.zig`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`scripts/zigux/check-phase10-input-packet.py`",
 ]
 
 TEARDOWN_MARKERS = [
@@ -74,35 +86,102 @@ TEARDOWN_MARKERS = [
     "device.reset();",
 ]
 
-EXPECTED_DIRECT_PACKET_FILES = [
-    "zigux/tests/phase10_virtio_input_manifest.json",
-    "Documentation/zigux/phase10-virtio-input-survey.md",
-    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-    "drivers/virtio/virtio_input.zig",
-    "drivers/virtio/virtio_input_probe_preflight.zig",
-    "drivers/virtio/virtio_input_verify.zig",
-    "scripts/zigux/check-phase10-input-packet.py",
-    "zigux/tests/phase10_virtio_input.zig",
-    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
-    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
-    "zigux/tests/phase10_virtio_input_status_drain.zig",
-    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-    "zigux/tests/phase10_virtio_input_survey.zig",
+EXPECTED_INPUT_SUMMARY_TRUE_FIELDS = [
+    "preexisting_phase10_build_present",
+    "preexisting_virtio_core_zig_present",
+    "preexisting_virtio_ring_zig_present",
+    "preexisting_virtio_mmio_survey_present",
+    "preexisting_virtio_input_zig_present",
+    "preexisting_virtio_input_test_present",
+    "preexisting_virtio_input_slice_note_present",
+    "preexisting_virtio_input_module_note_present",
 ]
 
-EXPECTED_MISSING_DIRECT_INPUT_PATHS = [
-    "Documentation/zigux/phase10-virtio-input-slice.md",
-    "Documentation/zigux/phase10-virtio-input-module-slice.md",
-]
-
-EXPECTED_GAP_STATUSES = {
-    "phase10-virtio-input-reminder-manifest": "starter_landed",
-    "phase10-virtio-input-survey-note": "starter_landed",
-    "phase10-virtio-input-direct-packet-restore": "starter_landed",
-    "phase10-virtio-input-teardown-observation-replay": "starter_landed",
-    "phase10-virtio-input-slice-companions": "repo_reality_gap",
-    "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
+REQUIRED_INPUT_GAPS = {
+    "phase10-build-gate": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_build.zig",
+    },
+    "phase10-virtio-core-lab-starter": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
+    "phase10-virtio-ring-lab-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-virtio-input-lab-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-lab-gate": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
+    },
+    "phase10-virtio-input-verify-replay": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input_verify.zig",
+    },
+    "phase10-virtio-input-queue-callback-preflight-replay": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    },
+    "phase10-virtio-input-registration-preflight-replay": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    },
+    "phase10-virtio-input-teardown-observation-replay": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    },
+    "phase10-virtio-input-slice-note": {
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-input-slice.md",
+    },
+    "phase10-virtio-input-survey-gate": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig",
+    },
+    "phase10-virtio-input-survey-note": {
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
+    },
+    "phase10-virtio-input-capability-setup-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-multitouch-slot-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-probe-preflight-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-registration-preflight-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-queue-callback-preflight-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-status-drain-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-teardown-observation-helper": {
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_input.zig",
+    },
+    "phase10-virtio-input-wrapper-ownership-note": {
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
+    },
+    "phase10-virtio-input-registration-lifecycle": {
+        "status": "blocked_on_risky_transport",
+        "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
+    },
 }
 
 EXPECTED_ROADMAP_DESTINATIONS = [
@@ -212,26 +291,36 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if not isinstance(summary, dict):
         missing.append("manifest:survey_summary")
     else:
-        if summary.get("virtio_input_c_lines") != 421:
+        virtio_input_c_lines = summary.get("virtio_input_c_lines")
+        if not isinstance(virtio_input_c_lines, int) or virtio_input_c_lines < 400:
             missing.append(
-                f"manifest:survey_summary:virtio_input_c_lines={summary.get('virtio_input_c_lines')}"
+                f"manifest:survey_summary:virtio_input_c_lines={virtio_input_c_lines}"
             )
-        if summary.get("directly_readable_input_packet_files") != EXPECTED_DIRECT_PACKET_FILES:
-            missing.append("manifest:survey_summary:directly_readable_input_packet_files")
-        if summary.get("missing_direct_input_paths") != EXPECTED_MISSING_DIRECT_INPUT_PATHS:
-            missing.append("manifest:survey_summary:missing_direct_input_paths")
+        preexisting_phase10_test_files = summary.get("preexisting_phase10_test_files")
+        if not isinstance(preexisting_phase10_test_files, int) or preexisting_phase10_test_files < 6:
+            missing.append(
+                "manifest:survey_summary:preexisting_phase10_test_files="
+                + str(preexisting_phase10_test_files)
+            )
+        for field in EXPECTED_INPUT_SUMMARY_TRUE_FIELDS:
+            if summary.get(field) is not True:
+                missing.append(f"manifest:survey_summary:{field}={summary.get(field)}")
 
     gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) != len(EXPECTED_GAP_STATUSES):
+    if not isinstance(gaps, list):
         missing.append("manifest:gaps")
     else:
-        for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
+        for gap_id, expected in REQUIRED_INPUT_GAPS.items():
             gap = find_gap(manifest, gap_id)
             if gap is None:
                 missing.append(f"manifest:gap:{gap_id}")
                 continue
-            if gap.get("status") != expected_status:
+            if gap.get("status") != expected["status"]:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
+            if gap.get("zigux_destination") != expected["zigux_destination"]:
+                missing.append(
+                    f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')}"
+                )
 
     for label, rel_path in (
         ("ring_manifest", TRANSPORT_MANIFEST_FILES["ring_manifest"]),
@@ -286,12 +375,23 @@ def write_fixture(root: Path) -> None:
                 {
                     "survey_summary": {
                         "virtio_input_c_lines": 421,
-                        "directly_readable_input_packet_files": EXPECTED_DIRECT_PACKET_FILES,
-                        "missing_direct_input_paths": EXPECTED_MISSING_DIRECT_INPUT_PATHS,
+                        "preexisting_phase10_test_files": 6,
+                        "preexisting_phase10_build_present": True,
+                        "preexisting_virtio_core_zig_present": True,
+                        "preexisting_virtio_ring_zig_present": True,
+                        "preexisting_virtio_mmio_survey_present": True,
+                        "preexisting_virtio_input_zig_present": True,
+                        "preexisting_virtio_input_test_present": True,
+                        "preexisting_virtio_input_slice_note_present": True,
+                        "preexisting_virtio_input_module_note_present": True,
                     },
                     "gaps": [
-                        {"id": gap_id, "status": status}
-                        for gap_id, status in EXPECTED_GAP_STATUSES.items()
+                        {
+                            "id": gap_id,
+                            "status": expected["status"],
+                            "zigux_destination": expected["zigux_destination"],
+                        }
+                        for gap_id, expected in REQUIRED_INPUT_GAPS.items()
                     ],
                 },
             ),
@@ -373,16 +473,16 @@ def run_self_test() -> int:
 
         survey_path.write_text(
             original_survey.replace(
-                "repo-reality gap `phase10-virtio-input-slice-companions`",
-                "repo-reality gap `phase10-virtio-input-slice-companions-missing`",
+                "`phase10-virtio-input-status-drain-helper` keeps the bounded status-drain helper explicit",
+                "`phase10-virtio-input-status-drain-helper` is missing",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "survey:repo-reality gap `phase10-virtio-input-slice-companions`",
-            "phase10-self-test:survey_missing_slice_gap",
+            "survey:`phase10-virtio-input-status-drain-helper` keeps the bounded status-drain helper explicit",
+            "phase10-self-test:survey_missing_status_drain_marker",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -418,39 +518,48 @@ def run_self_test() -> int:
 
         manifest_path = root / TRANSPORT_MANIFEST_FILES["input_manifest"]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["directly_readable_input_packet_files"].remove(
-            "drivers/virtio/virtio_input_probe_preflight.zig"
-        )
+        manifest["survey_summary"]["preexisting_phase10_test_files"] = 5
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
-            "manifest:survey_summary:directly_readable_input_packet_files",
-            "phase10-self-test:direct_packet_file_list",
+            "manifest:survey_summary:preexisting_phase10_test_files=5",
+            "phase10-self-test:minimum_test_count",
         )
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["missing_direct_input_paths"] = EXPECTED_MISSING_DIRECT_INPUT_PATHS + [
-            "drivers/virtio/virtio_input.zig"
-        ]
+        manifest["survey_summary"]["preexisting_virtio_input_module_note_present"] = False
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
-            "manifest:survey_summary:missing_direct_input_paths",
-            "phase10-self-test:missing_path_list",
+            "manifest:survey_summary:preexisting_virtio_input_module_note_present=False",
+            "phase10-self-test:module_slice_presence",
         )
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
-            if gap["id"] == "phase10-virtio-input-direct-packet-restore":
+            if gap["id"] == "phase10-virtio-input-teardown-observation-helper":
                 gap["status"] = "repo_reality_gap"
                 break
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
-            "manifest:gap_status:phase10-virtio-input-direct-packet-restore=repo_reality_gap",
+            "manifest:gap_status:phase10-virtio-input-teardown-observation-helper=repo_reality_gap",
             "phase10-self-test:gap_status_drift",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-survey-gate":
+                gap["zigux_destination"] = "Documentation/zigux/phase10-virtio-input-survey.md"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:gap_destination:phase10-virtio-input-survey-gate=Documentation/zigux/phase10-virtio-input-survey.md",
+            "phase10-self-test:gap_destination_drift",
         )
         write_fixture(root)
 
@@ -544,7 +653,7 @@ def run_self_test() -> int:
 
 
 def required_marker_count() -> int:
-    specific_input_field_count = 5 + 3 + len(EXPECTED_GAP_STATUSES)
+    specific_input_field_count = 5 + 1 + len(EXPECTED_INPUT_SUMMARY_TRUE_FIELDS) + (2 * len(REQUIRED_INPUT_GAPS))
     shared_transport_field_count = 8 * len(TRANSPORT_MANIFEST_FILES)
     return (
         len(MAKE_MARKERS)
