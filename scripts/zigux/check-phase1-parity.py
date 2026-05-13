@@ -45,6 +45,18 @@ REQUIRED_PARITY_KEYS = {
     ),
     "find_bit": (
         "last",
+        "inclusive_boundary_next",
+        "inclusive_boundary_zero",
+        "inclusive_boundary_and",
+        "past_nbits_next",
+        "past_nbits_zero",
+        "past_nbits_and",
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
         "tail_clamped_last",
         "tail_clamped_empty_last",
         "first_clump_offset",
@@ -373,8 +385,20 @@ def run_self_test() -> None:
             },
             "find_bit": {
                 "last": 1,
-                "tail_clamped_last": 2,
-                "tail_clamped_empty_last": 3,
+                "inclusive_boundary_next": 2,
+                "inclusive_boundary_zero": 3,
+                "inclusive_boundary_and": 4,
+                "past_nbits_next": 5,
+                "past_nbits_zero": 6,
+                "past_nbits_and": 7,
+                "tail_clamped_first": 8,
+                "tail_clamped_next": 9,
+                "tail_zero_clamped_first": 10,
+                "tail_zero_clamped_next": 11,
+                "tail_and_clamped_first": 12,
+                "tail_and_clamped_next": 13,
+                "tail_clamped_last": 14,
+                "tail_clamped_empty_last": 15,
                 "first_clump_offset": 8,
                 "first_clump_value": 66,
                 "next_clump_offset": 8,
@@ -423,6 +447,18 @@ def run_self_test() -> None:
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.tail_clamped_empty_last" in missing_output
 
+        missing_find_bit_boundary_output = json.loads(json.dumps(valid_output))
+        del missing_find_bit_boundary_output["find_bit"]["inclusive_boundary_and"]
+        actual.write_text(json.dumps(missing_find_bit_boundary_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:find_bit.inclusive_boundary_and" in missing_output
+
+        missing_find_bit_tail_clamp_output = json.loads(json.dumps(valid_output))
+        del missing_find_bit_tail_clamp_output["find_bit"]["tail_zero_clamped_next"]
+        actual.write_text(json.dumps(missing_find_bit_tail_clamp_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:find_bit.tail_zero_clamped_next" in missing_output
+
         missing_bitmap_output = json.loads(json.dumps(valid_output))
         del missing_bitmap_output["bitmap"]["partial_xor_masked_values"]
         actual.write_text(json.dumps(missing_bitmap_output), encoding="utf-8")
@@ -441,7 +477,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=17")
 
 
 def main() -> int:
