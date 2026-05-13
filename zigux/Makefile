@@ -172,6 +172,9 @@ phase4-kprobe-example-survey:
 
 phase4: phase4-validate phase4-test
 
+phase6-bsearch-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig
+
 phase7-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py
