@@ -167,8 +167,12 @@ READINESS_SURVEY_MARKERS = [
     "make -C zigux phase15-test",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/README.md",
@@ -578,9 +582,37 @@ def run_self_test() -> int:
 
         readiness_rel = "Documentation/zigux/phase15-readiness-gate-survey.md"
         readiness_text = _read(root, readiness_rel)
+        marker = "Documentation/zigux/freeze-map.md"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_freeze_map")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        marker = "Documentation/zigux/phase15-freeze-map-governance.md"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_freeze_map_governance")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
         marker = "Documentation/zigux/phase15-parity-scorecard-survey.md"
         _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
         _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_parity_scorecard_survey")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        marker = "Documentation/zigux/phase15-parity-scorecard.md"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_parity_scorecard")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_text = _read(root, readiness_rel)
+        marker = "Documentation/zigux/phase15-indefinite-c-policy.md"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_indefinite_c_policy")
         _seed_fixture_tree(root)
         case_count += 1
 
