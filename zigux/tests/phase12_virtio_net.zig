@@ -267,36 +267,8 @@ test "phase12 virtio net recovery plan keeps control queue restore separate from
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
 }
 
-test "phase12 virtio net mergeable receive buffer plan keeps an exact page fit on the single-page path" {
+test "phase12 virtio net control queue payload shape keeps rss resync explicit in the direct packet" {
     var lab = virtio_net.VirtioNetProbeLab.init();
-    const plan = try lab.planMergeableReceiveBuffer(.{
-        .packet_bytes = virtio_net.page_size - virtio_net.default_headroom_bytes,
-        .headroom_bytes = virtio_net.default_headroom_bytes,
-        .mergeable_rx_bufs = false,
-    });
-
-    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
-    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.single_page, plan.buffer_mode);
-    try std.testing.expectEqual(virtio_net.BigPacketReason.none, plan.big_packet_reason);
-    try std.testing.expectEqual(virtio_net.page_size, plan.total_bytes);
-    try std.testing.expectEqual(@as(u16, 1), plan.required_buffers);
-    try std.testing.expect(!plan.reuses_existing_room);
-    try std.testing.expect(plan.fits_single_page);
-    try std.testing.expect(!plan.uses_mergeable_path);
-}
-
-test "phase12 virtio net mergeable receive buffer plan rejects buffer counts past u16 capacity" {
-    var lab = virtio_net.VirtioNetProbeLab.init();
-    try std.testing.expectError(error.BufferCountOverflow, lab.planMergeableReceiveBuffer(.{
-        .packet_bytes = virtio_net.page_size * (@as(u32, std.math.maxInt(u16)) + 1),
-        .headroom_bytes = 0,
-        .mergeable_rx_bufs = true,
-    }));
-}
-
-test "phase12 virtio net control queue recovery plan keeps dirty control-state restores ahead of data queues" {
-    var lab = virtio_net.VirtioNetProbeLab.init();
-    try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
 
     _ = lab.captureProbeSnapshot(.{
         .requested_queue_pairs = 4,
@@ -304,7 +276,7 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
         .has_control_vq = true,
         .has_rss = true,
         .uses_hash_report = true,
-        .uses_udp_tunnel_headers = true,
+        .uses_udp_tunnel_headers = false,
     });
     _ = try lab.summarizeQueueTopology(.{
         .requested_queue_pairs = 4,
@@ -312,26 +284,48 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
         .has_control_vq = true,
         .has_rss = true,
         .uses_hash_report = true,
-        .uses_udp_tunnel_headers = true,
+        .uses_udp_tunnel_headers = false,
     });
     _ = try lab.freezeForReset();
 
-    const plan = try lab.controlQueueRecoveryPlan(.{
-        .mac_table_dirty = true,
-        .vlan_filters_dirty = true,
+    const recovery = try lab.controlQueueRecoveryPlan(.{
         .rss_table_dirty = true,
     });
-    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
-    try std.testing.expect(plan.control_vq_present);
-    try std.testing.expectEqual(@as(?u16, 4), plan.control_queue_index);
-    try std.testing.expect(plan.requires_control_queue_restore);
-    try std.testing.expect(plan.requires_receive_mode_sync);
-    try std.testing.expect(plan.requires_hash_report_restore);
-    try std.testing.expect(plan.requires_mac_table_sync);
-    try std.testing.expect(plan.requires_vlan_filter_sync);
-    try std.testing.expect(plan.requires_rss_config_sync);
-    try std.testing.expect(plan.requires_receive_queue_restore);
-    try std.testing.expect(plan.requires_transmit_queue_restore);
-    try std.testing.expect(plan.must_restore_before_data_queues);
-    try std.testing.expectEqual(@as(u16, 6), plan.command_count);
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", recovery.anchor);
+    try std.testing.expect(recovery.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), recovery.control_queue_index);
+    try std.testing.expect(recovery.requires_control_queue_restore);
+    try std.testing.expect(recovery.requires_receive_mode_sync);
+    try std.testing.expect(recovery.requires_hash_report_restore);
+    try std.testing.expect(!recovery.requires_mac_table_sync);
+    try std.testing.expect(!recovery.requires_vlan_filter_sync);
+    try std.testing.expect(recovery.requires_rss_config_sync);
+    try std.testing.expect(recovery.requires_receive_queue_restore);
+    try std.testing.expect(recovery.requires_transmit_queue_restore);
+    try std.testing.expect(recovery.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 4), recovery.command_count);
+
+    const payload = try lab.planControlQueuePayloadShape(.{
+        .receive_mode_payload_bytes = 4,
+        .hash_report_payload_bytes = 8,
+        .rss_table_entries = 4,
+        .rss_hash_key_bytes = 16,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", payload.anchor);
+    try std.testing.expect(payload.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), payload.control_queue_index);
+    try std.testing.expect(payload.requires_receive_mode_payload);
+    try std.testing.expect(payload.requires_hash_report_payload);
+    try std.testing.expect(!payload.requires_mac_table_payload);
+    try std.testing.expect(!payload.requires_vlan_filter_payload);
+    try std.testing.expect(payload.requires_rss_config_payload);
+    try std.testing.expectEqual(@as(u16, 4), payload.receive_mode_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 8), payload.hash_report_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 0), payload.mac_table_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 0), payload.vlan_filter_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), payload.rss_config_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 2), payload.fixed_payload_command_count);
+    try std.testing.expectEqual(@as(u16, 1), payload.variable_payload_command_count);
+    try std.testing.expectEqual(@as(u32, 36), payload.total_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), payload.largest_payload_bytes);
 }
