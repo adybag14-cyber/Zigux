@@ -121,6 +121,7 @@ FILE_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+        "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-genksyms-bridge.py",
         FALLBACK_REMINDER,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -218,6 +219,7 @@ EXACT_COUNT_CHECKS = {
     "Documentation/zigux/review-checklist.md": {
         FALLBACK_REMINDER: 1,
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+        "scripts/zigux/check-kconfig-bridge.py": 1,
         "scripts/zigux/check-genksyms-bridge.py": 1,
     },
     "scripts/zigux/README.md": {
