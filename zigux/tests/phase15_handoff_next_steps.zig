@@ -60,7 +60,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-13", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
@@ -85,7 +85,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.eql(u8, "parity-scorecard", manifest.adjacent_lane_boundaries[3].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[3].why_out_of_scope, "aggregate-metric") != null);
     try std.testing.expect(std.mem.eql(u8, "readiness-gate", manifest.adjacent_lane_boundaries[4].lane_family));
-    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[4].why_out_of_scope, "Validator-first maintenance posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_laneBoundaries[4].why_out_of_scope, "Validator-first maintenance posture") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.named_reopen_triggers.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.named_reopen_triggers[0].why_now, "dedicated handoff note, manifest, or Zig guard") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.named_reopen_triggers[0].why_now, "shared validator still undercounts") == null);
@@ -131,7 +131,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-13") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Adjacent Lane Boundaries") != null);
