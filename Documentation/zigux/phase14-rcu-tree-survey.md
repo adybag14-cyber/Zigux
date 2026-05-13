@@ -4,7 +4,7 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 
 ## Status
 
-- `PHASE14_LANE_KEY=P14-L14`
+- `PHASE14_LANE_KEY=P14-L16`
 - `PHASE14_STATUS_BUCKET=freeze_in_c`
 - `PHASE14_ANCHOR=kernel/rcu/tree.c`
 - `PHASE14_ROADMAP_DESTINATION=kernel/rcu/tree_bridge.zig`
