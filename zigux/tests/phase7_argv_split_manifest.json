@@ -7,7 +7,7 @@
     "lib/argv_split.zig"
   ],
   "current_verification": {
-    "verified_on_utc": "2026-05-12T00:00:00Z",
+    "verified_on_utc": "2026-05-13T11:57:30Z",
     "argv_split_pair_compile": {
       "status": "confirmed",
       "paths": [
@@ -19,8 +19,7 @@
       "status": "blocked",
       "build_file": "zigux/tests/phase7_build.zig",
       "missing_sibling_paths": [
-        "lib/string_helpers.zig",
-        "zigux/tests/phase7_string_helpers.zig"
+        "zigux/tests/phase7_rbtree.zig"
       ]
     }
   },
@@ -78,7 +77,7 @@
       "current_replay_status": "blocked_by_missing_sibling_paths",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, but it is not a current green claim on live master while the string_helpers sibling paths above are still missing."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, but it is not a current green claim on live master while zigux/tests/phase7_build.zig still imports the missing sibling rbtree replay zigux/tests/phase7_rbtree.zig."
     },
     {
       "id": "phase7-argv-split-helper",
