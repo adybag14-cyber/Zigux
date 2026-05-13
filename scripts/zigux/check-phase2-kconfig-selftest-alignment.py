@@ -110,7 +110,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "older dedicated `check-kconfig-bridge.py` scaffold claim",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 31
 
 def read_text(path: Path) -> str:
     try:
@@ -400,6 +400,13 @@ def run_self_test() -> int:
         path.write_text(replace_once(path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[2], ""), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[2]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, SCRIPTS_README)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[1], ""), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[1]) in issues
         checks_run += 1
 
         build_self_test_root(root)
