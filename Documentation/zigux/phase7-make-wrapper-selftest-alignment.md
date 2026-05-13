@@ -53,6 +53,11 @@ historical helper-slice tag, while this shared note stays on `P7-Y05` and
 should not be read as the active bootstrap-glue schedule owner for restoring
 that missing implementation pair.
 
+`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated
+shared owner-map note for how `P7-Y05` stays on this shared control surface,
+`P7-Y06` owns only the helper-lane map, and the helper-local slices keep their
+own `P7-L*` lane keys.
+
 The same parked packet also depends on the shared docs-root and scripts-root
 Phase 5 no-sample reminders staying honest for `string_helpers`, `cmdline`,
 `argv_split`, and `rbtree`. Current `master` now keeps the fuller parked packet
