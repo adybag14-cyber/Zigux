@@ -27,6 +27,7 @@ BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 BRIDGE_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
+PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 REQUIRED_FILES = (
     DOCS_ROOT_PATH,
@@ -48,6 +49,7 @@ REQUIRED_FILES = (
     BRIDGE_HELPER_PATH,
     BRIDGE_TEST_PATH,
     BRIDGE_BUILD_PATH,
+    PHASE8_BUILD_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -145,6 +147,38 @@ REQUIRED_MARKERS = {
         "phase8-file-path-handle-bridge-test",
         "scripts/zigux/validate-phase8.py",
     ),
+    BRIDGE_SLICE_PATH: (
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_build.zig`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-test`",
+        "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
+    ),
+    BRIDGE_HELPER_PATH: (
+        "buildProcFdinfoPath(",
+        "mapReuseObservationFromFdinfo(",
+        "resolveReusePinnedMapAttempt(",
+        "planTokenPreparation(",
+    ),
+    BRIDGE_TEST_PATH: (
+        "\"Documentation/zigux/phase8-file-path-handle-bridge-slice.md\"",
+        "\"zigux/tests/phase8_file_path_handle_bridge_only_build.zig\"",
+        "\"zigux/tests/phase8_build.zig\"",
+        "\"phase8-file-path-handle-bridge-tests\"",
+        "\"make -C zigux phase8-test\"",
+    ),
+    BRIDGE_BUILD_PATH: (
+        "\"../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+        "\"phase8_file_path_handle_bridge.zig\"",
+        "\"phase8-file-path-handle-bridge-tests\"",
+    ),
+    PHASE8_BUILD_PATH: (
+        "\"../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+        "\"phase8_file_path_handle_bridge.zig\"",
+        "\"phase8-file-path-handle-bridge-tests\"",
+    ),
 }
 
 FIXTURE_OVERRIDES = {
@@ -228,6 +262,7 @@ def run_self_test() -> None:
         ("missing_bridge_helper", BRIDGE_HELPER_PATH),
         ("missing_bridge_test", BRIDGE_TEST_PATH),
         ("missing_bridge_build", BRIDGE_BUILD_PATH),
+        ("missing_phase8_build", PHASE8_BUILD_PATH),
     ]
     marker_cases = [
         (
@@ -404,6 +439,48 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
             "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
             f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        ),
+        (
+            "bridge_slice_shared_build_marker",
+            BRIDGE_SLICE_PATH,
+            "`zigux/tests/phase8_build.zig`",
+            "`zigux/tests/phase8_bridge_build.zig`",
+            f"{BRIDGE_SLICE_PATH}: `zigux/tests/phase8_build.zig`",
+        ),
+        (
+            "bridge_slice_shared_replay_marker",
+            BRIDGE_SLICE_PATH,
+            "`make -C zigux phase8-test`",
+            "`make -C zigux phase8-bridge-test`",
+            f"{BRIDGE_SLICE_PATH}: `make -C zigux phase8-test`",
+        ),
+        (
+            "bridge_helper_token_planning_marker",
+            BRIDGE_HELPER_PATH,
+            "planTokenPreparation(",
+            "planTokenGate(",
+            f"{BRIDGE_HELPER_PATH}: planTokenPreparation(",
+        ),
+        (
+            "bridge_test_shared_build_marker",
+            BRIDGE_TEST_PATH,
+            "\"zigux/tests/phase8_build.zig\"",
+            "\"zigux/tests/phase8_bridge_build.zig\"",
+            f"{BRIDGE_TEST_PATH}: \"zigux/tests/phase8_build.zig\"",
+        ),
+        (
+            "bridge_focused_build_test_name_marker",
+            BRIDGE_BUILD_PATH,
+            "\"phase8-file-path-handle-bridge-tests\"",
+            "\"phase8-file-path-handle-bridge-shard-tests\"",
+            f"{BRIDGE_BUILD_PATH}: \"phase8-file-path-handle-bridge-tests\"",
+        ),
+        (
+            "phase8_build_bridge_test_name_marker",
+            PHASE8_BUILD_PATH,
+            "\"phase8-file-path-handle-bridge-tests\"",
+            "\"phase8-file-path-handle-bridge-shard-tests\"",
+            f"{PHASE8_BUILD_PATH}: \"phase8-file-path-handle-bridge-tests\"",
         ),
     ]
 
