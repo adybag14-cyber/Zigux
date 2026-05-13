@@ -123,7 +123,11 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         const or_previous = try module.orCounter(0x0100_0000_0000_0006);
         const xor_previous = try module.xorCounter(0x0000_ff00_0000_00ff);
         const summary = try module.runSelftest();
+        const selftest_snapshot = module.lifecycleSnapshot();
+        const selftest_summary = module.summary();
         try module.exit();
+        const exit_snapshot = module.lifecycleSnapshot();
+        const exit_summary = module.summary();
 
         mixThresholdChecksumI64(&checksum, seed);
         mixThresholdChecksumI64(&checksum, add_return);
@@ -139,14 +143,14 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         mixThresholdChecksumBool(&checksum, summary.checked_returning_paths);
         mixThresholdChecksumBool(&checksum, summary.checked_bitwise_paths);
         mixThresholdChecksumBool(&checksum, summary.checked_guard_paths);
-        mixThresholdChecksumI64(&checksum, module.snapshotCounter());
-        mixThresholdChecksumUsize(&checksum, module.selftest_runs);
-        mixThresholdChecksumUsize(&checksum, module.exit_runs);
+        mixThresholdChecksumI64(&checksum, exit_summary.counter_snapshot);
+        mixThresholdChecksumUsize(&checksum, selftest_snapshot.selftest_runs);
+        mixThresholdChecksumUsize(&checksum, exit_summary.exit_runs);
 
-        final_counter = module.snapshotCounter();
-        final_stage = module.stage();
-        final_selftest_runs = module.selftest_runs;
-        final_exit_runs = module.exit_runs;
+        final_counter = exit_summary.counter_snapshot;
+        final_stage = exit_snapshot.stage;
+        final_selftest_runs = selftest_summary.selftest_runs;
+        final_exit_runs = exit_summary.exit_runs;
     }
 
     return .{
