@@ -370,3 +370,69 @@ test "phase12 virtio net syntax lab clears stale control queue and mergeable ref
     try std.testing.expect(!restored.mergeable_buffer_refill_required);
     try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
 }
+
+test "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+
+    const snapshot = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 8,
+        .device_queue_pairs = 4,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report_tunnel, snapshot.header_shape);
+    try std.testing.expectEqual(virtio_net.QueueFallbackReason.negotiated_pair_cap, snapshot.fallback_reason);
+    try std.testing.expectEqual(virtio_net.tunnel_header_len_bytes, snapshot.hdr_len_bytes);
+
+    const topology = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 8,
+        .device_queue_pairs = 4,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    try std.testing.expectEqual(@as(u16, 4), topology.effective_queue_pairs);
+    try std.testing.expect(topology.rss_enabled);
+    try std.testing.expectEqual(@as(?u16, 8), topology.first_control_queue_index);
+    try std.testing.expectEqual(@as(u16, 9), topology.total_queue_count);
+
+    _ = try lab.freezeForReset();
+
+    const recovery = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = false,
+        .vlan_filters_dirty = false,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expect(recovery.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 8), recovery.control_queue_index);
+    try std.testing.expect(recovery.requires_hash_report_restore);
+    try std.testing.expect(recovery.requires_rss_config_sync);
+    try std.testing.expect(recovery.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 4), recovery.command_count);
+
+    const payload = try lab.planControlQueuePayloadShape(.{
+        .receive_mode_payload_bytes = 4,
+        .hash_report_payload_bytes = 8,
+        .rss_table_entries = 8,
+        .rss_indirection_entry_bytes = 2,
+        .rss_hash_key_bytes = 40,
+    });
+    try std.testing.expect(payload.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 8), payload.control_queue_index);
+    try std.testing.expect(payload.requires_receive_mode_payload);
+    try std.testing.expect(payload.requires_hash_report_payload);
+    try std.testing.expect(!payload.requires_mac_table_payload);
+    try std.testing.expect(!payload.requires_vlan_filter_payload);
+    try std.testing.expect(payload.requires_rss_config_payload);
+    try std.testing.expectEqual(@as(u32, 56), payload.rss_config_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 2), payload.fixed_payload_command_count);
+    try std.testing.expectEqual(@as(u16, 1), payload.variable_payload_command_count);
+    try std.testing.expectEqual(@as(u32, 68), payload.total_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 56), payload.largest_payload_bytes);
+
+    const restored = try lab.restoreAfterReset();
+    try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+}
