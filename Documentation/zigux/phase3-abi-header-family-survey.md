@@ -9,6 +9,7 @@ active Phase 3 ABI and interop packet.
 - `include/zigux/abi.h`
 - `include/zigux/dev_t.h`
 - `zigux/bindings/abi.zig`
+- `zigux/bindings/dev_t.zig`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
@@ -29,10 +30,11 @@ active Phase 3 ABI and interop packet.
   canonical `include/zigux/dev_t.h` starter companion
 - keep same-lane follow-through here inside note, syntax-guard, or layout-survey
   work unless a real exported field family changes
-- treat `zigux/bindings/abi.zig`, `zigux/kernel/export_shim.zig`,
-  `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` as the current
-  implementation-facing companions for that header-family boundary while the
-  starter UAPI surface remains a bounded version-plus-dev_t pair
+- treat `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`,
+  `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and
+  `zigux/uapi/dev_t.zig` as the current implementation-facing companions for
+  that header-family boundary while the starter UAPI surface remains a bounded
+  version-plus-dev_t pair
 
 ## Non-goals
 
@@ -49,7 +51,8 @@ constant-parity packet should keep this survey explicit beside
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/uapi/dev_t.zig`,
-`zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
+`zigux/bindings/dev_t.zig`, `zigux/bindings/abi.zig`,
+`zigux/tests/phase3_abi_dump.zig`,
 `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
 `zigux/tests/fixtures/phase3_abi/expected.json`,
 `scripts/zigux/validate-phase3-export-uapi-survey.py`,
