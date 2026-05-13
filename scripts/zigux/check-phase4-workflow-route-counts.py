@@ -166,6 +166,7 @@ FORBIDDEN_BUILD_MARKERS = [
 
 SELFTEST_CASES = [
     "baseline_round_trip",
+    "workflow_order_drift",
     "missing_make_route_counts_command",
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
@@ -526,6 +527,35 @@ def run_selftest() -> None:
             tests_readme,
             perf_manifest,
             perf_survey,
+        )
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Validate Phase 4 diff gates\n"
+                "        run: make -C zigux phase4-validate\n"
+                "      - name: Self-test Phase 4 validator directly\n"
+                "        run: python3 scripts/zigux/validate-phase4.py --self-test\n",
+                "      - name: Self-test Phase 4 validator directly\n"
+                "        run: python3 scripts/zigux/validate-phase4.py --self-test\n"
+                "      - name: Validate Phase 4 diff gates\n"
+                "        run: make -C zigux phase4-validate\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "workflow order drift",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
         )
 
         write_baseline()
