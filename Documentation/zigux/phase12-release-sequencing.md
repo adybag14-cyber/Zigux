@@ -38,10 +38,11 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 - There is still no shipped shared `make -C zigux phase12-validate` route, wired validator-first replay packet, focused libbpf-only replay, or cross-build replay on current `master`; `scripts/zigux/validate-phase12.py` exists as an unwired helper and must not be treated as shipped release evidence by itself.
 
 ## Fallback Split
-- Only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts.
+- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact.
+- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, not a second commit-pinned direct replay artifact.
 - `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than implied commit-pinned fallback artifacts.
 - During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain shared-tree raw-read anchors for the smoke-first packet and should stay visible here without being promoted into extra commit-pinned fallback artifacts.
-- `Documentation/zigux/phase12-raw-github-coverage-survey.md` is the compact reminder for that two-versus-two split and should stay aligned with this note whenever fallback wording changes.
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md` is the compact reminder for that one direct replay catalog plus one current-master gap-inventory companion plus two shared-tree-only anchors split and should stay aligned with this note whenever fallback wording changes.
 
 ## Boundaries
 - This note is a release-order record, not a release-closure claim.
