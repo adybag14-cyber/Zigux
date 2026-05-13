@@ -71,6 +71,33 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t skipped;
 };
 
+struct zigux_notifier_block {
+    uintptr_t notifier_call;
+    uintptr_t next;
+    int32_t priority;
+};
+
+static inline int zigux_notifier_chain_has_nonincreasing_priority(
+    const struct zigux_notifier_block *head)
+{
+    int32_t previous_priority;
+    const struct zigux_notifier_block *node;
+
+    if (!head)
+        return 1;
+
+    previous_priority = head->priority;
+    while (head->next != (uintptr_t)0) {
+        node = (const struct zigux_notifier_block *)(uintptr_t)head->next;
+        if (node->priority > previous_priority)
+            return 0;
+        previous_priority = node->priority;
+        head = node;
+    }
+
+    return 1;
+}
+
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
 {
     zigux_boundary_header header = {
