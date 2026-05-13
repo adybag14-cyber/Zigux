@@ -108,7 +108,9 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expectEqualStrings("starter_completion_and_recovery_summary_present_runtime_execution_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "completion-handback ordering") != null);
     try std.testing.expectEqualStrings("support_packet_survey_packet_submit_and_completion_summary_present", manifest.roadmap_gap_check.segmented_rollout.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.current_surface, "completion-handback sequencing summaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.current_surface, "control-path governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.blocked_by, "Scsi_Host registration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.blocked_by, "TMF execution") != null);
 
     var saw_support_packet = false;
     var saw_survey_note = false;
@@ -237,7 +239,7 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe request submission") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded control-path governance follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "control-path governance, command-buffer ownership, request-submit sequencing, completion-handback sequencing, and recovery ordering as already-landed bounded review surfaces") != null);
 }
 
 test "phase12 virtio scsi survey gate keeps present lane files explicit" {
