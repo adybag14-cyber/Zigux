@@ -37,6 +37,10 @@ fn readWorkqueueSliceSource() ![]u8 {
     return readRootFile("Documentation/zigux/phase14-workqueue-bridge-slice.md", 64 * 1024);
 }
 
+fn readReviewChecklistSource() ![]u8 {
+    return readRootFile("Documentation/zigux/review-checklist.md", 128 * 1024);
+}
+
 test "phase14 shared smoke manifest keeps workqueue reviewability explicit" {
     try expectContains(manifest_source, "\"zigux/tests/phase14_workqueue_reviewability.zig\"");
     try expectContains(manifest_source, "\"label\": \"phase14-workqueue-reviewability-tests\"");
@@ -136,6 +140,19 @@ test "phase14 workqueue slice note keeps the bridge packet reviewable" {
     try expectContains(workqueue_slice_source, "delayed-work timer expiry");
     try expectContains(workqueue_slice_source, "flush, drain, and cancellation completion ownership");
     try expectContains(workqueue_slice_source, "hotplug-driven worker migration and topology rebinding");
+}
+
+test "phase14 review checklist keeps the workqueue packet explicit in the shared smoke reminder" {
+    const review_checklist_source = try readReviewChecklistSource();
+    defer std.testing.allocator.free(review_checklist_source);
+
+    try expectContains(review_checklist_source, "if the change touches the shared Phase 14 smoke packet");
+    try expectContains(review_checklist_source, "`zigux/tests/phase14_workqueue_reviewability.zig`");
+    try expectContains(review_checklist_source, "`zigux/tests/phase14_workqueue_bridge.zig`");
+    try expectContains(review_checklist_source, "`zigux/tests/phase14_workqueue_bridge_manifest.json`");
+    try expectContains(review_checklist_source, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` kept explicit as the two boundary-study-only anchors");
+    try expectContains(review_checklist_source, "`kernel/rcu/tree.c` plus `net/core/skbuff.c` kept explicit as the two freeze-in-C-governed anchors");
+    try expectContains(review_checklist_source, "without implying an active deep-core port claim");
 }
 
 test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
