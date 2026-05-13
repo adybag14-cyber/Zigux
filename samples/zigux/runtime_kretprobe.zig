@@ -24,6 +24,9 @@ pub const ProbeResult = struct {
 };
 
 pub const RuntimeKretprobeSummary = struct {
+    stage: ModuleStage,
+    init_runs: usize,
+    exit_runs: usize,
     symbol_name: []const u8,
     maxactive: usize,
     active_instances: usize,
@@ -194,6 +197,9 @@ pub const RuntimeKretprobeSample = struct {
 
     pub fn summary(self: *const Self) RuntimeKretprobeSummary {
         return .{
+            .stage = self.stage(),
+            .init_runs = self.init_runs,
+            .exit_runs = self.exit_runs,
             .symbol_name = self.symbol_name,
             .maxactive = self.maxactive,
             .active_instances = self.active_instances,
@@ -230,6 +236,72 @@ test "runtime kretprobe sample advertises the bounded runtime pilot contract" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
     try std.testing.expect(descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selftest_hook);
+}
+
+test "runtime kretprobe summary keeps lifecycle hooks explicit across init selftest and exit" {
+    var module = RuntimeKretprobeSample{};
+
+    const cold = module.summary();
+    try std.testing.expectEqual(ModuleStage.cold, cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+
+    try module.init();
+
+    const initialized = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+
+    _ = try module.runSelftest();
+
+    const selftested = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested.exit_runs);
+
+    _ = try module.exit();
+
+    const exited = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+}
+
+test "runtime kretprobe summary keeps selftest lifecycle hooks pinned across failed exit recovery" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+    _ = try module.runSelftest();
+    try std.testing.expect(try module.entryHandler(true, 400));
+
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.active_instances);
+
+    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
+
+    const after_failed_exit = module.summary();
+    try std.testing.expectEqual(before_failed_exit.stage, after_failed_exit.stage);
+    try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
+    try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
+    try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
+    try std.testing.expectEqual(before_failed_exit.active_instances, after_failed_exit.active_instances);
+
+    _ = try module.retHandler(7, 455);
+    _ = try module.exit();
+
+    const exited = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
 }
 
 test "runtime kretprobe sample keeps a retargeted symbol fixed across init selftest and exit" {
