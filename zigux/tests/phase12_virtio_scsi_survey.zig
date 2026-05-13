@@ -81,7 +81,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
@@ -211,8 +211,10 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     defer parsed.deinit();
     const manifest = parsed.value;
 
+    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureProbeSnapshot()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureHostLimitSummary()") != null);
@@ -227,7 +229,7 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "request-queue selection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "completion-handback ordering") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_packet.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `P12-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `P12-L09`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible-delivery evidence:") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: when this packet moves") != null);
