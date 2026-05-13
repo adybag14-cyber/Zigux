@@ -6,6 +6,12 @@ pub const fmode_can_write: u32 = 1 << 1;
 pub const rule_type_path_beneath: u32 = 1;
 pub const rule_type_net_port: u32 = 2;
 
+pub const landlock_create_ruleset_version: u32 = 1 << 0;
+pub const landlock_create_ruleset_errata: u32 = 1 << 1;
+pub const landlock_mask_create_ruleset: u32 =
+    landlock_create_ruleset_version |
+    landlock_create_ruleset_errata;
+
 pub const landlock_restrict_self_log_same_exec_off: u32 = 1 << 0;
 pub const landlock_restrict_self_log_new_exec_on: u32 = 1 << 1;
 pub const landlock_restrict_self_log_subdomains_off: u32 = 1 << 2;
@@ -14,13 +20,21 @@ pub const landlock_mask_restrict_self: u32 =
     landlock_restrict_self_log_new_exec_on |
     landlock_restrict_self_log_subdomains_off;
 
+pub const create_ruleset_attr_min_size: usize = 8;
+pub const create_ruleset_attr_full_size: usize = 24;
+pub const create_ruleset_attr_max_size: usize = 4096;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
+    provides_create_ruleset_planning: bool,
     provides_restrict_self_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_release_planning: bool,
     provides_ruleset_fops_planning: bool,
+    validates_create_ruleset_flags: bool,
+    validates_create_ruleset_access_masks: bool,
+    validates_create_ruleset_scope: bool,
     validates_ruleset_fd: bool,
     validates_ruleset_write_access: bool,
     validates_restrict_self_flags: bool,
@@ -31,6 +45,12 @@ pub const ModuleDescriptor = struct {
     touches_live_rulesets: bool,
 };
 
+pub const CreateRulesetMode = enum {
+    create,
+    abi_version_query,
+    errata_query,
+};
+
 pub const CredentialGate = enum {
     no_new_privs,
     cap_sys_admin_override,
@@ -39,6 +59,33 @@ pub const CredentialGate = enum {
 pub const AddRuleAction = enum {
     path_beneath,
     net_port,
+};
+
+pub const CreateRulesetInput = struct {
+    attr_present: bool = true,
+    size: usize = create_ruleset_attr_full_size,
+    flags: u32 = 0,
+    handled_access_fs: u64 = 0,
+    handled_access_net: u64 = 0,
+    scoped: u64 = 0,
+    supported_access_fs_mask: u64 = std.math.maxInt(u64),
+    supported_access_net_mask: u64 = std.math.maxInt(u64),
+    supported_scope_mask: u64 = std.math.maxInt(u64),
+};
+
+pub const CreateRulesetPlan = struct {
+    anchor: []const u8,
+    mode: CreateRulesetMode,
+    copied_size: usize,
+    handled_access_fs: u64,
+    handled_access_net: u64,
+    scoped: u64,
+    requires_empty_attr: bool,
+    validates_attr_copy_min: bool,
+    validates_access_fs: bool,
+    validates_access_net: bool,
+    validates_scope: bool,
+    reaches_anon_inode_fd_installation: bool,
 };
 
 pub const RestrictSelfInput = struct {
@@ -125,10 +172,14 @@ pub const SyscallsHelperLab = struct {
         return .{
             .name = "landlock_syscalls_helper_lab",
             .anchor = "security/landlock/syscalls.c",
+            .provides_create_ruleset_planning = true,
             .provides_restrict_self_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_release_planning = true,
             .provides_ruleset_fops_planning = true,
+            .validates_create_ruleset_flags = true,
+            .validates_create_ruleset_access_masks = true,
+            .validates_create_ruleset_scope = true,
             .validates_ruleset_fd = true,
             .validates_ruleset_write_access = true,
             .validates_restrict_self_flags = true,
@@ -137,6 +188,69 @@ pub const SyscallsHelperLab = struct {
             .validates_credential_gate = true,
             .touches_live_credentials = false,
             .touches_live_rulesets = false,
+        };
+    }
+
+    pub fn planCreateRuleset(input: CreateRulesetInput) !CreateRulesetPlan {
+        if (input.flags != 0) {
+            if (input.attr_present or input.size != 0) {
+                return error.InvalidCreateRulesetQuery;
+            }
+
+            const mode: CreateRulesetMode = switch (input.flags) {
+                landlock_create_ruleset_version => .abi_version_query,
+                landlock_create_ruleset_errata => .errata_query,
+                else => return error.UnsupportedFlags,
+            };
+
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = mode,
+                .copied_size = 0,
+                .handled_access_fs = 0,
+                .handled_access_net = 0,
+                .scoped = 0,
+                .requires_empty_attr = true,
+                .validates_attr_copy_min = false,
+                .validates_access_fs = false,
+                .validates_access_net = false,
+                .validates_scope = false,
+                .reaches_anon_inode_fd_installation = false,
+            };
+        }
+
+        if (!input.attr_present) {
+            return error.MissingAttr;
+        }
+        if (input.size < create_ruleset_attr_min_size) {
+            return error.AttrSizeTooSmall;
+        }
+        if (input.size > create_ruleset_attr_max_size) {
+            return error.AttrSizeTooLarge;
+        }
+        if (input.handled_access_fs & ~input.supported_access_fs_mask != 0) {
+            return error.AccessFsNotSupported;
+        }
+        if (input.handled_access_net & ~input.supported_access_net_mask != 0) {
+            return error.AccessNetNotSupported;
+        }
+        if (input.scoped & ~input.supported_scope_mask != 0) {
+            return error.ScopeNotSupported;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = .create,
+            .copied_size = input.size,
+            .handled_access_fs = input.handled_access_fs,
+            .handled_access_net = input.handled_access_net,
+            .scoped = input.scoped,
+            .requires_empty_attr = false,
+            .validates_attr_copy_min = true,
+            .validates_access_fs = true,
+            .validates_access_net = true,
+            .validates_scope = true,
+            .reaches_anon_inode_fd_installation = false,
         };
     }
 
@@ -287,10 +401,14 @@ test "landlock syscalls descriptor stays scoped to pure planning helpers" {
 
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
+    try std.testing.expect(descriptor.validates_create_ruleset_flags);
+    try std.testing.expect(descriptor.validates_create_ruleset_access_masks);
+    try std.testing.expect(descriptor.validates_create_ruleset_scope);
     try std.testing.expect(descriptor.validates_ruleset_fd);
     try std.testing.expect(descriptor.validates_ruleset_write_access);
     try std.testing.expect(descriptor.validates_restrict_self_flags);
@@ -299,6 +417,82 @@ test "landlock syscalls descriptor stays scoped to pure planning helpers" {
     try std.testing.expect(descriptor.validates_credential_gate);
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_rulesets);
+}
+
+test "landlock create-ruleset planning keeps query-only flags explicit" {
+    const version_plan = try SyscallsHelperLab.planCreateRuleset(.{
+        .attr_present = false,
+        .size = 0,
+        .flags = landlock_create_ruleset_version,
+    });
+
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, version_plan.mode);
+    try std.testing.expect(version_plan.requires_empty_attr);
+    try std.testing.expectEqual(@as(usize, 0), version_plan.copied_size);
+    try std.testing.expect(!version_plan.validates_attr_copy_min);
+    try std.testing.expect(!version_plan.reaches_anon_inode_fd_installation);
+
+    const errata_plan = try SyscallsHelperLab.planCreateRuleset(.{
+        .attr_present = false,
+        .size = 0,
+        .flags = landlock_create_ruleset_errata,
+    });
+
+    try std.testing.expectEqual(CreateRulesetMode.errata_query, errata_plan.mode);
+    try std.testing.expect(errata_plan.requires_empty_attr);
+    try std.testing.expect(!errata_plan.reaches_anon_inode_fd_installation);
+}
+
+test "landlock create-ruleset planning keeps handled access and scope validation explicit" {
+    const plan = try SyscallsHelperLab.planCreateRuleset(.{
+        .handled_access_fs = 0x3,
+        .handled_access_net = 0x10,
+        .scoped = 0x4,
+        .supported_access_fs_mask = 0x7,
+        .supported_access_net_mask = 0x30,
+        .supported_scope_mask = 0x7,
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expectEqual(CreateRulesetMode.create, plan.mode);
+    try std.testing.expectEqual(create_ruleset_attr_full_size, plan.copied_size);
+    try std.testing.expectEqual(@as(u64, 0x3), plan.handled_access_fs);
+    try std.testing.expectEqual(@as(u64, 0x10), plan.handled_access_net);
+    try std.testing.expectEqual(@as(u64, 0x4), plan.scoped);
+    try std.testing.expect(!plan.requires_empty_attr);
+    try std.testing.expect(plan.validates_attr_copy_min);
+    try std.testing.expect(plan.validates_access_fs);
+    try std.testing.expect(plan.validates_access_net);
+    try std.testing.expect(plan.validates_scope);
+    try std.testing.expect(!plan.reaches_anon_inode_fd_installation);
+}
+
+test "landlock create-ruleset planning rejects invalid query and attr shapes" {
+    try std.testing.expectError(error.InvalidCreateRulesetQuery, SyscallsHelperLab.planCreateRuleset(.{
+        .flags = landlock_create_ruleset_version,
+    }));
+    try std.testing.expectError(error.MissingAttr, SyscallsHelperLab.planCreateRuleset(.{
+        .attr_present = false,
+        .size = create_ruleset_attr_full_size,
+    }));
+    try std.testing.expectError(error.AttrSizeTooSmall, SyscallsHelperLab.planCreateRuleset(.{
+        .size = create_ruleset_attr_min_size - 1,
+    }));
+    try std.testing.expectError(error.AttrSizeTooLarge, SyscallsHelperLab.planCreateRuleset(.{
+        .size = create_ruleset_attr_max_size + 1,
+    }));
+    try std.testing.expectError(error.AccessFsNotSupported, SyscallsHelperLab.planCreateRuleset(.{
+        .handled_access_fs = 0x8,
+        .supported_access_fs_mask = 0x7,
+    }));
+    try std.testing.expectError(error.AccessNetNotSupported, SyscallsHelperLab.planCreateRuleset(.{
+        .handled_access_net = 0x40,
+        .supported_access_net_mask = 0x30,
+    }));
+    try std.testing.expectError(error.ScopeNotSupported, SyscallsHelperLab.planCreateRuleset(.{
+        .scoped = 0x8,
+        .supported_scope_mask = 0x7,
+    }));
 }
 
 test "landlock restrict-self planning accepts no-new-privs callers" {
