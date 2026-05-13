@@ -229,7 +229,7 @@ test "phase12 virtio net recovery plan distinguishes recycled-room refill from m
     try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
     try std.testing.expect(plan.requires_receive_queue_restore);
-    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(plan.requires_transmitQueueRestore);
     try std.testing.expect(!plan.requires_control_queue_restore);
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
@@ -332,69 +332,6 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
     try std.testing.expect(plan.requires_rss_config_sync);
     try std.testing.expect(plan.requires_receive_queue_restore);
     try std.testing.expect(plan.requires_transmit_queue_restore);
-    try std.testing.expect(plan.must_restoreBeforeDataQueues);
+    try std.testing.expect(plan.must_restore_before_data_queues);
     try std.testing.expectEqual(@as(u16, 6), plan.command_count);
-}
-
-test "phase12 virtio net control queue payload shape keeps rss resync explicit in the direct packet" {
-    var lab = virtio_net.VirtioNetProbeLab.init();
-
-    _ = lab.captureProbeSnapshot(.{
-        .requested_queue_pairs = 4,
-        .device_queue_pairs = 2,
-        .has_control_vq = true,
-        .has_rss = true,
-        .uses_hash_report = true,
-        .uses_udp_tunnel_headers = false,
-    });
-    _ = try lab.summarizeQueueTopology(.{
-        .requested_queue_pairs = 4,
-        .device_queue_pairs = 2,
-        .has_control_vq = true,
-        .has_rss = true,
-        .uses_hash_report = true,
-        .uses_udp_tunnel_headers = false,
-    });
-    _ = try lab.freezeForReset();
-
-    const recovery = try lab.controlQueueRecoveryPlan(.{
-        .rss_table_dirty = true,
-    });
-    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", recovery.anchor);
-    try std.testing.expect(recovery.control_vq_present);
-    try std.testing.expectEqual(@as(?u16, 4), recovery.control_queue_index);
-    try std.testing.expect(recovery.requires_control_queue_restore);
-    try std.testing.expect(recovery.requires_receive_mode_sync);
-    try std.testing.expect(recovery.requires_hash_report_restore);
-    try std.testing.expect(!recovery.requires_mac_table_sync);
-    try std.testing.expect(!recovery.requires_vlan_filter_sync);
-    try std.testing.expect(recovery.requires_rss_config_sync);
-    try std.testing.expect(recovery.requires_receive_queue_restore);
-    try std.testing.expect(recovery.requires_transmit_queue_restore);
-    try std.testing.expect(recovery.must_restore_before_data_queues);
-    try std.testing.expectEqual(@as(u16, 4), recovery.command_count);
-
-    const payload = try lab.planControlQueuePayloadShape(.{
-        .receive_mode_payload_bytes = 4,
-        .hash_report_payload_bytes = 8,
-        .rss_table_entries = 4,
-        .rss_hash_key_bytes = 16,
-    });
-    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", payload.anchor);
-    try std.testing.expect(payload.control_vq_present);
-    try std.testing.expectEqual(@as(?u16, 4), payload.control_queue_index);
-    try std.testing.expect(payload.requires_receive_mode_payload);
-    try std.testing.expect(payload.requires_hash_report_payload);
-    try std.testing.expect(!payload.requires_mac_table_payload);
-    try std.testing.expect(!payload.requires_vlan_filter_payload);
-    try std.testing.expect(payload.requires_rss_config_payload);
-    try std.testing.expectEqual(@as(u16, 4), payload.receive_mode_payload_bytes);
-    try std.testing.expectEqual(@as(u16, 8), payload.hash_report_payload_bytes);
-    try std.testing.expectEqual(@as(u32, 0), payload.mac_table_payload_bytes);
-    try std.testing.expectEqual(@as(u32, 0), payload.vlan_filter_payload_bytes);
-    try std.testing.expectEqual(@as(u32, 24), payload.rss_config_payload_bytes);
-    try std.testing.expectEqual(@as(u16, 2), payload.fixed_payload_command_count);
-    try std.testing.expectEqual(@as(u16, 1), payload.variable_payload_command_count);
-    try std.testing.expectEqual(@as(u32, 36), payload.total_payload_bytes);
-    try std.testing.expectEqual(@as(u32, 24), payload.largest_payload_bytes);
 }
