@@ -1,5 +1,5 @@
 {
-  "lane_key": "P7-Y06",
+  "lane_key": "P7-L05",
   "phase": "Phase 7",
   "anchor": "lib/cmdline.c",
   "roadmap_destinations": [
@@ -9,6 +9,7 @@
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
