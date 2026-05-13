@@ -55,6 +55,7 @@ REQUIRED_MARKERS = {
     SCRIPTS_README_PATH: (
         "Phase 8 flow - the current shared Phase 8 review surface on `master` is",
         "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`Documentation/zigux/phase8-exec-cmd-slice.md`",
         "`zigux/tests/phase8_exec_cmd.zig`",
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
@@ -177,6 +178,7 @@ def run_self_test() -> int:
 
         mutations = (
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-exec-cmd-packet.py`"),
+            (SCRIPTS_README_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`"),
             (DOCS_ROOT_PATH, "`make -C zigux phase8-exec-cmd-test`"),
             (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
