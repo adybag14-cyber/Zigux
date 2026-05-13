@@ -508,7 +508,7 @@ def _seed_fixture_tree(root: Path) -> None:
             {
                 "surveyed_commit": "current-master-readback-2026-05-12",
                 "posture": {
-                    "architecture_council_status_change_approval_recorded": false,
+                    "architecture_council_status_change_approval_recorded": False,
                 },
                 "metrics": {
                     "architecture_council_status_change_approval_count": 0,
