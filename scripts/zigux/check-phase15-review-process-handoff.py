@@ -23,6 +23,13 @@ PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
 READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 PARITY_SCORECARD_SURVEY_PATH = "Documentation/zigux/phase15-parity-scorecard-survey.md"
 SHARED_SUMMARY_GAP_CHECKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
+EXPECTED_MANIFEST_LANE_KEY = "P15-L08"
+EXPECTED_MANIFEST_PHASE = "Phase 15"
+EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
+EXPECTED_MANIFEST_ANCHOR = NOTE_PATH
+HISTORICAL_CONTINUITY_MARKER = (
+    "historical continuity for this parked maintenance surface still points back to `P15-L06`"
+)
 START_WITH_SCRIPTS_README_MARKER = (
     "starting with scripts/zigux/README.md as the smallest remaining "
     "parity-scorecard-survey reminder before widening into zigux/tests/README.md"
@@ -74,6 +81,7 @@ POLICY_MARKERS = (
 
 LANE_NOTE_MARKERS = (
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    HISTORICAL_CONTINUITY_MARKER,
     "scripts/zigux/validate-phase15.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -254,6 +262,14 @@ def _validate_governance_alignment(
 ) -> None:
     if review_manifest.get("current_approval_state") != "no_freeze_map_status_change_approved":
         issues.append("manifest:approval_state_mismatch")
+    if review_manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
+        issues.append("manifest:lane_key")
+    if review_manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        issues.append("manifest:phase")
+    if review_manifest.get("roadmap_requirement") != EXPECTED_ROADMAP_REQUIREMENT:
+        issues.append("manifest:roadmap_requirement")
+    if review_manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
+        issues.append("manifest:anchor")
 
     readiness = _require_json_object(readiness_manifest, "readiness_manifest", issues)
     if readiness.get("surveyed_commit_mode") != "dated_master_readback":
@@ -424,7 +440,11 @@ def _seed_fixture_tree(root: Path) -> None:
         root / MANIFEST_PATH,
         json.dumps(
             {
+                "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+                "phase": EXPECTED_MANIFEST_PHASE,
                 "surveyed_commit": "current-master-readback-2026-05-12",
+                "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
+                "anchor": EXPECTED_MANIFEST_ANCHOR,
                 "current_approval_state": "no_freeze_map_status_change_approved",
                 "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
                 "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
@@ -488,7 +508,7 @@ def _seed_fixture_tree(root: Path) -> None:
             {
                 "surveyed_commit": "current-master-readback-2026-05-12",
                 "posture": {
-                    "architecture_council_status_change_approval_recorded": False,
+                    "architecture_council_status_change_approval_recorded": false,
                 },
                 "metrics": {
                     "architecture_council_status_change_approval_count": 0,
@@ -632,6 +652,19 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        lane_note_path = root / LANE_NOTE_PATH
+        _write(
+            lane_note_path,
+            _read(lane_note_path).replace(HISTORICAL_CONTINUITY_MARKER + "\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"lane_note:missing:{HISTORICAL_CONTINUITY_MARKER}"],
+            "missing_lane_note_historical_continuity_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         docs_readme_path = root / DOCS_README_PATH
         _write(
             docs_readme_path,
@@ -689,6 +722,28 @@ def run_self_test() -> int:
             validate(root),
             ["manifest_required_review_packet_fields:missing:required approver set"],
             "missing_manifest_field",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["lane_key"] = "P15-L06"
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest:lane_key"],
+            "manifest_lane_key_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["anchor"] = "Documentation/zigux/freeze-map.md"
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest:anchor"],
+            "manifest_anchor_alignment",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -869,7 +924,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(NOTE_MAINTENANCE_CLOSURE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 11}"
+        f"{len(NOTE_MARKERS) + len(NOTE_MAINTENANCE_CLOSURE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 15}"
     )
     return 0
 
