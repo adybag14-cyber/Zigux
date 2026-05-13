@@ -50,7 +50,7 @@ REQUIRED_MARKERS = {
         "rather than through an older shared-build bundle.",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "if the change touches the shared Phase 13 release packet",
+        "if the change touches the shared Phase 13 contributor packet",
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
