@@ -529,7 +529,7 @@ fn attributeSpecs() [3]AttributeSpec {
 }
 
 fn parseInteger(raw_value: []const u8) !i32 {
-    const trimmed = std.mem.trimRight(u8, raw_value, "\r\n");
+    const trimmed = std.mem.trimEnd(u8, raw_value, "\r\n");
     if (trimmed.len == 0) return error.InvalidInteger;
     return std.fmt.parseInt(i32, trimmed, 10) catch error.InvalidInteger;
 }
@@ -558,6 +558,31 @@ test "kobject example sample keeps the anchor replay self-check local to the sam
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqual(SampleStage.registered, sample.stage());
+}
+
+test "kobject example sample keeps the ownership replay self-check local to the sample file" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runOwnershipReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_snapshots[0].stage);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_snapshots[1].stage);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_snapshots[2].stage);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_snapshots[3].stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[0].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[1].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 3), replay.stage_snapshots[2].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[3].active_attr_count);
+    try std.testing.expectEqual(false, replay.replay_readiness[0]);
+    try std.testing.expectEqual(true, replay.replay_readiness[1]);
+    try std.testing.expectEqual(false, replay.replay_readiness[2]);
+    try std.testing.expectEqual(false, replay.replay_readiness[3]);
+    try std.testing.expectEqual(ExitDisposition.abandoned_before_registration, replay.initialized_exit.disposition);
+    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, replay.registered_exit.disposition);
+    try std.testing.expectEqual(@as(usize, 1), replay.registered_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.registered_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.registered_exit.exit_runs);
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
 }
 
 test "kobject example sample keeps teardown and ownership cues self-checkable" {
