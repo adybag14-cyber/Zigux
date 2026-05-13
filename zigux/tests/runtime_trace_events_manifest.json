@@ -130,7 +130,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior."
+      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state boundary."
     }
   ]
 }
