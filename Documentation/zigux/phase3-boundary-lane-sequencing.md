@@ -4,11 +4,11 @@ This note restores the shared owner map for the current Phase 3 ABI substrate pa
 
 ## Purpose
 
-The active Phase 3 packet still spans a shared ABI summary, starter kernel relay, starter UAPI companions, Linux-facing header governance, Zigux-owned header-family follow-through, policy and unsafe rules, focused low-level wrapper proof, and validator-support helpers. Recent bounded runs already split those surfaces into separate substrate lanes, so this shared note must now route by owner and behavior class instead of treating the whole starter boundary as one packet or sending every `layout_assert.zig` change through the policy lane.
+The active Phase 3 packet still spans a shared ABI summary, starter kernel relay, starter UAPI companions, Linux-facing header governance, Zigux-owned header-family follow-through, policy and unsafe rules, focused low-level wrapper proof, and validator-support helpers. Recent bounded runs already split those surfaces into separate substrate lanes, so this shared note must now route by owner and behavior class, keep the live maintenance lanes explicit, and avoid treating the whole starter boundary as one packet or sending every `layout_assert.zig` change through the policy lane.
 
 ## Current lane map
 
-- shared ABI and bindings packet, lane baseline `P3-X08`:
+- shared ABI and bindings packet, lane baseline `P3-X08`, current shared replay maintenance `P3-L10`:
   - `Documentation/zigux/phase3-abi-slice.md`
   - `Documentation/zigux/phase3-abi-bindings-survey.md`
   - `zigux/tests/fixtures/phase3_abi_manifest.json`
@@ -23,18 +23,18 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/check-phase3-abi.py`
   - `scripts/zigux/check-phase3-abi-dump-gate.py`
   - `scripts/zigux/survey-phase3-abi-constant-parity.py`
-- kernel-facing relay packet, lane `P3-Y07`:
+- kernel-facing relay packet, lane baseline `P3-Y07`, current governance maintenance `P3-X07`:
   - `Documentation/zigux/phase3-kernel-export-shim-governance.md`
   - `zigux/kernel/export_shim.zig`
-- starter UAPI packet, lane `P3-Y02`:
+- starter UAPI packet, lane baseline `P3-Y02`, current export-governance maintenance `P3-Y08`:
   - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
   - `zigux/uapi/version.zig`
   - `zigux/uapi/dev_t.zig`
   - `scripts/zigux/validate-phase3-export-uapi-survey.py`
-- Linux-facing aggregation-header packet, lane `P3-Y05`:
+- Linux-facing aggregation-header packet, lane baseline `P3-Y05`:
   - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
   - `include/linux/zigux.h`
-- Zigux-owned ABI header-family packet, lane `P3-Y06`:
+- Zigux-owned ABI header-family packet, lane baseline `P3-Y06`:
   - `Documentation/zigux/phase3-abi-header-family-survey.md`
   - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
   - `include/zigux/abi.h`
@@ -43,7 +43,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `zigux/bindings/dev_t.zig`
   - `zigux/bindings/notifier_abi.zig`
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
-- policy and unsafe packet, lane `P3-Y04`:
+- policy and unsafe packet, lane baseline `P3-Y04`, current survey maintenance `P3-L13`, helper-local unsafe bridge growth `P3-L18`:
   - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
   - `zigux/helpers/panic_policy.zig`
   - `zigux/helpers/allocator_policy.zig`
@@ -53,7 +53,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
   - `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`
   - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
-- low-level wrapper packet, lane `P3-Y03`:
+- low-level wrapper packet, lane baseline `P3-Y03`, current validator or replay maintenance `P3-L24`:
   - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
   - `zigux/helpers/atomic.zig`
   - `zigux/helpers/barrier.zig`
@@ -72,6 +72,10 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/phase3_check_lib.py`
   - `scripts/zigux/generate-phase3-check-wrappers.py`
   - `scripts/zigux/run-phase3-checks.py`
+- shared anti-overlap owner-map packet, lane `P3-X10`:
+  - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+- shared closure and lane-state packet, lane `P3-Y11`:
+  - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 
 ## Ownership split
 
@@ -87,6 +91,8 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 ## Anti-overlap rules
 
 - do not route `zigux/helpers/mmio.zig` by file path alone; route it by behavior class instead
+- if the drift is about this note's packet map, the split between baseline packet lanes and the current maintenance lanes, or which shared lane owns anti-overlap wording versus closure wording, keep it in `P3-X10` and update `Documentation/zigux/phase3-boundary-lane-sequencing.md` only
+- if the drift is about shared closure, ledger, or lane-state reminders after the owner map already points at the right packet lanes, keep it in `P3-Y11`
 - do not route `zigux/helpers/layout_assert.zig` by file path alone either; if the drift is about struct layouts, exported constants, helper entrypoints consumed by the shared ABI packet, or `survey-phase3-abi-constant-parity.py`, keep it in the shared ABI and bindings packet
 - if the drift is about panic-mode decoding, allocator-mode decoding, unsafe-scope bytes, typed policy relays, MMIO interop-policy admission, or the policy-and-unsafe survey wording, keep it in the policy and unsafe packet
 - if the drift is about direct MMIO reads or writes, width, alignment, odd offsets, atomic behavior, barrier behavior, or the focused low-level replay wording, keep it in the low-level wrapper packet
@@ -99,4 +105,4 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Current bounded rule
 
-This note is the shared substrate owner map only. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above, with `P3-Y11` reserved for shared closure, ledger, or lane-state corrections when the owner map itself drifts and the packet-local lanes remain otherwise accurate.
+This note is the shared substrate owner map only. `P3-X10` owns shared anti-overlap routing corrections when this note's packet map or live lane handoff drifts, and `P3-Y11` stays reserved for shared closure, ledger, or lane-state corrections after the routing split already matches the live packet lanes. Neither shared lane should reopen packet-local helpers, surveys, validators, manifests, or headers on its own. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above.
