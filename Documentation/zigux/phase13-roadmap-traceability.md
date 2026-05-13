@@ -38,7 +38,7 @@ If direct notifier companions such as `zigux/tests/phase13_notifier_list_manifes
 
 - `libfs` maps to the bounded shared-helper tranche and should stay represented as its own contributor-facing bucket through the shipped `fs/libfs.zig`, `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json` while older direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, and `zigux/tests/phase13_libfs_addressability.zig` stay framed as repo-reality gaps until current `master` materializes them again.
 - `devres` maps to the bounded shared-helper tranche and should keep its helper-first MMIO safety packet explicit through the shipped `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`, while older direct companions such as `zigux/tests/phase13_build.zig` and `zigux/tests/phase13_devres_boundary_evidence.zig` stay framed as repo-reality gaps until current `master` materializes them again.
-- `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.
+- `landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit through the shipped `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py` helper packet, while the older shared `zigux/tests/phase13_build.zig` route stays framed as a repo-reality gap until current `master` materializes it again.
 - `landlock/syscalls` maps to the bounded shared-helper tranche and should keep its governance boundary explicit through the shipped `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` helper packet.
 - adjacent notifier evidence maps to Phase 13 release-surface truthfulness only and should stay separate from the four helper anchors while keeping the shipped notifier survey, the landed priority-signal guard, the validator-first release handle, the Linux-style make routes, and the shipped `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` direct-evidence shards explicit; direct notifier manifests, the dedicated notifier header, and the remaining list helpers stay repo-reality gaps until current `master` materializes them again
 
@@ -128,8 +128,14 @@ When a shared contributor-facing summary mentions Phase 13, it should keep these
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
