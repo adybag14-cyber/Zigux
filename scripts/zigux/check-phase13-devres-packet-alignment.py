@@ -130,6 +130,20 @@ DMA_REPLAY_MARKERS = [
     '"blocked_on_live_scatterlist_state"',
 ]
 
+DMA_REPLAY_BOUNDARY_MARKERS = [
+    'test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
+    'try requireAbsent(helper, "dmam_alloc_");',
+    'try requireAbsent(helper, "dma_map_");',
+    'try requireAbsent(helper, "dma_unmap_");',
+    'try requireAbsent(helper, "dma_map_sgtable(");',
+    'try requireAbsent(helper, "struct scatterlist");',
+    'try requireAbsent(helper, "sg_table");',
+    'try requireAbsent(helper, "sg_");',
+    'test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
+    'try requireContains(survey, "adjacent coherent-DMA evidence shard");',
+    'try requireContains(survey, "helper-only DMA/scatterlist boundary");',
+]
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -262,6 +276,7 @@ def validate(root: Path) -> list[str]:
     require_markers(survey_text, "survey", BOUNDARY_SURVEY_MARKERS, errors)
     require_markers(reviewability_text, "reviewability", REVIEWABILITY_MARKERS, errors)
     require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_MARKERS, errors)
+    require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_BOUNDARY_MARKERS, errors)
 
     return errors
 
@@ -419,6 +434,17 @@ def seed_fixture_tree(root: Path) -> None:
                 '"phase13-devres-live-arch-memtype-state"',
                 '"phase13-devres-live-scatterlist-ownership"',
                 '"blocked_on_live_scatterlist_state"',
+                'test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
+                'try requireAbsent(helper, "dmam_alloc_");',
+                'try requireAbsent(helper, "dma_map_");',
+                'try requireAbsent(helper, "dma_unmap_");',
+                'try requireAbsent(helper, "dma_map_sgtable(");',
+                'try requireAbsent(helper, "struct scatterlist");',
+                'try requireAbsent(helper, "sg_table");',
+                'try requireAbsent(helper, "sg_");',
+                'test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
+                'try requireContains(survey, "adjacent coherent-DMA evidence shard");',
+                'try requireContains(survey, "helper-only DMA/scatterlist boundary");',
             ]
         )
         + "\n",
@@ -554,6 +580,30 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        write_text(
+            root / DMA_REPLAY_PATH,
+            "\n".join(DMA_REPLAY_MARKERS) + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                'dma_replay:missing_marker:test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dmam_alloc_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_unmap_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_sgtable(");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "struct scatterlist");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "sg_table");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "sg_");',
+                'dma_replay:missing_marker:test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
+                'dma_replay:missing_marker:try requireContains(survey, "adjacent coherent-DMA evidence shard");',
+                'dma_replay:missing_marker:try requireContains(survey, "helper-only DMA/scatterlist boundary");',
+            ],
+            "dma_replay_missing_boundary_markers_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(root / DMA_REPLAY_PATH, "nothing useful\n")
         assert_only(
             validate(root),
@@ -564,6 +614,17 @@ def run_self_test() -> int:
                 'dma_replay:missing_marker:"phase13-devres-live-arch-memtype-state"',
                 'dma_replay:missing_marker:"phase13-devres-live-scatterlist-ownership"',
                 'dma_replay:missing_marker:"blocked_on_live_scatterlist_state"',
+                'dma_replay:missing_marker:test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dmam_alloc_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_unmap_");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_sgtable(");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "struct scatterlist");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "sg_table");',
+                'dma_replay:missing_marker:try requireAbsent(helper, "sg_");',
+                'dma_replay:missing_marker:test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
+                'dma_replay:missing_marker:try requireContains(survey, "adjacent coherent-DMA evidence shard");',
+                'dma_replay:missing_marker:try requireContains(survey, "helper-only DMA/scatterlist boundary");',
             ],
             "dma_replay_missing_markers_failed",
         )
