@@ -32,7 +32,7 @@ NEXT_STEP_MARKERS = [
     "- If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.",
     "- If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.",
     "- For `tools/lib/bitmap.zig`, do not replay the older closed exact-marker validator cue; current `master` already exact-requires and self-tests `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW` and `PHASE1_BITMAP_LINUX_ALIAS_REVIEW`, so leave the bitmap closure-validator packet parked unless a fresh reread shows direct-anchor drift or committed shared replay drift.",
-    "- For `tools/lib/bitmap.zig`, the next smallest same-family closure follow-through is now the validator-summary wording only: reread `scripts/zigux/validate-phase1.py` against the live bitmap `review_packet_summary` in `zigux/tests/fixtures/phase1_helper_manifest.json`, refresh that single summary string so it names the empty-bitmap caller-buffer preservation phrase already present on current `master`, and rerun the validator self-test before touching helper-local anchors again.",
+    "- For `tools/lib/bitmap.zig`, the earlier validator-summary wording follow-through is also closed on current `master`: `scripts/zigux/validate-phase1.py` already matches the live bitmap `review_packet_summary` in `zigux/tests/fixtures/phase1_helper_manifest.json`, so leave that validator packet parked unless a fresh reread shows new direct-anchor drift or committed shared replay drift.",
     "- If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.",
 ]
 
@@ -151,6 +151,7 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        lane_note.writeText = None
         lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(
                 DIRECT_OWNER_MARKERS[1],
