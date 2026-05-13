@@ -174,9 +174,9 @@ KPROBE_SURVEY_MARKERS = [
     'test "phase4 kprobe survey keeps the parked gap packet explicit" {',
     'test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {',
     'test "phase4 kprobe survey keeps the bounded next step explicit" {',
-    '\\"dedicated_local_survey_wrapper\\": \\"make -C zigux phase4-kprobe-example-survey\\"',
-    '\\"validation_entrypoint\\": \\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\"',
-    '\\"owner\\": \\"Validation and Perf Team\\"',
+    '\\"dedicated_local_survey_wrapper\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"',
+    '\\"validation_entrypoint\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"',
+    '\\"owner\\": \\\"Validation and Perf Team\\\"',
 ]
 
 TEST_FSMOUNT_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
@@ -209,7 +209,7 @@ TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
     "rollback_owner": "Validation and Perf Team",
     "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
     "threshold_posture": "reviewability_only_no_perf_threshold",
-    "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
+    "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
     "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
 }
 
@@ -218,9 +218,9 @@ TEST_FSMOUNT_SURVEY_MARKERS = [
     'test "phase4 test_fsmount survey keeps threshold posture explicit" {',
     'test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {',
     'test "phase4 test_fsmount survey keeps the bounded next step explicit" {',
-    '\\"dedicated_linux_style_survey_wrapper\\": \\"make -C zigux phase4-test-fsmount-survey\\"',
-    '\\"threshold_posture\\": \\"reviewability_only_no_perf_threshold\\"',
-    '\\"owner\\": \\"Validation and Perf Team\\"',
+    '\\"dedicated_linux_style_survey_wrapper\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"',
+    '\\"threshold_posture\\": \\\"reviewability_only_no_perf_threshold\\\"',
+    '\\"owner\\": \\\"Validation and Perf Team\\\"',
 ]
 
 
@@ -456,17 +456,15 @@ test "phase4 kprobe survey keeps the bounded next step explicit" {
 - `PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs`
 - `PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`
+- `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow`
 - `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
 
 Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
-
-That packet keeps the current C anchor, replay path, owner, rollback owner, dedicated
-local survey routes, and the current reviewability-only no-perf-threshold posture
-measurable while the shared Phase 4 rollback-readiness lane remains below starter
-implementation.
+reviewability-only no-perf-threshold posture
 """,
     )
 
@@ -481,13 +479,10 @@ implementation.
 
 test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
     _ = std.testing.allocator;
-    _ = "\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"";
-    _ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
 }
 
 test "phase4 test_fsmount survey keeps threshold posture explicit" {
     _ = std.testing.allocator;
-    _ = "\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"";
 }
 
 test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
@@ -497,6 +492,10 @@ test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
 test "phase4 test_fsmount survey keeps the bounded next step explicit" {
     _ = std.testing.allocator;
 }
+
+_ = "\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"";
+_ = "\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"";
+_ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
 """,
     )
 
