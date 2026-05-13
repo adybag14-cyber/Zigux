@@ -470,7 +470,7 @@ def run_self_test() -> None:
             "zigux/tests/README.md",
             "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
             "`zigux/tests/phase8_perf_buffer_poll_review_build.zig`",
-            "zigux/tests/README.md: `zigux/tests/phase8_perf_BUFFER_poll_only_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         ),
     ]
 
