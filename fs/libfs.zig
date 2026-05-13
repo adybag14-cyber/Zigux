@@ -683,7 +683,7 @@ test "offset rename plan preserves destination slot value for managed entries" {
 test "offset rename plan rejects missing or reserved destination slots" {
     const missing = LibfsHelperLab.planSimpleOffsetRename(dir_offset_min + 1, null);
     try std.testing.expectEqual(OffsetRenameStatus.missing_destination_offset, missing.status);
-    try std.testing.expect(!missing.clears_destination_offsetBeforeReplace);
+    try std.testing.expect(!missing.clears_destination_offset_before_replace);
     try std.testing.expect(!missing.installs_source_at_destination_offset);
 
     const reserved = LibfsHelperLab.planSimpleOffsetRename(dir_offset_min + 1, dir_offset_first);
