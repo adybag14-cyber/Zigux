@@ -30,6 +30,7 @@ pub const ModuleDescriptor = struct {
     provides_host_limit_summary: bool,
     provides_queue_depth_summary: bool,
     provides_command_buffer_ownership_summary: bool,
+    provides_request_submit_sequencing_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -209,6 +210,28 @@ pub const CommandBufferOwnershipSummary = struct {
     preserves_pre_registration_scope: bool,
 };
 
+pub const RequestSubmitSequencingRequest = struct {
+    ownership: CommandBufferOwnershipRequest,
+    queue_local_index: u16,
+};
+
+pub const RequestSubmitSequencingSummary = struct {
+    anchor: []const u8,
+    queue_local_index: u16,
+    queue_global_index: u16,
+    queue_kind: RequestQueueKind,
+    requested_depth: u32,
+    clamped_queue_depth: u32,
+    command_bytes_per_request: u32,
+    sense_bytes_per_request: u32,
+    submission_uses_preallocated_buffers: bool,
+    submission_requires_queue_selection: bool,
+    submission_requires_dma_mapping_before_kick: bool,
+    submission_requires_kick_after_descriptors_ready: bool,
+    submission_blocks_while_transport_frozen: bool,
+    stays_pre_runtime_only: bool,
+};
+
 pub const RecoveryQueueDepthSummary = struct {
     anchor: []const u8,
     requested_depth: u32,
@@ -255,6 +278,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_host_limit_summary = true,
             .provides_queue_depth_summary = true,
             .provides_command_buffer_ownership_summary = true,
+            .provides_request_submit_sequencing_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -418,6 +442,31 @@ pub const VirtioScsiQueueLab = struct {
         };
         self.last_command_buffer_ownership_summary = summary;
         return summary;
+    }
+
+    pub fn captureRequestSubmitSequencingSummary(
+        self: *Self,
+        request: RequestSubmitSequencingRequest,
+    ) !RequestSubmitSequencingSummary {
+        const ownership = try self.captureCommandBufferOwnershipSummary(request.ownership);
+        const queue = try self.requestQueue(request.queue_local_index);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_local_index = queue.local_index,
+            .queue_global_index = queue.global_index,
+            .queue_kind = queue.kind,
+            .requested_depth = ownership.requested_depth,
+            .clamped_queue_depth = ownership.clamped_queue_depth,
+            .command_bytes_per_request = ownership.command_bytes_per_request,
+            .sense_bytes_per_request = ownership.sense_bytes_per_request,
+            .submission_uses_preallocated_buffers = ownership.owns_one_command_buffer_per_request and ownership.owns_one_sense_buffer_per_request,
+            .submission_requires_queue_selection = true,
+            .submission_requires_dma_mapping_before_kick = ownership.requires_dma_mapping_later,
+            .submission_requires_kick_after_descriptors_ready = true,
+            .submission_blocks_while_transport_frozen = true,
+            .stays_pre_runtime_only = ownership.preserves_pre_registration_scope,
+        };
     }
 
     pub fn captureIoQueueMapSummary(
