@@ -11,10 +11,14 @@ test "phase13 landlock syscalls descriptor keeps the bounded helper scope explic
 
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
+    try std.testing.expect(descriptor.validates_create_ruleset_flags);
+    try std.testing.expect(descriptor.validates_create_ruleset_access_masks);
+    try std.testing.expect(descriptor.validates_create_ruleset_scope);
     try std.testing.expect(descriptor.validates_ruleset_fd);
     try std.testing.expect(descriptor.validates_ruleset_write_access);
     try std.testing.expect(descriptor.validates_restrict_self_flags);
@@ -23,6 +27,36 @@ test "phase13 landlock syscalls descriptor keeps the bounded helper scope explic
     try std.testing.expect(descriptor.validates_credential_gate);
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_rulesets);
+}
+
+test "phase13 landlock syscalls keeps create-ruleset planning explicit before fd installation" {
+    const version_plan = try syscalls.SyscallsHelperLab.planCreateRuleset(.{
+        .attr_present = false,
+        .size = 0,
+        .flags = syscalls.landlock_create_ruleset_version,
+    });
+    try std.testing.expectEqual(syscalls.CreateRulesetMode.abi_version_query, version_plan.mode);
+    try std.testing.expect(version_plan.requires_empty_attr);
+    try std.testing.expect(!version_plan.reaches_anon_inode_fd_installation);
+
+    const create_plan = try syscalls.SyscallsHelperLab.planCreateRuleset(.{
+        .handled_access_fs = 0x3,
+        .handled_access_net = 0x10,
+        .scoped = 0x4,
+        .supported_access_fs_mask = 0x7,
+        .supported_access_net_mask = 0x30,
+        .supported_scope_mask = 0x7,
+    });
+    try std.testing.expectEqual(syscalls.CreateRulesetMode.create, create_plan.mode);
+    try std.testing.expectEqual(syscalls.create_ruleset_attr_full_size, create_plan.copied_size);
+    try std.testing.expectEqual(@as(u64, 0x3), create_plan.handled_access_fs);
+    try std.testing.expectEqual(@as(u64, 0x10), create_plan.handled_access_net);
+    try std.testing.expectEqual(@as(u64, 0x4), create_plan.scoped);
+    try std.testing.expect(create_plan.validates_attr_copy_min);
+    try std.testing.expect(create_plan.validates_access_fs);
+    try std.testing.expect(create_plan.validates_access_net);
+    try std.testing.expect(create_plan.validates_scope);
+    try std.testing.expect(!create_plan.reaches_anon_inode_fd_installation);
 }
 
 test "phase13 landlock syscalls keeps restrict-self logging and detached updates explicit" {
@@ -87,8 +121,8 @@ test "phase13 landlock syscalls keeps release-side helper discipline explicit" {
 }
 
 test "phase13 landlock syscalls manifest records the bounded syscall helper packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L13\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L14\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
     try expectContains(manifest_text, "\"anchor\": \"security/landlock/syscalls.c\"");
     try expectContains(manifest_text, "\"preexisting_phase13_build_present\": false");
     try expectContains(manifest_text, "\"preexisting_syscalls_zig_present\": true");
@@ -106,6 +140,7 @@ test "phase13 landlock syscalls manifest records the bounded syscall helper pack
     try expectContains(manifest_text, "\"status\": \"blocked_on_live_fd_installation\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_live_credential_state\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_live_ruleset_state\"");
-    try expectContains(manifest_text, "ruleset_fops");
+    try expectContains(manifest_text, "create-ruleset planning");
     try expectContains(manifest_text, "anon_inode_getfd()");
+    try expectContains(manifest_text, "ruleset_fops");
 }
