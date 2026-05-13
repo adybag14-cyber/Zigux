@@ -224,6 +224,20 @@ test "phase4 perf baseline survey keeps the scripts README perf-governance packe
     try requireRepoMarker("scripts/zigux/README.md", "shared-CI perf promotion");
 }
 
+test "phase4 perf baseline survey keeps the tests README perf-governance packet aligned" {
+    try requireRepoMarker("zigux/tests/README.md", "phase4_perf_baseline_manifest.json");
+    try requireRepoMarker("zigux/tests/README.md", "phase4_perf_baseline_survey.zig");
+    try requireRepoMarker(
+        "zigux/tests/README.md",
+        "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    );
+    try requireRepoMarker("zigux/tests/README.md", "make -C zigux phase4-perf-baseline-survey");
+    try requireRepoMarker(
+        "zigux/tests/README.md",
+        "approved local-only benchmark commands and acceptable limits explicit while shared CI perf promotion stays pending",
+    );
+}
+
 test "phase4 perf baseline survey stays outside the shared test and workflow packet" {
     try requireRepoMarker(
         "zigux/tests/phase4_build.zig",
