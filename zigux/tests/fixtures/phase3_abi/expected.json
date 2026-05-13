@@ -26,7 +26,9 @@
     "sample_major": 42,
     "sample_minor": 7,
     "sample_encoded": 44040199,
+    "range_first_minor": 7,
     "range_count": 4,
+    "range_fits": 1,
     "range_last_encoded": 44040202
   },
   "structs": {
