@@ -15,6 +15,7 @@ CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-to
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 CHECK_PHASE2_KCONFIG_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
 CHECK_PHASE2_TOOL_MANIFEST_PACKETS = ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_ARTIFACT_TOOLS_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
@@ -71,6 +72,8 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`",
     "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`",
     "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`",
+    "shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
+    "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
     "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
     "committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`",
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
@@ -106,6 +109,7 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
     (CHECK_PHASE2_KCONFIG_README_ALIGNMENT,),
     (CHECK_PHASE2_TOOL_MANIFEST_PACKETS,),
     (CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,),
+    (CHECK_GENKSYMS_BRIDGE,),
 )
 
 PHASE2_VALIDATOR_MARKERS = [
@@ -544,6 +548,15 @@ def run_self_test_checks() -> list[str]:
             [],
         ),
         (
+            "validation_commands_include_genksyms_bridge",
+            validate_required_markers(
+                "\n".join(command_tail(command) for command in build_validation_commands()),
+                ["scripts/zigux/check-genksyms-bridge.py"],
+                "phase2_validation_commands",
+            ),
+            [],
+        ),
+        (
             "validation_commands_missing_shared_validator",
             validate_required_markers(
                 "\n".join(
@@ -552,12 +565,30 @@ def run_self_test_checks() -> list[str]:
                         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
                         "scripts/zigux/check-phase2-tool-manifest-packets.py",
                         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                        "scripts/zigux/check-genksyms-bridge.py",
                     ]
                 ),
                 ["scripts/zigux/validate-phase2.py"],
                 "phase2_validation_commands",
             ),
             ["phase2_validation_commands:missing:scripts/zigux/validate-phase2.py"],
+        ),
+        (
+            "validation_commands_missing_genksyms_bridge",
+            validate_required_markers(
+                "\n".join(
+                    [
+                        "scripts/zigux/validate-phase2.py",
+                        "scripts/zigux/check-phase2-tests-readme-alignment.py",
+                        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                        "scripts/zigux/check-phase2-tool-manifest-packets.py",
+                        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                    ]
+                ),
+                ["scripts/zigux/check-genksyms-bridge.py"],
+                "phase2_validation_commands",
+            ),
+            ["phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py"],
         ),
         (
             "fixdep_cases_ok",
@@ -594,6 +625,19 @@ def run_self_test_checks() -> list[str]:
                 "phase2_closure",
             ),
             [f"phase2_closure:missing:{PHASE2_COMPANION_NOTES_MARKER}"],
+        ),
+        (
+            "genksyms_bridge_marker_missing",
+            validate_required_markers(
+                "\n".join(
+                    marker
+                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
+                    if marker != "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`"
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            ["phase2_closure:missing:shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`"],
         ),
         (
             "conf_cases_ok",
@@ -771,6 +815,7 @@ def main() -> int:
         CHECK_PHASE2_TESTS_README_ALIGNMENT,
         CHECK_PHASE2_KCONFIG_README_ALIGNMENT,
         CHECK_PHASE2_TOOL_MANIFEST_PACKETS,
+        CHECK_GENKSYMS_BRIDGE,
         PHASE2_TOOL_MANIFEST,
         PHASE2_ARTIFACT_TOOLS_MANIFEST,
         PHASE2_CLOSURE_DOC,
@@ -865,7 +910,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=18")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=21")
         return 0
 
     if issues:
