@@ -82,7 +82,7 @@ DIRECT_TEST_MARKERS = (
 )
 
 REVIEWABILITY_MARKERS = (
-    'try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);',
     'try std.testing.expectEqualStrings("master-readback-2026-05-12", manifest.surveyed_commit);',
     "try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_present);",
     "try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_manifest_present);",
@@ -143,7 +143,7 @@ def validate(root: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"manifest-json:{exc.msg}"]
 
-    if manifest.get("lane_key") != "P13-L17":
+    if manifest.get("lane_key") != "P13-L13":
         errors.append(f"manifest-lane-key:{manifest.get('lane_key')!r}")
     if manifest.get("surveyed_commit") != "master-readback-2026-05-12":
         errors.append(f"manifest-surveyed-commit:{manifest.get('surveyed_commit')!r}")
@@ -195,7 +195,7 @@ def seed_fixture_tree(root: Path) -> None:
         root / MANIFEST_PATH,
         json.dumps(
             {
-                "lane_key": "P13-L17",
+                "lane_key": "P13-L13",
                 "surveyed_commit": "master-readback-2026-05-12",
                 "anchor": "security/landlock/syscalls.c",
                 "survey_summary": {
