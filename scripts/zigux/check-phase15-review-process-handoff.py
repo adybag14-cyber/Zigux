@@ -468,7 +468,7 @@ def _seed_fixture_tree(root: Path) -> None:
                         "anchor": "net/core/skbuff.c",
                         "owner": "Shared Subsystems Pod",
                         "required_approver_set": "Architecture Council + Shared Subsystems Pod",
-                        "rollback_owner": "Shared Subsystems Pod",
+                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
                         "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
                     },
                 ],
@@ -523,7 +523,7 @@ def _seed_fixture_tree(root: Path) -> None:
                         "path": "net/core/skbuff.c",
                         "lane_owner": "Shared Subsystems Pod",
                         "required_approver_set": "Architecture Council + Shared Subsystems Pod",
-                        "rollback_owner": "Shared Subsystems Pod",
+                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
                         "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
                         "evidence_archive": {
                             "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
