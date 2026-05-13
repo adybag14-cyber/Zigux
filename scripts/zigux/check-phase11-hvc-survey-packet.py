@@ -13,6 +13,9 @@ from pathlib import Path
 REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "driver_starter": "drivers/tty/hvc/hvc_console.zig",
+    "driver_replay": "zigux/tests/phase11_hvc_console.zig",
+    "verify_replay": "drivers/tty/hvc/hvc_console_verify.zig",
+    "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
@@ -159,7 +162,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 18
 
 
 class CheckError(RuntimeError):
@@ -241,6 +244,9 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["driver_starter"]),
         DRIVER_STARTER_MARKERS,
     )
+    read_text(root, REQUIRED_FILES["driver_replay"])
+    read_text(root, REQUIRED_FILES["verify_replay"])
+    read_text(root, REQUIRED_FILES["cleanup_replay"])
     expect_markers(
         REQUIRED_FILES["survey_gate"],
         read_text(root, REQUIRED_FILES["survey_gate"]),
@@ -312,6 +318,9 @@ def build_manifest_text(surveyed_commit: str) -> str:
 def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
     write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["driver_replay"], "phase11 hvc direct replay fixture\n")
+    write(root / REQUIRED_FILES["verify_replay"], "phase11 hvc verify replay fixture\n")
+    write(root / REQUIRED_FILES["cleanup_replay"], "phase11 hvc cleanup replay fixture\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
     write(
         root / REQUIRED_FILES["survey_note"],
@@ -444,6 +453,18 @@ def run_self_test() -> None:
                 text = text.replace(marker, "", 1)
             path.write_text(text, encoding="utf-8")
             expect_failure(tmpdir, marker)
+
+        reset_fixture(tmpdir)
+        (tmpdir / REQUIRED_FILES["driver_replay"]).unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["driver_replay"])
+
+        reset_fixture(tmpdir)
+        (tmpdir / REQUIRED_FILES["verify_replay"]).unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["verify_replay"])
+
+        reset_fixture(tmpdir)
+        (tmpdir / REQUIRED_FILES["cleanup_replay"]).unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["cleanup_replay"])
 
         reset_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(
