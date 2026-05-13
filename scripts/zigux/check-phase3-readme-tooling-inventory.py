@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 tooling inventory reminder and shared Phase 4 route markers."""
+"""Fail-close the Phase 3 tooling inventory reminder, shared interop route markers, and shared Phase 4 route markers."""
 
 from __future__ import annotations
 
@@ -11,12 +11,22 @@ from tempfile import TemporaryDirectory
 
 README_PATH = Path("scripts/zigux/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 PHASE3_VALIDATE_TARGET = "phase3-validate"
+PHASE3_INTEROP_TARGET = "phase3-interop"
 PHASE3_POLICY_UNSAFE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+)
+PHASE3_INTEROP_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
+)
+PHASE3_WORKFLOW_MARKERS = (
+    "- name: Check discovered Phase 3 parity",
+    "run: python3 scripts/zigux/run-phase3-checks.py",
 )
 PHASE4_VALIDATE_TARGET = "phase4-validate"
 PHASE4_VALIDATE_COMMANDS = (
@@ -115,7 +125,6 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/validate-phase4.py"),
     Path("scripts/zigux/check-artifact-diff-contract.py"),
     Path("scripts/zigux/check-phase4-gate-evidence.py"),
-    Path("scripts/zigux/check-phase4-artifact-diff-determinism.py"),
     Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
 )
 
@@ -182,6 +191,19 @@ def validate_makefile(repo_root: Path) -> list[str]:
         if ordered_phase3_policy_unsafe_commands != PHASE3_POLICY_UNSAFE_COMMANDS:
             issues.append(f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:policy_unsafe_support")
 
+    phase3_interop_commands = _extract_make_target_commands(
+        makefile_text,
+        PHASE3_INTEROP_TARGET,
+    )
+    if phase3_interop_commands is None:
+        issues.append(f"missing_makefile_target:{PHASE3_INTEROP_TARGET}")
+    else:
+        issues.extend(
+            f"missing_makefile_command:{PHASE3_INTEROP_TARGET}:{command}"
+            for command in PHASE3_INTEROP_COMMANDS
+            if command not in phase3_interop_commands
+        )
+
     commands = _extract_make_target_commands(makefile_text, PHASE4_VALIDATE_TARGET)
     if commands is None:
         issues.append(f"missing_makefile_target:{PHASE4_VALIDATE_TARGET}")
@@ -197,6 +219,20 @@ def validate_makefile(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_workflow(repo_root: Path) -> list[str]:
+    workflow_path = repo_root / WORKFLOW_REL
+    try:
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing repo file: {WORKFLOW_REL.as_posix()}"]
+
+    return [
+        f"missing_workflow_marker:{marker}"
+        for marker in PHASE3_WORKFLOW_MARKERS
+        if marker not in workflow_text
+    ]
+
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -206,15 +242,24 @@ def _populate_repo_files(root: Path) -> None:
     for rel_path in REQUIRED_REPO_FILES:
         _write(root / rel_path, "# stub\n")
     _write(root / MAKEFILE_REL, _baseline_makefile())
+    _write(root / WORKFLOW_REL, _baseline_workflow())
 
 
 def _baseline_makefile() -> str:
     phase3_body = "\n".join(f"\t{command}" for command in PHASE3_POLICY_UNSAFE_COMMANDS)
+    phase3_interop_body = "\n".join(
+        f"\t{command}" for command in PHASE3_INTEROP_COMMANDS
+    )
     phase4_body = "\n".join(f"\t{command}" for command in PHASE4_VALIDATE_COMMANDS)
     return (
         f"{PHASE3_VALIDATE_TARGET}:\n{phase3_body}\n\n"
+        f"{PHASE3_INTEROP_TARGET}:\n{phase3_interop_body}\n\n"
         f"{PHASE4_VALIDATE_TARGET}:\n{phase4_body}\n"
     )
+
+
+def _baseline_workflow() -> str:
+    return "\n".join(PHASE3_WORKFLOW_MARKERS) + "\n"
 
 
 def run_self_test() -> int:
@@ -311,6 +356,12 @@ def run_self_test() -> int:
         _write(root / README_PATH, sample)
         _populate_repo_files(root)
         broken = validate_repo_files(root)
+        if broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("\n".join(broken))
+            return 1
+
+        broken = validate_workflow(root)
         if broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("\n".join(broken))
@@ -457,6 +508,78 @@ def run_self_test() -> int:
             print("expected Phase 3 policy-unsafe makefile command order drift was not reported")
             return 1
 
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "phase3-interop:\n",
+            "phase3-interop-shadow:\n",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = f"missing_makefile_target:{PHASE3_INTEROP_TARGET}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 interop target was not reported")
+            return 1
+
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase3-interop:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 interop runner command was not reported")
+            return 1
+
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase3-interop:"
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 interop dump command was not reported")
+            return 1
+
+        _write(root / WORKFLOW_REL, _baseline_workflow().replace(
+            "- name: Check discovered Phase 3 parity\n",
+            "",
+            1,
+        ))
+        broken = validate_workflow(root)
+        expected = "missing_workflow_marker:- name: Check discovered Phase 3 parity"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 workflow step name was not reported")
+            return 1
+
+        _write(root / WORKFLOW_REL, _baseline_workflow().replace(
+            "run: python3 scripts/zigux/run-phase3-checks.py\n",
+            "",
+            1,
+        ))
+        broken = validate_workflow(root)
+        expected = "missing_workflow_marker:run: python3 scripts/zigux/run-phase3-checks.py"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 workflow parity command was not reported")
+            return 1
+
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     return 0
 
@@ -488,6 +611,7 @@ def main() -> int:
     )
     missing.extend(validate_repo_files(args.repo_root))
     missing.extend(validate_makefile(args.repo_root))
+    missing.extend(validate_workflow(args.repo_root))
     if missing:
         for entry in missing:
             if entry.startswith("missing repo file: "):
