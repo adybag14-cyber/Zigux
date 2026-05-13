@@ -14,6 +14,7 @@ FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
@@ -142,11 +143,17 @@ REVIEW_CHECKLIST_MARKERS = [
 COMPANION_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "ring drained-reset reuse replay",
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
 ]
 
 LANE_NOTE_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`make -C zigux phase10-validate`",
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
+]
+
+INPUT_SURVEY_MARKERS = [
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
 ]
 
 
@@ -173,11 +180,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             COMPANION_MARKERS,
         ),
-        (
-            "lane_note",
-            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-            LANE_NOTE_MARKERS,
-        ),
+        ("lane_note", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_NOTE_MARKERS),
+        ("input_survey", "Documentation/zigux/phase10-virtio-input-survey.md", INPUT_SURVEY_MARKERS),
         ("review_checklist", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
         ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
@@ -244,8 +248,12 @@ def write_fixture(root: Path) -> None:
                 "",
             ]
         ),
-        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
+            COMPANION_MARKERS
+        )
+        + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(INPUT_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n" + "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
@@ -430,6 +438,21 @@ def run_self_test() -> int:
         )
         companion_path.write_text(original_companion, encoding="utf-8")
 
+        companion_path.write_text(
+            original_companion.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "companion_input_probe_preflight_entry",
+            root,
+            "companion:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        companion_path.write_text(original_companion, encoding="utf-8")
+
         lane_note_path = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
         original_lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(
@@ -446,6 +469,38 @@ def run_self_test() -> int:
             "lane_note:`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
         )
         lane_note_path.write_text(original_lane_note, encoding="utf-8")
+
+        lane_note_path.write_text(
+            original_lane_note.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "lane_note_input_probe_preflight_entry",
+            root,
+            "lane_note:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        lane_note_path.write_text(original_lane_note, encoding="utf-8")
+
+        input_survey_path = root / "Documentation/zigux/phase10-virtio-input-survey.md"
+        original_input_survey = input_survey_path.read_text(encoding="utf-8")
+        input_survey_path.write_text(
+            original_input_survey.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_survey_probe_preflight_entry",
+            root,
+            "input_survey:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        input_survey_path.write_text(original_input_survey, encoding="utf-8")
 
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
@@ -871,7 +926,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=37")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
@@ -898,5 +953,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DOC_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(INPUT_SURVEY_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DOC_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
