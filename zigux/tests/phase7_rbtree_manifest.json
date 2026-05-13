@@ -1,13 +1,20 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "surveyed_commit": "941e586f5dc0d5c217d40007ce785314df075200",
+  "surveyed_commit": "c5a5d84af0d7d557faaea3d5a823cfd6abc974cd",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
+  "ownership_focus": [
+    "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+    "detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
+    "linked-node teardown reconnects prev and next ownership together with leftmost continuity during eraseLinked()",
+    "replaceNode() copies victim links onto replacement nodes before reconnecting parent and child ownership",
+    "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet"
+  ],
   "current_verification": {
-    "verified_on_utc": "2026-05-13T09:36:53Z",
+    "verified_on_utc": "2026-05-13T11:43:06Z",
     "rbtree_packet_visibility": {
       "status": "confirmed",
       "paths": [
