@@ -532,6 +532,15 @@ test "nextArg keeps embedded equals inside quoted values" {
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
 
+test "nextArg keeps the first unquoted equals as the only separator" {
+    var buffer = [_]u8{ 'k', 'e', 'y', '=', 'a', 'l', 'p', 'h', 'a', '=', 'b', 'e', 't', 'a', ' ', 't', 'a', 'i', 'l', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("alpha=beta", parsed.value.?);
+    try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
+}
+
 test "nextArg keeps a whole quoted token together without inventing a value" {
     var buffer = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', ' ', 't', 'a', 'i', 'l', 0 };
     const parsed = nextArg(&buffer);
