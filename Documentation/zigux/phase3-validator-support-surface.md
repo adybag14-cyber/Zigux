@@ -81,12 +81,13 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `Documentation/zigux/phase3-kernel-export-shim-governance.md`,
 `Documentation/zigux/phase3-abi-header-family-survey.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
+`Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
 `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`, and
 `make -C zigux phase3-selftest`; adjacent header-family and checklist reminders
-can keep `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
+should keep `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
 `zigux/uapi/dev_t.zig` explicit as the bounded starter-companion policy without
 dropping the dedicated policy-and-unsafe replay checks or restating this
 validator-support note as if those shipped support helpers were historical-only
