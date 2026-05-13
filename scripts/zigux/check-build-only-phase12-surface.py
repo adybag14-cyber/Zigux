@@ -134,7 +134,9 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
+    "`Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, and the direct `phase12_nvme_pci` plus `phase12_libbpf_*` replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
     "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
+    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors, `Documentation/zigux/phase12-libbpf-verify-shard-note.md` keeps the parked libbpf snapshot boundary explicit, and `scripts/zigux/validate-phase12.py` stays an unwired helper rather than a shipped `phase12-validate` route.",
 ]
 
 TESTS_README_MARKERS = [
@@ -696,7 +698,7 @@ def run_self_test() -> int:
         scripts_readme_path = base / SCRIPTS_README_PATH
         scripts_readme_path.write_text(
             scripts_readme_path.read_text(encoding="utf-8").replace(
-                SCRIPTS_README_MARKERS[11],
+                SCRIPTS_README_MARKERS[14],
                 "",
                 1,
             ),
@@ -704,7 +706,7 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            f"scripts_readme:{SCRIPTS_README_MARKERS[11]}",
+            f"scripts_readme:{SCRIPTS_README_MARKERS[14]}",
         )
 
         write_fixture_tree(base)
