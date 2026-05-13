@@ -271,6 +271,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         module_slice_note,
+        "release ownership on the prepared loader/request pair",
+    );
+    try expectContains(
+        module_slice_note,
         "the shared `phase9-runtime-loader-shared-tests` shard plus the workflow-backed `make -C zigux phase9` route",
     );
     try expectContains(
@@ -345,15 +349,19 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects idle shared-loader handoff before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects non-prepared shared requests before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader surfaces shared request drift before any live registration claim\"",
     );
     try expectContains(
         runtime_kretprobe_loader,
         "test \"runtime kretprobe loader rejects shared-load-plan snapshot drift\"",
-    );
-    try expectContains(
-        runtime_kretprobe_loader,
-        "test \"runtime kretprobe loader rejects non-prepared shared requests before any live registration claim\"",
     );
     try expectContains(
         runtime_kretprobe_loader,
