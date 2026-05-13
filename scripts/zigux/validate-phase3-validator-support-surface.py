@@ -89,6 +89,7 @@ REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS = (
     "export/UAPI packet actually grows",
 )
 REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = (
+    "include/zigux/dev_t.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -98,6 +99,8 @@ REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = (
 )
 REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS = (
     *REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS,
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
 )
@@ -676,6 +679,25 @@ def run_self_test() -> int:
         _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
         boundary_path.write_text(
             boundary_sample.replace(
+                "include/zigux/dev_t.h",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note current surface marker count drift: include/zigux/dev_t.h "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note current-surface header drift was not reported")
+            return 1
+
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+        boundary_path.write_text(
+            boundary_sample.replace(
                 "zigux/uapi/version.zig",
                 "",
                 1,
@@ -690,6 +712,78 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
             print("expected boundary-note current-surface drift was not reported")
+            return 1
+
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+        before, separator, after = boundary_sample.partition("## Next bounded step\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note next-step section separator was not found")
+            return 1
+        next_step, separator, tail = after.partition("\n## Non-goals\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note non-goals separator was not found")
+            return 1
+        next_step = next_step.replace(
+            "include/zigux/dev_t.h",
+            "",
+            1,
+        )
+        boundary_path.write_text(
+            before
+            + "## Next bounded step\n"
+            + next_step
+            + "\n## Non-goals\n"
+            + tail
+            + "\ninclude/zigux/dev_t.h",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note next-step marker count drift: "
+            "include/zigux/dev_t.h "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note next-step header drift was not reported")
+            return 1
+
+        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
+        before, separator, after = boundary_sample.partition("## Next bounded step\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note next-step section separator was not found")
+            return 1
+        next_step, separator, tail = after.partition("\n## Non-goals\n")
+        if not separator:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note non-goals separator was not found")
+            return 1
+        next_step = next_step.replace(
+            "zigux/uapi/version.zig",
+            "",
+            1,
+        )
+        boundary_path.write_text(
+            before
+            + "## Next bounded step\n"
+            + next_step
+            + "\n## Non-goals\n"
+            + tail
+            + "\nzigux/uapi/version.zig",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "boundary note next-step marker count drift: "
+            "zigux/uapi/version.zig "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected boundary-note next-step version drift was not reported")
             return 1
 
         _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
