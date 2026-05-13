@@ -47,10 +47,23 @@ MARKERS = {
         '"WDOG_TIMEOUT_RANGE_REG_OFFSET"',
         '"WDOG_CONTROL_REG_OFFSET"',
     ],
-    "registration_scaffold": [],
+    "registration_scaffold": [
+        'test "platform handoff stays blocked when drvdata publication is missing"',
+        'test "platform handoff keeps timeout-programming registration state explicit when resources are ready"',
+        'test "registration order summary keeps blocked registration explicit when drvdata is missing"',
+        'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"',
+        'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"',
+        "platformHandoffSummary",
+        "registrationOrderSummary",
+        "platformRegistrationScaffoldSummary",
+        "RegistrationScaffoldState.import_running_state_then_register",
+        "RegistrationScaffoldState.blocked_missing_drvdata",
+        "blocked_on_live_platform_registration",
+        "blocked_on_live_mmio",
+    ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 15
 
 
 class CheckError(RuntimeError):
@@ -116,6 +129,10 @@ def run_self_test() -> None:
             ("verify_file", 0),
             ("verify_file", 4),
             ("verify_file", 10),
+            ("registration_scaffold", 0),
+            ("registration_scaffold", 2),
+            ("registration_scaffold", 3),
+            ("registration_scaffold", 10),
         ]
 
         for idx, (label, marker_index) in enumerate(cases, start=1):
