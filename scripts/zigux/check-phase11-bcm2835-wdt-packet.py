@@ -17,10 +17,6 @@ REQUIRED_FILES = {
     "shared_contract": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
-    "scripts_readme": "scripts/zigux/README.md",
-    "docs_readme": "Documentation/zigux/README.md",
-    "tests_readme": "zigux/tests/README.md",
-    "review_checklist": "Documentation/zigux/review-checklist.md",
     "test_replay": "zigux/tests/phase11_bcm2835_wdt.zig",
     "survey_replay": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
     "verify_replay": "drivers/watchdog/bcm2835_wdt_verify.zig",
@@ -41,50 +37,27 @@ VALIDATION_MATRIX_MARKERS = [
     "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`",
 ]
 
+# Keep this checker on the bcm2835-owned packet plus the shared Phase 11 notes
+# that still describe the bounded replay surfaces. Contributor-facing README and
+# checklist wording lives with the separate P11-L18 owner map.
 SHARED_CONTRACT_MARKERS = [
-    "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.",
-    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "bcm2835, gpio, HVC, and header-boundary notes plus their dedicated `check-phase11-*.py` scripts remain parked as continuity surfaces beside the shared packet",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
 ]
 
 CLOSURE_NOTE_MARKERS = [
-    "* bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`,",
-    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
+    "bcm2835, gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
 ]
 
 LANE_NOTE_MARKERS = [
-    "- bcm2835 lane `P11-L08` owns `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`",
-    "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper",
+    "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through; keep the landed direct bcm2835 replay files explicit in shared summaries without widening them into broader poweroff or PM closure claims",
+    "* contributor-note lane `P11-L18` owns the shared contributor-facing wording across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
 ]
 
-SCRIPTS_README_MARKERS = [
-    "- `check-phase11-bcm2835-wdt-packet.py`",
-    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
-]
-
-DOCS_README_MARKERS = [
-    "Phase 11 notes",
-    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`",
-    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
-]
-
-TESTS_README_MARKERS = [
-    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
-    "the dedicated bcm2835 archival checker route",
-    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
-    "`zigux/tests/phase11_bcm2835_wdt.zig`",
-    "`zigux/tests/phase11_bcm2835_wdt_manifest.json`",
-]
-
-REVIEW_CHECKLIST_MARKERS = [
-    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
-    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
-    "`zigux/tests/phase11_bcm2835_wdt.zig`",
-    "`zigux/tests/phase11_bcm2835_wdt_manifest.json`",
-]
-
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 7
 
 
 class CheckError(RuntimeError):
@@ -130,27 +103,7 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["lane_note"]),
         LANE_NOTE_MARKERS,
     )
-    expect_markers(
-        REQUIRED_FILES["scripts_readme"],
-        read_text(root, REQUIRED_FILES["scripts_readme"]),
-        SCRIPTS_README_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["docs_readme"],
-        read_text(root, REQUIRED_FILES["docs_readme"]),
-        DOCS_README_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["tests_readme"],
-        read_text(root, REQUIRED_FILES["tests_readme"]),
-        TESTS_README_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["review_checklist"],
-        read_text(root, REQUIRED_FILES["review_checklist"]),
-        REVIEW_CHECKLIST_MARKERS,
-    )
-    # Existence checks for the dedicated bcm2835 packet artifacts the shared surfaces claim.
+    # Existence checks for the dedicated bcm2835 packet artifacts the shared notes claim.
     read_text(root, REQUIRED_FILES["manifest"])
     read_text(root, REQUIRED_FILES["test_replay"])
     read_text(root, REQUIRED_FILES["survey_replay"])
@@ -164,16 +117,12 @@ def write(path: Path, text: str) -> None:
 
 def build_self_test_fixture(root: Path) -> None:
     write(root / SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
-    write(root / REQUIRED_FILES["manifest"], "{\n  \"lane_key\": \"P11-L08\"\n}\n")
+    write(root / REQUIRED_FILES["manifest"], '{\n  "lane_key": "P11-L08"\n}\n')
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["shared_contract"], "\n".join(SHARED_CONTRACT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["closure_note"], "\n".join(CLOSURE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["lane_note"], "\n".join(LANE_NOTE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["scripts_readme"], "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["docs_readme"], "\n".join(DOCS_README_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["tests_readme"], "\n".join(TESTS_README_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["review_checklist"], "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["test_replay"], "phase11-bcm2835-wdt-tests\n")
     write(root / REQUIRED_FILES["survey_replay"], "phase11-bcm2835-wdt-survey-tests\n")
     write(root / REQUIRED_FILES["verify_replay"], "phase11-bcm2835-wdt-verify-tests\n")
@@ -200,8 +149,7 @@ def run_self_test() -> None:
         survey_path = tmpdir / REQUIRED_FILES["survey_note"]
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
-                "phase11-bcm2835-wdt-verify-tests\n", "",
-                1,
+                "phase11-bcm2835-wdt-verify-tests\n", "", 1
             ),
             encoding="utf-8",
         )
@@ -226,42 +174,6 @@ def run_self_test() -> None:
         shared_contract_path = tmpdir / REQUIRED_FILES["shared_contract"]
         shared_contract_path.write_text(
             shared_contract_path.read_text(encoding="utf-8").replace(
-                "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit")
-
-        build_self_test_fixture(tmpdir)
-        lane_note_path = tmpdir / REQUIRED_FILES["lane_note"]
-        lane_note_path.write_text(
-            lane_note_path.read_text(encoding="utf-8").replace(
-                "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` together with the bcm2835 validation matrix, survey, manifest-backed replay, and verify helper\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "- bcm2835 packet review stays with `P11-L08` through `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`")
-
-        build_self_test_fixture(tmpdir)
-        tests_readme_path = tmpdir / REQUIRED_FILES["tests_readme"]
-        tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8").replace(
-                "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`")
-
-        build_self_test_fixture(tmpdir)
-        review_checklist_path = tmpdir / REQUIRED_FILES["review_checklist"]
-        review_checklist_path.write_text(
-            review_checklist_path.read_text(encoding="utf-8").replace(
                 "`drivers/watchdog/bcm2835_wdt_verify.zig`\n",
                 "",
                 1,
@@ -271,16 +183,28 @@ def run_self_test() -> None:
         expect_failure(tmpdir, "`drivers/watchdog/bcm2835_wdt_verify.zig`")
 
         build_self_test_fixture(tmpdir)
-        docs_readme_path = tmpdir / REQUIRED_FILES["docs_readme"]
-        docs_readme_path.write_text(
-            docs_readme_path.read_text(encoding="utf-8").replace(
-                "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`\n",
+        closure_note_path = tmpdir / REQUIRED_FILES["closure_note"]
+        closure_note_path.write_text(
+            closure_note_path.read_text(encoding="utf-8").replace(
+                "`zigux/tests/phase11_bcm2835_wdt.zig`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`")
+        expect_failure(tmpdir, "`zigux/tests/phase11_bcm2835_wdt.zig`")
+
+        build_self_test_fixture(tmpdir)
+        lane_note_path = tmpdir / REQUIRED_FILES["lane_note"]
+        lane_note_path.write_text(
+            lane_note_path.read_text(encoding="utf-8").replace(
+                "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through; keep the landed direct bcm2835 replay files explicit in shared summaries without widening them into broader poweroff or PM closure claims\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through")
 
         build_self_test_fixture(tmpdir)
         shutil.rmtree((tmpdir / "drivers"), ignore_errors=True)
