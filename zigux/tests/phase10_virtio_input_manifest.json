@@ -35,16 +35,16 @@
       "drivers/virtio/virtio_input.zig",
       "drivers/virtio/virtio_input_probe_preflight.zig",
       "drivers/virtio/virtio_input_verify.zig",
+      "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+      "zigux/tests/phase10_virtio_input_teardown_observation.zig"
+    ],
+    "missing_direct_input_paths": [
       "scripts/zigux/check-phase10-input-packet.py",
       "zigux/tests/phase10_virtio_input.zig",
       "zigux/tests/phase10_virtio_input_probe_preflight.zig",
       "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-      "zigux/tests/phase10_virtio_input_registration_preflight.zig",
       "zigux/tests/phase10_virtio_input_status_drain.zig",
-      "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-      "zigux/tests/phase10_virtio_input_survey.zig"
-    ],
-    "missing_direct_input_paths": [
+      "zigux/tests/phase10_virtio_input_survey.zig",
       "Documentation/zigux/phase10-virtio-input-slice.md",
       "Documentation/zigux/phase10-virtio-input-module-slice.md"
     ]
@@ -65,18 +65,25 @@
       "why_now": "The lane still needs one directly readable survey note that compares the roadmap anchor against repo reality without widening into transport-backed lifecycle claims."
     },
     {
-      "id": "phase10-virtio-input-direct-packet-restore",
+      "id": "phase10-virtio-input-helper-trio",
       "status": "starter_landed",
       "kind": "reviewability",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "Fresh current-master public-tree rereads now materialize the direct helper, direct probe-preflight helper, verify, checker, and focused preflight plus status-drain packet again, so the reminder surfaces should keep that landed bundle explicit instead of recording it as missing."
+      "why_now": "Current master keeps the direct helper trio reviewable even though the wider checker-backed replay packet is still missing from the public tree."
     },
     {
-      "id": "phase10-virtio-input-teardown-observation-replay",
+      "id": "phase10-virtio-input-registration-and-teardown-replays",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-      "why_now": "The teardown-observation replay remains part of the direct input packet and keeps one bounded reset-facing runtime-state foothold explicit below risky transport."
+      "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+      "why_now": "The registration-preflight and teardown-observation replays remain the visible bounded validation footholds below risky transport."
+    },
+    {
+      "id": "phase10-virtio-input-packet-checker-and-broader-replays",
+      "status": "repo_reality_gap",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase10-input-packet.py",
+      "why_now": "Current public-tree rereads do not materialize the dedicated checker or the broader input replay bundle that older reminder surfaces still described."
     },
     {
       "id": "phase10-virtio-input-slice-companions",
@@ -90,7 +97,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
-      "why_now": "Real event delivery, input registration parity, freeze or restore behavior, and transport-backed queue callbacks remain blocked even with the direct reviewability packet restored."
+      "why_now": "Real event delivery, input registration parity, freeze or restore behavior, and transport-backed queue callbacks remain blocked even with the helper trio plus the two focused replays visible."
     }
   ]
 }
