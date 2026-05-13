@@ -34,7 +34,8 @@ fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
         std.mem.eql(u8, status, "blocked_on_live_device_tree_state") or
-        std.mem.eql(u8, status, "blocked_on_live_arch_memtype_state");
+        std.mem.eql(u8, status, "blocked_on_live_arch_memtype_state") or
+        std.mem.eql(u8, status, "blocked_on_live_scatterlist_state");
 }
 
 fn expectGap(
@@ -112,7 +113,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -146,6 +147,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_dma_coherent.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-only DMA/scatterlist boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift") != null);
 
     var starter_landed_count: usize = 0;
@@ -188,7 +190,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "phase13-devres-survey-note",
         "starter_landed",
         "Documentation/zigux/phase13-devres-survey.md",
-        "`P13-L01` terms",
+        "DMA/scatterlist boundary",
     );
     try expectGap(
         manifest,
@@ -202,7 +204,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "phase13-devres-reviewability-gate",
         "starter_landed",
         "zigux/tests/phase13_devres_reviewability.zig",
-        "blocked live-state boundaries",
+        "DMA/scatterlist boundary",
     );
     try expectGap(
         manifest,
@@ -246,7 +248,14 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "lib/devres.zig",
         "mutating real memtype state",
     );
+    try expectGap(
+        manifest,
+        "phase13-devres-live-scatterlist-ownership",
+        "blocked_on_live_scatterlist_state",
+        "lib/devres.zig",
+        "DMA/scatterlist boundary",
+    );
 
     try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 3), blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), blocked_count);
 }
