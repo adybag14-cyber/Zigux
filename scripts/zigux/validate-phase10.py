@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 import tempfile
 from pathlib import Path
 
@@ -13,12 +12,20 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
+TRANSPORT_MANIFEST_FILES = {
+    "ring_manifest": "zigux/tests/phase10_virtio_ring_manifest.json",
+    "input_manifest": "zigux/tests/phase10_virtio_input_manifest.json",
+    "mmio_manifest": "zigux/tests/phase10_virtio_mmio_manifest.json",
+}
+
 FILES = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-    "zigux/tests/phase10_virtio_input_manifest.json",
+    TRANSPORT_MANIFEST_FILES["ring_manifest"],
+    TRANSPORT_MANIFEST_FILES["input_manifest"],
+    TRANSPORT_MANIFEST_FILES["mmio_manifest"],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/Makefile",
 ]
@@ -123,8 +130,8 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-def load_manifest(root: Path) -> dict[str, object]:
-    return json.loads(read_text(root, "zigux/tests/phase10_virtio_input_manifest.json"))
+def load_manifest(root: Path, rel_path: str) -> dict[str, object]:
+    return json.loads(read_text(root, rel_path))
 
 
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
@@ -132,6 +139,37 @@ def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | No
         if isinstance(gap, dict) and gap.get("id") == gap_id:
             return gap
     return None
+
+
+def validate_shared_transport_manifest(
+    missing: list[str],
+    label: str,
+    manifest: dict[str, object],
+) -> None:
+    if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
+        missing.append(f"{label}:freeze_map={manifest.get('freeze_map')}")
+    if manifest.get("freeze_boundary_status") != "aligned":
+        missing.append(f"{label}:freeze_boundary_status={manifest.get('freeze_boundary_status')}")
+    if manifest.get("freeze_status_change_claimed") is not False:
+        missing.append(
+            f"{label}:freeze_status_change_claimed={manifest.get('freeze_status_change_claimed')}"
+        )
+    if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
+        missing.append(f"{label}:risky_transport_posture={manifest.get('risky_transport_posture')}")
+    if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
+        missing.append(f"{label}:allowed_evidence_kinds")
+    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
+        missing.append(f"{label}:forbidden_transport_claims")
+    if manifest.get("architecture_council_reopen_required") is not True:
+        missing.append(
+            f"{label}:architecture_council_reopen_required="
+            + str(manifest.get("architecture_council_reopen_required"))
+        )
+    if manifest.get("architecture_council_reopen_attached") is not False:
+        missing.append(
+            f"{label}:architecture_council_reopen_attached="
+            + str(manifest.get("architecture_council_reopen_attached"))
+        )
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -157,7 +195,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in read_text(root, "zigux/tests/phase10_virtio_input_teardown_observation.zig"):
             missing.append(f"teardown:{marker}")
 
-    manifest = load_manifest(root)
+    manifest = load_manifest(root, TRANSPORT_MANIFEST_FILES["input_manifest"])
     if manifest.get("lane_key") != "P10-L13":
         missing.append(f"manifest:lane_key={manifest.get('lane_key')}")
     if manifest.get("phase") != "Phase 10":
@@ -168,37 +206,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
         missing.append("manifest:roadmap_destinations")
-    if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
-        missing.append(f"manifest:freeze_map={manifest.get('freeze_map')}")
-    if manifest.get("freeze_boundary_status") != "aligned":
-        missing.append(f"manifest:freeze_boundary_status={manifest.get('freeze_boundary_status')}")
-    if manifest.get("freeze_status_change_claimed") is not False:
-        missing.append(
-            f"manifest:freeze_status_change_claimed={manifest.get('freeze_status_change_claimed')}"
-        )
-    if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
-        missing.append(f"manifest:risky_transport_posture={manifest.get('risky_transport_posture')}")
-    if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
-        missing.append("manifest:allowed_evidence_kinds")
-    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
-        missing.append("manifest:forbidden_transport_claims")
-    if manifest.get("architecture_council_reopen_required") is not True:
-        missing.append(
-            "manifest:architecture_council_reopen_required="
-            + str(manifest.get("architecture_council_reopen_required"))
-        )
-    if manifest.get("architecture_council_reopen_attached") is not False:
-        missing.append(
-            "manifest:architecture_council_reopen_attached="
-            + str(manifest.get("architecture_council_reopen_attached"))
-        )
+    validate_shared_transport_manifest(missing, "manifest", manifest)
 
     summary = manifest.get("survey_summary")
     if not isinstance(summary, dict):
         missing.append("manifest:survey_summary")
     else:
         if summary.get("virtio_input_c_lines") != 421:
-            missing.append(f"manifest:survey_summary:virtio_input_c_lines={summary.get('virtio_input_c_lines')}")
+            missing.append(
+                f"manifest:survey_summary:virtio_input_c_lines={summary.get('virtio_input_c_lines')}"
+            )
         if summary.get("directly_readable_input_packet_files") != EXPECTED_DIRECT_PACKET_FILES:
             missing.append("manifest:survey_summary:directly_readable_input_packet_files")
         if summary.get("missing_direct_input_paths") != EXPECTED_MISSING_DIRECT_INPUT_PATHS:
@@ -216,7 +233,39 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if gap.get("status") != expected_status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
 
+    for label, rel_path in (
+        ("ring_manifest", TRANSPORT_MANIFEST_FILES["ring_manifest"]),
+        ("mmio_manifest", TRANSPORT_MANIFEST_FILES["mmio_manifest"]),
+    ):
+        validate_shared_transport_manifest(missing, label, load_manifest(root, rel_path))
+
     return [], missing
+
+
+def build_transport_manifest(
+    lane_key: str,
+    anchor: str,
+    surveyed_commit: str,
+    extra: dict[str, object] | None = None,
+) -> dict[str, object]:
+    manifest: dict[str, object] = {
+        "lane_key": lane_key,
+        "phase": "Phase 10",
+        "surveyed_commit": surveyed_commit,
+        "anchor": anchor,
+        "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
+        "freeze_map": "Documentation/zigux/freeze-map.md",
+        "freeze_boundary_status": "aligned",
+        "freeze_status_change_claimed": False,
+        "risky_transport_posture": "blocked_on_risky_transport",
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "architecture_council_reopen_required": True,
+        "architecture_council_reopen_attached": False,
+    }
+    if extra:
+        manifest.update(extra)
+    return manifest
 
 
 def write_fixture(root: Path) -> None:
@@ -229,34 +278,41 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(SURVEY_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig": "\n".join(TEARDOWN_MARKERS)
         + "\n",
-        "zigux/tests/phase10_virtio_input_manifest.json": json.dumps(
-            {
-                "lane_key": "P10-L13",
-                "phase": "Phase 10",
-                "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
-                "anchor": "drivers/virtio/virtio_input.c",
-                "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
-                "freeze_map": "Documentation/zigux/freeze-map.md",
-                "freeze_boundary_status": "aligned",
-                "freeze_status_change_claimed": False,
-                "risky_transport_posture": "blocked_on_risky_transport",
-                "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
-                "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
-                "architecture_council_reopen_required": True,
-                "architecture_council_reopen_attached": False,
-                "survey_summary": {
-                    "virtio_input_c_lines": 421,
-                    "directly_readable_input_packet_files": EXPECTED_DIRECT_PACKET_FILES,
-                    "missing_direct_input_paths": EXPECTED_MISSING_DIRECT_INPUT_PATHS,
+        TRANSPORT_MANIFEST_FILES["input_manifest"]: json.dumps(
+            build_transport_manifest(
+                "P10-L13",
+                "drivers/virtio/virtio_input.c",
+                "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+                {
+                    "survey_summary": {
+                        "virtio_input_c_lines": 421,
+                        "directly_readable_input_packet_files": EXPECTED_DIRECT_PACKET_FILES,
+                        "missing_direct_input_paths": EXPECTED_MISSING_DIRECT_INPUT_PATHS,
+                    },
+                    "gaps": [
+                        {"id": gap_id, "status": status}
+                        for gap_id, status in EXPECTED_GAP_STATUSES.items()
+                    ],
                 },
-                "gaps": [
-                    {
-                        "id": gap_id,
-                        "status": status,
-                    }
-                    for gap_id, status in EXPECTED_GAP_STATUSES.items()
-                ],
-            },
+            ),
+            indent=2,
+        )
+        + "\n",
+        TRANSPORT_MANIFEST_FILES["ring_manifest"]: json.dumps(
+            build_transport_manifest(
+                "P10-L07",
+                "drivers/virtio/virtio_ring.c",
+                "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+            ),
+            indent=2,
+        )
+        + "\n",
+        TRANSPORT_MANIFEST_FILES["mmio_manifest"]: json.dumps(
+            build_transport_manifest(
+                "P10-L10",
+                "drivers/virtio/virtio_mmio.c",
+                "84f90e23ad1c28ae345905d5293a8c5395f37d43",
+            ),
             indent=2,
         )
         + "\n",
@@ -360,7 +416,7 @@ def run_self_test() -> int:
         )
         lane_note_path.write_text(original_lane_note, encoding="utf-8")
 
-        manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
+        manifest_path = root / TRANSPORT_MANIFEST_FILES["input_manifest"]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_summary"]["directly_readable_input_packet_files"].remove(
             "drivers/virtio/virtio_input_probe_preflight.zig"
@@ -427,15 +483,82 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase10-closure.py",
             "phase10-self-test:missing_required_file",
         )
+        write_fixture(root)
+
+        ring_manifest_path = root / TRANSPORT_MANIFEST_FILES["ring_manifest"]
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["freeze_status_change_claimed"] = True
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "ring_manifest:freeze_status_change_claimed=True",
+            "phase10-self-test:ring_manifest_freeze_status_change_claimed",
+        )
+        write_fixture(root)
+
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["allowed_evidence_kinds"] = ["driver_local_lab_slices"]
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "ring_manifest:allowed_evidence_kinds",
+            "phase10-self-test:ring_manifest_allowed_evidence_kinds",
+        )
+        write_fixture(root)
+
+        mmio_manifest_path = root / TRANSPORT_MANIFEST_FILES["mmio_manifest"]
+        mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
+        mmio_manifest["forbidden_transport_claims"] = [
+            claim for claim in EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS if claim != "dma_paths"
+        ]
+        mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "mmio_manifest:forbidden_transport_claims",
+            "phase10-self-test:mmio_manifest_forbidden_transport_claims",
+        )
+        write_fixture(root)
+
+        mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
+        mmio_manifest["architecture_council_reopen_required"] = False
+        mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "mmio_manifest:architecture_council_reopen_required=False",
+            "phase10-self-test:mmio_manifest_reopen_required",
+        )
+        write_fixture(root)
+
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["architecture_council_reopen_attached"] = True
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "ring_manifest:architecture_council_reopen_attached=True",
+            "phase10-self-test:ring_manifest_reopen_attached",
+        )
 
     print("PHASE10_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=15")
     return 0
+
+
+def required_marker_count() -> int:
+    specific_input_field_count = 5 + 3 + len(EXPECTED_GAP_STATUSES)
+    shared_transport_field_count = 8 * len(TRANSPORT_MANIFEST_FILES)
+    return (
+        len(MAKE_MARKERS)
+        + len(SURVEY_MARKERS)
+        + len(LANE_NOTE_MARKERS)
+        + len(TEARDOWN_MARKERS)
+        + specific_input_field_count
+        + shared_transport_field_count
+    )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current bounded Phase 10 virtio-input reminder packet."
+        description="Validate the current bounded Phase 10 input packet and shared freeze-boundary manifest guardrails."
     )
     parser.add_argument("--self-test", action="store_true", help="run local validator self-tests")
     args = parser.parse_args()
@@ -459,19 +582,9 @@ def main() -> int:
         print("MISSING_PHASE10_MARKERS_END")
         return 1
 
-    marker_count = (
-        len(MAKE_MARKERS)
-        + len(SURVEY_MARKERS)
-        + len(LANE_NOTE_MARKERS)
-        + len(TEARDOWN_MARKERS)
-        + len(EXPECTED_DIRECT_PACKET_FILES)
-        + len(EXPECTED_MISSING_DIRECT_INPUT_PATHS)
-        + len(EXPECTED_GAP_STATUSES)
-        + 12
-    )
     print("PHASE10_VALIDATION=pass")
     print(f"PHASE10_REQUIRED_FILE_COUNT={len(FILES)}")
-    print(f"PHASE10_REQUIRED_MARKER_COUNT={marker_count}")
+    print(f"PHASE10_REQUIRED_MARKER_COUNT={required_marker_count()}")
     return 0
 
 
