@@ -197,6 +197,21 @@ test "phase4 perf baseline survey keeps the shared review checklist perf-governa
     );
 }
 
+test "phase4 perf baseline survey keeps the docs-root perf-governance packet aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/README.md",
+        "`Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md`",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/README.md",
+        "approved local-only benchmark-command and acceptable-limit split",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/README.md",
+        "still-pending shared-CI perf-promotion posture explicit for the shipped Phase 4 gates",
+    );
+}
+
 test "phase4 perf baseline survey keeps the shared gate-evidence perf-governance packet aligned" {
     try requireRepoMarker(
         "Documentation/zigux/phase4-gate-evidence.md",
