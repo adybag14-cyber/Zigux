@@ -121,6 +121,8 @@ test "phase14 skbuff survey note keeps the blocker wording explicit" {
     try std.testing.expect(std.mem.indexOf(u8, note, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "tail->next") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "validate_xmit_skb_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "skb_mark_not_on_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "tail = skb->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "qdisc-facing publication") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "queue ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "skb lifetime ownership") != null);
@@ -143,5 +145,9 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 2), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
     try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "No smaller review-only skbuff follow-up remains") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "live ownership blocker") != null);
+    try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", audit.checkpoints[8].id);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "skb_mark_not_on_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "tail = skb->prev") != null);
 }
