@@ -12,6 +12,7 @@ const SurveySummary = struct {
     preexisting_phase12_build_present: bool,
     preexisting_phase12_make_targets_present: bool,
     preexisting_phase12_survey_note_present: bool,
+    preexisting_phase12_fallback_catalog_present: bool,
     preexisting_phase12_survey_gate_present: bool,
 };
 
@@ -97,6 +98,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_make_targets_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_fallback_catalog_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_gate_present);
 
     try std.testing.expectEqualStrings("starter_present_runtime_dma_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
@@ -134,6 +136,8 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
             try std.testing.expectEqualStrings("survey_present", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-submit sequencing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback-path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-facing") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-survey-gate")) {
             saw_survey_gate = true;
@@ -215,6 +219,13 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "request-queue selection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-kick submit ordering stay reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_packet.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `P12-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible-delivery evidence:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: when this packet moves") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build smoke --build-file zigux/tests/phase12_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe request submission") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded completion-handback sequencing follow-up") != null);
 }
@@ -223,6 +234,7 @@ test "phase12 virtio scsi survey gate keeps present lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey.zig"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-survey.md"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"));
     try std.testing.expect(try pathExists("drivers/scsi/virtio_scsi.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_syntax_lab.zig"));
