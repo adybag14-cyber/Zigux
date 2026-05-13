@@ -59,6 +59,7 @@ DOCS_ROOT_EXACT_COUNT_MARKERS = [
 
 SMOKE_SURVEY_MARKERS = [
     CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
@@ -74,6 +75,7 @@ SMOKE_SURVEY_MARKERS = [
 
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "PHASE14_ANCHOR_PACKET_COUNT=4",
@@ -282,6 +284,7 @@ def good_smoke_survey_text() -> str:
     return "\n".join(
         [
             f"- `{CHECKER_PATH}`",
+            f"- `{TESTS_README_CHECKER_PATH}`",
             f"- `{ROLLBACK_CHECKER_PATH}`",
             f"- `{RELEASE_BOUNDARY_CHECKER_PATH}`",
             "- `scripts/zigux/validate-phase14.py`",
@@ -546,6 +549,26 @@ def run_self_test() -> int:
 
         write_text(
             root / SMOKE_SURVEY_PATH,
+            good_smoke_survey_text().replace(
+                f"- `{TESTS_README_CHECKER_PATH}`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"missing marker in {SMOKE_SURVEY_PATH.as_posix()}: {TESTS_README_CHECKER_PATH}"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing tests-readme checker survey marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+
+        write_text(
+            root / SMOKE_SURVEY_PATH,
             good_smoke_survey_text().replace("- `make -C zigux phase14-test`\n", "", 1),
         )
         if not any(
@@ -741,7 +764,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
