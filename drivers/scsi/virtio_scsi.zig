@@ -506,7 +506,6 @@ pub const VirtioScsiQueueLab = struct {
             .sense_bytes_per_request = submit.sense_bytes_per_request,
             .event_queue_index = event_queue_index,
             .completion_uses_preallocated_buffers = submit.submission_uses_preallocated_buffers,
-            .completion_requires_used_ringBeforeHandback = true,
             .completion_requires_used_ring_before_handback = true,
             .completion_reads_sense_before_recycle = true,
             .completion_returns_command_buffer_after_handback = true,
