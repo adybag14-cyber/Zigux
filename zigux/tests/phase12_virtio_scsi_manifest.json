@@ -45,8 +45,8 @@
     "segmented_rollout": {
       "required_by_roadmap": true,
       "status": "support_packet_survey_packet_submit_and_completion_summary_present",
-      "current_surface": "Current master now carries the earlier virtio_scsi support packet plus this survey note, manifest, survey gate, and bounded request-submit plus completion-handback sequencing summaries as review surfaces beside the driver-local starter.",
-      "blocked_by": "A bounded control-path governance summary still needs to land before the complex-driver bundle can widen honestly."
+      "current_surface": "Current master now carries the earlier virtio_scsi support packet plus this survey note, manifest, survey gate, and bounded control-path governance, request-submit, completion-handback, and recovery summaries as review surfaces beside the driver-local starter.",
+      "blocked_by": "Live DMA-safe request flow, TMF execution, Scsi_Host registration, and transport-backed host-scan runtime work still need later driver-local packets."
     }
   },
   "gaps": [
