@@ -506,6 +506,7 @@ pub const VirtioScsiQueueLab = struct {
             .sense_bytes_per_request = submit.sense_bytes_per_request,
             .event_queue_index = event_queue_index,
             .completion_uses_preallocated_buffers = submit.submission_uses_preallocated_buffers,
+            .completion_requires_used_ringBeforeHandback = true,
             .completion_requires_used_ring_before_handback = true,
             .completion_reads_sense_before_recycle = true,
             .completion_returns_command_buffer_after_handback = true,
@@ -645,7 +646,6 @@ pub const VirtioScsiQueueLab = struct {
             .event_buffers_reserved_for_event_queue = true,
             .request_queues_can_borrow_event_buffers = false,
             .requires_device_ready_before_event_rearm = true,
-            .requires_event_rearmBeforeRequestQueueReuse = true,
             .requires_event_rearm_before_request_queue_reuse = true,
         };
     }
