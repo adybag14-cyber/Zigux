@@ -126,7 +126,7 @@ fn missingModeArgumentMessage(mode: Mode) []const u8 {
 
 fn modeUsesAllConfigSentinel(mode: Mode) bool {
     return switch (mode) {
-        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig => true,
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
         else => false,
     };
 }
@@ -610,6 +610,7 @@ test "conf bridge emits randconfig tunables when present" {
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_PROBABILITY\":\"15:25\"") != null);
 }
@@ -631,7 +632,7 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
-test "conf bridge omits randconfig allconfig sentinel without explicit override" {
+test "conf bridge emits randconfig allconfig sentinel without explicit override" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
@@ -643,7 +644,7 @@ test "conf bridge omits randconfig allconfig sentinel without explicit override"
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
