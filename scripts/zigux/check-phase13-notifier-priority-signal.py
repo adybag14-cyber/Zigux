@@ -47,6 +47,7 @@ REQUIRED_NOTIFIER_SURVEY_MARKERS = (
     "`scripts/zigux/validate-phase13-release.py`",
     "repo-reality gaps instead of independently shipped evidence",
     "`make -C zigux phase13-validate`",
+    "zigux_notifier_chain_has_nonincreasing_priority()",
 )
 
 REQUIRED_RELEASE_NOTES_MARKERS = (
@@ -134,6 +135,8 @@ REQUIRED_ABI_HEADER_MARKERS = (
     "#define ZIGUX_ABI_VERSION 1U",
     "struct zigux_boundary_header {",
     "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+    "struct zigux_notifier_block {",
+    "zigux_notifier_chain_has_nonincreasing_priority(",
 )
 
 REQUIRED_HVC_HEADER_MARKERS = (
@@ -223,6 +226,7 @@ def run_self_test() -> int:
 
         mutations = (
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[6]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[3]),
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[3]),
@@ -237,6 +241,8 @@ def run_self_test() -> int:
             ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
             ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
             ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[1]),
+            ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[3]),
+            ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[4]),
             ("hvc-header", HVC_HEADER_PATH, REQUIRED_HVC_HEADER_MARKERS[2]),
         )
         for label, rel_path, needle in mutations:
