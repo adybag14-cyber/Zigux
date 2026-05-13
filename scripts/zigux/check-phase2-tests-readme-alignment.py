@@ -148,6 +148,7 @@ FILE_MARKERS = {
         "scripts/zigux/check-genksyms-bridge.py",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-cross.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
@@ -201,7 +202,6 @@ FORBIDDEN_FILE_MARKERS = {
     ],
     "zigux/tests/README.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
-        "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-genksyms-crc-diff.py",
         "scripts/zigux/check-mk-elfconfig-diff.py",
         "zig test scripts/zigux/genksyms_crc.zig",
@@ -234,6 +234,7 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
         "scripts/zigux/check-genksyms-bridge.py": 1,
+        "scripts/zigux/check-kconfig-bridge.py": 1,
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json": 1,
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json": 1,
         "scripts/zigux/kconfig/conf_bridge.zig": 1,
@@ -286,6 +287,7 @@ MISSING_FILE_CASES = [
     "scripts/zigux/validate-phase2-closure.py",
     "zigux/Makefile",
 ]
+
 
 def count_occurrences(text: str, marker: str) -> int:
     pattern = rf"(?<![A-Za-z0-9_.-]){re.escape(marker)}(?![A-Za-z0-9_.-])"
