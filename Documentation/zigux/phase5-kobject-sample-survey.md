@@ -1,76 +1,60 @@
 # Phase 5 Kobject Sample Survey
 
-This note tracks the bounded Phase 5 reviewability survey for the roadmap's `samples/kobject/kobject-example.c` anchor.
+This note tracks the bounded Phase 5 verification packet for the roadmap's `samples/kobject/kobject-example.c` anchor.
 
 ## Status
 
-- `PHASE5_STATUS=parked-doc-accuracy`
-- `PHASE5_LANE_KEY=P5-Y04`
-- scope: keep the kobject sample note truthful against the current repo readback and keep the next bounded step inside the kobject packet only
-- current directly readable kobject packet on `master`:
+- `PHASE5_STATUS=verified-current-checks`
+- `PHASE5_LANE_KEY=P5-L09`
+- scope: verify current kobject sample behavior and record the exact checks that still define the non-runtime packet on `master`
+- current directly verified kobject packet on `master`:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `zigux/tests/phase5_kobject_example.zig`
   - `zigux/tests/phase5_kobject_example_manifest.json`
+  - `Documentation/zigux/phase5-sample-review-guide.md`
+  - `samples/zigux/README.md`
 
 ## Why this note exists
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and still names `samples/kobject/kobject-example.c` as one of the approved Linux anchors.
 
-The bounded job for this note is not to reopen sample behavior. It is to say exactly what the current repo inspection could read back today and to stop treating older restored-packet wording as live evidence when the same paths are not directly readable through the main repo read path anymore.
+The bounded job for this note is to record the current kobject behavior that the directly verified replay surfaces still enforce on `master`. The same-lane task is no longer to repeat the older missing-path caveat. The current packet already carries the focused test and manifest-backed exact checks; this note should describe those checks plainly so review work stays inside the landed kobject packet.
 
-## Current repo reality on `master`
+## Current verified behavior on `master`
 
-Fresh repo-first inspection on 2026-05-13 found these kobject-adjacent surfaces directly readable through the GitHub connector:
+Fresh repo-first inspection on 2026-05-13 confirmed that the current directly verified kobject packet still keeps these sample behaviors explicit:
 
-- `Documentation/zigux/phase5-kobject-sample-survey.md`
-- `Documentation/zigux/phase5-sample-review-guide.md`
-- `Documentation/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
-- `samples/zigux/README.md`
-- `scripts/zigux/README.md`
-- `zigux/tests/README.md`
-- `zigux/tests/phase5_kobject_example.zig`
-- `zigux/tests/phase5_kobject_example_manifest.json`
+- `zigux/tests/phase5_kobject_example.zig` still keeps the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor, including the in-memory `kobject_example` directory name, `requires_runtime_substrate = false`, and `provides_selfcheck = true`
+- `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the attribute group unnamed, keeps the shared `baz` and `bar` handlers explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
+- `runPreRegistrationBoundaryReplay()` still keeps the sample initialized, keeps `active_attr_count` at zero, and keeps pre-registration `show` and `store` rejection explicit
+- `runRegisteredBoundaryReplay()` still keeps the sample registered with three active attributes, keeps `init_runs = 1`, `register_runs = 1`, and `exit_runs = 0`, rejects duplicate registration and registered-stage anchor replay, and still allows a bounded `foo` write/read roundtrip afterward
+- `runInputValidationReplay()` still keeps the sample registered while storing `9` into `baz` and `10` into `bar`, keeps invalid integer writes on `foo` rejected, leaves the `foo` value at `0` after the failed parse, and keeps unknown-attribute `show` and `store` rejection explicit
+- `runOwnershipReplay()` still keeps the lifecycle packet explicit across the cold, initialized, registered, and exited snapshots, including active attribute counts `0`, `0`, `3`, and `0` and the counter progression `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
+- the initialized-only exit path still reports `abandoned_before_registration`, while the registered exit path still reports `tore_down_registered_attributes`
+- `runTeardownReplay()` still keeps the registered teardown reset explicit by clearing tracked values from `42`, `7`, and `-5` to `0`, `0`, and `0`, dropping the active attribute count back to zero, and rejecting reinit, reregister, post-exit `show`, post-exit `store`, second `exit()`, and post-exit anchor replay
+- the public sample-facing replay surface still keeps direct `InvalidInteger` and `UnknownAttribute` failures visible through the focused test instead of hiding them behind survey wording alone
 
-The same inspection hit direct-readback gaps for these kobject packet paths on current `master`:
+## Exact checks recorded today
 
-- `samples/zigux/kobject_example.zig`
-- `zigux/tests/phase5_build.zig`
-- `zigux/tests/phase5_kobject_example_survey.zig`
+The current manifest-backed exact checks for the kobject packet are now recorded here as the same bounded review contract this note should preserve:
 
-That means this note should not currently present the full restored sample-root-plus-shared-build packet as directly readable shipped evidence. The honest same-lane posture is narrower: the focused test and manifest are still directly readable, while the sample-root module, shared Phase 5 build file, and dedicated survey replay were not directly readable through the main connector path during this run.
-
-## What the directly readable validation surfaces still prove
-
-Even with that narrower readback, the current directly readable kobject packet still keeps the bounded sample contract reviewable:
-
-- `zigux/tests/phase5_kobject_example.zig` still keeps the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor and keeps the slice non-runtime
-- the focused test still keeps `runPreRegistrationBoundaryReplay()` explicit for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary
-- the focused test still keeps `runRegisteredBoundaryReplay()` explicit for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
-- the focused test still keeps `runInputValidationReplay()` explicit for the shared `baz` and `bar` dispatch plus parse-failure visibility while the sample stays registered
-- the focused test still keeps `ownershipSummary()` plus `runOwnershipReplay()` explicit for the lifecycle packet
-- the focused test still keeps `runTeardownReplay()` explicit for the registered teardown reset plus post-`exit()` rejection packet
-- `zigux/tests/phase5_kobject_example_manifest.json` still records the same ownership-and-lifetime prompts, exact checks, and non-goals around sysfs creation, `kernel_kobj` integration, uevents, and module registration
+- `directory-name`: the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
+- `registration-step`: `runAnchorReplay()` requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, and keeps duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` calls blocked by `InvalidLifecycleTransition`
+- `pre-registration-boundary`: `runPreRegistrationBoundaryReplay()` leaves the sample initialized, keeps the active attribute count at zero, and shows that `show` or `store` still return `InvalidLifecycleTransition` before `registerAttributes()` opens the sample
+- `registered-boundary`: `runRegisteredBoundaryReplay()` leaves the sample registered, keeps the active attribute count at three, keeps `register_runs` pinned at one across duplicate registration plus registered-stage anchor-replay rejection, and still allows a bounded `foo` write/read roundtrip afterward
+- `ownership-summary`: `ownershipSummary()` and `runOwnershipReplay()` report the cold, initialized, registered, and exited stages with active attribute counts `0`, `0`, `3`, and `0`
+- `ownership-counters`: `runOwnershipReplay()` keeps the init/register/exit progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
+- `initialized-exit-disposition`: `exit()` reports `abandoned_before_registration` when the sample leaves the initialized stage before attributes are registered
+- `foo-roundtrip`: storing `42` into `foo` renders back as the string `42` followed by a newline
+- `shared-b-dispatch`: `runInputValidationReplay()` keeps `baz` and `bar` on the same `show` and `store` path while rendering `9` and `10` through their own attribute names after the replay stores those exact values
+- `parse-failure`: `runInputValidationReplay()` keeps invalid-integer writes returning `InvalidInteger` and unknown attribute names as explicit errors while the sample remains in the registered stage
+- `exit-boundary`: `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit `show` and `store`, second `exit()`, and anchor-replay rejection explicit
 
 ## Recorded gap vs roadmap
 
-The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, but the current same-lane issue is readback truthfulness rather than missing new behavior:
+The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, and the current kobject packet still satisfies that bounded goal through the focused test plus manifest-backed replay contract.
 
-- shared Phase 5 reminder surfaces still talk about the kobject anchor
-- the focused kobject test and manifest are still directly readable
-- the sample-root module, shared `phase5_build.zig` route, and dedicated survey replay were not directly readable through the main connector path in this run
-
-So the honest gap is not "restore the kobject packet." The honest gap is "keep the note and shared guidance from overstating which parts of that packet are directly readable today."
-
-## Sample-local next-step boundary
-
-Fresh same-packet inspection shows the remaining truthful follow-through is now sample-local, not shared-guide work:
-
-- this survey packet should carry the kobject lane for this packet, not the unrelated trace-events label `P5-L23`
-- `zigux/tests/phase5_kobject_example_manifest.json` still records `surveyed_commit` as `28a3bde2b3d68612f18d9bdd786be50c71c3173e`, which anchors the older restored-packet survey state instead of this narrower readback-truthfulness posture
-- because the sample-root module, shared `phase5_build.zig` route, and dedicated survey replay were still not directly readable through the same connector path in this run, widening into shared Phase 5 guide or README edits would leave this sample-only lane and risk overlapping broader reminder work
-
-That leaves the next same-sample step smaller than any shared-guide edit: if the readback state stays the same, the next honest follow-through is one manifest-only `surveyed_commit` refresh so the kobject packet agrees on which survey state is current before any broader shared reminder surface moves.
+The honest same-lane gap was not missing new behavior. It was that this survey note had fallen behind the current packet and was still describing an older readback-warning posture instead of the exact checks that current `master` already keeps visible.
 
 ## Non-goals
 
@@ -83,4 +67,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless a follow-up run can directly read back `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_build.zig`, and `zigux/tests/phase5_kobject_example_survey.zig` through the same repo path used for the rest of this packet, or publish the one sample-local manifest sync described above. If the readback state stays the same, prefer that manifest-only `surveyed_commit` sync before reopening shared guide, checklist, or README wording.
+Leave this lane parked unless a fresh kobject sample reread shows behavior drift inside the current packet. If the behavior changes, refresh this survey note and `zigux/tests/phase5_kobject_example_manifest.json` together, then rerun the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route when a writable checkout is available.
