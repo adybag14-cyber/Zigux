@@ -18,6 +18,7 @@ KERNEL_EXPORT_GOVERNANCE = Path("Documentation/zigux/phase3-kernel-export-shim-g
 HEADER_GOVERNANCE = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
 LINUX_HEADER = Path("include/linux/zigux.h")
 ABI_HEADER = Path("include/zigux/abi.h")
+DEV_T_HEADER = Path("include/zigux/dev_t.h")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
@@ -37,12 +38,13 @@ PROVENANCE = (
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`",
 )
-SURVEY_LINES = (
+SURVEY_MARKERS = (
     "`PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`",
     "`PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`",
     f"`PHASE3_EXPORT_SHIM_PATH={EXPORT_SHIM.as_posix()}`",
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`",
     f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`",
+    f"`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`",
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_PATH={ABI_DUMP.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`",
@@ -54,9 +56,31 @@ SURVEY_LINES = (
 )
 REVIEW_OWNERSHIP_SNIPPETS = (
     "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, while this survey keeps the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions paired with that narrower kernel-facing relay.",
-    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, while this survey keeps the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions plus the paired `include/zigux/dev_t.h` contract aligned with that narrower kernel-facing relay.",
+    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the paired `include/zigux/dev_t.h` contract, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
     "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
+)
+DOCS_README_LINES = (
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+    f"`{UAPI_DEV_T.as_posix()}`",
+    "`zig build phase3-test --build-file zigux/tests/build.zig`",
+    "`make -C zigux phase3`",
+)
+REVIEW_CHECKLIST_MARKERS = (
+    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+    "`include/linux/zigux.h`",
+    "`include/zigux/abi.h`",
+)
+SCRIPTS_README_LINES = (
+    "`validate-phase3-export-uapi-survey.py`",
+    f"`{HEADER_GOVERNANCE.as_posix()}`",
+    f"`{LINUX_HEADER.as_posix()}`",
+    f"`{ABI_HEADER.as_posix()}`",
+    f"`{DUMP_GATE}`",
 )
 ABI_SLICE_LINES = (
     f"`{SURVEY.as_posix()}`",
@@ -74,6 +98,27 @@ ABI_NEXT_STEP_LINES = (
     f"`{ABI_DUMP.as_posix()}`",
     f"`{VALIDATOR.as_posix()}`",
 )
+MAKEFILE_MARKERS = (
+    "phase3-validate:",
+    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "phase3-interop:",
+    "$(PYTHON) scripts/zigux/run-phase3-checks.py",
+    "phase3-abi:",
+    "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+    DUMP_GATE,
+    "phase3: phase3-validate phase3-abi phase3-interop",
+)
+WORKFLOW_MARKERS = (
+    "- name: Validate Phase 3 export/UAPI survey",
+    "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "- name: Self-test Phase 3 export/UAPI survey",
+    "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "- name: Check discovered Phase 3 parity",
+    "run: python3 scripts/zigux/run-phase3-checks.py",
+    "- name: Run Phase 3 ABI/interp substrate tests",
+    "run: zig build phase3-test --build-file zigux/tests/build.zig",
+)
 FORBIDDEN_SURVEY_MARKERS = (
     "PHASE3_EXPORT_UAPI_TEST_PATH=",
     "PHASE3_EXPORT_UAPI_BUILD_PATH=",
@@ -90,28 +135,6 @@ FORBIDDEN_SCRIPTS_README_MARKERS = (
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
 )
-DOCS_README_LINES = (
-    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-    f"`{UAPI_DEV_T.as_posix()}`",
-    "`zig build phase3-test --build-file zigux/tests/build.zig`",
-    "`make -C zigux phase3`",
-)
-SCRIPTS_README_LINES = (
-    "`validate-phase3-export-uapi-survey.py`",
-    f"`{HEADER_GOVERNANCE.as_posix()}`",
-    f"`{LINUX_HEADER.as_posix()}`",
-    f"`{ABI_HEADER.as_posix()}`",
-    f"`{DUMP_GATE}`",
-)
-REVIEW_CHECKLIST_MARKERS = (
-    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-    "`include/linux/zigux.h`",
-    "`include/zigux/abi.h`",
-)
 KERNEL_EXPORT_GOVERNANCE_MARKERS = (
     "`PHASE3_KERNEL_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
     "`PHASE3_KERNEL_EXPORT_SHIM_PACKET=shared Phase 3 ABI substrate packet only`",
@@ -123,6 +146,7 @@ KERNEL_EXPORT_GOVERNANCE_MARKERS = (
 )
 KERNEL_EXPORT_GOVERNANCE_CONTAINS = (
     "`zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `ok()`, `errno()`, `normalize()`, `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` helpers for kernel-side callers",
+    "starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`",
     "new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
 )
 HEADER_GOVERNANCE_MARKERS = (
@@ -131,27 +155,94 @@ HEADER_GOVERNANCE_MARKERS = (
     "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
     "`include/zigux/abi.h`",
 )
-MAKEFILE_MARKERS = (
-    "phase3-validate:",
-    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "phase3-interop:",
-    "$(PYTHON) scripts/zigux/run-phase3-checks.py",
-    "phase3-abi:",
-    "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
-    DUMP_GATE,
-    "phase3: phase3-validate phase3-abi phase3-interop",
+FILE_MARKERS = {
+    EXPORT_SHIM: (
+        "pub const Header = uapi_version.Header;",
+        "pub const HeaderCompatibility = uapi_version.Compatibility;",
+        "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
+        "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
+        "pub fn compatibilityStatus(",
+        "pub fn evaluateHeader(",
+        "pub fn extendsBoundary(header_value: Header) bool {",
+        "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
+        'test "phase3 export shim relays compatibility through explicit status packets" {',
+        'test "phase3 export shim evaluation keeps compatibility evidence and status together" {',
+    ),
+    UAPI_VERSION: (
+        "pub const Compatibility = enum {",
+        "future_compatible",
+        "pub const AcceptedHeader = struct {",
+        "pub const HeaderEvaluation = struct {",
+        "pub fn compatibility(header: Header) ?Compatibility {",
+        "pub fn acceptHeader(header: Header) ?AcceptedHeader {",
+        "pub fn evaluateHeader(header: Header) HeaderEvaluation {",
+        "pub fn requestedExtraBytes(self: @This()) ?u32 {",
+        'test "phase3 uapi evaluation keeps requested boundary shape explicit" {',
+    ),
+    UAPI_DEV_T: (
+        "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {",
+        "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
+        'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {',
+    ),
+    DEV_T_HEADER: (
+        "#ifndef _ZIGUX_DEV_T_H",
+        "#define ZIGUX_DEV_MINOR_BITS 20U",
+        "static inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id)",
+        "static inline uint32_t zigux_major(uint32_t dev)",
+        "static inline uint32_t zigux_minor(uint32_t dev)",
+    ),
+    ABI_DUMP: (
+        'try writer.writeAll("{\\\"abi_version\\\":");',
+        'try writer.writeAll(",\\\"constants\\\":{");',
+        'try writer.writeAll("},\\\"structs\\\":{");',
+        "try writeStruct(writer, decl.name, value);",
+    ),
+    LINUX_HEADER: (
+        "#ifndef _LINUX_ZIGUX_H",
+        '#include "../zigux/abi.h"',
+        '#include "../zigux/dev_t.h"',
+        "zigux_export_status_ok",
+    ),
+    ABI_HEADER: (
+        "#ifndef _ZIGUX_ABI_H",
+        "#define ZIGUX_ABI_VERSION",
+        "struct zigux_boundary_header {",
+        "struct zigux_export_status {",
+    ),
+    KERNEL_EXPORT_GOVERNANCE: KERNEL_EXPORT_GOVERNANCE_MARKERS,
+    HEADER_GOVERNANCE: HEADER_GOVERNANCE_MARKERS,
+}
+REQUIRED_FILES = (
+    SURVEY,
+    DOCS_README,
+    REVIEW_CHECKLIST,
+    SCRIPTS_README,
+    WORKFLOW,
+    KERNEL_EXPORT_GOVERNANCE,
+    HEADER_GOVERNANCE,
+    LINUX_HEADER,
+    ABI_HEADER,
+    DEV_T_HEADER,
+    EXPORT_SHIM,
+    UAPI_VERSION,
+    UAPI_DEV_T,
+    ABI_SLICE,
+    ABI_NEXT_STEP,
+    BUILD_FILE,
+    ABI_DUMP,
+    MAKEFILE,
+    VALIDATOR,
 )
 
 
 def norm_lines(text: str) -> list[str]:
-    out: list[str] = []
+    lines: list[str] = []
     for raw in text.splitlines():
         line = raw.strip()
         if line.startswith("- ") or line.startswith("* "):
             line = line[2:].strip()
-        out.append(line)
-    return out
+        lines.append(line)
+    return lines
 
 
 def blob_sha(path: Path) -> str:
@@ -169,8 +260,13 @@ def require_exact(issues: list[str], text: str, prefix: str, marker: str) -> Non
         issues.append(f"duplicate_{prefix}:{count}:{marker}")
 
 
+def require_contains(issues: list[str], text: str, prefix: str, marker: str) -> None:
+    if marker not in text:
+        issues.append(f"missing_{prefix}:{marker}")
+
+
 def require_one_of(issues: list[str], text: str, prefix: str, markers: tuple[str, ...]) -> None:
-    matches = [m for m in markers if norm_lines(text).count(m) > 0]
+    matches = [marker for marker in markers if norm_lines(text).count(marker) > 0]
     if len(matches) == 1:
         return
     if not matches:
@@ -179,38 +275,19 @@ def require_one_of(issues: list[str], text: str, prefix: str, markers: tuple[str
         issues.append(f"duplicate_{prefix}:{len(matches)}:{'|'.join(markers)}")
 
 
-def require_contains(issues: list[str], text: str, prefix: str, marker: str) -> None:
-    if marker not in text:
-        issues.append(f"missing_{prefix}:{marker}")
-
-
-def require_section_contains_once(
-    issues: list[str], section: str | None, prefix: str, marker: str, missing_section: str
-) -> None:
-    if section is None:
-        issues.append(missing_section)
-        return
-    count = section.count(marker)
-    if count == 1:
-        return
-    if count == 0:
-        issues.append(f"missing_{prefix}:{marker}")
-    else:
-        issues.append(f"duplicate_{prefix}:{count}:{marker}")
-
-
-def extract_section(text: str, start_heading: str, next_heading: str | None) -> str | None:
-    start_token = f"\n{start_heading}\n"
-    if text.startswith(f"{start_heading}\n"):
-        section = text.split(f"{start_heading}\n", 1)[1]
-    elif start_token in text:
-        section = text.split(start_token, 1)[1]
+def extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
+    head = f"\n{heading}\n"
+    if text.startswith(f"{heading}\n"):
+        section = text.split(f"{heading}\n", 1)[1]
+    elif head in text:
+        section = text.split(head, 1)[1]
     else:
         return None
-    if next_heading is not None:
-        next_token = f"\n{next_heading}\n"
-        if next_token in section:
-            section = section.split(next_token, 1)[0]
+    if next_heading is None:
+        return section
+    next_token = f"\n{next_heading}\n"
+    if next_token in section:
+        section = section.split(next_token, 1)[0]
     return section
 
 
@@ -226,167 +303,84 @@ def write(path: Path, text: str) -> None:
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
-    for rel in (
-        SURVEY,
-        DOCS_README,
-        REVIEW_CHECKLIST,
-        SCRIPTS_README,
-        WORKFLOW,
-        KERNEL_EXPORT_GOVERNANCE,
-        HEADER_GOVERNANCE,
-        LINUX_HEADER,
-        ABI_HEADER,
-        EXPORT_SHIM,
-        UAPI_VERSION,
-        UAPI_DEV_T,
-        ABI_SLICE,
-        ABI_NEXT_STEP,
-        BUILD_FILE,
-        ABI_DUMP,
-        MAKEFILE,
-        VALIDATOR,
-    ):
+    for rel in REQUIRED_FILES:
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel.as_posix()}")
-
-    survey_path = root / SURVEY
     if issues:
         return issues
-    survey_text = survey_path.read_text(encoding="utf-8")
 
+    survey_text = (root / SURVEY).read_text(encoding="utf-8")
     require_one_of(issues, survey_text, "survey_provenance", PROVENANCE)
-    for marker in SURVEY_LINES:
+    for marker in SURVEY_MARKERS:
         require_exact(issues, survey_text, "survey_marker", marker)
     for marker in FORBIDDEN_SURVEY_MARKERS:
         if marker in survey_text:
             issues.append(f"forbidden_survey_marker:{marker}")
 
-    review_ownership = extract_section(
-        survey_text,
-        REVIEW_OWNERSHIP_PREFIX,
-        CURRENT_GAP_PREFIX,
-    )
-    for marker in REVIEW_OWNERSHIP_SNIPPETS:
-        require_section_contains_once(
-            issues,
-            review_ownership,
-            "review_ownership_rule",
-            marker,
-            f"missing_survey_section:{REVIEW_OWNERSHIP_PREFIX}",
-        )
+    review_ownership = extract_section(survey_text, REVIEW_OWNERSHIP_PREFIX, CURRENT_GAP_PREFIX)
+    if review_ownership is None:
+        for _marker in REVIEW_OWNERSHIP_SNIPPETS:
+            issues.append(f"missing_survey_section:{REVIEW_OWNERSHIP_PREFIX}")
+    else:
+        for marker in REVIEW_OWNERSHIP_SNIPPETS:
+            count = review_ownership.count(marker)
+            if count == 0:
+                issues.append(f"missing_review_ownership_rule:{marker}")
+            elif count != 1:
+                issues.append(f"duplicate_review_ownership_rule:{count}:{marker}")
 
     for key, rel in (
         ("PHASE3_EXPORT_SHIM_BLOB_SHA", EXPORT_SHIM),
         ("PHASE3_UAPI_VERSION_BLOB_SHA", UAPI_VERSION),
         ("PHASE3_UAPI_DEV_T_BLOB_SHA", UAPI_DEV_T),
+        ("PHASE3_DEV_T_HEADER_BLOB_SHA", DEV_T_HEADER),
     ):
         values = backtick_value(survey_text, key)
         if len(values) != 1:
             issues.append(f"missing_survey_marker:`{key}=<sha>`")
             continue
-        expected = blob_sha(root / rel)
-        if values[0] != expected:
-            issues.append(f"stale_survey_blob:{key}:{values[0]}!={expected}")
+        current = blob_sha(root / rel)
+        if values[0] != current:
+            issues.append(f"stale_survey_blob:{key}:{values[0]}!={current}")
 
-    for rel, markers in {
-        EXPORT_SHIM: (
-            "pub const Header = uapi_version.Header;",
-            "pub const HeaderCompatibility = uapi_version.Compatibility;",
-            "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
-            "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
-            "pub fn compatibilityStatus(",
-            "pub fn evaluateHeader(",
-            "pub fn extendsBoundary(header_value: Header) bool {",
-            "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
-            'test "phase3 export shim relays compatibility through explicit status packets" {',
-            'test "phase3 export shim evaluation keeps compatibility evidence and status together" {',
-        ),
-        UAPI_VERSION: (
-            "pub const Compatibility = enum {",
-            "future_compatible",
-            "pub const AcceptedHeader = struct {",
-            "pub const HeaderEvaluation = struct {",
-            "pub fn compatibility(header: Header) ?Compatibility {",
-            "pub fn acceptHeader(header: Header) ?AcceptedHeader {",
-            "pub fn evaluateHeader(header: Header) HeaderEvaluation {",
-            "pub fn requestedExtraBytes(self: @This()) ?u32 {",
-            'test "phase3 uapi evaluation keeps requested boundary shape explicit" {',
-        ),
-        UAPI_DEV_T: (
-            "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {",
-            "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
-            'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {',
-        ),
-        ABI_DUMP: (
-            'try writer.writeAll("{\\\"abi_version\\\":");',
-            'try writer.writeAll(",\\\"constants\\\":{");',
-            'try writer.writeAll("},\\\"structs\\\":{");',
-            "try writeStruct(writer, decl.name, value);",
-        ),
-        KERNEL_EXPORT_GOVERNANCE: KERNEL_EXPORT_GOVERNANCE_MARKERS,
-        HEADER_GOVERNANCE: HEADER_GOVERNANCE_MARKERS,
-        LINUX_HEADER: (
-            "#ifndef _LINUX_ZIGUX_H",
-            '#include "../zigux/abi.h"',
-            '#include "../zigux/dev_t.h"',
-            "zigux_export_status_ok",
-        ),
-        ABI_HEADER: (
-            "#ifndef _ZIGUX_ABI_H",
-            "#define ZIGUX_ABI_VERSION",
-            "struct zigux_boundary_header {",
-            "struct zigux_export_status {",
-        ),
-    }.items():
-        if not (root / rel).exists():
-            continue
+    for rel, markers in FILE_MARKERS.items():
         text = (root / rel).read_text(encoding="utf-8")
         for marker in markers:
-            if marker not in text:
-                issues.append(f"missing_marker:{rel.as_posix()}:{marker}")
-
-    makefile_text = (root / MAKEFILE).read_text(encoding="utf-8")
-    for marker in MAKEFILE_MARKERS:
-        require_exact(issues, makefile_text, "makefile_marker", marker)
+            require_contains(issues, text, f"marker:{rel.as_posix()}", marker)
 
     governance_text = (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8")
     for marker in KERNEL_EXPORT_GOVERNANCE_CONTAINS:
         require_contains(issues, governance_text, "kernel_export_governance_rule", marker)
 
-    docs_text = (root / DOCS_README).read_text(encoding="utf-8")
+    docs_readme = (root / DOCS_README).read_text(encoding="utf-8")
     for marker in DOCS_README_LINES:
-        require_exact(issues, docs_text, "docs_root_marker", marker)
+        require_exact(issues, docs_readme, "docs_root_marker", marker)
 
-    review_checklist_text = (root / REVIEW_CHECKLIST).read_text(encoding="utf-8")
+    review_checklist = (root / REVIEW_CHECKLIST).read_text(encoding="utf-8")
     for marker in REVIEW_CHECKLIST_MARKERS:
-        require_contains(issues, review_checklist_text, "review_checklist_marker", marker)
+        require_contains(issues, review_checklist, "review_checklist_marker", marker)
 
-    abi_slice_text = (root / ABI_SLICE).read_text(encoding="utf-8")
-    for marker in ABI_SLICE_LINES:
-        require_exact(issues, abi_slice_text, "abi_slice_marker", marker)
-
-    abi_next_step_text = (root / ABI_NEXT_STEP).read_text(encoding="utf-8")
-    for marker in ABI_NEXT_STEP_LINES:
-        require_exact(issues, abi_next_step_text, "abi_next_step_marker", marker)
-
-    scripts_readme_text = (root / SCRIPTS_README).read_text(encoding="utf-8")
+    scripts_readme = (root / SCRIPTS_README).read_text(encoding="utf-8")
     for marker in SCRIPTS_README_LINES:
-        require_exact(issues, scripts_readme_text, "scripts_readme_marker", marker)
+        require_exact(issues, scripts_readme, "scripts_readme_marker", marker)
     for marker in FORBIDDEN_SCRIPTS_README_MARKERS:
-        if marker in scripts_readme_text:
+        if marker in scripts_readme:
             issues.append(f"forbidden_scripts_readme_marker:{marker}")
 
+    abi_slice = (root / ABI_SLICE).read_text(encoding="utf-8")
+    for marker in ABI_SLICE_LINES:
+        require_exact(issues, abi_slice, "abi_slice_marker", marker)
+
+    abi_next = (root / ABI_NEXT_STEP).read_text(encoding="utf-8")
+    for marker in ABI_NEXT_STEP_LINES:
+        require_exact(issues, abi_next, "abi_next_step_marker", marker)
+
+    makefile = (root / MAKEFILE).read_text(encoding="utf-8")
+    for marker in MAKEFILE_MARKERS:
+        require_exact(issues, makefile, "makefile_marker", marker)
+
     workflow_lines = [line.strip() for line in (root / WORKFLOW).read_text(encoding="utf-8").splitlines()]
-    for marker in (
-        "- name: Validate Phase 3 export/UAPI survey",
-        "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
-        "- name: Self-test Phase 3 export/UAPI survey",
-        "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-        "- name: Check discovered Phase 3 parity",
-        "run: python3 scripts/zigux/run-phase3-checks.py",
-        "- name: Run Phase 3 ABI/interp substrate tests",
-        "run: zig build phase3-test --build-file zigux/tests/build.zig",
-    ):
+    for marker in WORKFLOW_MARKERS:
         count = workflow_lines.count(marker)
         if count == 0:
             issues.append(f"missing_workflow_marker:{marker}")
@@ -431,6 +425,34 @@ def build_valid_workspace(root: Path) -> None:
         'test "phase3 uapi dev_t starter keeps encode and range parity explicit" {}',
         "",
     )))
+    write(root / DEV_T_HEADER, "\n".join((
+        "#ifndef _ZIGUX_DEV_T_H",
+        "#define _ZIGUX_DEV_T_H",
+        "",
+        "#include <stdint.h>",
+        "",
+        "#define ZIGUX_DEV_MINOR_BITS 20U",
+        "#define ZIGUX_DEV_MINOR_MASK ((1U << ZIGUX_DEV_MINOR_BITS) - 1U)",
+        "#define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)",
+        "",
+        "static inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id)",
+        "{",
+        "    return (major_id << ZIGUX_DEV_MINOR_BITS) | (minor_id & ZIGUX_DEV_MINOR_MASK);",
+        "}",
+        "",
+        "static inline uint32_t zigux_major(uint32_t dev)",
+        "{",
+        "    return dev >> ZIGUX_DEV_MINOR_BITS;",
+        "}",
+        "",
+        "static inline uint32_t zigux_minor(uint32_t dev)",
+        "{",
+        "    return dev & ZIGUX_DEV_MINOR_MASK;",
+        "}",
+        "",
+        "#endif",
+        "",
+    )))
     write(root / BUILD_FILE, "// shared phase3 build route\n")
     write(root / ABI_DUMP, "\n".join((
         'try writer.writeAll("{\\\"abi_version\\\":");',
@@ -454,19 +476,30 @@ def build_valid_workspace(root: Path) -> None:
     write(root / VALIDATOR, "# validator placeholder\n")
     write(root / KERNEL_EXPORT_GOVERNANCE, "\n".join((
         "# Phase 3 Kernel Export Shim Governance",
+        "",
+        "## Scope",
+        "",
         "- `PHASE3_KERNEL_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
         "- `PHASE3_KERNEL_EXPORT_SHIM_PACKET=shared Phase 3 ABI substrate packet only`",
         "- `PHASE3_KERNEL_EXPORT_SHIM_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
         "- `PHASE3_KERNEL_EXPORT_SHIM_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
         "- `PHASE3_KERNEL_EXPORT_SHIM_STARTER_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
         "- `PHASE3_KERNEL_EXPORT_SHIM_HEADER_GOVERNANCE=Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-        "- `PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
+        "",
+        "## Ownership",
+        "",
+        "- starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`",
         "- `zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `ok()`, `errno()`, `normalize()`, `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` helpers for kernel-side callers",
+        "",
+        "## Growth Rule",
+        "",
+        "- `PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
         "- new kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure",
         "",
     )))
     write(root / HEADER_GOVERNANCE, "\n".join((
         "# Phase 3 Linux `zigux.h` Header Governance",
+        "",
         "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`",
         "`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`",
         "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
@@ -504,24 +537,8 @@ def build_valid_workspace(root: Path) -> None:
         "- `include/zigux/abi.h`",
         "",
     )))
-    write(root / ABI_SLICE, "\n".join((
-        f"- `{SURVEY.as_posix()}`",
-        f"- `{ABI_NEXT_STEP.as_posix()}`",
-        f"- `{EXPORT_SHIM.as_posix()}`",
-        f"- `{UAPI_VERSION.as_posix()}`",
-        f"- `{UAPI_DEV_T.as_posix()}`",
-        f"- `{ABI_DUMP.as_posix()}`",
-        "",
-    )))
-    write(root / ABI_NEXT_STEP, "\n".join((
-        f"- `{SURVEY.as_posix()}`",
-        f"- `{EXPORT_SHIM.as_posix()}`",
-        f"- `{UAPI_VERSION.as_posix()}`",
-        f"- `{UAPI_DEV_T.as_posix()}`",
-        f"- `{ABI_DUMP.as_posix()}`",
-        f"- `{VALIDATOR.as_posix()}`",
-        "",
-    )))
+    write(root / ABI_SLICE, "\n".join((*(f"- {line}" for line in ABI_SLICE_LINES), "")))
+    write(root / ABI_NEXT_STEP, "\n".join((*(f"- {line}" for line in ABI_NEXT_STEP_LINES), "")))
     write(root / SCRIPTS_README, "\n".join((
         "- `validate-phase3-export-uapi-survey.py`",
         f"- `{HEADER_GOVERNANCE.as_posix()}`",
@@ -547,14 +564,15 @@ def build_valid_workspace(root: Path) -> None:
         "## Status",
         "",
         f"- {PROVENANCE[0]}",
-        *(f"- {line}" for line in SURVEY_LINES),
+        *(f"- {marker}" for marker in SURVEY_MARKERS),
         f"- `PHASE3_EXPORT_SHIM_BLOB_SHA={blob_sha(root / EXPORT_SHIM)}`",
         f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
         f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
+        f"- `PHASE3_DEV_T_HEADER_BLOB_SHA={blob_sha(root / DEV_T_HEADER)}`",
         "",
         REVIEW_OWNERSHIP_PREFIX,
         "",
-        *(f"- {line}" for line in REVIEW_OWNERSHIP_SNIPPETS),
+        *(f"- {marker}" for marker in REVIEW_OWNERSHIP_SNIPPETS),
         "",
         CURRENT_GAP_PREFIX,
         "",
@@ -571,172 +589,54 @@ def run_self_test() -> int:
         assert validate(root) == [], validate(root)
         case_count += 1
 
-        write(root / UAPI_DEV_T, (root / UAPI_DEV_T).read_text(encoding="utf-8") + "// drift\n")
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
+            f"- `PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`\n",
+            "",
+            1,
+        ))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / DEV_T_HEADER, (root / DEV_T_HEADER).read_text(encoding="utf-8") + "/* drift */\n")
         issues = validate(root)
-        assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_UAPI_DEV_T_BLOB_SHA:"), issues
+        assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_DEV_T_HEADER_BLOB_SHA:"), issues
         build_valid_workspace(root)
         case_count += 1
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
-            REVIEW_OWNERSHIP_SNIPPETS[0],
-            "broken governance reminder.",
+            REVIEW_OWNERSHIP_SNIPPETS[1],
+            "broken ownership reminder.",
             1,
         ))
-        assert validate(root) == [
-            f"missing_review_ownership_rule:{REVIEW_OWNERSHIP_SNIPPETS[0]}"
-        ]
+        assert validate(root) == [f"missing_review_ownership_rule:{REVIEW_OWNERSHIP_SNIPPETS[1]}"]
         build_valid_workspace(root)
         case_count += 1
 
-        survey_text = (root / SURVEY).read_text(encoding="utf-8")
-        moved_marker = REVIEW_OWNERSHIP_SNIPPETS[1]
-        survey_text = survey_text.replace(f"- {moved_marker}\n", "", 1)
-        survey_text = survey_text.replace(
-            f"{CURRENT_GAP_PREFIX}\n\n- current gap placeholder\n",
-            f"{CURRENT_GAP_PREFIX}\n\n- current gap placeholder\n- {moved_marker}\n",
+        (root / DEV_T_HEADER).unlink()
+        assert validate(root) == [f"missing_file:{DEV_T_HEADER.as_posix()}]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / DEV_T_HEADER, (root / DEV_T_HEADER).read_text(encoding="utf-8").replace(
+            "static inline uint32_t zigux_minor(uint32_t dev)\n",
+            "",
             1,
-        )
-        write(root / SURVEY, survey_text)
-        assert validate(root) == [
-            f"missing_review_ownership_rule:{moved_marker}"
-        ]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(
-            root / SURVEY,
-            (root / SURVEY).read_text(encoding="utf-8").replace(
-                REVIEW_OWNERSHIP_PREFIX,
-                "## Review Ownership Drift",
-                1,
-            ),
-        )
-        assert validate(root) == [f"missing_survey_section:{REVIEW_OWNERSHIP_PREFIX}"] * len(
-            REVIEW_OWNERSHIP_SNIPPETS
-        )
-        build_valid_workspace(root)
-        case_count += 1
-
-        (root / KERNEL_EXPORT_GOVERNANCE).unlink()
-        assert validate(root) == [f"missing_file:{KERNEL_EXPORT_GOVERNANCE.as_posix()}"]
+        ))
+        issues = validate(root)
+        assert issues[0].startswith("stale_survey_blob:PHASE3_DEV_T_HEADER_BLOB_SHA:"), issues
+        assert f"missing_marker:{DEV_T_HEADER.as_posix()}:static inline uint32_t zigux_minor(uint32_t dev)" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
         write(root / KERNEL_EXPORT_GOVERNANCE, (root / KERNEL_EXPORT_GOVERNANCE).read_text(encoding="utf-8").replace(
-            "`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`",
-            "`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=broken`",
+            "- starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`\n",
+            "",
             1,
         ))
         assert validate(root) == [
-            "missing_marker:Documentation/zigux/phase3-kernel-export-shim-governance.md:`PHASE3_KERNEL_EXPORT_SHIM_GROWTH_RULE=new zigux/kernel starter relays may land only when the same bounded change also refreshes this note, the shared ABI slice, and the manifest-backed Phase 3 packet inventory.`"
+            "missing_kernel_export_governance_rule:starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`"
         ]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / DOCS_README, (root / DOCS_README).read_text(encoding="utf-8").replace(
-            "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == ["missing_docs_root_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / ABI_SLICE, (root / ABI_SLICE).read_text(encoding="utf-8").replace(
-            f"`{SURVEY.as_posix()}`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_abi_slice_marker:`{SURVEY.as_posix()}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / ABI_SLICE, (root / ABI_SLICE).read_text(encoding="utf-8").replace(
-            f"`{ABI_DUMP.as_posix()}`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_abi_slice_marker:`{ABI_DUMP.as_posix()}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / ABI_NEXT_STEP, (root / ABI_NEXT_STEP).read_text(encoding="utf-8").replace(
-            f"`{VALIDATOR.as_posix()}`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_abi_next_step_marker:`{VALIDATOR.as_posix()}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / ABI_NEXT_STEP, (root / ABI_NEXT_STEP).read_text(encoding="utf-8").replace(
-            f"`{ABI_DUMP.as_posix()}`",
-            "`broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_abi_next_step_marker:`{ABI_DUMP.as_posix()}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / REVIEW_CHECKLIST, "")
-        assert validate(root) == [
-            "missing_review_checklist_marker:`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-            "missing_review_checklist_marker:`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-            "missing_review_checklist_marker:`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-            "missing_review_checklist_marker:`include/linux/zigux.h`",
-            "missing_review_checklist_marker:`include/zigux/abi.h`",
-        ]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / SCRIPTS_README, "")
-        issues = validate(root)
-        assert "missing_scripts_readme_marker:`validate-phase3-export-uapi-survey.py`" in issues, issues
-        assert f"missing_scripts_readme_marker:`{HEADER_GOVERNANCE.as_posix()}`" in issues, issues
-        assert f"missing_scripts_readme_marker:`{LINUX_HEADER.as_posix()}`" in issues, issues
-        assert f"missing_scripts_readme_marker:`{ABI_HEADER.as_posix()}`" in issues, issues
-        assert f"missing_scripts_readme_marker:`{DUMP_GATE}`" in issues, issues
-        build_valid_workspace(root)
-        case_count += 1
-
-        (root / HEADER_GOVERNANCE).unlink()
-        assert validate(root) == [f"missing_file:{HEADER_GOVERNANCE.as_posix()}"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / WORKFLOW, (root / WORKFLOW).read_text(encoding="utf-8").replace(
-            "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-            "run: python3 broken.py --self-test",
-            1,
-        ))
-        assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / WORKFLOW, (root / WORKFLOW).read_text(encoding="utf-8").replace(
-            "run: python3 scripts/zigux/run-phase3-checks.py",
-            "run: python3 broken.py",
-            1,
-        ))
-        assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/run-phase3-checks.py"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8") + "phase3_export_uapi.zig\n")
-        assert validate(root) == ["forbidden_survey_marker:phase3_export_uapi.zig"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / SCRIPTS_README, (root / SCRIPTS_README).read_text(encoding="utf-8") + "zigux/tests/phase3_export_uapi.zig\n")
-        assert validate(root) == ["forbidden_scripts_readme_marker:zigux/tests/phase3_export_uapi.zig"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / MAKEFILE, "phase3-validate:\n")
-        issues = validate(root)
-        assert "missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test" in issues, issues
-        assert "missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py" in issues, issues
-        assert "missing_makefile_marker:$(ZIG) build phase3-test --build-file zigux/tests/build.zig" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
@@ -749,98 +649,22 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
-        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(
-            "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n",
-            "",
+        write(root / WORKFLOW, (root / WORKFLOW).read_text(encoding="utf-8").replace(
+            "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
+            "  run: python3 broken.py --self-test\n",
             1,
         ))
-        assert validate(root) == ["missing_makefile_marker:$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py"]
+        assert validate(root) == ["missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"]
         build_valid_workspace(root)
         case_count += 1
 
-        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(
-            "$(PYTHON) scripts/zigux/run-phase3-checks.py",
-            "$(PYTHON) broken.py",
-            1,
-        ))
-        assert validate(root) == ["missing_makefile_marker:$(PYTHON) scripts/zigux/run-phase3-checks.py"]
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8") + "phase3_export_uapi.zig\n")
+        assert validate(root) == ["forbidden_survey_marker:phase3_export_uapi.zig"]
         build_valid_workspace(root)
         case_count += 1
 
-        write(root / MAKEFILE, (root / MAKEFILE).read_text(encoding="utf-8").replace(DUMP_GATE, "zig build broken --build-file zigux/tests/build.zig", 1))
-        assert validate(root) == [f"missing_makefile_marker:{DUMP_GATE}"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
-            f"`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`",
-            "`PHASE3_SHARED_DUMP_GATE=broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(
-            f"`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`",
-            "`PHASE3_SHARED_INTEROP_ROUTE=broken`",
-            1,
-        ))
-        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        (root / ABI_DUMP).unlink()
-        assert validate(root) == [f"missing_file:{ABI_DUMP.as_posix()}"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        (root / LINUX_HEADER).unlink()
-        assert validate(root) == [f"missing_file:{LINUX_HEADER.as_posix()}"]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / EXPORT_SHIM, (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
-            "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n",
-            "",
-            1,
-        ))
-        assert validate(root) == [
-            "stale_survey_blob:PHASE3_EXPORT_SHIM_BLOB_SHA:"
-            + backtick_value((root / SURVEY).read_text(encoding="utf-8"), "PHASE3_EXPORT_SHIM_BLOB_SHA")[0]
-            + "!="
-            + blob_sha(root / EXPORT_SHIM),
-            "missing_marker:zigux/kernel/export_shim.zig:pub fn requestedExtraBytes(header_value: Header) ?u32 {",
-        ]
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / UAPI_VERSION, (root / UAPI_VERSION).read_text(encoding="utf-8").replace(
-            "pub const HeaderEvaluation = struct {\n",
-            "",
-            1,
-        ).replace(
-            "    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n",
-            "",
-            1,
-        ).replace(
-            "};\n",
-            "",
-            1,
-        ))
-        issues = validate(root)
-        assert issues[0].startswith("stale_survey_blob:PHASE3_UAPI_VERSION_BLOB_SHA:"), issues
-        assert "missing_marker:zigux/uapi/version.zig:pub const HeaderEvaluation = struct {" in issues, issues
-        assert "missing_marker:zigux/uapi/version.zig:pub fn requestedExtraBytes(self: @This()) ?u32 {" in issues, issues
-        build_valid_workspace(root)
-        case_count += 1
-
-        write(root / ABI_HEADER, (root / ABI_HEADER).read_text(encoding="utf-8").replace(
-            "struct zigux_export_status { int code; };",
-            "",
-            1,
-        ))
-        assert validate(root) == ["missing_marker:include/zigux/abi.h:struct zigux_export_status {"]
+        write(root / SCRIPTS_README, (root / SCRIPTS_README).read_text(encoding="utf-8") + "zigux/tests/phase3_export_uapi.zig\n")
+        assert validate(root) == ["forbidden_scripts_readme_marker:zigux/tests/phase3_export_uapi.zig"]
         case_count += 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
@@ -864,8 +688,9 @@ def main() -> int:
         for issue in issues:
             print(issue)
         return 1
+
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=18")
+    print(f"PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     return 0
 
 
