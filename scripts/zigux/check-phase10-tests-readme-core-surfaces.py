@@ -18,6 +18,8 @@ REQUIRED_SURFACES = (
 REQUIRED_CONTEXT = (
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
     "`zigux/tests/phase10_virtio_core.zig`",
     "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
@@ -30,6 +32,7 @@ REQUIRED_CONTEXT = (
     "`drivers/virtio/virtio_input_verify.zig`",
     "`zigux/tests/phase10_virtio_mmio.zig`",
     "`drivers/virtio/virtio_mmio_verify.zig`",
+    "`make -C zigux phase10-validate`",
     "`zig build test --build-file zigux/tests/phase10_build.zig`",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
@@ -106,6 +109,8 @@ def run_self_test() -> int:
         "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`, "
         "`scripts/zigux/check-phase10-harness-coverage.py`, "
         "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, "
+        "`scripts/zigux/validate-phase10.py`, "
+        "`scripts/zigux/validate-phase10-closure.py`, "
         "`zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, "
         "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, "
         "`zigux/tests/phase10_virtio_core.zig`, "
@@ -131,6 +136,7 @@ def run_self_test() -> int:
         "`drivers/virtio/virtio_mmio_verify.zig`, "
         "`zigux/tests/phase10_virtio_mmio_manifest.json`, "
         "`zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/Makefile`, "
+        "`make -C zigux phase10-validate`, "
         "`zig build test --build-file zigux/tests/phase10_build.zig`, "
         "`make -C zigux phase10-test`, and `make -C zigux phase10` should continue "
         "to keep the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
@@ -180,6 +186,42 @@ def run_self_test() -> int:
         assert "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`" in str(exc)
     else:
         raise AssertionError("expected missing direct checker failure")
+
+    missing_phase10_validate = good.replace(
+        "`scripts/zigux/validate-phase10.py`, ",
+        "",
+        1,
+    )
+    try:
+        check_text(missing_phase10_validate)
+    except SystemExit as exc:
+        assert "`scripts/zigux/validate-phase10.py`" in str(exc)
+    else:
+        raise AssertionError("expected missing shared validator failure")
+
+    missing_phase10_closure_validate = good.replace(
+        "`scripts/zigux/validate-phase10-closure.py`, ",
+        "",
+        1,
+    )
+    try:
+        check_text(missing_phase10_closure_validate)
+    except SystemExit as exc:
+        assert "`scripts/zigux/validate-phase10-closure.py`" in str(exc)
+    else:
+        raise AssertionError("expected missing shared closure validator failure")
+
+    missing_phase10_validate_route = good.replace(
+        "`make -C zigux phase10-validate`, ",
+        "",
+        1,
+    )
+    try:
+        check_text(missing_phase10_validate_route)
+    except SystemExit as exc:
+        assert "`make -C zigux phase10-validate`" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10-validate route failure")
 
     duplicate_surface = good.replace(
         "`drivers/virtio/virtio.zig`",
@@ -236,7 +278,7 @@ def run_self_test() -> int:
         raise AssertionError("expected ring reset reuse summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
