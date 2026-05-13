@@ -88,6 +88,6 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `make -C zigux phase3-selftest`; adjacent header-family and checklist reminders
 can keep `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
 `zigux/uapi/dev_t.zig` explicit as the bounded starter-companion policy without
- dropping the dedicated policy-and-unsafe replay checks or restating this
+dropping the dedicated policy-and-unsafe replay checks or restating this
 validator-support note as if those shipped support helpers were historical-only
 entrypoints.
