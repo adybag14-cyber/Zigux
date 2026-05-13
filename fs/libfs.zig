@@ -133,6 +133,7 @@ pub const OffsetSeekStatus = enum {
     ok,
     negative_offset,
     unsupported_whence,
+    offset_overflow,
 };
 
 pub const OffsetDirectorySeekPlan = struct {
@@ -228,6 +229,10 @@ fn maxValueForBits(bits: u8) u64 {
         return std.math.maxInt(u64);
     }
     return (@as(u64, 1) << @intCast(bits)) - 1;
+}
+
+fn checkedOffsetAdd(lhs: i64, rhs: i64) ?i64 {
+    return std.math.add(i64, lhs, rhs) catch null;
 }
 
 pub const LibfsHelperLab = struct {
@@ -398,24 +403,33 @@ pub const LibfsHelperLab = struct {
     pub fn planOffsetDirectorySeek(start_position: i64, requested_offset: i64, whence: OffsetSeekWhence) OffsetDirectorySeekPlan {
         const resolved_offset = switch (whence) {
             .set => requested_offset,
-            .cur => start_position + requested_offset,
-            .unsupported => null,
+            .cur => checkedOffsetAdd(start_position, requested_offset) orelse {
+                return .{
+                    .anchor = descriptor().anchor,
+                    .start_position = start_position,
+                    .requested_offset = requested_offset,
+                    .whence = whence,
+                    .resolved_offset = null,
+                    .status = .offset_overflow,
+                    .points_at_real_entry_window = false,
+                    .points_at_end_of_directory = false,
+                };
+            },
+            .unsupported => {
+                return .{
+                    .anchor = descriptor().anchor,
+                    .start_position = start_position,
+                    .requested_offset = requested_offset,
+                    .whence = whence,
+                    .resolved_offset = null,
+                    .status = .unsupported_whence,
+                    .points_at_real_entry_window = false,
+                    .points_at_end_of_directory = false,
+                };
+            },
         };
 
-        if (resolved_offset == null) {
-            return .{
-                .anchor = descriptor().anchor,
-                .start_position = start_position,
-                .requested_offset = requested_offset,
-                .whence = whence,
-                .resolved_offset = null,
-                .status = .unsupported_whence,
-                .points_at_real_entry_window = false,
-                .points_at_end_of_directory = false,
-            };
-        }
-
-        if (resolved_offset.? < 0) {
+        if (resolved_offset < 0) {
             return .{
                 .anchor = descriptor().anchor,
                 .start_position = start_position,
@@ -435,8 +449,8 @@ pub const LibfsHelperLab = struct {
             .whence = whence,
             .resolved_offset = resolved_offset,
             .status = .ok,
-            .points_at_real_entry_window = resolved_offset.? >= dir_offset_first and resolved_offset.? < dir_offset_end_of_directory,
-            .points_at_end_of_directory = resolved_offset.? == dir_offset_end_of_directory,
+            .points_at_real_entry_window = resolved_offset >= dir_offset_first and resolved_offset < dir_offset_end_of_directory,
+            .points_at_end_of_directory = resolved_offset == dir_offset_end_of_directory,
         };
     }
 
@@ -766,6 +780,21 @@ test "offset seek plan resolves SEEK_CUR relative movement and preserves dot pos
     try std.testing.expectEqual(@as(?i64, 1), plan.resolved_offset);
     try std.testing.expect(!plan.points_at_real_entry_window);
     try std.testing.expect(!plan.points_at_end_of_directory);
+}
+
+test "offset seek plan reports SEEK_CUR signed overflow without trapping" {
+    const positive = LibfsHelperLab.planOffsetDirectorySeek(std.math.maxInt(i64), 1, .cur);
+    const negative = LibfsHelperLab.planOffsetDirectorySeek(std.math.minInt(i64), -1, .cur);
+
+    try std.testing.expectEqual(OffsetSeekStatus.offset_overflow, positive.status);
+    try std.testing.expectEqual(@as(?i64, null), positive.resolved_offset);
+    try std.testing.expect(!positive.points_at_real_entry_window);
+    try std.testing.expect(!positive.points_at_end_of_directory);
+
+    try std.testing.expectEqual(OffsetSeekStatus.offset_overflow, negative.status);
+    try std.testing.expectEqual(@as(?i64, null), negative.resolved_offset);
+    try std.testing.expect(!negative.points_at_real_entry_window);
+    try std.testing.expect(!negative.points_at_end_of_directory);
 }
 
 test "offset seek plan rejects negative final positions" {
