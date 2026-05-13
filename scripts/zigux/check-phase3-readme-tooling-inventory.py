@@ -93,6 +93,7 @@ REQUIRED_MARKERS = (
     "check-phase4-artifact-diff-determinism.py",
     "check-phase4-remaining-gap-matrix.py",
     "check-phase4-workflow-route-counts.py",
+    "check-phase6-shared-surface.py",
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
 )
@@ -132,6 +133,7 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase4-gate-evidence.py"),
     Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"),
     Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
+    Path("scripts/zigux/check-phase6-shared-surface.py"),
     Path("scripts/zigux/check-phase7-make-wrapper.py"),
     Path("scripts/zigux/check-phase7-argv-split-packet.py"),
     Path("scripts/zigux/check-phase7-rbtree-parity.py"),
@@ -366,6 +368,12 @@ def run_self_test() -> int:
         print("expected Phase 4 remaining-gap-matrix marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("check-phase6-shared-surface.py", "", 1))
+    if "check-phase6-shared-surface.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 6 shared-surface marker was not reported")
+        return 1
+
     broken = validate_readme_snippets(sample.replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1))
     if PHASE4_VALIDATE_ROUTE_SNIPPET not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
@@ -487,6 +495,16 @@ def run_self_test() -> int:
             print("expected missing Phase 4 workflow-route repo file was not reported")
             return 1
         _write(root / missing_phase4_workflow_path, "# stub\n")
+
+        missing_phase6_shared_surface_path = Path("scripts/zigux/check-phase6-shared-surface.py")
+        (root / missing_phase6_shared_surface_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase6_shared_surface_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 6 shared-surface repo file was not reported")
+            return 1
+        _write(root / missing_phase6_shared_surface_path, "# stub\n")
 
         missing_phase7_make_wrapper_path = Path("scripts/zigux/check-phase7-make-wrapper.py")
         (root / missing_phase7_make_wrapper_path).unlink()
