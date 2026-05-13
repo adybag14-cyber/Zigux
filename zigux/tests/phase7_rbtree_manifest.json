@@ -6,6 +6,30 @@
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
+  "current_verification": {
+    "verified_on_utc": "2026-05-13T09:36:53Z",
+    "rbtree_packet_visibility": {
+      "status": "confirmed",
+      "paths": [
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_rbtree_survey.zig",
+        "zigux/tests/phase7_rbtree_manifest.json",
+        "zigux/tests/fixtures/phase7_rbtree.json",
+        "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+        "scripts/zigux/check-phase7-rbtree-parity.py"
+      ]
+    },
+    "shared_phase7_build": {
+      "status": "blocked",
+      "build_file": "zigux/tests/phase7_build.zig",
+      "missing_sibling_paths": [
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig"
+      ]
+    }
+  },
   "survey_summary": {
     "rbtree_c_lines": 618,
     "preexisting_phase7_test_files": 1,
@@ -17,9 +41,10 @@
     {
       "id": "phase7-rbtree-build-gate",
       "status": "starter_landed",
+      "current_replay_status": "blocked_by_missing_sibling_paths",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step is the narrowest honest replay gate for keeping the rbtree runtime leaf helper inside the existing reusable-library tranche."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the rbtree runtime leaf helper, but it is not a current green claim on live master while the string_helpers sibling paths above are still missing."
     },
     {
       "id": "phase7-rbtree-helper",
