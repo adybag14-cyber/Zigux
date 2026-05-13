@@ -367,6 +367,20 @@ def run_self_test() -> int:
 
         write(
             root,
+            MANIFEST_PATH,
+            current_manifest_text().replace(
+                f"\"validation_gate\": \"{VALIDATION_GATE}\"",
+                "\"validation_gate\": \"make -C zigux phase14-smoke\"",
+                1,
+            ),
+        )
+        if not any("manifest:productization.validation_gate drifted" in error for error in check(root)):
+            print("self-test expected validation-gate drift failure", file=sys.stderr)
+            return 1
+        write(root, MANIFEST_PATH, current_manifest_text())
+
+        write(
+            root,
             SMOKE_NOTE_PATH,
             current_smoke_note_text().replace(ATTACHED_TOOLCHAIN_EXAMPLES[-1] + "\n", "", 1),
         )
@@ -519,7 +533,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=12")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
