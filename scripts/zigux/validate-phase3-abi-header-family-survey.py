@@ -14,6 +14,7 @@ REQUIRED_MARKERS = (
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
@@ -193,6 +194,16 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected current-packet bindings marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("zigux/bindings/dev_t.zig", "", 1))
+    expected = (
+        "current packet marker count drift: zigux/bindings/dev_t.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected current-packet dev_t binding marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("zigux/tests/phase3_abi_dump.zig", "", 1))
