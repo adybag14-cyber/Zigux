@@ -84,7 +84,7 @@ REQUIRED_MARKERS = {
         "Use this lane for bounded `kallsyms` reminder, compile, or packet-truthfulness work only.",
         "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
         "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
-        "Keep follow-up parked unless a concrete symbol-lane packet drift appears on current `master`.",
+        "Keep shared wording out of this lane unless a concrete symbol-lane packet drift appears on current `master`.",
     ),
 }
 
