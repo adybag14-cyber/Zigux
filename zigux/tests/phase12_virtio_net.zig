@@ -267,6 +267,75 @@ test "phase12 virtio net recovery plan keeps control queue restore separate from
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
 }
 
+test "phase12 virtio net mergeable receive buffer plan keeps an exact page fit on the single-page path" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    const plan = try lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = virtio_net.page_size - virtio_net.default_headroom_bytes,
+        .headroom_bytes = virtio_net.default_headroom_bytes,
+        .mergeable_rx_bufs = false,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.single_page, plan.buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, plan.big_packet_reason);
+    try std.testing.expectEqual(virtio_net.page_size, plan.total_bytes);
+    try std.testing.expectEqual(@as(u16, 1), plan.required_buffers);
+    try std.testing.expect(!plan.reuses_existing_room);
+    try std.testing.expect(plan.fits_single_page);
+    try std.testing.expect(!plan.uses_mergeable_path);
+}
+
+test "phase12 virtio net mergeable receive buffer plan rejects buffer counts past u16 capacity" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    try std.testing.expectError(error.BufferCountOverflow, lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = virtio_net.page_size * (@as(u32, std.math.maxInt(u16)) + 1),
+        .headroom_bytes = 0,
+        .mergeable_rx_bufs = true,
+    }));
+}
+
+test "phase12 virtio net control queue recovery plan keeps dirty control-state restores ahead of data queues" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", plan.anchor);
+    try std.testing.expect(plan.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), plan.control_queue_index);
+    try std.testing.expect(plan.requires_control_queue_restore);
+    try std.testing.expect(plan.requires_receive_mode_sync);
+    try std.testing.expect(plan.requires_hash_report_restore);
+    try std.testing.expect(plan.requires_mac_table_sync);
+    try std.testing.expect(plan.requires_vlan_filter_sync);
+    try std.testing.expect(plan.requires_rss_config_sync);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(plan.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 6), plan.command_count);
+}
+
 test "phase12 virtio net control queue payload shape keeps rss resync explicit in the direct packet" {
     var lab = virtio_net.VirtioNetProbeLab.init();
 
