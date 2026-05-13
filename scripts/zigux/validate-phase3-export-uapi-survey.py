@@ -280,6 +280,8 @@ def validate(root: Path) -> list[str]:
         LINUX_HEADER: (
             '#include "../zigux/dev_t.h"',
             "zigux_export_status_ok",
+            "zigux_boundary_header_make(",
+            "zigux_boundary_header_make_compatible(",
         ),
         ABI_HEADER: (
             "#define ZIGUX_ABI_VERSION",
@@ -293,6 +295,8 @@ def validate(root: Path) -> list[str]:
         EXPORT_SHIM: (
             "pub fn compatibilityStatus(",
             "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
+            "pub fn encodeDeviceNumber(",
+            "pub fn lastDeviceNumberInRange(",
         ),
         UAPI_VERSION: (
             "pub const HeaderEvaluation = struct {",
@@ -334,14 +338,26 @@ def validate(root: Path) -> list[str]:
 
 
 def build_valid_workspace(root: Path) -> None:
-    write(root / EXPORT_SHIM, "pub fn compatibilityStatus() void {}\npub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n")
+    write(
+        root / EXPORT_SHIM,
+        "pub fn compatibilityStatus() void {}\n"
+        "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n"
+        "pub fn encodeDeviceNumber() void {}\n"
+        "pub fn lastDeviceNumberInRange() void {}\n",
+    )
     write(root / UAPI_VERSION, "pub const HeaderEvaluation = struct {\n    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n};\n")
     write(root / UAPI_DEV_T, "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }\npub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }\n")
-    write(root / DEV_T_HEADER, "#define ZIGUX_DEV_MINOR_BITS 20U\nstatic inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id) { return major_id + minor_id; }\nstatic inline uint32_t zigux_minor(uint32_t dev) { return dev; }\n")
+    write(root / DEV_T_HEADER, "#define ZIGUX_DEV_MINOR_BITS 20U\nstatic inline uint32_t zigux_mkdev(uint32_t major_id: u32, uint32_t minor_id) { return major_id + minor_id; }\nstatic inline uint32_t zigux_minor(uint32_t dev) { return dev; }\n")
     write(root / ABI_MANIFEST, manifest_payload(MANIFEST_REQUIRED_ENTRIES))
     write(root / KERNEL_EXPORT_GOVERNANCE, "starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`\nnew kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure\n")
     write(root / HEADER_GOVERNANCE, "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`\n`Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n`include/zigux/abi.h`\n")
-    write(root / LINUX_HEADER, '#include "../zigux/dev_t.h"\nstatic inline int zigux_export_status_ok(void) { return 1; }\n')
+    write(
+        root / LINUX_HEADER,
+        '#include "../zigux/dev_t.h"\n'
+        "static inline int zigux_export_status_ok(void) { return 1; }\n"
+        "static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t flags) { return zigux_default_header(flags); }\n"
+        "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags) { struct zigux_boundary_header header = zigux_default_header(flags); header.size = size; return header; }\n",
+    )
     write(root / ABI_HEADER, "#define ZIGUX_ABI_VERSION 1\nstruct zigux_export_status { int code; };\n")
     write(root / BUILD_FILE, "// build\n")
     write(
@@ -454,6 +470,51 @@ def run_self_test() -> int:
         write(root / KERNEL_EXPORT_GOVERNANCE, "")
         issues = validate(root)
         assert "missing_marker:Documentation/zigux/phase3-kernel-export-shim-governance.md:starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`" in issues, issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / LINUX_HEADER,
+            (root / LINUX_HEADER).read_text(encoding="utf-8").replace(
+                "zigux_boundary_header_make_compatible(",
+                "zigux_boundary_header_make_future(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{LINUX_HEADER.as_posix()}:zigux_boundary_header_make_compatible(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / EXPORT_SHIM,
+            (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
+                "pub fn encodeDeviceNumber(",
+                "pub fn encodeDevNumber(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn encodeDeviceNumber(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / EXPORT_SHIM,
+            (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
+                "pub fn lastDeviceNumberInRange(",
+                "pub fn lastDevNumberInRange(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn lastDeviceNumberInRange(" in issues
+        ), issues
         case_count += 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
