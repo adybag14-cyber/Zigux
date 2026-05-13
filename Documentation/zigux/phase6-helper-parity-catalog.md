@@ -48,7 +48,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - still-present direct C parity checker: `scripts/zigux/check-phase6-checksum-c-parity.py`
 - direct local C parity rerun route once the helper packet is restored: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route once the helper packet is restored: `make -C zigux phase6-checksum-c-parity`
-- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `22` direct C parity cases and preserves the last blocked slowdown packet as `64B` at `iterations = 200000` and `1501B` at `iterations = 12000`, both with `max_slowdown_pct = 150`
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `27` direct C parity cases and preserves the last blocked slowdown packet as `64B` at `iterations = 200000` and `1501B` at `iterations = 12000`, both with `max_slowdown_pct = 150`
 - current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return
 
 ### hexdump
