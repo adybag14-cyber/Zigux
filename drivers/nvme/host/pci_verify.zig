@@ -7,6 +7,7 @@ test "nvme pci descriptor stays honest about the bounded starter packet" {
     try testing.expectEqualStrings("nvme_pci_queue_lab", descriptor.name);
     try testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try testing.expect(descriptor.provides_lab_queue_planner);
+    try testing.expect(descriptor.provides_dropped_io_retirement_helper);
     try testing.expect(!descriptor.touches_live_dma);
     try testing.expect(!descriptor.touches_pci_probe);
     try testing.expect(!descriptor.touches_irq_recovery);
@@ -82,6 +83,46 @@ test "nvme pci reset summary freezes queue planning then clears io backlog while
     const next = try lab.planIoQueue(8, 64, false);
     try testing.expectEqual(@as(u16, 1), next.queue_id);
     try testing.expectEqual(@as(u32, 1), next.reset_generation);
+}
+
+test "nvme pci dropped backlog retirement stays blocked until admin replay and queue rebuild catch up" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    const frozen = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen.state);
+    try testing.expect(frozen.admin_queue_must_be_replayed);
+    try testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), frozen.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 2), frozen.remaining_io_queue_count);
+    try testing.expect(!frozen.can_retire_dropped_io_backlog);
+
+    _ = lab.completeReset();
+    const pending = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqual(nvme_pci.RecoveryState.running, pending.state);
+    try testing.expect(pending.admin_queue_must_be_replayed);
+    try testing.expect(pending.queue_numbering_restarted);
+    try testing.expectEqual(@as(usize, 2), pending.remaining_io_queue_count);
+    try testing.expect(!pending.can_retire_dropped_io_backlog);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    const partial = lab.summarizeDroppedIoRetirement();
+    try testing.expect(partial.admin_queue_replayed_after_reset);
+    try testing.expect(!partial.admin_queue_must_be_replayed);
+    try testing.expectEqual(@as(usize, 1), partial.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 1), partial.remaining_io_queue_count);
+    try testing.expect(!partial.can_retire_dropped_io_backlog);
+
+    _ = try lab.planIoQueue(32, 64, true);
+    const ready = lab.summarizeDroppedIoRetirement();
+    try testing.expect(ready.admin_queue_replayed_after_reset);
+    try testing.expectEqual(@as(usize, 2), ready.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), ready.remaining_io_queue_count);
+    try testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
 test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA budget explicit" {
