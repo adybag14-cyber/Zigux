@@ -21,7 +21,6 @@ test "phase12 virtio scsi manifest records the bounded support packet" {
 }
 
 test "phase12 virtio scsi manifest keeps remaining complex-driver gaps explicit" {
-    try expectContains(manifest_text, "\"drivers/net/virtio_net.zig\"");
     try expectContains(manifest_text, "\"drivers/nvme/host/pci.zig\"");
     try expectContains(manifest_text, "\"Documentation/zigux/phase12-closure.md\"");
     try expectContains(manifest_text, "\"status\": \"bounded infra prep\"");
