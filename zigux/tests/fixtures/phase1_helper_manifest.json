@@ -137,9 +137,11 @@
       "tail_word_inclusive_boundary_anchor": "test \"tail-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
+      "zero_sized_short_circuit_anchor": "test \"zero-sized scans ignore populated backing words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "linux_alias_anchor": "test \"Linux-style aliases mirror the primary find helpers\"",
+      "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
