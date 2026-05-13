@@ -57,6 +57,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
         "phase7-test:",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         "phase7: phase7-validate phase7-test",
     ],
 }
@@ -153,6 +154,13 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase7-make-wrapper.py --self-test",
             "",
             "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        ),
+        (
+            "makefile_phase7_test_summary_marker",
+            "zigux/Makefile",
+            "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase7_build.zig",
+            "zigux/Makefile: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         ),
     ]
 
