@@ -8,7 +8,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
 LAYOUT_ASSERT_REL = "zigux/helpers/layout_assert.zig"
@@ -36,6 +37,10 @@ PATH_MARKERS = {
     "PHASE3_ABI_TEST_PATH": ABI_TEST_REL,
     "PHASE3_ABI_DUMP_PATH": ABI_DUMP_REL,
 }
+
+REQUIRED_MARKER_PREFIXES = (
+    "PHASE3_SURVEY_PROVENANCE=",
+)
 
 STATIC_MARKERS = (
     "PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays",
@@ -207,6 +212,24 @@ def require_exact_line_count(
     issues.append(f"duplicate_{prefix}:{line}:{count}")
 
 
+def require_exact_prefix_count(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    *,
+    normalized: bool = False,
+    expected_count: int = 1,
+) -> None:
+    lines = normalized_marker_lines(text) if normalized else text.splitlines()
+    count = sum(1 for line in lines if line.startswith(prefix))
+    if count == expected_count:
+        return
+    if count == 0:
+        issues.append(f"missing_marker_prefix:{prefix}")
+        return
+    issues.append(f"duplicate_marker_prefix:{prefix}:{count}")
+
+
 def require_snippets(
     issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]
 ) -> None:
@@ -269,6 +292,8 @@ def validate(root: Path) -> list[str]:
 
     for marker, rel in PATH_MARKERS.items():
         require_exact_line_count(issues, survey, "marker", f"{marker}={rel}", normalized=True)
+    for prefix in REQUIRED_MARKER_PREFIXES:
+        require_exact_prefix_count(issues, survey, prefix, normalized=True)
     for marker in STATIC_MARKERS:
         require_exact_line_count(issues, survey, "marker", marker, normalized=True)
 
@@ -334,7 +359,11 @@ def build_valid_workspace(root: Path) -> None:
     for rel, content in minimal_files.items():
         write_file(root / rel, content)
 
-    survey_lines = ["# Phase 3 Policy and Unsafe Boundary Survey", ""]
+    survey_lines = [
+        "# Phase 3 Policy and Unsafe Boundary Survey",
+        "",
+        "- `PHASE3_SURVEY_PROVENANCE=self-test-synthetic-boundary`",
+    ]
     for marker, rel in PATH_MARKERS.items():
         survey_lines.append(f"- `{marker}={rel}`")
     for marker in STATIC_MARKERS:
@@ -366,6 +395,27 @@ def run_self_test() -> int:
             f"stale_blob_marker:PHASE3_PANIC_POLICY_BLOB_SHA:stale-{expected}!={expected}"
             in issues
         )
+
+        build_valid_workspace(root)
+        missing_provenance = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_SURVEY_PROVENANCE=self-test-synthetic-boundary`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_provenance)
+        issues = validate(root)
+        assert "missing_marker_prefix:PHASE3_SURVEY_PROVENANCE=" in issues
+
+        build_valid_workspace(root)
+        duplicate_provenance = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_SURVEY_PROVENANCE=self-test-synthetic-boundary`\n",
+            "- `PHASE3_SURVEY_PROVENANCE=self-test-synthetic-boundary`\n"
+            "- `PHASE3_SURVEY_PROVENANCE=self-test-duplicate-boundary`\n",
+            1,
+        )
+        write_file(root / SURVEY_REL, duplicate_provenance)
+        issues = validate(root)
+        assert "duplicate_marker_prefix:PHASE3_SURVEY_PROVENANCE=:2" in issues
 
         build_valid_workspace(root)
         missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
