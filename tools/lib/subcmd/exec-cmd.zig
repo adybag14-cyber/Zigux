@@ -92,6 +92,17 @@ pub const DeferredExecCall = struct {
     }
 };
 
+pub const DeferredExecPlan = struct {
+    path: []u8,
+    call: DeferredExecCall,
+
+    pub fn deinit(self: *DeferredExecPlan, allocator: std.mem.Allocator) void {
+        allocator.free(self.path);
+        self.call.deinit(allocator);
+        self.* = undefined;
+    }
+};
+
 pub fn isAbsolutePath(path: []const u8) bool {
     return path.len != 0 and path[0] == '/';
 }
@@ -392,6 +403,100 @@ pub fn buildDeferredExecvCall(
     return .{ .argv = try prepareExecCmd(allocator, config, argv) };
 }
 
+pub fn planDeferredExecvCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    argv: []const []const u8,
+) !DeferredExecPlan {
+    const path = try setupPath(allocator, env, state, config, cwd);
+    errdefer allocator.free(path);
+
+    var call = try buildDeferredExecvCall(allocator, config, argv);
+    errdefer call.deinit(allocator);
+
+    return .{ .path = path, .call = call };
+}
+
+pub fn planDeferredExecvCallWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    cwd_identity: FileIdentity,
+    pwd_identity: ?FileIdentity,
+    argv: []const []const u8,
+) !DeferredExecPlan {
+    const path = try setupPathWithPwd(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        pwd,
+        cwd_identity,
+        pwd_identity,
+    );
+    errdefer allocator.free(path);
+
+    var call = try buildDeferredExecvCall(allocator, config, argv);
+    errdefer call.deinit(allocator);
+
+    return .{ .path = path, .call = call };
+}
+
+pub fn planDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) !DeferredExecPlan {
+    const path = try setupPath(allocator, env, state, config, cwd);
+    errdefer allocator.free(path);
+
+    var call = try buildDeferredExeclCall(allocator, config, cmd, argv_tail);
+    errdefer call.deinit(allocator);
+
+    return .{ .path = path, .call = call };
+}
+
+pub fn planDeferredExeclCallWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    cwd_identity: FileIdentity,
+    pwd_identity: ?FileIdentity,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) !DeferredExecPlan {
+    const path = try setupPathWithPwd(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        pwd,
+        cwd_identity,
+        pwd_identity,
+    );
+    errdefer allocator.free(path);
+
+    var call = try buildDeferredExeclCall(allocator, config, cmd, argv_tail);
+    errdefer call.deinit(allocator);
+
+    return .{ .path = path, .call = call };
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -668,6 +773,93 @@ test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {
     try std.testing.expectEqual(@as(usize, 2), empty.argv.len);
     try std.testing.expectEqualStrings("perf", empty.argv[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), empty.argv[1]);
+}
+
+test "planDeferredExecvCall keeps PATH planning and deferred execv argv aligned" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var plan = try planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        plan.path,
+    );
+    try std.testing.expectEqualStrings(plan.path, env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 4), plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", plan.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.call.argv[3]);
+}
+
+test "planDeferredExeclCallWithPwd keeps logical PWD path choice and deferred execl argv aligned" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    var plan = try planDeferredExeclCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 3, .inode = 44 },
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",
+        plan.path,
+    );
+    try std.testing.expectEqualStrings(plan.path, env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 5), plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", plan.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", plan.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.call.argv[4]);
 }
 
 test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
