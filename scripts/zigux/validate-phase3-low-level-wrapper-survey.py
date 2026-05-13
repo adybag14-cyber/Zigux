@@ -127,6 +127,7 @@ REFERENCE_MARKERS = (
     (SCRIPTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
     (TESTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
     (MAKEFILE_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (MAKEFILE_REL, "phase3-low-level-wrappers-test:"),
     (MAKEFILE_REL, "phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
 )
 
@@ -360,6 +361,25 @@ def run_self_test() -> int:
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            MAKEFILE_REL,
+            (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+                "phase3-low-level-wrappers-test:\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == "missing_reference:zigux/Makefile:phase3-low-level-wrappers-test:"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper make target failure")
+            return 1
+
+        _write(root, MAKEFILE_REL, "\n".join(grouped_markers[MAKEFILE_REL]) + "\n")
         _write(
             root,
             MAKEFILE_REL,
