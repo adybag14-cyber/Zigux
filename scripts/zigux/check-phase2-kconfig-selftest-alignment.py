@@ -25,14 +25,14 @@ VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
     '"scripts/zigux/check-kconfig-bridge.py --self-test"',
     '"scripts/zigux/check-kconfig-bridge.py"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
     '"scripts/zigux/check-kconfig-bridge.py --self-test"': 1,
     '"scripts/zigux/check-kconfig-bridge.py"': 3,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24": 1,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
@@ -277,7 +277,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25",
         ) in issues
         checks_run += 1
 
