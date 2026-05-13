@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the surviving Phase 11 DesignWare watchdog ownership packet."""
+"""Fail-closed checker for the current Phase 11 DesignWare watchdog review packet."""
 
 from __future__ import annotations
 
@@ -13,6 +13,12 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "lane_sequencing": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "survey_note": "Documentation/zigux/phase11-dw-wdt-survey.md",
+    "validation_matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "manifest_file": "zigux/tests/phase11_dw_wdt_manifest.json",
+    "survey_gate": "zigux/tests/phase11_dw_wdt_survey.zig",
+    "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
+    "build_file": "zigux/tests/phase11_build.zig",
     "verify_file": "drivers/watchdog/dw_wdt_verify.zig",
 }
 
@@ -38,6 +44,62 @@ MARKERS = {
         "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files and compile-local teardown or restart proofs explicit in shared summaries without widening them into broader platform-registration closure claims",
         "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces or widening the compile-local teardown or restart proofs into hardware-backed closure.",
     ],
+    "survey_note": [
+        "# Phase 11 DesignWare Watchdog Survey",
+        "This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `75f8336c4305beed127d7abfae37d3999b7cc57c`.",
+        "`drivers/watchdog/dw_wdt.zig` now ships the bounded DesignWare starter for fixed TOP timeout windows, reset-mode versus IRQ-mode timeout selection, pretimeout bookkeeping, register-image transitions, non-stoppable stop semantics, a tiny probe-time summary for fixed-versus-custom TOP sourcing plus already-running watchdog metadata, a small registration-facing handoff around watchdog info selection, parent linkage, timeout-programming intent, and `watchdog_register_device`, a bounded registration-order summary for timer-clock path choice, optional APB clock presence, reset-release posture, `platform_set_drvdata` publication, restart-priority sequencing, stop-on-reboot intent, and register-device request ordering, and a dedicated platform-registration scaffold summary that names `module_platform_driver` plus `dw_wdt_drv_probe`, `dw_wdt_drv_remove`, and `dw_wdt_drv_shutdown` without claiming live probe execution",
+        "`drivers/watchdog/dw_wdt_verify.zig` keeps the teardown and failure-mode parity packet reviewable by replaying the split between reset-controlled remove, unstoppable running remove, idle remove without a fabricated heartbeat, idle remove with reset-backed quiesce, idle stop outcomes across reset-controlled and non-stoppable hardware, idle IRQ-configured teardown without a fabricated stop path or continued heartbeat, IRQ-mode teardown outcomes, the imported-running no-IRQ pretimeout-flattening handoff, the missing-`drvdata` platform handoff, and the blocked-but-reviewable no-IRQ plus no-`drvdata` handoff while also keeping the custom TOP ordering explicit",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now records the bounded hardware-validation posture for the current starter so the shared replay path and deferred ownership boundaries stay reviewable in one place",
+        "`scripts/zigux/check-phase11-dw-wdt-packet.py` now fail-closes the DesignWare-local review packet across this survey note, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `zigux/tests/phase11_build.zig` wiring; run `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test` for the synthetic packet and `python3 scripts/zigux/check-phase11-dw-wdt-packet.py` for the live repo packet",
+        "`zigux/tests/phase11_build.zig` now runs the gpio starter checks, bcm2835 starter and survey checks, the `phase11-dw-wdt-tests` starter replay, the `phase11-dw-wdt-registration-scaffold-tests` scaffold replay, the `phase11-dw-wdt-verify-tests` verify replay, and the `phase11-dw-wdt-survey-tests` survey replay together so watchdog-lane drift is visible in one place",
+    ],
+    "validation_matrix": [
+        "# Phase 11 DesignWare Watchdog Validation Matrix",
+        "This document records the first bounded hardware-validation matrix for the Zigux `dw_wdt` lane.",
+        "`PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`",
+        "current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "a bounded platform-resource preflight summary that keeps named `tclk` versus shared-clock fallback, optional APB clock presence, optional reset-control availability, optional pretimeout-IRQ wiring, and the explicit no-timer-clock block reviewable before any live `devm_*` acquisition",
+        "a dedicated platform-registration scaffold summary that names `module_platform_driver` plus the bounded `dw_wdt_drv_probe`, `dw_wdt_drv_remove`, and `dw_wdt_drv_shutdown` anchors without claiming live platform execution.",
+        "The dedicated `scripts/zigux/check-phase11-dw-wdt-packet.py` guard now keeps this matrix, the survey note, the manifest-backed survey gate, the registration-scaffold replay, the verify replay, and the shared Phase 11 build wiring fail-closed together instead of relying on prose alone.",
+    ],
+    "manifest_file": [
+        "\"lane_key\": \"P11-L05\"",
+        "\"phase\": \"Phase 11\"",
+        "\"surveyed_commit\": \"75f8336c4305beed127d7abfae37d3999b7cc57c\"",
+        "\"anchor\": \"drivers/watchdog/dw_wdt.c\"",
+        "\"dw_wdt_registration_scaffold_present\": true",
+        "\"id\": \"phase11-dw-wdt-registration-order-scaffold\"",
+        "\"zigux_destination\": \"zigux/tests/phase11_dw_wdt_registration_scaffold.zig\"",
+        "\"zigux_destination\": \"drivers/watchdog/dw_wdt_verify.zig\"",
+        "\"id\": \"phase11-dw-wdt-live-platform-pm\"",
+    ],
+    "survey_gate": [
+        "test \"phase11 dw_wdt survey manifest records the landed registration handoff and remaining platform gap\"",
+        "\"zigux/tests/phase11_dw_wdt_manifest.json\"",
+        "try std.testing.expectEqualStrings(\"P11-L05\", manifest.lane_key);",
+        "try std.testing.expect(manifest.survey_summary.dw_wdt_registration_scaffold_present);",
+    ],
+    "registration_scaffold": [
+        "test \"platform handoff stays blocked when drvdata publication is missing\"",
+        "test \"registration order summary keeps blocked registration explicit when drvdata is missing\"",
+        "test \"platform registration scaffold summary keeps ready imported-state probe anchors explicit\"",
+        "test \"platform registration scaffold summary keeps blocked timeout-programming branch explicit\"",
+        "try std.testing.expectEqualStrings(\"module_platform_driver\", summary.platform_driver_anchor);",
+        "try std.testing.expectEqualStrings(\"dw_wdt_drv_probe\", summary.probe_anchor);",
+        "try std.testing.expectEqualStrings(\"dw_wdt_drv_remove\", summary.remove_anchor);",
+        "try std.testing.expectEqualStrings(\"dw_wdt_drv_shutdown\", summary.shutdown_anchor);",
+        "try std.testing.expect(summary.blocked_on_live_platform_registration);",
+        "try std.testing.expect(summary.blocked_on_live_mmio);",
+    ],
+    "build_file": [
+        '.name = "phase11-dw-wdt-tests",',
+        '.name = "phase11-dw-wdt-verify-tests",',
+        '.name = "phase11-dw-wdt-survey-tests",',
+        "test_step.dependOn(&run_phase11_dw_wdt_tests.step);",
+        "test_step.dependOn(&run_dw_wdt_verify_tests.step);",
+        "test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);",
+    ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
         "pub fn summarizeRestartFailureMode",
@@ -54,7 +116,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -110,23 +172,34 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         cases = [
-            (FILES["plan_note"], MARKERS["plan_note"][1]),
-            (FILES["plan_note"], MARKERS["plan_note"][4]),
-            (FILES["plan_note"], MARKERS["plan_note"][7]),
-            (FILES["plan_note"], MARKERS["plan_note"][10]),
-            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][0]),
-            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][1]),
-            (FILES["verify_file"], MARKERS["verify_file"][0]),
-            (FILES["verify_file"], MARKERS["verify_file"][1]),
-            (FILES["verify_file"], MARKERS["verify_file"][2]),
-            (FILES["verify_file"], MARKERS["verify_file"][4]),
-            (FILES["verify_file"], MARKERS["verify_file"][10]),
-            (FILES["verify_file"], MARKERS["verify_file"][11]),
+            ("plan_note", 1),
+            ("plan_note", 4),
+            ("plan_note", 7),
+            ("lane_sequencing", 0),
+            ("lane_sequencing", 1),
+            ("survey_note", 3),
+            ("survey_note", 5),
+            ("validation_matrix", 4),
+            ("validation_matrix", 7),
+            ("manifest_file", 4),
+            ("manifest_file", 6),
+            ("survey_gate", 0),
+            ("survey_gate", 3),
+            ("registration_scaffold", 0),
+            ("registration_scaffold", 2),
+            ("registration_scaffold", 7),
+            ("build_file", 0),
+            ("build_file", 5),
+            ("verify_file", 0),
+            ("verify_file", 4),
+            ("verify_file", 10),
         ]
 
-        for idx, (relative_path, marker) in enumerate(cases, start=1):
+        for idx, (label, marker_index) in enumerate(cases, start=1):
             case_root = tmpdir / f"case_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            relative_path = FILES[label]
+            marker = MARKERS[label][marker_index]
             path = case_root / relative_path
             path.write_text(
                 path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
