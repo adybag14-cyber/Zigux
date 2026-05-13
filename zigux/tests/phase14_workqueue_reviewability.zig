@@ -17,6 +17,10 @@ fn readRootFile(path: []const u8, limit: usize) ![]u8 {
     );
 }
 
+fn readBuildSource() ![]u8 {
+    return readRootFile("zigux/tests/phase14_build.zig", 32 * 1024);
+}
+
 fn readSurveySource() ![]u8 {
     return readRootFile("Documentation/zigux/phase14-end-to-end-smoke-survey.md", 64 * 1024);
 }
@@ -55,6 +59,21 @@ test "phase14 survey keeps the reviewability shard in the shared smoke packet" {
     try expectContains(survey_source, "`zigux/tests/phase14_workqueue_reviewability.zig`");
     try expectContains(survey_source, "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`");
     try expectContains(survey_source, "focused workqueue reviewability replay");
+}
+
+test "phase14 shared smoke survey keeps bridge-backed compile coverage explicit" {
+    const build_source = try readBuildSource();
+    defer std.testing.allocator.free(build_source);
+
+    const survey_source = try readSurveySource();
+    defer std.testing.allocator.free(survey_source);
+
+    try expectContains(build_source, "../../kernel/workqueue_bridge.zig");
+    try expectContains(build_source, "../../net/core/skbuff_bridge.zig");
+    try expectContains(
+        survey_source,
+        "the same packet also keeps the two landed bridge-backed roadmap destinations explicit by tying `phase14-workqueue-bridge-tests` to `../../kernel/workqueue_bridge.zig` and `phase14-skbuff-bridge-tests` to `../../net/core/skbuff_bridge.zig`, instead of letting the matrix collapse to test-root names alone.",
+    );
 }
 
 test "phase14 shared smoke packet keeps the current workqueue anchor metadata aligned" {
