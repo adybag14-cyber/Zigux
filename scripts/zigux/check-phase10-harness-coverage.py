@@ -84,10 +84,17 @@ DOC_README_MARKERS = [
     "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
     "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-virtio-core-survey.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
+    "`drivers/virtio/virtio.zig`",
+    "`drivers/virtio/virtio_driver_id.zig`",
+    "`drivers/virtio/virtio_verify.zig`",
+    "`zigux/tests/phase10_virtio_core.zig`",
+    "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
+    "`zigux/tests/phase10_virtio_driver_id.zig`",
     "`drivers/virtio/virtio_ring.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
@@ -494,7 +501,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "input_survey_probe_preflight_entry",
             root,
@@ -510,7 +518,8 @@ def run_self_test() -> int:
                 "`scripts/zigux/check-phase10-tests-readme-core-surfaces-removed.py`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "review_checklist_direct_core_checker",
             root,
@@ -524,7 +533,8 @@ def run_self_test() -> int:
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "review_checklist_ring_reset_reuse_entry",
             root,
@@ -538,7 +548,8 @@ def run_self_test() -> int:
                 "framed as shared reminder evidence on current `master`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "review_checklist_repo_reality_gap_phrase",
             root,
@@ -554,7 +565,8 @@ def run_self_test() -> int:
                 "`scripts/zigux/check-phase10-harness-coverage-removed.py`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "doc_readme_harness_checker",
             root,
@@ -564,11 +576,132 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "`Documentation/zigux/phase10-virtio-core-survey.md`",
+                "`Documentation/zigux/phase10-virtio-core-survey-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_core_survey_note",
+            root,
+            "doc_readme:`Documentation/zigux/phase10-virtio-core-survey.md`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio.zig`",
+                "`drivers/virtio/virtio-missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_core_driver_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_driver_id.zig`",
+                "`drivers/virtio/virtio_driver_id_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_driver_id_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio_driver_id.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_verify.zig`",
+                "`drivers/virtio/virtio_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_core_verify_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio_verify.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`zigux/tests/phase10_virtio_core.zig`",
+                "`zigux/tests/phase10_virtio_core_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_core_replay_surface",
+            root,
+            "doc_readme:`zigux/tests/phase10_virtio_core.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
+                "`zigux/tests/phase10_virtio_core_reset_queue_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_core_reset_queue_replay",
+            root,
+            "doc_readme:`zigux/tests/phase10_virtio_core_reset_queue.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`zigux/tests/phase10_virtio_driver_id.zig`",
+                "`zigux/tests/phase10_virtio_driver_id_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_driver_id_replay",
+            root,
+            "doc_readme:`zigux/tests/phase10_virtio_driver_id.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_input_probe_preflight_entry",
+            root,
+            "doc_readme:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "`make -C zigux phase10-test`",
                 "`make -C zigux phase10-test-missing`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "doc_readme_phase10_test_route",
             root,
@@ -582,7 +715,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_ring_verify_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "doc_readme_ring_verify_surface",
             root,
@@ -596,7 +730,8 @@ def run_self_test() -> int:
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "doc_readme_ring_reset_reuse_entry",
             root,
@@ -606,25 +741,12 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
-                "`drivers/virtio/virtio_input_probe_preflight.zig`",
-                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
-                1,
-            ),
-            encoding="utf-8")
-        expect_missing_marker(
-            "doc_readme_input_probe_preflight_entry",
-            root,
-            "doc_readme:`drivers/virtio/virtio_input_probe_preflight.zig`",
-        )
-        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
-
-        doc_readme_path.write_text(
-            original_doc_readme.replace(
                 "repo-reality gaps rather than shipped docs-root evidence on current `master`.",
                 "shared docs-root evidence on current `master`.",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "doc_readme_repo_reality_gap_phrase",
             root,
@@ -636,7 +758,8 @@ def run_self_test() -> int:
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
             original_build.replace("phase10-virtio-driver-id-tests", "phase10-driver-id-drift", 1),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "build_driver_id_marker",
             root,
@@ -652,7 +775,8 @@ def run_self_test() -> int:
                 "Phase 10 harness drift",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "workflow_selftest_step",
             root,
@@ -668,7 +792,8 @@ def run_self_test() -> int:
                 "`scripts/zigux/check-phase10-tests-readme-core-surfaces-removed.py`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_core_checker",
             root,
@@ -682,7 +807,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_ring_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_ring_surface",
             root,
@@ -696,7 +822,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_ring_verify_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_ring_verify_surface",
             root,
@@ -710,7 +837,8 @@ def run_self_test() -> int:
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_ring_reset_reuse_entry",
             root,
@@ -724,7 +852,8 @@ def run_self_test() -> int:
                 "`scripts/zigux/validate-phase10-removed.py`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_validate_phase10",
             root,
@@ -738,7 +867,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_input_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_input_surface",
             root,
@@ -752,7 +882,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_mmio_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_mmio_surface",
             root,
@@ -766,7 +897,8 @@ def run_self_test() -> int:
                 "`make -C zigux phase10-validate-missing`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_phase10_validate_route",
             root,
@@ -780,7 +912,8 @@ def run_self_test() -> int:
                 "the scripts-root reminder now treats every Phase 10 slice note as shipped current-master evidence.",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "scripts_readme_slice_gap_phrase",
             root,
@@ -843,7 +976,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_driver_id_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "tests_readme_direct_core_surface",
             root,
@@ -857,7 +991,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_ring_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "tests_readme_ring_surface",
             root,
@@ -871,7 +1006,8 @@ def run_self_test() -> int:
                 "`drivers/virtio/virtio_ring_verify_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "tests_readme_ring_verify_surface",
             root,
@@ -885,7 +1021,8 @@ def run_self_test() -> int:
                 "`zigux/tests/phase10_virtio_ring_manifest_missing.json`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "tests_readme_ring_manifest",
             root,
@@ -899,7 +1036,8 @@ def run_self_test() -> int:
                 "`zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig`",
                 1,
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "tests_readme_ring_reset_reuse_entry",
             root,
@@ -916,7 +1054,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=41")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=48")
     return 0
 
 
