@@ -24,6 +24,16 @@ VALIDATION_GATE = (
 )
 ROLLBACK_OWNER = "Repo Tooling Pod"
 STATUS_BUCKET = "study_only"
+TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
+SMOKE_NOTE_SHARED_GUARD_MARKER = (
+    "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, "
+    "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and "
+    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside "
+    "`make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun "
+    f"`{TESTS_README_CHECKER_PATH}` inside that same validator-first route. That keeps all four dedicated Phase 14 "
+    "drift guards on the shared contract path without implying a separate tests-readme make target that current `master` "
+    "does not ship."
+)
 ATTACHED_TOOLCHAIN_EXAMPLES = [
     "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
     "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
@@ -175,7 +185,7 @@ def check(root: Path) -> list[str]:
         f"- status bucket: `{STATUS_BUCKET}`",
         f"- validation gate: `{VALIDATION_GATE}`",
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
-        "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.",
+        SMOKE_NOTE_SHARED_GUARD_MARKER,
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]:
         if marker not in smoke_note:
@@ -283,7 +293,7 @@ def current_smoke_note_text() -> str:
             for packet in SELF_TEST_ANCHOR_PACKETS
         ],
         *ANCHOR_MANIFEST_MARKERS,
-        "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.",
+        SMOKE_NOTE_SHARED_GUARD_MARKER,
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]
     return "\n".join(parts) + "\n"
@@ -389,6 +399,20 @@ def run_self_test() -> int:
             return 1
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
 
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(
+                f"`{TESTS_README_CHECKER_PATH}`",
+                "`scripts/zigux/check-phase14-tests-readme-smoke-summary-missing.py`",
+                1,
+            ),
+        )
+        if not any(TESTS_README_CHECKER_PATH in error for error in check(root)):
+            print("self-test expected tests-readme checker marker failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
         write(root, CHECKLIST_PATH, "")
         if not any(CHECKLIST_PATH.as_posix() in error for error in check(root)):
             print("self-test expected checklist drift failure", file=sys.stderr)
@@ -399,7 +423,7 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             current_smoke_note_text().replace(
-                "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, so all three dedicated Phase 14 drift guards stay on the shared validator-first route.\n",
+                SMOKE_NOTE_SHARED_GUARD_MARKER + "\n",
                 "",
                 1,
             ),
@@ -495,7 +519,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=11")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
