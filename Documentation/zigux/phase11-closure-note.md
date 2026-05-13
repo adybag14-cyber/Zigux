@@ -19,9 +19,10 @@ The current shared closure packet is the reminder-and-checker surface that still
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 * `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/Makefile`
+* `make -C zigux phase11-contract`
 * `.github/workflows/zigux-bootstrap.yml`
 
-These reminder surfaces plus the landed inventory-backed build-and-replay packet are the shared Phase 11 closure packet this note treats as current today.
+These reminder surfaces plus the landed inventory-backed build-and-checker packet are the shared Phase 11 closure packet this note treats as current today.
 
 ## Driver-Local Phase 11 Surfaces Still Parked Beside It
 
@@ -37,7 +38,7 @@ The adjacent driver-local or packet-local Phase 11 surfaces remain parked beside
 * direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`
 * raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
 * the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`
-* the `phase11` and `phase11-hvc-survey` routes still exist in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`, and the raw-fallback-confirmed inventory-backed build packet keeps those routes reviewable even when the contents bridge still 404s
+* the `phase11-contract`, `phase11`, and `phase11-hvc-survey` routes still exist in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`, and the `phase11-contract` route keeps the two shipped shared reminder checkers explicit beside the raw-fallback-confirmed inventory-backed build packet even when the contents bridge still 404s
 * there is no shared `make -C zigux phase11-validate` target on `master`
 * no landed shared `validate-phase11.py`
 
