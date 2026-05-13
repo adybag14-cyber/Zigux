@@ -81,6 +81,20 @@ fn bitmapWindowBench() struct { checksum: u64 } {
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
         checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));
         checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));
+
+        bitmap.__bitmap_or(&dst, &lhs, &rhs, nbits);
+        checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
+
+        checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_and(&dst, &lhs, &rhs, nbits)));
+        checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
+
+        checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_andnot(&dst, &lhs, &rhs, nbits)));
+        checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
+
+        bitmap.__bitmap_xor(&dst, &lhs, &rhs, nbits);
+        checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
+        checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_intersects(&lhs, &rhs, nbits)));
+        checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_subset(&rhs, &dst, nbits)));
     }
 
     return .{ .checksum = checksum };
