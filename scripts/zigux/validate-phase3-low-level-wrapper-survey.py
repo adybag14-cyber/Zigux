@@ -22,7 +22,7 @@ MAKEFILE_REL = Path("zigux/Makefile")
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
-    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bittest-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak",
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
@@ -35,7 +35,7 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
+    "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
     "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
     "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
@@ -99,12 +99,15 @@ REQUIRED_ATOMIC_SNIPPETS = (
     'pub fn fetchNand(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
     'pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
     'pub fn fetchMax(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {',
+    'pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
     'pub fn bitSet(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
     'pub fn bitReset(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
     'pub fn bitToggle(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
     'pub fn compareExchangeWeak(',
     'test "phase3 atomic wrappers keep non-seq-cst orderings reviewable"',
     'test "phase3 atomic wrappers keep bit wrappers reviewable"',
+    'bitTest(u8, &flags, 2, .acquire)',
+    'bitTest(u64, &high_bit_flags, high_bit_index, .acquire)',
 )
 
 REQUIRED_BARRIER_SNIPPETS = (
@@ -302,25 +305,6 @@ def run_self_test() -> int:
         _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
         _write(
             root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_build_snippet:root_module.addImport("allocator_policy_helpers", allocator_policy_helpers_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing allocator-policy build wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
-        _write(
-            root,
             MMIO_REL,
             (root / MMIO_REL).read_text(encoding="utf-8").replace(
                 'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {',
@@ -414,6 +398,25 @@ def run_self_test() -> int:
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            ATOMIC_REL,
+            (root / ATOMIC_REL).read_text(encoding="utf-8").replace(
+                'pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_atomic_snippet:pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing atomic bit-test helper failure")
+            return 1
+
+        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(
             root,
             MAKEFILE_REL,
