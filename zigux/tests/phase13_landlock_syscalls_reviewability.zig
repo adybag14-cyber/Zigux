@@ -105,7 +105,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("master-readback-2026-05-12", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
