@@ -7,7 +7,6 @@ This note keeps the bounded Phase 6 leaf-helper packet from overlapping itself o
 - `PHASE6_LANE_MAP_STATUS=active`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
 - shared sequencing lane key: `P6-Y10`
-- scheduled shared-governance alias: `P6-Y09` (treat this as the shared `P6-Y10` lane unless a fresh reread proves the diff is fully hexdump-local)
 - shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet catalog: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared perf posture note: `Documentation/zigux/phase6-perf-gate-survey.md`
@@ -26,8 +25,6 @@ Use `P6-Y10` only for packet-wide routing, ownership, or anti-overlap truthfulne
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - packet-level fields in `zigux/tests/phase6_helper_parity_manifest.json` such as `status`, `tranche`, `roadmap_anchors`, `shared_gates`, `exact_checks`, and shared route summaries
-
-When a scheduled Phase 6 helper-governance run arrives as `P6-Y09`, treat that key as the scheduled alias for this same shared `P6-Y10` packet instead of routing the run into helper-local hexdump work.
 
 ## Helper-Owned Lanes
 
@@ -80,7 +77,7 @@ Treat `P6-Y06` and `P6-L13` as checksum parked-survey or closure-correction lane
 
 While current `master` still lacks the checksum-owned helper packet, keep helper restoration under those checksum lanes but treat shared route truthfulness as `P6-Y10` work. That shared follow-up is limited to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the packet-level shared-route fields inside `zigux/tests/phase6_helper_parity_manifest.json` when they drift from the blocked checksum slice.
 
-### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet
+### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet
 
 Keep helper-local work under:
 
@@ -93,9 +90,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, and `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane when the same helper-local review packet could otherwise overlap itself.
-
-Historical note: older Phase 6 hexdump reminder surfaces may still mention `P6-Y09` as the hexdump perf-refresh lane key. On current `master`, do not reopen hexdump-local work under that older label unless a fresh reread proves the diff stays entirely inside the hexdump-owned surfaces above and does not touch any shared Phase 6 route, checklist, manifest, or summary surface.
+Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane, and `P6-Y09` as the hexdump perf-refresh ownership lane when the same helper-local review packet could otherwise overlap itself.
 
 ## Anti-Overlap Rules
 - Do not treat a shared file as shared-lane work when the diff only changes one helper row.
@@ -104,11 +99,8 @@ Historical note: older Phase 6 hexdump reminder surfaces may still mention `P6-Y
 - Reopen this shared sequencing lane only when packet membership, shared routes, shared checker coverage, shared status wording, or helper-owner boundaries drift.
 - If a shared route changes, update the shared note first, then let the owning helper lane repair only the helper-local evidence it actually owns.
 - If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.
-- If a scheduled helper-governance run arrives as `P6-Y09`, treat that key as the shared `P6-Y10` alias by default. Only reopen a historical hexdump-local `P6-Y09` reference after a fresh reread proves the diff is fully contained inside the hexdump-owned surfaces listed above and does not require any shared Phase 6 routing or summary retelling.
 - If a helper packet has separate parked-survey, fixture-governance, and helper-drift lanes, route the smallest truthful follow-up to the narrowest owner instead of reopening the whole helper family.
 
 ## Current Bounded Next Step
 
-Scheduled runs that arrive as shared helper governance under `P6-Y09` should follow this note as the alias of `P6-Y10` before choosing the bounded step below.
-
-Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. The current backlog-backed next safe step for `P6-Y10` is one shared-surface-only correction in `zigux/tests/README.md` or one matching fail-closed sync in `scripts/zigux/check-phase6-shared-surface.py`: `Documentation/zigux/README.md` now tells the truth about the partially blocked base64 and checksum packet on current `master`, but `zigux/tests/README.md` still advertises `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` as live Phase 6 packet evidence even though `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, and `Documentation/zigux/phase6-perf-gate-survey.md` already mark those base64 and checksum helper-owned surfaces absent or blocked. Prefer the smallest tests-root summary sync first or pair it with the corresponding shared-checker hardening if both changes stay inside one bounded shared-surface patch, then route any actual base64 helper restoration back to `P6-L01` or `P6-Y01`, and route any actual checksum helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16` instead of reopening the shared lane.
+Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. The current backlog-backed next safe step for `P6-Y11` is one shared closure-note or ledger sync before any broader tests-root or checker rewrite: direct current-`master` file reads still show `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_bsearch.zig`, while `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are not directly readable from that same head. At the same time, `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, and `Documentation/zigux/phase6-perf-gate-survey.md` still describe the base64 helper-owned replay surfaces as absent and keep the checksum helper packet blocked even though `zigux/tests/phase6_checksum_c_parity.zig` plus `zigux/tests/fixtures/phase6_checksum_c_harness.c` remain directly readable. Keep `P6-Y11` limited to one shared note, ledger, or manifest-truthfulness correction that records this split source of truth first, then route any actual base64 helper restoration back to `P6-L01` or `P6-Y01`, and route any actual checksum helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16` instead of reopening the shared lane.
