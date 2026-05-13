@@ -37,6 +37,13 @@
       "why_now": "The dedicated runtime survey gate keeps the direct sample packet and the visible shared-loader reminder packet fail-closed instead of implying live runtime parity."
     },
     {
+      "id": "runtime-atomic64-make-route",
+      "status": "starter_landed",
+      "kind": "family_local_make_route",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "The dedicated `make -C zigux phase9-runtime-atomic64-test` route keeps the direct atomic64 pilot-module packet replayable on current master beside the visible shared loader-facing reminder packet."
+    },
+    {
       "id": "runtime-atomic64-sample-module",
       "status": "starter_landed",
       "kind": "sample_module",
