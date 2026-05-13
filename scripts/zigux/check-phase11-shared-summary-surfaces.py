@@ -8,6 +8,8 @@ from pathlib import Path
 
 FILES = {
     "contract_note": "Documentation/zigux/phase11-shared-replay-contract.md",
+    "closure_note": "Documentation/zigux/phase11-closure-note.md",
+    "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "docs_root": "Documentation/zigux/README.md",
     "review_checklist": "Documentation/zigux/review-checklist.md",
     "scripts_root": "scripts/zigux/README.md",
@@ -29,6 +31,21 @@ CONTRACT_MARKERS = [
 ]
 
 REQUIRED_MARKERS = {
+    "closure_note": [
+        "# Phase 11 Closure Note",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "no landed shared `validate-phase11.py`",
+    ],
+    "lane_note": [
+        "# Phase 11 Driver Lane Sequencing",
+        "shared sequencing lane `P11-Y06`",
+        "`Documentation/zigux/phase11-closure-note.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "there is no shared `validate-phase11.py`",
+    ],
     "docs_root": [
         "Phase 11 notes -",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
@@ -74,7 +91,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 32
+REQUIRED_CONTRACT_MARKER_INDICES = [3, 4, 5, 8, 9]
 
 
 class CheckError(RuntimeError):
@@ -140,11 +157,8 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases: list[tuple[str, str]] = [
-            (FILES["contract_note"], CONTRACT_MARKERS[3]),
-            (FILES["contract_note"], CONTRACT_MARKERS[4]),
-            (FILES["contract_note"], CONTRACT_MARKERS[5]),
-            (FILES["contract_note"], CONTRACT_MARKERS[8]),
-            (FILES["contract_note"], CONTRACT_MARKERS[9]),
+            (FILES["contract_note"], CONTRACT_MARKERS[idx])
+            for idx in REQUIRED_CONTRACT_MARKER_INDICES
         ]
         for label, markers in REQUIRED_MARKERS.items():
             for marker in markers:
@@ -177,8 +191,9 @@ def run_self_test() -> None:
             )
             expect_failure(case_root, marker)
 
+        total_case_count = len(required_cases) + len(forbidden_cases)
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
-        print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+        print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={total_case_count}")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
