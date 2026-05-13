@@ -32,7 +32,7 @@ These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-chec
 ## Current Repo Reality
 
 * direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`
-* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
+* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
 * `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s
 * no shared `validate-phase11.py`
 * no shared `make -C zigux phase11-validate` target on `master`
@@ -41,7 +41,8 @@ These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-chec
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
-* bcm2835, gpio, DesignWare, HVC, and header-boundary notes plus their dedicated `check-phase11-*.py` scripts remain parked as continuity surfaces beside the shared packet
+* bcm2835, gpio, HVC, and header-boundary notes plus their dedicated `check-phase11-*.py` scripts remain parked as continuity surfaces beside the shared packet
+* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `drivers/watchdog/dw_wdt.zig`; direct teardown and failure-mode parity remains a future same-lane follow-through rather than shipped `drivers/watchdog/dw_wdt_verify.zig` evidence
 * the materialized direct Zig driver and replay files stay bounded replay evidence; keep them explicit in shared summaries without treating them as proof of overall Phase 11 closure
 
 ## What This Contract Does Not Claim
