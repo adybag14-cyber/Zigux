@@ -10,6 +10,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 - shared ABI and bindings packet, lane baseline `P3-X08`:
   - `Documentation/zigux/phase3-abi-slice.md`
+  - `Documentation/zigux/phase3-abi-bindings-survey.md`
   - `zigux/tests/fixtures/phase3_abi_manifest.json`
   - `include/zigux/abi.h`
   - `include/zigux/dev_t.h`
@@ -74,13 +75,13 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Ownership split
 
-- shared ABI and bindings owns manifest-backed packet accounting, the broad ABI slice summary, `layout_assert.zig` layout-entrypoint truth, ABI constant-parity drift, dump-gate wording, and shared binding or header-lift truthfulness that affects the whole substrate packet
+- shared ABI and bindings owns manifest-backed packet accounting, the broad ABI slice summary, the dedicated ABI-and-bindings survey, `layout_assert.zig` layout-entrypoint truth, ABI constant-parity drift, dump-gate wording, and shared binding or header-lift truthfulness that affects the whole substrate packet
 - kernel-facing relay owns only the `zigux/kernel/export_shim.zig` governance note and kernel-side relay wording; it does not absorb starter UAPI, Linux-facing header, or Zigux-owned header-family follow-through
 - starter UAPI owns the bounded `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions plus the survey wording that explains they are still exercised through the shared Phase 3 build, dump, and interop routes
 - Linux-facing aggregation-header ownership stays with `include/linux/zigux.h` and its dedicated governance note; it does not own canonical ABI layout or the starter UAPI companion wording
 - Zigux-owned ABI header family owns `include/zigux/abi.h`, `include/zigux/dev_t.h`, and the curated binding mirrors plus the dedicated next-step note that keeps same-family syntax, layout-survey, and truthfulness follow-through bounded
 - policy and unsafe owns panic-mode, allocator-mode, unsafe-scope, and MMIO interop-policy admission drift, including the typed and byte-policy relays that decide whether callers may cross into the narrow unsafe surface
-- low-level wrapper owns direct MMIO ranges and read or write behavior, width coverage, alignment rules, odd-offset behavior, atomic behavior, barrier behavior, and the focused replay wording that proves those direct low-level helpers
+- low-level wrapper owns direct MMIO ranges and read or write behavior, width coverage, alignment rules, odd offsets, atomic behavior, barrier behavior, and the focused replay wording that proves those direct low-level helpers
 - validator-support owns shared scripts-root, docs-sync, self-test, catalog, wrapper-generation, and runner-route truthfulness for the current Phase 3 packet without claiming helper, kernel, or header behavior on its own
 
 ## Anti-overlap rules
@@ -93,7 +94,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - if the drift is about `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, the starter-boundary survey wording, or whether the starter packet still points at the shared replay routes instead of retired export/UAPI-only replays, keep it in the starter UAPI packet
 - if the drift is about `include/linux/zigux.h` aggregation or Linux-facing header governance, keep it in the Linux-facing aggregation-header packet
 - if the drift is about `include/zigux/abi.h`, `include/zigux/dev_t.h`, curated bindings, header-family syntax guards, or the dedicated same-family next-step note, keep it in the Zigux-owned ABI header-family packet
-- if the drift is about manifest accounting, broad ABI summary wording, shared dump or compile routes, or shared binding truthfulness that touches more than one substrate family, keep it in the shared ABI and bindings packet
+- if the drift is about manifest accounting, broad ABI summary wording, the dedicated ABI-and-bindings survey, shared dump or compile routes, or shared binding truthfulness that touches more than one substrate family, keep it in the shared ABI and bindings packet
 - if the drift is about `scripts/zigux/README.md`, `zigux/Makefile`, self-test routes, wrapper generation, catalog discovery, or shared validator entrypoints, keep it in the validator-support packet
 
 ## Current bounded rule
