@@ -4,8 +4,8 @@
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_STATUS=parked_gap_packet_landed`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_ROADMAP_PHASE=Phase 8`
-- `PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=runtime-command-and-environment-plumbing`
-- `PHASE8_USERSPACE_KERNEL_BRIDGE_C_ANCHORS=tools/lib/subcmd/exec-cmd.c;tools/lib/subcmd/help.c`
+- `PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=shared-command-environment-and-libbpf-bridge-boundary-review`
+- `PHASE8_USERSPACE_KERNEL_BRIDGE_C_ANCHORS=tools/lib/subcmd/exec-cmd.c;tools/lib/subcmd/help.c;tools/lib/bpf/libbpf.c`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_VALIDATION_ENTRYPOINT=python3 scripts/zigux/validate-phase8.py`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_LINUX_STYLE_VALIDATION=make -C zigux phase8-validate`
@@ -108,6 +108,7 @@ OS environment reads, or direct terminal probing on current `master`.
 The product roadmap still names Phase 8 as the first tooling-expansion tranche for:
 - `tools/lib/subcmd/exec-cmd.c`
 - `tools/lib/subcmd/help.c`
+- `tools/lib/bpf/libbpf.c`
 
 Current `master` still preserves the parked command-and-help reminder packet,
 and it also preserves the bounded file-path-and-handle bridge packet as a
