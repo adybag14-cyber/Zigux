@@ -11,6 +11,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expect(descriptor.provides_queue_depth_summary);
     try std.testing.expect(descriptor.provides_command_buffer_ownership_summary);
     try std.testing.expect(descriptor.provides_request_submit_sequencing_summary);
+    try std.testing.expect(descriptor.provides_completion_handback_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -279,6 +280,22 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
         },
     }));
     try std.testing.expectError(error.TransportFrozen, lab.captureRequestSubmitSequencingSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 4,
+            },
+        },
+        .queue_local_index = 1,
+    }));
+    try std.testing.expectError(error.TransportFrozen, lab.captureCompletionHandbackSummary(.{
         .ownership = .{
             .queue_depth = .{
                 .host_limit = .{
@@ -727,6 +744,88 @@ test "phase12 virtio scsi request submit sequencing summary respects the frozen 
     });
     try std.testing.expectEqual(@as(u16, 3), summary.queue_global_index);
     try std.testing.expect(summary.submission_requires_kick_after_descriptors_ready);
+}
+
+test "phase12 virtio scsi completion handback summary records used-ring ownership return" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureCompletionHandbackSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                        .max_target = 3,
+                        .max_lun = 2,
+                        .max_sectors = 1536,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 11,
+            },
+        },
+        .queue_local_index = 4,
+    });
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 4), summary.queue_local_index);
+    try std.testing.expectEqual(@as(u16, 6), summary.queue_global_index);
+    try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, summary.queue_kind);
+    try std.testing.expectEqual(@as(u32, 11), summary.requested_depth);
+    try std.testing.expectEqual(@as(u32, 7), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_command_buffer_bytes), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_sense_buffer_bytes), summary.sense_bytes_per_request);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expect(summary.completion_uses_preallocated_buffers);
+    try std.testing.expect(summary.completion_requires_used_ring_before_handback);
+    try std.testing.expect(summary.completion_reads_sense_before_recycle);
+    try std.testing.expect(summary.completion_returns_command_buffer_after_handback);
+    try std.testing.expect(summary.completion_returns_sense_buffer_after_handback);
+    try std.testing.expect(summary.completion_releases_request_slot_before_reuse);
+    try std.testing.expect(summary.stays_pre_runtime_only);
+}
+
+test "phase12 virtio scsi completion handback summary respects the frozen transport boundary" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+
+    try std.testing.expectError(error.TransportFrozen, lab.captureCompletionHandbackSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 1,
+                        .cmd_per_lun = 4,
+                    },
+                    .synthetic_can_queue = 3,
+                },
+                .requested_depth = 2,
+            },
+        },
+        .queue_local_index = 1,
+    }));
+
+    _ = try lab.restoreAfterTransportReset();
+    const summary = try lab.captureCompletionHandbackSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 1,
+                        .cmd_per_lun = 4,
+                    },
+                    .synthetic_can_queue = 3,
+                },
+                .requested_depth = 2,
+            },
+        },
+        .queue_local_index = 1,
+    });
+    try std.testing.expectEqual(@as(u16, 3), summary.queue_global_index);
+    try std.testing.expect(summary.completion_requires_used_ring_before_handback);
 }
 
 test "phase12 virtio scsi io queue map summary mirrors default and poll offsets" {
