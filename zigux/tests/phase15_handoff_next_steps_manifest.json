@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit": "current-master-readback-2026-05-13",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
