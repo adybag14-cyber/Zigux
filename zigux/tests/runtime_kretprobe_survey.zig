@@ -99,6 +99,13 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     defer std.testing.allocator.free(phase9_build);
 
+    const makefile = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/Makefile",
+        128 * 1024,
+    );
+    defer std.testing.allocator.free(makefile);
+
     const runtime_loader_allocator_init_flow = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/runtime_loader_allocator_init_flow.zig",
@@ -297,6 +304,16 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_contract_tests.step);");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_facade_tests.step);");
     try expectContains(phase9_build, "runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);");
+    try expectContains(makefile, "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9");
+    try expectContains(makefile, "phase9-runtime-kretprobe-test:");
+    try expectContains(
+        makefile,
+        "$(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    );
+    try expectContains(
+        makefile,
+        "phase9: phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test",
+    );
 
     try expectContains(
         runtime_loader_allocator_init_flow,
