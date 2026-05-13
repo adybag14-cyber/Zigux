@@ -26,6 +26,9 @@ REQUIRED_FILES = (
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/atomic.zig"),
+    Path("zigux/helpers/barrier.zig"),
+    Path("zigux/helpers/mmio.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
@@ -49,7 +52,9 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
+    Path("scripts/zigux/phase3_catalog.py"),
     Path("scripts/zigux/phase3_check_lib.py"),
+    Path("scripts/zigux/generate-phase3-check-wrappers.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
 )
 REQUIRED_MANIFEST_ENTRIES = (
@@ -59,11 +64,20 @@ REQUIRED_MANIFEST_ENTRIES = (
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/atomic.zig"),
+    Path("zigux/helpers/barrier.zig"),
+    Path("zigux/helpers/mmio.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
+    Path("scripts/zigux/phase3_catalog.py"),
+    Path("scripts/zigux/phase3_check_lib.py"),
+    Path("scripts/zigux/generate-phase3-check-wrappers.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
 )
 
 # The export/UAPI lane explicitly keeps these dedicated replay files out of the
@@ -235,6 +249,19 @@ def run_self_test() -> int:
             case_count += 1
             _write(root / ABI_MANIFEST_PATH, _manifest_payload(REQUIRED_MANIFEST_ENTRIES))
 
+        low_level_wrapper_test_rel = Path("zigux/tests/phase3_low_level_wrappers.zig")
+        (root / low_level_wrapper_test_rel).unlink()
+        issues = validate_repo(root)
+        expected_low_level_wrapper_test_missing = (
+            f"missing repo file: {low_level_wrapper_test_rel.as_posix()}"
+        )
+        if expected_low_level_wrapper_test_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing low-level-wrapper test file was not reported")
+            return 1
+        case_count += 1
+        _write(root / low_level_wrapper_test_rel)
+
         low_level_build_rel = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
         (root / low_level_build_rel).unlink()
         issues = validate_repo(root)
@@ -247,6 +274,32 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / low_level_build_rel)
+
+        generated_wrapper_rel = Path("scripts/zigux/generate-phase3-check-wrappers.py")
+        (root / generated_wrapper_rel).unlink()
+        issues = validate_repo(root)
+        expected_generated_wrapper_missing = (
+            f"missing repo file: {generated_wrapper_rel.as_posix()}"
+        )
+        if expected_generated_wrapper_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing generated wrapper checker was not reported")
+            return 1
+        case_count += 1
+        _write(root / generated_wrapper_rel)
+
+        phase3_catalog_rel = Path("scripts/zigux/phase3_catalog.py")
+        (root / phase3_catalog_rel).unlink()
+        issues = validate_repo(root)
+        expected_phase3_catalog_missing = (
+            f"missing repo file: {phase3_catalog_rel.as_posix()}"
+        )
+        if expected_phase3_catalog_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing phase3 catalog helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / phase3_catalog_rel)
 
         low_level_wrapper_survey_rel = Path(
             "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
@@ -333,6 +386,39 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / layout_assert_rel)
+
+        atomic_rel = Path("zigux/helpers/atomic.zig")
+        (root / atomic_rel).unlink()
+        issues = validate_repo(root)
+        expected_atomic_missing = f"missing repo file: {atomic_rel.as_posix()}"
+        if expected_atomic_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing atomic helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / atomic_rel)
+
+        barrier_rel = Path("zigux/helpers/barrier.zig")
+        (root / barrier_rel).unlink()
+        issues = validate_repo(root)
+        expected_barrier_missing = f"missing repo file: {barrier_rel.as_posix()}"
+        if expected_barrier_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing barrier helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / barrier_rel)
+
+        mmio_rel = Path("zigux/helpers/mmio.zig")
+        (root / mmio_rel).unlink()
+        issues = validate_repo(root)
+        expected_mmio_missing = f"missing repo file: {mmio_rel.as_posix()}"
+        if expected_mmio_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing mmio helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / mmio_rel)
 
         narrow_unsafe_rel = Path("zigux/unsafe/narrow.zig")
         (root / narrow_unsafe_rel).unlink()
