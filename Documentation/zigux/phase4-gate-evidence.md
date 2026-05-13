@@ -1,5 +1,5 @@
 # Phase 4 Gate Evidence
-This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. Newer validator-local status lines still need a later full schema refresh when this lane intentionally widens.
+This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. The status block below now matches the dedicated gate-evidence checker and the shared validator on current `master`, while the local-only perf and parked survey packets remain intentionally separate.
 
 ## Status
 - `PHASE4_EVIDENCE_DATE=2026-05-13`
