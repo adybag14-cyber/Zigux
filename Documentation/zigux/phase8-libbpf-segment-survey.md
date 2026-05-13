@@ -44,7 +44,7 @@ The real current gap is now the dedicated survey-and-checker truthfulness packet
 
 Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.
 
-That leaves the narrower same-lane task as keeping this dedicated survey note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue while the mixed pin-path evidence, the bounded fdinfo helper packet, the landed reused-map compatibility packet, the file-path bridge slice reminder, and the perf-buffer poll reminder surface stay explicit, the heavier resource-boundary packet stays deferred, and the interrupt-routing follow-on remains outside the current bounded packet.
+That leaves the narrower same-lane task as keeping this dedicated survey note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue and with the already-landed timing boundary: this packet still keeps `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior out of scope while the mixed pin-path evidence, the bounded fdinfo helper packet, the landed reused-map compatibility packet, the file-path bridge slice reminder, and the perf-buffer poll reminder surface stay explicit, the heavier resource-boundary packet stays deferred, and the interrupt-routing follow-on remains outside the current bounded packet.
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -57,7 +57,7 @@ This survey slice does not yet claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Keep `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with this survey note so the broader helper-plus-build packet fails closed when these live markers drift again.
+Keep `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with this survey note so the broader helper-plus-build packet fails closed when these live markers drift again, especially the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
