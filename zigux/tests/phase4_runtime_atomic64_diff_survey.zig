@@ -382,9 +382,9 @@ test "phase 4 atomic64 survey keeps the gate-evidence runtime, manifest, survey,
     try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "validator_blob_pin_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
@@ -402,9 +402,9 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA="));
