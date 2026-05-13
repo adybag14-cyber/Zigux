@@ -44,11 +44,27 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
 )
 
 REQUIRED_NARROW_SNIPPETS = (
+    "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+    "pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
     "pub fn permitsRawPointerBridgeByte(unsafe_scope: u8) bool {",
     "pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {",
     "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
+    "pub fn pointerAtInteropPolicyBytes(",
+    "pub fn sliceAtInteropPolicyBytes(",
+    "pub fn sliceAtInteropPolicy(",
+    "pub fn sliceAtByte(",
+    "pub fn constSliceAtInteropPolicyBytes(",
+    "pub fn constPointerAtInteropPolicyBytes(",
+    "pub fn writeValueAtInteropPolicyBytes(",
     'try std.testing.expect(permitsRawPointerBridgeByte(2));',
     'try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));',
+    'const scoped_mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);',
+    'const scoped_mut_slice_bytes = try sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);',
+    'const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);',
+    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));',
+    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));',
+    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));',
     'try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));',
 )
 
@@ -141,6 +157,11 @@ def run_self_test() -> int:
         assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[-1]}" in issues
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(root, NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(REQUIRED_NARROW_SNIPPETS[7] + "\n", "", 1))
+        issues = validate(root)
+        assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[7]}" in issues
+
+        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
         assert f"missing_panic_snippet:{REQUIRED_PANIC_SNIPPETS[-1]}" in issues
@@ -161,7 +182,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
