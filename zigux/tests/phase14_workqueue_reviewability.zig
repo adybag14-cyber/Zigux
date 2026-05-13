@@ -101,3 +101,16 @@ test "phase14 workqueue anchor packet keeps the delayed-work governance follow-t
     try expectContains(workqueue_survey_source, "delayed-work requeue control");
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning ownership");
 }
+
+test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
+    const workqueue_survey_source = try readWorkqueueSurveySource();
+    defer std.testing.allocator.free(workqueue_survey_source);
+
+    try expectContains(workqueue_survey_source, "Leave this lane in blocked maintenance");
+    try expectContains(workqueue_survey_source, "flush-drain active-color governance note");
+    try expectContains(workqueue_survey_source, "timer-base ownership");
+    try expectContains(workqueue_survey_source, "CPU affinity");
+    try expectContains(workqueue_survey_source, "delayed-work requeue ownership");
+    try expectContains(workqueue_survey_source, "runtime `max_active` retuning boundary");
+    try expectContains(workqueue_survey_source, "live execution in C");
+}
