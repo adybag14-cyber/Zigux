@@ -179,7 +179,7 @@ EXPECTED_BITMAP_MANIFEST = {
     "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
     "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
     "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
-    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, and Linux-style alias behavior review-visible on current master",
+    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and final-partial range boundaries, cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
     "parity_fixture_keys": [
         "alloc_words",
         "zalloc_words",
