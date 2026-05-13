@@ -19,6 +19,7 @@ CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 BUILD_REL = Path("zigux/tests/phase4_build.zig")
 MAKEFILE_REL = Path("zigux/Makefile")
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = [
     MANIFEST_REL,
@@ -29,6 +30,7 @@ REQUIRED_FILES = [
     TESTS_README_REL,
     BUILD_REL,
     MAKEFILE_REL,
+    WORKFLOW_REL,
     Path("scripts/zigux/check-phase4-perf-baseline-packet.py"),
 ]
 
@@ -82,6 +84,8 @@ SURVEY_MARKERS = [
     "PHASE4_PERF_BASELINE_PACKET_CHECK=pass",
     "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",
     "phase4 perf baseline packet stays local-only and self-tested",
+    "workflow_unexpected_marker:phase4-perf-baseline-survey",
+    "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py",
 ]
 
 MATRIX_MARKERS = [
@@ -128,6 +132,11 @@ MAKEFILE_MARKERS = [
     "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
 ]
 
+WORKFLOW_ABSENT_MARKERS = [
+    "phase4-perf-baseline-survey",
+    "check-phase4-perf-baseline-packet.py",
+]
+
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_manifest_file",
@@ -148,6 +157,8 @@ SELF_TEST_CASES = [
     "tests_readme_wrapper_drift",
     "makefile_wrapper_drift",
     "build_shared_test_scope_drift",
+    "workflow_survey_route_drift",
+    "workflow_checker_route_drift",
 ]
 
 
@@ -186,6 +197,7 @@ def validate_root(root: Path) -> list[str]:
     tests_readme_text = read_text(root / TESTS_README_REL)
     build_text = read_text(root / BUILD_REL)
     makefile_text = read_text(root / MAKEFILE_REL)
+    workflow_text = read_text(root / WORKFLOW_REL)
 
     try:
         manifest = json.loads(manifest_text)
@@ -246,6 +258,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile_text:
             failures.append(f"makefile_marker:{marker}")
+    for marker in WORKFLOW_ABSENT_MARKERS:
+        if marker in workflow_text:
+            failures.append(f"workflow_unexpected_marker:{marker}")
 
     return failures
 
@@ -346,6 +361,8 @@ def build_fixture_tree(root: Path) -> None:
                 '    );',
                 '    defer std.testing.allocator.free(checker);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "phase4 perf baseline packet stays local-only and self-tested") != null);',
+                '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:phase4-perf-baseline-survey") != null);',
+                '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py") != null);',
                 '}',
                 "",
             ]
@@ -423,6 +440,18 @@ def build_fixture_tree(root: Path) -> None:
             [
                 "phase4-perf-baseline-survey:",
                 "\t$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / WORKFLOW_REL,
+        "\n".join(
+            [
+                "python3 scripts/zigux/validate-phase4.py --self-test",
+                "python3 scripts/zigux/validate-phase4.py",
+                "python3 scripts/zigux/check-phase4-gate-evidence.py",
+                "zig build test --build-file zigux/tests/phase4_build.zig",
             ]
         )
         + "\n",
@@ -698,6 +727,28 @@ def run_self_test() -> int:
         if not expect_failure(root, "build_unexpected_marker:test_step.dependOn(&run_perf_baseline_survey_tests.step);"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("build shared-test scope drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / WORKFLOW_REL,
+            read_text(root / WORKFLOW_REL) + "make -C zigux phase4-perf-baseline-survey\n",
+        )
+        if not expect_failure(root, "workflow_unexpected_marker:phase4-perf-baseline-survey"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("workflow survey-route drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / WORKFLOW_REL,
+            read_text(root / WORKFLOW_REL) + "python3 scripts/zigux/check-phase4-perf-baseline-packet.py\n",
+        )
+        if not expect_failure(root, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("workflow checker-route drift case did not fail closed")
             return 1
         case_count += 1
 
