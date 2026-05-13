@@ -8,7 +8,7 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 - `PHASE5_LANE_KEY=P5-L22`
 - `PHASE5_SLICE=kretprobe-reference-sample-readback`
 - `PHASE5_SURVEYED_COMMIT=readback-gap-2026-05-12`
-- scope: keep the kretprobe survey note truthful against current directly readable repo evidence, the roadmap's approved Phase 5 anchor set, and the freeze-map boundary
+- scope: keep the kretprobe survey note truthful against current directly readable repo evidence, the roadmap's approved Phase 5 anchor set, the freeze-map boundary, and the remaining shared-guide truthfulness gap
 
 ## Why this note exists
 
@@ -39,6 +39,8 @@ The same readback also found these current public-tree gaps for the kretprobe pa
 
 That means this note should not claim a fresh direct `zig test samples/zigux/kretprobe_example.zig`, `zig test zigux/tests/phase5_kretprobe_example_survey.zig`, or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay on current `master`.
 
+This run also confirmed one remaining same-lane shared-surface drift: `Documentation/zigux/phase5-sample-review-guide.md` is directly readable, but it still describes the missing kretprobe sample-root and focused-test paths above as verified landed Phase 5 packet surfaces instead of framing them as current public-tree gaps.
+
 ## What still remains true
 
 Even with that narrower readback, the roadmap and ledger still keep the intended Phase 5 ownership clear:
@@ -54,8 +56,9 @@ The precise current gap is narrower than the previous version of this note claim
 - the roadmap still calls for a reviewable Phase 5 kretprobe reference-pattern anchor
 - current `master` still carries shared Phase 5 reminder surfaces that talk about that anchor and its reviewer packet
 - current direct readback for this run did not confirm the kretprobe sample-root file, the focused Phase 5 kretprobe test packet, or the shared Phase 5 build file themselves
+- the remaining same-lane contributor-guidance miss is now specific: `Documentation/zigux/phase5-sample-review-guide.md` still overstates those missing kretprobe paths as directly readable shipped evidence
 
-So the honest same-lane posture is readback truthfulness, not a fresh claim that the full landed kretprobe packet is directly readable today.
+So the honest same-lane posture is readback truthfulness plus one remaining shared-guide repair, not a fresh claim that the full landed kretprobe packet is directly readable today.
 
 ## Non-goals
 
@@ -68,4 +71,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless a follow-up run can directly read or restore the missing kretprobe sample-root and focused Phase 5 test surfaces on current `master`. If the repo stays in this state, the next same-lane task should be another one-file truthfulness repair in the shared Phase 5 reminder packet rather than widening sample behavior or runtime work.
+Keep this lane parked unless a follow-up run can directly read or restore the missing kretprobe sample-root and focused Phase 5 test surfaces on current `master`, or publish one bounded shared-guidance repair in `Documentation/zigux/phase5-sample-review-guide.md` so it stops listing those missing kretprobe paths as directly readable shipped evidence. If the repo stays in this state, prefer that one-file guide repair before widening sample behavior or runtime work.
