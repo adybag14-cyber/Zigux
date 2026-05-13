@@ -48,9 +48,12 @@ REQUIRED_SURVEY_SNIPPETS = (
 REQUIRED_BUILD_SNIPPETS = (
     '.root_source_file = b.path("../bindings/abi.zig")',
     '.root_source_file = b.path("../unsafe/narrow.zig")',
+    'narrow_unsafe_module.addImport("abi_bindings", abi_bindings_module);',
     '.root_source_file = b.path("../helpers/atomic.zig")',
     '.root_source_file = b.path("../helpers/barrier.zig")',
     '.root_source_file = b.path("../helpers/mmio.zig")',
+    'mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);',
+    'mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);',
     '.root_source_file = b.path("../helpers/allocator_policy.zig")',
     '.root_source_file = b.path("../helpers/panic_policy.zig")',
     '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
@@ -291,7 +294,7 @@ def run_self_test() -> int:
         _write(
             root,
             BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+            (root / BUILD_REL).readText(encoding="utf-8").replace(
                 'root_module.addImport("mmio_helpers", mmio_helpers_module);',
                 "",
                 1,
@@ -304,6 +307,63 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing mmio build wiring failure")
+            return 1
+
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
+            BUILD_REL,
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+                'narrow_unsafe_module.addImport("abi_bindings", abi_bindings_module);',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_build_snippet:narrow_unsafe_module.addImport("abi_bindings", abi_bindings_module);'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing narrow-unsafe abi wiring failure")
+            return 1
+
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
+            BUILD_REL,
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+                'mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_build_snippet:mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio abi wiring failure")
+            return 1
+
+        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
+            BUILD_REL,
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
+                'mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_build_snippet:mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio narrow-unsafe wiring failure")
             return 1
 
         _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
