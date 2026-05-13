@@ -119,13 +119,13 @@ REVIEW_BOUNDARY_MARKER_COUNTS = {
 SHARED_REMINDER_MARKER_COUNTS = {
     marker: 1 for marker in REQUIRED_SHARED_REMINDER_MARKERS
 }
+SHARED_REMINDER_MARKER_COUNTS["zigux/uapi/dev_t.zig"] = 2
 BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS = {
     marker: 1 for marker in REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS
 }
 BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS = {
     marker: 1 for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
 }
-BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS["zigux/uapi/version.zig"] = 2
 
 
 def load_text(path: Path) -> str:
@@ -284,14 +284,20 @@ def _sample_text() -> str:
     sample += "\n## Review boundary\n" + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKERS)
     sample += "\n## Non-goals\n- stub\n"
     sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
+    sample += "\nkeep `zigux/uapi/dev_t.zig` explicit in the bounded starter-companion policy"
     return sample
 
 
 def _boundary_note_sample_text() -> str:
+    next_step_markers = [
+        marker
+        for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
+        if marker != "zigux/uapi/version.zig"
+    ]
     sample = "## Current landed surface\n"
     sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
     sample += "\n## Next bounded step\n"
-    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS)
+    sample += "\n".join(next_step_markers)
     sample += "\n## Non-goals\n- stub\n"
     return sample
 
@@ -607,7 +613,7 @@ def run_self_test() -> int:
     broken = validate_text(sample.rsplit(shared_reminder_marker, 1)[0])
     expected = (
         "shared reminder marker count drift: zigux/uapi/dev_t.zig "
-        "(expected 1, found 0)"
+        "(expected 2, found 1)"
     )
     if expected not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
@@ -699,7 +705,7 @@ def run_self_test() -> int:
     )
     expected = (
         "shared reminder marker count drift: zigux/uapi/dev_t.zig "
-        "(expected 1, found 0)"
+        "(expected 2, found 0)"
     )
     if expected not in broken:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
@@ -846,7 +852,7 @@ def run_self_test() -> int:
         expected = (
             "boundary note next-step marker count drift: "
             "zigux/uapi/version.zig "
-            "(expected 2, found 1)"
+            "(expected 1, found 0)"
         )
         if expected not in issues:
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
