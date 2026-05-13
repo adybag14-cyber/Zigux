@@ -318,7 +318,7 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
 
     const rcu_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", 32 * 1024);
     defer std.testing.allocator.free(rcu_note);
-    try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L14");
+    try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L16");
     try expectContains(rcu_note, "blocked by `phase14-rcu-tree-bridge-blocker`");
     try expectContains(rcu_note, "That is still a freeze-in-C posture, not a review-ready bridge seam.");
 
