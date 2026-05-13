@@ -7,7 +7,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=parked-readback-gap-aligned`
 - `PHASE5_SLICE=trace-events-reference-sample-readback`
 - `PHASE5_LANE_KEY=P5-L16`
-- `PHASE5_SURVEYED_COMMIT=readback-gap-confirmed-2026-05-13`
+- `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the directly readable `samples/zigux/` trace-events replay packet
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -96,7 +96,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
 - before a callback is registered, the in-memory sample rejects `replayFunctionIteration()` with `FunctionCallbackNotRegistered` so the callback-entry boundary stays reviewable without implying tracepoint enablement parity
 - the in-memory callback lane rejects a second `registerFunctionCallback()` call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero
-- before balance returns to zero, the same ownership lane rejects `unregisterFunctionCallback()` underflow before registration and rejects `exit()` with `OutstandingRegistration` while a callback remains armed
+- before balance returns to zero, the same ownership lane rejects `unregisterFunctionCallback()` underflow before registration and rejects `exit()` with `OutstandingRegistration` while one callback remains armed
 - after `exit()` the sample rejects later `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` calls
 
 ## Latest verification snapshot
