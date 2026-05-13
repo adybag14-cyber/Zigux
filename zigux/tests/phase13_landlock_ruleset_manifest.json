@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L09",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-12",
+  "surveyed_commit": "master-readback-2026-05-13",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -11,6 +11,7 @@
   "survey_summary": {
     "current_phase13_build_present": false,
     "current_ruleset_zig_present": true,
+    "current_phase13_landlock_ruleset_slice_present": true,
     "current_phase13_landlock_ruleset_test_present": true,
     "current_landlock_ruleset_packet_checker_present": true,
     "current_phase13_landlock_ruleset_manifest_present": true
@@ -21,7 +22,7 @@
       "status": "blocked_on_missing_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master still does not materialize the older shared Phase 13 build packet, so the ruleset lane needs a direct helper-local replay instead of pretending the wider shared replay surface is already back."
+      "why_now": "Current master still does not materialize the older shared Phase 13 build packet, so the ruleset lane stays on the shipped helper-local slice, direct replay, manifest, and checker instead of pretending the wider shared replay surface is already back."
     },
     {
       "id": "phase13-landlock-ruleset-helper-starter",
@@ -29,6 +30,13 @@
       "kind": "helper_surface",
       "zigux_destination": "security/landlock/ruleset.zig",
       "why_now": "Current master ships a bounded Landlock ruleset helper lab for ruleset-creation planning, handled-access unioning, per-layer mask initialization, rule unmasking, insert_rule() planning, tree search, tree link, and matched-rule replacement planning without claiming live Landlock mutation."
+    },
+    {
+      "id": "phase13-landlock-ruleset-slice-note",
+      "status": "starter_landed",
+      "kind": "review_surface",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+      "why_now": "A helper-local slice note now keeps the current planning-only ruleset packet explicit beside the ownership note, survey note, direct replay, manifest, and dedicated checker without pretending the older shared build route has returned."
     },
     {
       "id": "phase13-landlock-ruleset-direct-test-gate",
@@ -42,7 +50,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-      "why_now": "The current packet checker keeps the shared Phase 13 contributor and ownership surfaces fail-closed around the ruleset lane while the direct replay records the helper-local ruleset boundary."
+      "why_now": "The current packet checker keeps the shared Phase 13 contributor and ownership surfaces fail-closed around the ruleset lane while the slice note, direct replay, and manifest record the helper-local ruleset boundary."
     },
     {
       "id": "phase13-landlock-live-tree-state",
