@@ -71,6 +71,8 @@ REQUIRED_MARKERS = {
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
         "zigux/tests/phase7_argv_split_manifest.json",
+        "scripts/zigux/check-phase7-build-wiring.py",
+        "make -C zigux phase7-validate",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
@@ -346,6 +348,34 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "scripts/zigux/check-phase7-build-wiring.py",
+            "",
+            "slice_build_wiring_checker_marker",
+        )
+        expect_missing_marker(
+            "slice_build_wiring_checker_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: scripts/zigux/check-phase7-build-wiring.py",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "make -C zigux phase7-validate",
+            "",
+            "slice_phase7_validate_marker",
+        )
+        expect_missing_marker(
+            "slice_phase7_validate_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: make -C zigux phase7-validate",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
             "argv-split packet, lane `P7-L09`:",
             "",
@@ -554,7 +584,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 22
+    case_count = 24
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
