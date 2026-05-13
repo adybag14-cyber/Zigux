@@ -363,6 +363,37 @@ test "runtime bitmap sample copyFrom accepts a selftested source without widenin
     try std.testing.expect(snapshot.allows_mutation);
 }
 
+test "runtime bitmap sample copyFrom rejects a cold source and preserves destination state" {
+    var source = RuntimeBitmapSample{};
+
+    var destination = RuntimeBitmapSample{};
+    try destination.initWithSetBits(&.{ 3, 9, bitmap_view.bits_per_long + 2 });
+    const before = destination.summary();
+
+    try std.testing.expectError(error.InvalidSourceLifecycle, destination.copyFrom(&source));
+
+    const after = destination.summary();
+    const snapshot = destination.lifecycleSnapshot();
+
+    try std.testing.expectEqual(before.first_set, after.first_set);
+    try std.testing.expectEqual(before.first_zero, after.first_zero);
+    try std.testing.expectEqual(before.weight, after.weight);
+    try std.testing.expectEqual(before.nbits, after.nbits);
+    try std.testing.expectEqual(ModuleStage.cold, source.stage());
+    try std.testing.expectEqual(ModuleStage.initialized, destination.stage());
+    try std.testing.expect(destination.isSet(3));
+    try std.testing.expect(destination.isSet(9));
+    try std.testing.expect(destination.isSet(bitmap_view.bits_per_long + 2));
+    try std.testing.expect(!destination.isSet(0));
+    try std.testing.expectEqual(@as(usize, 1), snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);
+    try std.testing.expect(snapshot.allows_mutation);
+
+    try destination.setRange(0, 1);
+    try std.testing.expect(destination.isSet(0));
+}
+
 test "runtime bitmap sample copyFrom rejects an exited source and preserves destination state" {
     var source = RuntimeBitmapSample{};
     try source.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long + 2 });
