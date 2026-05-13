@@ -131,6 +131,7 @@ CLOSURE_MARKERS = [
     "PHASE1_BITMAP_EMPTY_BUFFER_REVIEW=helper-local bitmap.scnprintf empty-bitmap caller-buffer preservation stays explicit through the direct bitmap test anchor so a non-empty caller buffer remains untouched when no bits are set instead of being silently zeroed or NUL-terminated",
     "PHASE1_BITMAP_COPY_ZERO_AND_ALIGNED_REVIEW=helper-local bitmap zero-sized and aligned copy proof stays explicit through the direct bitmap test anchors so zero-sized destination views remain untouched and aligned-word copies preserve raw aligned words while zero-filling only the requested extension space",
     "PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor so zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift",
+    "PHASE1_FIND_BIT_LINUX_ALIAS_REVIEW=helper-local Linux-style alias proof stays explicit through the direct find_bit test anchor so the public Linux-style alias entry points remain behaviorally locked to the primary Zig helpers",
 ]
 
 EXPECTED_BENCH = {
@@ -328,7 +329,6 @@ STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
     'test "strstarts ',
     'test "strEndsWith ',
 )
-
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
