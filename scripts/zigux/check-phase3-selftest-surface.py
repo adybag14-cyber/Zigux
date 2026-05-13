@@ -41,9 +41,11 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/README.md": 1,
+    "Documentation/zigux/review-checklist.md": 1,
     "scripts/zigux/README.md": 1,
     "zigux/tests/README.md": 1,
     "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/tests/phase3_abi_dump.zig": 1,
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
@@ -423,6 +425,7 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         note_path = root / NOTE_PATH
+        note_path.writeText = None
         note_path.write_text(_read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = (
@@ -472,6 +475,44 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected header-family section-scoped drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
+                "Documentation/zigux/review-checklist.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "Documentation/zigux/review-checklist.md (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected review-checklist shared reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _read(survey_path).replace(
+                "zigux/bindings/dev_t.zig",
+                "## Future follow-through\nzigux/bindings/dev_t.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "zigux/bindings/dev_t.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected bindings/dev_t shared reminder drift was not reported")
             return 1
 
         _populate_repo(root)
