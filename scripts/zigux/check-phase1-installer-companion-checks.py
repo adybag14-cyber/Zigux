@@ -337,6 +337,22 @@ def run_self_test() -> None:
 
         docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[1],
+                DOCS_ROOT_MARKERS[1] + " " + DOCS_ROOT_MARKERS[1],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "docs_root:`scripts/zigux/check-phase1-installer-companion-checks.py` remains a focused companion check beside the counted docs-root packet instead of widening the exact marker line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=2"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
                 DOCS_ROOT_ROUTE_SPLIT_MARKERS[0],
                 "",
                 1,
@@ -346,6 +362,22 @@ def run_self_test() -> None:
         missing = collect_missing_markers(root)
         assert (
             "docs_root_route_split:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the docs-root companion note split explicit too: the self-test replays the bounded checker logic, while the live route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_ROUTE_SPLIT_MARKERS[0],
+                DOCS_ROOT_ROUTE_SPLIT_MARKERS[0] + " " + DOCS_ROOT_ROUTE_SPLIT_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "docs_root_route_split:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the docs-root companion note split explicit too: the self-test replays the bounded checker logic, while the live route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces.:expected=1:actual=2"
             in missing
         )
         case_count += 1
@@ -364,6 +396,23 @@ def run_self_test() -> None:
         scripts_readme_path = root / "scripts/zigux/README.md"
         scripts_readme_path.write_text(
             scripts_readme_path.read_text(encoding="utf-8").replace(
+                SCRIPTS_README_MARKERS[0],
+                SCRIPTS_README_MARKERS[0] + "\n" + SCRIPTS_README_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "scripts_readme:- `check-phase1-installer-companion-checks.py`:expected=1:actual=2"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
                 SCRIPTS_PHASE1_FLOW_MARKERS[0] + "\n",
                 "",
                 1,
@@ -373,6 +422,22 @@ def run_self_test() -> None:
         missing = collect_missing_markers(root)
         assert (
             "scripts_phase1_flow:- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.:expected=1:actual=0"
+            in missing
+        )
+        case_count += 1
+        make_fixture_root(root)
+
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                SCRIPTS_PHASE1_FLOW_MARKERS[0],
+                SCRIPTS_PHASE1_FLOW_MARKERS[0] + " " + SCRIPTS_PHASE1_FLOW_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            "scripts_phase1_flow:- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.:expected=1:actual=2"
             in missing
         )
         case_count += 1
