@@ -89,7 +89,7 @@ EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
 )
 EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
-    "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture keys"
+    "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
 )
 EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY = (
     "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
@@ -360,10 +360,8 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
     if string_review_anchors.get("shared_replace_char_cstr_review_summary") != EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary")
 
-    fixture = json.loads(load_text(root / "zigux/tests/fixtures/phase1_helpers.json"))
-
     replay_text = load_text(root / "zigux/tests/phase1_helpers.zig")
-
+    fixture = EXPECTED_FIXTURE
     replay_body = extract_test_body(replay_text, "phase 1 helper ports match committed parity fixture")
     if replay_body is None:
         missing.append('phase1_parity_test:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0')
