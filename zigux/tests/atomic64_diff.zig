@@ -548,7 +548,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase9_build_manifest_blob_pin_drift");
@@ -563,7 +563,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true");
