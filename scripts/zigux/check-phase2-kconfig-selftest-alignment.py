@@ -110,7 +110,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "older dedicated `check-kconfig-bridge.py` scaffold claim",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 def read_text(path: Path) -> str:
     try:
@@ -469,6 +469,9 @@ def run_self_test() -> int:
             MAKEFILE,
             SCRIPTS_README,
             TESTS_README,
+            REVIEW_CHECKLIST,
+            PHASE2_CLOSURE_DOC,
+            PHASE2_BOOTSTRAP_NOTES,
             PHASE2_CONFDATA_SURVEY,
         ):
             build_self_test_root(root)
