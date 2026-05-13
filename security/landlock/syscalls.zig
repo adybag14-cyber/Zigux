@@ -631,6 +631,45 @@ test "landlock add-rule syscall wrapper planning keeps top-level dispatch explic
     try std.testing.expectEqual(@as(?u16, 443), net_plan.dispatched_rule.port);
 }
 
+test "landlock add-rule syscall wrapper planning propagates path-beneath branch validation" {
+    try std.testing.expectError(error.AccessNotHandled, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 23,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_allowed_access = 0x3,
+        .parent_fd = 9,
+    }));
+
+    try std.testing.expectError(error.InvalidParentFd, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 24,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x3,
+        .path_allowed_access = 0x1,
+        .parent_fd = -1,
+    }));
+}
+
+test "landlock add-rule syscall wrapper planning propagates net-port branch validation" {
+    try std.testing.expectError(error.AccessNotHandled, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 25,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_net_port,
+        .handled_access_net = 0x10,
+        .net_allowed_access = 0x30,
+        .port = 443,
+    }));
+
+    try std.testing.expectError(error.MissingPort, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 26,
+        .ruleset_mode = fmode_can_write,
+        .rule_type = rule_type_net_port,
+        .handled_access_net = 0x30,
+        .net_allowed_access = 0x10,
+    }));
+}
+
 test "landlock add-rule syscall wrapper planning rejects invalid wrapper state" {
     try std.testing.expectError(error.InvalidRulesetFd, SyscallsHelperLab.planLandlockAddRule(.{
         .ruleset_fd = -1,
