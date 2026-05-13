@@ -232,6 +232,26 @@ test "runtime kretprobe sample advertises the bounded runtime pilot contract" {
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
+test "runtime kretprobe sample keeps a retargeted symbol fixed across init selftest and exit" {
+    var module = RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try std.testing.expectEqualStrings("do_sys_openat2", module.summary().symbol_name);
+
+    try module.init();
+    try std.testing.expectEqualStrings("do_sys_openat2", module.summary().symbol_name);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol("vfs_read"));
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqualStrings("do_sys_openat2", selftest.symbol_name);
+    try std.testing.expectEqualStrings("do_sys_openat2", module.summary().symbol_name);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+    try std.testing.expectEqualStrings("do_sys_openat2", module.summary().symbol_name);
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol("do_execve"));
+}
+
 test "kretprobe sample preserves initialized-stage failed-exit state until the active probe drains before selftest" {
     var module = RuntimeKretprobeSample{};
     try module.init();
@@ -284,7 +304,7 @@ test "kretprobe sample preserves failed-exit state until the active probe drains
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
 }
 
-test "runtime kretprobe sample keeps selftest, missed-instance, and maxactive cues explicit" {
+test "runtime kretprobe sample keeps selftest missed-instance and maxactive cues explicit" {
     var module = RuntimeKretprobeSample{ .maxactive = 1 };
     try module.init();
 
