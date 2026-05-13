@@ -1,27 +1,21 @@
 const std = @import("std");
 
 const abi = @import("abi_bindings");
+const allocator_policy = @import("allocator_policy");
 const export_shim = @import("export_shim");
+const layout_assert = @import("layout_assert");
+const narrow_unsafe = @import("narrow_unsafe");
+const panic_policy = @import("panic_policy");
 
-test "phase3 abi keeps starter header and status layouts explicit" {
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(abi.BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.BoundaryHeader, "size"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.BoundaryHeader, "flags"));
-
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(abi.ExportStatus));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.ExportStatus, "code"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.ExportStatus, "facility"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));
-
-    try std.testing.expectEqual(@as(usize, 4), @sizeOf(abi.InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 1), @alignOf(abi.InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.InteropPolicy, "panic_mode"));
-    try std.testing.expectEqual(@as(usize, 1), @offsetOf(abi.InteropPolicy, "allocator_mode"));
-    try std.testing.expectEqual(@as(usize, 2), @offsetOf(abi.InteropPolicy, "unsafe_scope"));
-    try std.testing.expectEqual(@as(usize, 3), @offsetOf(abi.InteropPolicy, "reserved"));
+test "phase3 abi keeps shared layout assertions wired into the abi replay" {
+    try layout_assert.assertBoundaryHeaderLayout();
+    try layout_assert.assertExportStatusLayout();
+    try layout_assert.assertInteropPolicyLayout();
+    try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
+    try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
+    try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
+    try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
+    layout_assert.assertInteropPolicyModeValues();
 }
 
 test "phase3 abi keeps exported status helpers and compatibility rules reviewable" {
@@ -73,90 +67,90 @@ test "phase3 abi keeps exported constants and family markers present" {
         @as(u32, 1),
         abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
     );
+}
 
-    try std.testing.expectEqual(
-        @as(usize, 12),
-        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 0),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status"),
-    );
+test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {
+    const caller_abort_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const heap_bug_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.bug),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const arena_raw_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 1,
+    };
+    const unknown_policy = abi.InteropPolicy{
+        .panic_mode = 9,
+        .allocator_mode = 9,
+        .unsafe_scope = 9,
+        .reserved = 0,
+    };
 
-    try std.testing.expectEqual(
-        @as(usize, 12),
-        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 0),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"),
-    );
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .bug), panic_policy.modeFromInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .warn), panic_policy.modeFromInteropPolicy(arena_raw_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .abort_now), panic_policy.actionForInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .bug_check), panic_policy.actionForInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForInteropPolicy(arena_raw_policy));
+    try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForInteropPolicy(reserved_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(heap_bug_policy));
+    try std.testing.expect(panic_policy.canReturnInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!panic_policy.canReturnInteropPolicy(reserved_policy));
+    try std.testing.expect(!panic_policy.recognizesInteropPolicy(unknown_policy));
 
-    try std.testing.expectEqual(
-        @as(usize, 12),
-        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 0),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"),
-    );
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromInteropPolicy(caller_abort_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), allocator_policy.modeFromInteropPolicy(heap_bug_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), allocator_policy.modeFromInteropPolicy(arena_raw_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(unknown_policy));
+    try std.testing.expect(allocator_policy.requiresExplicitCallerInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerInteropPolicy(reserved_policy));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(caller_abort_policy));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(heap_bug_policy));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(reserved_policy));
+    try std.testing.expect(!allocator_policy.recognizesInteropPolicy(unknown_policy));
 
-    try std.testing.expectEqual(
-        @as(usize, 12),
-        @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 0),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 4),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"),
-    );
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"),
-    );
+    try std.testing.expect(narrow_unsafe.permitsNoUnsafeInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeInteropPolicy(reserved_policy));
+    try std.testing.expect(narrow_unsafe.permitsVolatileMmioInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioInteropPolicy(reserved_policy));
+    try std.testing.expect(narrow_unsafe.permitsRawPointerBridgeInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeInteropPolicy(reserved_policy));
+    try std.testing.expect(!narrow_unsafe.recognizesInteropPolicy(unknown_policy));
+    try narrow_unsafe.requireNoUnsafeInteropPolicy(caller_abort_policy);
+    try narrow_unsafe.requireVolatileMmioInteropPolicy(heap_bug_policy);
+    try narrow_unsafe.requireRawPointerBridgeInteropPolicy(arena_raw_policy);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireNoUnsafeInteropPolicy(arena_raw_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireVolatileMmioInteropPolicy(caller_abort_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeInteropPolicy(caller_abort_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeInteropPolicy(reserved_policy));
 }
 
 test "phase3 abi keeps dev_t sample encoding and kernel relay status explicit" {
