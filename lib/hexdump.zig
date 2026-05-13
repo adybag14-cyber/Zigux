@@ -7,6 +7,10 @@ pub const hex_asc_upper = "0123456789ABCDEF";
 const hex_digits = hex_asc;
 const native_endian = builtin.target.cpu.arch.endian();
 
+pub const HexError = error{
+    DestinationTooSmall,
+};
+
 const LineWriter = struct {
     buffer: []u8,
     total: usize = 0,
@@ -46,9 +50,43 @@ fn asciiColumn(rowsize: usize, groupsize: usize) usize {
     return rowsize * 2 + (rowsize / groupsize) + 1;
 }
 
+pub fn hexAscHi(byte: u8) u8 {
+    return hex_digits[byte >> 4];
+}
+
+pub fn hexAscLo(byte: u8) u8 {
+    return hex_digits[byte & 0x0f];
+}
+
+pub fn hexAscUpperHi(byte: u8) u8 {
+    return hex_asc_upper[byte >> 4];
+}
+
+pub fn hexAscUpperLo(byte: u8) u8 {
+    return hex_asc_upper[byte & 0x0f];
+}
+
+pub fn hexBytePack(dst: []u8, byte: u8) HexError![]u8 {
+    if (dst.len < 2) {
+        return error.DestinationTooSmall;
+    }
+    dst[0] = hexAscHi(byte);
+    dst[1] = hexAscLo(byte);
+    return dst[2..];
+}
+
+pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {
+    if (dst.len < 2) {
+        return error.DestinationTooSmall;
+    }
+    dst[0] = hexAscUpperHi(byte);
+    dst[1] = hexAscUpperLo(byte);
+    return dst[2..];
+}
+
 fn appendHexByte(writer: *LineWriter, byte: u8) void {
-    writer.appendByte(hex_digits[byte >> 4]);
-    writer.appendByte(hex_digits[byte & 0x0f]);
+    writer.appendByte(hexAscHi(byte));
+    writer.appendByte(hexAscLo(byte));
 }
 
 fn appendGroupedHex(writer: *LineWriter, chunk: []const u8) void {
@@ -113,8 +151,8 @@ pub fn bin2Hex(dst: []u8, src: []const u8) []u8 {
 
     var offset: usize = 0;
     for (src) |byte| {
-        dst[offset] = hex_digits[byte >> 4];
-        dst[offset + 1] = hex_digits[byte & 0x0f];
+        dst[offset] = hexAscHi(byte);
+        dst[offset + 1] = hexAscLo(byte);
         offset += 2;
     }
 
@@ -138,6 +176,14 @@ pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: b
         return asciiColumn(actual_rowsize, actual_groupsize) + actual_len;
     }
     return (actual_len * 2) + ngroups - 1;
+}
+
+pub fn hexDumpLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {
+    return requiredLineLength(len, rowsize, groupsize, ascii);
+}
+
+pub fn hex_dump_line_length(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {
+    return hexDumpLineLength(len, rowsize, groupsize, ascii);
 }
 
 pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {
@@ -217,6 +263,34 @@ test "bin2hex emits lowercase output and returns the written slice" {
 
     try std.testing.expectEqual(@as(usize, 6), written.len);
     try std.testing.expectEqualStrings("0af15c", written);
+}
+
+test "hex byte helpers and packers stay aligned" {
+    const byte: u8 = 0xbe;
+    var lower: [2]u8 = undefined;
+    var upper: [2]u8 = undefined;
+    var tiny: [1]u8 = undefined;
+
+    try std.testing.expectEqual(@as(u8, 'b'), hexAscHi(byte));
+    try std.testing.expectEqual(@as(u8, 'e'), hexAscLo(byte));
+    try std.testing.expectEqual(@as(u8, 'B'), hexAscUpperHi(byte));
+    try std.testing.expectEqual(@as(u8, 'E'), hexAscUpperLo(byte));
+
+    const lower_rest = try hexBytePack(lower[0..], byte);
+    const upper_rest = try hexBytePackUpper(upper[0..], byte);
+    try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+    try std.testing.expectEqualStrings("be", lower[0..]);
+    try std.testing.expectEqualStrings("BE", upper[0..]);
+
+    try std.testing.expectError(error.DestinationTooSmall, hexBytePack(tiny[0..], byte));
+    try std.testing.expectError(error.DestinationTooSmall, hexBytePackUpper(tiny[0..], byte));
+}
+
+test "hex dump line length aliases the required length helper" {
+    try std.testing.expectEqual(@as(usize, 0), hexDumpLineLength(0, 16, 1, false));
+    try std.testing.expectEqual(requiredLineLength(16, 16, 4, true), hexDumpLineLength(16, 16, 4, true));
+    try std.testing.expectEqual(requiredLineLength(9, 32, 4, false), hex_dump_line_length(9, 32, 4, false));
 }
 
 test "hex dump formats one-byte groups without ascii" {
