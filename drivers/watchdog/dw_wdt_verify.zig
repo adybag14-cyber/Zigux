@@ -227,3 +227,24 @@ test "phase11 dw_wdt verify keeps restart failure modes explicit" {
     try std.testing.expect(!ready.expects_reset_pulse);
     try std.testing.expectEqual(RestartFailureState.restart_ready, ready.state);
 }
+
+test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit" {
+    const blocked_drvdata = summarizeRestartFailureMode(.{
+        .drvdata_ready = false,
+        .timeout_image_ready = true,
+        .restart_priority_registered = false,
+        .reset_pulse_available = true,
+    });
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", blocked_drvdata.anchor);
+    try std.testing.expectEqualStrings("dw_wdt_restart", blocked_drvdata.restart_call);
+    try std.testing.expectEqualStrings("WDOG_TIMEOUT_RANGE_REG_OFFSET", blocked_drvdata.timeout_range_anchor);
+    try std.testing.expectEqualStrings("WDOG_CONTROL_REG_OFFSET", blocked_drvdata.control_anchor);
+    try std.testing.expect(!blocked_drvdata.restart_requested);
+    try std.testing.expect(!blocked_drvdata.writes_timeout_range);
+    try std.testing.expect(!blocked_drvdata.writes_control);
+    try std.testing.expect(!blocked_drvdata.restart_priority_registered);
+    try std.testing.expect(blocked_drvdata.expects_reset_pulse);
+    try std.testing.expect(blocked_drvdata.keeps_missing_drvdata_explicit);
+    try std.testing.expect(!blocked_drvdata.keeps_missing_timeout_image_explicit);
+    try std.testing.expectEqual(RestartFailureState.blocked_missing_drvdata, blocked_drvdata.state);
+}
