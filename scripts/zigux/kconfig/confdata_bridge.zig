@@ -123,6 +123,20 @@ fn isConfigSymbol(name: []const u8) bool {
     return std.mem.startsWith(u8, name, config_prefix) and name.len > config_prefix.len;
 }
 
+fn parseUnsetSymbol(line: []const u8) ?[]const u8 {
+    if (!std.mem.startsWith(u8, line, "# ")) return null;
+
+    const body = line[2..];
+    if (!std.mem.startsWith(u8, body, config_prefix)) return null;
+
+    const separator_index = std.mem.indexOfScalar(u8, body, ' ') orelse return null;
+    const name = body[0..separator_index];
+    if (!isConfigSymbol(name)) return null;
+    if (!std.mem.eql(u8, body[separator_index + 1 ..], "is not set")) return null;
+
+    return name;
+}
+
 fn findEntryIndex(entries: []Entry, name: []const u8) ?usize {
     for (entries, 0..) |entry, index| {
         if (std.mem.eql(u8, entry.name, name)) return index;
@@ -141,10 +155,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     while (nextConfigLine(input, &cursor)) |line| {
         if (line.len == 0) continue;
 
-        if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
-            const name = line[2 .. line.len - " is not set".len];
-            if (!isConfigSymbol(name)) continue;
-
+        if (parseUnsetSymbol(line)) |name| {
             if (findEntryIndex(entries.items, name)) |existing_index| {
                 const existing = &entries.items[existing_index];
                 if (existing.kind == .unset) {
@@ -506,7 +517,24 @@ test "confdata bridge ignores empty CONFIG symbol names" {
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_VALID", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("m", summary.entries[0].value);
+}
+
+test "confdata bridge ignores malformed unset comments with extra tokens" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\# CONFIG_ALPHA extra is not set
+        \\# CONFIG_DEBUG is not set trailing
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[0].value);
 }
 
 test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
