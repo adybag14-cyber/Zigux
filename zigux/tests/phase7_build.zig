@@ -148,6 +148,11 @@ pub fn build(b: *std.Build) void {
         .root_module = cmdline_root_module,
     });
     const run_cmdline_tests = b.addRunArtifact(cmdline_tests);
+    const cmdline_step = b.step(
+        "phase7-cmdline-test",
+        "Run the Phase 7 cmdline helper tests",
+    );
+    cmdline_step.dependOn(&run_cmdline_tests.step);
 
     const argv_split_tests = b.addTest(.{
         .name = "phase7-argv-split-tests",
@@ -165,6 +170,11 @@ pub fn build(b: *std.Build) void {
         .root_module = rbtree_root_module,
     });
     const run_rbtree_tests = b.addRunArtifact(rbtree_tests);
+    const rbtree_step = b.step(
+        "phase7-rbtree-test",
+        "Run the Phase 7 rbtree helper tests",
+    );
+    rbtree_step.dependOn(&run_rbtree_tests.step);
 
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
