@@ -10,6 +10,9 @@ pub const dir_offset_end_of_directory: i64 = std.math.maxInt(i32);
 pub const dir_offset_min: i64 = dir_offset_first + 1;
 pub const dir_offset_max: i64 = dir_offset_end_of_directory - 1;
 
+pub const page_shift: u8 = std.math.log2_int(u32, page_size);
+pub const sector_shift: u8 = 9;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -19,6 +22,7 @@ pub const ModuleDescriptor = struct {
     provides_transaction_acquire_planning: bool,
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
+    provides_addressability_planning: bool,
     provides_offset_seek_planning: bool,
     provides_offset_readdir_planning: bool,
     provides_offset_rename_planning: bool,
@@ -85,6 +89,38 @@ pub const TransactionReleasePlan = struct {
     frees_page_backed_private_data: bool,
     clears_private_data: bool,
     returns_zero: bool,
+};
+
+pub const AddressabilityWindow = struct {
+    sector_bits: u8,
+    page_index_bits: u8,
+};
+
+pub const native_addressability_window = AddressabilityWindow{
+    .sector_bits = 64,
+    .page_index_bits = @bitSizeOf(usize),
+};
+
+pub const AddressabilityStatus = enum {
+    ok,
+    invalid_blocksize_bits,
+    exceeds_sector_window,
+    exceeds_page_window,
+};
+
+pub const AddressabilityPlan = struct {
+    anchor: []const u8,
+    blocksize_bits: u8,
+    num_blocks: u64,
+    window: AddressabilityWindow,
+    status: AddressabilityStatus,
+    last_fs_block: ?u64,
+    last_fs_page: ?u64,
+    sector_block_limit: ?u64,
+    max_page_index: ?u64,
+    short_circuits_on_zero_blocks: bool,
+    within_sector_window: bool,
+    within_page_window: bool,
 };
 
 pub const OffsetSeekWhence = enum {
@@ -184,6 +220,16 @@ pub const OffsetRenameExchangePlan = struct {
     rolls_back_destination_store_on_second_store_failure: bool,
 };
 
+fn maxValueForBits(bits: u8) u64 {
+    if (bits == 0) {
+        return 0;
+    }
+    if (bits >= 64) {
+        return std.math.maxInt(u64);
+    }
+    return (@as(u64, 1) << @intCast(bits)) - 1;
+}
+
 pub const LibfsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -195,6 +241,7 @@ pub const LibfsHelperLab = struct {
             .provides_transaction_acquire_planning = true,
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
+            .provides_addressability_planning = true,
             .provides_offset_seek_planning = true,
             .provides_offset_readdir_planning = true,
             .provides_offset_rename_planning = true,
@@ -292,6 +339,60 @@ pub const LibfsHelperLab = struct {
             .clears_private_data = private_data_present,
             .returns_zero = true,
         };
+    }
+
+    pub fn genericCheckAddressablePlan(blocksize_bits: u8, num_blocks: u64, window: AddressabilityWindow) AddressabilityPlan {
+        var plan = AddressabilityPlan{
+            .anchor = descriptor().anchor,
+            .blocksize_bits = blocksize_bits,
+            .num_blocks = num_blocks,
+            .window = window,
+            .status = .ok,
+            .last_fs_block = null,
+            .last_fs_page = null,
+            .sector_block_limit = null,
+            .max_page_index = null,
+            .short_circuits_on_zero_blocks = num_blocks == 0,
+            .within_sector_window = true,
+            .within_page_window = true,
+        };
+
+        if (num_blocks == 0) {
+            return plan;
+        }
+
+        if (blocksize_bits < sector_shift or blocksize_bits > page_shift) {
+            plan.status = .invalid_blocksize_bits;
+            plan.within_sector_window = false;
+            plan.within_page_window = false;
+            return plan;
+        }
+
+        const last_fs_block = num_blocks - 1;
+        const shift = page_shift - blocksize_bits;
+        const last_fs_page = if (shift == 0)
+            last_fs_block
+        else
+            last_fs_block >> @intCast(shift);
+        const sector_limit = maxValueForBits(window.sector_bits) >> @intCast(blocksize_bits - sector_shift);
+        const max_page_index = maxValueForBits(window.page_index_bits);
+
+        plan.last_fs_block = last_fs_block;
+        plan.last_fs_page = last_fs_page;
+        plan.sector_block_limit = sector_limit;
+        plan.max_page_index = max_page_index;
+        plan.within_sector_window = last_fs_block <= sector_limit;
+        plan.within_page_window = last_fs_page <= max_page_index;
+
+        if (!plan.within_sector_window) {
+            plan.status = .exceeds_sector_window;
+            return plan;
+        }
+        if (!plan.within_page_window) {
+            plan.status = .exceeds_page_window;
+            return plan;
+        }
+        return plan;
     }
 
     pub fn planOffsetDirectorySeek(start_position: i64, requested_offset: i64, whence: OffsetSeekWhence) OffsetDirectorySeekPlan {
@@ -472,6 +573,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_transaction_acquire_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
+    try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
@@ -581,6 +683,70 @@ test "transaction release planner keeps the no-private-data path explicit" {
     try std.testing.expect(!plan.frees_page_backed_private_data);
     try std.testing.expect(!plan.clears_private_data);
     try std.testing.expect(plan.returns_zero);
+}
+
+test "addressability planner short-circuits zero blocks before validating the block size window" {
+    const plan = LibfsHelperLab.genericCheckAddressablePlan(7, 0, .{
+        .sector_bits = 16,
+        .page_index_bits = 16,
+    });
+
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(AddressabilityStatus.ok, plan.status);
+    try std.testing.expect(plan.short_circuits_on_zero_blocks);
+    try std.testing.expectEqual(@as(?u64, null), plan.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, null), plan.last_fs_page);
+    try std.testing.expect(plan.within_sector_window);
+    try std.testing.expect(plan.within_page_window);
+}
+
+test "addressability planner rejects block sizes outside the generic_check_addressable window" {
+    const too_small = LibfsHelperLab.genericCheckAddressablePlan(8, 1, native_addressability_window);
+    const too_large = LibfsHelperLab.genericCheckAddressablePlan(page_shift + 1, 1, native_addressability_window);
+
+    try std.testing.expectEqual(AddressabilityStatus.invalid_blocksize_bits, too_small.status);
+    try std.testing.expectEqual(AddressabilityStatus.invalid_blocksize_bits, too_large.status);
+    try std.testing.expect(!too_small.within_sector_window);
+    try std.testing.expect(!too_small.within_page_window);
+    try std.testing.expect(!too_large.within_sector_window);
+    try std.testing.expect(!too_large.within_page_window);
+}
+
+test "addressability planner keeps sector and page window checks reviewable" {
+    const ok_plan = LibfsHelperLab.genericCheckAddressablePlan(12, 8, .{
+        .sector_bits = 16,
+        .page_index_bits = 8,
+    });
+    const sector_overflow = LibfsHelperLab.genericCheckAddressablePlan(10, 2049, .{
+        .sector_bits = 12,
+        .page_index_bits = 16,
+    });
+    const page_overflow = LibfsHelperLab.genericCheckAddressablePlan(12, 9, .{
+        .sector_bits = 16,
+        .page_index_bits = 3,
+    });
+
+    try std.testing.expectEqual(AddressabilityStatus.ok, ok_plan.status);
+    try std.testing.expectEqual(@as(?u64, 7), ok_plan.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 7), ok_plan.last_fs_page);
+    try std.testing.expectEqual(@as(?u64, 8191), ok_plan.sector_block_limit);
+    try std.testing.expectEqual(@as(?u64, 255), ok_plan.max_page_index);
+    try std.testing.expect(ok_plan.within_sector_window);
+    try std.testing.expect(ok_plan.within_page_window);
+
+    try std.testing.expectEqual(AddressabilityStatus.exceeds_sector_window, sector_overflow.status);
+    try std.testing.expectEqual(@as(?u64, 2048), sector_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 512), sector_overflow.last_fs_page);
+    try std.testing.expectEqual(@as(?u64, 2047), sector_overflow.sector_block_limit);
+    try std.testing.expect(!sector_overflow.within_sector_window);
+    try std.testing.expect(sector_overflow.within_page_window);
+
+    try std.testing.expectEqual(AddressabilityStatus.exceeds_page_window, page_overflow.status);
+    try std.testing.expectEqual(@as(?u64, 8), page_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 8), page_overflow.last_fs_page);
+    try std.testing.expect(page_overflow.within_sector_window);
+    try std.testing.expect(!page_overflow.within_page_window);
+    try std.testing.expectEqual(@as(?u64, 7), page_overflow.max_page_index);
 }
 
 test "offset seek plan accepts SEEK_SET positions into the real-entry window" {
