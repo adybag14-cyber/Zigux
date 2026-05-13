@@ -25,10 +25,10 @@
   "study_only_governance": {
     "status_bucket": "study_only",
     "ready_next_gap": "",
-    "last_closed_followup": "phase14-ring-buffer-tracefs-reader-serialization-followup",
+    "last_closed_followup": "phase14-ring-buffer-maintenance-handoff",
     "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
     "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
-    "why_now": "The ring-buffer packet already lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, so the next honest posture is parked study-only governance rather than another invented review-only follow-up."
+    "why_now": "The ring-buffer packet already lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, and it now carries an explicit maintenance-mode handoff so the next honest posture is parked study-only governance rather than another invented review-only follow-up."
   },
   "decision_checklist": [
     {
@@ -192,6 +192,13 @@
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "why_now": "The lane now records a narrow tracefs reader-serialization audit around `trace_access_lock()`, `tracing_buffers_read()`, and the read-versus-splice consumed-page lifetime rule so per-CPU readers, all-buffer readers, and page-release ownership stay explicit before any bridge candidate is entertained."
+    },
+    {
+      "id": "phase14-ring-buffer-maintenance-handoff",
+      "status": "starter_landed",
+      "kind": "maintenance_handoff",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The parked packet now carries explicit replay commands, reopen conditions, and a future truthfulness-only target so later runs can keep the study-only posture disciplined without inventing a new bridge or audit seam."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
