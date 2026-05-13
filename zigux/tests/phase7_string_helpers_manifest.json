@@ -1,5 +1,6 @@
 {
   "lane_key": "P7-L04",
+  "lane_key_note": "P7-L04 remains a packet-local historical helper-slice marker for this parked string-helpers record and should not be read as the current bootstrap-glue schedule owner.",
   "phase": "Phase 7",
   "surveyed_commit": "e730efa3d1077cb38d25b37a186b66c855f971d0",
   "anchor": "lib/string_helpers.c",
