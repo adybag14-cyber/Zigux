@@ -36,8 +36,8 @@ Fresh repo-first inspection against the live Phase 10 manifest plus the shared c
 - `drivers/virtio/virtio_ring.c` remains the Linux anchor for this lane, and `zigux/tests/phase10_virtio_ring_manifest.json` still records `bdfe88e865b94387b3c3bd41ca98054c452f78b9` as the surveyed Phase 10 ring snapshot.
 - the shared Phase 10 packet still keeps the direct ring helper packet explicit on current `master`: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-ring-packet.py`, and `zigux/tests/phase10_build.zig` remain the queue-local review surfaces that pair with this survey note.
 - the live manifest still records seven preexisting Phase 10 test files together with the existing core foothold, the shared Phase 10 build gate, the ring survey note, and the direct ring verify replay as landed packet evidence.
-- the landed queue-local wrapper ladder remains the same bounded Phase 10 ring packet: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, `phase10-queue-reset-readiness-helper`, and `phase10-ring-verify-replay`.
-- the next queue-local helper still queued inside the live manifest is `phase10-notification-data-summary-helper`, which remains `ready_next` rather than already landed evidence.
+- the landed queue-local wrapper ladder remains the same bounded Phase 10 ring packet: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-notification-data-summary-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, `phase10-queue-reset-readiness-helper`, and `phase10-ring-verify-replay`.
+- the live manifest now keeps `phase10-notification-data-summary-helper` explicit as landed queue-local wrapper evidence, so the helper packet no longer stops at notify-prepare bookkeeping even though it still stays entirely below transport-backed lifecycle work.
 - the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent MMIO packet, so this survey does not claim queue discovery, IRQ acknowledgement, queue reset execution, DMA paths, or probe/remove lifecycle behavior.
 - shared Phase 10 reminder surfaces still frame `Documentation/zigux/phase10-virtio-ring-slice.md` as a packet-local gap, so this note should keep the landed direct helper, verify, checker, and replay surfaces explicit without promoting that slice-note companion as directly re-read evidence before a fresh current-`master` reread says otherwise.
 
@@ -53,7 +53,7 @@ Fresh repo inspection supports these narrower conclusions:
 - the landed `phase10-callback-enable-helper`
 - the landed `phase10-callback-delay-helper`
 - the landed `phase10-notify-prepare-helper`
-- the `ready_next` `phase10-notification-data-summary-helper`
+- the landed `phase10-notification-data-summary-helper`
 - the landed `phase10-broken-queue-poll-guard`
 - the landed `phase10-queue-reset-helper`
 - the landed `phase10-queue-reset-readiness-helper`
@@ -61,7 +61,7 @@ Fresh repo inspection supports these narrower conclusions:
 - the packet-local slice-note companion `Documentation/zigux/phase10-virtio-ring-slice.md` remains framed as a repo-reality gap by the shared closure packet and lane note until it is reread successfully again on current `master`
 - the still-blocked `phase10-ring-lab-driver-bridge`
 
-That keeps the ring lane concrete and reviewable without overstating progress: the current packet already owns real queue-local virtqueue wrapper evidence on the helper, verify, checker, survey-gate, and shared-build surfaces, the next same-lane helper is still a bounded notification-data summary rather than transport work, and the blocked MMIO-owned bridge remains explicit.
+That keeps the ring lane concrete and reviewable without overstating progress: the current packet already owns real queue-local virtqueue wrapper evidence on the helper, verify, checker, survey-gate, and shared-build surfaces, including the landed notification-data summary helper, the next same-lane follow-through is now the packet-local slice-note truthfulness gap rather than another queue-wrapper rung, and the blocked MMIO-owned bridge remains explicit.
 
 ## Freeze boundary
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
@@ -93,4 +93,4 @@ Current `master` keeps this ring lane reviewable through the bounded helper pack
 Do not claim a transport-backed Phase 10 ring compile or lifecycle replay from this survey until the MMIO-owned bridge itself changes.
 
 ## Next bounded step
-Keep the broader Phase 10 virtio lane parked unless fresh repo inspection finds one directly coupled same-lane follow-through. Inside this ring lane, the next honest bounded step is to keep `zigux/tests/phase10_virtio_ring_manifest.json`, this survey note, and `scripts/zigux/check-phase10-ring-packet.py` aligned around the `ready_next` `phase10-notification-data-summary-helper` while keeping `Documentation/zigux/phase10-virtio-ring-slice.md` framed as a repo-reality gap and keeping the MMIO-owned transport bridge blocked.
+Keep the broader Phase 10 virtio lane parked unless fresh repo inspection finds one directly coupled same-lane follow-through. Inside this ring lane, the next honest bounded step is to keep `zigux/tests/phase10_virtio_ring_manifest.json`, this survey note, and `scripts/zigux/check-phase10-ring-packet.py` aligned around the now-landed `phase10-notification-data-summary-helper` while keeping `Documentation/zigux/phase10-virtio-ring-slice.md` framed as a repo-reality gap and keeping the MMIO-owned transport bridge blocked.
