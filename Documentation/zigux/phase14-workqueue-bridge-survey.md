@@ -56,6 +56,12 @@ The current lane state is:
 
 This keeps the lane explicit without overstating progress. Zigux still does not claim live worker-pool execution, delayed-work requeue control, scheduler callback parity, rescuer execution ownership, hotplug migration, runtime `max_active` retuning ownership, or a direct `kernel/workqueue.c` rewrite.
 
+## Reviewability guardrails
+
+- `zigux/tests/phase14_workqueue_bridge.zig` remains the anchor-local descriptor and manifest contract for the blocked-maintenance workqueue packet.
+- `zigux/tests/phase14_workqueue_reviewability.zig` remains the reviewer-facing guard for lane `P14-L04` and surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, keeping the manifest, survey, slice, traceability, and shared-smoke reminder surfaces aligned.
+- Do not treat this lane as permission to claim wrapper ownership for delayed-work requeue, flush or drain completion, scheduler-visible worker state, rescuer execution, hotplug rebinding, or runtime `max_active` retuning while live execution remains in C.
+
 ## Non-goals
 
 This survey slice does not claim:
