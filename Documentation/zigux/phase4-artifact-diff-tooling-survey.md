@@ -37,6 +37,10 @@ Current `master` already closes the deterministic-check slice of that requiremen
 
 The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts so `scripts/zigux/check-phase4-artifact-diff-determinism.py` can reject roadmap-note drift before the broader Phase 4 validator-first route runs.
 
+## Owner And Rollback Reminder
+- `Documentation/zigux/artifact-diff.md` remains the dedicated owner and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
+- if `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/check-phase4-artifact-diff-determinism.py` changes any published helper, contract, or determinism catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` in the same change before treating the tooling slice as closed again.
+
 ## Direct Replay Surface
 - `python3 scripts/zigux/artifact_diff.py --self-test`
 - `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`
