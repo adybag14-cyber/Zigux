@@ -20,14 +20,19 @@ PHASE2_CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bri
 
 VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
+    'ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22",
+    '"scripts/zigux/check-kconfig-bridge.py --self-test"',
+    '"scripts/zigux/check-kconfig-bridge.py"',
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22": 1,
+    '"scripts/zigux/check-kconfig-bridge.py --self-test"': 1,
+    '"scripts/zigux/check-kconfig-bridge.py"': 3,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
@@ -101,8 +106,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "same 11-case packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
-
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 def read_text(path: Path) -> str:
     try:
@@ -110,29 +114,23 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def resolve_path(root: Path, path: Path) -> Path:
     try:
         return root / path.relative_to(ROOT)
     except ValueError:
         return root / path
 
-
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
 
 def count_exact_substrings(text: str, marker: str) -> int:
     return text.count(marker)
 
-
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
 
-
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
-
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -196,7 +194,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     return issues
 
-
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -210,19 +207,22 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def build_self_test_root(root: Path) -> None:
     validator_lines = [
         VALIDATOR_MARKERS[0],
         VALIDATOR_MARKERS[1],
         VALIDATOR_MARKERS[2],
-        VALIDATOR_MARKERS[2],
         VALIDATOR_MARKERS[3],
+        VALIDATOR_MARKERS[3],
+        VALIDATOR_MARKERS[4],
+        VALIDATOR_MARKERS[5],
+        VALIDATOR_MARKERS[5],
+        VALIDATOR_MARKERS[5],
+        VALIDATOR_MARKERS[6],
     ]
     write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
@@ -235,12 +235,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_CONFDATA_SURVEY), "\n".join(PHASE2_CONFDATA_SURVEY_MARKERS) + "\n")
 
-
 def replace_once(text: str, marker: str, replacement: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
-
 
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
@@ -249,7 +247,6 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -272,7 +269,7 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[3],
+                VALIDATOR_MARKERS[6],
                 "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 14",
             ),
             encoding="utf-8",
@@ -280,7 +277,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24",
         ) in issues
         checks_run += 1
 
@@ -289,16 +286,26 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[1],
-                VALIDATOR_MARKERS[1] + "\n" + VALIDATOR_MARKERS[1],
+                VALIDATOR_MARKERS[2],
+                VALIDATOR_MARKERS[2] + "\n" + VALIDATOR_MARKERS[2],
             ),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert (
             "DUPLICATE_VALIDATOR_MARKERS",
-            f'{VALIDATOR_MARKERS[1]}:count=2:expected=1',
+            f'{VALIDATOR_MARKERS[2]}:count=2:expected=1',
         ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_VALIDATOR)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[4], ""),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[4]) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -439,7 +446,6 @@ def run_self_test() -> int:
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(
