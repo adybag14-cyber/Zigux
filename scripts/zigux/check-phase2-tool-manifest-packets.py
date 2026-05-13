@@ -377,6 +377,20 @@ SCRIPTS_PHASE2_TOOL_MANIFEST_MARKER = (
     "behind the broader closure note."
 )
 
+VALIDATOR_TOOL_MANIFEST_MARKERS = [
+    'ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"',
+    '(PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),',
+    "(PHASE2_TOOL_MANIFEST_PACKET_CHECKER,),",
+]
+WORKFLOW_TOOL_MANIFEST_MARKERS = [
+    "run: python3 scripts/zigux/validate-phase2.py",
+]
+MAKEFILE_TOOL_MANIFEST_MARKERS = [
+    "phase2-tools: phase2-toolchain",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+    "phase2-validate: phase2-tools phase2-kconfig",
+]
+
 REQUIRED_FILES = {
     "Documentation/zigux/README.md": [
         *DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS,
@@ -406,6 +420,15 @@ REQUIRED_FILES = {
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         "scripts/zigux/check-phase2-tool-manifest-packets.py",
     ],
+    "scripts/zigux/validate-phase2.py": [
+        *VALIDATOR_TOOL_MANIFEST_MARKERS,
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        *WORKFLOW_TOOL_MANIFEST_MARKERS,
+    ],
+    "zigux/Makefile": [
+        *MAKEFILE_TOOL_MANIFEST_MARKERS,
+    ],
 }
 
 EXACT_FILE_MARKER_COUNTS = {
@@ -426,6 +449,19 @@ EXACT_FILE_MARKER_COUNTS = {
     },
     "zigux/tests/README.md": {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
+    },
+    "scripts/zigux/validate-phase2.py": {
+        VALIDATOR_TOOL_MANIFEST_MARKERS[0]: 1,
+        VALIDATOR_TOOL_MANIFEST_MARKERS[1]: 1,
+        VALIDATOR_TOOL_MANIFEST_MARKERS[2]: 1,
+    },
+    ".github/workflows/zigux-bootstrap.yml": {
+        WORKFLOW_TOOL_MANIFEST_MARKERS[0]: 1,
+    },
+    "zigux/Makefile": {
+        MAKEFILE_TOOL_MANIFEST_MARKERS[0]: 1,
+        MAKEFILE_TOOL_MANIFEST_MARKERS[1]: 1,
+        MAKEFILE_TOOL_MANIFEST_MARKERS[2]: 1,
     },
 }
 
@@ -568,13 +604,10 @@ def validate_root(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{rel_path}:{marker}")
-        if rel_path in EXACT_FILE_MARKER_COUNTS:
+        exact_counts = EXACT_FILE_MARKER_COUNTS.get(rel_path)
+        if exact_counts:
             issues.extend(
-                validate_exact_marker_counts(
-                    text=text,
-                    exact_counts=EXACT_FILE_MARKER_COUNTS[rel_path],
-                    label=rel_path,
-                )
+                validate_exact_marker_counts(text=text, exact_counts=exact_counts, label=rel_path)
             )
 
     manifest_specs = [
@@ -629,6 +662,12 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_FILES["zigux/tests/README.md"]) + "\n",
+        "scripts/zigux/validate-phase2.py": "\n".join(REQUIRED_FILES["scripts/zigux/validate-phase2.py"]) + "\n",
+        ".github/workflows/zigux-bootstrap.yml": "\n".join(
+            REQUIRED_FILES[".github/workflows/zigux-bootstrap.yml"]
+        )
+        + "\n",
+        "zigux/Makefile": "\n".join(REQUIRED_FILES["zigux/Makefile"]) + "\n",
     }
     for rel_path, content in docs.items():
         write_text(root / rel_path, content)
@@ -719,6 +758,42 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        build_self_test_root(root)
+        validator = root / "scripts/zigux/validate-phase2.py"
+        validator.write_text(
+            validator.read_text(encoding="utf-8").replace(VALIDATOR_TOOL_MANIFEST_MARKERS[2] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:scripts/zigux/validate-phase2.py:{VALIDATOR_TOOL_MANIFEST_MARKERS[2]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.write_text("", encoding="utf-8")
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:.github/workflows/zigux-bootstrap.yml:{WORKFLOW_TOOL_MANIFEST_MARKERS[0]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        makefile = root / "zigux/Makefile"
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(MAKEFILE_TOOL_MANIFEST_MARKERS[1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:zigux/Makefile:{MAKEFILE_TOOL_MANIFEST_MARKERS[1]}"
+            in issues
+        )
+        case_count += 1
+
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -742,7 +817,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=11")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_REQUIRED_FILE_COUNT=14")
     return 0
 
 
