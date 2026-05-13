@@ -14,6 +14,9 @@ It stays inside the archival Phase 11 HVC lane and does not widen into tty regis
 The current bounded HVC archival packet is reviewed through:
 
 * `drivers/tty/hvc/hvc_console.zig`
+* `zigux/tests/phase11_hvc_console.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
@@ -23,7 +26,7 @@ The current bounded HVC archival packet is reviewed through:
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, and validation surfaces, without widening into tty registration, notifier callback execution, khvcd execution, host-backed transport claims, or direct verify and cleanup companions that are not materialized on current `master`.
+These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, validation, direct replay, verify, and cleanup surfaces, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.
 
 ## Teardown And Failure-Mode Cues
 
@@ -34,6 +37,9 @@ The parked starter keeps these bounded summaries explicit:
 * tiny notifier-add open handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
+* direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`
+* direct replay-only coverage beside `zigux/tests/phase11_hvc_console.zig`
+* cleanup-teardown coverage beside `zigux/tests/phase11_hvc_cleanup.zig`
 
 Those cues stay limited to the host-free archival packet.
 They do not claim runtime callback delivery or live hypervisor transport execution.
