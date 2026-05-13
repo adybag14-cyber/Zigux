@@ -17,7 +17,6 @@
     "Documentation/zigux/phase12-virtio-scsi-slice.md"
   ],
   "repo_gaps": [
-    "drivers/net/virtio_net.zig",
     "drivers/nvme/host/pci.zig",
     "Documentation/zigux/phase12-closure.md"
   ],
