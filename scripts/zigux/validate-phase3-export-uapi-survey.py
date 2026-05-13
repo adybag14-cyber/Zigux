@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import tempfile
 
@@ -21,6 +22,7 @@ DEV_T_HEADER = Path("include/zigux/dev_t.h")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION = Path("zigux/uapi/version.zig")
 UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
+ABI_MANIFEST = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 ABI_SLICE = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_NEXT_STEP = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 BUILD_FILE = Path("zigux/tests/build.zig")
@@ -44,6 +46,7 @@ REQUIRED_FILES = (
     EXPORT_SHIM,
     UAPI_VERSION,
     UAPI_DEV_T,
+    ABI_MANIFEST,
     ABI_SLICE,
     ABI_NEXT_STEP,
     BUILD_FILE,
@@ -77,6 +80,16 @@ REVIEW_OWNERSHIP_LINES = (
     "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, whose starter boundary-header relays now expose both the canonical and forward-compatible constructor names needed to keep the C-facing side aligned with the shipped UAPI contract.",
     "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
     "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
+)
+MANIFEST_REQUIRED_ENTRIES = (
+    SURVEY,
+    LINUX_HEADER,
+    DEV_T_HEADER,
+    EXPORT_SHIM,
+    UAPI_VERSION,
+    UAPI_DEV_T,
+    BUILD_FILE,
+    ABI_DUMP,
 )
 
 
@@ -140,6 +153,43 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def manifest_payload(entries: tuple[Path, ...]) -> str:
+    files = [entry.as_posix() for entry in entries]
+    payload = {
+        "phase": "Phase 3",
+        "status": "active",
+        "slice": "abi-substrate-skeleton",
+        "file_count": len(files),
+        "files": files,
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def validate_manifest(root: Path) -> list[str]:
+    issues: list[str] = []
+    try:
+        manifest = json.loads((root / ABI_MANIFEST).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"invalid_manifest_json:{exc.msg}"]
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return ["invalid_manifest_files"]
+
+    entries: set[str] = set()
+    for entry in files:
+        if not isinstance(entry, str):
+            issues.append(f"invalid_manifest_entry:{entry!r}")
+            continue
+        entries.add(entry)
+
+    for rel in MANIFEST_REQUIRED_ENTRIES:
+        if rel.as_posix() not in entries:
+            issues.append(f"missing_manifest_entry:{rel.as_posix()}")
+
+    return issues
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     for rel in REQUIRED_FILES:
@@ -147,6 +197,8 @@ def validate(root: Path) -> list[str]:
             issues.append(f"missing_file:{rel.as_posix()}")
     if issues:
         return issues
+
+    issues.extend(validate_manifest(root))
 
     survey_text = (root / SURVEY).read_text(encoding="utf-8")
     require_one_of(issues, survey_text, "survey_provenance", SURVEY_ONE_OF)
@@ -165,6 +217,7 @@ def validate(root: Path) -> list[str]:
         ("PHASE3_UAPI_VERSION_BLOB_SHA", UAPI_VERSION),
         ("PHASE3_UAPI_DEV_T_BLOB_SHA", UAPI_DEV_T),
         ("PHASE3_DEV_T_HEADER_BLOB_SHA", DEV_T_HEADER),
+        ("PHASE3_SHARED_MANIFEST_BLOB_SHA", ABI_MANIFEST),
     ):
         values = backtick_value(survey_text, key)
         if len(values) != 1:
@@ -284,6 +337,7 @@ def build_valid_workspace(root: Path) -> None:
     write(root / UAPI_VERSION, "pub const HeaderEvaluation = struct {\n    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n};\n")
     write(root / UAPI_DEV_T, "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }\npub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }\n")
     write(root / DEV_T_HEADER, "#define ZIGUX_DEV_MINOR_BITS 20U\nstatic inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id) { return major_id + minor_id; }\nstatic inline uint32_t zigux_minor(uint32_t dev) { return dev; }\n")
+    write(root / ABI_MANIFEST, manifest_payload(MANIFEST_REQUIRED_ENTRIES))
     write(root / KERNEL_EXPORT_GOVERNANCE, "starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`\nnew kernel-facing wrapper names without matching shared replay or manifest-backed evidence should be treated as churn, not Phase 3 closure\n")
     write(root / HEADER_GOVERNANCE, "`PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`\n`Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n`include/zigux/abi.h`\n")
     write(root / LINUX_HEADER, '#include "../zigux/dev_t.h"\nstatic inline int zigux_export_status_ok(void) { return 1; }\n')
@@ -316,6 +370,7 @@ def build_valid_workspace(root: Path) -> None:
                 f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
                 f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
                 f"- `PHASE3_DEV_T_HEADER_BLOB_SHA={blob_sha(root / DEV_T_HEADER)}`",
+                f"- `PHASE3_SHARED_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST)}`",
                 "",
                 "## Review Ownership",
                 "",
@@ -336,6 +391,18 @@ def run_self_test() -> int:
         root = Path(tmp)
         build_valid_workspace(root)
         assert validate(root) == [], validate(root)
+        case_count += 1
+
+        write(root / ABI_MANIFEST, manifest_payload(MANIFEST_REQUIRED_ENTRIES + (WORKFLOW,)))
+        issues = validate(root)
+        assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_SHARED_MANIFEST_BLOB_SHA:"), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / ABI_MANIFEST, manifest_payload(tuple(entry for entry in MANIFEST_REQUIRED_ENTRIES if entry != EXPORT_SHIM)))
+        issues = validate(root)
+        assert f"missing_manifest_entry:{EXPORT_SHIM.as_posix()}" in issues, issues
+        build_valid_workspace(root)
         case_count += 1
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`\n", "", 1))
