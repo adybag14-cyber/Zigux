@@ -95,7 +95,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
         io_instance.io(),
         "security/landlock/syscalls.zig",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(40 * 1024),
     );
     defer std.testing.allocator.free(syscalls_source);
 
@@ -105,9 +105,9 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("master-readback-2026-05-12", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-readback-2026-05-13", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("security/landlock/syscalls.zig", manifest.roadmap_destinations[0]);
@@ -125,10 +125,14 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
+    try std.testing.expect(descriptor.validates_create_ruleset_flags);
+    try std.testing.expect(descriptor.validates_create_ruleset_access_masks);
+    try std.testing.expect(descriptor.validates_create_ruleset_scope);
     try std.testing.expect(descriptor.validates_ruleset_fd);
     try std.testing.expect(descriptor.validates_ruleset_write_access);
     try std.testing.expect(descriptor.validates_restrict_self_flags);
@@ -138,11 +142,16 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_rulesets);
 
+    try std.testing.expect(std.mem.indexOf(u8, syscalls_source, ".provides_create_ruleset_planning = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syscalls_source, ".validates_create_ruleset_flags = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syscalls_source, "pub fn planCreateRuleset(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syscalls_source, "anon_inode") != null);
     try std.testing.expect(std.mem.indexOf(u8, syscalls_source, ".provides_ruleset_release_planning = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, syscalls_source, ".provides_ruleset_fops_planning = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, syscalls_source, "pub fn planFopRulesetRelease(") != null);
     try std.testing.expect(std.mem.indexOf(u8, syscalls_source, "pub fn planRulesetFops(") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "landlock_create_ruleset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "landlock_restrict_self()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "landlock_add_rule()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "fop_ruleset_release()") != null);
@@ -150,13 +159,15 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase13_landlock_syscalls_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase13_build.zig") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "planCreateRuleset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_landlock_syscalls_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_landlock_syscalls_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13-build-gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `phase13_build.zig` route still remains absent") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "landlock_create_ruleset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase13_landlock_syscalls_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase13_landlock_syscalls_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase13_build.zig") != null);
@@ -195,7 +206,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
         "phase13-landlock-syscalls-direct-test-gate",
         "starter_landed",
         "zigux/tests/phase13_landlock_syscalls.zig",
-        "direct syscall replay keeps the shipped credential-gate",
+        "direct syscall replay keeps the shipped create-ruleset boundary",
     );
     try expectGap(
         manifest,
@@ -209,7 +220,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
         "phase13-landlock-live-fd-installation",
         "blocked_on_live_fd_installation",
         "security/landlock/syscalls.zig",
-        "anon_inode_getfd()",
+        "pre-`anon_inode_getfd()` create-ruleset boundary",
     );
     try expectGap(
         manifest,
