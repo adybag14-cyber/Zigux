@@ -557,3 +557,12 @@ test "phase 7 rbtree postorder traversal matches committed parity fixture" {
     try std.testing.expectEqual(fixture.postorder.traversal.len, count);
     try std.testing.expectEqualSlices(i32, fixture.postorder.traversal, actual[0..count]);
 }
+
+test "phase 7 rbtree cleared detached nodes stop postorder traversal" {
+    var detached = rbtree.Node.init();
+
+    rbtree.clearNode(&detached);
+
+    try std.testing.expect(rbtree.emptyNode(&detached));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.nextPostorder(&detached));
+}
