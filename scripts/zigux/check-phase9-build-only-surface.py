@@ -57,6 +57,9 @@ DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
 REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER = (
     "with `samples/zigux/runtime_trace_events_loader.zig` kept explicit as a shipped shared-loader scaffold while `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` remain the sample-only blocked pilot boundary for live runtime substrate and tracepoint-registration execution"
 )
+REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER = (
+    "the shared module-metadata and depmod-publication boundary still blocked in the live loader packet so `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
+)
 REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER = (
     "while the older Phase 8 command and environment control cues stay with `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig`"
 )
@@ -138,6 +141,7 @@ REQUIRED_MARKERS = {
         "without overstating missing shared-loader paths as shipped current-`master` evidence",
         "the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
         REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER,
+        REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER,
         REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER,
     ],
     README_PATH: [
@@ -386,6 +390,18 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"missing_marker:{REVIEW_CHECKLIST_PATH}:{REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace(REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{REVIEW_CHECKLIST_PATH}:{REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER}",
         )
 
         write_fixture_tree(base)
