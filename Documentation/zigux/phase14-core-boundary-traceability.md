@@ -26,6 +26,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
   * surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`
   * ready-next gap: none currently recorded
   * blocked gap: `phase14-ring-buffer-zig-port-blocker`
+  * current lane posture: parked in maintenance mode after the landed overwrite, wakeup-and-mmap, tracefs mapping, mapped-reader ioctl, reader-page consume, read-page extraction, and tracefs reader-serialization audits; reopen only for ring-buffer-local truthfulness drift or genuinely narrower stay-in-C evidence, not for a fresh bridge claim
   * retained-in-C boundary: reserve or commit publication, reader-page handoff and consume serialization, exported-page forced-copy decisions, remote-reader metadata and guarded reader-page import, wakeup or watermark publication, tracefs reader competition, mapped-reader limitations, tracefs splice or resize lockouts, and mapped-reader lifetime teardown still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, `reader_lock` arbitration, and `resize_disabled` ownership.
 ### Skbuff
   * manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
