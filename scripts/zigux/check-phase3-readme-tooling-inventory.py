@@ -132,6 +132,9 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase4-gate-evidence.py"),
     Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"),
     Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
+    Path("scripts/zigux/check-phase7-make-wrapper.py"),
+    Path("scripts/zigux/check-phase7-argv-split-packet.py"),
+    Path("scripts/zigux/check-phase7-rbtree-parity.py"),
 )
 
 
@@ -484,6 +487,36 @@ def run_self_test() -> int:
             print("expected missing Phase 4 workflow-route repo file was not reported")
             return 1
         _write(root / missing_phase4_workflow_path, "# stub\n")
+
+        missing_phase7_make_wrapper_path = Path("scripts/zigux/check-phase7-make-wrapper.py")
+        (root / missing_phase7_make_wrapper_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_make_wrapper_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 make-wrapper repo file was not reported")
+            return 1
+        _write(root / missing_phase7_make_wrapper_path, "# stub\n")
+
+        missing_phase7_argv_split_path = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+        (root / missing_phase7_argv_split_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_argv_split_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 argv-split repo file was not reported")
+            return 1
+        _write(root / missing_phase7_argv_split_path, "# stub\n")
+
+        missing_phase7_rbtree_parity_path = Path("scripts/zigux/check-phase7-rbtree-parity.py")
+        (root / missing_phase7_rbtree_parity_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_rbtree_parity_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 rbtree-parity repo file was not reported")
+            return 1
+        _write(root / missing_phase7_rbtree_parity_path, "# stub\n")
 
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
