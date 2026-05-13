@@ -128,7 +128,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 21
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 24
 
 
 def build_validation_commands(
@@ -260,6 +260,34 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_kconfig_selftest_alignment_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=24:expected=25",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_kconfig_selftest_alignment_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=24:expected=25",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             ],
         ),
         (
@@ -400,6 +428,20 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_required_files:count=32:expected=33",
                 "phase2_validation_required_files:missing:scripts/zigux/check-kconfig-bridge.py",
+            ],
+        ),
+        (
+            "required_file_inventory_missing_kconfig_selftest_alignment_script",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
+                )
+            ),
+            [
+                "phase2_validation_required_files:count=32:expected=33",
+                "phase2_validation_required_files:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             ],
         ),
         (
