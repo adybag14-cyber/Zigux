@@ -69,6 +69,8 @@ SLICE_NOTE_MARKERS = [
 TEARDOWN_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
     "drivers/tty/hvc/hvc_console.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
@@ -162,7 +164,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 20
 
 
 class CheckError(RuntimeError):
@@ -417,6 +419,14 @@ def run_self_test() -> None:
             (
                 REQUIRED_FILES["survey_note"],
                 "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+            ),
+            (
+                REQUIRED_FILES["teardown_note"],
+                "drivers/tty/hvc/hvc_console_verify.zig",
+            ),
+            (
+                REQUIRED_FILES["teardown_note"],
+                "zigux/tests/phase11_hvc_cleanup.zig",
             ),
             (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
             (
