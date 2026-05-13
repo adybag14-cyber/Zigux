@@ -387,6 +387,28 @@ const TestCapture = struct {
     }
 };
 
+fn expectRewriteModePacket(mode: Mode, config: []const u8, expected_flag: []const u8) !void {
+    var capture = try TestCapture.init(std.testing.allocator, 160);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = mode,
+        .kconfig = "Kconfig",
+        .config = config,
+        .arch = "x86",
+    });
+
+    var mode_buffer: [64]u8 = undefined;
+    const expected_mode = try std.fmt.bufPrint(&mode_buffer, "\"mode\":\"{s}\"", .{mode.text()});
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, expected_mode) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, expected_flag) != null);
+
+    var config_buffer: [96]u8 = undefined;
+    const expected_config = try std.fmt.bufPrint(&config_buffer, "\"KCONFIG_CONFIG\":\"{s}\"", .{config});
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, expected_config) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
+}
+
 test "conf bridge mode surface stays aligned with conf.c long options" {
     const expected = [_]struct { mode: Mode, text: []const u8, flag: []const u8 }{
         .{ .mode = .oldaskconfig, .text = "oldaskconfig", .flag = "--oldaskconfig" },
@@ -580,20 +602,9 @@ test "conf bridge omits randconfig allconfig sentinel without explicit override"
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
-    var capture = try TestCapture.init(std.testing.allocator, 144);
-    defer capture.deinit();
-
-    try runConfBridge(&capture, .{
-        .mode = .yes2modconfig,
-        .kconfig = "Kconfig",
-        .config = "rewrite/.config",
-        .arch = "x86",
-    });
-
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"yes2modconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--yes2modconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"rewrite/.config\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
+    try expectRewriteModePacket(.yes2modconfig, "rewrite/.config", "\"--yes2modconfig\"");
+    try expectRewriteModePacket(.mod2yesconfig, "promote/.config", "\"--mod2yesconfig\"");
+    try expectRewriteModePacket(.mod2noconfig, "demote/.config", "\"--mod2noconfig\"");
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {
