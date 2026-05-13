@@ -43,6 +43,18 @@ The directly readable shared reviewer packet is already aligned with that landed
 - `Documentation/zigux/review-checklist.md` keeps the same lifecycle snapshots and replay-owned guard cues explicit as the current landed review packet
 - `samples/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` all treat the kretprobe packet as part of the shipped four-sample non-runtime Phase 5 route instead of as a missing sample-root or focused-test gap
 
+## Current behavior and exact checks
+
+Fresh reread of `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and `zigux/tests/phase5_build.zig` now makes the bounded kretprobe packet's exact checks explicit too:
+
+- the descriptor and review contract keep `kretprobe_example`, the Linux anchor path, `requires_runtime_substrate = false`, `provides_selfcheck = true`, the seven-surface review focus, and the four non-goals explicit
+- `runAnchorReplay()` keeps the skipped-kernel-thread path, the one-word private entry-timestamp shape, return value `42`, duration `75 ns`, `nmissed = 1`, `maxactiveBudget() = 20`, and the `initialized -> replay_complete` stage transition explicit
+- the retarget and recovery packet keeps empty-symbol rejection, pre-init retargeting to `do_sys_openat2`, rejected timestamp `199`, recovered return value `9`, recovered duration `60 ns`, the reset private entry-timestamp sentinel `-1`, and the one-missed-instance follow-through explicit
+- the maxactive replay keeps the fixed `maxactiveBudget()` cue immutable before init, after init, during replay, and after replay while still landing one missed instance and one replay run
+- the ownership packet keeps the cold, initialized, armed, replay_complete, and exited snapshots explicit together with active-instance counts `0/0/1/0/0`, a re-armed-to-cleared entry-timestamp boundary, one init run, one replay run, one exit run, replay return value `42`, and replay duration `75 ns`
+- the lifecycle and teardown packet keeps the pre-init anchor and exit rejections, double-init rejection, post-init retarget rejection, exit rejection while armed, invalid timestamp recovery to `60 ns`, and post-exit rejection of `recordMissedInstance`, `entryHandler`, and `retHandler` explicit
+- the survey and shared build packet still exact-checks the sample-root, manifest, survey replay, tests root, and shared build route through markers such as `pre-init retargeting`, the fixed `maxactiveBudget()` cue, `timestamp-order rejection and recovery`, `phase5-kretprobe-example-tests`, and `phase5-kretprobe-example-survey-tests`
+
 ## What still remains true
 
 Even with that restored readback, the roadmap and ledger still keep the intended Phase 5 ownership clear:
@@ -59,9 +71,9 @@ The precise current gap is now note-local rather than sample-local:
 - the roadmap still calls for a reviewable Phase 5 kretprobe reference-pattern anchor
 - current `master` now directly exposes the landed sample root, focused replay, manifest-backed packet, dedicated survey replay, and shared build route for that anchor
 - the directly readable shared reviewer packet already describes that landed state honestly
-- the remaining truthfulness gap was this survey note's older missing-path wording
+- the remaining truthfulness gap was this survey note's older missing-path wording and missing exact-check summary
 
-So the honest same-lane correction is to retire the older missing-path caveat and park the lane unless one of the directly coupled kretprobe packet surfaces drifts again.
+So the honest same-lane correction is to keep the missing-path caveat retired, record the exact checks in one place, and park the lane unless one of the directly coupled kretprobe packet surfaces drifts again.
 
 ## Non-goals
 
