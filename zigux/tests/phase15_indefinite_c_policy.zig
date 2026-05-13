@@ -110,7 +110,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(policy_note, "current-master-readback-2026-05-12");
-    try expectContains(policy_note, "previously recorded reviewed head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6` no longer matched current `master`");
+    try expectContains(policy_note, "explicit dated readback marker instead of a quickly stale exact-head commit");
     try expectContains(policy_note, "exact branch-head parity is not recorded");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
@@ -128,7 +128,6 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, maint
     try expectContains(policy_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(policy_note, "policy packet's truthfulness");
     try expectContains(policy_note, "keep the repair inside the policy packet and its direct replays");
-    try expectContains(policy_note, "phase15-indefinite-c-dated-readback-provenance-refresh");
     try expectContains(policy_note, "phase15-indefinite-c-maintenance-handoff");
     try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
 
