@@ -80,6 +80,12 @@ fn bitMask(comptime T: type, bit_index: u16) T {
     return @as(T, 1) << shift;
 }
 
+pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {
+    const mask = bitMask(T, bit_index);
+    const current = @atomicLoad(T, ptr, order);
+    return @intFromBool((current & mask) != 0);
+}
+
 pub fn bitSet(comptime T: type, ptr: *T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {
     const mask = bitMask(T, bit_index);
     const previous = @atomicRmw(T, ptr, .Or, mask, order);
@@ -198,31 +204,41 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
 test "phase3 atomic wrappers keep bit wrappers reviewable" {
     var flags: u8 = 0b0001_0100;
 
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 2, .acquire));
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u8, &flags, 1, .monotonic));
+
     try std.testing.expectEqual(@as(u1, 0), bitSet(u8, &flags, 1, .monotonic));
     try std.testing.expectEqual(@as(u8, 0b0001_0110), flags);
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 1, .acquire));
     try std.testing.expectEqual(@as(u1, 1), bitSet(u8, &flags, 2, .release));
     try std.testing.expectEqual(@as(u8, 0b0001_0110), flags);
 
     try std.testing.expectEqual(@as(u1, 1), bitReset(u8, &flags, 4, .acquire));
     try std.testing.expectEqual(@as(u8, 0b0000_0110), flags);
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u8, &flags, 4, .acquire));
     try std.testing.expectEqual(@as(u1, 0), bitReset(u8, &flags, 7, .monotonic));
     try std.testing.expectEqual(@as(u8, 0b0000_0110), flags);
 
     try std.testing.expectEqual(@as(u1, 1), bitToggle(u8, &flags, 2, .acq_rel));
     try std.testing.expectEqual(@as(u8, 0b0000_0010), flags);
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 1, .release));
     try std.testing.expectEqual(@as(u1, 0), bitToggle(u8, &flags, 0, .seq_cst));
     try std.testing.expectEqual(@as(u8, 0b0000_0011), flags);
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 0, .acquire));
 
     var high_bit_flags: u64 = 0;
     const high_bit_index: u16 = @bitSizeOf(u64) - 1;
 
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u64, &high_bit_flags, high_bit_index, .acquire));
     try std.testing.expectEqual(@as(u1, 0), bitSet(u64, &high_bit_flags, high_bit_index, .acq_rel));
     try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u64, &high_bit_flags, high_bit_index, .monotonic));
     try std.testing.expectEqual(@as(u1, 1), bitSet(u64, &high_bit_flags, high_bit_index, .monotonic));
     try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
 
     try std.testing.expectEqual(@as(u1, 1), bitReset(u64, &high_bit_flags, high_bit_index, .release));
     try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u64, &high_bit_flags, high_bit_index, .acquire));
     try std.testing.expectEqual(@as(u1, 0), bitReset(u64, &high_bit_flags, high_bit_index, .acquire));
     try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
 
@@ -230,4 +246,5 @@ test "phase3 atomic wrappers keep bit wrappers reviewable" {
     try std.testing.expectEqual(@as(u64, 0x8000_0000_0000_0000), high_bit_flags);
     try std.testing.expectEqual(@as(u1, 1), bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst));
     try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u64, &high_bit_flags, high_bit_index, .acquire));
 }
