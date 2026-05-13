@@ -101,6 +101,8 @@ MAKEFILE_MARKERS = [
     "phase2-toolchain:",
     "phase2-validate: phase2-tools phase2-kconfig",
     "phase2-validate:",
+    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+    "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
@@ -117,6 +119,11 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"': 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+}
+
+EXACT_MAKEFILE_FALLBACK_LINES = {
+    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))": 1,
+    "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)": 1,
 }
 
 WORKFLOW_FORBIDDEN_FRAGMENTS = [
@@ -310,6 +317,16 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
     return issues
 
 
+def validate_makefile_fallback_lines(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for marker, expected_count in EXACT_MAKEFILE_FALLBACK_LINES.items():
+        count = sum(1 for line in lines if line == marker)
+        if count != expected_count:
+            issues.append(f"makefile_fallback_line:{marker}:count={count}:expected={expected_count}")
+    return issues
+
+
 def extract_makefile_target_lines(text: str, target_name: str) -> list[str] | None:
     target_header = f"{target_name}:"
     lines = text.splitlines()
@@ -378,6 +395,10 @@ def run_self_test() -> int:
 
     valid_makefile = "\n".join(
         [
+            "PYTHON ?= python3",
+            "ZIGUX_ROOT := /tmp/zigux-root",
+            "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+            "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
             "phase2-toolchain:",
             '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -388,6 +409,7 @@ def run_self_test() -> int:
     )
     assert validate_required_markers(valid_makefile, label="phase2_makefile", markers=MAKEFILE_MARKERS) == []
     assert validate_exact_makefile_runs(valid_makefile) == []
+    assert validate_makefile_fallback_lines(valid_makefile) == []
     assert validate_toolchain_target_scope(valid_makefile) == []
 
     workflow_text = "\n".join(
@@ -431,7 +453,28 @@ def run_self_test() -> int:
 
     assert "policy:phase='Phase 3':expected='Phase 2'" in validate_policy({**valid_policy, "phase": "Phase 3"})
     assert any(issue.startswith("workflow_forbidden_fragment:") for issue in validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64", payload=valid_policy))
-    assert 'makefile_exact_run:scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)":count=2:expected=1' in validate_exact_makefile_runs(valid_makefile + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"')
+    assert 'makefile_exact_run:scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)":count=2:expected=1' in validate_exact_makefile_runs(
+        valid_makefile + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"'
+    )
+    missing_fallback_issues = validate_makefile_fallback_lines(
+        valid_makefile.replace(
+            "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)\n",
+            "",
+            1,
+        )
+    )
+    assert (
+        "makefile_fallback_line:ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig):count=0:expected=1"
+        in missing_fallback_issues
+    )
+    duplicate_fallback_issues = validate_makefile_fallback_lines(
+        valid_makefile
+        + "\nZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)"
+    )
+    assert (
+        "makefile_fallback_line:ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig):count=2:expected=1"
+        in duplicate_fallback_issues
+    )
     leaked_scope = "\n".join(
         [
             "phase2-toolchain:",
@@ -443,6 +486,7 @@ def run_self_test() -> int:
         ]
     )
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
+    assert any(issue.startswith("makefile_target_scope:phase2-toolchain:") for issue in leaked_issues)
     assert any(issue.startswith("makefile_target_scope:phase2-validate:") for issue in leaked_issues)
 
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
@@ -452,7 +496,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
@@ -526,6 +570,7 @@ def main() -> int:
     makefile_text = MAKEFILE.read_text(encoding="utf-8")
     issues.extend(validate_required_markers(makefile_text, label="phase2_makefile", markers=MAKEFILE_MARKERS))
     issues.extend(validate_exact_makefile_runs(makefile_text))
+    issues.extend(validate_makefile_fallback_lines(makefile_text))
     issues.extend(validate_toolchain_target_scope(makefile_text))
 
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
