@@ -83,7 +83,7 @@ SELF_TEST_ANCHOR_PACKETS = [
         "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
     },
     {
-        "lane_key": "P14-L14",
+        "lane_key": "P14-L16",
         "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
         "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
     },
@@ -431,7 +431,7 @@ def run_self_test() -> int:
         write(
             root,
             SMOKE_NOTE_PATH,
-            current_smoke_note_text().replace("lane `P14-L14`", "lane `P14-L99`", 1),
+            current_smoke_note_text().replace("lane `P14-L16`", "lane `P14-L99`", 1),
         )
         if not any("shared smoke note anchor metadata drifted" in error for error in check(root)):
             print("self-test expected anchor-metadata drift failure", file=sys.stderr)
