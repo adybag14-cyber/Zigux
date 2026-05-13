@@ -1,1 +1,166 @@
-{"lane_key":"P9-L18","phase":"Phase 9","scope":"runtime validation scaffolding","bounded_task":"shared runtime-loader evidence, gating, and rollback discipline","current_repo_reality":{"shared_runtime_loader_files_present":true,"shared_runtime_loader_contract_present":true,"shared_loader_shared_tests_route_present":true,"shared_phase9_bundle_route_present":true,"dedicated_validate_phase9_present":false,"current_honest_gate":"make -C zigux phase9-runtime-loader-shared-tests"},"lifecycle_boundary_summary":{"shared_request_states":["prepared","waiting_on_runtime_substrate","released_without_substrate"],"shared_request_boundary_surface":"samples/zigux/runtime_trace_events_loader.zig","shared_request_boundary_guard":"error.OutstandingRegistrationForLoader","review_only_loader_plan_surfaces":["prepareSharedRequest","requestSharedRuntimeLoad","releaseSharedWithoutSubstrate"],"metadata_only_registration_surfaces":["registrationSnapshot","tracepoint_probe_register","tracepoint_probe_unregister"],"next_sample_local_parity_gap":"none on current master; atomic64, bitmap, trace-events, and kretprobe already keep prepared shared runtime-substrate drift rejection explicit","cleared_sample_local_parity_route":"make -C zigux phase9-runtime-trace-events-test","cleared_sample_local_parity_surface":"samples/zigux/runtime_trace_events_loader.zig"},"delivery_evidence_catalog":[{"surface":"Documentation/zigux/phase9-runtime-loader-gap-survey.md","kind":"survey_note","why_now":"Keeps the live shared loader packet and blocked publication boundary explicit."},{"surface":"zigux/tests/runtime_loader_gap_manifest.json","kind":"packet_truth_manifest","why_now":"Pins the current shared loader route, its still-blocked publication boundary, and the now-cleared sample-local parity inventory."},{"surface":"zigux/tests/runtime_loader_gap_survey.zig","kind":"survey_gate","why_now":"Machine-checks the live shared loader packet markers."},{"surface":"zigux/tests/phase9_build.zig","kind":"shared_build_bundle","why_now":"Carries the shipped shared loader replay route."},{"surface":"zigux/tests/runtime_loader_allocator_init_flow.zig","kind":"shared_allocator_init_flow_replay","why_now":"Keeps allocator and init-flow evidence explicit across the approved pilot families."},{"surface":"zigux/kernel/runtime_loader.zig","kind":"shared_loader_surface","why_now":"The shared loader facade is shipped on current master."},{"surface":"zigux/kernel/runtime_loader_contract.zig","kind":"shared_loader_surface","why_now":"The shared loader contract is shipped on current master."},{"surface":"samples/zigux/runtime_atomic64_loader.zig","kind":"loader_scaffold","why_now":"Keeps atomic64 loader handoff evidence reviewable."},{"surface":"samples/zigux/runtime_bitmap_loader.zig","kind":"loader_scaffold","why_now":"Keeps bitmap loader handoff evidence reviewable."},{"surface":"samples/zigux/runtime_trace_events_loader.zig","kind":"loader_scaffold","why_now":"Keeps metadata-only registration and rollback evidence reviewable. The now-landed prepared shared-request drift rejection is part of that live review surface on current master."},{"surface":"samples/zigux/runtime_kretprobe_loader.zig","kind":"loader_scaffold","why_now":"Keeps kretprobe loader handoff evidence reviewable."}],"ownership_map":[{"surface":"Documentation/zigux/phase9-runtime-loader-gap-survey.md","role":"survey_note","owner":"P9-L18","boundary":"Owns the shared loader-gap survey note for the live shared packet."},{"surface":"zigux/tests/runtime_loader_gap_manifest.json","role":"packet_truth_manifest","owner":"P9-L18","boundary":"Pins the shared loader-gap packet's current repo reality."},{"surface":"zigux/tests/runtime_loader_gap_survey.zig","role":"survey_gate","owner":"P9-L18","boundary":"Machine-checks the shared loader-gap packet without widening pilot-family behavior."},{"surface":"Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md","role":"adjacent_shared_owner_map","owner":"P9-L11","boundary":"Keeps the broader shared owner map literal while this packet stays packet-local."},{"surface":"scripts/zigux/check-phase9-build-only-surface.py","role":"adjacent_shared_checker","owner":"P9-L11","boundary":"Guards the broader shared reminder packet outside this packet-local survey lane."}],"gaps":[{"id":"runtime-loader-shared-proof","status":"starter_landed","kind":"shared_validation_gate","zigux_destination":"zigux/tests/phase9_build.zig","why_now":"The shared loader-facing replay routes are shipped and should stay explicit."},{"id":"runtime-loader-live-runtime-binding","status":"blocked_on_runtime_substrate","kind":"execution_boundary","zigux_destination":"zigux/kernel/runtime_loader.zig","why_now":"The shared loader packet is reviewable, but live runtime-module binding is still intentionally blocked."},{"id":"runtime-loader-publication-metadata","status":"blocked_on_runtime_substrate","kind":"publication_boundary","zigux_destination":"zigux/kernel/runtime_loader.zig","why_now":"`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, install-root, and `depmod` state remain review-only publication boundaries."}]}
+{
+  "lane_key": "P9-L18",
+  "phase": "Phase 9",
+  "scope": "runtime validation scaffolding",
+  "bounded_task": "shared runtime-loader evidence, gating, and rollback discipline",
+  "current_repo_reality": {
+    "shared_runtime_loader_files_present": true,
+    "shared_runtime_loader_contract_present": true,
+    "shared_loader_shared_tests_route_present": true,
+    "shared_phase9_bundle_route_present": true,
+    "dedicated_validate_phase9_present": false,
+    "current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"
+  },
+  "lifecycle_boundary_summary": {
+    "shared_request_states": [
+      "prepared",
+      "waiting_on_runtime_substrate",
+      "released_without_substrate"
+    ],
+    "shared_request_boundary_surface": "samples/zigux/runtime_trace_events_loader.zig",
+    "shared_request_boundary_guard": "error.OutstandingRegistrationForLoader",
+    "review_only_loader_plan_surfaces": [
+      "prepareSharedRequest",
+      "requestSharedRuntimeLoad",
+      "releaseSharedWithoutSubstrate"
+    ],
+    "metadata_only_registration_surfaces": [
+      "registrationSnapshot",
+      "tracepoint_probe_register",
+      "tracepoint_probe_unregister"
+    ],
+    "next_sample_local_parity_gap": "none on current master; the prepared shared runtime-substrate drift rejection now lives in zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+    "cleared_sample_local_parity_route": "zig build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig",
+    "cleared_sample_local_parity_surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"
+  },
+  "delivery_evidence_catalog": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "kind": "survey_note",
+      "why_now": "Keeps the live shared loader packet and blocked publication boundary explicit."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_manifest.json",
+      "kind": "packet_truth_manifest",
+      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, and the now-cleared trace-events parity evidence."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_survey.zig",
+      "kind": "survey_gate",
+      "why_now": "Machine-checks the live shared loader packet markers."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+      "kind": "loader_drift_replay",
+      "why_now": "Keeps the prepared shared runtime-substrate drift rejection explicit for the trace-events pilot family without widening runtime-substrate scope."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "kind": "shared_build_bundle",
+      "why_now": "Carries the shipped shared loader replay route."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_allocator_init_flow.zig",
+      "kind": "shared_allocator_init_flow_replay",
+      "why_now": "Keeps allocator and init-flow evidence explicit across the approved pilot families."
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader.zig",
+      "kind": "shared_loader_surface",
+      "why_now": "The shared loader facade is shipped on current master."
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader_contract.zig",
+      "kind": "shared_loader_surface",
+      "why_now": "The shared loader contract is shipped on current master."
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps atomic64 loader handoff evidence reviewable."
+    },
+    {
+      "surface": "samples/zigux/runtime_bitmap_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps bitmap loader handoff evidence reviewable."
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps metadata-only registration and rollback evidence reviewable."
+    },
+    {
+      "surface": "samples/zigux/runtime_kretprobe_loader.zig",
+      "kind": "loader_scaffold",
+      "why_now": "Keeps kretprobe loader handoff evidence reviewable."
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L18",
+      "boundary": "Owns the shared loader-gap survey note for the live shared packet."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_manifest.json",
+      "role": "packet_truth_manifest",
+      "owner": "P9-L18",
+      "boundary": "Pins the shared loader-gap packet's current repo reality."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_survey.zig",
+      "role": "survey_gate",
+      "owner": "P9-L18",
+      "boundary": "Machine-checks the shared loader-gap packet without widening pilot-family behavior."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+      "role": "loader_drift_replay",
+      "owner": "P9-L18",
+      "boundary": "Closes the trace-events prepared shared runtime-substrate drift gap inside the shared loader-gap packet."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "role": "adjacent_shared_owner_map",
+      "owner": "P9-L11",
+      "boundary": "Keeps the broader shared owner map literal while this packet stays packet-local."
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-build-only-surface.py",
+      "role": "adjacent_shared_checker",
+      "owner": "P9-L11",
+      "boundary": "Guards the broader shared reminder packet outside this packet-local survey lane."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "runtime-loader-shared-proof",
+      "status": "starter_landed",
+      "kind": "shared_validation_gate",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared loader-facing replay routes are shipped and should stay explicit."
+    },
+    {
+      "id": "runtime-loader-live-runtime-binding",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "execution_boundary",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared loader packet is reviewable, but live runtime-module binding is still intentionally blocked."
+    },
+    {
+      "id": "runtime-loader-publication-metadata",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "publication_boundary",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, install-root, and `depmod` state remain review-only publication boundaries."
+    },
+    {
+      "id": "runtime-trace-events-prepared-substrate-drift-proof",
+      "status": "starter_landed",
+      "kind": "sample_lifecycle_parity",
+      "zigux_destination": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+      "why_now": "The trace-events packet now keeps the prepared shared runtime-substrate drift rejection explicit through a dedicated replay file."
+    }
+  ]
+}
