@@ -85,7 +85,7 @@ GENKSYMS_BRIDGE_MANIFEST_EXPECTED = {
     "mode": "wrapper-first bridge",
     "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
     "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
-    "case_count": 22,
+    "case_count": 23,
     "cases": [
         "minimal",
         "debug_reference_types",
@@ -105,6 +105,7 @@ GENKSYMS_BRIDGE_MANIFEST_EXPECTED = {
         "abbreviated_version",
         "invalid_option",
         "missing_reference_argument",
+        "missing_dump_types_argument",
         "unsupported_long_option",
         "missing_long_reference_argument",
         "missing_long_dump_types_argument",
@@ -124,11 +125,14 @@ GENKSYMS_BRIDGE_MANIFEST_EXPECTED = {
         "ambiguous_long_option_expected.json",
         "help_expected.json",
         "version_then_help_expected.json",
+        "version_then_help_expected.json",
+        "help_expected.json",
         "unexpected_help_argument_expected.json",
         "version_expected.json",
         "abbreviated_version_expected.json",
         "invalid_option_expected.json",
         "missing_reference_argument_expected.json",
+        "missing_dump_types_argument_expected.json",
         "unsupported_long_option_expected.json",
         "missing_long_reference_argument_expected.json",
         "missing_long_dump_types_argument_expected.json",
@@ -139,6 +143,7 @@ GENKSYMS_BRIDGE_MANIFEST_EXPECTED = {
         "unexpected_help_argument_expected.json",
         "invalid_option_expected.json",
         "missing_reference_argument_expected.json",
+        "missing_dump_types_argument_expected.json",
         "unsupported_long_option_expected.json",
         "missing_long_reference_argument_expected.json",
         "missing_long_dump_types_argument_expected.json",
@@ -220,6 +225,16 @@ KCONFIG_CONF_MANIFEST_EXPECTED = {
         "allmodconfig_expected.json",
         "randconfig_expected.json",
     ],
+    "helper_local_anchors": [
+        "conf bridge emits syncconfig auto files",
+        "conf bridge emits alldefconfig argv and env",
+        "conf bridge emits explicit empty allconfig override for allmodconfig",
+        "conf bridge emits randconfig tunables when present",
+        "conf bridge emits yes2modconfig argv and env",
+        "conf bridge emits defconfig mode argument before kconfig",
+        "conf bridge emits savedefconfig mode argument before kconfig",
+        "conf bridge escapes low control bytes in JSON strings",
+    ],
 }
 
 KCONFIG_CONFDATA_MANIFEST_EXPECTED = {
@@ -289,6 +304,7 @@ KCONFIG_CONFDATA_MANIFEST_EXPECTED = {
         "confdata bridge leaves malformed quoted values as raw scalar values",
         "confdata bridge emits no entries for empty CONFIG symbol names",
         "confdata bridge keeps only the last assignment for duplicate symbols",
+        "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
         "confdata bridge keeps only the last state across unset and set transitions",
     ],
 }
@@ -309,7 +325,7 @@ PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS = [
     "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
 ]
 DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS = [
-    "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of shrinking the live Phase 2 packet back to a docs-root shorthand that undercounts the shared validator pair, the tests-root alignment checker pair, and the current bridge-facing replay surfaces on `master`.",
+    "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile`",
 ]
 SCRIPTS_PHASE2_TOOL_MANIFEST_MARKERS = [
     "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` packet visible from this scripts index beside `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` instead of letting the shared Phase 2 manifest guard disappear behind the broader closure note.",
@@ -715,7 +731,7 @@ def run_self_test() -> int:
             json.dumps(payload, indent=2) + "\n",
         )
         issues = validate_root(root)
-        assert "genksyms_bridge_manifest:case_count:expected=22:actual=21" in issues
+        assert "genksyms_bridge_manifest:case_count:expected=23:actual=21" in issues
         case_count += 1
 
         build_self_test_root(root)
