@@ -288,14 +288,13 @@ pub fn resolveTerminalDimensions(
 }
 
 pub fn planPrettyPrint(count: usize, longest_name_len: usize, terminal_cols: usize) PrettyPrintLayout {
-    const safe_spacing = @max(@as(usize, 1), longest_name_len + 1);
-    const max_cols = terminal_cols -| 1;
-
-    var cols: usize = 1;
-    if (safe_spacing < max_cols) {
-        cols = @max(@as(usize, 1), max_cols / safe_spacing);
-    }
-
+    const spacing = longest_name_len + 1;
+    const safe_spacing = @max(@as(usize, 1), spacing);
+    const usable_cols = terminal_cols -| 1;
+    const cols = if (safe_spacing < usable_cols)
+        @max(@as(usize, 1), usable_cols / safe_spacing)
+    else
+        1;
     const rows = if (count == 0) 0 else std.math.divCeil(usize, count, cols) catch count;
     return .{
         .cols = cols,
@@ -314,6 +313,16 @@ pub fn planPrettyPrintForTerminal(
     const terminal = resolveTerminalDimensions(lines_text, columns_text, fallback);
     _ = terminal.rows;
     return planPrettyPrint(count, longest_name_len, terminal.cols);
+}
+
+fn writePaddedName(writer: anytype, name: []const u8, width: usize) !void {
+    try writer.writeAll(name);
+    if (width <= name.len) return;
+
+    var remaining = width - name.len;
+    while (remaining > 0) : (remaining -= 1) {
+        try writer.writeByte(' ');
+    }
 }
 
 pub fn writePrettyPrintStringListForTerminal(
@@ -343,14 +352,9 @@ pub fn writePrettyPrintStringListForTerminal(
             const index = row + (col * layout.rows);
             if (index >= cmds.count()) break;
 
-            const cell_width = if (col == layout.cols - 1 or index + layout.rows >= cmds.count()) 1 else layout.spacing;
-            const name = cmds.names.items[index].name;
-            try writer.writeAll(name);
-
-            var padding = cell_width;
-            while (padding > name.len) : (padding -= 1) {
-                try writer.writeByte(' ');
-            }
+            const is_last_column = col == layout.cols - 1 or index + layout.rows >= cmds.count();
+            const width = if (is_last_column) 1 else layout.spacing;
+            try writePaddedName(writer, cmds.names.items[index].name, width);
         }
 
         try writer.writeByte('\n');
@@ -369,6 +373,7 @@ fn writeSection(
     writer: anytype,
     heading: []const u8,
     cmds: CmdNames,
+    longest_name_len: usize,
     lines_text: ?[]const u8,
     columns_text: ?[]const u8,
     fallback: ?TerminalDimensions,
@@ -381,12 +386,16 @@ fn writeSection(
     try writePrettyPrintStringListForTerminal(
         writer,
         cmds,
-        cmds.longestNameLen(),
+        longest_name_len,
         lines_text,
         columns_text,
         fallback,
     );
     try writer.writeByte('\n');
+}
+
+fn longestSectionNameLen(main_cmds: CmdNames, other_cmds: CmdNames) usize {
+    return @max(main_cmds.longestNameLen(), other_cmds.longestNameLen());
 }
 
 pub fn writeCommandSectionsForTerminal(
@@ -399,6 +408,8 @@ pub fn writeCommandSectionsForTerminal(
     columns_text: ?[]const u8,
     fallback: ?TerminalDimensions,
 ) !void {
+    const longest_name_len = longestSectionNameLen(main_cmds, other_cmds);
+
     if (main_cmds.count() != 0) {
         var header_buffer: [256]u8 = undefined;
         const heading = try std.fmt.bufPrint(
@@ -406,7 +417,7 @@ pub fn writeCommandSectionsForTerminal(
             "available {s} in '{s}'",
             .{ exec_name, exec_path_display },
         );
-        try writeSection(writer, heading, main_cmds, lines_text, columns_text, fallback);
+        try writeSection(writer, heading, main_cmds, longest_name_len, lines_text, columns_text, fallback);
     }
 
     if (other_cmds.count() != 0) {
@@ -416,7 +427,7 @@ pub fn writeCommandSectionsForTerminal(
             "{s} available from elsewhere on your $PATH",
             .{exec_name},
         );
-        try writeSection(writer, heading, other_cmds, lines_text, columns_text, fallback);
+        try writeSection(writer, heading, other_cmds, longest_name_len, lines_text, columns_text, fallback);
     }
 }
 
@@ -453,14 +464,19 @@ test "resolveTerminalDimensions requires a full non-zero pair before overriding 
     );
 }
 
-test "planPrettyPrint keeps one-column fallback when a second column would hit the edge" {
-    const layout = planPrettyPrint(4, 8, 18);
-    try std.testing.expectEqual(@as(usize, 1), layout.cols);
-    try std.testing.expectEqual(@as(usize, 4), layout.rows);
-    try std.testing.expectEqual(@as(usize, 9), layout.spacing);
+test "planPrettyPrint keeps one-column fallback until the terminal clears the C helper edge guard" {
+    const edge_layout = planPrettyPrint(2, 8, 18);
+    try std.testing.expectEqual(@as(usize, 1), edge_layout.cols);
+    try std.testing.expectEqual(@as(usize, 2), edge_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), edge_layout.spacing);
+
+    const widened_layout = planPrettyPrint(2, 8, 19);
+    try std.testing.expectEqual(@as(usize, 2), widened_layout.cols);
+    try std.testing.expectEqual(@as(usize, 1), widened_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), widened_layout.spacing);
 }
 
-test "writePrettyPrintStringListForTerminal renders column-major output" {
+test "writePrettyPrintStringListForTerminal renders column-major output with C-style padding" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
     try cmds.addCmdName("annotate", 8);
@@ -549,7 +565,7 @@ test "loadCommandListsFromSource keeps exec-path priority and removes duplicates
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
-test "writeCommandSectionsForTerminal keeps main and PATH headings stable" {
+test "writeCommandSectionsForTerminal keeps the shared longest-name layout stable across both sections" {
     var main_cmds = CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
     try main_cmds.addCmdName("stat", 4);
@@ -578,7 +594,7 @@ test "writeCommandSectionsForTerminal keeps main and PATH headings stable" {
     try std.testing.expectEqualStrings(
         "available tools in '/opt/perf/bin'\n" ++
             "----------------------------------\n" ++
-            " stat top\n" ++
+            " stat     top\n" ++
             "\n" ++
             "tools available from elsewhere on your $PATH\n" ++
             "--------------------------------------------\n" ++
