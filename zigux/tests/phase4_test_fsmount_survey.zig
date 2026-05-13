@@ -47,9 +47,15 @@ test "phase4 test_fsmount survey keeps threshold posture explicit" {
     try requireMarker("\"threshold_posture\": \"reviewability_only_no_perf_threshold\"");
 }
 
+test "phase4 test_fsmount survey keeps bootstrap CI posture explicit" {
+    try requireMarker(
+        "\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"",
+    );
+}
+
 test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
+        "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
     );
 }
 
@@ -67,6 +73,10 @@ test "phase4 test_fsmount survey keeps the dedicated gap note aligned" {
     try requireRepoMarker(
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
         "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
