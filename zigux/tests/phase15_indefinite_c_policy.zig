@@ -136,6 +136,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     try expectContains(policy_note, "keep the repair inside the policy packet and its direct replays");
     try expectContains(policy_note, "phase15-indefinite-c-roadmap-continuity-survey");
     try expectContains(policy_note, "phase15-indefinite-c-maintenance-handoff");
+    try expectContains(policy_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
     try expectContains(policy_note, "Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.");
 
     try expectContains(review_process, "named owner for the lane");
