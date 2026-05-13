@@ -71,7 +71,7 @@ phase2-validate: phase2-tools phase2-kconfig
 phase2-cross: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py
 
-phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross
+phase2: phase2-validate phase2-cross
 
 phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test
