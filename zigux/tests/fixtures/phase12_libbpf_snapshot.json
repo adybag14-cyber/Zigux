@@ -3,6 +3,11 @@
   "phase": "Phase 12",
   "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
   "tracked_file_count": 5,
+  "supporting_notes": [
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+  ],
   "files": [
     {
       "path": "zigux/tests/phase12_libbpf_manifest.json",
