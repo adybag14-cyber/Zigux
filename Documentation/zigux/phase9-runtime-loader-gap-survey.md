@@ -76,15 +76,16 @@ symbol-export boundary references rather than Phase 9 runtime evidence.
 ## Next Bounded Step
 
 If the shared loader packet drifts again, tighten only this packet's survey
- evidence, gating, or rollback wording. Fresh readback now shows
+vidence, gating, or rollback wording. Fresh readback now shows
 `scripts/zigux/README.md` and `zigux/tests/README.md` already defer the shared
 owner map correctly, while `Documentation/zigux/README.md` still summarizes the
 Phase 9 packet without naming
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` as the owner of
 the exact shared-loader inventory and blocked publication boundary. Keep the
-exact shared owner map in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`,
-make that one docs-root reminder repair next, then reopen `zigux/tests/README.md`
-only if the docs-root summary is truthful, and keep
+exact shared owner map in
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, make that one
+docs-root reminder repair next, then reopen `zigux/tests/README.md` only if the
+docs-root summary is truthful, and keep
 `Documentation/zigux/review-checklist.md` parked unless a later reread shows
 its blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`,
 `modules.builtin`, module install-root state, and `depmod` script or manifest
