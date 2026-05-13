@@ -1,11 +1,15 @@
 const std = @import("std");
 
 const expected_surveyed_commit = "00b92f22991e9124aefb308d7eb0e90f14923338";
-const phase5_reference_anchors = [_][]const u8{
+const direct_phase5_reference_anchors = [_][]const u8{
     "`samples/zigux/bytestream_fifo.zig`",
-    "`samples/zigux/kobject_example.zig`",
     "`samples/zigux/kretprobe_example.zig`",
     "`samples/zigux/trace_events_sample.zig`",
+};
+const phase5_kobject_packet_markers = [_][]const u8{
+    "`Documentation/zigux/phase5-kobject-sample-survey.md`",
+    "`zigux/tests/phase5_kobject_example.zig`",
+    "`zigux/tests/phase5_kobject_example_manifest.json`",
 };
 const runtime_bitmap_family_files = [_][]const u8{
     "`samples/zigux/runtime_bitmap.zig`",
@@ -232,7 +236,8 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(survey_note, "no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(survey_note, "separate Phase 9 runtime bitmap family");
     try expectContains(survey_note, "rather than a fifth approved Phase 5 sample idiom");
-    for (phase5_reference_anchors) |marker| try expectContains(survey_note, marker);
+    for (direct_phase5_reference_anchors) |marker| try expectContains(survey_note, marker);
+    for (phase5_kobject_packet_markers) |marker| try expectContains(survey_note, marker);
     for (runtime_bitmap_family_files) |marker| try expectContains(survey_note, marker);
 
     try expectContains(sample_root_readme, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
@@ -240,6 +245,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
+    for (phase5_kobject_packet_markers) |marker| try expectContains(sample_root_readme, marker);
 
     try expectContains(runtime_bitmap_sample, "runtime bitmap sample review contract keeps bounded starter focus explicit");
     try expectContains(runtime_bitmap_sample, "runtime bitmap sample review contract stays aligned with the selftest packet");
