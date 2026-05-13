@@ -197,6 +197,11 @@
       "name": "last_state_transitions",
       "input": "last_state_transitions.config",
       "expected": "last_state_transitions_expected.json"
+    },
+    {
+      "name": "duplicate_malformed_quoted_assignment",
+      "input": "duplicate_malformed_quoted_assignment.config",
+      "expected": "duplicate_malformed_quoted_assignment_expected.json"
     }
   ]
 }
