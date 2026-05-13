@@ -263,9 +263,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[0], ""), encoding="utf-8")
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[1], ""), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[0]) in issues
+        assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[1]) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -315,11 +315,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, PHASE2_CLOSURE_VALIDATOR)
         path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), CLOSURE_VALIDATOR_MARKERS[0], ""),
+            replace_once(path.read_text(encoding="utf-8"), CLOSURE_VALIDATOR_MARKERS[1], ""),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", CLOSURE_VALIDATOR_MARKERS[0]) in issues
+        assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", CLOSURE_VALIDATOR_MARKERS[1]) in issues
         checks_run += 1
 
         build_self_test_root(root)
