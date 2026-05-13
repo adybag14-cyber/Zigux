@@ -9,6 +9,7 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, sample-owned runInputValidationReplay() for shared baz/bar dispatch plus parse-failure visibility, and pre-registration access boundary run through phase5_build.zig",
     "the manifest prompts keep sample-owned runPreRegistrationBoundaryReplay() explicit so the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary stays executable before registerAttributes() opens the sample",
+    "the manifest prompts keep the one-time init ownership rule explicit so calling init() twice before registration still returns InvalidLifecycleTransition while the sample stays initialized with zero active attributes and 1/0/0 counters",
     "the manifest prompts keep sample-owned runRegisteredBoundaryReplay(), runInputValidationReplay(), and runTeardownReplay() explicit so the already-registered duplicate-registration plus replay-restart rejection, the shared baz/bar dispatch and parse-failure packet, the still-usable registered-state foo roundtrip, and the registered teardown reset-and-rejection packet stay executable instead of implied",
     "the manifest prompts keep ownershipSummary() and sample-owned runOwnershipReplay() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
     "the manifest prompts keep the init/register/exit counter progression explicit inside ownershipSummary() and runOwnershipReplay() so reviewers can see the bounded lifecycle move from 0/0/0 through 1/0/0 and 1/1/0 to 1/1/1",
@@ -32,6 +33,11 @@
       "id": "pre-registration-boundary",
       "kind": "ownership_lifetime",
       "expected": "runPreRegistrationBoundaryReplay() leaves the sample initialized, keeps activeAttrCount at zero, and shows that show or store calls still return InvalidLifecycleTransition before registerAttributes()"
+    },
+    {
+      "id": "single-init-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "calling init() twice keeps the sample initialized, leaves activeAttrCount at zero, and returns InvalidLifecycleTransition on the second init without advancing register_runs or exit_runs"
     },
     {
       "id": "registered-boundary",
