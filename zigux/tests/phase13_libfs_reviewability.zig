@@ -12,6 +12,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_transaction_acquire_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
+    try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
@@ -69,6 +70,42 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
     try std.testing.expectEqual(libfs.OffsetReaddirMode.ready_at_end_of_directory, terminal_readdir.mode.?);
     try std.testing.expect(!terminal_readdir.enters_offset_iteration);
     try std.testing.expect(terminal_readdir.treats_end_of_directory_as_terminal);
+}
+
+test "addressability planner stays reviewable without implying live page-cache ownership" {
+    const zero_blocks = libfs.LibfsHelperLab.genericCheckAddressablePlan(7, 0, .{
+        .sector_bits = 16,
+        .page_index_bits = 16,
+    });
+    const in_window = libfs.LibfsHelperLab.genericCheckAddressablePlan(12, 8, .{
+        .sector_bits = 16,
+        .page_index_bits = 8,
+    });
+    const sector_overflow = libfs.LibfsHelperLab.genericCheckAddressablePlan(10, 2049, .{
+        .sector_bits = 12,
+        .page_index_bits = 16,
+    });
+
+    try std.testing.expectEqualStrings("fs/libfs.c", zero_blocks.anchor);
+    try std.testing.expectEqual(libfs.AddressabilityStatus.ok, zero_blocks.status);
+    try std.testing.expect(zero_blocks.short_circuits_on_zero_blocks);
+    try std.testing.expectEqual(@as(?u64, null), zero_blocks.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, null), zero_blocks.last_fs_page);
+
+    try std.testing.expectEqual(libfs.AddressabilityStatus.ok, in_window.status);
+    try std.testing.expectEqual(@as(?u64, 7), in_window.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 7), in_window.last_fs_page);
+    try std.testing.expectEqual(@as(?u64, 8191), in_window.sector_block_limit);
+    try std.testing.expectEqual(@as(?u64, 255), in_window.max_page_index);
+    try std.testing.expect(in_window.within_sector_window);
+    try std.testing.expect(in_window.within_page_window);
+
+    try std.testing.expectEqual(libfs.AddressabilityStatus.exceeds_sector_window, sector_overflow.status);
+    try std.testing.expectEqual(@as(?u64, 2048), sector_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 512), sector_overflow.last_fs_page);
+    try std.testing.expectEqual(@as(?u64, 2047), sector_overflow.sector_block_limit);
+    try std.testing.expect(!sector_overflow.within_sector_window);
+    try std.testing.expect(sector_overflow.within_page_window);
 }
 
 test "offset rename helpers stay reviewable as managed-slot planners rather than live directory mutation" {
