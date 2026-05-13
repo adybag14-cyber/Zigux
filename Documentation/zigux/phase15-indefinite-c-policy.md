@@ -8,15 +8,18 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-lane-owner-and-exception-posture-sync`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-12` on 2026-05-12
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-13` on 2026-05-13
 - exact branch-head parity is not recorded for this parked policy packet; the note now uses an explicit dated readback marker instead of a quickly stale exact-head commit while keeping the same stay-in-C exception posture, reopen-trigger vocabulary, and blocked deep-core posture
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one packet-local maintenance handoff that keeps future truthfulness repairs inside the stay-in-C packet
+- roadmap continuity: this packet now keeps both the earlier roadmap requirement `explicit stay-in-C decisions where warranted` and the Phase 15 requirement `policy for code that remains in C indefinitely` explicit for the frozen deep-core anchors
 
 ## Why this slice exists
 
 The roadmap says Phase 15 must include a policy for code that remains in C indefinitely.
 
 Current `master` already carries the freeze map, the review-process note, the parity scorecard, the reserved per-anchor evidence archives, and the focused blocker-evidence plus lane-owner-alignment replays. This dedicated policy packet keeps that long-term stay-in-C posture reviewable in one place instead of leaving it distributed only across adjacent governance artifacts.
+
+It also closes the earlier roadmap requirement for explicit stay-in-C decisions where warranted. The dedicated indefinite-C packet is the reviewable place where that earlier wording becomes one named stay-in-C outcome for the frozen deep-core anchors instead of remaining implied inside broader freeze-map prose.
 
 ## When the indefinite-C policy applies
 
@@ -107,6 +110,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-roadmap-continuity-survey`
 - landed `phase15-indefinite-c-maintenance-handoff`
 - blocked `phase15-deep-core-status-change-blocker`
 
