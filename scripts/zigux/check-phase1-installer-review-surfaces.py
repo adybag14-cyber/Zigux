@@ -88,9 +88,21 @@ CLOSURE_SHARED_REVIEW_PACKET_MARKERS = [
 ]
 
 CLOSURE_PRESENCE_MARKERS = [
-    "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
-    "- no known dependency on the deprecated Node 20 runtime",
-    "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
+    (
+        "phase1_closure_node24_opt_in",
+        "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
+        1,
+    ),
+    (
+        "phase1_closure_no_node20_dependency",
+        "- no known dependency on the deprecated Node 20 runtime",
+        1,
+    ),
+    (
+        "phase1_closure_in_repo_installer_step",
+        "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
+        1,
+    ),
 ]
 
 WORKFLOW_MARKERS = [
@@ -154,15 +166,6 @@ def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, in
     return issues
 
 
-def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
-    issues: list[str] = []
-    for marker in markers:
-        actual_count = text.count(marker)
-        if actual_count < 1:
-            issues.append(f"{label}:{marker}:expected>=1:actual={actual_count}")
-    return issues
-
-
 def extract_bounded_block(text: str, label: str, start_marker: str, end_marker: str) -> tuple[str, list[str]]:
     start_index = text.find(start_marker)
     if start_index == -1:
@@ -192,12 +195,11 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
     issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
-    issues.extend(collect_presence_markers(phase1_closure, "phase1_closure_installer_packet", CLOSURE_PRESENCE_MARKERS))
+    issues.extend(collect_exact_count_markers(phase1_closure, CLOSURE_PRESENCE_MARKERS))
     issues.extend(
-        collect_presence_markers(
+        collect_exact_count_markers(
             review_checklist,
-            "review_checklist_phase1_installer_packet",
-            REVIEW_CHECKLIST_PACKET_MARKERS,
+            [("review_checklist_phase1_installer_packet", marker, 1) for marker in REVIEW_CHECKLIST_PACKET_MARKERS],
         )
     )
 
@@ -219,10 +221,7 @@ def validate_root(root: Path) -> list[str]:
     )
     issues.extend(block_errors)
     if not block_errors:
-        route_markers = [
-            ("review_checklist_phase1_route", marker, 1)
-            for marker in REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS
-        ]
+        route_markers = [("review_checklist_phase1_route", marker, 1) for marker in REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS]
         issues.extend(collect_exact_count_markers(review_phase1_block, route_markers))
 
     return issues
@@ -253,7 +252,7 @@ def build_self_test_root(root: Path) -> None:
         root / "Documentation/zigux/phase1-closure.md",
         "\n".join(
             [
-                *CLOSURE_PRESENCE_MARKERS,
+                *(marker for _, marker, _ in CLOSURE_PRESENCE_MARKERS),
                 CLOSURE_SHARED_REVIEW_PACKET_START,
                 *(marker for _, marker, _ in CLOSURE_SHARED_REVIEW_PACKET_MARKERS),
                 CLOSURE_SHARED_REVIEW_PACKET_END,
@@ -369,12 +368,32 @@ def run_self_test() -> int:
         issues = validate_root(root)
         expect(
             issues,
-            "review_checklist_phase1_installer_packet:" + REVIEW_CHECKLIST_PACKET_MARKERS[0] + ":expected>=1:actual=0",
+            "review_checklist_phase1_installer_packet:expected=1:actual=0",
             "review_checklist_phase1_block:missing_start:" + REVIEW_CHECKLIST_PHASE1_BLOCK_START,
         )
         build_self_test_root(root)
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        write_text(
+            closure_path,
+            closure_text.replace(CLOSURE_PRESENCE_MARKERS[0][1] + "\n", "", 1),
+        )
+        expect(validate_root(root), "phase1_closure_node24_opt_in:expected=1:actual=0")
+        build_self_test_root(root)
+
+        closure_text = closure_path.read_text(encoding="utf-8")
+        write_text(
+            closure_path,
+            closure_text.replace(
+                CLOSURE_PRESENCE_MARKERS[1][1],
+                CLOSURE_PRESENCE_MARKERS[1][1] + "\n" + CLOSURE_PRESENCE_MARKERS[1][1],
+                1,
+            ),
+        )
+        expect(validate_root(root), "phase1_closure_no_node20_dependency:expected=1:actual=2")
+        build_self_test_root(root)
+
         closure_text = closure_path.read_text(encoding="utf-8")
         write_text(
             closure_path,
