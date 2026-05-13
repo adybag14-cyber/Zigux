@@ -61,6 +61,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
+        "`zigux/tests/phase11_hvc_console_survey.zig`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
@@ -180,6 +181,7 @@ def run_self_test() -> None:
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][4]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
+            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][4]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][2]),
         ]
