@@ -53,10 +53,10 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-release-notes-survey.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
+        "`Documentation/zigux/phase13-landlock-ruleset-slice.md`",
         "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-slice.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`",
         "`security/landlock/ruleset.zig`",
         "`zigux/tests/phase13_landlock_ruleset.zig`",
         "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
@@ -68,6 +68,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
+        "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`",
         "rather than through an older shared-build bundle.",
     ],
     "Documentation/zigux/review-checklist.md": [
@@ -359,6 +360,49 @@ def run_self_test() -> int:
             "missing_tests_readme_failed",
         )
         write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
+                if marker != "`Documentation/zigux/phase13-landlock-ruleset-slice.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/README.md:"
+                "`Documentation/zigux/phase13-landlock-ruleset-slice.md`"
+            ],
+            "missing_docs_root_ruleset_slice_marker_failed",
+        )
+        write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
+                if marker
+                != "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/README.md:"
+                "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`"
+            ],
+            "missing_docs_root_gap_sequence_marker_failed",
+        )
+        write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
         case_count += 1
 
         write_text(
