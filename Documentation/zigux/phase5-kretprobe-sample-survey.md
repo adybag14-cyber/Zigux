@@ -40,6 +40,11 @@ That same direct readback did not recover the older restored kretprobe packet pa
 
 Treat those paths as the current public-tree gap for this lane until a fresh reread proves they returned.
 
+The same readback split also narrowed which shared reminder surfaces still need attention. On current `master`:
+
+- `Documentation/zigux/phase5-sample-review-guide.md` and `samples/zigux/README.md` already keep the missing kretprobe sample-root, focused-test, manifest, survey-replay, and shared-build paths explicit as a current gap
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still overstate that missing packet by naming `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_build.zig`, or the `phase5_kretprobe_example*` replay files as directly readable current-`master` evidence
+
 ## What still remains true
 
 Even with that missing readback, the roadmap and ledger still keep the intended Phase 5 ownership clear:
@@ -55,7 +60,7 @@ The precise current gap is packet-local again:
 
 - the roadmap still calls for a reviewable Phase 5 kretprobe reference-pattern anchor
 - current `master` does not directly expose the non-runtime sample root, focused replay, manifest-backed packet, dedicated survey replay, or shared `phase5_build.zig` route for that anchor
-- several shared reminder surfaces were still phrased as though that restored packet were directly readable
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe part of that missing packet as directly readable current-`master` evidence, while `Documentation/zigux/phase5-sample-review-guide.md` and `samples/zigux/README.md` already keep the gap explicit
 
 So the honest same-lane correction is to keep the missing-path caveat active again, trim stale restored-readback wording, and leave the lane parked until the kretprobe packet either returns or the remaining shared reminder surfaces are fully aligned to the current gap.
 
@@ -72,7 +77,7 @@ This note still does not claim:
 
 Keep this lane parked unless a fresh kretprobe-local reread finds one of two bounded changes to make:
 
+- repair `Documentation/zigux/README.md` first, then `scripts/zigux/README.md` or `zigux/tests/README.md` if they still claim the missing `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_build.zig`, or `phase5_kretprobe_example*` packet as directly readable evidence
 - the missing kretprobe sample packet paths return and the shared reminder surfaces need to be switched back to restored-readback wording
-- another shared reminder surface still claims the missing `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_build.zig`, or `phase5_kretprobe_example*` packet as directly readable and needs one lane-local truthfulness repair
 
 Do not widen that follow-up into runtime work.
