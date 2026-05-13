@@ -1,17 +1,19 @@
 {
   "lane_key": "P7-L04",
-  "lane_key_note": "P7-L04 remains a packet-local historical helper-slice marker for this parked string-helpers record and should not be read as the current bootstrap-glue schedule owner.",
+  "lane_key_note": "P7-L04 remains a packet-local historical helper-slice marker for the restored string-helpers starter packet and should not be read as the current bootstrap-glue schedule owner.",
   "phase": "Phase 7",
-  "surveyed_commit": "e730efa3d1077cb38d25b37a186b66c855f971d0",
   "anchor": "lib/string_helpers.c",
-  "roadmap_destinations": [
-    "lib/string_helpers.zig"
-  ],
+  "current_master_state": "restored_starter_packet",
   "review_surfaces": [
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
+    "lib/string_helpers.zig",
+    "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_survey.zig",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+    "zigux/tests/phase7_string_helpers_manifest.json",
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
@@ -20,110 +22,29 @@
     "scripts/zigux/check-phase7-build-wiring.py",
     "zigux/tests/README.md",
     "zigux/tests/phase7_build.zig",
-    "zigux/tests/phase7_string_helpers_survey.zig",
-    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-    "zigux/tests/phase7_string_helpers_manifest.json",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml"
   ],
-  "missing_review_surfaces": [
-    "zigux/tests/phase7_string_helpers.zig",
-    "lib/string_helpers.zig"
-  ],
   "covered_helpers": [
     "skipSpaces",
+    "skip_spaces",
+    "trimSpaces",
     "strim",
     "sysfsStreq",
+    "sysfs_streq",
     "matchString",
+    "match_string",
     "sysfsMatchString",
-    "strreplace",
-    "kstrdupAndReplace",
-    "kstrdupQuotable",
-    "memcpyAndPad",
-    "stringIsTerminated",
-    "stringUpper",
-    "stringLower",
-    "stringGetSize",
-    "parseIntArray",
-    "parseIntArrayUser",
-    "stringUnescape",
-    "stringUnescapeInplace",
-    "stringEscapeMem",
-    "stringEscapeStr",
-    "kasprintfStrarray",
-    "kfreeStrarray"
+    "__sysfs_match_string",
+    "strreplace"
   ],
-  "ownership_focus": [
-    "bounded first-NUL C-string prefix handling for matching, trimming, and case-copy helpers",
-    "destination-size accounting for memcpyAndPad, stringGetSize, and bounded escape or unescape writes",
-    "count-prefixed integer-array parsing plus copied-user-buffer wrapping for parseIntArrayUser",
-    "owned replacement and quotable-log duplication without mutating caller buffers beyond the exported C-string prefix",
-    "sequential prefix-index string-array allocation with zero-count sentinel reuse and repeated-teardown safety"
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet. The shared docs-root, scripts-root, tests-root, sample-root, manifest, survey, and no-sample boundary reminders should describe that bounded starter surface truthfully without reviving the older missing-helper wording or overstating the broader parked family as landed.",
+  "starter_packet_focus": [
+    "first-NUL-bounded whitespace trimming and prefix skipping",
+    "newline-aware sysfs string equality",
+    "null-sentinel table matching through the first NULL entry",
+    "in-place replacement inside the exported C-string prefix",
+    "shared no-sample boundary and validator-backed reviewability"
   ],
-  "current_master_truthfulness": "The review packet is still present on current master, but both lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig are missing from the live tree and should not be described as landed review surfaces; the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet, while the docs-root shared Phase 7 summary still needs a separate same-packet truthfulness refresh because it overstates string_helpers as part of the landed shared-build bundle.",
-  "survey_summary": {
-    "preexisting_phase7_test_files": 0,
-    "preexisting_phase7_fixture_modules": 0,
-    "preexisting_phase7_build_present": true,
-    "preexisting_phase7_doc_present": true,
-    "preexisting_phase7_helper_present": false
-  },
-  "gaps": [
-    {
-      "id": "phase7-build-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step is still the narrowest honest review gate for the string_helpers runtime-safe leaf packet, but current master cannot clear that gate again until the missing helper and dedicated test file are restored."
-    },
-    {
-      "id": "phase7-string-helpers-helper",
-      "status": "missing_on_master",
-      "kind": "runtime_leaf_helper",
-      "zigux_destination": "lib/string_helpers.zig",
-      "why_now": "The roadmap still names lib/string_helpers.zig directly, but current master is missing the helper while the surrounding Phase 7 note, build, and survey packet still point at it, so the next honest reopen step is to restore the file instead of claiming that it is already landed."
-    },
-    {
-      "id": "phase7-string-helpers-dedicated-tests",
-      "status": "missing_on_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
-      "why_now": "Current master is also missing the dedicated helper replay, so the parked string_helpers packet should record that gap explicitly instead of overstating the survey and boundary packet as if the direct helper tests were still present."
-    },
-    {
-      "id": "phase7-string-helpers-slice-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase7-string-helpers-slice.md",
-      "why_now": "The slice note remains the right place to keep the validator-first handoff, the bounded helper family, and the no-sample boundary explicit, but it should describe the missing helper and direct test file truthfully instead of calling them landed."
-    },
-    {
-      "id": "phase7-string-helpers-docs-root-summary",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The docs-root Phase 7 summary still needs to describe the string-helper slice as a parked same-packet truthfulness repair while lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig remain missing from current master, instead of overstating string_helpers as part of the landed shared-build bundle."
-    },
-    {
-      "id": "phase7-string-helpers-no-sample-boundary",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-      "why_now": "A dedicated no-sample boundary replay still keeps the Phase 5-versus-Phase 7 separation explicit while the lane is limited to same-packet truthfulness repair instead of widening into a new samples/zigux claim."
-    },
-    {
-      "id": "phase7-string-helpers-manifest-packet",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase7_string_helpers_manifest.json",
-      "why_now": "The machine-readable manifest packet is the smallest honest place to record that the review packet remains visible on current master even though the helper file and dedicated replay are missing from the live tree."
-    },
-    {
-      "id": "phase7-string-helpers-survey-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase7_string_helpers_survey.zig",
-      "why_now": "The survey gate still keeps the roadmap anchor, helper-local review surfaces, and shared validator-backed route explicit, but it now needs to be read as part of a truthfulness-cleanup packet rather than as proof that the helper itself is still present on current master."
-    }
-  ]
+  "next_bounded_step": "Keep the restored starter packet truthful across the slice note, survey, manifest, and dedicated no-sample boundary replay before taking any deeper helper-local expansion step."
 }
