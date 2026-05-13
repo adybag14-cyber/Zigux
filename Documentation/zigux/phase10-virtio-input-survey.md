@@ -14,12 +14,12 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap still names `drivers/virtio/virtio_input.c` as a VM-friendly lab-driver anchor.
 
-This survey exists to keep that lane truthful and reviewable. Fresh current-`master` rereads now show that the wider direct helper-facing packet is visible again through public-tree fallback, even though some authenticated contents reads still return `404` for those same paths. That means the note should keep the direct helper, verify, checker, and focused replay surfaces explicit without widening into registration-lifecycle or transport-backed claims.
+This survey exists to keep that lane truthful and reviewable. Fresh current-`master` rereads now show that the wider direct helper-facing packet is visible again through public-tree fallback, even though some authenticated contents reads still return `404` for those same paths. That means the note should keep the direct helper, direct probe-preflight helper, verify, checker, and focused replay surfaces explicit without widening into registration-lifecycle or transport-backed claims.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_input.c` is still the Phase 10 anchor at 421 lines and still mixes config-space reads, queue setup, status sends, event handling, registration, freeze or restore hooks, and teardown paths.
-- fresh public-tree rereads now materialize `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/check-phase10-input-packet.py`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` on current `master`, so the lane no longer needs to describe the broader direct input packet as missing repo reality.
+- fresh public-tree rereads now materialize `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/check-phase10-input-packet.py`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` on current `master`, so the lane no longer needs to describe the broader direct input packet as missing repo reality.
 - `zigux/tests/phase10_virtio_input_teardown_observation.zig` still keeps one bounded teardown foothold explicit: identity survives reset while queue, readiness, capability, multitouch, and queued-status state are observed as resettable runtime state rather than full transport-backed remove, freeze, or restore parity.
 - the authenticated contents bridge can still return `404` for some of those direct input paths, so shared reminder surfaces should keep the public-tree fallback evidence explicit instead of treating those transient bridge misses as repo-reality gaps.
 - `Documentation/zigux/phase10-virtio-input-slice.md` and `Documentation/zigux/phase10-virtio-input-module-slice.md` remain the packet-local repo-reality gaps on current `master`.
@@ -36,7 +36,7 @@ The reminder manifest now records:
 - repo-reality gap `phase10-virtio-input-slice-companions`
 - still-blocked `phase10-virtio-input-registration-lifecycle`
 
-That means the honest same-lane follow-through is no longer another restore claim for the direct input helper, checker, or focused replay packet. The current job is to keep the shared reminder surfaces, the dedicated survey note, and the paired manifest aligned around the now-public direct packet while the packet-local slice companions stay absent and risky transport work remains blocked.
+That means the honest same-lane follow-through is no longer another restore claim for the direct input helper, direct probe-preflight helper, checker, or focused replay packet. The current job is to keep the shared reminder surfaces, the dedicated survey note, and the paired manifest aligned around the now-public direct packet while the packet-local slice companions stay absent and risky transport work remains blocked.
 
 ## Non-goals
 
@@ -56,16 +56,17 @@ Keep this lane reviewable by rereading:
 2. `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 3. `zigux/tests/phase10_virtio_input_manifest.json`
 4. `drivers/virtio/virtio_input.zig`
-5. `drivers/virtio/virtio_input_verify.zig`
-6. `scripts/zigux/check-phase10-input-packet.py`
-7. `zigux/tests/phase10_virtio_input_probe_preflight.zig`
-8. `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
-9. `zigux/tests/phase10_virtio_input_registration_preflight.zig`
-10. `zigux/tests/phase10_virtio_input_status_drain.zig`
-11. `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-12. `zigux/tests/phase10_virtio_input_survey.zig`
+5. `drivers/virtio/virtio_input_probe_preflight.zig`
+6. `drivers/virtio/virtio_input_verify.zig`
+7. `scripts/zigux/check-phase10-input-packet.py`
+8. `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+9. `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+10. `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+11. `zigux/tests/phase10_virtio_input_status_drain.zig`
+12. `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+13. `zigux/tests/phase10_virtio_input_survey.zig`
 
-Use the shared Phase 10 docs-root, scripts-root, tests-root, and closure-manifest packet to keep that direct input helper, verify, checker, and focused replay bundle explicit, but keep `Documentation/zigux/phase10-virtio-input-slice.md` and `Documentation/zigux/phase10-virtio-input-module-slice.md` framed as repo-reality gaps until those note files land.
+Use the shared Phase 10 docs-root, scripts-root, tests-root, and closure-manifest packet to keep that direct input helper, direct probe-preflight helper, verify, checker, and focused replay bundle explicit, but keep `Documentation/zigux/phase10-virtio-input-slice.md` and `Documentation/zigux/phase10-virtio-input-module-slice.md` framed as repo-reality gaps until those note files land.
 
 ## Next bounded step
 
