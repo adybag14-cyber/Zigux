@@ -3,9 +3,9 @@
 This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the poll-result bookkeeping helpers adjacent to `perf_buffer__poll()` in `tools/lib/bpf/libbpf.c`.
 
 ## Status
-- `PHASE8_STATUS=parked`
+- `PHASE8_STATUS=active_helper_step`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
-- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -17,6 +17,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/` instead of widening into object loading or broader perf-buffer routing too early.
 
 The `perf_buffer__poll(timeout_ms)` path is a reasonable bounded adjunct because it lets Zigux prove output-stable wait-result classification and ready-buffer accounting without claiming live epoll wiring, per-CPU setup, or mmap-backed ring ownership.
+
+The same bounded packet can also carry the tiny adjacent return-shaping surfaces around `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx, &buf, &buf_size)` as slot-validation helpers, so long as it stops short of ring creation, lifetime ownership, or mmap setup parity.
 
 ## Gates
 1. run the shared Phase 8 validator route first
@@ -47,6 +49,9 @@ The current bounded helper covers:
 - final return-path choice between a successful ready count and the first processing failure
 - explicit `perf_buffer__buffer_fd(buf_idx)` slot lookup classification
 - return shaping for valid buffer fds, invalid indices, and missing buffer fds
+- explicit `perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification
+- mapped-size passthrough for present buffer windows
+- return shaping for valid buffer windows, invalid indices, and missing buffer windows
 - ready-buffer processing attempts cannot exceed observed ready events
 - non-ready wait observations cannot claim record processing
 - reject impossible post-wait buffer state combinations
@@ -59,6 +64,7 @@ The current tests check:
 - helper-local execution summaries that keep processed-record totals compact
 - return-path helpers that preserve the successful ready count until the first processing failure wins instead
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
+- buffer-window slot lookups and mapped-size passthrough plus errno-shaped invalid-index or missing-window returns
 - impossible processing paths that overrun the observed ready-event budget
 - impossible post-wait buffer state combinations that must stay rejected
 
@@ -70,7 +76,8 @@ This slice does not yet claim:
 - epoll registration or wakeup-loop ownership
 - mmap-backed ring creation or teardown
 - descriptor ownership, duplication, or close semantics beyond bounded buffer-fd lookup results
+- direct user-visible buffer pointer materialization beyond bounded slot classification and mapped-size passthrough
 - broader perf-buffer-online-cpu-routing parity
 
 ## Next bounded step
-Park `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` unless fresh repo review finds another tiny wait-summary, docs-truthfulness, or focused-gate drift in this same helper packet; keep future libbpf follow-up smaller than full routing, epoll, timer, clockevent, or object-model work.
+If this helper family moves again, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work. The next honest reopen inside `P8-L02` is another tiny helper-local guard or replay update inside the same wait-result, buffer-fd, or buffer-window packet.
