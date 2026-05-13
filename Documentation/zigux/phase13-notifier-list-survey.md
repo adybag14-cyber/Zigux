@@ -43,6 +43,11 @@ The shipped `zigux/helpers/notifier_chain_view.zig` helper stays read-only: it
 walks `NotifierBlock` links and checks nonincreasing priority ordering without
 claiming callback execution, registration, SRCU, or blocking-notifier semantics.
 
+The shipped adjacent `include/zigux/abi.h` foothold now mirrors that same
+read-only ordering probe through `struct zigux_notifier_block` and
+`zigux_notifier_chain_has_nonincreasing_priority()` for C-side callers that only
+need notifier priority-order truthfulness.
+
 The same current-`master` readback still cannot materialize these direct notifier or
 list companions, so contributor-facing summaries should record them as repo-reality
 gaps instead of independently shipped evidence:
