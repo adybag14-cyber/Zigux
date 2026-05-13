@@ -13,6 +13,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "lane_sequencing": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "tests_companion": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "driver_file": "drivers/watchdog/dw_wdt.zig",
     "verify_file": "drivers/watchdog/dw_wdt_verify.zig",
     "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
@@ -36,6 +37,13 @@ MARKERS = {
     "lane_sequencing": [
         "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files and compile-local teardown or restart proofs explicit in shared summaries without widening them into broader platform-registration closure claims",
         "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces or widening the compile-local teardown or restart proofs into hardware-backed closure.",
+    ],
+    "tests_companion": [
+        "## Phase 11 tests-root packet",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "surviving DesignWare platform-registration continuity note",
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
@@ -78,7 +86,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 25
 
 
 class CheckError(RuntimeError):
@@ -143,6 +151,9 @@ def run_self_test() -> None:
             ("plan_note", 10),
             ("lane_sequencing", 0),
             ("lane_sequencing", 1),
+            ("tests_companion", 1),
+            ("tests_companion", 3),
+            ("tests_companion", 4),
             ("driver_file", 0),
             ("driver_file", 6),
             ("verify_file", 0),
@@ -181,6 +192,11 @@ def run_self_test() -> None:
         shutil.copytree(fixture_root, missing_scaffold_root, dirs_exist_ok=True)
         (missing_scaffold_root / FILES["registration_scaffold"]).unlink()
         expect_failure(missing_scaffold_root, FILES["registration_scaffold"])
+
+        missing_companion_root = tmpdir / "missing_tests_companion"
+        shutil.copytree(fixture_root, missing_companion_root, dirs_exist_ok=True)
+        (missing_companion_root / FILES["tests_companion"]).unlink()
+        expect_failure(missing_companion_root, FILES["tests_companion"])
 
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
