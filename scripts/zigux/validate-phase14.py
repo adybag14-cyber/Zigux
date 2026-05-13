@@ -221,6 +221,48 @@ ANCHOR_PACKET_LABELS = {
     "kernel/trace/ring_buffer.c": "ring buffer",
     "kernel/rcu/tree.c": "RCU tree",
 }
+REQUIRED_SHARED_SMOKE_SURFACES = [
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    TESTS_README_CHECKER_PATH,
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_build.zig",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+    "zigux/tests/README.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
+    "Documentation/zigux/phase14-core-boundary-traceability.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
+]
+REQUIRED_SURVEY_SUMMARY_KEYS = [
+    "phase14_validate_script_present",
+    "phase14_validate_entrypoint_present",
+    "phase14_build_has_shared_smoke_step",
+    "phase14_build_has_smoke_shard_step",
+    "phase14_make_target_present",
+    "phase14_make_smoke_target_present",
+    "workflow_runs_phase14_validate",
+    "workflow_runs_phase14_build",
+    "workflow_runs_phase14_smoke_shard",
+    "review_checklist_has_phase14_smoke_prompt",
+    "review_checklist_has_productization_prompt",
+    "review_checklist_has_rollback_threshold_prompt",
+    "smoke_note_records_rollback_threshold",
+    "smoke_note_records_tests_readme_checker",
+    "scripts_readme_records_rollback_threshold",
+    "smoke_note_records_owner_and_rollback",
+    "smoke_note_records_transfer_rationale",
+    "freeze_map_lists_workqueue_c",
+    "freeze_map_lists_skbuff_c",
+    "freeze_map_lists_ring_buffer_c",
+    "freeze_map_lists_tree_c",
+]
 
 
 def text(path: str) -> str:
@@ -446,6 +488,30 @@ def run_self_test() -> int:
         print("SELF_TEST_REASON=unexpected_scripts_readme_marker_gap")
         print("SELF_TEST_MARKERS_START")
         for item in missing_scripts_readme_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
+    if TESTS_README_CHECKER_PATH not in REQUIRED_SHARED_SMOKE_SURFACES:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_shared_smoke_surfaces")
+        return 1
+
+    required_summary_gaps = [
+        key
+        for key in [
+            "review_checklist_has_rollback_threshold_prompt",
+            "smoke_note_records_rollback_threshold",
+            "smoke_note_records_tests_readme_checker",
+            "scripts_readme_records_rollback_threshold",
+        ]
+        if key not in REQUIRED_SURVEY_SUMMARY_KEYS
+    ]
+    if required_summary_gaps:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=required_phase14_summary_keys_missing")
+        print("SELF_TEST_MARKERS_START")
+        for item in required_summary_gaps:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
@@ -690,6 +756,8 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_FAIL_MARKER=phase14 tests-readme smoke summary failed")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
+    print("PHASE14_SELF_TEST_SHARED_SMOKE_SURFACE_MARKER=scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
+    print("PHASE14_SELF_TEST_REQUIRED_SUMMARY_KEY_MARKER=smoke_note_records_tests_readme_checker")
     print(
         "PHASE14_SELF_TEST_TESTS_README_PACKET_LINE_COUNT="
         f"{len(TESTS_README_EXACT_LINES)}"
@@ -809,24 +877,7 @@ def run_validation() -> int:
         if not isinstance(shared_smoke_surfaces, list):
             missing.append("manifest:shared_smoke_surfaces")
         else:
-            for required_surface in [
-                "scripts/zigux/validate-phase14.py",
-                "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-                "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-                "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-                "scripts/zigux/README.md",
-                "zigux/tests/phase14_end_to_end_smoke_manifest.json",
-                "zigux/tests/phase14_end_to_end_smoke_survey.zig",
-                "zigux/tests/phase14_build.zig",
-                "zigux/tests/phase14_workqueue_reviewability.zig",
-                "zigux/tests/README.md",
-                "Documentation/zigux/README.md",
-                "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
-                "Documentation/zigux/phase14-release-boundary-survey.md",
-                "Documentation/zigux/phase14-core-boundary-traceability.md",
-                "Documentation/zigux/review-checklist.md",
-                "Documentation/zigux/freeze-map.md",
-            ]:
+            for required_surface in REQUIRED_SHARED_SMOKE_SURFACES:
                 if required_surface not in shared_smoke_surfaces:
                     missing.append(f"manifest:shared_smoke_surface:{required_surface}")
 
@@ -960,25 +1011,7 @@ def run_validation() -> int:
         if not isinstance(summary, dict):
             missing.append("manifest:survey_summary")
         else:
-            for key in [
-                "phase14_validate_script_present",
-                "phase14_validate_entrypoint_present",
-                "phase14_build_has_shared_smoke_step",
-                "phase14_build_has_smoke_shard_step",
-                "phase14_make_target_present",
-                "phase14_make_smoke_target_present",
-                "workflow_runs_phase14_validate",
-                "workflow_runs_phase14_build",
-                "workflow_runs_phase14_smoke_shard",
-                "review_checklist_has_phase14_smoke_prompt",
-                "review_checklist_has_productization_prompt",
-                "smoke_note_records_owner_and_rollback",
-                "smoke_note_records_transfer_rationale",
-                "freeze_map_lists_workqueue_c",
-                "freeze_map_lists_skbuff_c",
-                "freeze_map_lists_ring_buffer_c",
-                "freeze_map_lists_tree_c",
-            ]:
+            for key in REQUIRED_SURVEY_SUMMARY_KEYS:
                 if summary.get(key) is not True:
                     missing.append(f"manifest:survey_summary:{key}={summary.get(key)}")
 
