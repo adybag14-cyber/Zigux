@@ -45,6 +45,7 @@ DOCS_ROOT_MARKERS = [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
+    "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
@@ -53,6 +54,7 @@ DOCS_ROOT_MARKERS = [
 ]
 
 DOCS_ROOT_EXACT_COUNT_MARKERS = [
+    "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "make -C zigux phase14-test",
 ]
@@ -479,6 +481,26 @@ def run_self_test() -> int:
 
         write_text(
             root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `make -C zigux phase14-validate`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: make -C zigux phase14-validate"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root validate-route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
             good_docs_root_text().replace("- `make -C zigux phase14-test`\n", "", 1),
         )
         if not any(
@@ -487,6 +509,26 @@ def run_self_test() -> int:
             for error in check(root)
         ):
             print("self-test expected missing docs-root test-route failure", file=sys.stderr)
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `make -C zigux phase14-validate`\n",
+                "- `make -C zigux phase14-validate`\n- `make -C zigux phase14-validate`\n",
+                1,
+            ),
+        )
+        if not any(
+            "marker count drift in Documentation/zigux/README.md: make -C zigux phase14-validate (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate docs-root validate-route failure",
+                file=sys.stderr,
+            )
             return 1
         write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
 
@@ -764,7 +806,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
