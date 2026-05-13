@@ -24,7 +24,7 @@ The Phase 13 roadmap explicitly names `lib/devres.c` as a shared subsystem-helpe
 
 That matters because `lib/devres.c` spans managed allocation, resource lifetime tracking, region reservation, device-tree resource translation, arch memtype cleanup, and neighboring helper families that can quickly drift into live MMIO, live device-tree, or live arch memtype claims if the lane overstates parity.
 
-Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, device-tree, arch memtype, and scatterlist-backed ownership state is still blocked.
+Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, device-tree, and arch memtype state is still blocked, while DMA or scatterlist ownership stays outside this helper-local packet.
 
 ## Survey findings
 
@@ -63,9 +63,8 @@ The current lane state is:
 - blocked `phase13-devres-live-mmio-mappings`
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
-- blocked `phase13-devres-live-scatterlist-ownership`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, and direct replay plus reviewability guards, but it still does not claim live MMIO mappings, live device-tree walking, live arch memtype state transitions, or live scatterlist ownership.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, and direct replay plus reviewability guards, but it still does not claim live MMIO mappings, live device-tree walking, or live arch memtype state transitions, and it still keeps DMA or scatterlist ownership outside this helper-local packet.
 
 ## Non-goals
 
