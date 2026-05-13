@@ -541,6 +541,21 @@ test "nextArg keeps the first unquoted equals as the only separator" {
     try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
 }
 
+test "nextArg keeps first-unquoted-equals param, value, and rest borrowed from the caller buffer" {
+    var buffer = [_]u8{ 'k', 'e', 'y', '=', 'a', 'l', 'p', 'h', 'a', '=', 'b', 'e', 't', 'a', ' ', 't', 'a', 'i', 'l', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("alpha=beta", parsed.value.?);
+    try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
+
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[4])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[15])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), buffer[3]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[14]);
+}
+
 test "nextArg keeps a whole quoted token together without inventing a value" {
     var buffer = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', ' ', 't', 'a', 'i', 'l', 0 };
     const parsed = nextArg(&buffer);
@@ -557,6 +572,22 @@ test "nextArg splits a leading quoted token at the first equals like Linux" {
     try std.testing.expectEqualStrings("key", parsed.param);
     try std.testing.expectEqualStrings("value", parsed.value.?);
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+}
+
+test "nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer" {
+    var buffer = [_]u8{ '"', 'k', 'e', 'y', '=', 'v', 'a', 'l', 'u', 'e', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("value", parsed.value.?);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[1])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[5])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[12])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[10]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[11]);
 }
 
 test "nextArg keeps an empty quoted bare token unsplit" {
