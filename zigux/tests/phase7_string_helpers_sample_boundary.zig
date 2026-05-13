@@ -127,6 +127,9 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_manifest.json");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
