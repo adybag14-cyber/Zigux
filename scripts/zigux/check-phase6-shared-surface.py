@@ -14,6 +14,8 @@ class ValidationError(RuntimeError):
 
 
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+DOCS_README_PATH = Path("Documentation/zigux/README.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 LANE_PATH = Path("Documentation/zigux/phase6-leaf-helper-lane-sequencing.md")
@@ -22,6 +24,10 @@ BSEARCH_SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
+PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 BASE64_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 BSEARCH_CORPUS_SCRIPT_PATH = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
@@ -43,6 +49,8 @@ ABSENT_PATHS = [
 
 PRESENT_PATHS = [
     MANIFEST_PATH,
+    DOCS_README_PATH,
+    REVIEW_CHECKLIST_PATH,
     CATALOG_PATH,
     PERF_SURVEY_PATH,
     LANE_PATH,
@@ -51,6 +59,7 @@ PRESENT_PATHS = [
     CHECKSUM_SLICE_PATH,
     HEXDUMP_SLICE_PATH,
     SCRIPTS_README_PATH,
+    TESTS_README_PATH,
     BASE64_PARITY_SCRIPT_PATH,
     BSEARCH_CORPUS_SCRIPT_PATH,
     CHECKSUM_PARITY_SCRIPT_PATH,
@@ -61,6 +70,9 @@ PRESENT_PATHS = [
     Path("zigux/tests/phase6_hexdump_perf.zig"),
     Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"),
     HEXDUMP_MATRIX_PATH,
+    PHASE6_BUILD_PATH,
+    WORKFLOW_PATH,
+    MAKEFILE_PATH,
 ]
 
 REQUIRED_SNIPPETS = {
@@ -167,6 +179,20 @@ EXPECTED_SHARED_ROUTE_NOTE = (
     "follow-up to stop advertising that broader packet as fully runnable."
 )
 
+EXPECTED_SHARED_GATES = [
+    DOCS_README_PATH.as_posix(),
+    REVIEW_CHECKLIST_PATH.as_posix(),
+    CATALOG_PATH.as_posix(),
+    PERF_SURVEY_PATH.as_posix(),
+    LANE_PATH.as_posix(),
+    SCRIPTS_README_PATH.as_posix(),
+    Path("scripts/zigux/check-phase6-shared-surface.py").as_posix(),
+    TESTS_README_PATH.as_posix(),
+    PHASE6_BUILD_PATH.as_posix(),
+    WORKFLOW_PATH.as_posix(),
+    MAKEFILE_PATH.as_posix(),
+]
+
 
 def read_text(path: Path) -> str:
     try:
@@ -207,6 +233,10 @@ def validate_manifest(repo_root: Path) -> None:
     shared_route_note = manifest.get("shared_route_truthfulness_note")
     if shared_route_note != EXPECTED_SHARED_ROUTE_NOTE:
         raise ValidationError(f"unexpected shared_route_truthfulness_note in {MANIFEST_PATH}")
+
+    shared_gates = manifest.get("shared_gates")
+    if shared_gates != EXPECTED_SHARED_GATES:
+        raise ValidationError(f"unexpected shared_gates in {MANIFEST_PATH}: {shared_gates!r}")
 
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
@@ -288,6 +318,7 @@ def scaffold_repo(root: Path) -> None:
         "status": "partially_blocked",
         "packet_state_summary": dict(EXPECTED_PACKET_STATE_SUMMARY),
         "shared_route_truthfulness_note": EXPECTED_SHARED_ROUTE_NOTE,
+        "shared_gates": list(EXPECTED_SHARED_GATES),
         "surveyed_commit": "a0f4d7e",
         "helpers": [
             {"id": "base64", "slice_note": BASE64_SLICE_PATH.as_posix()},
@@ -308,8 +339,11 @@ def scaffold_repo(root: Path) -> None:
         },
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write(root / DOCS_README_PATH, "# Documentation root placeholder\n")
+    write(root / REVIEW_CHECKLIST_PATH, "# Review checklist placeholder\n")
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         write(root / rel_path, "\n".join(snippets) + "\n")
+    write(root / TESTS_README_PATH, "# Tests root placeholder\n")
     catalog_text = read_text(root / CATALOG_PATH)
     if "- surveyed head: `a0f4d7e`" not in catalog_text:
         write(root / CATALOG_PATH, catalog_text + "- surveyed head: `a0f4d7e`\n")
@@ -317,6 +351,9 @@ def scaffold_repo(root: Path) -> None:
     write(root / Path("zigux/tests/phase6_hexdump.zig"), 'test "phase6 hexdump packet placeholder" {}\n')
     write(root / Path("zigux/tests/phase6_hexdump_perf.zig"), 'pub fn main() void {}\n')
     write(root / Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig"), "pub const cases = .{};\n")
+    write(root / PHASE6_BUILD_PATH, "const std = @import(\"std\");\n")
+    write(root / WORKFLOW_PATH, "name: zigux-bootstrap\n")
+    write(root / MAKEFILE_PATH, "phase6:\n\t@true\n")
     write(
         root / HEXDUMP_MATRIX_PATH,
         'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {}\n',
@@ -362,6 +399,12 @@ def run_self_test() -> None:
             "- this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
             "- this slice is blocked until a later review",
         )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"shared_gates": [',
+            '"shared_gate_inventory": [',
+        )
         present_should_be_absent = root / ABSENT_PATHS[0]
         write(present_should_be_absent, "unexpected\n")
         try:
@@ -392,6 +435,16 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected present-path failure")
         write(required_should_be_present, "pub const cases = .{};\n")
+        shared_gate_should_be_present = root / MAKEFILE_PATH
+        shared_gate_should_be_present.unlink()
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if MAKEFILE_PATH.as_posix() not in str(exc):
+                raise AssertionError(f"unexpected shared-gate present-path failure: {exc}") from exc
+        else:
+            raise AssertionError("expected shared-gate present-path failure")
+        write(shared_gate_should_be_present, "phase6:\n\t@true\n")
         assert_failure(
             root,
             BASE64_PARITY_SCRIPT_PATH,
