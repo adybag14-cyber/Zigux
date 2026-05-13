@@ -33,27 +33,27 @@ MAKE_MARKERS = [
 
 SURVEY_MARKERS = [
     "`PHASE10_STATUS=parked`",
+    "`PHASE10_SLICE=virtio-input-survey`",
     "`PHASE10_LANE_KEY=P10-L13`",
-    "keep the current `virtio_input` reminder packet fail-closed against live current-`master` readback",
-    "`zigux/tests/phase10_virtio_input_manifest.json`",
-    "`Documentation/zigux/phase10-virtio-input-survey.md`",
-    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
-    "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
-    "`drivers/virtio/virtio_input.zig`",
-    "`scripts/zigux/check-phase10-input-packet.py`",
-    "`zigux/tests/phase10_virtio_input_registration_preflight.zig`",
-    "`Documentation/zigux/phase10-virtio-input-slice.md`",
-    "the directly readable input-lane packet on current `master` is therefore limited to this survey note, the paired manifest, the shared lane-sequencing note, and `zigux/tests/phase10_virtio_input_teardown_observation.zig`.",
-    "The reminder manifest now records:",
-    "`phase10-virtio-input-direct-packet-restore`",
-    "`phase10-virtio-input-registration-lifecycle`",
-    "When the wider direct packet is eventually restored, reintroduce dedicated checker and replay commands only after those paths are present again on current `master`.",
+    "keep the current `virtio_input` packet fail-closed against live current-`master` rereads now that the broader direct helper-facing packet is visible again through public-tree fallback while risky transport remains blocked",
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "landed `phase10-virtio-input-direct-packet-restore`",
+    "repo-reality gap `phase10-virtio-input-slice-companions`",
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
 ]
 
 LANE_NOTE_MARKERS = [
     "`P10-L13`",
     "`Documentation/zigux/phase10-virtio-input-survey.md`",
     "`zigux/tests/phase10_virtio_input_manifest.json`",
+    "`drivers/virtio/virtio_input.zig`",
+    "`drivers/virtio/virtio_input_verify.zig`",
 ]
 
 TEARDOWN_MARKERS = [
@@ -68,12 +68,6 @@ EXPECTED_DIRECT_PACKET_FILES = [
     "zigux/tests/phase10_virtio_input_manifest.json",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-]
-
-EXPECTED_MISSING_DIRECT_INPUT_PATHS = [
-    "Documentation/zigux/phase10-virtio-input-slice.md",
-    "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "scripts/zigux/check-phase10-input-packet.py",
@@ -82,16 +76,43 @@ EXPECTED_MISSING_DIRECT_INPUT_PATHS = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
+]
+
+EXPECTED_MISSING_DIRECT_INPUT_PATHS = [
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
 ]
 
 EXPECTED_GAP_STATUSES = {
     "phase10-virtio-input-reminder-manifest": "starter_landed",
     "phase10-virtio-input-survey-note": "starter_landed",
+    "phase10-virtio-input-direct-packet-restore": "starter_landed",
     "phase10-virtio-input-teardown-observation-replay": "starter_landed",
-    "phase10-virtio-input-direct-packet-restore": "repo_reality_gap",
+    "phase10-virtio-input-slice-companions": "repo_reality_gap",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
+
+EXPECTED_ROADMAP_DESTINATIONS = [
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/",
+]
+
+EXPECTED_ALLOWED_EVIDENCE_KINDS = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -141,6 +162,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append(f"manifest:anchor={manifest.get('anchor')}")
     if not HEX40.fullmatch(str(manifest.get("surveyed_commit", ""))):
         missing.append("manifest:surveyed_commit")
+    if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
+        missing.append("manifest:roadmap_destinations")
     if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
         missing.append(f"manifest:freeze_map={manifest.get('freeze_map')}")
     if manifest.get("freeze_boundary_status") != "aligned":
@@ -151,19 +174,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         )
     if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
         missing.append(f"manifest:risky_transport_posture={manifest.get('risky_transport_posture')}")
-    if manifest.get("allowed_evidence_kinds") != [
-        "driver_local_lab_slices",
-        "survey_manifests",
-        "shared_validation_gates",
-    ]:
+    if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
         missing.append("manifest:allowed_evidence_kinds")
-    if manifest.get("forbidden_transport_claims") != [
-        "queue_setup_reset_paths",
-        "irq_parity",
-        "dma_paths",
-        "input_registration_lifecycle",
-        "probe_remove_lifecycle",
-    ]:
+    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
         missing.append("manifest:forbidden_transport_claims")
     if manifest.get("architecture_council_reopen_required") is not True:
         missing.append(
@@ -199,10 +212,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if gap.get("status") != expected_status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
 
-    for rel_path in EXPECTED_MISSING_DIRECT_INPUT_PATHS:
-        if (root / rel_path).exists():
-            missing.append(f"unexpected_present:{rel_path}")
-
     return [], missing
 
 
@@ -222,27 +231,13 @@ def write_fixture(root: Path) -> None:
                 "phase": "Phase 10",
                 "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
                 "anchor": "drivers/virtio/virtio_input.c",
-                "roadmap_destinations": [
-                    "drivers/virtio/*.zig",
-                    "zigux/kernel/",
-                    "zigux/helpers/",
-                ],
+                "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
                 "freeze_map": "Documentation/zigux/freeze-map.md",
                 "freeze_boundary_status": "aligned",
                 "freeze_status_change_claimed": False,
                 "risky_transport_posture": "blocked_on_risky_transport",
-                "allowed_evidence_kinds": [
-                    "driver_local_lab_slices",
-                    "survey_manifests",
-                    "shared_validation_gates",
-                ],
-                "forbidden_transport_claims": [
-                    "queue_setup_reset_paths",
-                    "irq_parity",
-                    "dma_paths",
-                    "input_registration_lifecycle",
-                    "probe_remove_lifecycle",
-                ],
+                "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+                "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
                 "architecture_council_reopen_required": True,
                 "architecture_council_reopen_attached": False,
                 "survey_summary": {
@@ -303,16 +298,31 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
-                "`scripts/zigux/check-phase10-input-packet.py`",
-                "`scripts/zigux/check-phase10-input-packet-missing.py`",
+                "drivers/virtio/virtio_input.zig",
+                "drivers/virtio/virtio_input_missing.zig",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "survey:`scripts/zigux/check-phase10-input-packet.py`",
-            "phase10-self-test:survey_missing_checker_gap",
+            "survey:drivers/virtio/virtio_input.zig",
+            "phase10-self-test:survey_missing_direct_helper",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "repo-reality gap `phase10-virtio-input-slice-companions`",
+                "repo-reality gap `phase10-virtio-input-slice-companions-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "survey:repo-reality gap `phase10-virtio-input-slice-companions`",
+            "phase10-self-test:survey_missing_slice_gap",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -329,6 +339,23 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        lane_note_path = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+        original_lane_note = lane_note_path.read_text(encoding="utf-8")
+        lane_note_path.write_text(
+            original_lane_note.replace(
+                "`drivers/virtio/virtio_input_verify.zig`",
+                "`drivers/virtio/virtio_input_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "lane_note:`drivers/virtio/virtio_input_verify.zig`",
+            "phase10-self-test:lane_note_missing_verify_surface",
+        )
+        lane_note_path.write_text(original_lane_note, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_summary"]["directly_readable_input_packet_files"] = EXPECTED_DIRECT_PACKET_FILES[:-1]
@@ -341,24 +368,26 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["missing_direct_input_paths"] = EXPECTED_MISSING_DIRECT_INPUT_PATHS[:-1]
+        manifest["survey_summary"]["missing_direct_input_paths"] = EXPECTED_MISSING_DIRECT_INPUT_PATHS + [
+            "drivers/virtio/virtio_input.zig"
+        ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
             "manifest:survey_summary:missing_direct_input_paths",
             "phase10-self-test:missing_path_list",
         )
-        write_fixture(root)
+        writeFixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
             if gap["id"] == "phase10-virtio-input-direct-packet-restore":
-                gap["status"] = "starter_landed"
+                gap["status"] = "repo_reality_gap"
                 break
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
-            "manifest:gap_status:phase10-virtio-input-direct-packet-restore=starter_landed",
+            "manifest:gap_status:phase10-virtio-input-direct-packet-restore=repo_reality_gap",
             "phase10-self-test:gap_status_drift",
         )
         write_fixture(root)
@@ -385,16 +414,6 @@ def run_self_test() -> int:
             "phase10-self-test:teardown_marker",
         )
         teardown_path.write_text(original_teardown, encoding="utf-8")
-
-        missing_path = root / "drivers/virtio/virtio_input.zig"
-        missing_path.parent.mkdir(parents=True, exist_ok=True)
-        missing_path.write_text("// unexpected restore\n", encoding="utf-8")
-        expect_missing_marker(
-            root,
-            "unexpected_present:drivers/virtio/virtio_input.zig",
-            "phase10-self-test:unexpected_direct_packet_restore",
-        )
-        missing_path.unlink()
 
         (root / "scripts/zigux/validate-phase10-closure.py").unlink()
         expect_missing_file(
@@ -442,7 +461,7 @@ def main() -> int:
         + len(EXPECTED_DIRECT_PACKET_FILES)
         + len(EXPECTED_MISSING_DIRECT_INPUT_PATHS)
         + len(EXPECTED_GAP_STATUSES)
-        + 10
+        + 12
     )
     print("PHASE10_VALIDATION=pass")
     print(f"PHASE10_REQUIRED_FILE_COUNT={len(FILES)}")
