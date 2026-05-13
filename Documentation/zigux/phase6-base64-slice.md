@@ -5,18 +5,18 @@
 - `PHASE6_SLICE=base64-leaf-helper`
 - helper anchor: `lib/base64.zig`
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
-- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 ## Review Surface
-- present helper and direct C parity packet: `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- present helper and direct C parity packet: `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - currently missing focused helper replay and perf packet: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
-- direct local C parity checker route once the missing fixture dependency is restored or the runner is decoupled from it: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+- direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
 - built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`
-- Linux-style C parity rerun route once the helper-local packet is restored: `make -C zigux phase6-base64-c-parity`
+- shared route inventory still names `make -C zigux phase6-base64-c-parity`, but this lane only re-established the direct local parity packet and did not retell the broader shared-route surfaces
 - current `master` cannot honestly claim the broader focused base64 replay, the helper drift guard, or the dedicated base64 slowdown gate because the committed replay and fixture files that backed those surfaces are absent from the tree
-- the shipped direct C parity surface is also not currently runnable as a complete packet because `zigux/tests/phase6_base64_c_parity.zig` still imports the absent `zigux/tests/fixtures/phase6_base64_vectors.zig` fixture module
-- this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module
+- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module
+- this slice remains partially landed until the missing focused replay and fixture-backed perf packet return, but the direct local C parity runner is again a truthful review surface on current `master`
 
 ## Next Step
-Refresh against a fresh `master` base and choose one bounded repair: either restore `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` so the base64 helper packet becomes runnable again, or retell the shared reminder and route surfaces so they stop advertising focused base64 replay and perf coverage that the committed tree does not contain.
+Refresh against a fresh `master` base and choose one bounded repair: either restore `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` so the broader base64 helper packet becomes runnable again, or keep the self-contained direct C parity corpus synchronized without widening into the shared Phase 6 route inventory.
