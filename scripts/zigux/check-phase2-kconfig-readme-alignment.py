@@ -14,7 +14,7 @@ CURRENT_BOOTSTRAP_HELPERS_SNIPPET = (
     "- `check-phase2-tool-manifest-packets.py` - `check-phase2-fixdep-gate.py` "
     "- `check-fixdep-diff.py` - `check-genksyms-bridge.py` - `check-phase2-cross.py` "
     "- `check-phase2-cross-selftest-alignment.py` - `check-phase2-kconfig-selftest-alignment.py` "
-    "- `validate-phase2.py` - `validate-phase2-closure.py` "
+    "- `check-kconfig-bridge.py` - `validate-phase2.py` - `validate-phase2-closure.py` "
     "- `check-phase2-toolchain-pin-scope.py` - `validate-phase3.py`"
 )
 CURRENT_PHASE2_LIVE_SENTENCE = (
@@ -23,8 +23,8 @@ CURRENT_PHASE2_LIVE_SENTENCE = (
     "`check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, "
     "`check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, "
     "`check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, "
-    "`check-phase2-cross-selftest-alignment.py`, and `check-phase2-kconfig-selftest-alignment.py` "
-    "are the live shared scripts-root Phase 2 helpers on current `master`; the broader "
+    "`check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, and "
+    "`check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`; the broader "
     "`phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, "
     "and `phase2` route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, "
     "and bridge checker packet should stay documented through "
