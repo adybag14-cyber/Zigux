@@ -16,6 +16,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
@@ -24,7 +25,9 @@ REQUIRED_FILES = (
     Path("zigux/bindings/abi.zig"),
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi.zig"),
@@ -51,10 +54,13 @@ REQUIRED_FILES = (
 )
 REQUIRED_MANIFEST_ENTRIES = (
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("include/zigux/dev_t.h"),
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
@@ -257,6 +263,21 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / low_level_wrapper_survey_rel)
 
+        kernel_export_note_rel = Path(
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md"
+        )
+        (root / kernel_export_note_rel).unlink()
+        issues = validate_repo(root)
+        expected_kernel_export_note_missing = (
+            f"missing repo file: {kernel_export_note_rel.as_posix()}"
+        )
+        if expected_kernel_export_note_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing kernel-export governance note was not reported")
+            return 1
+        case_count += 1
+        _write(root / kernel_export_note_rel)
+
         header_governance_rel = Path(
             "Documentation/zigux/phase3-linux-zigux-header-governance.md"
         )
@@ -301,6 +322,28 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / validator_support_checker_rel)
+
+        layout_assert_rel = Path("zigux/helpers/layout_assert.zig")
+        (root / layout_assert_rel).unlink()
+        issues = validate_repo(root)
+        expected_layout_assert_missing = f"missing repo file: {layout_assert_rel.as_posix()}"
+        if expected_layout_assert_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing layout-assert helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / layout_assert_rel)
+
+        narrow_unsafe_rel = Path("zigux/unsafe/narrow.zig")
+        (root / narrow_unsafe_rel).unlink()
+        issues = validate_repo(root)
+        expected_narrow_unsafe_missing = f"missing repo file: {narrow_unsafe_rel.as_posix()}"
+        if expected_narrow_unsafe_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing narrow-unsafe helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / narrow_unsafe_rel)
 
         mmio_consumer_rel = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
         (root / mmio_consumer_rel).unlink()
