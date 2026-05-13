@@ -71,9 +71,10 @@
       "anchor_symbols": [
         "skb_segment",
         "segs->prev",
-        "validate_xmit_skb_list"
+        "validate_xmit_skb_list",
+        "tail = skb->prev"
       ],
-      "rationale": "The exported tail contract still spans segs->prev publication, tail->next splicing, and validate_xmit_skb_list() consumption."
+      "rationale": "The exported tail contract still spans segs->prev publication, tail->next splicing, validate_xmit_skb_list() consumption, and the consumer-side tail = skb->prev reset cue."
     }
   ],
   "gaps": [
