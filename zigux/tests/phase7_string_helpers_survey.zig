@@ -34,11 +34,12 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
     try expectContains(manifest, "\"current_master_truthfulness\":");
     try expectContains(manifest, "\"phase7-string-helpers-helper\"");
     try expectContains(manifest, "\"phase7-string-helpers-dedicated-tests\"");
-    try expectContains(manifest, "the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders now match the synced docs-root parked packet");
+    try expectContains(manifest, "the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet");
     try expectContains(manifest, "\"status\": \"missing_on_master\"");
     try expectNotContains(manifest, "\"phase7-string-helpers-validator-truthfulness\"");
     try expectNotContains(manifest, "\"phase7-string-helpers-scripts-readme-boundary\"");
     try expectNotContains(manifest, "still reads narrower");
+    try expectNotContains(manifest, "synced docs-root parked packet");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
