@@ -5,6 +5,24 @@
   "roadmap_destinations": [
     "lib/cmdline.zig"
   ],
+  "current_verification": {
+    "verified_on_utc": "2026-05-13T00:00:00Z",
+    "cmdline_pair_compile": {
+      "status": "confirmed",
+      "paths": [
+        "lib/cmdline.zig",
+        "zigux/tests/phase7_cmdline.zig"
+      ]
+    },
+    "shared_phase7_build": {
+      "status": "blocked",
+      "build_file": "zigux/tests/phase7_build.zig",
+      "missing_sibling_paths": [
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig"
+      ]
+    }
+  },
   "review_surfaces": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -53,7 +71,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the cmdline runtime-safe leaf packet aligned with the parked helper tranche."
+      "why_now": "The shared Phase 7 build step remains the honest cross-helper review gate for the cmdline runtime-safe leaf packet, but current master cannot clear that gate again until the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is restored."
     },
     {
       "id": "phase7-cmdline-helper",
