@@ -93,6 +93,18 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
         'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
+        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {',
+        'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
+        'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {',
+    ),
+    EXEC_CMD_ONLY_BUILD_PATH: (
+        '.name = "phase8-exec-cmd-tests"',
+        'b.step("test", "Run focused Phase 8 exec-cmd tests")',
+    ),
+    PHASE8_BUILD_PATH: (
+        '.name = "phase8-exec-cmd-tests"',
+        '.root_source_file = b.path("phase8_exec_cmd.zig")',
+        'b.step("test", "Run Phase 8 tooling expansion tests")',
     ),
     EXEC_CMD_SOURCE_PATH: (
         "pub fn buildDeferredExecvCall(",
@@ -187,6 +199,13 @@ def run_self_test() -> int:
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {'),
+            (EXEC_CMD_ONLY_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
+            (EXEC_CMD_ONLY_BUILD_PATH, 'b.step("test", "Run focused Phase 8 exec-cmd tests")'),
+            (PHASE8_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
+            (PHASE8_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
             (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
         )
         for rel_path, marker in mutations:
