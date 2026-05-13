@@ -24,47 +24,85 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_PANIC_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {",
+    "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {",
     "pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {",
+    "pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {",
     "pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {",
     'try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));',
     'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));',
+    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
+    'try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));',
+    'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!canReturnInteropPolicy(reserved_policy));',
 )
 
 REQUIRED_ALLOCATOR_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {",
+    "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {",
     "pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {",
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));',
     'try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));',
+    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
+    'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));',
 )
 
 REQUIRED_NARROW_SNIPPETS = (
     "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
     "pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
     "pub fn permitsRawPointerBridgeByte(unsafe_scope: u8) bool {",
+    "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
+    "pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
     "pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {",
     "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
     "pub fn pointerAtInteropPolicyBytes(",
+    "pub fn pointerAtInteropPolicy(",
     "pub fn sliceAtInteropPolicyBytes(",
     "pub fn sliceAtInteropPolicy(",
     "pub fn sliceAtByte(",
     "pub fn constSliceAtInteropPolicyBytes(",
+    "pub fn constSliceAtInteropPolicy(",
     "pub fn constPointerAtInteropPolicyBytes(",
+    "pub fn constPointerAtInteropPolicy(",
     "pub fn writeValueAtInteropPolicyBytes(",
+    "pub fn writeValueAtInteropPolicy(",
     'try std.testing.expect(permitsRawPointerBridgeByte(2));',
     'try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));',
+    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
+    'try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!permitsVolatileMmioInteropPolicy(reserved_policy));',
+    'try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));',
     'const scoped_mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);',
     'const scoped_mut_slice_bytes = try sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);',
     'const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);',
+    'const scoped_mut_ptr = try pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), raw_policy);',
+    'const scoped_ptr = try constPointerAtInteropPolicy(u32, bridge_addr, raw_policy);',
+    'const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);',
+    'try writeValueAtInteropPolicy(u32, bridge_addr, 65, raw_policy);',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));',
+    'try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(reserved_policy));',
+    'try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(reserved_policy));',
     'try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));',
 )
 
@@ -152,24 +190,33 @@ def run_self_test() -> int:
         assert f"missing_survey_marker:{REQUIRED_SURVEY_MARKERS[-1]}" in issues
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
-        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS[:-1]) + "\n")
+        _write(root, NARROW_REL, "\n".join(snippet for snippet in REQUIRED_NARROW_SNIPPETS if snippet != "pub fn constPointerAtInteropPolicy(") + "\n")
         issues = validate(root)
-        assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[-1]}" in issues
+        assert (
+            "missing_narrow_snippet:pub fn constPointerAtInteropPolicy("
+            in issues
+        )
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
-        _write(root, NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(REQUIRED_NARROW_SNIPPETS[7] + "\n", "", 1))
+        _write(root, NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(REQUIRED_NARROW_SNIPPETS[13] + "\n", "", 1))
         issues = validate(root)
-        assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[7]}" in issues
+        assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[13]}" in issues
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
-        _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS[:-1]) + "\n")
+        _write(root, PANIC_REL, "\n".join(snippet for snippet in REQUIRED_PANIC_SNIPPETS if snippet != 'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));') + "\n")
         issues = validate(root)
-        assert f"missing_panic_snippet:{REQUIRED_PANIC_SNIPPETS[-1]}" in issues
+        assert (
+            "missing_panic_snippet:try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));"
+            in issues
+        )
 
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS) + "\n")
-        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS[:-1]) + "\n")
+        _write(root, ALLOCATOR_REL, "\n".join(snippet for snippet in REQUIRED_ALLOCATOR_SNIPPETS if snippet != 'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));') + "\n")
         issues = validate(root)
-        assert f"missing_allocator_snippet:{REQUIRED_ALLOCATOR_SNIPPETS[-1]}" in issues
+        assert (
+            "missing_allocator_snippet:try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));"
+            in issues
+        )
 
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS[:-1]) + "\n")
@@ -182,7 +229,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
