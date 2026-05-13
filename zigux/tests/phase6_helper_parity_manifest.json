@@ -27,7 +27,7 @@
         "zigux/tests/phase6_base64_perf.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
@@ -254,8 +254,8 @@
   },
   "fixture_posture": {
     "base64": {
-      "focused_replay": "zigux/tests/phase6_base64.zig",
-      "fixture_module": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+      "focused_replay_fixture": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+      "direct_c_parity_fixture": "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
       "direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
       "direct_c_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
       "direct_c_case_generator": "zigux/tests/phase6_base64_c_casegen.zig",
