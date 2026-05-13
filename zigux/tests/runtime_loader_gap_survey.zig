@@ -60,7 +60,7 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
     try expectContains(manifest, "\"surface\": \"samples/zigux/runtime_trace_events_loader.zig\"");
     try expectContains(manifest, "\"owner\": \"P9-L18\"");
-    try expectContains(manifest, "\"owner\": \"P9-L16\"");
+    try expectContains(manifest, "\"owner\": \"P9-L11\"");
     try expectContains(manifest, "\"id\": \"runtime-loader-publication-metadata\"");
     try expectContains(manifest, "\"status\": \"blocked_on_runtime_substrate\"");
 }
