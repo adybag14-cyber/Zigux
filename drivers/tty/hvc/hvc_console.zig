@@ -254,6 +254,8 @@ pub const PollDrainOrderRequest = struct {
     partial_write_progress: bool,
     stalled_retry_path: bool,
     pending_sysrq_dispatch_separate: bool,
+    tty_wakeup_pending: bool,
+    read_activity_detected: bool,
 };
 
 pub const PollDrainOrderSummary = struct {
@@ -261,6 +263,8 @@ pub const PollDrainOrderSummary = struct {
     partial_write_progress: bool,
     stalled_retry_path: bool,
     pending_sysrq_dispatch_separate: bool,
+    tty_wakeup_precedes_flip_push: bool,
+    read_activity_resets_timeout: bool,
 };
 
 pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {
@@ -269,6 +273,8 @@ pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSum
         .partial_write_progress = request.partial_write_progress,
         .stalled_retry_path = request.stalled_retry_path,
         .pending_sysrq_dispatch_separate = request.pending_sysrq_dispatch_separate,
+        .tty_wakeup_precedes_flip_push = request.tty_wakeup_pending and request.read_activity_detected,
+        .read_activity_resets_timeout = request.read_activity_detected,
     };
 }
 
@@ -536,12 +542,34 @@ test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {
         .partial_write_progress = true,
         .stalled_retry_path = false,
         .pending_sysrq_dispatch_separate = true,
+        .tty_wakeup_pending = true,
+        .read_activity_detected = true,
     });
 
     try std.testing.expect(summary.irq_backed_drained_reads);
     try std.testing.expect(summary.partial_write_progress);
     try std.testing.expect(!summary.stalled_retry_path);
     try std.testing.expect(summary.pending_sysrq_dispatch_separate);
+    try std.testing.expect(summary.tty_wakeup_precedes_flip_push);
+    try std.testing.expect(summary.read_activity_resets_timeout);
+}
+
+test "phase11 hvc console keeps wakeup-only poll retries distinct from read-driven timeout reset" {
+    const summary = summarizePollDrainOrder(.{
+        .irq_backed_drained_reads = false,
+        .partial_write_progress = false,
+        .stalled_retry_path = true,
+        .pending_sysrq_dispatch_separate = false,
+        .tty_wakeup_pending = true,
+        .read_activity_detected = false,
+    });
+
+    try std.testing.expect(!summary.irq_backed_drained_reads);
+    try std.testing.expect(!summary.partial_write_progress);
+    try std.testing.expect(summary.stalled_retry_path);
+    try std.testing.expect(!summary.pending_sysrq_dispatch_separate);
+    try std.testing.expect(!summary.tty_wakeup_precedes_flip_push);
+    try std.testing.expect(!summary.read_activity_resets_timeout);
 }
 
 test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {
