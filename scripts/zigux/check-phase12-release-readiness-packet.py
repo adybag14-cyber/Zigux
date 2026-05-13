@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PHASE12_CHECK_PACKET=release_readiness_packet
 
-Fail-closed checker for the bounded Phase 12 release-readiness fallback note.
+Fail-closed checker for the bounded Phase 12 release-readiness note and shipped validation route.
 """
 
 from __future__ import annotations
@@ -16,6 +16,8 @@ RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.m
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 ROADMAP_PATH = "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
+MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE12_SECTION_HEADING = "## Phase 12: Complex Production Drivers and Heavy Helper Consumers"
 ROADMAP_ANCHORS = [
     "`drivers/net/virtio_net.c`",
@@ -28,14 +30,28 @@ RELEASE_READINESS_MARKERS = [
     "`PHASE12_RELEASE_CLOSED=no`",
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-    "If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
-    "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
-    "The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+    "Repo-first inspection against current `adybag14-cyber/Zigux` `master` shows that the shared Phase 12 packet is validator-backed but still smoke-first on replay:",
+    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
+    "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
+    "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
     "The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
     "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.",
 ]
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
+]
+MAKEFILE_MARKERS = [
+    "phase12-validate:",
+    "scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "scripts/zigux/validate-phase12.py",
+    "phase12: phase12-validate phase12-smoke phase12-test",
+]
+WORKFLOW_MARKERS = [
+    "Validate Phase 12 degraded-workflow bundle",
+    "run: make -C zigux phase12-validate",
+    "Run focused Phase 12 smoke shard",
+    "Run Phase 12 complex driver tests",
 ]
 
 
@@ -97,6 +113,8 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         root / SCRIPTS_README_PATH,
         root / ROADMAP_PATH,
         root / BUILD_ONLY_CHECKER_PATH,
+        root / MAKEFILE_PATH,
+        root / WORKFLOW_PATH,
     ]
     for path in required_files:
         if not path.exists():
@@ -113,6 +131,12 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     scripts_readme_text = read_text(root / SCRIPTS_README_PATH)
     require_exact_count(errors, SCRIPTS_README_PATH, scripts_readme_text, SCRIPTS_README_MARKERS)
+
+    makefile_text = read_text(root / MAKEFILE_PATH)
+    require_exact_count(errors, MAKEFILE_PATH, makefile_text, MAKEFILE_MARKERS)
+
+    workflow_text = read_text(root / WORKFLOW_PATH)
+    require_exact_count(errors, WORKFLOW_PATH, workflow_text, WORKFLOW_MARKERS)
 
     roadmap_section = extract_section(read_text(root / ROADMAP_PATH), PHASE12_SECTION_HEADING)
     if roadmap_section is None:
@@ -142,9 +166,10 @@ def good_release_readiness_text() -> str:
             "- support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
             "",
             "## Current Release Reading",
-            "- If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
-            "- Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
-            "- The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+            "- Repo-first inspection against current `adybag14-cyber/Zigux` `master` shows that the shared Phase 12 packet is validator-backed but still smoke-first on replay:",
+            "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
+            "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
+            "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
             "- The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
             "- During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.",
             "",
@@ -177,6 +202,36 @@ def good_roadmap_text() -> str:
     )
 
 
+def good_makefile_text() -> str:
+    return "\n".join(
+        [
+            "phase12-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py",
+            "",
+            "phase12: phase12-validate phase12-smoke phase12-test",
+            "",
+        ]
+    )
+
+
+def good_workflow_text() -> str:
+    return "\n".join(
+        [
+            "- name: Validate Phase 12 degraded-workflow bundle",
+            "  run: make -C zigux phase12-validate",
+            "- name: Run focused Phase 12 smoke shard",
+            "  run: make -C zigux phase12-smoke",
+            "- name: Run Phase 12 complex driver tests",
+            "  run: zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+            "",
+        ]
+    )
+
+
 def expect_contains(errors: list[str], needle: str, label: str) -> None:
     if not any(needle in error for error in errors):
         raise SystemExit(f"{label}: {errors!r}")
@@ -189,6 +244,8 @@ def run_self_test() -> int:
         write(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
         write(tmp_root / ROADMAP_PATH, good_roadmap_text())
         write(tmp_root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
+        write(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write(tmp_root / WORKFLOW_PATH, good_workflow_text())
 
         if errors := check(tmp_root, source_text=MARKER):
             raise SystemExit(f"self-test expected success but failed: {errors!r}")
@@ -211,7 +268,22 @@ def run_self_test() -> int:
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.\n",
+                "- Repo-first inspection against current `adybag14-cyber/Zigux` `master` shows that the shared Phase 12 packet is validator-backed but still smoke-first on replay:\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "validator-backed but still smoke-first on replay",
+            "self-test expected validator-backed summary failure",
+        )
+
+        write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
+                "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.\n",
                 "",
                 1,
             ),
@@ -219,44 +291,44 @@ def run_self_test() -> int:
         expect_contains(
             check(tmp_root, source_text=MARKER),
             "If `zig` is unavailable on `PATH`",
-            "self-test expected fallback-command failure",
+            "self-test expected fallback-order failure",
         )
 
         write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.\n",
+                "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.\n",
                 "",
                 1,
             ),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            "Keep the same degraded-workflow validation pair explicit too:",
-            "self-test expected checker-pair failure",
+            "The smaller validator-first boundary in the lane is now shipped",
+            "self-test expected validator-route failure",
         )
 
         write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.\n",
+                "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.\n",
                 "",
                 1,
             ),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            "The smaller unshipped boundary is still the validator-first side of the lane:",
-            "self-test expected validator-boundary failure",
+            "Keep the same degraded-workflow validation trio explicit too:",
+            "self-test expected validation-trio failure",
         )
 
         write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.\n",
+                "- The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.\n",
                 "",
                 1,
             ),
@@ -271,7 +343,7 @@ def run_self_test() -> int:
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.\n",
+                "- During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.\n",
                 "",
                 1,
             ),
@@ -309,6 +381,28 @@ def run_self_test() -> int:
         )
 
         write(tmp_root / ROADMAP_PATH, good_roadmap_text())
+        write(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace("phase12: phase12-validate phase12-smoke phase12-test", "phase12: phase12-smoke phase12-test", 1),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "marker count drift in zigux/Makefile: phase12: phase12-validate phase12-smoke phase12-test",
+            "self-test expected makefile route failure",
+        )
+
+        write(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace("run: make -C zigux phase12-validate", "run: make -C zigux phase12-smoke", 1),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "marker count drift in .github/workflows/zigux-bootstrap.yml: run: make -C zigux phase12-validate",
+            "self-test expected workflow route failure",
+        )
+
+        write(tmp_root / WORKFLOW_PATH, good_workflow_text())
         (tmp_root / BUILD_ONLY_CHECKER_PATH).unlink()
         expect_contains(
             check(tmp_root, source_text=MARKER),
@@ -327,7 +421,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
