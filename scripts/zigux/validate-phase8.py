@@ -113,7 +113,9 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
-        "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
+        "Exact 2026-05-13 readback keeps the docs-root summary as the next shared wording reopen cue",
+        "`Documentation/zigux/README.md` still omits the live file-path bridge note from the broad Phase 8 docs summary",
+        "Start with that docs-root addition before widening any other shared reminder surface.",
     ),
     BOUNDARY_SURVEY_PATH: (
         "PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md",
@@ -272,6 +274,20 @@ def run_self_test() -> None:
             "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
             "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-review.py`",
             f"{SEQUENCING_PATH}: current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        ),
+        (
+            "sequencing_docs_root_reopen_cue_marker",
+            SEQUENCING_PATH,
+            "Exact 2026-05-13 readback keeps the docs-root summary as the next shared wording reopen cue",
+            "Exact 2026-05-13 readback keeps the docs-root summary as the next shared wording repair cue",
+            f"{SEQUENCING_PATH}: Exact 2026-05-13 readback keeps the docs-root summary as the next shared wording reopen cue",
+        ),
+        (
+            "sequencing_docs_root_addition_marker",
+            SEQUENCING_PATH,
+            "Start with that docs-root addition before widening any other shared reminder surface.",
+            "Start with that reminder-surface review before widening any other shared reminder surface.",
+            f"{SEQUENCING_PATH}: Start with that docs-root addition before widening any other shared reminder surface.",
         ),
         (
             "boundary_survey_shared_note_marker",
