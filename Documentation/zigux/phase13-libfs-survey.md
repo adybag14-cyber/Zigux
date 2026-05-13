@@ -62,4 +62,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Leave `P13-L01` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, require a new equally small helper-first step with explicit non-goals before claiming it.
+Leave `P13-L04` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, require a new equally small helper-first step with explicit non-goals before claiming it.
