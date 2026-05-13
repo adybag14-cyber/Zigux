@@ -263,7 +263,7 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.writeText = lane_note.write_text(
+        lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[7] + "\n", "", 1),
             encoding="utf-8",
         )
