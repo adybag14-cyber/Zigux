@@ -1,5 +1,5 @@
 {
-  "lane_key": "P14-L12",
+  "lane_key": "P14-Y03",
   "phase": "Phase 14",
   "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
   "anchor": "net/core/skbuff.c",
@@ -9,6 +9,17 @@
     "net/core/skbuff_bridge.zig"
   ],
   "decision_checklist": [
+    {
+      "id": "queue-facing-tail-publication",
+      "summary": "Keep qdisc-facing tail publication and consumer reset in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "validate_xmit_skb_list",
+        "skb_mark_not_on_list"
+      ],
+      "rationale": "The exported segs->prev contract still stays coupled to queue-facing list reset and consumer ownership inside validate_xmit_skb_list()."
+    },
     {
       "id": "shared-info-refcount-ownership",
       "summary": "Keep shared-info refcount ownership in C.",
