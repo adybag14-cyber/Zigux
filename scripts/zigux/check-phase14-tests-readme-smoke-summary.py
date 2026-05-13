@@ -171,6 +171,22 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_workqueue_bridge.zig`\n",
+                "  * `zigux/tests/phase14_workqueue_bridge.zig`\n"
+                "  * `zigux/tests/phase14_workqueue_bridge.zig`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_workqueue_bridge.zig",
+            "self-test expected duplicate compile-shard tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_skbuff_bridge.zig`\n",
                 "",
                 1,
@@ -271,7 +287,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=9")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
