@@ -27,6 +27,7 @@ These reminder surfaces plus the landed bounded build-and-replay packet are the 
 The adjacent driver-local or packet-local Phase 11 surfaces remain parked beside that shared route:
 
 * bcm2835, gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers
+* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep that landed archival replay packet explicit beside the shared closure surface instead of collapsing it into a generic HVC reminder
 * direct Phase 11 watchdog and HVC replay files are materialized on current `master`, but they should stay framed as bounded replay evidence rather than as a broader closure claim
 
 ## Exact Shared Packet Boundaries
