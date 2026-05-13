@@ -5,9 +5,11 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Scope
 
 - `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`
+- `PHASE3_ZIGUX_H_BLOB_SHA=848f61bedfb9cd19f0f8aeee6879a1e7f7421ef7`
 - `PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only`
 - `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
 - `PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
+- `PHASE3_ZIGUX_H_VALIDATOR_PATH=scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
 - this note governs how the Linux-facing aggregation header may grow without turning header churn into fake Phase 3 progress
 
 ## Ownership
@@ -30,6 +32,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Current State
 
 - live `include/linux/zigux.h` now already carries the shipped named relay helpers `zigux_export_status_ok()`, `zigux_boundary_header_make()`, and `zigux_boundary_header_make_compatible()` beside the canonical `include/zigux/abi.h` and `include/zigux/dev_t.h` includes, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- `scripts/zigux/validate-phase3-linux-zigux-header-governance.py` now keeps this governance note aligned with the live include set, helper inventory, and blob marker for `include/linux/zigux.h`, so Linux-facing relay drift fails closed before broader Phase 3 reminder surfaces go stale
 - the new `zigux_boundary_header_make_compatible()` relay keeps the C-facing constructor split aligned with the shipped `zigux/uapi/version.zig` canonical-versus-future-compatible contract without moving boundary-header ownership out of the canonical ABI header
 - live `include/linux/zigux.h` no longer restates `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally; the C-facing packet now correctly aggregates `include/zigux/dev_t.h` as the single `dev_t` source of truth
 - live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`, so the current exported boundary ownership is no longer version-only even though it remains a deliberately small starter packet beside the shared relay roots
