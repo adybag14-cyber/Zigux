@@ -31,6 +31,7 @@ pub const ModuleDescriptor = struct {
     provides_queue_depth_summary: bool,
     provides_command_buffer_ownership_summary: bool,
     provides_request_submit_sequencing_summary: bool,
+    provides_completion_handback_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -232,6 +233,25 @@ pub const RequestSubmitSequencingSummary = struct {
     stays_pre_runtime_only: bool,
 };
 
+pub const CompletionHandbackSummary = struct {
+    anchor: []const u8,
+    queue_local_index: u16,
+    queue_global_index: u16,
+    queue_kind: RequestQueueKind,
+    requested_depth: u32,
+    clamped_queue_depth: u32,
+    command_bytes_per_request: u32,
+    sense_bytes_per_request: u32,
+    event_queue_index: u16,
+    completion_uses_preallocated_buffers: bool,
+    completion_requires_used_ring_before_handback: bool,
+    completion_reads_sense_before_recycle: bool,
+    completion_returns_command_buffer_after_handback: bool,
+    completion_returns_sense_buffer_after_handback: bool,
+    completion_releases_request_slot_before_reuse: bool,
+    stays_pre_runtime_only: bool,
+};
+
 pub const RecoveryQueueDepthSummary = struct {
     anchor: []const u8,
     requested_depth: u32,
@@ -279,6 +299,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_queue_depth_summary = true,
             .provides_command_buffer_ownership_summary = true,
             .provides_request_submit_sequencing_summary = true,
+            .provides_completion_handback_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -469,6 +490,31 @@ pub const VirtioScsiQueueLab = struct {
         };
     }
 
+    pub fn captureCompletionHandbackSummary(
+        self: *Self,
+        request: RequestSubmitSequencingRequest,
+    ) !CompletionHandbackSummary {
+        const submit = try self.captureRequestSubmitSequencingSummary(request);
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_local_index = submit.queue_local_index,
+            .queue_global_index = submit.queue_global_index,
+            .queue_kind = submit.queue_kind,
+            .requested_depth = submit.requested_depth,
+            .clamped_queue_depth = submit.clamped_queue_depth,
+            .command_bytes_per_request = submit.command_bytes_per_request,
+            .sense_bytes_per_request = submit.sense_bytes_per_request,
+            .event_queue_index = event_queue_index,
+            .completion_uses_preallocated_buffers = submit.submission_uses_preallocated_buffers,
+            .completion_requires_used_ring_before_handback = true,
+            .completion_reads_sense_before_recycle = true,
+            .completion_returns_command_buffer_after_handback = true,
+            .completion_returns_sense_buffer_after_handback = true,
+            .completion_releases_request_slot_before_reuse = true,
+            .stays_pre_runtime_only = submit.stays_pre_runtime_only,
+        };
+    }
+
     pub fn captureIoQueueMapSummary(
         self: *Self,
         request_queues: u16,
@@ -599,6 +645,7 @@ pub const VirtioScsiQueueLab = struct {
             .event_buffers_reserved_for_event_queue = true,
             .request_queues_can_borrow_event_buffers = false,
             .requires_device_ready_before_event_rearm = true,
+            .requires_event_rearmBeforeRequestQueueReuse = true,
             .requires_event_rearm_before_request_queue_reuse = true,
         };
     }
