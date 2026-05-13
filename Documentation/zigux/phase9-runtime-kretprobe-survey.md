@@ -49,7 +49,7 @@ The live repo now keeps a bounded `runtime_kretprobe` review packet explicit thr
 - the Phase 9 roadmap asks for first loadable Zigux runtime modules, selftest hooks, and runtime module lifecycle parity under `zigux/tests/runtime_*` and `samples/zigux/runtime_*`.
 - the current kretprobe packet now satisfies the bounded selftest-hook, lifecycle-evidence, and tracing-proof part of that roadmap through the sample, diff, module, loader, manifest, and shared allocator/init-flow proofs.
 - the manifest-backed intended state still reads as `starter_landed_without_loadable_runtime_substrate`, and the current review packet now matches that starter posture more closely because the dedicated sample and diff legs are kept explicit beside the module, loader, and survey surfaces.
-- the immediate packet-local follow-through is keeping those sample, diff, module, loader, manifest, and survey surfaces synchronized if the bounded lifecycle wording moves again.
+- the immediate packet-local follow-through is updating `zigux/tests/runtime_kretprobe_survey.zig` so the dedicated survey gate fails closed on the current `starter_landed_without_loadable_runtime_substrate` intended state and the still-blocked `loadable Phase 9 runtime kretprobe pilot module parity` cue already carried by this note, the module slice, and the manifest.
 - the next shared blocker after that remains the runtime-loader substrate that could turn the bounded `register_kretprobe` and `unregister_kretprobe` handoff plan into a real loadable runtime-module path.
 
 ## Footer
