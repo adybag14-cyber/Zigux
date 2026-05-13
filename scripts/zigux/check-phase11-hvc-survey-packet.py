@@ -25,7 +25,14 @@ REQUIRED_FILES = {
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
-PRESENT_DIRECT_COMPANION_DOC_MARKER = (
+ABSENT_DIRECT_COMPANION_MARKER = (
+    "Current `master` still ships no separate direct "
+    "`drivers/tty/hvc/hvc_console_verify.zig`, "
+    "`zigux/tests/phase11_hvc_console.zig`, or "
+    "`zigux/tests/phase11_hvc_cleanup.zig` companions"
+)
+
+PRESENT_DIRECT_COMPANION_MARKER = (
     "Current `master` also materializes direct "
     "`drivers/tty/hvc/hvc_console_verify.zig`, "
     "`zigux/tests/phase11_hvc_console.zig`, and "
@@ -39,125 +46,89 @@ PRESENT_DIRECT_COMPANION_SURVEY_MARKER = (
     "`zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`"
 )
 
-STALE_ABSENT_DIRECT_COMPANION_MARKER = (
-    "Current `master` still ships no separate direct "
-    "`drivers/tty/hvc/hvc_console_verify.zig`, "
-    "`zigux/tests/phase11_hvc_console.zig`, or "
-    "`zigux/tests/phase11_hvc_cleanup.zig` companions"
-)
-
-STALE_ABSENT_DIRECT_COMPANION_MATRIX_MARKER = (
+ABSENT_DIRECT_COMPANION_MATRIX_MARKER = (
     "The still-absent direct `drivers/tty/hvc/hvc_console_verify.zig`, "
     "`zigux/tests/phase11_hvc_console.zig`, and "
     "`zigux/tests/phase11_hvc_cleanup.zig` companions remain repo-reality gaps."
 )
 
-SURVEY_GATE_MARKERS = [
-    'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
-    'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
-    'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
-    'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
-    "hvc_cleanup tty-port release handoff",
-    "phase11_hvc_console_modem_control_split.zig",
-    "phase11_hvc_console_poll_retry_split.zig",
-]
-
 SURVEY_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`",
-    "* archival landing checkpoint:",
     "drivers/tty/hvc/hvc_console.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
-    PRESENT_DIRECT_COMPANION_SURVEY_MARKER,
-    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    ABSENT_DIRECT_COMPANION_MARKER,
+    "tiny notifier-add open handoff summary",
     "khvcd polling-contract summary",
+    "khvcd worker-entry summary",
+    "khvcd sleep-and-reschedule handoff summary",
     "`hvc_hangup()` disconnect summary",
-    "direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`",
-    "direct replay-only coverage beside `zigux/tests/phase11_hvc_console.zig`",
-    "cleanup-teardown replay coverage beside `zigux/tests/phase11_hvc_cleanup.zig`",
+    "`hvc_remove()` handoff summary",
     "`hvc_cleanup()` tty-port release handoff summary",
-    "sysrq handoff stays unavailable after teardown",
+    "`hvc_kick()` wakeup cue",
 ]
 
 SLICE_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SLICE_STATUS=starter_packet_archived`",
     "lane: `P11-L16`",
     "drivers/tty/hvc/hvc_console.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "zigux/tests/phase11_hvc_console.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
-    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    ABSENT_DIRECT_COMPANION_MARKER,
+    "`hvc_cleanup()` tty-port release handoff summary",
+    "port-reference drop timing",
+    "cleanup-time tty-port ownership",
+    "tiny notifier-add open handoff summary",
     "khvcd polling-contract summary",
     "`hvc_hangup()` disconnect summary",
-    PRESENT_DIRECT_COMPANION_DOC_MARKER,
-    "direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`",
-    "direct replay-only coverage beside `zigux/tests/phase11_hvc_console.zig`",
-    "cleanup-teardown replay coverage beside `zigux/tests/phase11_hvc_cleanup.zig`",
+    "`hvc_kick()` wakeup cue",
+    "notifier-IRQ helper surface",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
     "drivers/tty/hvc/hvc_console.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "zigux/tests/phase11_hvc_console.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "Documentation/zigux/phase11-hvc-console-survey.md",
-    "Documentation/zigux/phase11-hvc-console-slice.md",
-    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-    "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-slice.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
-    PRESENT_DIRECT_COMPANION_DOC_MARKER,
+    ABSENT_DIRECT_COMPANION_MARKER,
+    "final-close teardown boundaries and close-wait ownership",
+    "`hvc_cleanup()` tty-port release handoff and cleanup-time tty-port ownership",
+    "`hvc_hangup()` disconnect cleanup wording",
+    "`hvc_remove()` slot-release and handoff ordering",
+    "`summarizeNotifierAddOutcome()`",
     "wait-until-sent intent",
     "keep-IRQ-until-hangup teardown boundaries",
-    "direct replay boundary through `drivers/tty/hvc/hvc_console_verify.zig`",
-    "direct replay coverage through `zigux/tests/phase11_hvc_console.zig`",
-    "direct cleanup companion through `zigux/tests/phase11_hvc_cleanup.zig`",
 ]
 
 VALIDATION_MATRIX_MARKERS = [
     "`PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`",
-    "- archival landing checkpoint:",
     "`drivers/tty/hvc/hvc_console.zig`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey` archival route fail-closed",
+    ABSENT_DIRECT_COMPANION_MATRIX_MARKER,
     "khvcd polling-contract summary",
     "khvcd worker-entry summary",
     "`hvc_hangup()` disconnect summary",
-    "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
-    "the direct `zigux/tests/phase11_hvc_console.zig` replay",
-    "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
     "targetless notifier no-unregister edge",
     "`hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_sysrq.zig`",
 ]
-
-FORBIDDEN_MARKERS = {
-    "survey_note": [
-        STALE_ABSENT_DIRECT_COMPANION_MARKER,
-    ],
-    "slice_note": [
-        STALE_ABSENT_DIRECT_COMPANION_MARKER,
-        "the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files",
-    ],
-    "teardown_note": [
-        STALE_ABSENT_DIRECT_COMPANION_MARKER,
-        "the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files",
-        "It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, direct replay companions, or hardware-validated teardown parity.",
-    ],
-    "validation_matrix": [
-        STALE_ABSENT_DIRECT_COMPANION_MATRIX_MARKER,
-    ],
-}
 
 DRIVER_STARTER_MARKERS = [
     "pub const CloseTeardownRequest = struct {",
@@ -173,13 +144,14 @@ DRIVER_STARTER_MARKERS = [
     "pub const CleanupHandoffRequest = struct {",
     "pub fn summarizeCleanupHandoff",
     "pub fn hvc_kick() void {}",
-    'test "phase11 hvc console keeps final-close teardown ownership summary reviewable"',
-    'test "phase11 hvc console keeps tty-registration handoff summary reviewable"',
-    'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"',
-    'test "phase11 hvc console keeps khvcd polling-contract summary reviewable"',
-    'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable"',
-    'test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable"',
-    'test "phase11 hvc console keeps notifier irq helper surface reviewable"',
+]
+
+SURVEY_GATE_MARKERS = [
+    'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
+    'test "phase11 hvc console survey keeps the dedicated archival packet explicit"',
+    'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
+    'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
+    "try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);",
 ]
 
 MODEM_CONTROL_SPLIT_MARKERS = [
@@ -216,7 +188,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 14
 
 
 class CheckError(RuntimeError):
@@ -261,6 +233,11 @@ def load_manifest(root: Path) -> dict[str, object]:
         raise CheckError(
             f"invalid surveyed_commit in {REQUIRED_FILES['manifest']}: {surveyed_commit!r}"
         )
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        raise CheckError("missing survey_summary in manifest")
+    if summary.get("hvc_console_test_present") is not False:
+        raise CheckError("expected hvc_console_test_present to stay false")
     return manifest
 
 
@@ -279,20 +256,21 @@ def expect_git_commit_exists(root: Path, surveyed_commit: str) -> None:
 
 def run_check(root: Path) -> None:
     manifest = load_manifest(root)
-    expect_git_commit_exists(root, manifest["surveyed_commit"])
+    surveyed_commit = manifest["surveyed_commit"]
+    expect_git_commit_exists(root, surveyed_commit)
 
     survey_note = read_text(root, REQUIRED_FILES["survey_note"])
     slice_note = read_text(root, REQUIRED_FILES["slice_note"])
     teardown_note = read_text(root, REQUIRED_FILES["teardown_note"])
     validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
 
-    if manifest["surveyed_commit"] not in survey_note:
+    if surveyed_commit not in survey_note:
         raise CheckError(
-            f"missing surveyed_commit provenance in {REQUIRED_FILES['survey_note']}: {manifest['surveyed_commit']}"
+            f"missing surveyed_commit provenance in {REQUIRED_FILES['survey_note']}: {surveyed_commit}"
         )
-    if manifest["surveyed_commit"] not in validation_matrix:
+    if surveyed_commit not in validation_matrix:
         raise CheckError(
-            f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {manifest['surveyed_commit']}"
+            f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {surveyed_commit}"
         )
 
     expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
@@ -307,10 +285,10 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
     expect_markers(REQUIRED_FILES["workflow"], read_text(root, REQUIRED_FILES["workflow"]), WORKFLOW_MARKERS)
 
-    expect_forbidden_markers_absent(REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"])
-    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"])
-    expect_forbidden_markers_absent(REQUIRED_FILES["teardown_note"], teardown_note, FORBIDDEN_MARKERS["teardown_note"])
-    expect_forbidden_markers_absent(REQUIRED_FILES["validation_matrix"], validation_matrix, FORBIDDEN_MARKERS["validation_matrix"])
+    expect_forbidden_markers_absent(REQUIRED_FILES["survey_note"], survey_note, [PRESENT_DIRECT_COMPANION_SURVEY_MARKER, PRESENT_DIRECT_COMPANION_MARKER])
+    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, [PRESENT_DIRECT_COMPANION_MARKER])
+    expect_forbidden_markers_absent(REQUIRED_FILES["teardown_note"], teardown_note, [PRESENT_DIRECT_COMPANION_MARKER])
+    expect_forbidden_markers_absent(REQUIRED_FILES["validation_matrix"], validation_matrix, [PRESENT_DIRECT_COMPANION_MARKER, PRESENT_DIRECT_COMPANION_SURVEY_MARKER])
 
 
 def write(path: Path, text: str) -> None:
@@ -324,6 +302,9 @@ def build_manifest_text(surveyed_commit: str) -> str:
         "phase": "Phase 11",
         "surveyed_commit": surveyed_commit,
         "anchor": "drivers/tty/hvc/hvc_console.c",
+        "survey_summary": {
+            "hvc_console_test_present": False,
+        },
     }
     return json.dumps(manifest, indent=2) + "\n"
 
@@ -379,17 +360,11 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         cases = [
-            (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
-            (REQUIRED_FILES["survey_gate"], "hvc_cleanup tty-port release handoff"),
-            (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_SURVEY_MARKER),
-            (REQUIRED_FILES["survey_note"], "khvcd polling-contract summary"),
-            (REQUIRED_FILES["slice_note"], PRESENT_DIRECT_COMPANION_DOC_MARKER),
-            (REQUIRED_FILES["teardown_note"], PRESENT_DIRECT_COMPANION_DOC_MARKER),
-            (REQUIRED_FILES["validation_matrix"], "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary"),
-            (REQUIRED_FILES["validation_matrix"], "khvcd worker-entry summary"),
-            (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
-            (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
-            (REQUIRED_FILES["sysrq_helper"], "pub fn summarizeSysrqHandoff"),
+            (REQUIRED_FILES["survey_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["slice_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["teardown_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["validation_matrix"], ABSENT_DIRECT_COMPANION_MATRIX_MARKER),
+            (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
@@ -401,10 +376,10 @@ def run_self_test() -> None:
             expect_failure(tmpdir, marker)
 
         stale_cases = [
-            (REQUIRED_FILES["survey_note"], STALE_ABSENT_DIRECT_COMPANION_MARKER),
-            (REQUIRED_FILES["slice_note"], STALE_ABSENT_DIRECT_COMPANION_MARKER),
-            (REQUIRED_FILES["teardown_note"], STALE_ABSENT_DIRECT_COMPANION_MARKER),
-            (REQUIRED_FILES["validation_matrix"], STALE_ABSENT_DIRECT_COMPANION_MATRIX_MARKER),
+            (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_SURVEY_MARKER),
+            (REQUIRED_FILES["slice_note"], PRESENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["teardown_note"], PRESENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
         ]
         for relative_path, stale_marker in stale_cases:
             reset_fixture(tmpdir)
@@ -416,6 +391,12 @@ def run_self_test() -> None:
         reset_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
         expect_failure(tmpdir, "invalid surveyed_commit")
+
+        reset_fixture(tmpdir)
+        manifest = json.loads((tmpdir / REQUIRED_FILES["manifest"]).read_text(encoding="utf-8"))
+        manifest["survey_summary"]["hvc_console_test_present"] = True
+        (tmpdir / REQUIRED_FILES["manifest"]).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(tmpdir, "expected hvc_console_test_present to stay false")
 
         print("PHASE11_HVC_SURVEY_PACKET_SELF_TEST=pass")
         print(f"PHASE11_HVC_SURVEY_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
