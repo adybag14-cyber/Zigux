@@ -535,6 +535,33 @@ test "runtime bitmap loader keeps shared release failures from desynchronizing l
     ));
 }
 
+test "runtime bitmap loader keeps direct shared runtime-load transitions from desynchronizing shared release state" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const pending_plan = try shared_request.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.releaseSharedWithoutSubstrate(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+}
+
 test "runtime bitmap loader rejects prepared shared request drift before any live bitmap claim" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
