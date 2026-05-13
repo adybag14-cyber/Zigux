@@ -59,7 +59,9 @@ REQUIRED_RELEASE_NOTES_MARKERS = (
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "`zigux/bindings/notifier_abi.zig`",
+    "`zigux/helpers/notifier_chain_view.zig`",
     "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.",
 )
 
@@ -68,7 +70,9 @@ REQUIRED_TRACEABILITY_MARKERS = (
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "`zigux/bindings/notifier_abi.zig`",
+    "`zigux/helpers/notifier_chain_view.zig`",
     "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "record them as repo-reality gaps instead of presenting them here as independently shipped evidence.",
 )
 
@@ -77,7 +81,9 @@ REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "`zigux/bindings/notifier_abi.zig`",
+    "`zigux/helpers/notifier_chain_view.zig`",
     "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "record them as adjacent repo-reality gaps instead of as independently shipped review evidence:",
 )
 
@@ -86,7 +92,9 @@ REQUIRED_LANE_NOTE_MARKERS = (
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "`zigux/bindings/notifier_abi.zig`",
+    "`zigux/helpers/notifier_chain_view.zig`",
     "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "keep them recorded as adjacent repo-reality gaps instead of shipped evidence.",
 )
 
@@ -97,6 +105,7 @@ REQUIRED_CONTRIBUTOR_SYNC_MARKERS = (
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`zigux/helpers/notifier_chain_view.zig`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor",
 )
 
@@ -107,6 +116,7 @@ REQUIRED_TESTS_COMPANION_MARKERS = (
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`zigux/helpers/notifier_chain_view.zig`",
+    "`drivers/tty/hvc/hvc_console.h`",
     "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.",
 )
 
@@ -234,13 +244,23 @@ def run_self_test() -> int:
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[7]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[9]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[3]),
+            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[4]),
+            ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[6]),
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
+            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[4]),
+            ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[6]),
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[3]),
+            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[4]),
+            ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[6]),
             ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[3]),
+            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[4]),
+            ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[6]),
             ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[3]),
             ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[5]),
+            ("contributor-sync", CONTRIBUTOR_SYNC_PATH, REQUIRED_CONTRIBUTOR_SYNC_MARKERS[6]),
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[3]),
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[5]),
+            ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[6]),
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[3]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
