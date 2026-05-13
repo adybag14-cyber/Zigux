@@ -164,6 +164,10 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "restored starter packet",
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
     ],
     "lib/string_helpers.zig": [
         "pub fn skipSpaces",
@@ -257,6 +261,17 @@ def run_self_test() -> None:
 
         remove_once(
             tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+            "scripts/zigux/check-phase7-build-wiring.py",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
             "zigux/tests/phase7_build.zig",
             '"phase7-argv-split-survey-tests"',
         )
@@ -288,7 +303,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
 
 
 def main() -> int:
