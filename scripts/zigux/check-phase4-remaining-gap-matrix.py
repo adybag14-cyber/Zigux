@@ -19,11 +19,12 @@ REQUIRED_MARKERS = [
     "### `samples/zigux/kprobe_example.zig`",
     "* current C anchor: `samples/kprobes/kprobe_example.c`",
     "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
+    "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
     "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`\n* survey owner: `Validation and Perf Team`",
-    "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
-    "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+    "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, explicit local lab replay marker, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, explicit local lab replay marker, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+    "* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
     "### `samples/zigux/test_fsmount.zig`",
     "* current C anchor: `samples/vfs/test-fsmount.c`",
     "* current replay path: `make M=samples/vfs`",
@@ -50,10 +51,12 @@ SELF_TEST_CASES = [
     "missing_matrix_file",
     "kprobe_c_anchor_drift",
     "kprobe_replay_path_drift",
+    "kprobe_local_lab_replay_drift",
     "kprobe_wrapper_drift",
     "kprobe_validation_entrypoint_drift",
     "kprobe_owner_drift",
     "kprobe_rollback_owner_drift",
+    "kprobe_status_local_lab_replay_drift",
     "kprobe_next_step_drift",
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
@@ -135,12 +138,13 @@ def build_fixture_text() -> str:
             "### `samples/zigux/kprobe_example.zig`",
             "* current C anchor: `samples/kprobes/kprobe_example.c`",
             "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
+            "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
             "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
             "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
             "* survey owner: `Validation and Perf Team`",
             "* rollback owner: `Validation and Perf Team`",
-            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
-            "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, explicit local lab replay marker, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, explicit local lab replay marker, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+            "* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
             "### `samples/zigux/test_fsmount.zig`",
             "* current C anchor: `samples/vfs/test-fsmount.c`",
             "* current replay path: `make M=samples/vfs`",
@@ -229,9 +233,26 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
+                "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
+                "* explicit local lab replay marker: `make -C zigux phase4-kprobe-gap-survey`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("kprobe local-lab-replay drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
                 "make -C zigux phase4-kprobe-example-survey",
                 "make -C zigux phase4-kprobe-gap-survey",
-            ),
+                ),
         )
         if not expect_failure(
             root,
@@ -280,8 +301,8 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
-                "* rollback owner: `Tooling and Validation Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+                "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, explicit local lab replay marker, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, explicit local lab replay marker, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
+                "* rollback owner: `Tooling and Validation Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, explicit local lab replay marker, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, explicit local lab replay marker, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
             ),
         )
         if not expect_failure(
@@ -297,13 +318,30 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
-                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a wider replay promotion beyond today's parked-gap packet",
+                "explicit local lab replay marker, dedicated local survey wrapper",
+                "dedicated local survey wrapper, dedicated local survey wrapper",
             ),
         )
         if not expect_failure(
             root,
-            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+            "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("kprobe status local-lab-replay drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("kprobe next-step drift case did not fail closed")
