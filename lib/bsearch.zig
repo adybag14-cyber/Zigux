@@ -409,7 +409,8 @@ test "search keeps native and C comparator pointer support" {
 
 test "searchMutable preserves write-through aliases" {
     var values = [_]i32{ 5, 9, 12, 18, 27 };
-    const found = searchMutable(i32, i32, &@as(i32, 18), values[0..], compareInt) orelse return error.TestUnexpectedResult;
+    const key = @as(i32, 18);
+    const found = searchMutable(i32, i32, &key, values[0..], compareInt) orelse return error.TestUnexpectedResult;
 
     try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
     found.* = 19;
@@ -419,59 +420,72 @@ test "searchMutable preserves write-through aliases" {
 test "typed lower and upper bounds stay stable for ascending and descending duplicates" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const ascending_end_key = @as(i32, 20);
+    const descending_key = @as(i32, 4);
+    const descending_front_key = @as(i32, 20);
+    const descending_end_key = @as(i32, 0);
 
     const ascending_comparators = [_]Comparator(i32, i32){compareInt};
     for (ascending_comparators) |compare| {
-        try std.testing.expectEqual(@as(usize, 1), lowerBoundIndex(i32, i32, &@as(i32, 4), ascending[0..], compare));
-        try std.testing.expectEqual(@as(usize, 4), upperBoundIndex(i32, i32, &@as(i32, 4), ascending[0..], compare));
-        try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &@as(i32, 5), ascending[0..], compare));
-        try std.testing.expectEqual(@as(usize, ascending.len), upperBoundIndex(i32, i32, &@as(i32, 20), ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 1), lowerBoundIndex(i32, i32, &ascending_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 4), upperBoundIndex(i32, i32, &ascending_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &ascending_gap_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, ascending.len), upperBoundIndex(i32, i32, &ascending_end_key, ascending[0..], compare));
     }
 
     const descending_comparators = [_]Comparator(i32, i32){compareDescendingInt};
     for (descending_comparators) |compare| {
-        try std.testing.expectEqual(@as(usize, 2), lowerBoundIndex(i32, i32, &@as(i32, 4), descending[0..], compare));
-        try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &@as(i32, 4), descending[0..], compare));
-        try std.testing.expectEqual(@as(usize, 0), lowerBoundIndex(i32, i32, &@as(i32, 20), descending[0..], compare));
-        try std.testing.expectEqual(@as(usize, descending.len), upperBoundIndex(i32, i32, &@as(i32, 0), descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 2), lowerBoundIndex(i32, i32, &descending_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &descending_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 0), lowerBoundIndex(i32, i32, &descending_front_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, descending.len), upperBoundIndex(i32, i32, &descending_end_key, descending[0..], compare));
     }
 }
 
 test "equalRangeIndex reports duplicate spans and empty insertion points" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const descending_key = @as(i32, 4);
+    const descending_gap_key = @as(i32, 20);
 
-    const ascending_range = equalRangeIndex(i32, i32, &@as(i32, 4), ascending[0..], compareInt);
+    const ascending_range = equalRangeIndex(i32, i32, &ascending_key, ascending[0..], compareInt);
     try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
     try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
     try std.testing.expect(!ascending_range.isEmpty());
 
-    const ascending_missing = equalRangeIndex(i32, i32, &@as(i32, 5), ascending[0..], compareInt);
+    const ascending_missing = equalRangeIndex(i32, i32, &ascending_gap_key, ascending[0..], compareInt);
     try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
     try std.testing.expectEqual(@as(usize, 0), ascending_missing.len());
     try std.testing.expect(ascending_missing.isEmpty());
 
-    const descending_range = equalRangeIndex(i32, i32, &@as(i32, 4), descending[0..], compareDescendingInt);
+    const descending_range = equalRangeIndex(i32, i32, &descending_key, descending[0..], compareDescendingInt);
     try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
     try std.testing.expectEqual(@as(usize, 3), descending_range.len());
 
-    const descending_missing = equalRangeIndex(i32, i32, &@as(i32, 20), descending[0..], compareDescendingInt);
+    const descending_missing = equalRangeIndex(i32, i32, &descending_gap_key, descending[0..], compareDescendingInt);
     try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
     try std.testing.expect(descending_missing.isEmpty());
 }
 
 test "IndexRange slice helpers keep typed duplicate spans and empty insertion points direct" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
-    const duplicate_view = equalRangeIndex(i32, i32, &@as(i32, 4), ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_view = equalRangeIndex(i32, i32, &duplicate_key, ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
     try std.testing.expectEqual(@as(usize, 3), duplicate_view.len);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, duplicate_view);
 
-    const missing_view = equalRangeIndex(i32, i32, &@as(i32, 5), ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    const missing_view = equalRangeIndex(i32, i32, &missing_key, ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
     try std.testing.expectEqual(@as(usize, 0), missing_view.len);
     try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(missing_view.ptr));
 
     var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
-    const mutable_view = equalRangeIndex(i32, i32, &@as(i32, 4), mutable[0..], compareInt).sliceMutable(i32, mutable[0..]);
+    const mutable_view = equalRangeIndex(i32, i32, &duplicate_key, mutable[0..], compareInt).sliceMutable(i32, mutable[0..]);
     try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
     mutable_view[1] = 6;
     try std.testing.expectEqual(@as(i32, 6), mutable[2]);
@@ -480,19 +494,22 @@ test "IndexRange slice helpers keep typed duplicate spans and empty insertion po
 test "IndexRange byte helpers keep raw duplicate spans and write-through aliases" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
-    const duplicate_bytes = bsearchEqualRangeIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_bytes = bsearchEqualRangeIndex(&duplicate_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
     try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), duplicate_bytes.len);
     const typed_bytes: [*]const i32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
     try std.testing.expectEqual(@as(i32, 4), typed_bytes[0]);
     try std.testing.expectEqual(@as(i32, 4), typed_bytes[2]);
 
-    const missing_bytes = bsearchEqualRangeIndex(&@as(i32, 5), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    const missing_bytes = bsearchEqualRangeIndex(&missing_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
     try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
     try std.testing.expectEqual(@intFromPtr(ascending_raw + (4 * @sizeOf(i32))), @intFromPtr(missing_bytes.ptr));
 
     var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
-    const mutable_bytes = bsearchEqualRangeIndex(&@as(i32, 4), mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt).bytesMutable(mutable_raw, @sizeOf(i32));
+    const mutable_bytes = bsearchEqualRangeIndex(&duplicate_key, mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt).bytesMutable(mutable_raw, @sizeOf(i32));
     try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
     const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
     typed_mutable[1] = 7;
@@ -509,7 +526,8 @@ test "raw search helpers keep pointer and mutable contracts" {
     try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
 
     var mutable_values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
-    const mutable = bsearchMutable(&@as(i32, 11), @ptrCast(mutable_values[0..].ptr), mutable_values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const mutable_key = @as(i32, 11);
+    const mutable = bsearchMutable(&mutable_key, @ptrCast(mutable_values[0..].ptr), mutable_values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
     const typed_mutable: *i32 = @ptrCast(@alignCast(mutable));
     typed_mutable.* = 12;
     try std.testing.expectEqual(@as(i32, 12), mutable_values[3]);
@@ -520,16 +538,22 @@ test "raw lower and upper bounds stay stable for ascending and descending duplic
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
     const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
     const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const ascending_end_key = @as(i32, 20);
+    const descending_key = @as(i32, 4);
+    const descending_front_key = @as(i32, 20);
+    const descending_end_key = @as(i32, 0);
 
-    try std.testing.expectEqual(@as(usize, 1), bsearchLowerBoundIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
-    try std.testing.expectEqual(@as(usize, 4), bsearchUpperBoundIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
-    try std.testing.expectEqual(@as(usize, 4), bsearchLowerBoundIndex(&@as(i32, 5), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
-    try std.testing.expectEqual(@as(usize, ascending.len), bsearchUpperBoundIndex(&@as(i32, 20), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 1), bsearchLowerBoundIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 4), bsearchUpperBoundIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 4), bsearchLowerBoundIndex(&ascending_gap_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, ascending.len), bsearchUpperBoundIndex(&ascending_end_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
 
-    try std.testing.expectEqual(@as(usize, 2), bsearchLowerBoundIndex(&@as(i32, 4), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
-    try std.testing.expectEqual(@as(usize, 5), bsearchUpperBoundIndex(&@as(i32, 4), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
-    try std.testing.expectEqual(@as(usize, 0), bsearchLowerBoundIndex(&@as(i32, 20), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
-    try std.testing.expectEqual(@as(usize, descending.len), bsearchUpperBoundIndex(&@as(i32, 0), descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, 2), bsearchLowerBoundIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, 5), bsearchUpperBoundIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, 0), bsearchLowerBoundIndex(&descending_front_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, descending.len), bsearchUpperBoundIndex(&descending_end_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
 }
 
 test "bsearchEqualRangeIndex reports duplicate spans and empty insertion points" {
@@ -537,21 +561,25 @@ test "bsearchEqualRangeIndex reports duplicate spans and empty insertion points"
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
     const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
     const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const descending_key = @as(i32, 4);
+    const descending_gap_key = @as(i32, 20);
 
-    const ascending_range = bsearchEqualRangeIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    const ascending_range = bsearchEqualRangeIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
     try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
     try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
     try std.testing.expect(!ascending_range.isEmpty());
 
-    const ascending_missing = bsearchEqualRangeIndex(&@as(i32, 5), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    const ascending_missing = bsearchEqualRangeIndex(&ascending_gap_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
     try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
     try std.testing.expect(ascending_missing.isEmpty());
 
-    const descending_range = bsearchEqualRangeIndex(&@as(i32, 4), descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    const descending_range = bsearchEqualRangeIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
     try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
     try std.testing.expectEqual(@as(usize, 3), descending_range.len());
 
-    const descending_missing = bsearchEqualRangeIndex(&@as(i32, 20), descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    const descending_missing = bsearchEqualRangeIndex(&descending_gap_key, descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
     try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
     try std.testing.expect(descending_missing.isEmpty());
 }
@@ -560,17 +588,21 @@ test "raw comparator aliases accept native and C calling conventions" {
     const values = [_]i32{ 89, 55, 34, 21, 13, 8, 3 };
     const raw_comparators = [_]RawComparator{compareOpaqueDescendingInt};
     const c_raw_comparators = [_]CRawComparator{compareCOpaqueDescendingInt};
+    const raw_hit_key = @as(i32, 21);
+    const raw_find_key = @as(i32, 13);
+    const c_hit_key = @as(i32, 34);
+    const c_find_key = @as(i32, 8);
 
     for (raw_comparators) |compare| {
-        try std.testing.expectEqual(@as(?usize, 3), bsearchIndex(&@as(i32, 21), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
-        const found = bsearch(&@as(i32, 13), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(?usize, 3), bsearchIndex(&raw_hit_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
+        const found = bsearch(&raw_find_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
         const typed_found: *const i32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(@as(i32, 13), typed_found.*);
     }
 
     for (c_raw_comparators) |compare| {
-        try std.testing.expectEqual(@as(?usize, 2), bsearchIndex(&@as(i32, 34), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
-        const found = bsearch(&@as(i32, 8), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(?usize, 2), bsearchIndex(&c_hit_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
+        const found = bsearch(&c_find_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
         const typed_found: *const i32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(@as(i32, 8), typed_found.*);
     }
@@ -583,10 +615,134 @@ test "typed and raw helpers support heterogeneous keys" {
         .{ .name = "delta", .value = 4 },
         .{ .name = "omega", .value = 24 },
     };
-    const typed_found = search([]const u8, Entry, &@as([]const u8, "delta"), entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    const typed_key = @as([]const u8, "delta");
+    const typed_found = search([]const u8, Entry, &typed_key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(u32, 4), typed_found.value);
 
-    const raw_found = bsearch(@ptrCast(&@as([]const u8, "beta")), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const raw_key = @as([]const u8, "beta");
+    const raw_found = bsearch(@ptrCast(&raw_key), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
     const typed_raw_found: *const Entry = @ptrCast(@alignCast(raw_found));
     try std.testing.expectEqual(@as(u32, 2), typed_raw_found.value);
+}
+
+const CountedKey = struct {
+    target: u32,
+    comparisons: *usize,
+};
+
+fn compareCounted(key: *const CountedKey, item: *const u32) i32 {
+    key.comparisons.* += 1;
+    return switch (std.math.order(key.target, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+const CountedOpaqueKey = struct {
+    target: u32,
+    comparisons: *usize,
+};
+
+fn compareOpaqueCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    typed_key.comparisons.* += 1;
+    return switch (std.math.order(typed_key.target, typed_item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn comparisonBudget(len: usize) usize {
+    if (len <= 1) return len;
+    return std.math.log2_int_ceil(usize, len) + 1;
+}
+
+test "bsearch keeps comparison counts within a binary-search perf gate for hits and misses" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index * 2));
+    }
+
+    var hit_comparisons: usize = 0;
+    const hit_key = CountedKey{ .target = 872, .comparisons = &hit_comparisons };
+    const hit = search(CountedKey, u32, &hit_key, values[0..], compareCounted) orelse return error.ExpectedMatch;
+    try std.testing.expectEqual(@as(u32, 872), hit.*);
+    try std.testing.expect(hit_comparisons <= comparisonBudget(values.len));
+
+    var miss_comparisons: usize = 0;
+    const miss_key = CountedKey{ .target = 873, .comparisons = &miss_comparisons };
+    try std.testing.expectEqual(@as(?*const u32, null), search(CountedKey, u32, &miss_key, values[0..], compareCounted));
+    try std.testing.expect(miss_comparisons <= comparisonBudget(values.len));
+}
+
+test "lower and upper bounds keep comparison counts inside a binary-search perf gate" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index / 4));
+    }
+
+    const budget = comparisonBudget(values.len);
+    const target_value = @as(u32, 173);
+    const expected_lower = @as(usize, 692);
+    const expected_upper = @as(usize, 696);
+
+    var lower_comparisons: usize = 0;
+    const lower_key = CountedKey{ .target = target_value, .comparisons = &lower_comparisons };
+    try std.testing.expectEqual(expected_lower, lowerBoundIndex(CountedKey, u32, &lower_key, values[0..], compareCounted));
+    try std.testing.expect(lower_comparisons <= budget);
+
+    var upper_comparisons: usize = 0;
+    const upper_key = CountedKey{ .target = target_value, .comparisons = &upper_comparisons };
+    try std.testing.expectEqual(expected_upper, upperBoundIndex(CountedKey, u32, &upper_key, values[0..], compareCounted));
+    try std.testing.expect(upper_comparisons <= budget);
+
+    var range_comparisons: usize = 0;
+    const range_key = CountedKey{ .target = target_value, .comparisons = &range_comparisons };
+    try std.testing.expectEqual(IndexRange{ .lower = expected_lower, .upper = expected_upper }, equalRangeIndex(CountedKey, u32, &range_key, values[0..], compareCounted));
+    try std.testing.expect(range_comparisons <= budget * 2);
+}
+
+test "raw lower and upper bounds keep comparison counts inside a binary-search perf gate" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index / 4));
+    }
+
+    const raw_values: [*]const u8 = @ptrCast(values[0..].ptr);
+    const budget = comparisonBudget(values.len);
+    const target_value = @as(u32, 173);
+    const expected_lower = @as(usize, 692);
+    const expected_upper = @as(usize, 696);
+
+    var lower_comparisons: usize = 0;
+    const lower_key = CountedOpaqueKey{ .target = target_value, .comparisons = &lower_comparisons };
+    try std.testing.expectEqual(expected_lower, bsearchLowerBoundIndex(&lower_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(lower_comparisons <= budget);
+
+    var upper_comparisons: usize = 0;
+    const upper_key = CountedOpaqueKey{ .target = target_value, .comparisons = &upper_comparisons };
+    try std.testing.expectEqual(expected_upper, bsearchUpperBoundIndex(&upper_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(upper_comparisons <= budget);
+
+    var range_comparisons: usize = 0;
+    const range_key = CountedOpaqueKey{ .target = target_value, .comparisons = &range_comparisons };
+    try std.testing.expectEqual(IndexRange{ .lower = expected_lower, .upper = expected_upper }, bsearchEqualRangeIndex(&range_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(range_comparisons <= budget * 2);
+}
+
+test "bsearch on an empty slice performs no comparisons" {
+    const values = [_]u32{};
+
+    var typed_comparisons: usize = 0;
+    const typed_key = CountedKey{ .target = 1, .comparisons = &typed_comparisons };
+    try std.testing.expectEqual(@as(?*const u32, null), search(CountedKey, u32, &typed_key, values[0..], compareCounted));
+    try std.testing.expectEqual(@as(usize, 0), typed_comparisons);
+
+    var raw_comparisons: usize = 0;
+    const raw_key = CountedOpaqueKey{ .target = 1, .comparisons = &raw_comparisons };
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearch(&raw_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expectEqual(@as(usize, 0), raw_comparisons);
 }
