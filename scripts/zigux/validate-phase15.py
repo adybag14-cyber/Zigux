@@ -19,6 +19,7 @@ FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
@@ -166,6 +167,7 @@ READINESS_SURVEY_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/README.md",
@@ -423,6 +425,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root, "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     _write(root, "Documentation/zigux/phase15-freeze-map-governance.md", "# freeze governance\n")
     _write(root, "Documentation/zigux/phase15-architecture-council-review-process.md", "# review process\n")
+    _write(root, "Documentation/zigux/phase15-parity-scorecard-survey.md", "# parity survey\n")
     _write(root, "Documentation/zigux/phase15-parity-scorecard.md", "# parity\n")
     _write(root, "Documentation/zigux/phase15-indefinite-c-policy.md", "# policy\n")
     _write(root, "Documentation/zigux/phase15-readiness-gate-survey.md", "\n".join(READINESS_SURVEY_MARKERS) + "\n")
@@ -525,6 +528,13 @@ def run_self_test() -> int:
         case_count += 1
 
         readiness_rel = "Documentation/zigux/phase15-readiness-gate-survey.md"
+        readiness_text = _read(root, readiness_rel)
+        marker = "Documentation/zigux/phase15-parity-scorecard-survey.md"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_parity_scorecard_survey")
+        _seed_fixture_tree(root)
+        case_count += 1
+
         readiness_text = _read(root, readiness_rel)
         marker = "scripts/zigux/check-phase15-review-process-handoff.py"
         _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
