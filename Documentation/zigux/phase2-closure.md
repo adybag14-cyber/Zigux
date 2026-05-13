@@ -39,6 +39,7 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`
 - shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`
+- committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`
 - committed artifact-tools manifest packet: `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, which keeps the parked `genksyms_crc` and `mk_elfconfig` artifact-tool names explicit on current `master` without implying standalone `zigux/tests/fixtures/genksyms_crc/` or `zigux/tests/fixtures/mk_elfconfig/` directories
 - direct replay owners stay split on current `master`: `zig test scripts/zigux/fixdep.zig` remains the shipped direct Phase 2 Zig replay, while the broader fixdep, genksyms, artifact-tools, and kconfig bridge evidence stays documented through `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `zigux/tests/README.md`, and `zigux/Makefile` instead of implying unshipped direct bridge or artifact replay entrypoints on current `master`
 - Linux-style routes: `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2`
