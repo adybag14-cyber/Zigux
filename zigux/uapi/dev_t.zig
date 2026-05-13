@@ -16,6 +16,10 @@ pub fn minorValid(minor_id: u32) bool {
     return dev_t_bindings.minorValid(minor_id);
 }
 
+pub fn packMasked(major_id: u32, minor_id: u32) u32 {
+    return dev_t_bindings.packMasked(major_id, minor_id);
+}
+
 pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {
     return dev_t_bindings.encode(major_id, minor_id);
 }
@@ -47,6 +51,15 @@ test "phase3 uapi dev_t starter keeps encode and range parity explicit" {
     try std.testing.expectEqual(@as(u32, 0x34567), minor(encoded));
     try std.testing.expect(rangeFits(8, 4));
     try std.testing.expectEqual(try dev_t_bindings.lastInRange(12, 8, 4), try lastInRange(12, 8, 4));
+}
+
+test "phase3 uapi dev_t starter keeps masked pack parity explicit" {
+    const masked = packMasked(major_max + 7, minor_mask + 9);
+
+    try std.testing.expectEqual(dev_t_bindings.packMasked(major_max + 7, minor_mask + 9), masked);
+    try std.testing.expectEqual(packMasked(73, 0x34567), try encode(73, 0x34567));
+    try std.testing.expectEqual(@as(u32, 6), major(masked));
+    try std.testing.expectEqual(@as(u32, 8), minor(masked));
 }
 
 test "phase3 uapi dev_t starter rejects out-of-range inputs" {
