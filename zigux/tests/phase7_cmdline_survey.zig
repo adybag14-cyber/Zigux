@@ -228,6 +228,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");");
     try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve Linux-style range parsing");
     try expectContains(cmdline_tests, "phase 7 getOption clears caller output on malformed signed and unsigned input");
+    try expectContains(cmdline_tests, "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption");
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
     try expectContains(cmdline_tests, "const single_validate_rest = cmdline.getOptions(\"1-1\", 0, &single_validate);");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
@@ -237,6 +238,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const helper_impl = try readRepoFile(allocator, "lib/cmdline.zig");
     defer allocator.free(helper_impl);
+    try expectContains(
+        helper_impl,
+        "test \"getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption\"",
+    );
     try expectContains(
         helper_impl,
         "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"",
