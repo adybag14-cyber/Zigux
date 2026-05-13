@@ -22,7 +22,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, simple transaction release, transaction publish planning, and offset-based directory planning."
+      "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, and offset-based directory planning."
     },
     {
       "id": "phase13-libfs-offset-rename-planner",
@@ -37,6 +37,13 @@
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models pure simple_transaction_get() transaction acquire planning, including the page-bounded write limit, zeroed page allocation, one-write-per-open staging, and explicit private-data handoff without claiming live readback, dentry mutation, or pseudo-filesystem state."
+    },
+    {
+      "id": "phase13-libfs-transaction-release-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models pure simple_transaction_release() cleanup planning, keeping page-backed private-data release, private-data clearing, and unconditional zero return explicit without claiming live file teardown or pseudo-filesystem lifetime ownership."
     },
     {
       "id": "phase13-libfs-transaction-publish-helper",
