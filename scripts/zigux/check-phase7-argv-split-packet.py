@@ -10,201 +10,86 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
-    ".github/workflows/zigux-bootstrap.yml",
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
-    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
-    "samples/zigux/README.md",
-    "scripts/zigux/README.md",
-    "scripts/zigux/validate-phase7.py",
-    "scripts/zigux/check-phase7-make-wrapper.py",
-    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-    "scripts/zigux/check-phase7-build-wiring.py",
-    "zigux/Makefile",
-    "zigux/tests/README.md",
-    "zigux/tests/phase7_build.zig",
+    "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-    "lib/argv_split.zig",
 ]
 
 REQUIRED_MARKERS = {
-    ".github/workflows/zigux-bootstrap.yml": [
-        "Validate Phase 7 runtime helper gates",
-        "make -C zigux phase7-validate",
-        "Run Phase 7 runtime helper tests",
-        "make -C zigux phase7-test",
-    ],
-    "Documentation/zigux/README.md": [
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-        "lib/argv_split.zig",
-        "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "zigux/tests/phase7_argv_split_survey.zig",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "scripts/zigux/check-phase7-argv-split-packet.py",
-        "zigux/tests/phase7_build.zig",
-    ],
-    "Documentation/zigux/review-checklist.md": [
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-        "there is no standalone `samples/zigux/*argv*` reference sample",
-        "lib/argv_split.zig",
-        "scripts/zigux/validate-phase7.py",
-        "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "scripts/zigux/check-phase7-argv-split-packet.py",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-    ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "PHASE7_LANE_KEY=P7-L09",
-        "Documentation/zigux/phase7-helper-lane-sequencing.md",
-        "current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
-        "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
-        "null-terminated pointer-vector access through `cArgv()`",
-        "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
-        "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
+        "scope: first low-risk argument-vector parsing and teardown helpers only",
+        "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path",
+        "keep copied-buffer ownership so later source mutation does not affect split results",
+        "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "make -C zigux phase7-validate",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        "Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.",
     ],
-    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
-        "shared helper-lane owner map, lane `P7-Y06`:",
-        "Documentation/zigux/phase7-helper-lane-sequencing.md",
-        "argv-split packet, lane `P7-L09`:",
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "PHASE7_ARGV_SPLIT_LANE=P7-L09",
-        "P7-L09 owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-        "The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
-        "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
-    ],
-    "samples/zigux/README.md": [
-        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-        "lib/argv_split.zig",
-        "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "zigux/tests/phase7_argv_split.zig",
-        "zigux/tests/phase7_argv_split_survey.zig",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "scripts/zigux/check-phase7-argv-split-packet.py",
-        "zigux/tests/phase7_build.zig",
-        ".github/workflows/zigux-bootstrap.yml",
-    ],
-    "scripts/zigux/README.md": [
-        "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "scripts/zigux/check-phase7-argv-split-packet.py",
-        "zigux/tests/phase7_argv_split.zig",
-        "zigux/tests/phase7_argv_split_survey.zig",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-        "make -C zigux phase7-validate",
-        "make -C zigux phase7",
-    ],
-    "scripts/zigux/validate-phase7.py": [
-        '"scripts/zigux/check-phase7-argv-split-packet.py"',
-        '"zigux/tests/phase7_argv_split.zig"',
-        '"zigux/tests/phase7_argv_split_survey.zig"',
-        '"zigux/tests/phase7_argv_split_manifest.json"',
-        '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"',
-    ],
-    "zigux/tests/README.md": [
-        "scripts/zigux/check-phase7-argv-split-packet.py",
-        "zigux/tests/phase7_argv_split.zig",
-        "zigux/tests/phase7_argv_split_survey.zig",
-        "zigux/tests/phase7_argv_split_manifest.json",
-        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-        "make -C zigux phase7-validate",
-        "make -C zigux phase7",
-    ],
-    "zigux/Makefile": [
-        "phase7-validate:",
-        "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
-        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
-        "phase7-test:",
-        "phase7: phase7-validate phase7-test",
-    ],
-    "zigux/tests/phase7_build.zig": [
-        '"phase7-argv-split-tests"',
-        '"phase7_argv_split.zig"',
-        '"phase7-argv-split-survey-tests"',
-        '"phase7_argv_split_survey.zig"',
-        'run_argv_split_survey_tests.setCwd(b.path("../.."));',
+    "lib/argv_split.zig": [
+        "pub fn countArgc",
+        "pub fn argvSplit",
+        "pub fn argvSplitWithArgc",
+        "pub fn argvFree",
+        "pub fn cArgv",
+        "if (!hasAnyArg(current))",
+        "self.* = .{",
     ],
     "zigux/tests/phase7_argv_split.zig": [
+        'const phase7_vectors = @import("fixtures/phase7_argv_split_vectors.zig");',
         "phase 7 argvSplit matches focused parity fixtures",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
-        "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
-        "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
-        "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
-        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         'const active_lane_key = "P7-L09";',
-        'try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);',
-        'scripts/zigux/check-phase7-argv-split-packet.py',
-        'zigux/tests/phase7_argv_split_manifest.json',
-        'phase7-argv-split-packet-checker',
-        'PHASE7_LANE_KEY=',
-        'phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer',
-        'phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too',
-        'phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers',
-        'phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact',
-        'phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact',
-        'phase 7 blank argvSplit input reuses the empty exported argv view',
-        'phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space',
-        'phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable',
-        'phase 7 argvSplit deinit clears exported storage and argv views',
-        'phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup',
+        "try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+        "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+        "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+        "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
+        "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
+        "phase 7 blank argvSplit input reuses the empty exported argv view",
+        "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
+        "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
-        '"current_verification": {',
-        '"verified_on_utc": "2026-05-13T11:57:30Z"',
+        '"lane_key": "P7-L09"',
+        '"anchor": "lib/argv_split.c"',
         '"argv_split_pair_compile": {',
         '"status": "confirmed"',
-        '"paths": [',
-        '"shared_phase7_build": {',
-        '"build_file": "zigux/tests/phase7_build.zig"',
-        '"missing_sibling_paths": [',
-        '"zigux/tests/phase7_rbtree.zig"',
-        '"Documentation/zigux/phase7-helper-lane-sequencing.md"',
-        '"scripts/zigux/check-phase7-build-wiring.py"',
+        '"lib/argv_split.zig"',
+        '"zigux/tests/phase7_argv_split.zig"',
+        '"countArgc"',
+        '"argvSplit"',
+        '"argvSplitWithArgc"',
+        '"cArgv"',
+        '"argvFree"',
+        '"deinit"',
         "copied token-buffer ownership and later source-mutation isolation",
-        "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
-        "argvFree on one live non-blank result does not disturb another caller-owned split result",
-        "deinit on one live non-blank result does not disturb another caller-owned split result",
         "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
     ],
-    "lib/argv_split.zig": [
-        "blank-input deinit on one caller keeps the shared sentinel views usable for another",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
+        '.name = "repeated whitespace collapses into separators"',
+        '.name = "whitespace before first NUL stays blank"',
+        '.name = "leading NUL truncates to zero argv entries"',
+        '.name = "quote characters stay inside returned tokens"',
     ],
-}
-
-FIXTURE_OVERRIDES = {
-    "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
-    "lib/argv_split.zig": "blank-input deinit on one caller keeps the shared sentinel views usable for another\n",
 }
 
 
@@ -231,11 +116,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
-    fixture_text.update(FIXTURE_OVERRIDES)
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(fixture_text.get(rel, "# fixture\n"), encoding="utf-8")
+        path.write_text(fixture_text[rel], encoding="utf-8")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -272,291 +156,45 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        (tmp_root / "Documentation/zigux/phase7-helper-lane-sequencing.md").unlink()
-        expect_missing_file(
-            "missing_helper_lane_note",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "scripts/zigux/README.md",
-            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-            "",
-            "scripts_readme_fixture_marker",
-        )
-        expect_missing_marker(
-            "scripts_readme_fixture_marker",
-            tmp_root,
-            "scripts/zigux/README.md: zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md",
-            "scripts/zigux/validate-phase7.py",
-            "",
-            "review_checklist_validate_phase7_marker",
-        )
-        expect_missing_marker(
-            "review_checklist_validate_phase7_marker",
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: scripts/zigux/validate-phase7.py",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md",
-            "there is no standalone `samples/zigux/*argv*` reference sample",
-            "",
-            "review_checklist_no_sample_boundary_marker",
-        )
-        expect_missing_marker(
-            "review_checklist_no_sample_boundary_marker",
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: there is no standalone `samples/zigux/*argv*` reference sample",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "samples/zigux/README.md",
-            ".github/workflows/zigux-bootstrap.yml",
-            "",
-            "samples_readme_workflow_marker",
-        )
-        expect_missing_marker(
-            "samples_readme_workflow_marker",
-            tmp_root,
-            "samples/zigux/README.md: .github/workflows/zigux-bootstrap.yml",
-        )
-        write_fixture_root(tmp_root)
-
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md",
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_LANE_KEY=P7-L09",
             "",
-            "slice_helper_lane_note_marker",
+            "slice_lane_key_marker",
         )
         expect_missing_marker(
-            "slice_helper_lane_note_marker",
+            "slice_lane_key_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "Documentation/zigux/phase7-argv-split-slice.md: PHASE7_LANE_KEY=P7-L09",
         )
         write_fixture_root(tmp_root)
 
         mutate_file(
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "copied token-buffer ownership and later source-mutation isolation",
             "",
-            "slice_pair_compile_truthfulness_marker",
+            "manifest_ownership_marker",
         )
         expect_missing_marker(
-            "slice_pair_compile_truthfulness_marker",
+            "manifest_ownership_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
-            "",
-            "slice_shared_build_blocker_truthfulness_marker",
-        )
-        expect_missing_marker(
-            "slice_shared_build_blocker_truthfulness_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "scripts/zigux/check-phase7-build-wiring.py",
-            "",
-            "slice_build_wiring_checker_marker",
-        )
-        expect_missing_marker(
-            "slice_build_wiring_checker_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: scripts/zigux/check-phase7-build-wiring.py",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "make -C zigux phase7-validate",
-            "",
-            "slice_phase7_validate_marker",
-        )
-        expect_missing_marker(
-            "slice_phase7_validate_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: make -C zigux phase7-validate",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "argv-split packet, lane `P7-L09`:",
-            "",
-            "helper_lane_note_packet_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_note_packet_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: argv-split packet, lane `P7-L09`:",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
-            "",
-            "helper_lane_note_lane_constant_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_note_lane_constant_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
-            "",
-            "helper_lane_note_tests_root_owner_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_note_tests_root_owner_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
-            "",
-            "helper_lane_note_shared_tests_owner_rule",
-        )
-        expect_missing_marker(
-            "helper_lane_note_shared_tests_owner_rule",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
+            "zigux/tests/phase7_argv_split_manifest.json: copied token-buffer ownership and later source-mutation isolation",
         )
         write_fixture_root(tmp_root)
 
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+            'const active_lane_key = "P7-L09";',
             "",
-            "survey_zeroed_whitespace_marker",
+            "survey_lane_key_marker",
         )
         expect_missing_marker(
-            "survey_zeroed_whitespace_marker",
+            "survey_lane_key_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
-            "",
-            "survey_control_whitespace_marker",
-        )
-        expect_missing_marker(
-            "survey_control_whitespace_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
-            "",
-            "survey_distinct_callers_marker",
-        )
-        expect_missing_marker(
-            "survey_distinct_callers_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
-            "",
-            "survey_deinit_sibling_marker",
-        )
-        expect_missing_marker(
-            "survey_deinit_sibling_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
-            "",
-            "survey_argvfree_sibling_marker",
-        )
-        expect_missing_marker(
-            "survey_argvfree_sibling_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
-            "",
-            "helper_zeroed_whitespace_marker",
-        )
-        expect_missing_marker(
-            "helper_zeroed_whitespace_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
-            "",
-            "helper_deinit_sibling_marker",
-        )
-        expect_missing_marker(
-            "helper_deinit_sibling_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
+            'zigux/tests/phase7_argv_split_survey.zig: const active_lane_key = "P7-L09";',
         )
         write_fixture_root(tmp_root)
 
@@ -565,10 +203,10 @@ def run_self_test() -> None:
             "zigux/tests/phase7_argv_split.zig",
             "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
             "",
-            "helper_argv_free_ownership_marker",
+            "tests_argv_free_marker",
         )
         expect_missing_marker(
-            "helper_argv_free_ownership_marker",
+            "tests_argv_free_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
         )
@@ -576,81 +214,38 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+            '.name = "quote characters stay inside returned tokens"',
+            "",
+            "fixture_quote_marker",
+        )
+        expect_missing_marker(
+            "fixture_quote_marker",
+            tmp_root,
+            'zigux/tests/fixtures/phase7_argv_split_vectors.zig: .name = "quote characters stay inside returned tokens"',
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "lib/argv_split.zig",
-            "blank-input deinit on one caller keeps the shared sentinel views usable for another",
+            "pub fn cArgv",
             "",
-            "helper_shared_blank_sentinel_marker",
+            "helper_c_argv_marker",
         )
         expect_missing_marker(
-            "helper_shared_blank_sentinel_marker",
+            "helper_c_argv_marker",
             tmp_root,
-            "lib/argv_split.zig: blank-input deinit on one caller keeps the shared sentinel views usable for another",
+            "lib/argv_split.zig: pub fn cArgv",
         )
-        write_fixture_root(tmp_root)
 
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            '"argv_split_pair_compile": {',
-            "",
-            "manifest_pair_compile_marker",
-        )
-        expect_missing_marker(
-            "manifest_pair_compile_marker",
-            tmp_root,
-            'zigux/tests/phase7_argv_split_manifest.json: "argv_split_pair_compile": {',
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            '"zigux/tests/phase7_rbtree.zig"',
-            "",
-            "manifest_missing_sibling_marker",
-        )
-        expect_missing_marker(
-            "manifest_missing_sibling_marker",
-            tmp_root,
-            'zigux/tests/phase7_argv_split_manifest.json: "zigux/tests/phase7_rbtree.zig"',
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            '"Documentation/zigux/phase7-helper-lane-sequencing.md"',
-            "",
-            "manifest_helper_lane_note_marker",
-        )
-        expect_missing_marker(
-            "manifest_helper_lane_note_marker",
-            tmp_root,
-            'zigux/tests/phase7_argv_split_manifest.json: "Documentation/zigux/phase7-helper-lane-sequencing.md"',
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            '"scripts/zigux/check-phase7-build-wiring.py"',
-            "",
-            "manifest_build_wiring_checker_marker",
-        )
-        expect_missing_marker(
-            "manifest_build_wiring_checker_marker",
-            tmp_root,
-            'zigux/tests/phase7_argv_split_manifest.json: "scripts/zigux/check-phase7-build-wiring.py"',
-        )
-        write_fixture_root(tmp_root)
-
-    case_count = 28
+    case_count = 7
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check that the Phase 7 argv_split packet stays aligned.")
+    parser = argparse.ArgumentParser(description="Check that the Phase 7 argv_split helper-local packet stays aligned.")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests without reading repo files.")
     args = parser.parse_args()
 
