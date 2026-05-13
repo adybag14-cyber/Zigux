@@ -14,6 +14,7 @@ SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
+BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 EXEC_CMD_SOURCE_PATH = "tools/lib/subcmd/exec-cmd.zig"
 EXEC_CMD_C_PATH = "tools/lib/subcmd/exec-cmd.c"
@@ -29,6 +30,7 @@ REQUIRED_FILES = (
     TESTS_README_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
+    BOUNDARY_SURVEY_PATH,
     EXEC_CMD_SLICE_PATH,
     EXEC_CMD_SOURCE_PATH,
     EXEC_CMD_C_PATH,
@@ -80,10 +82,18 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase8.py",
         "phase8: phase8-validate",
     ),
+    BOUNDARY_SURVEY_PATH: (
+        "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01",
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+        "`tools/lib/subcmd/exec-cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`python3 scripts/zigux/validate-phase8.py`",
+    ),
     EXEC_CMD_SLICE_PATH: (
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         "helper-first, output-stable deferred-exec planning",
         "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only.",
         "make -C zigux phase8-validate",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
@@ -200,8 +210,11 @@ def run_self_test() -> int:
             (DOCS_ROOT_PATH, "`make -C zigux phase8-exec-cmd-test`"),
             (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
+            (BOUNDARY_SURVEY_PATH, "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01"),
+            (BOUNDARY_SURVEY_PATH, "`Documentation/zigux/phase8-exec-cmd-slice.md`"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
+            (EXEC_CMD_SLICE_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only."),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
@@ -222,6 +235,16 @@ def run_self_test() -> int:
             shutil.copytree(baseline_root, case_root)
             assert_missing_case(case_root, rel_path, marker)
             cases += 1
+
+        boundary_missing_root = Path(tmp) / f"case_{cases}"
+        shutil.copytree(baseline_root, boundary_missing_root)
+        (boundary_missing_root / BOUNDARY_SURVEY_PATH).unlink()
+        boundary_missing_result = run_validator(boundary_missing_root)
+        boundary_missing_output = boundary_missing_result.stdout.strip() or boundary_missing_result.stderr.strip() or "no_output"
+        boundary_expected = f"missing-file:{BOUNDARY_SURVEY_PATH}"
+        if boundary_missing_result.returncode == 0 or boundary_expected not in boundary_missing_output:
+            raise SystemExit(f"self-test-missing-file-mismatch:{boundary_missing_output}")
+        cases += 1
 
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
