@@ -98,11 +98,15 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("99cd3249c4bab05b74227ed7ca3869284e818588", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 8103), manifest.survey_summary.ring_buffer_c_lines);
     try std.testing.expectEqual(@as(usize, 983), manifest.survey_summary.ring_buffer_design_doc_lines);
     try std.testing.expectEqual(@as(usize, 106), manifest.survey_summary.ring_buffer_map_doc_lines);
     try std.testing.expectEqual(@as(usize, 10017), manifest.survey_summary.trace_c_lines);
     try std.testing.expectEqual(@as(usize, 517), manifest.survey_summary.simple_ring_buffer_c_lines);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_build_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_make_target_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_workqueue_bridge_present);
     try std.testing.expectEqual(false, manifest.survey_summary.preexisting_ring_buffer_zig_present);
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
@@ -113,6 +117,9 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqualStrings("zig test zigux/tests/phase14_ring_buffer_survey.zig", manifest.maintenance_handoff.replay_before_trusting[0]);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.replay_before_trusting[1]);
+    try std.testing.expectEqualStrings("make -C zigux phase14", manifest.maintenance_handoff.replay_before_trusting[2]);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "ring-buffer-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "maintenance-mode handoff") != null);
