@@ -73,6 +73,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_build.zig": [
         ".root_source_file = b.path(\"../../lib/string_helpers.zig\"),",
+        ".root_source_file = b.path(\"phase7_string_helpers.zig\"),",
         "string_helpers_root_module.addImport(\"string_helpers\", string_helpers_module);",
         "const string_helpers_survey_step = b.step(",
         "\"phase7-string-helpers-survey\",",
@@ -87,6 +88,7 @@ REQUIRED_MARKERS = {
         "phase7-string-helpers-sample-boundary-tests",
         "\"phase7_string_helpers_sample_boundary.zig\"",
         ".root_source_file = b.path(\"../../lib/cmdline.zig\"),",
+        ".root_source_file = b.path(\"phase7_cmdline.zig\"),",
         "cmdline_root_module.addImport(\"cmdline\", cmdline_module);",
         "const cmdline_step = b.step(",
         "\"phase7-cmdline-test\",",
@@ -99,6 +101,7 @@ REQUIRED_MARKERS = {
         "phase7-cmdline-survey-tests",
         "\"phase7_cmdline_survey.zig\"",
         ".root_source_file = b.path(\"../../lib/argv_split.zig\"),",
+        ".root_source_file = b.path(\"phase7_argv_split.zig\"),",
         "argv_split_root_module.addImport(\"argv_split\", argv_split_module);",
         "const argv_split_step = b.step(",
         "\"phase7-argv-split-test\",",
@@ -111,6 +114,7 @@ REQUIRED_MARKERS = {
         "phase7-argv-split-survey-tests",
         "\"phase7_argv_split_survey.zig\"",
         ".root_source_file = b.path(\"../../lib/rbtree.zig\"),",
+        ".root_source_file = b.path(\"phase7_rbtree.zig\"),",
         "rbtree_root_module.addImport(\"rbtree\", rbtree_module);",
         "const rbtree_step = b.step(",
         "\"phase7-rbtree-test\",",
@@ -261,6 +265,13 @@ def run_self_test() -> None:
             "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"../../lib/string_helpers.zig\"),",
         ),
         (
+            "build_string_helpers_direct_source_path",
+            "zigux/tests/phase7_build.zig",
+            ".root_source_file = b.path(\"phase7_string_helpers.zig\"),",
+            ".root_source_file = b.path(\"phase7_string_helpers_drift.zig\"),",
+            "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"phase7_string_helpers.zig\"),",
+        ),
+        (
             "build_string_helpers_import_alias",
             "zigux/tests/phase7_build.zig",
             "string_helpers_root_module.addImport(\"string_helpers\", string_helpers_module);",
@@ -310,6 +321,13 @@ def run_self_test() -> None:
             "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"../../lib/cmdline.zig\"),",
         ),
         (
+            "build_cmdline_direct_source_path",
+            "zigux/tests/phase7_build.zig",
+            ".root_source_file = b.path(\"phase7_cmdline.zig\"),",
+            ".root_source_file = b.path(\"phase7_cmdline_drift.zig\"),",
+            "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"phase7_cmdline.zig\"),",
+        ),
+        (
             "build_cmdline_import_alias",
             "zigux/tests/phase7_build.zig",
             "cmdline_root_module.addImport(\"cmdline\", cmdline_module);",
@@ -357,6 +375,13 @@ def run_self_test() -> None:
             ".root_source_file = b.path(\"../../lib/argv_split.zig\"),",
             ".root_source_file = b.path(\"../../lib/argv_split_drift.zig\"),",
             "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"../../lib/argv_split.zig\"),",
+        ),
+        (
+            "build_argv_split_direct_source_path",
+            "zigux/tests/phase7_build.zig",
+            ".root_source_file = b.path(\"phase7_argv_split.zig\"),",
+            ".root_source_file = b.path(\"phase7_argv_split_drift.zig\"),",
+            "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"phase7_argv_split.zig\"),",
         ),
         (
             "build_argv_split_import_alias",
@@ -413,6 +438,13 @@ def run_self_test() -> None:
             ".root_source_file = b.path(\"../../lib/rbtree.zig\"),",
             ".root_source_file = b.path(\"../../lib/rbtree_drift.zig\"),",
             "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"../../lib/rbtree.zig\"),",
+        ),
+        (
+            "build_rbtree_direct_source_path",
+            "zigux/tests/phase7_build.zig",
+            ".root_source_file = b.path(\"phase7_rbtree.zig\"),",
+            ".root_source_file = b.path(\"phase7_rbtree_drift.zig\"),",
+            "zigux/tests/phase7_build.zig: .root_source_file = b.path(\"phase7_rbtree.zig\"),",
         ),
         (
             "build_rbtree_import_alias",
