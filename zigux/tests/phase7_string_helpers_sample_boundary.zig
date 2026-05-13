@@ -118,6 +118,9 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
 
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
+    try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(scripts_root, "lib/string_helpers.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
