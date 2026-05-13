@@ -21,7 +21,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - Linux-style kconfig route: `make -C zigux phase2-kconfig`
 - Linux-style cross route: `make -C zigux phase2-cross`
 - Linux-style tranche route: `make -C zigux phase2`
-- the broader fixdep, genksyms, artifact-tools, kconfig bridge, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of presenting non-existent standalone checker scripts as live current-`master` evidence in this dedicated pin-scope note
+- the broader fixdep, genksyms, artifact-tools, checker-backed kconfig bridge (`scripts/zigux/check-kconfig-bridge.py`), and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note
 
 ## Pin Scope
 
