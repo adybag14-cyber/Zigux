@@ -60,9 +60,10 @@ REQUIRED_MARKERS = {
         "do not let older absent-file assumptions overrule current tree evidence",
         "### 4. Shared wording lane",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
-        "Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.",
-        "`scripts/zigux/README.md` now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet, so the earlier scripts-root filename repair is no longer the active reopen cue",
-        "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
+        "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+        "Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it",
+        "`Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary",
+        "Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
@@ -131,7 +132,10 @@ def collect_missing_markers(root: Path) -> list[str]:
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    return collect_missing_files(root), collect_missing_markers(root)
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        return missing_files, []
+    return [], collect_missing_markers(root)
 
 
 def fixture_text(rel: str) -> str:
@@ -296,23 +300,30 @@ def run_self_test() -> None:
         (
             "lane_note_shared_wording_scope_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.",
-            "Keep follow-up inside the shared wording lane until the dedicated libbpf survey note agrees again.",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.",
+            "Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
+            "Keep the shared wording lane active until a fresh one-file reminder-surface drift appears.",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
         ),
         (
             "lane_note_scripts_readme_case_closure_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "`scripts/zigux/README.md` now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet, so the earlier scripts-root filename repair is no longer the active reopen cue",
-            "`scripts/zigux/README.md` still mis-cases `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` beside the shared Phase 8 packet, so the earlier scripts-root filename repair remains the active reopen cue",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `scripts/zigux/README.md` now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet, so the earlier scripts-root filename repair is no longer the active reopen cue",
+            "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
+            "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-review.py`",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
         ),
         (
-            "lane_note_next_step_reopen_anchor",
+            "lane_note_docs_root_reopen_closed_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
-            "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note while omitting the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
+            "Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it",
+            "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue instead of closing it",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it",
+        ),
+        (
+            "lane_note_docs_root_bridge_note_marker",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "`Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary",
+            "`Documentation/zigux/README.md` still omits the live file-path bridge note from the broad Phase 8 docs summary",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary",
         ),
         (
             "segment_survey_docs_root_readback_anchor",
