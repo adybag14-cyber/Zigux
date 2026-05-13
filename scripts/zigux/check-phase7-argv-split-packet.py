@@ -67,8 +67,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "PHASE7_LANE_KEY=P7-L09",
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
-        "current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
-        "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+        "current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+        "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
@@ -180,14 +180,14 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
         '"current_verification": {',
+        '"verified_on_utc": "2026-05-13T11:57:30Z"',
         '"argv_split_pair_compile": {',
         '"status": "confirmed"',
         '"paths": [',
         '"shared_phase7_build": {',
         '"build_file": "zigux/tests/phase7_build.zig"',
         '"missing_sibling_paths": [',
-        '"lib/string_helpers.zig"',
-        '"zigux/tests/phase7_string_helpers.zig"',
+        '"zigux/tests/phase7_rbtree.zig"',
         '"Documentation/zigux/phase7-helper-lane-sequencing.md"',
         '"scripts/zigux/check-phase7-build-wiring.py"',
         "copied token-buffer ownership and later source-mutation isolation",
@@ -353,28 +353,28 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md",
-            "current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+            "current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
             "",
             "slice_pair_compile_truthfulness_marker",
         )
         expect_missing_marker(
             "slice_pair_compile_truthfulness_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+            "Documentation/zigux/phase7-argv-split-slice.md: current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
         )
         write_fixture_root(tmp_root)
 
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md",
-            "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+            "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
             "",
             "slice_shared_build_blocker_truthfulness_marker",
         )
         expect_missing_marker(
             "slice_shared_build_blocker_truthfulness_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+            "Documentation/zigux/phase7-argv-split-slice.md: broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`",
         )
         write_fixture_root(tmp_root)
 
@@ -605,14 +605,14 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
-            '"zigux/tests/phase7_string_helpers.zig"',
+            '"zigux/tests/phase7_rbtree.zig"',
             "",
             "manifest_missing_sibling_marker",
         )
         expect_missing_marker(
             "manifest_missing_sibling_marker",
             tmp_root,
-            'zigux/tests/phase7_argv_split_manifest.json: "zigux/tests/phase7_string_helpers.zig"',
+            'zigux/tests/phase7_argv_split_manifest.json: "zigux/tests/phase7_rbtree.zig"',
         )
         write_fixture_root(tmp_root)
 
