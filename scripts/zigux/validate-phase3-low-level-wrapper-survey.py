@@ -294,7 +294,7 @@ def run_self_test() -> int:
         _write(
             root,
             BUILD_REL,
-            (root / BUILD_REL).readText(encoding="utf-8").replace(
+            (root / BUILD_REL).read_text(encoding="utf-8").replace(
                 'root_module.addImport("mmio_helpers", mmio_helpers_module);',
                 "",
                 1,
