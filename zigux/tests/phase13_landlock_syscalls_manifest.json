@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L14",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-13",
   "anchor": "security/landlock/syscalls.c",
