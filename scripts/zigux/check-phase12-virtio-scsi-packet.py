@@ -137,7 +137,6 @@ def seed_fixture_tree(root: Path) -> None:
                     "Documentation/zigux/phase12-virtio-scsi-slice.md",
                 ],
                 "repo_gaps": [
-                    "drivers/net/virtio_net.zig",
                     "drivers/nvme/host/pci.zig",
                     "Documentation/zigux/phase12-closure.md",
                 ],
@@ -169,7 +168,6 @@ def seed_fixture_tree(root: Path) -> None:
                 "",
                 "## Repo-reality gaps",
                 "",
-                "- `drivers/net/virtio_net.zig` is still absent on the surveyed head",
                 "- `drivers/nvme/host/pci.zig` is still absent on the surveyed head",
                 "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
             ]
@@ -245,7 +243,6 @@ def run_self_test() -> int:
             [
                 "slice:lane_key_mismatch:complex-drivers-infra",
                 "slice:surveyed_commit_mismatch:4b5b0667d4651364ccd4b388d84c3107b64fdd6a",
-                "slice:missing_gap_marker:drivers/net/virtio_net.zig",
                 "slice:missing_gap_marker:drivers/nvme/host/pci.zig",
                 "slice:missing_gap_marker:Documentation/zigux/phase12-closure.md",
                 "slice:missing_slice_marker",
