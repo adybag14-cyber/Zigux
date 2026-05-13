@@ -140,7 +140,11 @@ EXPECTED_GENKSYMS_CASES = [
     },
     {
         "name": "version",
-        "argv": ["--version"],
+        "argv": [
+            "-Vd",
+            "--reference",
+            "foo.symref",
+        ],
         "mode": "process_json",
         "expected": "version_expected.json",
     },
