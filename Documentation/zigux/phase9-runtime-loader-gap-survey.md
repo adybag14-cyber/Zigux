@@ -62,6 +62,17 @@ Keep the older Phase 8 command and environment cue owners out of this packet:
 - `tools/lib/subcmd/exec-cmd.zig`
 - `tools/lib/subcmd/help.zig`
 
+Keep the earlier-phase config-surface and symbol-export owners out of this
+packet too:
+
+- `scripts/zigux/kconfig/conf_bridge.zig`
+- `scripts/zigux/kconfig/confdata_bridge.zig`
+- `rust/exports.c`
+- `zigux/kernel/export_shim.zig`
+
+Those surfaces remain Phase 2 config-surface bridge references and Phase 3
+symbol-export boundary references rather than Phase 9 runtime evidence.
+
 ## Next Bounded Step
 
 If the shared loader packet drifts again, tighten only this packet's survey
