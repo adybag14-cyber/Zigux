@@ -266,7 +266,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "exact branch-head parity is not recorded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, and indefinite-C-policy records") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, `parity scorecard link or blocker record`, and indefinite-C-policy records") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the deep-core blocker posture changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current lane posture: `maintenance_mode`") != null);
