@@ -35,7 +35,7 @@
     "preexisting_virtio_core_reset_queue_test_present": true,
     "preexisting_virtio_driver_id_zig_present": true,
     "preexisting_virtio_driver_id_test_present": true,
-    "preexisting_virtio_core_slice_note_present": true,
+    "preexisting_virtio_core_slice_note_present": false,
     "preexisting_virtio_ring_survey_present": true,
     "preexisting_virtio_input_survey_present": true,
     "preexisting_virtio_mmio_survey_present": true
@@ -71,10 +71,10 @@
     },
     {
       "id": "phase10-virtio-core-slice-note",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-core-slice.md",
-      "why_now": "The slice note records the bounded implementation surface and the roadmap-facing lab-only driver validation evidence instead of a slice-note-only review path."
+      "why_now": "Shared Phase 10 reminder surfaces and the live docs tree still frame `Documentation/zigux/phase10-virtio-core-slice.md` as an absent packet-local companion on current `master`, so the manifest must keep that path explicit as a repo-reality gap rather than claiming it already landed."
     },
     {
       "id": "phase10-virtio-core-survey-gate",
@@ -179,7 +179,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "dual_implementation_boundary",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The slice already records dual implementations for risky transport-facing paths as intentionally missing, so the survey packet needs to carry that same blocked bridge before the core lane can imply a truer lab-driver step."
+      "why_now": "The packet already records dual implementations for risky transport-facing paths as intentionally missing, so the core lane still stays blocked before it can imply a truer lab-driver step."
     },
     {
       "id": "phase10-core-probe-remove-lifecycle",
