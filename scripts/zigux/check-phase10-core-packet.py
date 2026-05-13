@@ -76,6 +76,9 @@ EXPECTED_SURVEY_MARKERS = [
     "phase10-driver-id-coverage-disposition-helper",
     "phase10-lifecycle-guard-bookkeeping-helper",
     "phase10-core-lab-validation-evidence",
+    "phase10-virtio-core-slice.md",
+    "phase10-core-slice-note",
+    "repo-reality gap",
     "phase10-core-dual-implementation-bridge",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_manifest.json",
@@ -91,6 +94,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-core-lab-starter": "starter_landed",
     "phase10-virtio-core-lab-gate": "starter_landed",
     "phase10-virtio-core-reset-queue-gate": "starter_landed",
+    "phase10-virtio-core-slice-note": "repo_reality_gap",
     "phase10-virtio-core-survey-gate": "starter_landed",
     "phase10-virtio-core-survey-note": "starter_landed",
     "phase10-virtio-core-verify-replay": "starter_landed",
@@ -172,6 +176,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     summary = manifest.get("survey_summary", {})
     if summary.get("preexisting_phase10_test_files") != 11:
         missing_markers.append("manifest:preexisting_phase10_test_files=11")
+    if summary.get("preexisting_virtio_core_slice_note_present") is not False:
+        missing_markers.append("manifest:preexisting_virtio_core_slice_note_present=false")
     for key in [
         "preexisting_phase10_build_present",
         "preexisting_virtio_core_zig_present",
@@ -187,7 +193,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 20:
+    if len(gaps) < 21:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     blocked_count = 0
@@ -226,6 +232,7 @@ def build_fixture_manifest() -> str:
             "preexisting_virtio_core_reset_queue_test_present": True,
             "preexisting_virtio_driver_id_zig_present": True,
             "preexisting_virtio_driver_id_test_present": True,
+            "preexisting_virtio_core_slice_note_present": False,
             "preexisting_virtio_ring_survey_present": True,
             "preexisting_virtio_input_survey_present": True,
             "preexisting_virtio_mmio_survey_present": True,
@@ -289,24 +296,30 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_manifest_test_count_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.write_text(original_manifest.replace('"preexisting_virtio_core_slice_note_present": false', '"preexisting_virtio_core_slice_note_present": true', 1), encoding="utf-8")
+        _, missing_markers = validate(root)
+        if "manifest:preexisting_virtio_core_slice_note_present=false" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_slice_note_presence_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         manifest_path.write_text(
-            original_manifest.replace('"phase10-core-dual-implementation-bridge"', '"phase10-core-dual-implementation-bridge-drift"', 1),
+            original_manifest.replace('"repo_reality_gap"', '"starter_landed"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(root)
-        if "manifest:gap:phase10-core-dual-implementation-bridge" not in missing_markers:
-            raise SystemExit("phase10-core-self-test:expected_dual_bridge_gap_missing")
+        if "manifest:gap_status:phase10-virtio-core-slice-note=starter_landed" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_slice_note_gap_status_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("phase10-core-probe-remove-lifecycle", "phase10-core-probe-remove-drift", 1),
+            original_survey.replace("repo-reality gap", "stale slice claim", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(root)
-        if "survey_note:phase10-core-probe-remove-lifecycle" not in missing_markers:
-            raise SystemExit("phase10-core-self-test:expected_probe_remove_survey_marker_missing")
+        if "survey_note:repo-reality gap" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_slice_gap_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         build_path = root / "zigux/tests/phase10_build.zig"
@@ -346,7 +359,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
