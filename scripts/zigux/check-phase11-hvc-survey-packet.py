@@ -45,6 +45,10 @@ SURVEY_NOTE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "drivers/tty/hvc/hvc_console_verify.zig",
+    "zigux/tests/phase11_hvc_console.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
+    "landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof",
     "`hvc_cleanup()` tty-port release handoff summary",
     "`tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent",
     "sysrq handoff stays unavailable after teardown",
@@ -59,13 +63,10 @@ SLICE_NOTE_MARKERS = [
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.",
-]
-
-SLICE_NOTE_FORBIDDEN_MARKERS = [
     "drivers/tty/hvc/hvc_console_verify.zig",
     "zigux/tests/phase11_hvc_console.zig",
     "zigux/tests/phase11_hvc_cleanup.zig",
+    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable together with the materialized direct verify and cleanup companions, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
@@ -96,9 +97,27 @@ VALIDATION_MATRIX_MARKERS = [
     "notifier callback boundary",
     "`hvc_hangup()` disconnect boundary",
     "notifier_hangup boundary",
-    "Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.",
-    "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "`zigux/tests/phase11_hvc_console.zig`",
+    "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.",
+    "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
+    "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure",
 ]
+
+FORBIDDEN_MARKERS = {
+    "survey_note": [
+        "The current archival packet still does not materialize the direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, or `drivers/tty/hvc/hvc_console_verify.zig` companions, so keep those paths framed as repo-reality gaps rather than as part of the landed archival replay.",
+    ],
+    "slice_note": [
+        "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.",
+    ],
+    "validation_matrix": [
+        "Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.",
+        "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
+        "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, host-backed I/O coverage, or a direct HVC verify-and-replay pair until the Zig surface and tests for those behaviors exist",
+    ],
+}
 
 DRIVER_STARTER_MARKERS = [
     "pub const CloseTeardownRequest = struct {",
@@ -223,6 +242,7 @@ def run_check(root: Path) -> None:
     expect_git_commit_exists(root, manifest["surveyed_commit"])
 
     survey_note = read_text(root, REQUIRED_FILES["survey_note"])
+    slice_note = read_text(root, REQUIRED_FILES["slice_note"])
     validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
     if manifest["surveyed_commit"] not in survey_note:
         raise CheckError(
@@ -236,13 +256,12 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
     expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
     expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
-
-    slice_note = read_text(root, REQUIRED_FILES["slice_note"])
+    expect_forbidden_markers_absent(REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"])
     expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
-    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_FORBIDDEN_MARKERS)
-
+    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"])
     expect_markers(REQUIRED_FILES["teardown_note"], read_text(root, REQUIRED_FILES["teardown_note"]), TEARDOWN_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["validation_matrix"], validation_matrix, VALIDATION_MATRIX_MARKERS)
+    expect_forbidden_markers_absent(REQUIRED_FILES["validation_matrix"], validation_matrix, FORBIDDEN_MARKERS["validation_matrix"])
     expect_markers(REQUIRED_FILES["modem_control_split"], read_text(root, REQUIRED_FILES["modem_control_split"]), MODEM_CONTROL_SPLIT_MARKERS)
     expect_markers(REQUIRED_FILES["poll_retry_split"], read_text(root, REQUIRED_FILES["poll_retry_split"]), POLL_RETRY_SPLIT_MARKERS)
     expect_markers(REQUIRED_FILES["sysrq_helper"], read_text(root, REQUIRED_FILES["sysrq_helper"]), SYSRQ_HELPER_MARKERS)
@@ -319,9 +338,9 @@ def run_self_test() -> None:
             (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
             (REQUIRED_FILES["driver_starter"], 'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"'),
             (REQUIRED_FILES["survey_gate"], 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"'),
-            (REQUIRED_FILES["validation_matrix"], "zigux/tests/phase11_hvc_cleanup.zig"),
-            (REQUIRED_FILES["validation_matrix"], "direct verify-and-replay pair"),
-            (REQUIRED_FILES["slice_note"], "drivers/tty/hvc/hvc_console_sysrq.zig"),
+            (REQUIRED_FILES["survey_note"], "landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof"),
+            (REQUIRED_FILES["validation_matrix"], "missing verify-and-replay gap"),
+            (REQUIRED_FILES["slice_note"], "zigux/tests/phase11_hvc_cleanup.zig"),
             (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
             (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
             (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
@@ -340,9 +359,10 @@ def run_self_test() -> None:
             expect_failure(tmpdir, marker)
 
         reset_fixture(tmpdir)
-        path = tmpdir / REQUIRED_FILES["slice_note"]
-        path.write_text(path.read_text(encoding="utf-8") + "zigux/tests/phase11_hvc_cleanup.zig\n", encoding="utf-8")
-        expect_failure(tmpdir, "zigux/tests/phase11_hvc_cleanup.zig")
+        path = tmpdir / REQUIRED_FILES["validation_matrix"]
+        marker = FORBIDDEN_MARKERS["validation_matrix"][0]
+        path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+        expect_failure(tmpdir, marker)
 
         reset_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")

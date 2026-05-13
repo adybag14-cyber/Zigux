@@ -19,11 +19,14 @@ The current bounded HVC archival packet is reviewed through:
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
+* `zigux/tests/phase11_hvc_console.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.
+These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable together with the materialized direct verify and cleanup companions, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.
 
 ## Teardown And Failure-Mode Cues
 
