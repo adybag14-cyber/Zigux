@@ -28,11 +28,12 @@ REQUIRED_MARKERS = [
     "### `samples/zigux/test_fsmount.zig`",
     "* current C anchor: `samples/vfs/test-fsmount.c`",
     "* current replay path: `make M=samples/vfs`",
-    "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+    "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+    "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
     "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
-    "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
-    "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+    "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and the matching Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+    "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
     PERF_SECTION_HEADER,
 ]
 
@@ -62,7 +63,8 @@ SELF_TEST_CASES = [
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
     "test_fsmount_threshold_posture_drift",
-    "test_fsmount_wrapper_drift",
+    "test_fsmount_local_wrapper_drift",
+    "test_fsmount_linux_style_wrapper_drift",
     "test_fsmount_validation_entrypoint_drift",
     "test_fsmount_owner_drift",
     "test_fsmount_rollback_owner_drift",
@@ -148,12 +150,13 @@ def build_fixture_text() -> str:
             "### `samples/zigux/test_fsmount.zig`",
             "* current C anchor: `samples/vfs/test-fsmount.c`",
             "* current replay path: `make M=samples/vfs`",
-            "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+            "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+            "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
             "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
             "* survey owner: `Validation and Perf Team`",
             "* rollback owner: `Validation and Perf Team`",
-            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
-            "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+            "* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and the matching Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+            "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
             PERF_SECTION_HEADER,
             "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
             "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
@@ -420,16 +423,16 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-                "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-gap-survey`",
+                "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+                "* dedicated local survey wrapper: `zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig`",
             ),
         )
         if not expect_failure(
             root,
-            "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+            "missing_marker:* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
-            print("test_fsmount wrapper drift case did not fail closed")
+            print("test_fsmount local-wrapper drift case did not fail closed")
             return 1
         case_count += 1
 
@@ -437,8 +440,25 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
-                "zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig",
+                "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+                "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-gap-survey`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount linux-style-wrapper drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+                "* validation entrypoint: `zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig`",
             ),
         )
         if not expect_failure(
@@ -471,8 +491,8 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
-                "* rollback owner: `Tooling and Validation Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `make -C zigux phase4-test-fsmount-survey` and the direct validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+                "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and the matching Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
+                "* rollback owner: `Tooling and Validation Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and the matching Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
             ),
         )
         if not expect_failure(
@@ -488,13 +508,13 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
-                "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
-                "* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the shared replay surface rather than reopening measurability wording alone",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+                "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
             ),
         )
         if not expect_failure(
             root,
-            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, the direct validation entrypoint `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+            "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount next-step drift case did not fail closed")
