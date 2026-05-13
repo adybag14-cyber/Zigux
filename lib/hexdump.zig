@@ -353,3 +353,39 @@ test "invalid group sizes fall back to single-byte formatting" {
     try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualStrings("aa bb cc", linebuf[0..written]);
 }
+
+test "invalid rowsize falls back to the 16-byte row contract" {
+    var linebuf: [80]u8 = undefined;
+    const input = [_]u8{
+        0x00, 0x01, 0x02, 0x03,
+        0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b,
+        0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13,
+    };
+    const written = hexDumpToBuffer(&input, 24, 1, &linebuf, false);
+
+    try std.testing.expectEqual(requiredLineLength(input.len, 24, 1, false), written);
+    try std.testing.expectEqualStrings(
+        "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f",
+        linebuf[0..written],
+    );
+}
+
+test "g8 grouped ascii output follows native-endian order and the 16-byte ascii column" {
+    var linebuf: [96]u8 = undefined;
+    const input = [_]u8{
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+    };
+    const written = hexDumpToBuffer(&input, 16, 8, &linebuf, true);
+    const expected_hex = if (native_endian == .little)
+        "4847464544434241 504f4e4d4c4b4a49"
+    else
+        "4142434445464748 494a4b4c4d4e4f50";
+    const expected_column = asciiColumn(16, 8);
+
+    try std.testing.expectEqual(requiredLineLength(input.len, 16, 8, true), written);
+    try std.testing.expectEqualStrings(expected_hex, linebuf[0..expected_hex.len]);
+    try std.testing.expectEqualStrings("ABCDEFGHIJKLMNOP", linebuf[expected_column..written]);
+}
