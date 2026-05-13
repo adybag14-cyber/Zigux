@@ -12,6 +12,7 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
 * directly reviewed same-lane surfaces in this refresh:
   * `Documentation/zigux/phase5-kfifo-sample-survey.md`
   * `samples/zigux/bytestream_fifo.zig`
+  * `zigux/tests/phase5_bytestream_fifo.zig`
   * `zigux/tests/phase5_bytestream_fifo_manifest.json`
   * `zigux/tests/phase5_bytestream_fifo_survey.zig`
   * `zigux/tests/phase5_build.zig`
@@ -30,15 +31,16 @@ Fresh repo-first inspection on 2026-05-13 confirmed these same-lane facts:
 
 * `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 * `samples/zigux/bytestream_fifo.zig` is directly reviewable on current `master`.
-* the shared bytestream packet is also reviewable through `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig`.
+* the shared bytestream packet is also reviewable through `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig`.
 * the sample file itself still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
+* the focused replay `zigux/tests/phase5_bytestream_fifo.zig` still keeps the replay-visible transfer counts, preview markers, queue-shape helpers, short-drain boundary, and ownership-and-lifetime packet explicit beside the sample-root self-check.
 * the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice so the landed review surface does not collapse back to the sample file and survey note alone.
 
 That means the honest same-lane posture is:
 
 * the roadmap-backed kfifo sample idiom is already present at the sample-root level
-* the manifest-backed survey packet is part of the shipped Phase 5 review surface
-* the remaining gap is to keep note wording synchronized with the current sample and survey gate instead of letting an older readback-limited snapshot drift forward
+* the manifest-backed survey packet and focused replay are part of the shipped Phase 5 review surface
+* the remaining gap is to keep note wording synchronized with the current sample, focused replay, and survey gate instead of letting an older readback-limited snapshot drift forward
 
 ## Approved idiom for the landed bytestream FIFO sample
 
@@ -129,6 +131,7 @@ This snapshot is commit-pinned to `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf
 Verification recorded for that replay packet:
 
 * `zig test samples/zigux/bytestream_fifo.zig` passed `5/5` sample self-checks
+* `zigux/tests/phase5_bytestream_fifo.zig` remains the focused replay surface paired with that sample-root self-check and the shared `zigux/tests/phase5_build.zig` route
 * the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route for the bytestream packet still exists through the Phase 5 build, Makefile, and workflow wiring without relying on a brittle aggregate build-step or test count
 * `len_after_initial_fill = 15`
 * `first_out = "hello"`
@@ -167,6 +170,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig`, keep these promp
 * does the sample still keep `StorageBacking.embedded_fixed_buffer` explicit so the roadmap-backed idiom remains a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue?
 * does `reviewContract().focus` still keep the cue order explicit for `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`?
 * do `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()` still keep preview, rollover, and queue-shape evidence visible from the sample file itself?
+* does `zigux/tests/phase5_bytestream_fifo.zig` still keep the focused replay packet explicit beside the sample-root self-check and the shared `zigux/tests/phase5_build.zig` route?
 * does the lifecycle stay explicit through `init()`, `runAnchorReplay()`, `reset()`, and `exit()` instead of leaving ownership review to outside surfaces?
 * do helper-boundary checks still keep empty, short-drain, skip-at-capacity, overflow, full-preview, and reset behavior visible from the sample packet?
 * if shared Phase 5 docs or tests later mention the bytestream replay packet again, do they stay commit-pinned and current instead of falling back to older connector-gap wording?
@@ -177,7 +181,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig`, keep these promp
 The roadmap gap here is no longer "Zigux still needs a kfifo reference sample." The more precise gap is:
 
 * the roadmap-backed `kfifo` anchor already has a directly readable sample-root implementation
-* the approved idiom is reviewable today from the sample file plus the shared manifest-backed survey packet
+* the approved idiom is reviewable today from the sample file plus the shared manifest-backed survey packet and focused replay surface
 * Phase 5 still needs its reference-sample wording kept separate from later runtime-family work instead of letting sample language drift toward runtime-substrate claims
 
 So the honest same-lane follow-through is a truthfulness repair: keep the survey aligned with the sample-root and shared replay packet now, and only widen if a new bytestream sample change lands first.
@@ -207,4 +211,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave the bytestream survey packet parked unless `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or this note drifts again. If it reopens, compare those four surfaces first and only then decide whether the next honest move is another note-only refresh or a separate manifest or survey-gate tighten.
+Leave the bytestream survey packet parked unless `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or this note drifts again. If it reopens, compare those five surfaces first and only then decide whether the next honest move is another note-only refresh or a separate manifest or survey-gate tighten.
