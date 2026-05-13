@@ -29,11 +29,24 @@ pub const packed_record_values = [_]RawRecord{
 };
 
 pub const dynamic_case_lengths = [_]usize{
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31, 32,
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
 };
+
+pub const PerfCase = struct {
+    label: []const u8,
+    len: usize,
+    reps: usize,
+};
+
+pub const perf_cases = [_]PerfCase{
+    .{ .label = "len15", .len = representative_ascending_values.len, .reps = 4_000 },
+    .{ .label = "len64", .len = 64, .reps = 2_000 },
+    .{ .label = "len1024", .len = 1_024, .reps = 250 },
+};
+
+pub const query_count: usize = 16;
 
 pub fn typedQuerySeed(index: usize) u32 {
     return representative_hit_queries[index % representative_hit_queries.len];
@@ -41,6 +54,27 @@ pub fn typedQuerySeed(index: usize) u32 {
 
 pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
+}
+
+pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32, expected_hits: []bool) void {
+    std.debug.assert(len != 0);
+    std.debug.assert(values.len == len);
+    std.debug.assert(queries.len == expected_hits.len);
+    std.debug.assert(queries.len >= 8);
+
+    @memset(queries, 0);
+    @memset(expected_hits, false);
+
+    const seed_indices = [_]usize{ 0, len / 4, len / 2, len - 1 };
+    for (seed_indices, 0..) |index, slot| {
+        queries[slot] = values[index];
+        expected_hits[slot] = true;
+    }
+
+    for (seed_indices, 0..) |index, slot| {
+        queries[4 + slot] = values[index] + 1;
+        expected_hits[4 + slot] = false;
+    }
 }
 
 test "phase 6 bsearch vectors stay deterministic and sorted" {
@@ -58,4 +92,36 @@ test "phase 6 bsearch vectors stay deterministic and sorted" {
     for (dynamic_case_lengths, 0..) |length, index| {
         try std.testing.expectEqual(index, length);
     }
+}
+
+test "phase 6 bsearch perf seeds stay deterministic" {
+    try std.testing.expectEqual(@as(usize, 3), perf_cases.len);
+    try std.testing.expectEqual(@as(usize, 16), query_count);
+
+    var values: [representative_ascending_values.len]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index * 2));
+    }
+
+    var queries: [query_count]u32 = undefined;
+    var expected_hits: [query_count]bool = undefined;
+    seedDeterministicQueries(values.len, values[0..], &queries, &expected_hits);
+
+    try std.testing.expect(expected_hits[0]);
+    try std.testing.expect(expected_hits[1]);
+    try std.testing.expect(expected_hits[2]);
+    try std.testing.expect(expected_hits[3]);
+    try std.testing.expect(!expected_hits[4]);
+    try std.testing.expect(!expected_hits[5]);
+    try std.testing.expect(!expected_hits[6]);
+    try std.testing.expect(!expected_hits[7]);
+
+    try std.testing.expectEqual(values[0], queries[0]);
+    try std.testing.expectEqual(values[values.len / 4], queries[1]);
+    try std.testing.expectEqual(values[values.len / 2], queries[2]);
+    try std.testing.expectEqual(values[values.len - 1], queries[3]);
+    try std.testing.expectEqual(values[0] + 1, queries[4]);
+    try std.testing.expectEqual(values[values.len / 4] + 1, queries[5]);
+    try std.testing.expectEqual(values[values.len / 2] + 1, queries[6]);
+    try std.testing.expectEqual(values[values.len - 1] + 1, queries[7]);
 }
