@@ -66,7 +66,7 @@ Phase 7 notes
 - `Documentation/zigux/phase7-argv-split-slice.md`
 - `Documentation/zigux/phase7-rbtree-slice.md`
 - `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
-- the Phase 7 string-helpers bundle now also carries `samples/zigux/string_helpers_sample.zig` plus the manifest-backed `zigux/tests/phase7_string_helpers_sample_manifest.json` and `zigux/tests/phase7_string_helpers_sample_survey.zig` review packet, so the bounded sample replay stays tied to the helper lane instead of reading like a new Phase 5 anchor.
+- the Phase 7 string-helpers bundle now also carries `samples/zigux/string_helpers_sample.zig`, the manifest-backed `zigux/tests/phase7_string_helpers_sample_manifest.json` and `zigux/tests/phase7_string_helpers_sample_survey.zig` packet, and the explicit sample-root boundary guard in `samples/zigux/README.md` plus `zigux/tests/phase7_string_helpers_sample_boundary.zig`, so the bounded sample replay, the exact-fit unescape and bounded escape-window proofs, and the no-fifth-anchor note stay tied to the helper lane instead of reading like a new Phase 5 anchor.
 - the Phase 7 helper bundle is now parked end-to-end: cmdline, argv-split, rbtree, and the bounded string-helpers slice all carry their current dedicated proofs through the shared `phase7_build.zig` gate, so future work here should reopen only for a concrete newly observed parity gap rather than for more speculative fixture expansion.
 
 Phase 8 notes
