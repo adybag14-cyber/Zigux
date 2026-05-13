@@ -18,6 +18,7 @@ Broad summaries should keep the active shared-helper release handle visible thro
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -54,6 +55,17 @@ Broad summaries should also keep the shipped syscall-side helper packet explicit
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
 Broad summaries should keep that shipped syscall helper packet explicit while still leaving the older shared `zigux/tests/phase13_build.zig` route framed as a repo-reality gap.
+
+Broad summaries should also keep the compact PMO coordination companion explicit through:
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/validate-phase13-release.py`
+
+Broad summaries should use that compact coordination companion to keep the active-not-closed packet, the shared validator-first replay handle, and the current repo-reality gaps explicit without inventing a broader shared build route.
 
 Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -108,7 +120,7 @@ cannot be materialized on current `master`, broad summaries should record them a
 
 Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
-- the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
 - direct missing companions should stay recorded as repo-reality gaps until current `master` can materialize them again
 - `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the direct `zigux/tests/phase13_landlock_ruleset.zig` replay, the direct `zigux/tests/phase13_landlock_syscalls.zig` replay, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, the shipped `zigux/bindings/notifier_abi.zig`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, the shipped `include/zigux/abi.h` ABI foothold, the Linux-side `drivers/tty/hvc/hvc_console.h` header, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps, while the older shared `zigux/tests/phase13_build.zig` route stays a repo-reality gap
 - notifier evidence stays adjacent release-surface support rather than a fifth helper lane
@@ -123,6 +135,7 @@ Refresh these notes together when a contributor-facing Phase 13 summary changes:
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
