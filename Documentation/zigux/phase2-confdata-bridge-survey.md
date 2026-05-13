@@ -15,6 +15,13 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 12-case packet, and names the current helper-local anchor list for the bridge tests.
 - `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already describe the same shared kconfig packet and keep the bridge reviewable without inventing a standalone checker or direct bridge-only replay.
 
+## Verified Behavior
+
+- An attached `0.17.0-dev.87+9b177a7d2` Zig toolchain replay on `2026-05-13` confirmed that the live `confdata_bridge.zig` source still passes its current `19` helper-local tests.
+- The same replay confirmed that `CONFIG_ALPHA="stable"` followed by a malformed duplicate quoted reassignment keeps the prior stable value while later entries in the same config continue to parse, yielding `{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"stable\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"tristate\",\"value\":\"y\"}]}` for the bounded duplicate-malformed probe.
+- The current bridge replay still matches the live helper-local expectations for both quoted trailing-suffix truncation and standalone malformed quoted scalar handling, so this lane did not widen into a source rewrite.
+- The external fixture packet remains the same `12-case` replay after this verification pass. The honest follow-through, if this family reopens, is a single new external confdata case for one already-verified helper-local behavior rather than another reminder-only rewrite.
+
 ## Survey Result
 
 - `current master` does not have a remaining roadmap gap at the level of confdata bridge scaffolding. The bridge, fixture packet, manifest, and shared reminder surfaces are already present.
@@ -23,5 +30,5 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Next Bounded Step
 
-- When a writable checkout and Zig toolchain are available, run `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test`, and `python3 scripts/zigux/validate-phase2-closure.py` together so the already-landed bridge packet stays replay-validated through the shared Phase 2 reminder surface.
-- Until that shared reminder reread lands, keep this survey note explicit about the live 12-case confdata packet and the shared reminder surfaces that govern it instead of treating the bridge as a missing scaffold.
+- When a writable checkout and Zig toolchain are available, add one direct external fixture replay for an already-verified helper-local confdata edge case, starting with `confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed`, then rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators.
+- Until that targeted replay lands, keep this survey note explicit about the live 12-case confdata packet, the verified duplicate-malformed behavior above, and the shared reminder surfaces that govern it instead of treating the bridge as a missing scaffold.
