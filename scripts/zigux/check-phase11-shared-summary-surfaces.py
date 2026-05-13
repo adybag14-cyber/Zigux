@@ -179,6 +179,7 @@ def run_self_test() -> None:
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][1]),
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][2]),
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][3]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][4]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
