@@ -100,7 +100,13 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 8103), manifest.survey_summary.ring_buffer_c_lines);
     try std.testing.expectEqual(@as(usize, 983), manifest.survey_summary.ring_buffer_design_doc_lines);
+    try std.testing.expectEqual(@as(usize, 106), manifest.survey_summary.ring_buffer_map_doc_lines);
+    try std.testing.expectEqual(@as(usize, 10017), manifest.survey_summary.trace_c_lines);
+    try std.testing.expectEqual(@as(usize, 517), manifest.survey_summary.simple_ring_buffer_c_lines);
     try std.testing.expectEqual(false, manifest.survey_summary.preexisting_ring_buffer_zig_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqualStrings("study_only", manifest.study_only_governance.status_bucket);
     try std.testing.expectEqualStrings("", manifest.study_only_governance.ready_next_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
@@ -112,7 +118,12 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "maintenance-mode handoff") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reserve-commit-publication"));
+    try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "wakeup-watermark-mmap-boundary"));
+    try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "tracefs-mapping-limitations"));
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reader-page-consume-boundary"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-wakeup-mmap-followup", "starter_landed"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-splice-resize-followup", "starter_landed"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-mapped-reader-ioctl-followup", "starter_landed"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-read-page-extraction-followup", "starter_landed"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-tracefs-reader-serialization-followup", "starter_landed"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed"));
@@ -133,6 +144,9 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_STATUS=study_only") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-zig-port-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Wakeup and mmap audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Tracefs mapping limitations audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Mapped-reader ioctl audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-read-page-extraction-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-tracefs-reader-serialization-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "## Maintenance-Mode Handoff") != null);
