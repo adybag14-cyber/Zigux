@@ -359,6 +359,7 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
         and 'root_module.addImport("base64", base64_module);' in build_text
         and str(HELPER_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
+        and str(FIXTURE_SOURCE).endswith("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
         and expected_surface_from_fixture_text(sample_fixture) == sample_expected
         and cleanup_generated_include_self_test(),
         True,
