@@ -3,7 +3,6 @@ const std = @import("std");
 const expected_phase5_samples = [_][]const u8{
     "bytestream_fifo.zig",
     "kobject_example.zig",
-    "kretprobe_example.zig",
     "trace_events_sample.zig",
 };
 
