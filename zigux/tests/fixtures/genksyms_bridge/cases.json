@@ -1,0 +1,248 @@
+[
+  {
+    "name": "minimal",
+    "argv": [],
+    "mode": "stdout_json",
+    "expected": "minimal_expected.json"
+  },
+  {
+    "name": "debug_reference_types",
+    "argv": [
+      "-d",
+      "-d",
+      "-D",
+      "-w",
+      "-p",
+      "-r",
+      "foo.symref",
+      "-r",
+      "bar.symref",
+      "-T",
+      "out.symtypes"
+    ],
+    "mode": "stdout_json",
+    "expected": "debug_reference_types_expected.json"
+  },
+  {
+    "name": "long_options",
+    "argv": [
+      "--debug",
+      "--warnings",
+      "--quiet",
+      "--reference=foo.symref",
+      "--dump-types",
+      "types.symtypes",
+      "--preserve"
+    ],
+    "mode": "stdout_json",
+    "expected": "long_options_expected.json"
+  },
+  {
+    "name": "abbreviated_long_options",
+    "argv": [
+      "--deb",
+      "--warn",
+      "--qui",
+      "--ref=foo.symref",
+      "--dump-t",
+      "types.symtypes",
+      "--pres"
+    ],
+    "mode": "stdout_json",
+    "expected": "abbreviated_long_options_expected.json"
+  },
+  {
+    "name": "ambiguous_long_option",
+    "argv": [
+      "--d"
+    ],
+    "mode": "process_json",
+    "expected": "ambiguous_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "quiet_overrides_warning",
+    "argv": [
+      "-w",
+      "-q"
+    ],
+    "mode": "stdout_json",
+    "expected": "quiet_overrides_warning_expected.json"
+  },
+  {
+    "name": "explicit_option_terminator",
+    "argv": [
+      "--",
+      "--leftover",
+      "positional"
+    ],
+    "mode": "stdout_json",
+    "expected": "explicit_option_terminator_expected.json"
+  },
+  {
+    "name": "positional_passthrough",
+    "argv": [
+      "leftover.c",
+      "-d",
+      "rightover.h",
+      "-r",
+      "foo.symref"
+    ],
+    "mode": "stdout_json",
+    "expected": "positional_passthrough_expected.json"
+  },
+  {
+    "name": "lone_dash_passthrough",
+    "argv": [
+      "-",
+      "-d"
+    ],
+    "mode": "stdout_json",
+    "expected": "lone_dash_passthrough_expected.json"
+  },
+  {
+    "name": "help",
+    "argv": [
+      "-h"
+    ],
+    "mode": "process_json",
+    "expected": "help_expected.json"
+  },
+  {
+    "name": "version_then_short_help",
+    "argv": [
+      "-Vh"
+    ],
+    "mode": "process_json",
+    "expected": "version_then_help_expected.json"
+  },
+  {
+    "name": "version_then_long_help",
+    "argv": [
+      "-V",
+      "--help"
+    ],
+    "mode": "process_json",
+    "expected": "version_then_help_expected.json"
+  },
+  {
+    "name": "abbreviated_help",
+    "argv": [
+      "--he"
+    ],
+    "mode": "process_json",
+    "expected": "help_expected.json"
+  },
+  {
+    "name": "unexpected_help_argument",
+    "argv": [
+      "--help=extra"
+    ],
+    "mode": "process_json",
+    "expected": "unexpected_help_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "version",
+    "argv": [
+      "--version"
+    ],
+    "mode": "process_json",
+    "expected": "version_expected.json"
+  },
+  {
+    "name": "abbreviated_version",
+    "argv": [
+      "--ver"
+    ],
+    "mode": "process_json",
+    "expected": "abbreviated_version_expected.json"
+  },
+  {
+    "name": "invalid_option",
+    "argv": [
+      "-x"
+    ],
+    "mode": "process_json",
+    "expected": "invalid_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "missing_reference_argument",
+    "argv": [
+      "-r"
+    ],
+    "mode": "process_json",
+    "expected": "missing_reference_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "unsupported_long_option",
+    "argv": [
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "unsupported_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "missing_long_reference_argument",
+    "argv": [
+      "--reference"
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_reference_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "missing_long_dump_types_argument",
+    "argv": [
+      "--dump-types"
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_dump_types_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "too_many_reference_files",
+    "argv": [
+      "-r",
+      "01.symref",
+      "-r",
+      "02.symref",
+      "-r",
+      "03.symref",
+      "-r",
+      "04.symref",
+      "-r",
+      "05.symref",
+      "-r",
+      "06.symref",
+      "-r",
+      "07.symref",
+      "-r",
+      "08.symref",
+      "-r",
+      "09.symref",
+      "-r",
+      "10.symref",
+      "-r",
+      "11.symref",
+      "-r",
+      "12.symref",
+      "-r",
+      "13.symref",
+      "-r",
+      "14.symref",
+      "-r",
+      "15.symref",
+      "-r",
+      "16.symref",
+      "-r",
+      "17.symref"
+    ],
+    "mode": "process_json",
+    "expected": "too_many_reference_files_expected.json",
+    "normalize_stderr": true
+  }
+]
