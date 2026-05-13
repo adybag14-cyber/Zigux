@@ -84,7 +84,7 @@ pub const RuntimeKretprobeSample = struct {
     nmissed: usize = 0,
     last_retval: usize = 0,
     last_duration_ns: i64 = 0,
-    entry_timestamp_ns: ?i64 = null,
+    instance_private_data: [default_maxactive]InstancePrivateData = [_]InstancePrivateData{.{}} ** default_maxactive,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -121,7 +121,7 @@ pub const RuntimeKretprobeSample = struct {
         self.nmissed = 0;
         self.last_retval = 0;
         self.last_duration_ns = 0;
-        self.entry_timestamp_ns = null;
+        self.instance_private_data = [_]InstancePrivateData{.{}} ** default_maxactive;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -139,9 +139,7 @@ pub const RuntimeKretprobeSample = struct {
             return error.MaxactiveExceeded;
         }
 
-        if (self.active_instances == 0) {
-            self.entry_timestamp_ns = timestamp_ns;
-        }
+        self.instance_private_data[self.active_instances].entry_timestamp_ns = timestamp_ns;
         self.active_instances += 1;
         return true;
     }
@@ -150,13 +148,12 @@ pub const RuntimeKretprobeSample = struct {
         try self.ensureMutable();
         if (self.active_instances == 0) return error.InvalidLifecycleTransition;
 
-        const entry_timestamp = self.entry_timestamp_ns orelse return error.InvalidLifecycleTransition;
+        const slot = self.active_instances - 1;
+        const entry_timestamp = self.instance_private_data[slot].entry_timestamp_ns;
         if (timestamp_ns < entry_timestamp) return error.InvalidTimestampOrder;
 
-        self.active_instances -= 1;
-        if (self.active_instances == 0) {
-            self.entry_timestamp_ns = null;
-        }
+        self.instance_private_data[slot].entry_timestamp_ns = 0;
+        self.active_instances = slot;
 
         self.last_retval = retval;
         self.last_duration_ns = timestamp_ns - entry_timestamp;
@@ -208,7 +205,7 @@ pub const RuntimeKretprobeSample = struct {
             .last_retval = self.last_retval,
             .last_duration_ns = self.last_duration_ns,
             .selftest_runs = self.selftest_runs,
-            .entry_timestamp_armed = self.entry_timestamp_ns != null,
+            .entry_timestamp_armed = self.active_instances != 0,
         };
     }
 
@@ -394,4 +391,32 @@ test "runtime kretprobe sample keeps selftest missed-instance and maxactive cues
     try std.testing.expect(try module.entryHandler(true, 500));
     try std.testing.expectError(error.MaxactiveExceeded, module.entryHandler(true, 520));
     try std.testing.expectEqual(@as(usize, 2), module.summary().nmissed);
+}
+
+test "runtime kretprobe sample keeps overlapping entry timestamps distinct under concurrent active instances" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 140));
+
+    const inner = try module.retHandler(7, 170);
+    try std.testing.expectEqual(@as(usize, 7), inner.retval);
+    try std.testing.expectEqual(@as(i64, 30), inner.duration_ns);
+
+    const mid_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), mid_summary.active_instances);
+    try std.testing.expect(mid_summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 7), mid_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 30), mid_summary.last_duration_ns);
+
+    const outer = try module.retHandler(11, 240);
+    try std.testing.expectEqual(@as(usize, 11), outer.retval);
+    try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);
+
+    const final_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), final_summary.active_instances);
+    try std.testing.expect(!final_summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 11), final_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), final_summary.last_duration_ns);
 }
