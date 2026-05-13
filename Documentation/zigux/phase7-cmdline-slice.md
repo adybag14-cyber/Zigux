@@ -113,6 +113,7 @@ The landed review text and tests still document these intended packet edges:
 * caller-owned `nextArg()` buffer slicing stays explicit for `param`, `value`, and `rest`
 * empty-input handling keeps `param` and `rest` borrowed from the caller slice
 * leading-whitespace handling keeps the Linux-style empty sentinel token
+* serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination stay reviewable through `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 * the dedicated helper replay, the dedicated survey gate, the dedicated `phase7-cmdline-survey` compile-check route, the committed manifest packet, the committed serialized fixture packet, the shared validator-first packet, the parked make-wrapper alignment note, and the no-sample boundary note are all still supposed to describe one bounded cmdline lane rather than separate ad hoc reminders
 
 The intended helper entrypoints remain explicit:
