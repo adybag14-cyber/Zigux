@@ -45,6 +45,8 @@ REQUIRED_MARKERS = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
     "zigux/Makefile",
@@ -68,6 +70,8 @@ CURRENT_PACKET_MARKERS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/Makefile": 1,
@@ -102,6 +106,8 @@ SHARED_REMINDER_MARKERS = {
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
+    "include/zigux/dev_t.h": 2,
+    "zigux/uapi/version.zig": 2,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "make -C zigux phase3-selftest": 1,
@@ -122,8 +128,8 @@ BOUNDARY_NOTE_NEXT_STEP_MARKERS = {
     "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey": 1,
     "and next-step notes while leaving the narrower `zigux/uapi/version.zig`": 1,
     "export/UAPI packet actually grows": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
+    "include/zigux/dev_t.h": 2,
+    "zigux/uapi/version.zig": 2,
     "scripts/zigux/check-phase3-abi.py": 1,
     "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
@@ -179,6 +185,13 @@ def check_marker_counts(
                 f"(expected {expected_count}, found {actual_count})"
             )
     return issues
+
+
+def expand_marker_counts(marker_counts: dict[str, int]) -> list[str]:
+    expanded: list[str] = []
+    for marker, count in marker_counts.items():
+        expanded.extend([marker] * count)
+    return expanded
 
 
 def validate_text(text: str) -> list[str]:
@@ -254,21 +267,27 @@ def write_text(path: Path, text: str) -> None:
 
 def sample_note_text() -> str:
     sample = "\n".join(REQUIRED_MARKERS)
-    sample += "\n## Current packet\n" + "\n".join(CURRENT_PACKET_MARKERS)
-    sample += "\n## Review boundary\n" + "\n".join(REVIEW_BOUNDARY_MARKERS)
+    sample += "\n## Current packet\n" + "\n".join(expand_marker_counts(CURRENT_PACKET_MARKERS))
+    sample += "\n## Review boundary\n" + "\n".join(expand_marker_counts(REVIEW_BOUNDARY_MARKERS))
     sample += "\n## Non-goals\n- stub\n"
-    sample += "\n## Shared reminder\n" + "\n".join(SHARED_REMINDER_MARKERS)
+    sample += "\n## Shared reminder\n" + "\n".join(expand_marker_counts(SHARED_REMINDER_MARKERS))
     return sample
 
 
 def sample_boundary_note_text() -> str:
     next_step_markers = [
-        marker
-        for marker in BOUNDARY_NOTE_NEXT_STEP_MARKERS
-        if marker != "zigux/uapi/version.zig"
+        "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
+        "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
+        "export/UAPI packet actually grows",
+        "include/zigux/dev_t.h",
+        "include/zigux/dev_t.h",
+        "zigux/uapi/version.zig",
+        "scripts/zigux/check-phase3-abi.py",
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     ]
     sample = "## Current landed surface\n" + "\n".join(
-        BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS
+        expand_marker_counts(BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
     )
     sample += "\n## Next bounded step\n" + "\n".join(next_step_markers)
     sample += "\n## Non-goals\n- stub\n"
@@ -308,6 +327,32 @@ def run_self_test() -> int:
     issues = validate_text(
         replace_in_section(
             note_sample,
+            "## Current packet",
+            "## Review boundary",
+            "include/zigux/dev_t.h",
+        )
+    )
+    if not any("include/zigux/dev_t.h" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet dev_t header drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Current packet",
+            "## Review boundary",
+            "zigux/uapi/version.zig",
+        )
+    )
+    if not any("zigux/uapi/version.zig" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet version companion drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
             "## Review boundary",
             "## Non-goals",
             "Documentation/zigux/phase3-abi-bindings-survey.md",
@@ -335,6 +380,32 @@ def run_self_test() -> int:
     ):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared-reminder governance-validator drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "include/zigux/dev_t.h",
+        )
+    )
+    if not any("include/zigux/dev_t.h" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder dev_t header drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "zigux/uapi/version.zig",
+        )
+    )
+    if not any("zigux/uapi/version.zig" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder version companion drift was not reported")
         return 1
 
     issues = validate_boundary_note_text(
