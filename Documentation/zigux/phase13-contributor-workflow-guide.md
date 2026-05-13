@@ -58,7 +58,7 @@ As of `2026-05-13`, current `master` materializes the bounded `libfs` foothold t
 - older `scripts/zigux/check-phase13-devres-packet.py`
 
 When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
-Apply the same reread to the broader `zigux/tests/README.md` guide: keep it explicit as a shipped shared surface, but if it still names any of those missing direct companions as landed packet-local proof, treat that wording as the next shared-surface follow-up rather than as helper-local evidence.
+Apply the same reread to the broader `zigux/tests/README.md` guide: keep it in scope as a shared contributor-facing surface, but current `master` does not yet materialize a dedicated Phase 13 packet summary there. Treat that missing broader tests-root summary as the next shared-surface follow-up, and when it is refreshed keep any still-absent direct companions framed as repo-reality gaps rather than landed packet-local proof.
 Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, but it still does not materialize these remaining direct notifier or list companions recorded in `Documentation/zigux/phase13-notifier-list-survey.md`, so shared contributor wording should keep them framed as adjacent repo-reality gaps rather than as independently shipped reviewer evidence:
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
