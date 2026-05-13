@@ -17,7 +17,10 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+    "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+    "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+    "Documentation/zigux/phase13-landlock-syscalls-survey.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -28,9 +31,14 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "security/landlock/ruleset.zig",
+    "security/landlock/syscalls.zig",
     "zigux/tests/phase13_libfs_manifest.json",
     "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
+    "zigux/tests/phase13_landlock_syscalls.zig",
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/helpers/notifier_chain_view.zig",
     "zigux/bindings/notifier_abi.zig",
@@ -43,7 +51,17 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-release-notes-survey.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
+        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-slice.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
         "`Documentation/zigux/phase13-notifier-list-survey.md`",
+        "`security/landlock/ruleset.zig`",
+        "`zigux/tests/phase13_landlock_ruleset.zig`",
+        "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
+        "`security/landlock/syscalls.zig`",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
+        "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
@@ -86,6 +104,10 @@ REQUIRED_MARKERS = {
         "Use this guide when a change touches the active Phase 13 shared-helper packet",
         "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.",
         "current `master` materializes the bounded `libfs` foothold",
+        "the shipped `Documentation/zigux/phase13-landlock-ruleset-survey.md` note,",
+        "the shipped `Documentation/zigux/phase13-landlock-syscalls-slice.md` and `Documentation/zigux/phase13-landlock-syscalls-survey.md` notes,",
+        "the shipped `zigux/tests/phase13_landlock_ruleset.zig` and `zigux/tests/phase13_landlock_ruleset_manifest.json` direct ruleset replay pair,",
+        "the shipped `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` direct syscall replay packet,",
         "Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`",
         "still does not materialize these direct Phase 13 companions:",
         "older `scripts/zigux/check-phase13-devres-packet.py`",
@@ -107,10 +129,40 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`make -C zigux phase13-validate`",
     ],
+    "Documentation/zigux/phase13-landlock-ruleset-survey.md": [
+        "# Phase 13 Landlock Ruleset Survey",
+        "`security/landlock/ruleset.zig`",
+        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
+        "`zigux/tests/phase13_landlock_ruleset.zig`",
+        "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`Documentation/zigux/phase13-landlock-ruleset-slice.md`",
+        "`zigux/tests/phase13_build.zig`",
+    ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
         "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter.",
         "the release-side `fop_ruleset_release()` ownership drop",
         "the combined `ruleset_fops` wrapper contract",
+    ],
+    "Documentation/zigux/phase13-landlock-syscalls-slice.md": [
+        "# Phase 13 Landlock Syscalls Slice",
+        "`security/landlock/syscalls.c`",
+        "`landlock_restrict_self()`",
+        "`landlock_add_rule()`",
+        "`fop_ruleset_release()`",
+        "`ruleset_fops`",
+        "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "`zigux/tests/phase13_build.zig`",
+    ],
+    "Documentation/zigux/phase13-landlock-syscalls-survey.md": [
+        "# Phase 13 Landlock Syscalls Survey",
+        "`security/landlock/syscalls.zig`",
+        "`Documentation/zigux/phase13-landlock-syscalls-slice.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
+        "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
+        "shared `phase13_build.zig` route still remains absent",
     ],
     "Documentation/zigux/phase13-notifier-list-survey.md": [
         "shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path",
@@ -249,6 +301,19 @@ def run_self_test() -> int:
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
         case_count += 1
 
+        (root / "Documentation/zigux/phase13-landlock-ruleset-survey.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-landlock-ruleset-survey.md"],
+            "missing_ruleset_survey_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-ruleset-survey.md"]) + "\n",
+        )
+        case_count += 1
+
         (root / "zigux/tests/README.md").unlink()
         assert_only(
             validate(root),
@@ -256,6 +321,31 @@ def run_self_test() -> int:
             "missing_tests_readme_failed",
         )
         write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-slice.md"]
+                if marker != "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-slice.md:"
+                "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
+            ],
+            "missing_syscalls_reviewability_anchor_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-slice.md"]) + "\n",
+        )
         case_count += 1
 
         write_text(
