@@ -15,7 +15,7 @@ DEFAULT_LAYOUT_ASSERT = ROOT / "zigux" / "helpers" / "layout_assert.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 21
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 24
 
 REQUIRED_ABI_VERSION = ("ZIGUX_ABI_VERSION", "ABI_VERSION", 1)
 
@@ -34,22 +34,30 @@ REQUIRED_CONSTANTS = (
     ("ZIGUX_UNSAFE_VOLATILE_MMIO", "UNSAFE_VOLATILE_MMIO", "unsafe_scope_volatile_mmio", 1),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
-REQUIRED_FAMILY_CONSTANT_MARKERS = (
+REQUIRED_FAMILY_CONSTANTS = (
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
         "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
+        1,
     ),
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
         "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
+        1,
     ),
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
         "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
+        1,
     ),
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED",
         "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED",
+        "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
+        1,
     ),
 )
 REQUIRED_FAMILY_TYPE_MARKERS = (
@@ -264,7 +272,7 @@ def validate_constant_parity(
     elif fixture_version != expected_version:
         issues.append(f"{expected_path}:wrong_expected_value:abi_version:{fixture_version}")
 
-    for header_name, binding_name, json_key, expected_value in REQUIRED_CONSTANTS:
+    for header_name, binding_name, json_key, expected_value in REQUIRED_CONSTANTS + REQUIRED_FAMILY_CONSTANTS:
         header_value = header_constants.get(header_name)
         if header_value is None:
             issues.append(f"{header_path}:missing_header_constant:{header_name}")
@@ -290,12 +298,6 @@ def validate_constant_parity(
 
     header_source = header_path.read_text(encoding="utf-8")
     bindings_source = bindings_path.read_text(encoding="utf-8")
-    for header_marker, binding_marker in REQUIRED_FAMILY_CONSTANT_MARKERS:
-        if header_marker not in header_source:
-            issues.append(f"{header_path}:missing_header_family_constant:{header_marker}")
-        if binding_marker not in binding_constants:
-            issues.append(f"{bindings_path}:missing_binding_family_constant:{binding_marker}")
-
     for header_marker, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS:
         if header_marker not in header_source:
             issues.append(f"{header_path}:missing_header_type_marker:{header_marker}")
@@ -309,7 +311,7 @@ def _layout_assert_text() -> str:
     helper_block = "\n".join(REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS) + "\n"
     function_blocks = []
     for function_name, *call_markers in REQUIRED_LAYOUT_ASSERT_FUNCTIONS:
-        block_lines = [f"pub fn {function_name}() !void {{"] + call_markers + ["}"]
+        block_lines = [f"pub fn {function_name}() !void {{"] + list(call_markers) + ["}"]
         function_blocks.append("\n".join(block_lines))
     self_test_lines = ['test "phase3 layout assertions cover canonical bindings" {']
     self_test_lines.extend(f"    try {function_name}();" for function_name, *_ in REQUIRED_LAYOUT_ASSERT_FUNCTIONS)
@@ -336,7 +338,7 @@ def run_self_test() -> int:
                 "\n".join(
                     [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U"]
                     + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
-                    + [f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS]
+                    + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
                     + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
                 ) + "\n",
                 encoding="utf-8",
@@ -345,8 +347,8 @@ def run_self_test() -> int:
             bindings.write_text(
                 "\n".join(
                     [f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};"]
-                    + [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS)]
-                    + [f"pub const {binding_name}: u32 = 1;" for _, binding_name in REQUIRED_FAMILY_CONSTANT_MARKERS]
+                    + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS]
+                    + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS]
                     + [bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS]
                 )
                 + "\n",
@@ -355,12 +357,22 @@ def run_self_test() -> int:
             )
             layout_assert.write_text(_layout_assert_text(), encoding="utf-8", newline="\n")
             dump.write_text(
-                '\n'.join(['// "abi_version":'] + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+                "\n".join(
+                    ['// "abi_version":']
+                    + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+                    + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+                )
+                + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
             harness.write_text(
-                '\n'.join(['/* "abi_version": */'] + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+                "\n".join(
+                    ['/* "abi_version": */']
+                    + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+                    + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+                )
+                + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
@@ -368,7 +380,10 @@ def run_self_test() -> int:
                 json.dumps(
                     {
                         "abi_version": REQUIRED_ABI_VERSION[2],
-                        "constants": {json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
+                        "constants": {
+                            **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
+                            **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
+                        },
                     }
                 ),
                 encoding="utf-8",
@@ -380,12 +395,22 @@ def run_self_test() -> int:
         case_count += 1
 
         dump.write_text(
-            '\n'.join(['// \\"abi_version\\":'] + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+            "\n".join(
+                ['// \\"abi_version\\":']
+                + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+                + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+            )
+            + "\n",
             encoding="utf-8",
             newline="\n",
         )
         harness.write_text(
-            '\n'.join(['/* \\"abi_version\\": */'] + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]) + "\n",
+            "\n".join(
+                ['/* \\"abi_version\\": */']
+                + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+                + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+            )
+            + "\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -397,7 +422,7 @@ def run_self_test() -> int:
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
         assert f"{bindings}:missing_binding_constant:{REQUIRED_ABI_VERSION[1]}" in issues
-        assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[0][1]}" in issues
+        assert f"{bindings}:missing_binding_constant:{REQUIRED_FAMILY_CONSTANTS[0][1]}" in issues
         case_count += 1
 
         reset_all()
@@ -419,7 +444,7 @@ def run_self_test() -> int:
             "\n".join(
                 [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2] + 1}U"]
                 + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
-                + [f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS]
+                + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
                 + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
             ) + "\n",
             encoding="utf-8",
@@ -451,8 +476,11 @@ def run_self_test() -> int:
                         f"#define {header_name} {value}U"
                         for header_name, _, _, value in REQUIRED_CONSTANTS[1:]
                     ],
+                    *[
+                        f"#define {header_name} {value}U"
+                        for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS
+                    ],
                     f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U",
-                    *[f"#define {header_name} 1U" for header_name, _ in REQUIRED_FAMILY_CONSTANT_MARKERS],
                     *[header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
@@ -474,7 +502,10 @@ def run_self_test() -> int:
                         f"pub const {binding_name}: u32 = {value};"
                         for _, binding_name, _, value in REQUIRED_CONSTANTS[1:]
                     ],
-                    *[f"pub const {binding_name}: u32 = 1;" for _, binding_name in REQUIRED_FAMILY_CONSTANT_MARKERS],
+                    *[
+                        f"pub const {binding_name}: u32 = {value};"
+                        for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS
+                    ],
                     *[bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
@@ -544,7 +575,7 @@ def run_self_test() -> int:
         reset_all()
         header.write_text(
             header.read_text(encoding="utf-8").replace(
-                f"#define {REQUIRED_FAMILY_CONSTANT_MARKERS[3][0]} 1U\n",
+                f"#define {REQUIRED_FAMILY_CONSTANTS[3][0]} {REQUIRED_FAMILY_CONSTANTS[3][3]}U\n",
                 "",
                 1,
             ),
@@ -552,13 +583,13 @@ def run_self_test() -> int:
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:missing_header_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[3][0]}" in issues
+        assert f"{header}:missing_header_constant:{REQUIRED_FAMILY_CONSTANTS[3][0]}" in issues
         case_count += 1
 
         reset_all()
         bindings.write_text(
             bindings.read_text(encoding="utf-8").replace(
-                f"pub const {REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}: u32 = 1;\n",
+                f"pub const {REQUIRED_FAMILY_CONSTANTS[2][1]}: u32 = {REQUIRED_FAMILY_CONSTANTS[2][3]};\n",
                 "",
                 1,
             ),
@@ -566,7 +597,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:missing_binding_family_constant:{REQUIRED_FAMILY_CONSTANT_MARKERS[2][1]}" in issues
+        assert f"{bindings}:missing_binding_constant:{REQUIRED_FAMILY_CONSTANTS[2][1]}" in issues
         case_count += 1
 
         reset_all()
@@ -613,7 +644,14 @@ def run_self_test() -> int:
 
         reset_all()
         expected.write_text(
-            json.dumps({"constants": {json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS}}),
+            json.dumps(
+                {
+                    "constants": {
+                        **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
+                        **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
+                    }
+                }
+            ),
             encoding="utf-8",
             newline="\n",
         )
@@ -634,7 +672,7 @@ def run_self_test() -> int:
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
         missing_call_issue = (
             f'{layout_assert}:missing_layout_assert_call_marker:'
-            "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout:\"flags\","
+            'assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout:"flags",'
         )
         assert missing_call_issue in issues
         case_count += 1
@@ -655,6 +693,42 @@ def run_self_test() -> int:
             "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout"
         )
         assert missing_self_test_issue in issues
+        case_count += 1
+
+        reset_all()
+        dump.write_text(
+            dump.read_text(encoding="utf-8").replace(
+                f'// "{REQUIRED_FAMILY_CONSTANTS[0][2]}":\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        assert f"{dump}:missing_dump_key:{REQUIRED_FAMILY_CONSTANTS[0][2]}" in issues
+        case_count += 1
+
+        reset_all()
+        harness.write_text(
+            harness.read_text(encoding="utf-8").replace(
+                f'/* "{REQUIRED_FAMILY_CONSTANTS[1][2]}": */\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        assert f"{harness}:missing_harness_key:{REQUIRED_FAMILY_CONSTANTS[1][2]}" in issues
+        case_count += 1
+
+        reset_all()
+        payload = json.loads(expected.read_text(encoding="utf-8"))
+        del payload["constants"][REQUIRED_FAMILY_CONSTANTS[2][2]]
+        expected.write_text(json.dumps(payload), encoding="utf-8", newline="\n")
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        assert f"{expected}:missing_expected_key:{REQUIRED_FAMILY_CONSTANTS[2][2]}" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
