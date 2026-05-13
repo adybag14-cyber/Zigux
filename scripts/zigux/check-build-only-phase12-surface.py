@@ -21,6 +21,7 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 
+DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
@@ -57,6 +58,7 @@ PHASE12_REPEATED_REPLAN_PATH = "zigux/tests/phase12_virtio_scsi_repeated_replan_
 PHASE12_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
 
 REQUIRED_FILES = [
+    DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     RELEASE_READINESS_SURVEY_PATH,
@@ -79,6 +81,30 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH,
     PHASE12_REPEATED_REPLAN_PATH,
     PHASE12_PACKET_PATH,
+]
+
+DOCS_ROOT_MARKERS = [
+    "`Documentation/zigux/phase12-release-sequencing.md`",
+    "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    "`Documentation/zigux/phase12-release-readiness-survey.md`",
+    "`Documentation/zigux/phase12-release-coordination-matrix.md`",
+    "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
+    "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "`drivers/net/virtio_net.zig`",
+    "`zigux/tests/phase12_virtio_net.zig`",
+    "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "`scripts/zigux/validate-phase12.py`",
+    "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet reviewable from the docs root through the shipped build-only contract",
+    "while broader `nvme_pci` and direct libbpf replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
+    "`make -C zigux phase12-smoke` plus `make -C zigux phase12` keep the shared smoke-first release order visible",
+    "`scripts/zigux/validate-phase12.py` exists only as an unwired helper",
+]
+
+DOCS_ROOT_FORBIDDEN_MARKERS = [
+    "`Documentation/zigux/phase12-nvme-pci-slice.md`",
+    "`Documentation/zigux/phase12-nvme-pci-survey.md`",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -226,7 +252,6 @@ MAKEFILE_MARKERS = [
 
 PHASE12_BUILD_MARKERS = [
     '../../drivers/net/virtio_net.zig',
-    '../../drivers/scsi/virtio_scsi.zig',
     '"phase12_virtio_net.zig"',
     '"phase12_virtio_net_syntax_lab.zig"',
     '"phase12_virtio_scsi.zig"',
@@ -282,6 +307,12 @@ def ensure_contains(failures: list[str], label: str, text: str, markers: list[st
             failures.append(f"{label}:{marker}")
 
 
+def ensure_absent(failures: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            failures.append(f"{label}_forbidden:{marker}")
+
+
 def ensure_exact_counts(
     failures: list[str], label: str, text: str, expected_counts: dict[str, int]
 ) -> None:
@@ -304,6 +335,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     checks = [
+        ("docs_root", DOCS_README_PATH, DOCS_ROOT_MARKERS),
         ("scripts_readme", SCRIPTS_README_PATH, SCRIPTS_README_MARKERS),
         ("tests_readme", TESTS_README_PATH, TESTS_README_MARKERS),
         (
@@ -354,6 +386,13 @@ def validate(root: Path) -> list[str]:
     for label, rel_path, markers in checks:
         ensure_contains(failures, label, read_text(root, rel_path), markers)
 
+    ensure_absent(
+        failures,
+        "docs_root",
+        read_text(root, DOCS_README_PATH),
+        DOCS_ROOT_FORBIDDEN_MARKERS,
+    )
+
     ensure_exact_counts(
         failures,
         "phase12_build",
@@ -369,114 +408,114 @@ def minimal_join(title: str, markers: list[str]) -> str:
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const virtio_net_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
+        .root_source_file = b.path(\"../../drivers/net/virtio_net.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_scsi_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
+        .root_source_file = b.path(\"../../drivers/scsi/virtio_scsi.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_net_contract_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    virtio_net_contract_root_module.addImport("virtio_net", virtio_net_module);
+    virtio_net_contract_root_module.addImport(\"virtio_net\", virtio_net_module);
 
     const virtio_net_syntax_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net_syntax_lab.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net_syntax_lab.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    virtio_net_syntax_root_module.addImport("virtio_net", virtio_net_module);
+    virtio_net_syntax_root_module.addImport(\"virtio_net\", virtio_net_module);
 
     const contract_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_scsi.zig"),
+        .root_source_file = b.path(\"phase12_virtio_scsi.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    contract_root_module.addImport("virtio_scsi", virtio_scsi_module);
+    contract_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
 
     const syntax_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
+        .root_source_file = b.path(\"phase12_virtio_scsi_syntax_lab.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    syntax_root_module.addImport("virtio_scsi", virtio_scsi_module);
+    syntax_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
 
     const repeated_replan_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_scsi_repeated_replan_gate.zig"),
+        .root_source_file = b.path(\"phase12_virtio_scsi_repeated_replan_gate.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    repeated_replan_root_module.addImport("virtio_scsi", virtio_scsi_module);
+    repeated_replan_root_module.addImport(\"virtio_scsi\", virtio_scsi_module);
 
     const packet_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
+        .root_source_file = b.path(\"phase12_virtio_scsi_packet.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const virtio_net_contract_tests = b.addTest(.{
-        .name = "phase12-virtio-net-tests",
+        .name = \"phase12-virtio-net-tests\",
         .root_module = virtio_net_contract_root_module,
     });
     const run_virtio_net_contract_tests = b.addRunArtifact(virtio_net_contract_tests);
-    run_virtio_net_contract_tests.setCwd(b.path("../.."));
+    run_virtio_net_contract_tests.setCwd(b.path(\"../..\"));
 
     const virtio_net_syntax_tests = b.addTest(.{
-        .name = "phase12-virtio-net-syntax-lab-tests",
+        .name = \"phase12-virtio-net-syntax-lab-tests\",
         .root_module = virtio_net_syntax_root_module,
     });
     const run_virtio_net_syntax_tests = b.addRunArtifact(virtio_net_syntax_tests);
-    run_virtio_net_syntax_tests.setCwd(b.path("../.."));
+    run_virtio_net_syntax_tests.setCwd(b.path(\"../..\"));
 
     const contract_tests = b.addTest(.{
-        .name = "phase12-virtio-scsi-tests",
+        .name = \"phase12-virtio-scsi-tests\",
         .root_module = contract_root_module,
     });
     const run_contract_tests = b.addRunArtifact(contract_tests);
-    run_contract_tests.setCwd(b.path("../.."));
+    run_contract_tests.setCwd(b.path(\"../..\"));
 
     const syntax_tests = b.addTest(.{
-        .name = "phase12-virtio-scsi-syntax-lab-tests",
+        .name = \"phase12-virtio-scsi-syntax-lab-tests\",
         .root_module = syntax_root_module,
     });
     const run_syntax_tests = b.addRunArtifact(syntax_tests);
-    run_syntax_tests.setCwd(b.path("../.."));
+    run_syntax_tests.setCwd(b.path(\"../..\"));
 
     const repeated_replan_tests = b.addTest(.{
-        .name = "phase12-virtio-scsi-repeated-replan-gate-tests",
+        .name = \"phase12-virtio-scsi-repeated-replan-gate-tests\",
         .root_module = repeated_replan_root_module,
     });
     const run_repeated_replan_tests = b.addRunArtifact(repeated_replan_tests);
-    run_repeated_replan_tests.setCwd(b.path("../.."));
+    run_repeated_replan_tests.setCwd(b.path(\"../..\"));
 
     const packet_tests = b.addTest(.{
-        .name = "phase12-virtio-scsi-packet-tests",
+        .name = \"phase12-virtio-scsi-packet-tests\",
         .root_module = packet_root_module,
     });
     const run_packet_tests = b.addRunArtifact(packet_tests);
-    run_packet_tests.setCwd(b.path("../.."));
+    run_packet_tests.setCwd(b.path(\"../..\"));
 
-    const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");
+    const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\");
     smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_packet_tests.step);
 
-    const test_step = b.step("test", "Run Phase 12 virtio packet tests");
+    const test_step = b.step(\"test\", \"Run Phase 12 virtio packet tests\");
     test_step.dependOn(&run_virtio_net_contract_tests.step);
     test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
@@ -489,6 +528,7 @@ pub fn build(b: *std.Build) void {
 
 def placeholder_for(rel_path: str) -> str:
     mapping = {
+        DOCS_README_PATH: minimal_join("# Zigux Documentation", DOCS_ROOT_MARKERS),
         SCRIPTS_README_PATH: minimal_join("# scripts/zigux", SCRIPTS_README_MARKERS),
         TESTS_README_PATH: minimal_join("# zigux/tests", TESTS_README_MARKERS),
         RELEASE_READINESS_SURVEY_PATH: minimal_join(
@@ -557,6 +597,26 @@ def run_self_test() -> int:
 
         (base / PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[12], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[12]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8")
+            + DOCS_ROOT_FORBIDDEN_MARKERS[0]
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root_forbidden:{DOCS_ROOT_FORBIDDEN_MARKERS[0]}")
 
         write_fixture_tree(base)
         readiness_path = base / RELEASE_READINESS_SURVEY_PATH
@@ -713,7 +773,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -754,6 +814,8 @@ def main() -> int:
 
     marker_count = (
         len(REQUIRED_FILES)
+        + len(DOCS_ROOT_MARKERS)
+        + len(DOCS_ROOT_FORBIDDEN_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(RELEASE_READINESS_SURVEY_MARKERS)
