@@ -191,6 +191,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
     try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
+    try expectContains(helper_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result");
     try expectContains(helper_tests, "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
