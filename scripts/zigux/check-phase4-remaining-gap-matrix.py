@@ -51,19 +51,24 @@ SELF_TEST_CASES = [
     "kprobe_c_anchor_drift",
     "kprobe_replay_path_drift",
     "kprobe_wrapper_drift",
+    "kprobe_validation_entrypoint_drift",
     "kprobe_owner_drift",
     "kprobe_rollback_owner_drift",
     "kprobe_next_step_drift",
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
+    "test_fsmount_wrapper_drift",
     "test_fsmount_validation_entrypoint_drift",
+    "test_fsmount_owner_drift",
     "test_fsmount_rollback_owner_drift",
     "test_fsmount_next_step_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
+    "perf_benchmark_command_status_drift",
     "perf_limit_status_drift",
     "perf_gate_owner_drift",
+    "perf_rollback_owner_drift",
     "perf_owner_coordination_drift",
     "perf_section_scope_drift",
 ]
@@ -240,6 +245,23 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
+                "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+                "* validation entrypoint: `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("kprobe validation-entrypoint drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
                 "* survey owner: `Validation and Perf Team`",
                 "* survey owner: `Tooling and Validation Team`",
             ),
@@ -342,6 +364,23 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
+                "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+                "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-gap-survey`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount wrapper drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
                 "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig",
             ),
@@ -352,6 +391,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount validation-entrypoint drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
+                "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Tooling and Validation Team`",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount owner drift case did not fail closed")
             return 1
         case_count += 1
 
@@ -427,6 +483,23 @@ def run_self_test() -> int:
             matrix_path,
             replace_once(
                 baseline,
+                "the local benchmark commands are approved for both landed gates",
+                "the local benchmark commands remain provisional for both landed gates",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_perf_section_marker:* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("perf benchmark-command status drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
                 "approved local-only acceptable limits for both atomic64 and bitmap",
                 "tentative local-only acceptable limits",
             ),
@@ -454,6 +527,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("perf gate owner drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+                "* rollback owners: `Validation and Perf Team` only",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_perf_section_marker:* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("perf rollback-owner drift case did not fail closed")
             return 1
         case_count += 1
 
