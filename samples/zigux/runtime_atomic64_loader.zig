@@ -155,6 +155,7 @@ pub const RuntimeAtomic64Loader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
+        if (self.stage_state != .prepared) return error.InvalidLoaderState;
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
         if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
             return error.PreparedPlanDrift;
@@ -598,6 +599,35 @@ test "runtime atomic64 loader keeps shared release failures from desynchronizing
         shared_request,
         .released_without_substrate,
         pending_plan,
+    ));
+}
+
+test "runtime atomic64 loader rejects idle shared-loader handoff before any local runtime state exists" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var prepared_loader = RuntimeAtomic64Loader{};
+    var shared_request = try prepared_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+
+    var idle_loader = RuntimeAtomic64Loader{};
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
     ));
 }
 
