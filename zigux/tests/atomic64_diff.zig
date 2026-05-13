@@ -193,6 +193,41 @@ test "atomic64 diff wrapper keeps the runtime handoff blob pins exact" {
     );
 }
 
+test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob pins exact" {
+    const validate_phase4_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(validate_phase4_source);
+
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
+
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_build_blob_sha",
+        phase4_build_source,
+    );
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_validator_blob_sha",
+        validate_phase4_source,
+    );
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "phase9_build_blob_sha",
+        phase9_build_source,
+    );
+    try expectManifestContainsGitBlobSha(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_validation_matrix_blob_sha",
+        phase4_validation_matrix_source,
+    );
+}
+
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L02\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_target_path\": \"zigux/tests/atomic64_diff.zig\"");
