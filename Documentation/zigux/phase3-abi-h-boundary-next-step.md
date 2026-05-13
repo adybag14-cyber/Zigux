@@ -21,6 +21,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `scripts/zigux/check-phase3-abi.py`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
@@ -53,7 +54,8 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   reminder packet together; only add a new `zigux/uapi/*` companion when that
   companion lands with its own bounded export or UAPI packet instead of letting
   the shared reminder surfaces get ahead of the tree
-- treat `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
+- treat `scripts/zigux/check-phase3-abi.py`,
+  `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
   `scripts/zigux/validate-phase3-abi-header-family-survey.py`, and
   `scripts/zigux/validate-phase3-abi-bindings-syntax.py` as the first review
   gates before broader ABI slice follow-through reopens
@@ -61,7 +63,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   packet, keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey
   and next-step notes while leaving the narrower `zigux/uapi/version.zig`
   starter-companion detail anchored here, beside the direct replay files,
-  focused validator, and manifest-backed ABI packet, and in
+  focused validator, focused checker, and manifest-backed ABI packet, and in
   `Documentation/zigux/phase3-abi-header-family-survey.md` unless the broader
   export/UAPI packet actually grows
 
