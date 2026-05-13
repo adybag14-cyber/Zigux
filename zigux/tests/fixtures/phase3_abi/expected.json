@@ -13,7 +13,11 @@
     "allocator_arena": 2,
     "unsafe_scope_none": 0,
     "unsafe_scope_volatile_mmio": 1,
-    "unsafe_scope_raw_pointer_bridge": 2
+    "unsafe_scope_raw_pointer_bridge": 2,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1
   },
   "structs": {
     "boundary_header": {
