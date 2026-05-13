@@ -128,7 +128,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
         manifest.anchors.len,
     );
     try std.testing.expectEqual(
-        manifest.metrics.phase15_governanceOnly_blocker_anchor_count,
+        manifest.metrics.phase15_governance_only_blocker_anchor_count,
         countPhase15GovernanceOnlyAnchors(manifest.anchors),
     );
     try std.testing.expectEqual(
