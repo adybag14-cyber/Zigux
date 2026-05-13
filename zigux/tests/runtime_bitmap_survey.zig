@@ -141,6 +141,13 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(top_bit_contract_source);
 
+    const runtime_bitmap_loader = try readRepoFileAlloc(
+        std.testing.allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        128 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_loader);
+
     const phase9_build = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase9_build.zig",
@@ -235,6 +242,18 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(top_bit_contract_source, "ModuleStage.exited");
     try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
     try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
+
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader bridges the shared request lifecycle without widening bitmap claims");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps shared release failures from desynchronizing loader state");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects prepared shared selftest-hook drift before any local runtime handoff");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects prepared shared allocator and init-flow drift before any local runtime handoff");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects shared selftest-hook drift before any local runtime handoff");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects shared-load-plan snapshot drift");
+    try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);");
+    try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);");
+    try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
