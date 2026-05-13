@@ -28,6 +28,24 @@ const SurveySummary = struct {
     preexisting_phase7_helper_present: bool,
 };
 
+const ArgvSplitPairCompile = struct {
+    status: []const u8,
+    paths: []const []const u8,
+};
+
+const SharedPhase7Build = struct {
+    status: []const u8,
+    readback_on_utc: []const u8,
+    build_file: []const u8,
+    reviewable_sibling_paths: []const []const u8,
+};
+
+const CurrentVerification = struct {
+    verified_on_utc: []const u8,
+    argv_split_pair_compile: ArgvSplitPairCompile,
+    shared_phase7_build: SharedPhase7Build,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -42,6 +60,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    current_verification: CurrentVerification,
     ownership_focus: []const []const u8,
     survey_summary: SurveySummary,
     gaps: []const Gap,
@@ -116,6 +135,18 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.containsAtLeast(u8, slice_note, 1, "PHASE7_LANE_KEY=P7-L09"));
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/argv_split.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expect(manifest.current_verification.verified_on_utc.len != 0);
+    try std.testing.expectEqualStrings("confirmed", manifest.current_verification.argv_split_pair_compile.status);
+    try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.argv_split_pair_compile.paths.len);
+    try expectStringSliceContains(manifest.current_verification.argv_split_pair_compile.paths, "lib/argv_split.zig");
+    try expectStringSliceContains(manifest.current_verification.argv_split_pair_compile.paths, "zigux/tests/phase7_argv_split.zig");
+    try std.testing.expectEqualStrings("present_on_master", manifest.current_verification.shared_phase7_build.status);
+    try std.testing.expect(manifest.current_verification.shared_phase7_build.readback_on_utc.len != 0);
+    try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", manifest.current_verification.shared_phase7_build.build_file);
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/rbtree.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_rbtree.zig");
     try std.testing.expectEqual(@as(usize, 95), manifest.survey_summary.argv_split_c_lines);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
@@ -139,7 +170,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
-    try expectContains(slice_note, "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`");
+    try expectContains(slice_note, "shared `phase7_build.zig` route is also back to a directly readable shared reminder instead of the older missing-sibling blocker wording");
 
     try expectContains(helper_lane_note, "argv-split packet, lane `P7-L09`:");
     try expectContains(helper_lane_note, "Documentation/zigux/phase7-argv-split-slice.md");
@@ -184,8 +215,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
-    try expectContains(helper_tests, "argvSplit duplicates the input before tokenizing");
-    try expectContains(helper_tests, "argvSplit tokens stay inside the owned storage copy");
+    try expectContains(helper_tests, "phase 7 argvSplit token buffer does not alias the source text");
+    try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
     try expectContains(helper_tests, "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer");
     try expectContains(helper_tests, "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
