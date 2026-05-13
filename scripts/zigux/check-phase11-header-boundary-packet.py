@@ -30,6 +30,26 @@ EXPECTED_SURVEY_SUMMARY = {
     "winsize_layout_assert_present": True,
     "hvc_export_surface_checked": True,
 }
+EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS: list[str] = []
+EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS: list[str] = []
+EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS = [
+    {
+        "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+        "marker": " try std.testing.expect(summary.resume_preserves_timeout_programming);",
+    },
+    {
+        "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+        "marker": " try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);",
+    },
+    {
+        "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        "marker": " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+    },
+    {
+        "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        "marker": " try std.testing.expect(dispatch.invokes_sysrq_handler);",
+    },
+]
 
 REQUIRED_GAP_SPECS = {
     "phase11-build-gate": {
@@ -200,9 +220,20 @@ def check_manifest(manifest: dict[str, object]) -> None:
             raise SystemExit(f"{gap_id} why_now mismatch")
 
 
+def check_build_inventory(build_inventory: dict[str, object]) -> None:
+    if build_inventory.get("shared_split_replays") != EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS:
+        raise SystemExit("build inventory shared_split_replays mismatch")
+    if build_inventory.get("shared_adjunct_replays") != EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS:
+        raise SystemExit("build inventory shared_adjunct_replays mismatch")
+    if build_inventory.get("shared_replay_markers") != EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS:
+        raise SystemExit("build inventory shared_replay_markers mismatch")
+
+
 def check_repo(root: Path) -> None:
     manifest = json.loads(read_text(root, "zigux/tests/phase11_uapi_header_parity_manifest.json"))
     check_manifest(manifest)
+    build_inventory = json.loads(read_text(root, "zigux/tests/fixtures/phase11_build_inventory.json"))
+    check_build_inventory(build_inventory)
 
     note = read_text(root, "Documentation/zigux/phase11-uapi-header-parity-survey.md")
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
@@ -236,10 +267,20 @@ def build_fixture_repo(root: Path) -> None:
             for gap_id, spec in REQUIRED_GAP_SPECS.items()
         ],
     }
+    build_inventory = {
+        "shared_split_replays": EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS,
+        "shared_adjunct_replays": EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS,
+        "shared_replay_markers": EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS,
+    }
     write_text(
         root,
         "zigux/tests/phase11_uapi_header_parity_manifest.json",
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/fixtures/phase11_build_inventory.json",
+        json.dumps(build_inventory, indent=2, sort_keys=True) + "\n",
     )
     write_text(
         root,
@@ -367,8 +408,22 @@ def run_self_test() -> int:
             '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
             "zigux_destination mismatch",
         )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"',
+            '"path": "zigux/tests/phase11_hvc_console_poll_retry_missing.zig"',
+            "build inventory shared_replay_markers mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"shared_split_replays": []',
+            '"shared_split_replays": ["zigux/tests/phase11_dw_wdt_suspend_resume.zig"]',
+            "build inventory shared_split_replays mismatch",
+        )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=11")
+    print("phase11-header-boundary-packet: self-test cases=13")
     return 0
 
 
