@@ -34,6 +34,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
     ],
     "Documentation/zigux/review-checklist.md": [
@@ -211,6 +212,20 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
+            "",
+            "helper_lane_schedule_note_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_schedule_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
             "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
             "",
             "helper_lane_owner_marker",
@@ -305,7 +320,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 11
+    case_count = 12
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
