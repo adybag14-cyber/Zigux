@@ -26,6 +26,7 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+- `zigux/tests/phase10_virtio_driver_id.zig`
 - `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_verify.zig`
@@ -136,6 +137,13 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_manifest.json`
+- `security/landlock/ruleset.zig`
+- `security/landlock/syscalls.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
