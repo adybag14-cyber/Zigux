@@ -182,6 +182,10 @@ def run_self_test() -> None:
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][4]),
+            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][2]),
+            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][3]),
+            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][2]),
+            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][3]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][2]),
         ]
