@@ -425,7 +425,6 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         note_path = root / NOTE_PATH
-        note_path.writeText = None
         note_path.write_text(_read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = (
