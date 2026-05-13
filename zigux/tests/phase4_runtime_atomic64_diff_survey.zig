@@ -143,6 +143,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "lib/atomic64_test.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "gate-evidence surfaces again") != null);
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.roadmap_gap_summary, "self-referential gate-evidence blob pin") != null,
@@ -170,6 +171,7 @@ test "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable" 
     defer parsed.deinit();
     const manifest = parsed.value;
 
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "lib/atomic64_test.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "gate-evidence surfaces again") != null);
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.roadmap_gap_summary, "self-referential gate-evidence blob pin") != null,
