@@ -20,6 +20,7 @@ FILES = {
 CONTRACT_MARKERS = [
     "# Phase 11 Shared Replay Contract",
     "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
+    "* `scripts/zigux/check-phase11-build-inventory.py`",
     "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
     "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
     "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
@@ -35,7 +36,7 @@ REQUIRED_MARKERS = {
         "# Phase 11 Closure Note",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-        "`make -C zigux phase11-contract`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
         "direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
         "the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory",
@@ -46,6 +47,7 @@ REQUIRED_MARKERS = {
         "shared sequencing lane `P11-Y06`",
         "`Documentation/zigux/phase11-closure-note.md`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
         "the contents bridge still materializes `zigux/tests/fixtures/phase11_build_inventory.json`",
         "there is no shared `validate-phase11.py`, the shared `zigux/tests/fixtures/phase11_build_inventory.json` is materialized and should stay explicit beside `zigux/tests/phase11_build.zig`",
@@ -159,14 +161,16 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
-            (FILES["contract_note"], CONTRACT_MARKERS[3]),
+            (FILES["contract_note"], CONTRACT_MARKERS[2]),
             (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
+            (FILES["contract_note"], CONTRACT_MARKERS[6]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][3]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][5]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][6]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][5]),
+            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][4]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
+            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
         ]
 
