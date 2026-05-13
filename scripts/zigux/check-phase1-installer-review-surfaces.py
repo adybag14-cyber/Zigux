@@ -25,6 +25,11 @@ REQUIRED_FILES = [
 
 DOCS_ROOT_MARKERS = [
     (
+        "docs_root_phase1_notes_shortlist",
+        "- Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`",
+        1,
+    ),
+    (
         "docs_root_phase1_installer_packet",
         "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
         1,
@@ -294,7 +299,33 @@ def run_self_test() -> int:
         case_count += 1
 
         write_text(root / "Documentation/zigux/README.md", "")
-        expect(validate_root(root), "docs_root_phase1_installer_packet:expected=1:actual=0")
+        expect(
+            validate_root(root),
+            "docs_root_phase1_notes_shortlist:expected=1:actual=0",
+            "docs_root_phase1_installer_packet:expected=1:actual=0",
+        )
+        build_self_test_root(root)
+
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_text = docs_root_path.read_text(encoding="utf-8")
+        write_text(
+            docs_root_path,
+            docs_root_text.replace(
+                "- Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`\n",
+                "",
+                1,
+            ),
+        )
+        expect(validate_root(root), "docs_root_phase1_notes_shortlist:expected=1:actual=0")
+        build_self_test_root(root)
+
+        docs_root_text = docs_root_path.read_text(encoding="utf-8")
+        shortlist = "- Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`\n"
+        write_text(
+            docs_root_path,
+            docs_root_text.replace(shortlist, shortlist + shortlist, 1),
+        )
+        expect(validate_root(root), "docs_root_phase1_notes_shortlist:expected=1:actual=2")
         build_self_test_root(root)
 
         write_text(root / "scripts/zigux/README.md", "")
