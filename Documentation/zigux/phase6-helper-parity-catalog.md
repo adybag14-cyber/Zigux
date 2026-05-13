@@ -20,6 +20,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - currently missing helper-local replay surfaces on `master`: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - blocked route note: the existing direct C parity scaffolding is not currently runnable as a complete packet because `zigux/tests/phase6_base64_c_parity.zig` still imports the absent `zigux/tests/fixtures/phase6_base64_vectors.zig` fixture module
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `24` direct C parity cases and preserves the last blocked slowdown packet as four case labels, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`
 - current review posture: partially landed; current `master` still keeps the helper plus the direct C parity scaffolding, but it cannot honestly claim the broader focused helper replay or slowdown gate until the missing base64 replay and fixture files return
 
 ### bsearch
@@ -33,6 +34,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - direct local corpus evidence checker: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-bsearch-test`
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a 15-element representative inline corpus, `10` typed and `10` raw lookup budget checks capped at `4` comparator calls, plus lower- and upper-bound as well as direct C ABI equality sweeps across dynamic lengths `0...32` and packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` budget
 - current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion, the dedicated direct C ABI equality-budget replay, and the compact shared seed fixture companion that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
 
 ### checksum
@@ -45,6 +47,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - still-present checker and shared route references: `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - direct local C parity rerun route once the helper packet is restored: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - Linux-style C parity rerun route once the helper packet is restored: `make -C zigux phase6-checksum-c-parity`
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `22` direct C parity cases and preserves the last blocked slowdown packet as `64B` at `iterations = 200000` and `1501B` at `iterations = 12000`, both with `max_slowdown_pct = 150`
 - current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return
 
 ### hexdump
@@ -61,6 +64,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-hexdump-test`
 - dedicated environment-plumbed review route: the shipped `make -C zigux phase6-hexdump-review` wrapper keeps the helper-local checker plus the focused helper and perf replays on the same `PYTHON` and `ZIG` selection path
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`
 - current review posture: focused helper formatting parity plus the dedicated grouped-output slowdown gate keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle, while the preserved grouped-ASCII ceiling rationale stays anchored in `Documentation/zigux/phase6-hexdump-perf-refresh.md` under the same helper-owned review packet
 
 ## Shared Routes
