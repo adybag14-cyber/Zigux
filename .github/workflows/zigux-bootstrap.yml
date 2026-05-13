@@ -296,6 +296,9 @@ jobs:
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 
+      - name: Run bounded genksyms unit tests
+        run: zig test scripts/zigux/genksyms.zig
+
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig
 
