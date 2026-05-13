@@ -215,6 +215,18 @@ jobs:
       - name: Check Phase 4 artifact-diff determinism directly
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
 
+      - name: Self-test Phase 4 remaining-gap matrix directly
+        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test
+
+      - name: Check Phase 4 remaining-gap matrix directly
+        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py
+
+      - name: Self-test Phase 4 workflow route counts directly
+        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test
+
+      - name: Check Phase 4 workflow route counts directly
+        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py
+
       - name: Check Phase 4 gate evidence directly
         run: python3 scripts/zigux/check-phase4-gate-evidence.py
 
