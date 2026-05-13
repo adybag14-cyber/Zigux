@@ -16,6 +16,9 @@ SCRIPTS_README = Path("scripts/zigux/README.md")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 KERNEL_EXPORT_GOVERNANCE = Path("Documentation/zigux/phase3-kernel-export-shim-governance.md")
 HEADER_GOVERNANCE = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
+HEADER_GOVERNANCE_VALIDATOR = Path(
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+)
 LINUX_HEADER = Path("include/linux/zigux.h")
 ABI_HEADER = Path("include/zigux/abi.h")
 DEV_T_HEADER = Path("include/zigux/dev_t.h")
@@ -40,6 +43,7 @@ REQUIRED_FILES = (
     WORKFLOW,
     KERNEL_EXPORT_GOVERNANCE,
     HEADER_GOVERNANCE,
+    HEADER_GOVERNANCE_VALIDATOR,
     LINUX_HEADER,
     ABI_HEADER,
     DEV_T_HEADER,
@@ -464,6 +468,12 @@ def run_self_test() -> int:
         write(root / WORKFLOW, "")
         issues = validate(root)
         assert "missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        (root / HEADER_GOVERNANCE_VALIDATOR).unlink()
+        issues = validate(root)
+        assert f"missing_file:{HEADER_GOVERNANCE_VALIDATOR.as_posix()}" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
