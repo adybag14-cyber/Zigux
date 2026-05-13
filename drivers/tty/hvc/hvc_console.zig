@@ -352,6 +352,31 @@ pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSum
     };
 }
 
+pub const TargetlessNotifierEdgeRequest = struct {
+    target_present: bool,
+    notifier_registered: bool,
+    unregister_requested: bool,
+    keeps_live_notifier_execution_out_of_scope: bool = true,
+};
+
+pub const TargetlessNotifierEdgeSummary = struct {
+    target_present: bool,
+    notifier_registered: bool,
+    targetless_no_unregister_edge: bool,
+    unregister_requested: bool,
+    keeps_live_notifier_execution_out_of_scope: bool,
+};
+
+pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {
+    return .{
+        .target_present = request.target_present,
+        .notifier_registered = request.notifier_registered,
+        .targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,
+        .unregister_requested = request.unregister_requested and request.target_present,
+        .keeps_live_notifier_execution_out_of_scope = request.keeps_live_notifier_execution_out_of_scope,
+    };
+}
+
 pub fn hvc_kick() void {}
 
 pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
@@ -624,6 +649,31 @@ test "phase11 hvc console keeps remove handoff summary reviewable" {
     try std.testing.expect(summary.tty_vhangup_follow_through);
     try std.testing.expect(summary.tty_kref_put_release);
     try std.testing.expect(summary.keep_irq_until_hangup);
+}
+
+test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {
+    const targetless = summarizeTargetlessNotifierEdge(.{
+        .target_present = false,
+        .notifier_registered = true,
+        .unregister_requested = false,
+    });
+    const targeted = summarizeTargetlessNotifierEdge(.{
+        .target_present = true,
+        .notifier_registered = true,
+        .unregister_requested = true,
+    });
+
+    try std.testing.expect(!targetless.target_present);
+    try std.testing.expect(targetless.notifier_registered);
+    try std.testing.expect(targetless.targetless_no_unregister_edge);
+    try std.testing.expect(!targetless.unregister_requested);
+    try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(targeted.target_present);
+    try std.testing.expect(targeted.notifier_registered);
+    try std.testing.expect(!targeted.targetless_no_unregister_edge);
+    try std.testing.expect(targeted.unregister_requested);
+    try std.testing.expect(targeted.keeps_live_notifier_execution_out_of_scope);
 }
 
 test "phase11 hvc console keeps notifier irq helper surface reviewable" {
