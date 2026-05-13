@@ -1,7 +1,7 @@
 # Phase 14 Workqueue Bridge Slice
 
 - `PHASE14_LANE_KEY=P14-L04`
-- `PHASE14_SLICE=workqueue-scheduler-visible-worker-state-refinement`
+- `PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement`
 - reviewed against live `master` `9b98d3b9c812840bf279508030be0b8de093736c`
 - anchor: `kernel/workqueue.c`
 
