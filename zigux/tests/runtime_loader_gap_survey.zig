@@ -279,3 +279,33 @@ test "phase 9 runtime loader gap survey keeps bitmap prepared-snapshot helper an
     try expectContains(bitmap_loader, "try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());");
     try expectContains(bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
 }
+
+test "phase 9 runtime loader gap survey keeps trace-events rollback snapshots explicit after exit" {
+    const allocator = std.testing.allocator;
+
+    const manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        32 * 1024,
+    );
+    defer allocator.free(manifest);
+
+    const trace_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_trace_events_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(trace_loader);
+
+    try expectContains(manifest, "Keeps metadata-only registration and rollback evidence reviewable.");
+    try expectContains(trace_loader, "runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(trace_loader, "try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.exited, exited_summary.stage);");
+    try expectContains(trace_loader, "try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));");
+    try expectContains(trace_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);");
+    try expectContains(trace_loader, "try std.testing.expectEqual(@as(usize, 1), pending_plan.init_flow.selftest_runs);");
+    try expectContains(trace_loader, "try std.testing.expectEqualStrings(\"foo_bar_reg\", selftested_summary.last_register_label orelse unreachable);");
+    try expectContains(trace_loader, "try std.testing.expectEqualStrings(\"foo_bar_unreg\", selftested_summary.last_unregister_label orelse unreachable);");
+    try expectContains(trace_loader, "try loader.releaseSharedWithoutSubstrate(&shared_request);");
+    try expectContains(trace_loader, "try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());");
+    try expectContains(trace_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
+}
