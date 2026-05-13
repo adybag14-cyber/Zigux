@@ -27,6 +27,7 @@ The live `kernel/workqueue_bridge.zig` packet is already beyond the older eight-
 - the landed `phase14-workqueue-delayed-requeue-governance`
 - the landed `phase14-workqueue-flush-drain-governance`
 - the landed `phase14-workqueue-rescuer-mayday-governance`
+- the explicit `hotplug-topology-rebinding` and `scheduler-visible-worker-state-refinement` checkpoints that keep CPU-hotplug pool rebinding and scheduler-facing runnable-state transitions visibly in the review-only stay-in-C packet
 
 The bridge and its direct Zig test now describe a blocked maintenance packet with eight boundary areas, fifteen review-only audit checkpoints, and seven blocked live behaviors. That means the lane is no longer waiting on the pending-bit audit itself. The remaining work is to keep the survey, manifest, slice note, and shared Phase 14 reminder surfaces truthful about the bridge that is already landed.
 
@@ -78,4 +79,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts. Any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base ownership, CPU affinity, delayed-work requeue ownership, the runtime `max_active` retuning boundary, and live execution in C.
+Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts. Any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base ownership, CPU affinity, delayed-work requeue ownership, hotplug topology rebinding, scheduler-visible worker-state transitions, the runtime `max_active` retuning boundary, and live execution in C.
