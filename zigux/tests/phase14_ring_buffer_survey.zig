@@ -155,4 +155,6 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "ring-buffer-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "kernel/trace/ring_buffer.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "run the dedicated ring-buffer survey replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "run the shared Phase 14 build bundle") != null);
 }
