@@ -34,6 +34,8 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
     try expectContains(manifest, "\"current_master_truthfulness\":");
     try expectContains(manifest, "\"phase7-string-helpers-helper\"");
     try expectContains(manifest, "\"phase7-string-helpers-dedicated-tests\"");
+    try expectContains(manifest, "\"phase7-string-helpers-scripts-readme-boundary\"");
+    try expectContains(manifest, "scripts-root Phase 5 no-string-sample reminder in scripts/zigux/README.md still reads narrower");
     try expectContains(manifest, "\"status\": \"missing_on_master\"");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
