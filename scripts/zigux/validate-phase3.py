@@ -96,7 +96,9 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py",
     "$(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "$(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
     "$(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "$(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -109,6 +111,7 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "$(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
     "$(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "$(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
@@ -116,6 +119,7 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/phase3_catalog.py --self-test",
     "$(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "$(PYTHON) scripts/zigux/phase3_check_lib.py --self-test",
+    "$(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test",
     "$(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
     "$(PYTHON) scripts/zigux/run-phase3-checks.py --self-test",
     "$(PYTHON) scripts/zigux/validate_phase3_selftest.py",
@@ -738,6 +742,26 @@ def run_self_test() -> int:
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_export_uapi_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"
+        )
+        if expected_export_uapi_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing export-uapi self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
                 "$(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test\n",
                 "",
                 1,
@@ -758,6 +782,26 @@ def run_self_test() -> int:
         _write(
             root / "zigux/Makefile",
             _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_bindings_syntax_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test"
+        )
+        if expected_bindings_syntax_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing bindings-syntax self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
                 "$(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test\n",
                 "",
                 1,
@@ -771,6 +815,26 @@ def run_self_test() -> int:
         if expected_policy_guard_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing policy-byte guard self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_constant_parity_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/survey-phase3-abi-constant-parity.py --self-test"
+        )
+        if expected_constant_parity_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing constant-parity self-test make marker was not reported")
             return 1
         case_count += 1
 
@@ -825,6 +889,26 @@ def run_self_test() -> int:
         if expected_mmio_consumer_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected typed-policy mmio consumer self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_wrapper_selftest_marker = (
+            "missing make marker: $(PYTHON) "
+            "scripts/zigux/generate-phase3-check-wrappers.py --self-test"
+        )
+        if expected_wrapper_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing generated-wrapper self-test make marker was not reported")
             return 1
         case_count += 1
 
