@@ -97,7 +97,7 @@ MMIO_SURVEY_MARKERS = [
     "This survey stays aligned with `Documentation/zigux/freeze-map.md` and the shared Phase 10 closure packet.",
     "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
     "Allowed roadmap destinations remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this note does not widen the tranche into new transport homes.",
-    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.",
+    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe-remove lifecycle behavior.",
     "The Phase 14 study-only anchors `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain outside this lane, and this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.",
 ]
 
@@ -130,7 +130,7 @@ MARKER_SETS = {
     "zigux/tests/phase10_virtio_ring_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_input_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_mmio_manifest.json": TRANSPORT_MANIFEST_MARKERS,
-]
+}
 
 MARKER_LABELS = {
     "zigux/Makefile": "make",
@@ -334,74 +334,74 @@ def run_required_commands(root: Path) -> list[str]:
 
 def build_fixture_manifest_text() -> str:
     return """{
-  "phase": "Phase 10",
-  "status": "active",
-  "tranche": "virtio-lab-bundle",
-  "roadmap_parity_scoreboard": {
-    "virtqueue_wrappers": {
-      "status": "starter_landed",
-      "evidence": [
-        "drivers/virtio/virtio_ring_verify.zig",
-        "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+  \"phase\": \"Phase 10\",
+  \"status\": \"active\",
+  \"tranche\": \"virtio-lab-bundle\",
+  \"roadmap_parity_scoreboard\": {
+    \"virtqueue_wrappers\": {
+      \"status\": \"starter_landed\",
+      \"evidence\": [
+        \"drivers/virtio/virtio_ring_verify.zig\",
+        \"zigux/tests/phase10_virtio_ring_reset_reuse.zig\"
       ]
     },
-    "mmio_wrappers": {
-      "status": "starter_landed",
-      "evidence": [
-        "drivers/virtio/virtio_mmio_verify.zig"
+    \"mmio_wrappers\": {
+      \"status\": \"starter_landed\",
+      \"evidence\": [
+        \"drivers/virtio/virtio_mmio_verify.zig\"
       ]
     },
-    "lab_only_driver_validation": {
-      "status": "starter_landed",
-      "evidence": [
-        "scripts/zigux/check-phase10-harness-coverage.py",
-        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-        "drivers/virtio/virtio_input_verify.zig",
-        "drivers/virtio/virtio_mmio_verify.zig"
+    \"lab_only_driver_validation\": {
+      \"status\": \"starter_landed\",
+      \"evidence\": [
+        \"scripts/zigux/check-phase10-harness-coverage.py\",
+        \"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\",
+        \"drivers/virtio/virtio_ring_verify.zig\",
+        \"zigux/tests/phase10_virtio_ring_reset_reuse.zig\",
+        \"drivers/virtio/virtio_input_verify.zig\",
+        \"drivers/virtio/virtio_mmio_verify.zig\"
       ]
     },
-    "dual_implementations_for_risky_areas": {
-      "status": "blocked_on_risky_transport"
+    \"dual_implementations_for_risky_areas\": {
+      \"status\": \"blocked_on_risky_transport\"
     }
   },
-  "survey_provenance": {
-    "source": "manifest_derived",
-    "lane_keys": {
-      "core": "P10-L01",
-      "ring": "P10-L07",
-      "input": "P10-L13",
-      "mmio": "P10-L10"
+  \"survey_provenance\": {
+    \"source\": \"manifest_derived\",
+    \"lane_keys\": {
+      \"core\": \"P10-L01\",
+      \"ring\": \"P10-L07\",
+      \"input\": \"P10-L13\",
+      \"mmio\": \"P10-L10\"
     },
-    "surveyed_commits": {
-      "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
-      "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
-      "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
-      "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"
+    \"surveyed_commits\": {
+      \"core\": \"c11221dc7a68d7511ae1c69d64b3f08528287ed8\",
+      \"ring\": \"bdfe88e865b94387b3c3bd41ca98054c452f78b9\",
+      \"input\": \"7361ac51374149a96b7a7a2c6ea3c995d8cc1231\",
+      \"mmio\": \"84f90e23ad1c28ae345905d5293a8c5395f37d43\"
     }
   },
-  "focused_harness_replays": {
-    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
-      "phase10 core reset-queue replay"
+  \"focused_harness_replays\": {
+    \"zigux/tests/phase10_virtio_core_reset_queue.zig\": [
+      \"phase10 core reset-queue replay\"
     ]
   },
-  "exact_checks": [
-    "scripts/zigux/check-phase10-harness-coverage.py",
-    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
+  \"exact_checks\": [
+    \"scripts/zigux/check-phase10-harness-coverage.py\",
+    \"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\"
   ],
-  "ready_transport_followups": {
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
+  \"ready_transport_followups\": {
+    \"zigux/tests/phase10_virtio_mmio_manifest.json\": \"phase10-mmio-lifecycle-and-irq-paths\"
   },
-  "landed_ring_helper_evidence": {
-    "zigux/tests/phase10_virtio_ring_manifest.json": [
-      "phase10-notification-data-summary-helper"
+  \"landed_ring_helper_evidence\": {
+    \"zigux/tests/phase10_virtio_ring_manifest.json\": [
+      \"phase10-notification-data-summary-helper\"
     ]
   },
-  "landed_mmio_helper_evidence": {
-    "zigux/tests/phase10_virtio_mmio_manifest.json": [
-      "phase10-mmio-config-write-disposition-helper",
-      "phase10-mmio-selected-queue-readiness-helper"
+  \"landed_mmio_helper_evidence\": {
+    \"zigux/tests/phase10_virtio_mmio_manifest.json\": [
+      \"phase10-mmio-config-write-disposition-helper\",
+      \"phase10-mmio-selected-queue-readiness-helper\"
     ]
   }
 }
@@ -637,7 +637,7 @@ def run_self_test() -> int:
 
         mmio_survey.write_text(
             mmio_survey.read_text(encoding="utf-8").replace(
-                "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.\n",
+                "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe-remove lifecycle behavior.\n",
                 "",
                 1,
             ),
@@ -645,7 +645,7 @@ def run_self_test() -> int:
         )
         expect_marker_missing(
             root,
-            "mmio-survey:Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe/remove lifecycle behavior.",
+            "mmio-survey:Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe-remove lifecycle behavior.",
             "phase10-closure-self-test:mmio_survey_forbidden_transport_not_detected",
         )
         write_fixture(root)
