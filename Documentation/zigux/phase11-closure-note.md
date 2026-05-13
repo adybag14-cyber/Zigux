@@ -17,6 +17,7 @@ The current shared closure packet is the reminder-and-checker surface that still
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
+* `scripts/zigux/check-phase11-build-inventory.py`
 * `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/Makefile`
 * `make -C zigux phase11-contract`
