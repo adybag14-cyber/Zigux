@@ -18,6 +18,7 @@ GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 BUILD_REL = Path("zigux/tests/phase4_build.zig")
+MAKEFILE_REL = Path("zigux/Makefile")
 
 REQUIRED_FILES = [
     MANIFEST_REL,
@@ -27,6 +28,7 @@ REQUIRED_FILES = [
     CHECKLIST_REL,
     TESTS_README_REL,
     BUILD_REL,
+    MAKEFILE_REL,
     Path("scripts/zigux/check-phase4-perf-baseline-packet.py"),
 ]
 
@@ -96,6 +98,11 @@ BUILD_ABSENT_MARKERS = [
     "test_step.dependOn(&run_perf_baseline_survey_tests.step);",
 ]
 
+MAKEFILE_MARKERS = [
+    "phase4-perf-baseline-survey:",
+    "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+]
+
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_manifest_file",
@@ -110,6 +117,7 @@ SELF_TEST_CASES = [
     "gate_evidence_coordination_owner_drift",
     "review_checklist_coordination_owner_drift",
     "tests_readme_wrapper_drift",
+    "makefile_wrapper_drift",
     "build_shared_test_scope_drift",
 ]
 
@@ -144,6 +152,7 @@ def validate_root(root: Path) -> list[str]:
     checklist_text = read_text(root / CHECKLIST_REL)
     tests_readme_text = read_text(root / TESTS_README_REL)
     build_text = read_text(root / BUILD_REL)
+    makefile_text = read_text(root / MAKEFILE_REL)
 
     try:
         manifest = json.loads(manifest_text)
@@ -181,6 +190,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in BUILD_ABSENT_MARKERS:
         if marker in build_text:
             failures.append(f"build_unexpected_marker:{marker}")
+    for marker in MAKEFILE_MARKERS:
+        if marker not in makefile_text:
+            failures.append(f"makefile_marker:{marker}")
 
     return failures
 
@@ -252,7 +264,7 @@ def build_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 'const std = @import("std");',
-                '',
+                "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {',
                 '    const checker = try std.fs.cwd().readFileAlloc(',
                 '        std.testing.allocator,',
@@ -263,7 +275,7 @@ def build_fixture_tree(root: Path) -> None:
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_CHECK=pass") != null);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass") != null);',
                 '}',
-                '',
+                "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker local-only" {',
                 '    const checker = try std.fs.cwd().readFileAlloc(',
                 '        std.testing.allocator,',
@@ -273,7 +285,7 @@ def build_fixture_tree(root: Path) -> None:
                 '    defer std.testing.allocator.free(checker);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "phase4 perf baseline packet stays local-only and self-tested") != null);',
                 '}',
-                '',
+                "",
             ]
         ),
     )
@@ -339,6 +351,16 @@ def build_fixture_tree(root: Path) -> None:
                 '    "phase4-perf-baseline-survey",',
                 '    "Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet",',
                 ");",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / MAKEFILE_REL,
+        "\n".join(
+            [
+                "phase4-perf-baseline-survey:",
+                "\t$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
             ]
         )
         + "\n",
@@ -524,6 +546,21 @@ def run_self_test() -> int:
         if not expect_failure(root, "tests_readme_marker:make -C zigux phase4-perf-baseline-survey"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("tests README wrapper drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MAKEFILE_REL,
+            replace_once(
+                read_text(root / MAKEFILE_REL),
+                "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+                "$(ZIG) build phase4-perf-baseline-note --build-file zigux/tests/phase4_build.zig",
+            ),
+        )
+        if not expect_failure(root, "makefile_marker:$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("Makefile wrapper drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
