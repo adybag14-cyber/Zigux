@@ -31,7 +31,6 @@ This document records the shared Phase 14 smoke lane that verifies the current b
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
   - `Documentation/zigux/README.md`
-  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/phase14-release-boundary-survey.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/review-checklist.md`
@@ -92,6 +91,13 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - status bucket: `study_only`
 - validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14`
 - rollback owner: `Repo Tooling Pod`
+- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring
+- fallback path: keep this shared smoke lane parked and rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up
+- automatic return-to-blocked triggers:
+  - anchor-local manifest drift
+  - anchor-local survey note drift
+  - compile shard matrix drift
+  - shared replay wiring drift
 - ZAR-to-product transfer rationale: absorb ZAR runtime research as product discipline only by keeping exported evidence packets, machine-checked surveyed commits, compile-shard coverage, and explicit blocker posture, without importing ZAR runtime-core behavior into Zigux.
 
 ## Non-goals
