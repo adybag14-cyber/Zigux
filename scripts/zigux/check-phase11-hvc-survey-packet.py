@@ -13,9 +13,6 @@ from pathlib import Path
 REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "driver_starter": "drivers/tty/hvc/hvc_console.zig",
-    "driver_replay": "zigux/tests/phase11_hvc_console.zig",
-    "verify_replay": "drivers/tty/hvc/hvc_console_verify.zig",
-    "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
@@ -27,6 +24,19 @@ REQUIRED_FILES = {
     "makefile": "zigux/Makefile",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
+
+ABSENT_DIRECT_COMPANION_MARKER = (
+    "Current `master` still ships no separate direct "
+    "`drivers/tty/hvc/hvc_console_verify.zig`, "
+    "`zigux/tests/phase11_hvc_console.zig`, or "
+    "`zigux/tests/phase11_hvc_cleanup.zig` companions"
+)
+
+ABSENT_DIRECT_COMPANION_MATRIX_MARKER = (
+    "The still-absent direct `drivers/tty/hvc/hvc_console_verify.zig`, "
+    "`zigux/tests/phase11_hvc_console.zig`, and "
+    "`zigux/tests/phase11_hvc_cleanup.zig` companions remain repo-reality gaps."
+)
 
 SURVEY_GATE_MARKERS = [
     'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
@@ -43,15 +53,13 @@ SURVEY_NOTE_MARKERS = [
     "drivers/tty/hvc/hvc_console.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
-    "the direct `zigux/tests/phase11_hvc_console.zig` replay",
-    "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+    ABSENT_DIRECT_COMPANION_MARKER,
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "`hvc_cleanup()` tty-port release handoff summary",
-    "`tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent",
     "sysrq handoff stays unavailable after teardown",
 ]
 
@@ -64,14 +72,15 @@ SLICE_NOTE_MARKERS = [
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
+    ABSENT_DIRECT_COMPANION_MARKER,
 ]
 
 TEARDOWN_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_TEARDOWN_STATUS=cleanup_handoff_archived`",
     "drivers/tty/hvc/hvc_console.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
     "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-slice.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
@@ -79,7 +88,7 @@ TEARDOWN_NOTE_MARKERS = [
     "drivers/tty/hvc/hvc_console_sysrq.zig",
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
-    "`hvc_cleanup()` tty-port release handoff",
+    ABSENT_DIRECT_COMPANION_MARKER,
     "wait-until-sent intent",
     "keep-IRQ-until-hangup teardown boundaries",
 ]
@@ -91,20 +100,32 @@ VALIDATION_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey` archival route fail-closed",
-    "the direct `zigux/tests/phase11_hvc_console.zig` replay",
-    "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
-    "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
+    ABSENT_DIRECT_COMPANION_MATRIX_MARKER,
     "targetless notifier no-unregister edge",
-    "cleanup tty-port release handoff",
-    "notifier callback boundary",
-    "`hvc_hangup()` disconnect boundary",
-    "notifier_hangup boundary",
+    "`hvc_cleanup()` tty-port release handoff",
+    "`drivers/tty/hvc/hvc_console_sysrq.zig`",
 ]
 
 FORBIDDEN_MARKERS = {
-    "survey_note": [],
-    "slice_note": [],
-    "validation_matrix": [],
+    "survey_note": [
+        "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+        "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
+        "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+    ],
+    "slice_note": [
+        "direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`",
+        "direct replay-only coverage beside `zigux/tests/phase11_hvc_console.zig`",
+        "cleanup-teardown coverage beside `zigux/tests/phase11_hvc_cleanup.zig`",
+    ],
+    "teardown_note": [
+        "direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+        "direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
+    ],
+    "validation_matrix": [
+        "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+        "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
+        "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+    ],
 }
 
 DRIVER_STARTER_MARKERS = [
@@ -126,7 +147,7 @@ DRIVER_STARTER_MARKERS = [
     'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"',
     'test "phase11 hvc console keeps khvcd polling-contract summary reviewable"',
     'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable"',
-    'test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable"',
+    'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable"',
     'test "phase11 hvc console keeps notifier irq helper surface reviewable"',
 ]
 
@@ -164,7 +185,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 16
 
 
 class CheckError(RuntimeError):
@@ -231,7 +252,9 @@ def run_check(root: Path) -> None:
 
     survey_note = read_text(root, REQUIRED_FILES["survey_note"])
     slice_note = read_text(root, REQUIRED_FILES["slice_note"])
+    teardown_note = read_text(root, REQUIRED_FILES["teardown_note"])
     validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
+
     if manifest["surveyed_commit"] not in survey_note:
         raise CheckError(
             f"missing surveyed_commit provenance in {REQUIRED_FILES['survey_note']}: {manifest['surveyed_commit']}"
@@ -241,65 +264,22 @@ def run_check(root: Path) -> None:
             f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {manifest['surveyed_commit']}"
         )
 
-    expect_markers(
-        REQUIRED_FILES["driver_starter"],
-        read_text(root, REQUIRED_FILES["driver_starter"]),
-        DRIVER_STARTER_MARKERS,
-    )
-    read_text(root, REQUIRED_FILES["driver_replay"])
-    read_text(root, REQUIRED_FILES["verify_replay"])
-    read_text(root, REQUIRED_FILES["cleanup_replay"])
-    expect_markers(
-        REQUIRED_FILES["survey_gate"],
-        read_text(root, REQUIRED_FILES["survey_gate"]),
-        SURVEY_GATE_MARKERS,
-    )
+    expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
+    expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
     expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
-    expect_forbidden_markers_absent(
-        REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"]
-    )
     expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
-    expect_forbidden_markers_absent(
-        REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"]
-    )
-    expect_markers(
-        REQUIRED_FILES["teardown_note"],
-        read_text(root, REQUIRED_FILES["teardown_note"]),
-        TEARDOWN_NOTE_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["validation_matrix"], validation_matrix, VALIDATION_MATRIX_MARKERS
-    )
-    expect_forbidden_markers_absent(
-        REQUIRED_FILES["validation_matrix"],
-        validation_matrix,
-        FORBIDDEN_MARKERS["validation_matrix"],
-    )
-    expect_markers(
-        REQUIRED_FILES["modem_control_split"],
-        read_text(root, REQUIRED_FILES["modem_control_split"]),
-        MODEM_CONTROL_SPLIT_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["poll_retry_split"],
-        read_text(root, REQUIRED_FILES["poll_retry_split"]),
-        POLL_RETRY_SPLIT_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["sysrq_helper"],
-        read_text(root, REQUIRED_FILES["sysrq_helper"]),
-        SYSRQ_HELPER_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["makefile"],
-        read_text(root, REQUIRED_FILES["makefile"]),
-        MAKEFILE_MARKERS,
-    )
-    expect_markers(
-        REQUIRED_FILES["workflow"],
-        read_text(root, REQUIRED_FILES["workflow"]),
-        WORKFLOW_MARKERS,
-    )
+    expect_markers(REQUIRED_FILES["teardown_note"], teardown_note, TEARDOWN_NOTE_MARKERS)
+    expect_markers(REQUIRED_FILES["validation_matrix"], validation_matrix, VALIDATION_MATRIX_MARKERS)
+    expect_markers(REQUIRED_FILES["modem_control_split"], read_text(root, REQUIRED_FILES["modem_control_split"]), MODEM_CONTROL_SPLIT_MARKERS)
+    expect_markers(REQUIRED_FILES["poll_retry_split"], read_text(root, REQUIRED_FILES["poll_retry_split"]), POLL_RETRY_SPLIT_MARKERS)
+    expect_markers(REQUIRED_FILES["sysrq_helper"], read_text(root, REQUIRED_FILES["sysrq_helper"]), SYSRQ_HELPER_MARKERS)
+    expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
+    expect_markers(REQUIRED_FILES["workflow"], read_text(root, REQUIRED_FILES["workflow"]), WORKFLOW_MARKERS)
+
+    expect_forbidden_markers_absent(REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"])
+    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"])
+    expect_forbidden_markers_absent(REQUIRED_FILES["teardown_note"], teardown_note, FORBIDDEN_MARKERS["teardown_note"])
+    expect_forbidden_markers_absent(REQUIRED_FILES["validation_matrix"], validation_matrix, FORBIDDEN_MARKERS["validation_matrix"])
 
 
 def write(path: Path, text: str) -> None:
@@ -320,28 +300,13 @@ def build_manifest_text(surveyed_commit: str) -> str:
 def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
     write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["driver_replay"], "phase11 hvc direct replay fixture\n")
-    write(root / REQUIRED_FILES["verify_replay"], "phase11 hvc verify replay fixture\n")
-    write(root / REQUIRED_FILES["cleanup_replay"], "phase11 hvc cleanup replay fixture\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
-    write(
-        root / REQUIRED_FILES["survey_note"],
-        "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n",
-    )
+    write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n")
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
-    write(
-        root / REQUIRED_FILES["validation_matrix"],
-        "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["modem_control_split"],
-        "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n",
-    )
-    write(
-        root / REQUIRED_FILES["poll_retry_split"],
-        "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n",
-    )
+    write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n")
+    write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["workflow"], "\n".join(WORKFLOW_MARKERS) + "\n")
@@ -349,31 +314,11 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
 
 def init_fixture_repo(root: Path) -> str:
     subprocess.run(["git", "-C", str(root), "init"], check=True, capture_output=True, text=True)
-    subprocess.run(
-        ["git", "-C", str(root), "config", "user.name", "Zigux Builder"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(root), "config", "user.email", "zigux-builder@example.com"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "Zigux Builder"], check=True, capture_output=True, text=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "zigux-builder@example.com"], check=True, capture_output=True, text=True)
     subprocess.run(["git", "-C", str(root), "add", "."], check=True, capture_output=True, text=True)
-    subprocess.run(
-        ["git", "-C", str(root), "commit", "-m", "fixture"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    result = subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    subprocess.run(["git", "-C", str(root), "commit", "-m", "fixture"], check=True, capture_output=True, text=True)
+    result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True)
     return result.stdout.strip()
 
 
@@ -404,56 +349,18 @@ def run_self_test() -> None:
 
         cases = [
             (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
-            (
-                REQUIRED_FILES["driver_starter"],
-                'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"',
-            ),
-            (
-                REQUIRED_FILES["survey_gate"],
-                'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
-            ),
-            (
-                REQUIRED_FILES["survey_note"],
-                "the direct `zigux/tests/phase11_hvc_console.zig` replay",
-            ),
-            (
-                REQUIRED_FILES["survey_note"],
-                "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
-            ),
-            (
-                REQUIRED_FILES["teardown_note"],
-                "drivers/tty/hvc/hvc_console_verify.zig",
-            ),
-            (
-                REQUIRED_FILES["teardown_note"],
-                "zigux/tests/phase11_hvc_cleanup.zig",
-            ),
-            (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
-            (
-                REQUIRED_FILES["validation_matrix"],
-                "the direct `zigux/tests/phase11_hvc_console.zig` replay",
-            ),
-            (
-                REQUIRED_FILES["validation_matrix"],
-                "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
-            ),
-            (
-                REQUIRED_FILES["validation_matrix"],
-                "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
-            ),
-            (
-                REQUIRED_FILES["poll_retry_split"],
-                'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
-            ),
-            (
-                REQUIRED_FILES["modem_control_split"],
-                'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
-            ),
+            (REQUIRED_FILES["survey_gate"], "hvc_cleanup tty-port release handoff"),
+            (REQUIRED_FILES["survey_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["slice_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["teardown_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["validation_matrix"], ABSENT_DIRECT_COMPANION_MATRIX_MARKER),
+            (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
+            (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
+            (REQUIRED_FILES["sysrq_helper"], "pub fn summarizeSysrqHandoff"),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
-        for idx, (relative_path, marker) in enumerate(cases, start=1):
-            _ = idx
+        for relative_path, marker in cases:
             reset_fixture(tmpdir)
             path = tmpdir / relative_path
             text = path.read_text(encoding="utf-8")
@@ -465,21 +372,25 @@ def run_self_test() -> None:
             expect_failure(tmpdir, marker)
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["driver_replay"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["driver_replay"])
+        path = tmpdir / REQUIRED_FILES["survey_note"]
+        text = path.read_text(encoding="utf-8") + FORBIDDEN_MARKERS["survey_note"][0] + "\n"
+        path.write_text(text, encoding="utf-8")
+        expect_failure(tmpdir, FORBIDDEN_MARKERS["survey_note"][0])
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["verify_replay"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["verify_replay"])
+        path = tmpdir / REQUIRED_FILES["slice_note"]
+        text = path.read_text(encoding="utf-8") + FORBIDDEN_MARKERS["slice_note"][0] + "\n"
+        path.write_text(text, encoding="utf-8")
+        expect_failure(tmpdir, FORBIDDEN_MARKERS["slice_note"][0])
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["cleanup_replay"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["cleanup_replay"])
+        path = tmpdir / REQUIRED_FILES["validation_matrix"]
+        text = path.read_text(encoding="utf-8") + FORBIDDEN_MARKERS["validation_matrix"][0] + "\n"
+        path.write_text(text, encoding="utf-8")
+        expect_failure(tmpdir, FORBIDDEN_MARKERS["validation_matrix"][0])
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).write_text(
-            build_manifest_text("z" * 40), encoding="utf-8"
-        )
+        (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
         expect_failure(tmpdir, "invalid surveyed_commit")
 
         reset_fixture(tmpdir)
