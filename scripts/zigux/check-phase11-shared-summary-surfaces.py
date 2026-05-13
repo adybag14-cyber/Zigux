@@ -91,6 +91,7 @@ REQUIRED_MARKERS = {
     "tests_companion": [
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
@@ -178,6 +179,7 @@ def run_self_test() -> None:
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][2]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
