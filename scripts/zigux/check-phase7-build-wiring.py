@@ -80,6 +80,10 @@ REQUIRED_MARKERS = {
         '"phase7_string_helpers_sample_boundary.zig"',
         '.root_source_file = b.path("../../lib/cmdline.zig"),',
         'cmdline_root_module.addImport("cmdline", cmdline_module);',
+        'const cmdline_step = b.step(',
+        '"phase7-cmdline-test",',
+        '"Run the Phase 7 cmdline helper tests",',
+        'cmdline_step.dependOn(&run_cmdline_tests.step);',
         "phase7-cmdline-survey-tests",
         '"phase7_cmdline_survey.zig"',
         '.root_source_file = b.path("../../lib/argv_split.zig"),',
@@ -92,6 +96,10 @@ REQUIRED_MARKERS = {
         '"phase7_argv_split_survey.zig"',
         '.root_source_file = b.path("../../lib/rbtree.zig"),',
         'rbtree_root_module.addImport("rbtree", rbtree_module);',
+        'const rbtree_step = b.step(',
+        '"phase7-rbtree-test",',
+        '"Run the Phase 7 rbtree helper tests",',
+        'rbtree_step.dependOn(&run_rbtree_tests.step);',
         "phase7-rbtree-survey-tests",
         '"phase7_rbtree_survey.zig"',
         'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
@@ -261,6 +269,20 @@ def run_self_test() -> None:
             'zigux/tests/phase7_build.zig: cmdline_root_module.addImport("cmdline", cmdline_module);',
         ),
         (
+            "build_cmdline_direct_step_name",
+            "zigux/tests/phase7_build.zig",
+            '"phase7-cmdline-test",',
+            '"phase7-cmdline-drift-test",',
+            'zigux/tests/phase7_build.zig: "phase7-cmdline-test",',
+        ),
+        (
+            "build_cmdline_direct_step_dependson",
+            "zigux/tests/phase7_build.zig",
+            'cmdline_step.dependOn(&run_cmdline_tests.step);',
+            "",
+            'zigux/tests/phase7_build.zig: cmdline_step.dependOn(&run_cmdline_tests.step);',
+        ),
+        (
             "build_cmdline_survey_gate",
             "zigux/tests/phase7_build.zig",
             "phase7-cmdline-survey-tests",
@@ -322,6 +344,20 @@ def run_self_test() -> None:
             'rbtree_root_module.addImport("rbtree", rbtree_module);',
             "",
             'zigux/tests/phase7_build.zig: rbtree_root_module.addImport("rbtree", rbtree_module);',
+        ),
+        (
+            "build_rbtree_direct_step_name",
+            "zigux/tests/phase7_build.zig",
+            '"phase7-rbtree-test",',
+            '"phase7-rbtree-drift-test",',
+            'zigux/tests/phase7_build.zig: "phase7-rbtree-test",',
+        ),
+        (
+            "build_rbtree_direct_step_dependson",
+            "zigux/tests/phase7_build.zig",
+            'rbtree_step.dependOn(&run_rbtree_tests.step);',
+            "",
+            'zigux/tests/phase7_build.zig: rbtree_step.dependOn(&run_rbtree_tests.step);',
         ),
         (
             "build_rbtree_survey_gate",
@@ -500,7 +536,7 @@ def run_self_test() -> None:
 
     case_count = len(missing_file_cases) + len(marker_cases)
     print("PHASE7_BUILD_WIRING=pass")
-    print(f"PHASE7_BUILD_WIRING_CASE_COUNT={case_count}")
+    print(f"PHASE7_BUILD_WIRING_CASE_COUNT={case_count})")
 
 
 def main() -> int:
