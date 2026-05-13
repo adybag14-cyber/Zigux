@@ -34,6 +34,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
@@ -208,6 +209,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+            "",
+            "helper_lane_owner_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_owner_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
             "copied token-buffer ownership and later source-mutation isolation",
             "",
@@ -275,7 +290,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 9
+    case_count = 10
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
