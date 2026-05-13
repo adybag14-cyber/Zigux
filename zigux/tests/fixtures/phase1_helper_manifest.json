@@ -157,7 +157,7 @@
         "test \"rbtree inserts and traverses in sorted order\"",
         "test \"rbtree erase and replace keep traversal consistent\"",
         "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
-        "test \"rbtree eraseInit detaches erased nodes and keeps traversal stable\"",
+        "test \"rbtree eraseInit detaches erased node\"",
         "test \"rbtree postorder and empty node helpers behave\"",
         "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
         "test \"rbtree nextMatch walks the duplicate range in order\"",
