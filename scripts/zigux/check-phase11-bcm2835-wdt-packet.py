@@ -27,6 +27,7 @@ SURVEY_NOTE_MARKERS = [
     "phase11-bcm2835-wdt-verify-tests",
     "phase11-bcm2835-wdt-survey-tests",
     "drivers/watchdog/bcm2835_wdt_verify.zig",
+    "the archival survey now carries `P11-L08` packet identity",
 ]
 
 VALIDATION_MATRIX_MARKERS = [
@@ -57,7 +58,7 @@ LANE_NOTE_MARKERS = [
     "* contributor-note lane `P11-L18` owns the shared contributor-facing wording across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
 ]
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 
 
 class CheckError(RuntimeError):
@@ -154,6 +155,18 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "phase11-bcm2835-wdt-verify-tests")
+
+        build_self_test_fixture(tmpdir)
+        survey_path = tmpdir / REQUIRED_FILES["survey_note"]
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "the archival survey now carries `P11-L08` packet identity\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "the archival survey now carries `P11-L08` packet identity")
 
         build_self_test_fixture(tmpdir)
         validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
