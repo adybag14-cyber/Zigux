@@ -44,6 +44,159 @@ SOURCE_RELS = [
     Path("tools/lib/zalloc.c"),
 ]
 
+REQUIRED_PARITY_KEYS = {
+    "find_bit": (
+        "bits_per_long",
+        "first",
+        "next_after_6",
+        "next_after_word",
+        "first_zero",
+        "next_zero",
+        "first_and",
+        "next_and",
+        "last",
+        "inclusive_boundary_next",
+        "inclusive_boundary_zero",
+        "inclusive_boundary_and",
+        "past_nbits_next",
+        "past_nbits_zero",
+        "past_nbits_and",
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last",
+    ),
+    "bitmap": (
+        "weight",
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len",
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values",
+        "and_result",
+        "and_values",
+        "andnot_result",
+        "andnot_values",
+        "or_values",
+        "xor_values",
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+        "equal",
+        "intersects",
+        "subset",
+        "range_after_set",
+        "range_after_clear",
+        "full_after_fill",
+        "empty_after_zero",
+    ),
+    "string": (
+        "strtobool_y",
+        "strtobool_on",
+        "strtobool_zero",
+        "strtobool_off",
+        "strtobool_invalid",
+        "strlcpy_len",
+        "strlcpy_buffer",
+        "skip_spaces",
+        "trim_spaces",
+        "remove_spaces",
+        "replace_char",
+        "replace_char_end",
+        "replace_char_cstr_end",
+        "replace_char_cstr_bytes",
+        "memchr_inv_index",
+        "memchr_inv_none",
+    ),
+    "rbtree": (
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "next_match_terminal_null",
+    ),
+    "argv_split": (
+        "argc",
+        "argv",
+        "blank_argc",
+    ),
+    "cmdline": (
+        "decimal_k",
+        "hex_m",
+        "octal_k",
+        "invalid",
+    ),
+    "ctype": (
+        "mask_A",
+        "mask_a",
+        "mask_space",
+        "isalnum_A",
+        "isalpha_z",
+        "isdigit_7",
+        "isspace_tab",
+        "isxdigit_f",
+        "ispunct_bang",
+        "tolower_A",
+        "toupper_z",
+        "isodigit_7",
+        "isodigit_8",
+    ),
+    "hweight": (
+        "w8",
+        "w16",
+        "w32",
+        "w64",
+        "wlong",
+    ),
+    "list_sort": (
+        "tri_sorted_keys",
+        "tri_sorted_ordinals",
+        "bool_sorted_keys",
+        "bool_sorted_ordinals",
+    ),
+    "zalloc": (
+        "zeroed",
+        "freed_is_null",
+        "value_zeroed",
+        "value_freed_is_null",
+    ),
+    "str_error_r": (
+        "enoent",
+        "unknown",
+    ),
+    "slab": (
+        "null_without_reclaim",
+        "alloc_count_after_kmalloc",
+        "zero_after_kmalloc",
+        "alloc_count_after_kmalloc_free",
+        "array_zeroed",
+        "alloc_count_after_kmalloc_array",
+        "alloc_count_after_kmalloc_array_free",
+        "slab_is_available",
+    ),
+    "vsprintf": (
+        "scnprintf_text",
+        "scnprintf_len",
+        "pad_text",
+        "pad_len",
+    ),
+}
+
 
 def fixture_path(root: Path) -> Path:
     return root / FIXTURE_REL
@@ -115,7 +268,20 @@ def collect_output_issues(actual: Path) -> list[str]:
             issues.append(f"missing:{section_name}.{key}")
         for key in actual_key_set - expected_key_set:
             issues.append(f"unexpected:{section_name}.{key}")
+    return issues
 
+
+def collect_parity_key_issues(actual: Path) -> list[str]:
+    payload = json.loads(actual.read_text(encoding="utf-8"))
+    issues: list[str] = []
+    for section_name, required_keys in REQUIRED_PARITY_KEYS.items():
+        section = payload.get(section_name)
+        if not isinstance(section, dict):
+            issues.append(f"invalid_parity_section:{section_name}")
+            continue
+        for key in required_keys:
+            if key not in section:
+                issues.append(f"missing_parity_key:{section_name}.{key}")
     return issues
 
 
@@ -345,6 +511,7 @@ def run_self_test() -> None:
         actual = tmp_root / "phase1_helpers.actual.json"
         actual.write_text(json.dumps(EXPECTED_SELF_TEST_OUTPUT), encoding="utf-8")
         assert collect_output_issues(actual) == []
+        assert collect_parity_key_issues(actual) == []
 
         missing_string_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_string_output["string"]["replace_char_cstr_bytes"]
@@ -357,36 +524,48 @@ def run_self_test() -> None:
         actual.write_text(json.dumps(missing_string_bool_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:string.strtobool_y" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:string.strtobool_y" in parity_key_output
 
         missing_find_bit_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_find_bit_output["find_bit"]["tail_clamped_empty_last"]
         actual.write_text(json.dumps(missing_find_bit_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.tail_clamped_empty_last" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:find_bit.tail_clamped_empty_last" in parity_key_output
 
         missing_find_bit_boundary_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_find_bit_boundary_output["find_bit"]["inclusive_boundary_and"]
         actual.write_text(json.dumps(missing_find_bit_boundary_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.inclusive_boundary_and" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:find_bit.inclusive_boundary_and" in parity_key_output
 
         missing_find_bit_tail_clamp_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_find_bit_tail_clamp_output["find_bit"]["tail_zero_clamped_next"]
         actual.write_text(json.dumps(missing_find_bit_tail_clamp_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:find_bit.tail_zero_clamped_next" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:find_bit.tail_zero_clamped_next" in parity_key_output
 
         missing_bitmap_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_bitmap_output["bitmap"]["partial_xor_masked_values"]
         actual.write_text(json.dumps(missing_bitmap_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:bitmap.partial_xor_masked_values" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.partial_xor_masked_values" in parity_key_output
 
         missing_rbtree_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_rbtree_output["rbtree"]["next_match_serials"]
         actual.write_text(json.dumps(missing_rbtree_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:rbtree.next_match_serials" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:rbtree.next_match_serials" in parity_key_output
 
         unexpected_section_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         unexpected_section_output["extra_helper"] = {"value": 1}
@@ -470,6 +649,15 @@ def main() -> int:
             for issue in output_issues:
                 print(issue)
             print("PHASE1_PARITY_OUTPUT_ISSUES_END")
+            return 1
+
+        parity_key_issues = collect_parity_key_issues(actual)
+        if parity_key_issues:
+            print("PHASE1_PARITY=fail")
+            print("PHASE1_PARITY_KEY_ISSUES_START")
+            for issue in parity_key_issues:
+                print(issue)
+            print("PHASE1_PARITY_KEY_ISSUES_END")
             return 1
 
         if args.refresh:
