@@ -68,6 +68,10 @@ test "runtime atomic64 sample keeps post-selftest mutation replay explicit at th
     try std.testing.expect(add_unless_result.changed);
     try std.testing.expectEqual(@as(i64, 11), add_unless_result.previous);
 
+    const and_not_result = try module.andNotCounter(0b0100);
+    try std.testing.expectEqual(@as(i64, 15), and_not_result.previous);
+    try std.testing.expectEqual(@as(i64, 11), and_not_result.final);
+
     const inc_not_zero_result = try module.incNotZeroCounter();
     try std.testing.expect(inc_not_zero_result.changed);
 
@@ -83,6 +87,7 @@ test "runtime atomic64 sample keeps post-selftest mutation replay explicit at th
     const exited_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(i64, 11), exited_summary.counter_snapshot);
 }
 
 test "runtime atomic64 sample keeps zero and negative guard-return replay explicit after selftest at the module boundary" {
