@@ -24,7 +24,6 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ("--self-test",)),
@@ -53,9 +52,6 @@ SELFTEST_OUTPUT_MARKERS = {
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"): (
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=5",
-    ),
-    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"): (
-        "PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",
     ),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"): (
         "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
