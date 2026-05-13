@@ -86,8 +86,22 @@ REQUIRED_PARITY_KEYS = {
         "next_match_terminal_null",
     ),
     "string": (
+        "strtobool_y",
+        "strtobool_on",
+        "strtobool_zero",
+        "strtobool_off",
+        "strtobool_invalid",
+        "strlcpy_len",
+        "strlcpy_buffer",
+        "skip_spaces",
+        "trim_spaces",
+        "remove_spaces",
+        "replace_char",
+        "replace_char_end",
         "replace_char_cstr_end",
         "replace_char_cstr_bytes",
+        "memchr_inv_index",
+        "memchr_inv_none",
     ),
 }
 
@@ -426,8 +440,22 @@ def run_self_test() -> None:
                 "next_match_terminal_null": True,
             },
             "string": {
+                "strtobool_y": True,
+                "strtobool_on": True,
+                "strtobool_zero": False,
+                "strtobool_off": False,
+                "strtobool_invalid": -22,
+                "strlcpy_len": 5,
+                "strlcpy_buffer": "hel",
+                "skip_spaces": "hello",
+                "trim_spaces": "hi",
+                "remove_spaces": "abc",
+                "replace_char": "a_b",
+                "replace_char_end": 3,
                 "replace_char_cstr_end": 2,
                 "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+                "memchr_inv_index": 4,
+                "memchr_inv_none": True,
             },
         }
 
@@ -440,6 +468,12 @@ def run_self_test() -> None:
         actual.write_text(json.dumps(missing_string_output), encoding="utf-8")
         missing_output = collect_output_issues(actual)
         assert "missing:string.replace_char_cstr_bytes" in missing_output
+
+        missing_string_bool_output = json.loads(json.dumps(valid_output))
+        del missing_string_bool_output["string"]["strtobool_y"]
+        actual.write_text(json.dumps(missing_string_bool_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:string.strtobool_y" in missing_output
 
         missing_find_bit_output = json.loads(json.dumps(valid_output))
         del missing_find_bit_output["find_bit"]["tail_clamped_empty_last"]
@@ -477,7 +511,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
