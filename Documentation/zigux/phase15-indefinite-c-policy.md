@@ -112,7 +112,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-field-sync-followup`
 - landed `phase15-indefinite-c-roadmap-continuity-survey`
 - landed `phase15-indefinite-c-maintenance-handoff`
-- blocked `phase15-deep-core-status-change-blocker`
+- blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
 
