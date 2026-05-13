@@ -90,7 +90,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
-- current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, and indefinite-C-policy records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, `parity scorecard link or blocker record`, and indefinite-C-policy records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Maintenance-Mode Handoff
