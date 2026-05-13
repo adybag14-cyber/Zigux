@@ -636,6 +636,7 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
+        write_fixture_tree(base)
         (base / PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH}")
 
@@ -749,6 +750,19 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[7]}",
+        )
+
+        write_fixture_tree(base)
+        sequencing_path = base / RELEASE_SEQUENCING_PATH
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
+                RELEASE_SEQUENCING_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[2]}",
         )
 
         write_fixture_tree(base)
@@ -907,7 +921,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=25")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=26")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
