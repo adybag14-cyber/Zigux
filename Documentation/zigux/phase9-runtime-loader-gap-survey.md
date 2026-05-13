@@ -65,7 +65,7 @@ Keep the older Phase 8 command and environment cue owners out of this packet:
 ## Next Bounded Step
 
 If the shared loader packet drifts again, tighten only this packet's survey
- evidence, gating, or rollback wording. Keep the exact shared owner map in
+evidence, gating, or rollback wording. Keep the exact shared owner map in
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and treat
 `Documentation/zigux/review-checklist.md` as the next reviewer-facing reminder
 surface for the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`,
