@@ -138,7 +138,7 @@ RELEASE_BOUNDARY_MARKERS = [
 ]
 
 SKBUFF_SURVEY_MARKERS = [
-    "`PHASE14_LANE_KEY=P14-L11`",
+    "`PHASE14_LANE_KEY=P14-L12`",
     "`phase14-skbuff-live-ownership-blocker`",
     "explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`",
     "explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C",
@@ -264,10 +264,8 @@ REQUIRED_SURVEY_SUMMARY_KEYS = [
     "freeze_map_lists_tree_c",
 ]
 
-
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
-
 
 def load_json(
     path: str,
@@ -288,7 +286,6 @@ def load_json(
         json_decode_errors.append(f"{path}:top_level_type={type(loaded).__name__}")
         return None
     return loaded
-
 
 def summarize_gap_ids(manifest: dict[str, object]) -> tuple[str, str]:
     ready_next_gap = ""
@@ -311,7 +308,6 @@ def summarize_gap_ids(manifest: dict[str, object]) -> tuple[str, str]:
 
     return ready_next_gap, blocked_gap
 
-
 def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
     anchor = packet.get("anchor")
     manifest_path = packet.get("manifest_path")
@@ -325,7 +321,6 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
         f"- {label}: `{manifest_path}`, lane `{packet_lane_key}`, surveyed commit `{packet_commit}`, "
         f"ready-next `{ready_next_text}`, blocked `{blocked_gap}`"
     )
-
 
 def run_python_checker(
     root: Path,
@@ -342,14 +337,12 @@ def run_python_checker(
     output_parts = [part.strip() for part in (result.stdout, result.stderr) if part.strip()]
     return result.returncode, "\n".join(output_parts)
 
-
 def require_exact_line_once(missing: list[str], name: str, source: str, markers: list[str]) -> None:
     lines = source.splitlines()
     for marker in markers:
         count = sum(1 for line in lines if line == marker)
         if count != 1:
             missing.append(f"{name}:exact_line:{marker}:count={count}")
-
 
 def require_lines_after_anchor(
     missing: list[str],
@@ -369,7 +362,6 @@ def require_lines_after_anchor(
     actual_lines = lines[anchor_index + 1 : anchor_index + 1 + len(expected_lines)]
     if actual_lines != expected_lines:
         missing.append(f"{name}:{label}")
-
 
 def run_self_test() -> int:
     errors: list[str] = []
@@ -530,11 +522,11 @@ def run_self_test() -> int:
     require_exact_line_once(
         exact_line_missing,
         "tests_readme",
-        good_tests_readme.replace(f"{TESTS_README_EXACT_LINES[0]}\n", "", 1),
+        good_tests_readme.replace(TESTS_README_EXACT_LINES[1] + "\n", "", 1),
         TESTS_README_EXACT_LINES,
     )
     if exact_line_missing != [
-        f"tests_readme:exact_line:{TESTS_README_EXACT_LINES[0]}:count=0"
+        f"tests_readme:exact_line:{TESTS_README_EXACT_LINES[1]}:count=0"
     ]:
         print("PHASE14_SELF_TEST=fail")
         print("SELF_TEST_REASON=unexpected_tests_readme_exact_line_gap")
@@ -548,32 +540,14 @@ def run_self_test() -> int:
     require_lines_after_anchor(
         packet_after_anchor_missing,
         "tests_readme",
-        good_tests_readme.replace(
-            "\n".join(
-                [
-                    TESTS_README_PACKET_ANCHOR,
-                    TESTS_README_EXACT_LINES[0],
-                    TESTS_README_EXACT_LINES[1],
-                ]
-            ),
-            "\n".join(
-                [
-                    TESTS_README_PACKET_ANCHOR,
-                    TESTS_README_EXACT_LINES[1],
-                    TESTS_README_EXACT_LINES[0],
-                ]
-            ),
-            1,
-        ),
+        good_tests_readme.replace(TESTS_README_EXACT_LINES[2] + "\n", "", 1),
         TESTS_README_PACKET_ANCHOR,
         TESTS_README_EXACT_LINES,
         "phase14_smoke_packet_after_anchor",
     )
-    if packet_after_anchor_missing != [
-        "tests_readme:phase14_smoke_packet_after_anchor"
-    ]:
+    if packet_after_anchor_missing != ["tests_readme:phase14_smoke_packet_after_anchor"]:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_packet_after_anchor_gap")
+        print("SELF_TEST_REASON=unexpected_tests_readme_after_anchor_gap")
         print("SELF_TEST_MARKERS_START")
         for item in packet_after_anchor_missing:
             print(item)
@@ -775,7 +749,6 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_FORBIDDEN_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);")
     print("PHASE14_SELF_TEST_FORBIDDEN_REVIEWABILITY_SMOKE_MARKER=smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     return 0
-
 
 def run_validation() -> int:
     missing_files = [path for path in FILES if not (ROOT / path).exists()]
@@ -1054,7 +1027,6 @@ def run_validation() -> int:
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
     return 0
 
-
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -1064,13 +1036,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     return parser.parse_args(argv)
 
-
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     if args.self_test:
         return run_self_test()
     return run_validation()
-
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
