@@ -110,6 +110,14 @@ test "phase3 abi keeps policy helper decoding aligned with interop policy bytes"
     try std.testing.expectEqual(@as(?panic_policy.Action, .bug_check), panic_policy.actionForInteropPolicy(heap_bug_policy));
     try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForInteropPolicy(arena_raw_policy));
     try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForInteropPolicy(reserved_policy));
+    try std.testing.expect(panic_policy.mustAbortInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!panic_policy.mustAbortInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!panic_policy.mustAbortInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!panic_policy.mustAbortInteropPolicy(reserved_policy));
+    try std.testing.expect(!panic_policy.mustBugCheckInteropPolicy(caller_abort_policy));
+    try std.testing.expect(panic_policy.mustBugCheckInteropPolicy(heap_bug_policy));
+    try std.testing.expect(!panic_policy.mustBugCheckInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!panic_policy.mustBugCheckInteropPolicy(reserved_policy));
     try std.testing.expect(!panic_policy.canReturnInteropPolicy(caller_abort_policy));
     try std.testing.expect(!panic_policy.canReturnInteropPolicy(heap_bug_policy));
     try std.testing.expect(panic_policy.canReturnInteropPolicy(arena_raw_policy));
