@@ -289,14 +289,21 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
+    try expectContains(module_slice, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_manifest.json`");
+    try expectContains(module_slice, "The `zigux/tests/runtime_bitmap_diff.zig` gate owns the bounded `lib/test_bitmap.c` replay plus the selftest-complete and exit lifecycle guards");
+    try expectContains(module_slice, "bitmap-local review proof");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
     try expectContains(module_slice, "The live runtime substrate is still missing");
 
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_module.zig\")");
+    try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_diff.zig\")");
     try expectContains(phase9_build, ".root_source_file = b.path(\"runtime_bitmap_survey.zig\")");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
