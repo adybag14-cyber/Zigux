@@ -27,6 +27,7 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+- `zigux/tests/phase10_virtio_driver_id.zig`
 - `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_verify.zig`
