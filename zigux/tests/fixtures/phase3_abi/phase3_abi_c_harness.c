@@ -29,6 +29,16 @@ int main(void)
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u"
         "},"
+        "\"dev_t\":{"
+        "\"minor_bits\":%u,"
+        "\"minor_mask\":%u,"
+        "\"max_major\":%u,"
+        "\"sample_major\":%u,"
+        "\"sample_minor\":%u,"
+        "\"sample_encoded\":%u,"
+        "\"range_count\":%u,"
+        "\"range_last_encoded\":%u"
+        "},"
         "\"structs\":{"
         "\"boundary_header\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"size\":%zu,\"abi_version\":%zu,\"flags\":%zu}},"
         "\"export_status\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"code\":%zu,\"facility\":%zu,\"flags\":%zu}},"
@@ -57,6 +67,14 @@ int main(void)
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+        ZIGUX_DEV_MINOR_BITS,
+        ZIGUX_DEV_MINOR_MASK,
+        ZIGUX_DEV_MAJOR_MAX,
+        42U,
+        7U,
+        zigux_mkdev(42U, 7U),
+        4U,
+        zigux_mkdev(42U, 7U + 4U - 1U),
         sizeof(struct zigux_boundary_header),
         _Alignof(struct zigux_boundary_header),
         offsetof(struct zigux_boundary_header, size),
