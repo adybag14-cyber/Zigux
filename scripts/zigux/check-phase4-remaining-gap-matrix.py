@@ -58,6 +58,7 @@ SELF_TEST_CASES = [
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
     "test_fsmount_gap_packet_drift",
+    "test_fsmount_threshold_posture_drift",
     "test_fsmount_wrapper_drift",
     "test_fsmount_validation_entrypoint_drift",
     "test_fsmount_owner_drift",
@@ -357,6 +358,23 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("test_fsmount packet drift case did not fail closed")
+            return 1
+        case_count += 1
+
+        write_text(
+            matrix_path,
+            replace_once(
+                baseline,
+                "explicit reviewability-only no-perf-threshold posture reviewable",
+                "explicit shared-CI perf-threshold posture reviewable",
+            ),
+        )
+        if not expect_failure(
+            root,
+            "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
+        ):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("test_fsmount threshold-posture drift case did not fail closed")
             return 1
         case_count += 1
 
