@@ -288,6 +288,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps initialized-stage shared contract plans explicit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity\"",
     );
     try expectContains(
@@ -297,6 +301,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         runtime_kretprobe_loader,
         "test \"runtime kretprobe loader surfaces prepared shared selftest-hook drift before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects prepared shared runtime-substrate drift before any live registration claim\"",
     );
     try expectContains(
         runtime_kretprobe_loader,
@@ -321,6 +329,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         runtime_kretprobe_loader,
         "try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));",
     );
     try expectContains(
         runtime_kretprobe_loader,
