@@ -54,12 +54,18 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn requiresExplicitCallerByte(mode: u8) bool {",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsGlobalFallbackByte(mode: u8) bool {",
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));',
+    'try std.testing.expect(requiresExplicitCallerByte(0));',
+    'try std.testing.expect(!requiresExplicitCallerByte(9));',
     'try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));',
+    'try std.testing.expect(permitsGlobalFallbackByte(1));',
+    'try std.testing.expect(!permitsGlobalFallbackByte(9));',
     'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));',
     'try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));',
@@ -250,6 +256,14 @@ def run_self_test() -> int:
         )
 
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS) + "\n")
+        _write(root, ALLOCATOR_REL, "\n".join(snippet for snippet in REQUIRED_ALLOCATOR_SNIPPETS if snippet != "pub fn permitsGlobalFallbackByte(mode: u8) bool {") + "\n")
+        issues = validate(root)
+        assert (
+            "missing_allocator_snippet:pub fn permitsGlobalFallbackByte(mode: u8) bool {"
+            in issues
+        )
+
+        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
         _write(root, ALLOCATOR_REL, "\n".join(snippet for snippet in REQUIRED_ALLOCATOR_SNIPPETS if snippet != 'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));') + "\n")
         issues = validate(root)
         assert (
@@ -268,7 +282,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
