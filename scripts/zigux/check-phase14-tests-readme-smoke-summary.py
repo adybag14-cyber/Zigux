@@ -8,12 +8,14 @@ smoke packet.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=tests_readme_smoke_summary"
 TESTS_README_PATH = Path("zigux/tests/README.md")
+SMOKE_MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
 TESTS_README_PACKET_LINES = [
     "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
@@ -33,6 +35,16 @@ TESTS_README_COMPILE_SHARD_LINES = [
 TESTS_README_AFTER_ANCHOR_LINES = (
     TESTS_README_PACKET_LINES + TESTS_README_COMPILE_SHARD_LINES
 )
+REQUIRED_SHARED_SMOKE_SURFACES = [
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+]
+REQUIRED_ANCHOR_MANIFESTS = [
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json",
+    "zigux/tests/phase14_ring_buffer_manifest.json",
+    "zigux/tests/phase14_rcu_tree_manifest.json",
+]
 
 
 def repo_root() -> Path:
@@ -79,8 +91,74 @@ def require_lines_after_anchor(
         errors.append(f"marker order drift in {rel_path} after anchor: {label}")
 
 
+def load_manifest(errors: list[str], root: Path) -> dict[str, object] | None:
+    path = root / SMOKE_MANIFEST_PATH
+    if not path.exists():
+        errors.append(f"missing file: {SMOKE_MANIFEST_PATH.as_posix()}")
+        return None
+    try:
+        loaded = json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        errors.append(
+            f"json decode drift in {SMOKE_MANIFEST_PATH.as_posix()}: {exc.msg} at {exc.lineno}:{exc.colno}"
+        )
+        return None
+    if not isinstance(loaded, dict):
+        errors.append(
+            f"manifest type drift in {SMOKE_MANIFEST_PATH.as_posix()}: expected object, found {type(loaded).__name__}"
+        )
+        return None
+    return loaded
+
+
+def require_manifest_alignment(errors: list[str], manifest: dict[str, object]) -> None:
+    shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
+    if not isinstance(shared_smoke_surfaces, list):
+        errors.append(
+            f"manifest shape drift in {SMOKE_MANIFEST_PATH.as_posix()}: shared_smoke_surfaces"
+        )
+    else:
+        for surface in REQUIRED_SHARED_SMOKE_SURFACES:
+            if surface not in shared_smoke_surfaces:
+                errors.append(
+                    f"manifest drift in {SMOKE_MANIFEST_PATH.as_posix()}: missing shared smoke surface {surface}"
+                )
+
+    anchor_packets = manifest.get("anchor_packets")
+    if not isinstance(anchor_packets, list):
+        errors.append(
+            f"manifest shape drift in {SMOKE_MANIFEST_PATH.as_posix()}: anchor_packets"
+        )
+        return
+
+    anchor_manifest_paths = []
+    for packet in anchor_packets:
+        if not isinstance(packet, dict):
+            errors.append(
+                f"manifest shape drift in {SMOKE_MANIFEST_PATH.as_posix()}: anchor_packet"
+            )
+            continue
+        manifest_path = packet.get("manifest_path")
+        if isinstance(manifest_path, str):
+            anchor_manifest_paths.append(manifest_path)
+        else:
+            errors.append(
+                f"manifest shape drift in {SMOKE_MANIFEST_PATH.as_posix()}: anchor_packet.manifest_path"
+            )
+    for manifest_path in REQUIRED_ANCHOR_MANIFESTS:
+        if manifest_path not in anchor_manifest_paths:
+            errors.append(
+                f"manifest drift in {SMOKE_MANIFEST_PATH.as_posix()}: missing anchor manifest {manifest_path}"
+            )
+
+
 def check(root: Path, source_text: str | None = None) -> list[str]:
     errors: list[str] = []
+
+    manifest = load_manifest(errors, root)
+    if manifest is not None:
+        require_manifest_alignment(errors, manifest)
+
     path = root / TESTS_README_PATH
     if not path.exists():
         errors.append(f"missing file: {TESTS_README_PATH.as_posix()}")
@@ -117,6 +195,16 @@ def good_tests_readme_text() -> str:
     ) + "\n"
 
 
+def good_smoke_manifest_text() -> str:
+    manifest = {
+        "shared_smoke_surfaces": REQUIRED_SHARED_SMOKE_SURFACES,
+        "anchor_packets": [
+            {"manifest_path": path} for path in REQUIRED_ANCHOR_MANIFESTS
+        ],
+    }
+    return json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+
+
 def expect_contains(errors: list[str], needle: str, label: str) -> None:
     if not any(needle in error for error in errors):
         print(label, file=sys.stderr)
@@ -130,6 +218,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         write_text(root / TESTS_README_PATH, good_tests_readme_text())
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
 
         if errors := check(root, source_text=MARKER):
             print("self-test expected success but failed:", file=sys.stderr)
@@ -384,6 +473,45 @@ def run_self_test() -> int:
             TESTS_README_PACKET_ANCHOR,
             "self-test expected missing tests-readme anchor failure",
         )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
+                "\"zigux/tests/phase14_workqueue_reviewability.zig\"",
+                "\"zigux/tests/phase14_workqueue_reviewability_drift.zig\"",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/phase14_workqueue_reviewability.zig",
+            "self-test expected missing manifest shared smoke surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
+                "\"zigux/tests/phase14_ring_buffer_manifest.json\"",
+                "\"zigux/tests/phase14_ring_buffer_manifest_drift.json\"",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing anchor manifest zigux/tests/phase14_ring_buffer_manifest.json",
+            "self-test expected missing anchor manifest failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(root / SMOKE_MANIFEST_PATH, "{\n")
+        expect_contains(
+            check(root, source_text=MARKER),
+            "json decode drift",
+            "self-test expected manifest json decode failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
 
         expect_contains(
             check(root, source_text="PHASE14_CHECK_PACKET=broken_marker"),
@@ -392,10 +520,18 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=19")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_MANIFEST_SHARED_SURFACE_COUNT="
+        f"{len(REQUIRED_SHARED_SMOKE_SURFACES)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_ANCHOR_MANIFEST_COUNT="
+        f"{len(REQUIRED_ANCHOR_MANIFESTS)}"
     )
     return 0
 
