@@ -18,7 +18,6 @@
 
 ## Repo-reality gaps
 
-- `drivers/net/virtio_net.zig` is still absent on the surveyed head
 - `drivers/nvme/host/pci.zig` is still absent on the surveyed head
 - `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head
 
