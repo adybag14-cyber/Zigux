@@ -30,6 +30,7 @@ pub const ModuleDescriptor = struct {
     provides_host_limit_summary: bool,
     provides_queue_depth_summary: bool,
     provides_command_buffer_ownership_summary: bool,
+    provides_control_path_governance_summary: bool,
     provides_request_submit_sequencing_summary: bool,
     provides_completion_handback_summary: bool,
     touches_live_dma: bool,
@@ -211,6 +212,26 @@ pub const CommandBufferOwnershipSummary = struct {
     preserves_pre_registration_scope: bool,
 };
 
+pub const ControlPathGovernanceRequest = struct {
+    ownership: CommandBufferOwnershipRequest,
+};
+
+pub const ControlPathGovernanceSummary = struct {
+    anchor: []const u8,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    requested_depth: u32,
+    clamped_queue_depth: u32,
+    command_bytes_per_request: u32,
+    sense_bytes_per_request: u32,
+    control_queue_is_dedicated: bool,
+    control_path_requires_control_queue_before_tmf: bool,
+    control_path_uses_event_queue_for_async_notifications: bool,
+    control_path_requires_dma_mapping_later: bool,
+    control_path_blocks_while_transport_frozen: bool,
+    stays_pre_runtime_only: bool,
+};
+
 pub const RequestSubmitSequencingRequest = struct {
     ownership: CommandBufferOwnershipRequest,
     queue_local_index: u16,
@@ -283,6 +304,7 @@ pub const VirtioScsiQueueLab = struct {
     last_host_limit_summary: ?HostLimitSummary = null,
     last_queue_depth_summary: ?QueueDepthSummary = null,
     last_command_buffer_ownership_summary: ?CommandBufferOwnershipSummary = null,
+    last_control_path_governance_summary: ?ControlPathGovernanceSummary = null,
     last_io_queue_map_summary: ?IoQueueMapSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
     frozen_queue_depth_summary: ?QueueDepthSummary = null,
@@ -298,6 +320,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_host_limit_summary = true,
             .provides_queue_depth_summary = true,
             .provides_command_buffer_ownership_summary = true,
+            .provides_control_path_governance_summary = true,
             .provides_request_submit_sequencing_summary = true,
             .provides_completion_handback_summary = true,
             .touches_live_dma = false,
@@ -462,6 +485,30 @@ pub const VirtioScsiQueueLab = struct {
             .preserves_pre_registration_scope = true,
         };
         self.last_command_buffer_ownership_summary = summary;
+        return summary;
+    }
+
+    pub fn captureControlPathGovernanceSummary(
+        self: *Self,
+        request: ControlPathGovernanceRequest,
+    ) !ControlPathGovernanceSummary {
+        const ownership = try self.captureCommandBufferOwnershipSummary(request.ownership);
+        const summary = ControlPathGovernanceSummary{
+            .anchor = descriptor().anchor,
+            .control_queue_index = control_queue_index,
+            .event_queue_index = event_queue_index,
+            .requested_depth = ownership.requested_depth,
+            .clamped_queue_depth = ownership.clamped_queue_depth,
+            .command_bytes_per_request = ownership.command_bytes_per_request,
+            .sense_bytes_per_request = ownership.sense_bytes_per_request,
+            .control_queue_is_dedicated = true,
+            .control_path_requires_control_queue_before_tmf = true,
+            .control_path_uses_event_queue_for_async_notifications = true,
+            .control_path_requires_dma_mapping_later = ownership.requires_dma_mapping_later,
+            .control_path_blocks_while_transport_frozen = true,
+            .stays_pre_runtime_only = ownership.preserves_pre_registration_scope,
+        };
+        self.last_control_path_governance_summary = summary;
         return summary;
     }
 
@@ -681,6 +728,7 @@ pub const VirtioScsiQueueLab = struct {
         self.last_host_limit_summary = null;
         self.last_queue_depth_summary = null;
         self.last_command_buffer_ownership_summary = null;
+        self.last_control_path_governance_summary = null;
         self.last_io_queue_map_summary = null;
         self.frozen_queue_depth_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
