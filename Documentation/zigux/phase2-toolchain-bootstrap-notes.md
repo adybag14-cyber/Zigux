@@ -35,7 +35,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
-- current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
+- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`
 - `PHASE2_LINUX_STYLE_ROUTE_COUNT=6`
 - `PHASE2_LINUX_STYLE_ROUTES=phase2-toolchain,phase2-validate,phase2-tools,phase2-kconfig,phase2-cross,phase2`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
