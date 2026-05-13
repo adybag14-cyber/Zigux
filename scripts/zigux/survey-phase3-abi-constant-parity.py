@@ -10,12 +10,12 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_HEADER = ROOT / "include" / "zigux" / "abi.h"
+DEFAULT_LINUX_HEADER = ROOT / "include" / "linux" / "zigux.h"
 DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_LAYOUT_ASSERT = ROOT / "zigux" / "helpers" / "layout_assert.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 24
 
 REQUIRED_ABI_VERSION = ("ZIGUX_ABI_VERSION", "ABI_VERSION", 1)
 
@@ -34,6 +34,7 @@ REQUIRED_CONSTANTS = (
     ("ZIGUX_UNSAFE_VOLATILE_MMIO", "UNSAFE_VOLATILE_MMIO", "unsafe_scope_volatile_mmio", 1),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
+
 REQUIRED_FAMILY_CONSTANTS = (
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
@@ -60,6 +61,7 @@ REQUIRED_FAMILY_CONSTANTS = (
         1,
     ),
 )
+
 REQUIRED_FAMILY_TYPE_MARKERS = (
     (
         "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view {",
@@ -78,6 +80,7 @@ REQUIRED_FAMILY_TYPE_MARKERS = (
         "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = extern struct {",
     ),
 )
+
 REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS = (
     "fn assertThreeU32FieldLayout(",
     "    try size(T, 12);",
@@ -89,6 +92,7 @@ REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS = (
     "    fieldType(T, second, u32);",
     "    fieldType(T, third, u32);",
 )
+
 REQUIRED_LAYOUT_ASSERT_FUNCTIONS = (
     (
         "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout",
@@ -120,6 +124,29 @@ REQUIRED_LAYOUT_ASSERT_FUNCTIONS = (
     ),
 )
 
+REQUIRED_C_HEADER_HELPER_MARKERS = (
+    "typedef struct zigux_boundary_header {",
+    "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+    ".size = (uint32_t)sizeof(zigux_boundary_header),",
+    ".abi_version = (uint16_t)ZIGUX_ABI_VERSION,",
+    ".flags = flags,",
+)
+
+REQUIRED_LINUX_HEADER_HELPER_MARKERS = (
+    "static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t flags)",
+    "return zigux_default_header(flags);",
+    "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags)",
+    "struct zigux_boundary_header header = zigux_default_header(flags);",
+    "header.size = size;",
+)
+
+REQUIRED_BINDING_HELPER_MARKERS = (
+    "pub fn defaultHeader(flags: u16) BoundaryHeader {",
+    ".size = @sizeOf(BoundaryHeader),",
+    ".abi_version = ABI_VERSION,",
+    ".flags = flags,",
+)
+
 HEADER_DEFINE_RE = re.compile(r"^#define\s+(?P<name>[A-Z0-9_]+)\s+(?P<value>[0-9xa-fA-F]+)U?$")
 BINDING_CONST_RE = re.compile(r"^pub const (?P<name>[A-Z0-9_]+): [^=]+ = (?P<value>[0-9xa-fA-F]+);$")
 
@@ -128,11 +155,17 @@ def parse_int(text: str) -> int:
     return int(text, 0)
 
 
+def source_contains_json_key(source: str, json_key: str) -> bool:
+    raw_marker = f'"{json_key}":'
+    escaped_marker = f'\\"{json_key}\\":'
+    return raw_marker in source or escaped_marker in source
+
+
 def parse_header_constants(path: Path) -> dict[str, int]:
     constants: dict[str, int] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         match = HEADER_DEFINE_RE.match(line.strip())
-        if match:
+        if match is not None:
             constants[match.group("name")] = parse_int(match.group("value"))
     return constants
 
@@ -141,7 +174,7 @@ def parse_binding_constants(path: Path) -> dict[str, int]:
     constants: dict[str, int] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         match = BINDING_CONST_RE.match(line.strip())
-        if match:
+        if match is not None:
             constants[match.group("name")] = parse_int(match.group("value"))
     return constants
 
@@ -150,26 +183,26 @@ def collect_duplicate_header_constants(path: Path) -> list[str]:
     seen: dict[str, list[int]] = {}
     for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         match = HEADER_DEFINE_RE.match(line.strip())
-        if match:
+        if match is not None:
             seen.setdefault(match.group("name"), []).append(line_no)
-    issues: list[str] = []
-    for name, lines in seen.items():
-        if len(lines) > 1:
-            issues.append(f"{path}:duplicate_header_constant:{name}:{','.join(str(line) for line in lines)}")
-    return issues
+    return [
+        f"{path}:duplicate_header_constant:{name}:{','.join(str(line) for line in lines)}"
+        for name, lines in seen.items()
+        if len(lines) > 1
+    ]
 
 
 def collect_duplicate_binding_constants(path: Path) -> list[str]:
     seen: dict[str, list[int]] = {}
     for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         match = BINDING_CONST_RE.match(line.strip())
-        if match:
+        if match is not None:
             seen.setdefault(match.group("name"), []).append(line_no)
-    issues: list[str] = []
-    for name, lines in seen.items():
-        if len(lines) > 1:
-            issues.append(f"{path}:duplicate_binding_constant:{name}:{','.join(str(line) for line in lines)}")
-    return issues
+    return [
+        f"{path}:duplicate_binding_constant:{name}:{','.join(str(line) for line in lines)}"
+        for name, lines in seen.items()
+        if len(lines) > 1
+    ]
 
 
 def collect_duplicate_exact_markers(path: Path, markers: tuple[str, ...], issue_kind: str) -> list[str]:
@@ -178,17 +211,16 @@ def collect_duplicate_exact_markers(path: Path, markers: tuple[str, ...], issue_
         stripped = line.strip()
         if stripped in markers:
             seen.setdefault(stripped, []).append(line_no)
-    issues: list[str] = []
-    for marker, lines in seen.items():
-        if len(lines) > 1:
-            issues.append(f"{path}:{issue_kind}:{marker}:{','.join(str(line) for line in lines)}")
-    return issues
+    return [
+        f"{path}:{issue_kind}:{marker}:{','.join(str(line) for line in lines)}"
+        for marker, lines in seen.items()
+        if len(lines) > 1
+    ]
 
 
-def source_contains_json_key(source: str, json_key: str) -> bool:
-    raw_marker = f'"{json_key}":'
-    escaped_marker = f'\\"{json_key}\\":'
-    return raw_marker in source or escaped_marker in source
+def collect_missing_markers(path: Path, markers: tuple[str, ...], issue_kind: str) -> list[str]:
+    text = path.read_text(encoding="utf-8")
+    return [f"{path}:{issue_kind}:{marker}" for marker in markers if marker not in text]
 
 
 def validate_layout_assert(layout_assert_path: Path) -> list[str]:
@@ -205,7 +237,9 @@ def validate_layout_assert(layout_assert_path: Path) -> list[str]:
             issues.append(f"{layout_assert_path}:missing_layout_assert_function:{function_name}")
         for marker in call_markers:
             if marker not in layout_assert_source:
-                issues.append(f"{layout_assert_path}:missing_layout_assert_call_marker:{function_name}:{marker.strip()}")
+                issues.append(
+                    f"{layout_assert_path}:missing_layout_assert_call_marker:{function_name}:{marker.strip()}"
+                )
         self_test_marker = f"    try {function_name}();"
         if self_test_marker not in layout_assert_source:
             issues.append(f"{layout_assert_path}:missing_layout_assert_self_test_call:{function_name}")
@@ -220,6 +254,7 @@ def validate_constant_parity(
     dump_path: Path,
     harness_path: Path,
     expected_path: Path,
+    linux_header_path: Path = DEFAULT_LINUX_HEADER,
 ) -> list[str]:
     issues = [
         *collect_duplicate_header_constants(header_path),
@@ -231,10 +266,22 @@ def validate_constant_parity(
         ),
         *collect_duplicate_exact_markers(
             bindings_path,
-            tuple(bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS),
+            tuple(binding_marker for _, binding_marker in REQUIRED_FAMILY_TYPE_MARKERS),
             "duplicate_binding_type_marker",
         ),
+        *collect_missing_markers(header_path, REQUIRED_C_HEADER_HELPER_MARKERS, "missing_header_helper_marker"),
+        *collect_missing_markers(
+            linux_header_path,
+            REQUIRED_LINUX_HEADER_HELPER_MARKERS,
+            "missing_linux_header_helper_marker",
+        ),
+        *collect_missing_markers(
+            bindings_path,
+            REQUIRED_BINDING_HELPER_MARKERS,
+            "missing_binding_helper_marker",
+        ),
     ]
+
     header_constants = parse_header_constants(header_path)
     binding_constants = parse_binding_constants(bindings_path)
     dump_source = dump_path.read_text(encoding="utf-8")
@@ -307,16 +354,89 @@ def validate_constant_parity(
     return issues
 
 
-def _layout_assert_text() -> str:
+def layout_assert_text() -> str:
     helper_block = "\n".join(REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS) + "\n"
     function_blocks = []
     for function_name, *call_markers in REQUIRED_LAYOUT_ASSERT_FUNCTIONS:
-        block_lines = [f"pub fn {function_name}() !void {{"] + list(call_markers) + ["}"]
-        function_blocks.append("\n".join(block_lines))
+        function_blocks.append("\n".join([f"pub fn {function_name}() !void {{", *call_markers, "}"]))
     self_test_lines = ['test "phase3 layout assertions cover canonical bindings" {']
     self_test_lines.extend(f"    try {function_name}();" for function_name, *_ in REQUIRED_LAYOUT_ASSERT_FUNCTIONS)
     self_test_lines.append("}")
     return helper_block + "\n".join(function_blocks) + "\n" + "\n".join(self_test_lines) + "\n"
+
+
+def reset_self_test_files(
+    header: Path,
+    linux_header: Path,
+    bindings: Path,
+    layout_assert: Path,
+    dump: Path,
+    harness: Path,
+    expected: Path,
+) -> None:
+    header.write_text(
+        "\n".join(
+            [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U"]
+            + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
+            + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
+            + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
+            + list(REQUIRED_C_HEADER_HELPER_MARKERS)
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    linux_header.write_text(
+        "\n".join(REQUIRED_LINUX_HEADER_HELPER_MARKERS) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    bindings.write_text(
+        "\n".join(
+            [f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};"]
+            + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS]
+            + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS]
+            + [binding_marker for _, binding_marker in REQUIRED_FAMILY_TYPE_MARKERS]
+            + list(REQUIRED_BINDING_HELPER_MARKERS)
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    layout_assert.write_text(layout_assert_text(), encoding="utf-8", newline="\n")
+    dump.write_text(
+        "\n".join(
+            ['// "abi_version":']
+            + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+            + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    harness.write_text(
+        "\n".join(
+            ['/* "abi_version": */']
+            + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
+            + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    expected.write_text(
+        json.dumps(
+            {
+                "abi_version": REQUIRED_ABI_VERSION[2],
+                "constants": {
+                    **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
+                    **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
+                },
+            }
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def run_self_test() -> int:
@@ -324,74 +444,18 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase3_abi_constant_parity_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         header = root / "include" / "zigux" / "abi.h"
+        linux_header = root / "include" / "linux" / "zigux.h"
         bindings = root / "zigux" / "bindings" / "abi.zig"
         layout_assert = root / "zigux" / "helpers" / "layout_assert.zig"
         dump = root / "zigux" / "tests" / "phase3_abi_dump.zig"
         harness = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
         expected = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
 
-        for path in (header.parent, bindings.parent, layout_assert.parent, dump.parent, harness.parent, expected.parent):
+        for path in (header.parent, linux_header.parent, bindings.parent, layout_assert.parent, dump.parent, harness.parent, expected.parent):
             path.mkdir(parents=True, exist_ok=True)
 
-        def reset_all() -> None:
-            header.write_text(
-                "\n".join(
-                    [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U"]
-                    + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
-                    + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
-                    + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
-                ) + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
-            bindings.write_text(
-                "\n".join(
-                    [f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};"]
-                    + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS]
-                    + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS]
-                    + [bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS]
-                )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
-            layout_assert.write_text(_layout_assert_text(), encoding="utf-8", newline="\n")
-            dump.write_text(
-                "\n".join(
-                    ['// "abi_version":']
-                    + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-                    + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
-                )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
-            harness.write_text(
-                "\n".join(
-                    ['/* "abi_version": */']
-                    + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-                    + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
-                )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
-            expected.write_text(
-                json.dumps(
-                    {
-                        "abi_version": REQUIRED_ABI_VERSION[2],
-                        "constants": {
-                            **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
-                            **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
-                        },
-                    }
-                ),
-                encoding="utf-8",
-                newline="\n",
-            )
-
-        reset_all()
-        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected) == []
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header) == []
         case_count += 1
 
         dump.write_text(
@@ -414,321 +478,127 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected) == []
+        assert validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header) == []
         case_count += 1
 
-        reset_all()
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
         assert f"{bindings}:missing_binding_constant:{REQUIRED_ABI_VERSION[1]}" in issues
-        assert f"{bindings}:missing_binding_constant:{REQUIRED_FAMILY_CONSTANTS[0][1]}" in issues
         case_count += 1
 
-        reset_all()
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U",
+                f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2] + 1}U",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{header}:wrong_header_value:{REQUIRED_ABI_VERSION[0]}:2" in issues
+        case_count += 1
+
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
+                "\n".join(
+                    [
+                        f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
+                        f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
+                    ]
+                ),
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{header}:duplicate_header_constant:{REQUIRED_CONSTANTS[0][0]}:2,3" in issues
+        case_count += 1
+
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}" in issues
+        case_count += 1
+
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
         dump.write_text('// "facility_kernel":\n', encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
         assert f"{dump}:missing_dump_key:abi_version" in issues
         assert f"{dump}:missing_dump_key:status_flag_error" in issues
         case_count += 1
 
-        reset_all()
-        harness.write_text('/* "facility_kernel": */\n', encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{harness}:missing_harness_key:abi_version" in issues
-        assert f"{harness}:missing_harness_key:status_flag_error" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            "\n".join(
-                [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2] + 1}U"]
-                + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
-                + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
-                + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
-            ) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:wrong_header_value:{REQUIRED_ABI_VERSION[0]}:2" in issues
-        case_count += 1
-
-        reset_all()
-        expected.write_text(
-            json.dumps({"abi_version": REQUIRED_ABI_VERSION[2] + 1, "constants": {"facility_kernel": 7}}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{expected}:wrong_expected_value:abi_version:2" in issues
-        assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
-        assert f"{expected}:missing_expected_key:status_flag_error" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            "\n".join(
-                [
-                    f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
-                    f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
-                    *[
-                        f"#define {header_name} {value}U"
-                        for header_name, _, _, value in REQUIRED_CONSTANTS[1:]
-                    ],
-                    *[
-                        f"#define {header_name} {value}U"
-                        for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS
-                    ],
-                    f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U",
-                    *[header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS],
-                ]
-            ) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:duplicate_header_constant:{REQUIRED_CONSTANTS[0][0]}:1,2" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            "\n".join(
-                [
-                    f"pub const {REQUIRED_CONSTANTS[0][1]}: u32 = {REQUIRED_CONSTANTS[0][3]};",
-                    f"pub const {REQUIRED_CONSTANTS[0][1]}: u32 = {REQUIRED_CONSTANTS[0][3]};",
-                    f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};",
-                    *[
-                        f"pub const {binding_name}: u32 = {value};"
-                        for _, binding_name, _, value in REQUIRED_CONSTANTS[1:]
-                    ],
-                    *[
-                        f"pub const {binding_name}: u32 = {value};"
-                        for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS
-                    ],
-                    *[bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS],
-                ]
-            ) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:duplicate_binding_constant:{REQUIRED_CONSTANTS[0][1]}:1,2" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            header.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            bindings.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[1][1] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[1][1]}" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            header.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[2][0] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[2][0]}" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            bindings.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[3][1] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[3][1]}" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            header.read_text(encoding="utf-8").replace(
-                f"#define {REQUIRED_FAMILY_CONSTANTS[3][0]} {REQUIRED_FAMILY_CONSTANTS[3][3]}U\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:missing_header_constant:{REQUIRED_FAMILY_CONSTANTS[3][0]}" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            bindings.read_text(encoding="utf-8").replace(
-                f"pub const {REQUIRED_FAMILY_CONSTANTS[2][1]}: u32 = {REQUIRED_FAMILY_CONSTANTS[2][3]};\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:missing_binding_constant:{REQUIRED_FAMILY_CONSTANTS[2][1]}" in issues
-        case_count += 1
-
-        reset_all()
-        header.write_text(
-            header.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
-                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n" + REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{header}:duplicate_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}:19,20" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            bindings.read_text(encoding="utf-8").replace(
-                REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n",
-                REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n" + REQUIRED_FAMILY_TYPE_MARKERS[0][1] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:duplicate_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][1]}:19,20" in issues
-        case_count += 1
-
-        reset_all()
-        bindings.write_text(
-            bindings.read_text(encoding="utf-8").replace(
-                f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{bindings}:missing_binding_constant:{REQUIRED_ABI_VERSION[1]}" in issues
-        case_count += 1
-
-        reset_all()
-        expected.write_text(
-            json.dumps(
-                {
-                    "constants": {
-                        **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
-                        **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
-                    }
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        expected.write_text(json.dumps({"constants": {"facility_kernel": 7}}), encoding="utf-8", newline="\n")
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
         assert f"{expected}:missing_expected_key:abi_version" in issues
+        assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
         case_count += 1
 
-        reset_all()
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
         layout_assert.write_text(
             layout_assert.read_text(encoding="utf-8").replace(
-                '        "flags",\n',
+                REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS[0] + "\n",
                 "",
                 1,
             ),
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        missing_call_issue = (
-            f'{layout_assert}:missing_layout_assert_call_marker:'
-            'assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout:"flags",'
-        )
-        assert missing_call_issue in issues
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{layout_assert}:missing_layout_assert_helper_marker:{REQUIRED_LAYOUT_ASSERT_HELPER_MARKERS[0]}" in issues
         case_count += 1
 
-        reset_all()
-        layout_assert.write_text(
-            layout_assert.read_text(encoding="utf-8").replace(
-                "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();\n",
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                REQUIRED_C_HEADER_HELPER_MARKERS[1] + "\n",
                 "",
                 1,
             ),
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        missing_self_test_issue = (
-            f"{layout_assert}:missing_layout_assert_self_test_call:"
-            "assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout"
-        )
-        assert missing_self_test_issue in issues
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{header}:missing_header_helper_marker:{REQUIRED_C_HEADER_HELPER_MARKERS[1]}" in issues
         case_count += 1
 
-        reset_all()
-        dump.write_text(
-            dump.read_text(encoding="utf-8").replace(
-                f'// "{REQUIRED_FAMILY_CONSTANTS[0][2]}":\n',
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        linux_header.write_text(
+            linux_header.read_text(encoding="utf-8").replace(
+                REQUIRED_LINUX_HEADER_HELPER_MARKERS[0] + "\n",
                 "",
                 1,
             ),
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{dump}:missing_dump_key:{REQUIRED_FAMILY_CONSTANTS[0][2]}" in issues
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{linux_header}:missing_linux_header_helper_marker:{REQUIRED_LINUX_HEADER_HELPER_MARKERS[0]}" in issues
         case_count += 1
 
-        reset_all()
-        harness.write_text(
-            harness.read_text(encoding="utf-8").replace(
-                f'/* "{REQUIRED_FAMILY_CONSTANTS[1][2]}": */\n',
+        reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
+        bindings.write_text(
+            bindings.read_text(encoding="utf-8").replace(
+                REQUIRED_BINDING_HELPER_MARKERS[0] + "\n",
                 "",
                 1,
             ),
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{harness}:missing_harness_key:{REQUIRED_FAMILY_CONSTANTS[1][2]}" in issues
-        case_count += 1
-
-        reset_all()
-        payload = json.loads(expected.read_text(encoding="utf-8"))
-        del payload["constants"][REQUIRED_FAMILY_CONSTANTS[2][2]]
-        expected.write_text(json.dumps(payload), encoding="utf-8", newline="\n")
-        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected)
-        assert f"{expected}:missing_expected_key:{REQUIRED_FAMILY_CONSTANTS[2][2]}" in issues
+        issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
+        assert f"{bindings}:missing_binding_helper_marker:{REQUIRED_BINDING_HELPER_MARKERS[0]}" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
@@ -738,9 +608,13 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Survey shipped Phase 3 ABI constant parity across the C header, curated Zig bindings, layout-assert helpers, dump replay, C harness, and committed expected fixture."
+        description=(
+            "Survey shipped Phase 3 ABI parity across the C headers, curated Zig bindings, "
+            "layout-assert helpers, dump replay, C harness, and committed expected fixture."
+        )
     )
     parser.add_argument("--header-path", type=Path, default=DEFAULT_HEADER)
+    parser.add_argument("--linux-header-path", type=Path, default=DEFAULT_LINUX_HEADER)
     parser.add_argument("--bindings-path", type=Path, default=DEFAULT_BINDINGS)
     parser.add_argument("--layout-assert-path", type=Path, default=DEFAULT_LAYOUT_ASSERT)
     parser.add_argument("--dump-path", type=Path, default=DEFAULT_DUMP)
@@ -759,6 +633,7 @@ def main() -> int:
         args.dump_path,
         args.harness_path,
         args.expected_path,
+        args.linux_header_path,
     )
     if issues:
         print("PHASE3_ABI_CONSTANT_PARITY=fail")
