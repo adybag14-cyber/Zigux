@@ -22,8 +22,9 @@ const PairCompileStatus = struct {
 
 const SharedBuildStatus = struct {
     status: []const u8,
+    readback_on_utc: []const u8,
     build_file: []const u8,
-    missing_sibling_paths: []const []const u8,
+    reviewable_sibling_paths: []const []const u8,
 };
 
 const CurrentVerification = struct {
@@ -76,16 +77,21 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
 
-    try std.testing.expectEqualStrings("2026-05-13T00:00:00Z", manifest.current_verification.verified_on_utc);
+    try std.testing.expectEqualStrings("2026-05-13T18:54:07Z", manifest.current_verification.verified_on_utc);
     try std.testing.expectEqualStrings("confirmed", manifest.current_verification.cmdline_pair_compile.status);
     try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.cmdline_pair_compile.paths.len);
     try expectStringSliceContains(manifest.current_verification.cmdline_pair_compile.paths, "lib/cmdline.zig");
     try expectStringSliceContains(manifest.current_verification.cmdline_pair_compile.paths, "zigux/tests/phase7_cmdline.zig");
-    try std.testing.expectEqualStrings("blocked", manifest.current_verification.shared_phase7_build.status);
+    try std.testing.expectEqualStrings("present_on_master", manifest.current_verification.shared_phase7_build.status);
+    try std.testing.expectEqualStrings("2026-05-13T18:54:07Z", manifest.current_verification.shared_phase7_build.readback_on_utc);
     try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", manifest.current_verification.shared_phase7_build.build_file);
-    try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.shared_phase7_build.missing_sibling_paths.len);
-    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.missing_sibling_paths, "lib/string_helpers.zig");
-    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.missing_sibling_paths, "zigux/tests/phase7_string_helpers.zig");
+    try std.testing.expectEqual(@as(usize, 6), manifest.current_verification.shared_phase7_build.reviewable_sibling_paths.len);
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/argv_split.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_argv_split.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/rbtree.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_rbtree.zig");
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
@@ -128,7 +134,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "- do not allocate");
     try expectContains(slice_note, "empty-input handling keeps `param` and `rest` borrowed from the caller slice");
     try expectContains(slice_note, "leading-whitespace handling keeps the Linux-style empty sentinel token");
-    try expectContains(slice_note, "shared-route note: the broader shared `zigux/tests/phase7_build.zig` route is still parked on current `master` because the sibling string-helpers pair `lib/string_helpers.zig` plus `zigux/tests/phase7_string_helpers.zig` remains absent");
+    try expectContains(slice_note, "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`");
     try expectContains(slice_note, "getOption() clears caller-provided output on malformed signed and unsigned input");
     try expectContains(
         slice_note,
@@ -183,10 +189,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const validate_phase7 = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
     defer allocator.free(validate_phase7);
-    try expectContains(validate_phase7, "\"Documentation/zigux/phase7-cmdline-slice.md\"");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_survey.zig\"");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_manifest.json\"");
-    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-make-wrapper.py\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-build-wiring.py\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_build.zig\"");
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
