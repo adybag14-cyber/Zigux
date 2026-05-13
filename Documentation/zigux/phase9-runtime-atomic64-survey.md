@@ -7,7 +7,7 @@ This note tracks the bounded Phase 9 runtime atomic64 packet on current `master`
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_LANE_KEY=P9-L04`
-- `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
+- `PHASE9_SURVEYED_COMMIT=9f8c05368242414084e4bc94ea979604c2b6b712`
 - scope: direct atomic64 sample, module gate, diff gate, survey gate, bounded loader scaffold, and the visible shared loader-facing reminder packet only
 
 ## Current Packet
