@@ -793,6 +793,20 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
+        coordination_matrix_path.write_text(
+            coordination_matrix_path.read_text(encoding="utf-8").replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "release_coordination_matrix:"
+            f"{RELEASE_COORDINATION_MATRIX_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
         raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
         raw_coverage_path.write_text(
             raw_coverage_path.read_text(encoding="utf-8").replace(
@@ -949,7 +963,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=29")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
