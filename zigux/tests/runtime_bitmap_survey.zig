@@ -243,7 +243,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(sample_root_readme, "`samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay");
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
-    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
+    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-tests`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
     for (phase5_kobject_packet_markers) |marker| try expectContains(sample_root_readme, marker);
 
