@@ -15,12 +15,12 @@ It stays inside the simple-drivers lane and records only the shipped starter, th
 The current bounded HVC archival packet on `master` is:
 
 * `drivers/tty/hvc/hvc_console.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
-* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+* `Documentation/zigux/phase11-hvc-console-survey.md`
+* `Documentation/zigux/phase11-hvc-console-slice.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
@@ -29,7 +29,7 @@ The current bounded HVC archival packet on `master` is:
 
 The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
-The current archival packet also materializes direct `drivers/tty/hvc/hvc_console_verify.zig` and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, while current `master` still does not ship a separate direct `zigux/tests/phase11_hvc_console.zig` replay companion. Keep that repo-reality gap explicit beside the archived survey rather than promoting it into an archival packet claim or broader runtime-parity proof.
+Current `master` still ships no separate direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so the survey-backed packet keeps those replay and cleanup surfaces explicit only as repo-reality gaps rather than shipped archival evidence.
 
 ## What Landed
 
@@ -39,9 +39,7 @@ It keeps the host-free close, notifier-add, khvcd, poll, hangup, remove, and cle
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
 
-The current archival packet also ships the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary and the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion. Current `master` still does not ship a dedicated `zigux/tests/phase11_hvc_console.zig` replay companion, so the survey-backed packet keeps that missing direct replay explicit as a bounded repo-reality gap instead of claiming replay coverage that is not present.
-
-The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper signature proof, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey, the paired teardown checkpoint, the direct verify boundary, the direct cleanup companion, and the validation matrix without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
+The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper signature proof, modem-control fallback, poll-retry failure-mode packet, teardown-summary wording, and the direct-companion repo-reality gaps reviewable beside the archived survey, the slice note, the paired teardown checkpoint, and the validation matrix without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
 
 The bounded starter and its archival replay now keep these focused cues explicit:
 
@@ -55,9 +53,7 @@ The bounded starter and its archival replay now keep these focused cues explicit
 * `hvc_cleanup()` tty-port release handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`
-* direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`
-* cleanup-teardown replay coverage beside `zigux/tests/phase11_hvc_cleanup.zig`
-* current `master` still ships no direct `zigux/tests/phase11_hvc_console.zig` replay companion, and the survey-backed packet keeps that repo-reality gap explicit
+* current `master` still ships no separate direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, and the survey-backed packet keeps that repo-reality gap explicit
 * exported-helper signature proof for the bounded helper-facing HVC surface
 * `tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent
 * `tiocmset` mask handling stays distinct even when `tiocmget` falls back
@@ -68,6 +64,6 @@ The bounded starter and its archival replay now keep these focused cues explicit
 
 ## Bounded Meaning
 
-This archival note records the landed starter, the direct verify boundary, the direct cleanup companion, and the helper-facing survey only.
+This archival note records the landed starter, the helper-facing survey, the split tests, the sysrq helper, and the directly coupled governance packet only.
 It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.
 Those follow-through steps still belong to later same-lane HVC work rather than the shared Phase 11 closure packet.
