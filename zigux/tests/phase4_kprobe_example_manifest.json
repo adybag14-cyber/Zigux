@@ -9,6 +9,6 @@
   "owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
   "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
-  "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
+  "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
   "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared Phase 4 validation packet until a later bounded lane intentionally promotes the validator surface or lands the Zig starter"
 }
