@@ -157,6 +157,15 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
         "- `make -C zigux phase6-hexdump-review`",
     ],
+    SCRIPTS_README_PATH.as_posix(): [
+        "Phase 6 flow - the current shared Phase 6 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+        "`check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
+        "`make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
+    ],
+    TESTS_README_PATH.as_posix(): [
+        "keep the shared Phase 6 leaf-helper packet wired through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_helper_parity_manifest.json`",
+        "keep `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` explicit as current public-tree gaps rather than shipped tests-root entrypoints or runnable shared perf coverage",
+    ],
     BASE64_PARITY_SCRIPT_PATH.as_posix(): [
         'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
     ],
@@ -262,7 +271,7 @@ EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-validate",
     "make -C zigux phase6-perf",
-    "make -C zigux phase6",
+    "make -C zigux phase6"
 ]
 
 EXPECTED_EXACT_CHECKS = [
@@ -528,6 +537,18 @@ def run_self_test() -> None:
             CATALOG_PATH,
             "- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64_perf.zig`",
             "- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64.zig`",
+        )
+        assert_failure(
+            root,
+            SCRIPTS_README_PATH,
+            "`check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
+            "`check-phase6-shared-surface.py` is the shipped scripts-root Phase 6 checker on current `master`.",
+        )
+        assert_failure(
+            root,
+            TESTS_README_PATH,
+            "keep `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` explicit as current public-tree gaps rather than shipped tests-root entrypoints or runnable shared perf coverage",
+            "keep `zigux/tests/phase6_base64_perf.zig` explicit as the only current public-tree gap",
         )
         assert_failure(
             root,
