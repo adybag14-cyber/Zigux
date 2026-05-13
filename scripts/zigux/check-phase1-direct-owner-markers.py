@@ -28,9 +28,9 @@ COMPANION_MARKERS = [
 
 CURRENT_REPO_REALITY_MARKERS = [
     "- the dedicated owner-map checker itself is now part of the live Phase 1 closure-maintenance packet beside `Documentation/zigux/phase1-closure.md`, the shared `phase1-validate` route, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, so future reminder surfaces should keep that checker explicit instead of treating the owner-map note as docs-only context",
-    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=Documentation/zigux/review-checklist.md`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=none`",
     "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=scripts/zigux/check-phase1-installer-companion-checks.py,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md`",
-    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md already keeps the installer companion split explicit: --self-test replays the bounded checker logic, while the live checker route guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line; Documentation/zigux/review-checklist.md remains the only current-master shared reminder surface still missing that same reviewer-facing route-role wording`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md and Documentation/zigux/review-checklist.md both now keep the installer companion split explicit: --self-test replays the bounded checker logic, while the live checker route guards the shipped Phase 1 reminder surfaces without widening the counted shared-reminder packet line`",
 ]
 
 NEXT_STEP_MARKERS = [
@@ -41,7 +41,7 @@ NEXT_STEP_MARKERS = [
     "- For `tools/lib/bitmap.zig`, do not replay the older closed exact-marker validator cue; current `master` already exact-requires and self-tests `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW` and `PHASE1_BITMAP_LINUX_ALIAS_REVIEW`, so leave the bitmap closure-validator packet parked unless a fresh reread shows direct-anchor drift or committed shared replay drift.",
     "- For `tools/lib/bitmap.zig`, the earlier validator-summary wording follow-through is also closed on current `master`: `scripts/zigux/validate-phase1.py` already matches the live bitmap `review_packet_summary` in `zigux/tests/fixtures/phase1_helper_manifest.json`, so leave that validator packet parked unless a fresh reread shows new direct-anchor drift or committed shared replay drift.",
     "- The next smallest same-lane shared-validation step is closed for this owner-map packet: `scripts/zigux/check-phase1-direct-owner-markers.py` exact-checks the four `PHASE1_*_DIRECT_OWNER` lines in this note before any helper-local replay widening.",
-    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=surface the self-test-versus-live route-role wording from scripts/zigux/check-phase1-installer-companion-checks.py in exactly one shared reminder surface, preferring Documentation/zigux/review-checklist.md before reopening helper-local replay`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the shared reminder packet parked unless a fresh reread finds wording drift, and otherwise advance to one helper-family reread from zigux/tests/fixtures/phase1_helper_manifest.json before reopening helper-local replay`",
     "- Treat the helper-specific next-safe-step markers below as the tie-breaker whenever multiple older saved helper cues still exist in Memory; choose the helper's own next-safe-step marker instead of widening into a neighboring helper family.",
     "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default`",
     "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift`",
