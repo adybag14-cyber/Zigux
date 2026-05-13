@@ -7,7 +7,7 @@ This note keeps the bounded Phase 6 leaf-helper packet from overlapping itself o
 - `PHASE6_LANE_MAP_STATUS=active`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
 - shared sequencing lane key: `P6-Y10`
-- scheduled shared-governance alias: `P6-Y09`
+- scheduled shared-governance alias: `P6-Y09` (treat this as the shared `P6-Y10` lane unless a fresh reread proves the diff is fully hexdump-local)
 - shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet catalog: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared perf posture note: `Documentation/zigux/phase6-perf-gate-survey.md`
@@ -80,7 +80,7 @@ Treat `P6-Y06` and `P6-L13` as checksum parked-survey or closure-correction lane
 
 While current `master` still lacks the checksum-owned helper packet, keep helper restoration under those checksum lanes but treat shared route truthfulness as `P6-Y10` work. That shared follow-up is limited to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the packet-level shared-route fields inside `zigux/tests/phase6_helper_parity_manifest.json` when they drift from the blocked checksum slice.
 
-### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet
+### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet
 
 Keep helper-local work under:
 
@@ -93,7 +93,9 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane, and `P6-Y09` as the hexdump perf-refresh ownership lane when the same helper-local review packet could otherwise overlap itself.
+Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, and `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane when the same helper-local review packet could otherwise overlap itself.
+
+Historical note: older Phase 6 hexdump reminder surfaces may still mention `P6-Y09` as the hexdump perf-refresh lane key. On current `master`, do not reopen hexdump-local work under that older label unless a fresh reread proves the diff stays entirely inside the hexdump-owned surfaces above and does not touch any shared Phase 6 route, checklist, manifest, or summary surface.
 
 ## Anti-Overlap Rules
 - Do not treat a shared file as shared-lane work when the diff only changes one helper row.
@@ -102,7 +104,7 @@ Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6
 - Reopen this shared sequencing lane only when packet membership, shared routes, shared checker coverage, shared status wording, or helper-owner boundaries drift.
 - If a shared route changes, update the shared note first, then let the owning helper lane repair only the helper-local evidence it actually owns.
 - If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.
-- If a scheduled helper-governance run arrives as `P6-Y09`, route it through the shared `P6-Y10` owner boundary first; only use the historical hexdump-local `P6-Y09` wording when the diff stays inside the hexdump-owned surfaces listed above.
+- If a scheduled helper-governance run arrives as `P6-Y09`, treat that key as the shared `P6-Y10` alias by default. Only reopen a historical hexdump-local `P6-Y09` reference after a fresh reread proves the diff is fully contained inside the hexdump-owned surfaces listed above and does not require any shared Phase 6 routing or summary retelling.
 - If a helper packet has separate parked-survey, fixture-governance, and helper-drift lanes, route the smallest truthful follow-up to the narrowest owner instead of reopening the whole helper family.
 
 ## Current Bounded Next Step
