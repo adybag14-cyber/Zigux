@@ -37,6 +37,45 @@ test "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations" {
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));
 }
 
+test "runtime bitmap diff gate keeps zero-length mutation windows explicit" {
+    var module = sample.RuntimeBitmapSample{};
+    const top_bit = sample.RuntimeBitmapSample.bitmap_nbits - 1;
+
+    try module.initWithSetBits(&.{ 0, 5, 64, top_bit });
+    const initialized_summary = module.summary();
+
+    try module.setRange(0, 0);
+    try module.clearRange(0, 0);
+    try module.setRange(top_bit + 1, 0);
+    try module.clearRange(top_bit + 1, 0);
+    try expectSummary(
+        module.summary(),
+        initialized_summary.first_set,
+        initialized_summary.first_zero,
+        initialized_summary.weight,
+    );
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(top_bit));
+
+    _ = try module.runSelftest();
+    const selftested_summary = module.summary();
+
+    try module.setRange(top_bit + 1, 0);
+    try module.clearRange(top_bit + 1, 0);
+    try expectSummary(
+        module.summary(),
+        selftested_summary.first_set,
+        selftested_summary.first_zero,
+        selftested_summary.weight,
+    );
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(top_bit));
+
+    try module.exit();
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(top_bit + 1, 0));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(top_bit + 1, 0));
+}
+
 test "runtime bitmap diff gate keeps copy parity and cleared tail semantics explicit" {
     var source = sample.RuntimeBitmapSample{};
     try source.initWithSetBits(&.{ 0, 5, 64, 70 });
