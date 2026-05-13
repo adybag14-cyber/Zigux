@@ -44,7 +44,7 @@ The real current gap is now survey truthfulness about the already-landed checker
 
 Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.
 
-The same exact readback also closes the earlier checker-local reopen cue: `scripts/zigux/check-phase8-libbpf-shard-routes.py` already requires `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` together with its focused `make -C zigux phase8-file-path-handle-bridge-test`, `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`, `make -C zigux phase8-perf-buffer-poll-test`, and `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` markers, plus the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
+Exact 2026-05-13 readback also shows `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue and the shared bridge-boundary note: the checker now requires `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` together with the focused `make -C zigux phase8-file-path-handle-bridge-test`, `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`, `make -C zigux phase8-perf-buffer-poll-test`, and `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` markers while this packet still keeps `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior out of scope.
 
 That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage instead of reopening the same checker-local step.
 
@@ -59,11 +59,13 @@ This survey slice does not yet claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Keep this survey note aligned with the already-landed shard-routes checker: it now fails closed on `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` together with the focused bridge and perf-buffer replay markers plus the explicit timeout-boundary wording, so the next reopen in this lane should happen only if fresh readback shows that survey, the checker, or the directly coupled helper-plus-build packet drifting again.
+Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
-2. leave the checker parked unless a fresh bridge-boundary, helper-build, or reminder-surface drift appears against `scripts/zigux/check-phase8-libbpf-shard-routes.py`
+2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state
 3. keep follow-up smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
-Keep the libbpf survey packet parked after this survey truthfulness refresh unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.
+especially the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
+
+Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.
