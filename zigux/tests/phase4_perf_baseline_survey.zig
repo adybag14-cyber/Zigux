@@ -142,10 +142,10 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
 
 test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"keep zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
+        "\"reversible_delivery_evidence\": \"keep scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
     );
     try requireMarker(
-        "the dedicated local-only perf packet, the shared rollback-ownership matrix, the exact-readback note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
+        "the dedicated local-only perf packet, the dedicated local-only checker, the shared rollback-ownership matrix, the exact-readback note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
     );
     try requireMarker(
         "current decision owner, coordination owners, approved local-only acceptable limits, and still-pending shared-CI promotion posture measurable and reversible on the current head.",
@@ -154,7 +154,7 @@ test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
 
 test "phase4 perf baseline survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/validate-phase4.py, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
+        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
     );
     try requireMarker(
         "decision-owner, coordination-owner, acceptable-limit, and shared-CI-pending promotion markers; only widen beyond that packet if a later bounded Phase 4 lane intentionally approves broader shared CI perf coverage.",
@@ -214,16 +214,6 @@ test "phase4 perf baseline survey keeps the shared gate-evidence perf-governance
     );
 }
 
-test "phase4 perf baseline survey keeps the scripts README perf-governance packet aligned" {
-    try requireRepoMarker("scripts/zigux/README.md", "phase4_perf_baseline_manifest.json");
-    try requireRepoMarker("scripts/zigux/README.md", "phase4_perf_baseline_survey.zig");
-    try requireRepoMarker(
-        "scripts/zigux/README.md",
-        "approved local-only benchmark commands and acceptable limits",
-    );
-    try requireRepoMarker("scripts/zigux/README.md", "shared-CI perf promotion");
-}
-
 test "phase4 perf baseline survey keeps the tests README perf-governance packet aligned" {
     try requireRepoMarker("zigux/tests/README.md", "phase4_perf_baseline_manifest.json");
     try requireRepoMarker("zigux/tests/README.md", "phase4_perf_baseline_survey.zig");
@@ -235,6 +225,32 @@ test "phase4 perf baseline survey keeps the tests README perf-governance packet 
     try requireRepoMarker(
         "zigux/tests/README.md",
         "approved local-only benchmark commands and acceptable limits explicit while shared CI perf promotion stays pending",
+    );
+}
+
+test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "PHASE4_PERF_BASELINE_PACKET_CHECK=pass",
+    );
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",
+    );
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    );
+}
+
+test "phase4 perf baseline survey keeps the dedicated local checker local-only" {
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "phase4 perf baseline packet stays local-only and self-tested",
+    );
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "build_unexpected_marker:test_step.dependOn(&run_perf_baseline_survey_tests.step);",
     );
 }
 
