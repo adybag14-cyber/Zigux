@@ -28,7 +28,8 @@
       "registrationSnapshot",
       "tracepoint_probe_register",
       "tracepoint_probe_unregister"
-    ]
+    ],
+    "next_sample_local_parity_gap": "prepared shared runtime-substrate drift rejection in samples/zigux/runtime_trace_events_loader.zig"
   },
   "delivery_evidence_catalog": [
     {
@@ -39,7 +40,7 @@
     {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "kind": "packet_truth_manifest",
-      "why_now": "Pins the current shared loader route and its still-blocked publication boundary."
+      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, and the next sample-local parity gap."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
@@ -79,7 +80,7 @@
     {
       "surface": "samples/zigux/runtime_trace_events_loader.zig",
       "kind": "loader_scaffold",
-      "why_now": "Keeps metadata-only registration and rollback evidence reviewable."
+      "why_now": "Keeps metadata-only registration and rollback evidence reviewable while the prepared shared runtime-substrate drift proof remains the next sample-local parity gap."
     },
     {
       "surface": "samples/zigux/runtime_kretprobe_loader.zig",
@@ -140,6 +141,13 @@
       "kind": "publication_boundary",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
       "why_now": "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, install-root, and `depmod` state remain review-only publication boundaries."
+    },
+    {
+      "id": "runtime-trace-events-prepared-substrate-drift-proof",
+      "status": "missing_sample_replay",
+      "kind": "sample_lifecycle_parity",
+      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
+      "why_now": "Atomic64, bitmap, and kretprobe already keep prepared shared runtime-substrate drift rejection explicit, but trace-events still undercounts that one sample-local handoff proof."
     }
   ]
 }
