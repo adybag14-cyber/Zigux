@@ -182,6 +182,7 @@ REQUIRED_MARKERS = {
         '"missing_sibling_paths": [',
         '"lib/string_helpers.zig"',
         '"zigux/tests/phase7_string_helpers.zig"',
+        '"scripts/zigux/check-phase7-build-wiring.py"',
         "copied token-buffer ownership and later source-mutation isolation",
         "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
@@ -524,7 +525,21 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 20
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json",
+            '"scripts/zigux/check-phase7-build-wiring.py"',
+            "",
+            "manifest_build_wiring_checker_marker",
+        )
+        expect_missing_marker(
+            "manifest_build_wiring_checker_marker",
+            tmp_root,
+            'zigux/tests/phase7_argv_split_manifest.json: "scripts/zigux/check-phase7-build-wiring.py"',
+        )
+        write_fixture_root(tmp_root)
+
+    case_count = 21
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
