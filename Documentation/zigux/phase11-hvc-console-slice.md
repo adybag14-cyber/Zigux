@@ -33,6 +33,8 @@ The parked starter keeps these bounded summaries explicit:
 * `hvc_cleanup()` tty-port release handoff summary
 * port-reference drop timing
 * tiny notifier-add open handoff summary
+* khvcd polling-contract summary
+* `hvc_hangup()` disconnect summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
 * the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files
