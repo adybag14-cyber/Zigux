@@ -192,7 +192,6 @@ def make_fixture_root(root: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
-    (root / "zigux" / "tests" / "README.md").writeText = None
     (root / "zigux" / "tests" / "README.md").write_text(
         "\n".join(TESTS_README_MARKERS) + "\n",
         encoding="utf-8",
