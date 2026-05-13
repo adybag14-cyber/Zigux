@@ -754,7 +754,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
-        sequencing_path.writeText(
+        sequencing_path.write_text(
             sequencing_path.read_text(encoding="utf-8").replace(
                 RELEASE_SEQUENCING_MARKERS[2], "", 1
             ),
