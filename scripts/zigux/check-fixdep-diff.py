@@ -110,7 +110,7 @@ EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        r"escaped\\ space-config.h",
+        r"escaped\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -409,10 +409,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
@@ -422,21 +422,21 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
-            f"{fixture_dir}:missing_fixtures:escaped\\\\ space-config.h",
+            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
