@@ -9,6 +9,7 @@
   - `scripts/zigux/check-phase4-artifact-diff-determinism.py`
   - `scripts/zigux/validate-phase4.py`
   - `Documentation/zigux/artifact-diff.md`
+  - `Documentation/zigux/phase4-artifact-diff-tooling-survey.md`
   - `Documentation/zigux/phase4-validation-matrix.md`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
