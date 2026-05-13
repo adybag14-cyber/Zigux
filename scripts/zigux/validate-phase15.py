@@ -13,6 +13,7 @@ FILES = [
     "scripts/zigux/validate-phase15.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
@@ -202,6 +203,7 @@ LANE_SEQUENCING_MARKERS = [
     "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`",
     "- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -459,6 +461,7 @@ def _baseline_lane_sequencing() -> str:
             "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`",
             "- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
             "Documentation/zigux/phase15-governance-lane-sequencing.md",
+            "scripts/zigux/check-phase15-shared-summary-gap.py",
             "make -C zigux phase15-validate",
             "make -C zigux phase15-test",
             "make -C zigux phase15",
@@ -472,6 +475,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root, "scripts/zigux/validate-phase15.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-scripts-readme-alignment.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-review-process-handoff.py", "# stub\n")
+    _write(root, "scripts/zigux/check-phase15-shared-summary-gap.py", "# stub\n")
     _write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root, "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
     _write(root, "Documentation/zigux/freeze-map.md", "# freeze map\n")
@@ -647,6 +651,13 @@ def run_self_test() -> int:
         case_count += 1
 
         lane_text = _read(root, lane_rel)
+        marker = "scripts/zigux/check-phase15-shared-summary-gap.py"
+        _write(root, lane_rel, lane_text.replace(marker + "\n", "", 1))
+        _assert_result(*validate(root), [], [f"lane_sequencing:{marker}"], "lane_shared_summary_gap_checker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        lane_text = _read(root, lane_rel)
         marker = "shared-summaries` truthfulness repair only"
         _write(root, lane_rel, lane_text.replace(marker, "", 1))
         _assert_result(*validate(root), [], [f"lane_sequencing:{marker}"], "lane_shared_summaries_boundary")
@@ -741,9 +752,9 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
-        missing_file = "zigux/tests/phase15_handoff_next_steps.zig"
+        missing_file = "scripts/zigux/check-phase15-shared-summary-gap.py"
         (root / missing_file).unlink()
-        _assert_result(*validate(root), [missing_file], [], "missing_file")
+        _assert_result(*validate(root), [missing_file], [], "missing_shared_summary_gap_checker_file")
         case_count += 1
 
     print("PHASE15_VALIDATE_SELF_TEST=pass")
