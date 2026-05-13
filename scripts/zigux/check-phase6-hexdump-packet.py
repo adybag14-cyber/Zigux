@@ -26,11 +26,15 @@ REQUIRED_FILES = {
 
 HELPER_SOURCE_MARKERS = [
     'pub const hex_asc = "0123456789abcdef";',
+    "pub fn hex_to_bin(ch: u8) isize {",
     "pub const Hex2BinError = error{",
     "pub fn hex2Bin(dst: []u8, src: []const u8) Hex2BinError!void {",
     "pub fn bin2Hex(dst: []u8, src: []const u8) []u8 {",
     "pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {",
     "pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {",
+    'test "hex_to_bin accepts numeric, lower, and upper digits" {',
+    'test "hex2bin decodes mixed-case input" {',
+    'test "bin2hex emits lowercase output and returns the written slice" {',
     'test "hex dump truncation still reports the full logical length" {',
 ]
 
@@ -42,11 +46,16 @@ SLICE_NOTE_MARKERS = [
     "`make -C zigux phase6-hexdump-test`",
     "`make -C zigux phase6-hexdump-perf`",
     "`make -C zigux phase6-hexdump-review`",
+    "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface",
+    "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned",
     "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
 ]
 
 LANE_SEQUENCING_MARKERS = [
-    "### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet",
+    "### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet",
+    "Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane",
+    "Treat `P6-Y07` as the hexdump fixture-governance lane",
+    "Treat `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane",
     "- `lib/hexdump.zig`",
     "- `zigux/tests/phase6_hexdump.zig`",
     "- `zigux/tests/phase6_hexdump_perf.zig`",
@@ -123,7 +132,17 @@ PERF_MATRIX_MARKERS = [
     'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
 ]
 
-SELF_TEST_CASE_COUNT = 14
+FIXTURE_MARKERS = [
+    "pub const length_cases = [_]LengthCase{",
+    '.name = "empty plain line reports zero length"',
+    '.name = "empty ascii line reports zero length"',
+    '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },',
+    '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },',
+    'test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {',
+    "try std.testing.expectEqual(expected.len, length_cases.len);",
+]
+
+SELF_TEST_CASE_COUNT = 17
 
 
 class CheckError(RuntimeError):
@@ -154,10 +173,11 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["build_file"], read_text(root, REQUIRED_FILES["build_file"]), BUILD_FILE_MARKERS)
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
     expect_markers(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]), PERF_MATRIX_MARKERS)
+    expect_markers(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]), FIXTURE_MARKERS)
 
     # These files are still part of the live hexdump packet even when this checker
     # only needs their continued presence rather than a large literal inventory.
-    for key in ("focused_test", "perf_test", "fixtures"):
+    for key in ("focused_test", "perf_test"):
         read_text(root, REQUIRED_FILES[key])
 
 
@@ -179,7 +199,7 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["focused_test"], 'test "phase6 placeholder" {}\n')
     write(root / REQUIRED_FILES["perf_test"], "pub fn main() void {}\n")
     write(root / REQUIRED_FILES["perf_matrix_test"], "\n".join(PERF_MATRIX_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["fixtures"], "pub const perf_cases = .{};\n")
+    write(root / REQUIRED_FILES["fixtures"], "\n".join(FIXTURE_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -209,6 +229,17 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "pub fn hexDumpToBuffer")
+
+        build_self_test_fixture(tmpdir)
+        helper_source = tmpdir / REQUIRED_FILES["helper_source"]
+        helper_source.write_text(
+            helper_source.read_text(encoding="utf-8").replace(
+                'test "hex2bin decodes mixed-case input" {\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, 'test "hex2bin decodes mixed-case input" {')
 
         build_self_test_fixture(tmpdir)
         perf_survey = tmpdir / REQUIRED_FILES["perf_survey"]
@@ -247,8 +278,28 @@ def run_self_test() -> None:
         expect_failure(tmpdir, REQUIRED_FILES["perf_test"])
 
         build_self_test_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["fixtures"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["fixtures"])
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(
+            fixtures.read_text(encoding="utf-8").replace(
+                "pub const length_cases = [_]LengthCase{",
+                "pub const size_cases = [_]LengthCase{",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "pub const length_cases = [_]LengthCase{")
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(
+            fixtures.read_text(encoding="utf-8").replace(
+                '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },')
 
         build_self_test_fixture(tmpdir)
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
@@ -259,12 +310,28 @@ def run_self_test() -> None:
         expect_failure(tmpdir, "four-case fixture-backed slowdown matrix")
 
         build_self_test_fixture(tmpdir)
-        lane_sequencing = tmpdir / REQUIRED_FILES["lane_sequencing"]
-        lane_sequencing.write_text(
-            lane_sequencing.read_text(encoding="utf-8").replace("- `Documentation/zigux/phase6-hexdump-perf-refresh.md`\n", "", 1),
+        slice_note = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_note.write_text(
+            slice_note.read_text(encoding="utf-8").replace(
+                "length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned",
+                "length_cases packet drifted",
+                1,
+            ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "phase6-hexdump-perf-refresh.md")
+        expect_failure(tmpdir, "length_cases")
+
+        build_self_test_fixture(tmpdir)
+        lane_sequencing = tmpdir / REQUIRED_FILES["lane_sequencing"]
+        lane_sequencing.write_text(
+            lane_sequencing.read_text(encoding="utf-8").replace(
+                "### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "P6-L19")
 
         build_self_test_fixture(tmpdir)
         perf_refresh_note = tmpdir / REQUIRED_FILES["perf_refresh_note"]
