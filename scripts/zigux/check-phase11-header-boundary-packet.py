@@ -28,6 +28,8 @@ EXPECTED_SURVEY_SUMMARY = {
     "shared_phase11_header_survey_present": True,
     "watchdog_info_layout_assert_present": True,
     "winsize_layout_assert_present": True,
+    "hvc_hv_ops_layout_assert_present": True,
+    "hvc_header_constants_checked": True,
     "hvc_export_surface_checked": True,
 }
 EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS: list[str] = []
@@ -82,6 +84,18 @@ REQUIRED_GAP_SPECS = {
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
         "why_now_contains": "size 8, alignment 2",
     },
+    "phase11-hvc-console-hv-ops-layout-assert": {
+        "status": "starter_landed",
+        "kind": "header_layout",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "size 72, alignment 8",
+    },
+    "phase11-hvc-console-header-constant-assert": {
+        "status": "starter_landed",
+        "kind": "header_constants",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "MAX_NR_HVC_CONSOLES",
+    },
     "phase11-hvc-console-export-signature-assert": {
         "status": "starter_landed",
         "kind": "export_surface",
@@ -96,8 +110,11 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-dw-wdt-watchdog-header-boundary",
     "phase11-dw-wdt-watchdog-info-layout-assert",
     "phase11-hvc-console-winsize-layout-assert",
+    "phase11-hvc-console-hv-ops-layout-assert",
+    "phase11-hvc-console-header-constant-assert",
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
+    "MAX_NR_HVC_CONSOLES",
     "notifier_hangup_irq",
     "dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step",
     "rather than the shared `test` step",
@@ -112,35 +129,48 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps shared replay markers explicit without reviving removed validator claims",
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
+    "try std.testing.expect(manifest.survey_summary.hvc_hv_ops_layout_assert_present);",
+    "try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);",
+    "if (std.mem.eql(u8, gap.id, \"phase11-hvc-console-hv-ops-layout-assert\")) {",
+    "if (std.mem.eql(u8, gap.id, \"phase11-hvc-console-header-constant-assert\")) {",
+    "try expectContains(gap.why_now, \"size 72, alignment 8\");",
+    "try expectContains(gap.why_now, \"MAX_NR_HVC_CONSOLES\");",
+    "try std.testing.expect(saw_hv_ops_layout);",
+    "try std.testing.expect(saw_header_constant);",
+    "try expectContains(note, \"phase11-hvc-console-hv-ops-layout-assert\");",
+    "try expectContains(note, \"phase11-hvc-console-header-constant-assert\");",
+    "try expectContains(note, \"MAX_NR_HVC_CONSOLES\");",
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertAlign(WatchdogInfo, 4);",
-    'layout_assert.assertFieldType(WatchdogInfo, "options", u32);',
-    'layout_assert.assertFieldType(WatchdogInfo, "firmware_version", u32);',
-    'layout_assert.assertFieldType(WatchdogInfo, "identity", [32]u8);',
-    'layout_assert.assertOffset(WatchdogInfo, "options", 0);',
-    'layout_assert.assertOffset(WatchdogInfo, "firmware_version", 4);',
-    'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
+    "layout_assert.assertFieldType(WatchdogInfo, \"options\", u32);",
+    "layout_assert.assertFieldType(WatchdogInfo, \"firmware_version\", u32);",
+    "layout_assert.assertFieldType(WatchdogInfo, \"identity\", [32]u8);",
+    "layout_assert.assertOffset(WatchdogInfo, \"options\", 0);",
+    "layout_assert.assertOffset(WatchdogInfo, \"firmware_version\", 4);",
+    "layout_assert.assertOffset(WatchdogInfo, \"identity\", 8);",
     "layout_assert.assertSize(WinSize, 8);",
     "layout_assert.assertAlign(WinSize, 2);",
-    'layout_assert.assertFieldType(WinSize, "ws_row", u16);',
-    'layout_assert.assertFieldType(WinSize, "ws_col", u16);',
-    'layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);',
-    'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
-    'layout_assert.assertOffset(WinSize, "ws_row", 0);',
-    'layout_assert.assertOffset(WinSize, "ws_col", 2);',
-    'layout_assert.assertOffset(WinSize, "ws_xpixel", 4);',
-    'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
+    "layout_assert.assertFieldType(WinSize, \"ws_row\", u16);",
+    "layout_assert.assertFieldType(WinSize, \"ws_col\", u16);",
+    "layout_assert.assertFieldType(WinSize, \"ws_xpixel\", u16);",
+    "layout_assert.assertFieldType(WinSize, \"ws_ypixel\", u16);",
+    "layout_assert.assertOffset(WinSize, \"ws_row\", 0);",
+    "layout_assert.assertOffset(WinSize, \"ws_col\", 2);",
+    "layout_assert.assertOffset(WinSize, \"ws_xpixel\", 4);",
+    "layout_assert.assertOffset(WinSize, \"ws_ypixel\", 6);",
     "layout_assert.assertSize(HvOps, 72);",
     "layout_assert.assertAlign(HvOps, 8);",
-    'layout_assert.assertOffset(HvOps, "get_chars", 0);',
-    'layout_assert.assertOffset(HvOps, "put_chars", 8);',
-    'layout_assert.assertOffset(HvOps, "flush", 16);',
-    'layout_assert.assertOffset(HvOps, "notifier_add", 24);',
-    'layout_assert.assertOffset(HvOps, "notifier_del", 32);',
-    'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
-    'layout_assert.assertOffset(HvOps, "tiocmget", 48);',
-    'layout_assert.assertOffset(HvOps, "tiocmset", 56);',
-    'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
+    "layout_assert.assertOffset(HvOps, \"get_chars\", 0);",
+    "layout_assert.assertOffset(HvOps, \"put_chars\", 8);",
+    "layout_assert.assertOffset(HvOps, \"flush\", 16);",
+    "layout_assert.assertOffset(HvOps, \"notifier_add\", 24);",
+    "layout_assert.assertOffset(HvOps, \"notifier_del\", 32);",
+    "layout_assert.assertOffset(HvOps, \"notifier_hangup\", 40);",
+    "layout_assert.assertOffset(HvOps, \"tiocmget\", 48);",
+    "layout_assert.assertOffset(HvOps, \"tiocmset\", 56);",
+    "layout_assert.assertOffset(HvOps, \"dtr_rts\", 64);",
+    "try expectContains(hvc_header, \"MAX_NR_HVC_CONSOLES\");",
+    "try expectContains(hvc_header, \"HVC_ALLOC_TTY_ADAPTERS\");",
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -149,7 +179,7 @@ REQUIRED_BUILD_MARKERS = [
     "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
     "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
-    'phase11_uapi_header_parity_survey_module.addImport("layout_assert", layout_assert_module);',
+    "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);",
 ]
 
 REQUIRED_CONTRACT_MARKERS = [
@@ -163,6 +193,18 @@ REQUIRED_CONTRACT_MARKERS = [
 ]
 
 REQUIRED_HVC_HEADER_MARKERS = [
+    "struct hv_ops {",
+    "int (*get_chars)(uint32_t vtermno, char *buf, int count);",
+    "int (*put_chars)(uint32_t vtermno, const char *buf, int count);",
+    "int (*flush)(uint32_t vtermno, bool wait);",
+    "int (*notifier_add)(struct hvc_struct *hp, int irq);",
+    "void (*notifier_del)(struct hvc_struct *hp, int irq);",
+    "void (*notifier_hangup)(struct hvc_struct *hp, int irq);",
+    "int (*tiocmget)(struct hvc_struct *hp);",
+    "int (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);",
+    "void (*dtr_rts)(struct hvc_struct *hp, bool active);",
+    "MAX_NR_HVC_CONSOLES",
+    "HVC_ALLOC_TTY_ADAPTERS",
     "extern int hvc_instantiate(uint32_t vtermno, int index,",
     "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,",
     "extern void hvc_remove(struct hvc_struct *hp);",
@@ -341,6 +383,20 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "phase11-hvc-console-hv-ops-layout-assert",
+            "phase11-hvc-console-hv-ops-layout-missing",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "MAX_NR_HVC_CONSOLES",
+            "HVC_CONSOLE_LIMIT_MARKER_MISSING",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
@@ -390,6 +446,13 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "drivers/tty/hvc/hvc_console.h",
+            "MAX_NR_HVC_CONSOLES",
+            "HVC_CONSOLE_LIMIT_MARKER_MISSING",
+            "hvc_header missing markers",
+        )
+        expect_failure(
+            root,
+            "drivers/tty/hvc/hvc_console.h",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
             "hvc_header missing markers",
@@ -400,6 +463,27 @@ def run_self_test() -> int:
             '"winsize_layout_assert_present": true',
             '"winsize_layout_assert_present": false',
             "manifest survey_summary mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            '"hvc_hv_ops_layout_assert_present": true',
+            '"hvc_hv_ops_layout_assert_present": false',
+            "manifest survey_summary mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            '"hvc_header_constants_checked": true',
+            '"hvc_header_constants_checked": false',
+            "manifest survey_summary mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            'fixture size 72, alignment 8',
+            'fixture size 80, alignment 8',
+            "why_now mismatch",
         )
         expect_failure(
             root,
@@ -423,7 +507,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=13")
+    print("phase11-header-boundary-packet: self-test cases=19")
     return 0
 
 
