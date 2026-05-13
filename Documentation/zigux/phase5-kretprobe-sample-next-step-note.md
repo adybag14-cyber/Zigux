@@ -1,48 +1,54 @@
 # Phase 5 Kretprobe Sample Next-Step Note
 
-This note records one bounded follow-through step for the landed Phase 5 `samples/zigux/kretprobe_example.zig` packet.
+This note records one bounded follow-through step for the current Phase 5 `samples/kprobes/kretprobe_example.c` anchor while the earlier non-runtime Zigux packet is not directly readable on `master`.
 
 ## Status
 
-- `PHASE5_STATUS=parked`
-- `PHASE5_LANE_KEY=P5-Y06`
+- `PHASE5_STATUS=parked-gap-confirmed`
+- `PHASE5_LANE_KEY=P5-L18`
 - `PHASE5_SLICE=kretprobe-sample-next-safe-step-note`
-- scope: sample-only review-surface truthfulness for the landed non-runtime kretprobe packet
+- scope: note-only review-surface truthfulness for the non-runtime kretprobe anchor while the sample packet remains absent from direct readback
 
 ## Current repo evidence
 
-Fresh repo evidence shows that the live kretprobe sample packet already agrees on the split replay surface:
+Fresh repo evidence on 2026-05-13 keeps the live kretprobe lane narrower than this note previously claimed.
 
-- `samples/zigux/kretprobe_example.zig` exposes `runAnchorReplay()`, `runRetargetReplay()`, `runOwnershipReplay()`, `runRecoveryReplay()`, and `runLifecycleGuardReplay()`.
-- `samples/zigux/kretprobe_example.zig` keeps the fixed review-only `maxactiveBudget()` cue at `20`.
-- `zigux/tests/phase5_kretprobe_example_manifest.json` describes the same split replay contract for pre-init retargeting, ownership snapshots, recovery, lifecycle guards, the fixed budget cue, and the missed-instance summary.
+Directly readable reminder surfaces are:
 
-The current packet-local drift is in shared wording, not in sample behavior:
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `samples/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 
-- `samples/zigux/README.md` still names stale combined helpers `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, and `runOwnershipBoundaryReplay()` for this sample.
-- `Documentation/zigux/phase5-sample-review-guide.md` still repeats those same stale combined helper names for the kretprobe packet.
+That same direct readback did not recover the older non-runtime sample packet:
+
+- `samples/zigux/kretprobe_example.zig`
+- `zigux/tests/phase5_kretprobe_example.zig`
+- `zigux/tests/phase5_kretprobe_example_manifest.json`
+- `zigux/tests/phase5_kretprobe_example_survey.zig`
+- `zigux/tests/phase5_build.zig`
+
+So the current packet-local drift is note wording, not sample behavior. This note can no longer truthfully describe live helper names, manifest prompts, or shared replay routes as current directly readable evidence.
 
 ## One bounded next safe step
 
-Apply one wording-only repair to the `samples/zigux/README.md` kretprobe paragraph so it names the live sample-owned replay helpers exactly as shipped:
+Keep the follow-through note-only and gap-aligned:
 
-- `runRetargetReplay()`
-- `runOwnershipReplay()`
-- `runRecoveryReplay()`
-- `runLifecycleGuardReplay()`
-- `maxactiveBudget()`
-
-Keep that repair limited to the kretprobe paragraph only. Do not change sample code, the manifest, the dedicated survey note, the focused Phase 5 test entrypoint, or the separate Phase 9 `runtime_kretprobe` packet in the same step.
+- treat `Documentation/zigux/phase5-kretprobe-sample-survey.md` as the current review entrypoint for the non-runtime kretprobe anchor
+- repair one dedicated or shared kretprobe reminder surface at a time if it still claims the missing sample-root, focused-replay, manifest, survey-replay, or shared-build packet as already landed
+- do not reopen sample behavior, manifest structure, or the separate Phase 9 runtime kretprobe family while the direct-readback gap is still the missing non-runtime packet itself
 
 ## Why this is the safest next move
 
-The sample code and manifest already agree on the exact contract, so the smallest honest follow-through is to narrow one stale shared reminder surface back to that shipped packet instead of reopening sample semantics or widening into cross-sample guide cleanup.
+The smallest honest follow-through is no longer a helper-name wording repair inside `samples/zigux/README.md`. The stronger current constraint is that the non-runtime sample packet is not directly readable at all, so the next same-lane step must stay inside note truthfulness until those missing packet paths return.
 
 ## Non-goals
 
 This note does not reopen:
 
 - sample behavior in `samples/zigux/kretprobe_example.zig`
-- the dedicated survey note or manifest contract
+- manifest or focused-replay structure for files that are not currently directly readable on `master`
+- shared multi-sample Phase 5 cleanup beyond one directly coupled kretprobe reminder surface at a time
 - runtime `kretprobe` starter or loader work
-- broad multi-sample Phase 5 guide cleanup beyond this sample's exact helper names
