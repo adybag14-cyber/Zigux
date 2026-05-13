@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-release-coordination-matrix.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
@@ -82,6 +83,7 @@ REQUIRED_MARKERS = {
         "Broad summaries should keep the active shared-helper release handle visible through:",
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase13-release-coordination-matrix.md`",
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`zigux/tests/phase13_build.zig`",
@@ -94,6 +96,16 @@ REQUIRED_MARKERS = {
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
         "Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
         "If direct notifier companions such as:",
+    ],
+    "Documentation/zigux/phase13-release-coordination-matrix.md": [
+        "# Phase 13 Release Coordination Matrix",
+        "This matrix is the compact PMO coordination companion for the active Phase 13 shared-helper packet.",
+        "release companion: `Documentation/zigux/phase13-release-notes-survey.md`",
+        "traceability companion: `Documentation/zigux/phase13-roadmap-traceability.md`",
+        "workflow companion: `Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+        "release validator: `scripts/zigux/validate-phase13-release.py`",
+        "shared replay handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -292,6 +304,19 @@ def run_self_test() -> int:
                 write_text(root, rel_path, "# stub\n")
 
         assert_only(validate(root), [], "baseline_should_pass")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-release-coordination-matrix.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-release-coordination-matrix.md"],
+            "missing_release_coordination_matrix_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-coordination-matrix.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"]) + "\n",
+        )
         case_count += 1
 
         (root / "scripts/zigux/check-phase13-notifier-priority-signal.py").unlink()
