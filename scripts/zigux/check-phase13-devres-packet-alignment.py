@@ -86,6 +86,20 @@ ARCH_TOKEN_REPLAY_MARKERS = [
     'test "phase13 devres frees phys WC release records when token add fails" {',
 ]
 
+OF_IOMAP_PRETTY_NAME_HELPER_MARKERS = [
+    "fail_pretty_name_allocation: bool = false",
+    ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
+]
+
+OF_IOMAP_PRETTY_NAME_REPLAY_MARKERS = [
+    'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
+    ".fail_pretty_name_allocation = true,",
+    "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
+    "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
+    "try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
+    "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
+]
+
 BOUNDARY_SURVEY_MARKERS = [
     "phase13-devres-live-mmio-mappings",
     "phase13-devres-live-device-tree-walk",
@@ -237,6 +251,9 @@ def validate(root: Path) -> list[str]:
     require_markers(helper_text, "helper", ARCH_TOKEN_HELPER_MARKERS, errors)
     require_markers(replay_text, "replay", ARCH_TOKEN_REPLAY_MARKERS, errors)
 
+    require_markers(helper_text, "helper", OF_IOMAP_PRETTY_NAME_HELPER_MARKERS, errors)
+    require_markers(replay_text, "replay", OF_IOMAP_PRETTY_NAME_REPLAY_MARKERS, errors)
+
     require_markers(survey_text, "survey", BOUNDARY_SURVEY_MARKERS, errors)
     require_markers(reviewability_text, "reviewability", REVIEWABILITY_MARKERS, errors)
     require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_MARKERS, errors)
@@ -338,6 +355,8 @@ def seed_fixture_tree(root: Path) -> None:
                 "pub const ManagedPhysWcAddInput = struct {}",
                 "pub const ManagedPhysWcAddPlan = struct {}",
                 "pub fn planArchPhysWcAdd(",
+                "fail_pretty_name_allocation: bool = false",
+                ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
             ]
         )
         + "\n",
@@ -355,6 +374,12 @@ def seed_fixture_tree(root: Path) -> None:
                 'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
                 'test "phase13 devres retains phys WC release tokens on successful token add" {',
                 'test "phase13 devres frees phys WC release records when token add fails" {',
+                'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
+                ".fail_pretty_name_allocation = true,",
+                "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
+                "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
+                "try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
+                "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
                 '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
                 '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"master-readback-2026-05-13\\"");',
             ]
@@ -473,6 +498,8 @@ def run_self_test() -> int:
                 "helper:missing_marker:pub const ManagedPhysWcAddInput",
                 "helper:missing_marker:pub const ManagedPhysWcAddPlan",
                 "helper:missing_marker:pub fn planArchPhysWcAdd(",
+                "helper:missing_marker:fail_pretty_name_allocation: bool = false",
+                "helper:missing_marker:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
             ],
             "helper_missing_markers_failed",
         )
@@ -501,8 +528,14 @@ def run_self_test() -> int:
                 'replay:missing_marker:test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
                 'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
                 'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
+                'replay:missing_marker:test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
+                "replay:missing_marker:.fail_pretty_name_allocation = true,",
+                "replay:missing_marker:try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
+                "replay:missing_marker:try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
+                "replay:missing_marker:try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
+                "replay:missing_marker:try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
             ],
-            "replay_missing_uc_wc_markers_failed",
+            "replay_missing_uc_wc_and_of_iomap_markers_failed",
         )
         case_count += 1
 
