@@ -139,6 +139,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(slice_note, "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`");
 
     try expectContains(helper_lane_note, "argv-split packet, lane `P7-L09`:");
     try expectContains(helper_lane_note, "Documentation/zigux/phase7-argv-split-slice.md");
