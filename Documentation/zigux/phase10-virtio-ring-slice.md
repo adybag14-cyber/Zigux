@@ -3,8 +3,8 @@
 This bounded Phase 10 slice records the current queue-local `virtio_ring` wrapper packet anchored to `drivers/virtio/virtio_ring.c`.
 
 - `PHASE10_SLICE=virtio-ring-queue-wrapper-packet`
-- reviewed against live `master` ring packet anchored by surveyed `bdfe88e865b94387b3c3bd41ca98054c452f78b9`
-- lane: `P10-L05`
+- reviewed against live `master` ring packet anchored by surveyed `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
+- lane: `P10-L07`
 - anchor: `drivers/virtio/virtio_ring.c`
 
 ## Shipped packet
@@ -18,7 +18,7 @@ This bounded Phase 10 slice records the current queue-local `virtio_ring` wrappe
 ## Why this packet exists
 
 - The Phase 10 roadmap asks Zigux to prove virtqueue wrappers and lab-only driver validation before widening into transport-backed lifecycle work.
-- Current `master` already carries substantive queue-local ring evidence, so the highest-value same-lane follow-through is to make that packet reviewable through a dedicated slice note instead of leaving ring note coverage parked as a missing companion.
+- Current `master` already carries substantive queue-local ring evidence, so the highest-value same-lane follow-through is to keep that packet reviewable through aligned packet-local survey, manifest, and slice-note metadata instead of leaving ring ownership on an older helper-lane label.
 - This slice stays helper-first and in-memory only: it does not claim queue discovery, IRQ acknowledgement, DMA mapping, queue reset execution against a transport, or probe/remove lifecycle behavior.
 
 ## Parked boundary
