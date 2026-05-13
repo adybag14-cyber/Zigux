@@ -238,7 +238,8 @@
         "test \"memparse clamps explicit positive signed overflow\"",
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
-        "test \"memparse applies suffixes before signed clamping\""
+        "test \"memparse applies suffixes before signed clamping\"",
+        "test \"strnchr honors count and C-string boundaries\""
       ],
       "memparse_review_anchors": [
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
