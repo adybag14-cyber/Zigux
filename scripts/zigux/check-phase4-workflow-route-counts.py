@@ -501,6 +501,13 @@ def expect_failure(label: str, fn) -> None:
 
 
 def run_selftest() -> None:
+    if len(set(SELFTEST_CASES)) != len(SELFTEST_CASES):
+        raise AssertionError(
+            f"workflow-route self-test cases must stay unique: {SELFTEST_CASES}"
+        )
+
+    covered_cases: list[str] = []
+
     with TemporaryDirectory(prefix="zigux_phase4_workflow_routes_") as tempdir:
         root = Path(tempdir)
         makefile = root / "zigux/Makefile"
@@ -542,6 +549,7 @@ def run_selftest() -> None:
             perf_manifest,
             perf_survey,
         )
+        covered_cases.append("baseline_round_trip")
 
         write_baseline()
         workflow.write_text(
@@ -571,6 +579,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("workflow_order_drift")
 
         write_baseline()
         makefile.write_text(
@@ -599,6 +608,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_make_artifact_diff_contract_selftest_command")
 
         write_baseline()
         makefile.write_text(
@@ -622,6 +632,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_make_route_counts_command")
 
         write_baseline()
         makefile.write_text(
@@ -645,6 +656,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_make_remaining_gap_command")
 
         write_baseline()
         workflow.write_text(
@@ -668,6 +680,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_validate_route")
 
         write_baseline()
         workflow.write_text(
@@ -691,6 +704,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_artifact_diff_determinism_self_test_route")
 
         write_baseline()
         workflow.write_text(
@@ -714,6 +728,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_artifact_diff_determinism_route")
 
         write_baseline()
         workflow.write_text(
@@ -737,6 +752,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_remaining_gap_self_test_route")
 
         write_baseline()
         workflow.write_text(
@@ -760,6 +776,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_remaining_gap_route")
 
         write_baseline()
         workflow.write_text(
@@ -783,6 +800,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_route_counts_self_test_route")
 
         write_baseline()
         workflow.write_text(
@@ -806,6 +824,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_route_counts_route")
 
         write_baseline()
         workflow.write_text(
@@ -829,6 +848,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_workflow_gate_evidence_route")
 
         write_baseline()
         validation_matrix.write_text(
@@ -852,6 +872,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_matrix_remaining_gap_marker")
 
         write_baseline()
         gate_evidence.write_text(
@@ -875,6 +896,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_gate_evidence_bitmap_wrapper")
 
         write_baseline()
         tests_readme.write_text(
@@ -898,6 +920,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
+        covered_cases.append("missing_tests_readme_perf_make_route")
 
         write_baseline()
         build.write_text(
@@ -920,6 +943,13 @@ def run_selftest() -> None:
                 perf_manifest,
                 perf_survey,
             ),
+        )
+        covered_cases.append("forbidden_perf_baseline_dependency")
+
+    if covered_cases != SELFTEST_CASES:
+        raise AssertionError(
+            "workflow-route self-test catalog drifted: "
+            f"expected {SELFTEST_CASES}, got {covered_cases}"
         )
 
     emit_status(self_test=True)
