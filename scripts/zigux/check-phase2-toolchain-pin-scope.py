@@ -104,7 +104,7 @@ MAKEFILE_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+    "phase2: phase2-validate phase2-cross",
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
@@ -383,7 +383,7 @@ def run_self_test() -> int:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2-validate: phase2-tools phase2-kconfig",
-            "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+            "phase2: phase2-validate phase2-cross",
         ]
     )
     assert validate_required_markers(valid_makefile, label="phase2_makefile", markers=MAKEFILE_MARKERS) == []
@@ -439,7 +439,7 @@ def run_self_test() -> int:
             "phase2-validate: phase2-tools phase2-kconfig",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-            "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+            "phase2: phase2-validate phase2-cross",
         ]
     )
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
