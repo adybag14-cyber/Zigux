@@ -7,7 +7,7 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 - `PHASE5_STATUS=parked-readback-gap-aligned`
 - `PHASE5_LANE_KEY=P5-L16`
 - `PHASE5_SLICE=kretprobe-reference-sample-readback`
-- `PHASE5_SURVEYED_COMMIT=readback-gap-confirmed-2026-05-13`
+- `PHASE5_SURVEYED_COMMIT=c9199f9180fa30ab3a0c9f8c6fdaee6d2c1110ea`
 - scope: keep the kretprobe survey note truthful against current directly readable repo evidence, the roadmap's approved Phase 5 anchor set, and the freeze-map boundary without widening into runtime work
 
 ## Why this note exists
