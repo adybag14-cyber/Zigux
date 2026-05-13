@@ -152,6 +152,13 @@ test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 bu
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`");
 
+    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
+    defer allocator.free(docs_root);
+    try expectContains(docs_root, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectContains(docs_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(docs_root, "the shared Phase 7 helper lane is now split by repo reality:");
+    try expectContains(docs_root, "while the bounded string-helpers slice stays limited to same-packet truthfulness repair until `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` return to current `master`.");
+
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
     try expectContains(survey, "current `master` also still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
