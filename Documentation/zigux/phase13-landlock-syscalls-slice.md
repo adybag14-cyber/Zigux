@@ -3,6 +3,7 @@
 This bounded Phase 13 slice starts `security/landlock/syscalls.zig` with a pure helper-first foothold anchored to `security/landlock/syscalls.c`.
 
 The current helper stays intentionally narrow:
+  * keeps `landlock_create_ruleset()` reviewable through explicit version-versus-errata query flags, minimum copy-size checks for `struct landlock_ruleset_attr`, handled filesystem or network access-mask validation, scope validation, and an explicit stop before `anon_inode_getfd()`
   * keeps the `landlock_restrict_self()` credential gate explicit by splitting reviewable planning between `CredentialGate.no_new_privs` and `CredentialGate.cap_sys_admin_override` without claiming live credential mutation
   * keeps the current restrict-self logging flags explicit by translating `LANDLOCK_RESTRICT_SELF_LOG_SAME_EXEC_OFF`, `LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON`, and `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` into helper-visible booleans, including the detached `ruleset_fd = -1` plus subdomains-only logging-update path
   * keeps `landlock_add_rule()` reviewable through a bounded `path_beneath` versus `net_port` split, explicit ruleset-write access validation, and separate parent-fd versus port handoff cues
