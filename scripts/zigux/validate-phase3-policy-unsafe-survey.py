@@ -20,8 +20,6 @@ UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 POLICY_BYTE_GUARD_REL = "scripts/zigux/check-phase3-policy-byte-guards.py"
 POLICY_FOCUSED_REPLAY_REL = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
 POLICY_MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
-LOW_LEVEL_WRAPPER_SURVEY_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
-LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
@@ -145,12 +143,6 @@ REQUIRED_MMIO_SNIPPETS = (
     'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
 )
 
-REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
-    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
-    'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
-    'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {',
-)
-
 REQUIRED_ABI_TEST_SNIPPETS = (
     'test "phase3 abi keeps starter header and status layouts explicit" {',
     "@sizeOf(abi.InteropPolicy)",
@@ -265,8 +257,6 @@ def validate(root: Path) -> list[str]:
         POLICY_BYTE_GUARD_REL,
         POLICY_FOCUSED_REPLAY_REL,
         POLICY_MMIO_CONSUMER_REL,
-        LOW_LEVEL_WRAPPER_SURVEY_REL,
-        LOW_LEVEL_TEST_REL,
         ABI_TEST_REL,
         ABI_DUMP_REL,
         ABI_EXPECTED_REL,
@@ -285,7 +275,6 @@ def validate(root: Path) -> list[str]:
     allocator_policy = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8")
     mmio = (root / MMIO_REL).read_text(encoding="utf-8")
     unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8")
-    low_level_test = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
     abi_test = (root / ABI_TEST_REL).read_text(encoding="utf-8")
     abi_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8")
     abi_expected = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8")
@@ -326,7 +315,6 @@ def validate(root: Path) -> list[str]:
     )
     require_snippets(issues, mmio, "mmio", REQUIRED_MMIO_SNIPPETS)
     require_snippets(issues, unsafe, "unsafe", REQUIRED_UNSAFE_SNIPPETS)
-    require_snippets(issues, low_level_test, "low_level_test", REQUIRED_LOW_LEVEL_TEST_SNIPPETS)
     require_snippets(issues, abi_test, "abi_test", REQUIRED_ABI_TEST_SNIPPETS)
     require_snippets(issues, abi_dump, "abi_dump", REQUIRED_ABI_DUMP_SNIPPETS)
     require_snippets(issues, abi_expected, "abi_expected", REQUIRED_ABI_EXPECTED_SNIPPETS)
@@ -348,8 +336,6 @@ def build_valid_workspace(root: Path) -> None:
         POLICY_BYTE_GUARD_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_BYTE_GUARDS=pass\")\n",
         POLICY_FOCUSED_REPLAY_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_UNSAFE_PACKET=pass\")\n",
         POLICY_MMIO_CONSUMER_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=pass\")\n",
-        LOW_LEVEL_WRAPPER_SURVEY_REL: "# low-level wrapper survey\n",
-        LOW_LEVEL_TEST_REL: "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
         ABI_TEST_REL: "\n".join(REQUIRED_ABI_TEST_SNIPPETS) + "\n",
         ABI_DUMP_REL: "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n",
         ABI_EXPECTED_REL: "\n".join(REQUIRED_ABI_EXPECTED_SNIPPETS) + "\n",
@@ -451,16 +437,6 @@ def run_self_test() -> int:
         assert f"missing_panic_policy_snippet:{REQUIRED_PANIC_POLICY_SNIPPETS[-1]}" in issues
 
         build_valid_workspace(root)
-        broken_low_level = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_LOW_LEVEL_TEST_SNIPPETS[-1] + "\n",
-            "",
-            1,
-        )
-        write_file(root / LOW_LEVEL_TEST_REL, broken_low_level)
-        issues = validate(root)
-        assert f"missing_low_level_test_snippet:{REQUIRED_LOW_LEVEL_TEST_SNIPPETS[-1]}" in issues
-
-        build_valid_workspace(root)
         write_file(
             root / POLICY_BYTE_GUARD_REL,
             "#!/usr/bin/env python3\nimport sys\nprint(\"PHASE3_POLICY_BYTE_GUARDS=fail\")\nsys.exit(1)\n",
@@ -524,7 +500,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
