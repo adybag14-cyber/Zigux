@@ -50,7 +50,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure simple_transaction_set() publish path, including the response-size limit, the required private-data handoff, the publish barrier, and published response-size bookkeeping before any live readback or release state is claimed."
+      "why_now": "The libfs helper lab now models the pure simple_transaction_set() transaction publish planning path, including the response-size limit, the required private-data handoff, the publish barrier, and published response-size bookkeeping before any live readback or release state is claimed."
     },
     {
       "id": "phase13-libfs-reviewability-gate",
