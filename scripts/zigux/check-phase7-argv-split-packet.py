@@ -54,6 +54,7 @@ REQUIRED_MARKERS = {
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
+        "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
@@ -265,6 +266,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+            "",
+            "tests_blank_reset_marker",
+        )
+        expect_missing_marker(
+            "tests_blank_reset_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
             '.name = "quote characters stay inside returned tokens"',
             "",
@@ -290,7 +305,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 10
+    case_count = 11
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
