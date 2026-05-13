@@ -195,12 +195,12 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
-        "keep the loader scaffold, top-bit companion contract, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
+        "keep the loader scaffold, top-bit companion contract, prepared-plan drift guard, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
         manifest.roadmap_gap_summary.next_gate,
     );
     try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.gaps.len);
 
     const module_gate = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-module-gate") orelse return error.MissingModuleGate;
     try std.testing.expectEqualStrings("zigux/tests/runtime_bitmap_module.zig", module_gate.path);
@@ -222,6 +222,12 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try std.testing.expectEqualStrings("starter_landed", loader_gap.status);
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_gap.kind);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", loader_gap.zigux_destination);
+    const prepared_plan_gap = findGap(manifest.gaps, "runtime-bitmap-shared-prepared-plan-drift") orelse return error.MissingPreparedPlanGap;
+    try std.testing.expectEqualStrings("starter_landed", prepared_plan_gap.status);
+    try std.testing.expectEqualStrings("shared_loader_review_guard", prepared_plan_gap.kind);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", prepared_plan_gap.zigux_destination);
+    try expectContains(prepared_plan_gap.why_now, "prepared-plan drift explicit");
+    try expectContains(prepared_plan_gap.why_now, "requestSharedRuntimeLoad");
     const substrate_gap = findGap(manifest.gaps, "runtime-bitmap-live-loader-binding") orelse return error.MissingSubstrateGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", substrate_gap.status);
     try std.testing.expectEqualStrings("runtime_substrate", substrate_gap.kind);
