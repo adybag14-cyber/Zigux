@@ -22,7 +22,7 @@ truthfulness work without promoting it into a separate shared replay count.
 - lane key: `P13-L13`
 - surveyed state: `current master` readback refreshed on `2026-05-12`
 - roadmap-adjacent reviewability evidence only
-- shared Phase 13 packet keeps this notifier evidence inside the validator-first release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
+- shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
 
 ## Current Repo Reality
 
