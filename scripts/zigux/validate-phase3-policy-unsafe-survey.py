@@ -66,6 +66,8 @@ BLOB_MARKERS = {
 MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test",
@@ -434,6 +436,32 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test\n",
+            "",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, broken_makefile)
+        issues = validate(root)
+        assert (
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py\n",
+            "",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, broken_makefile)
+        issues = validate(root)
+        assert (
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py\n",
             "",
             1,
@@ -446,7 +474,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
