@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
 HELPER_SOURCE = ROOT / "lib" / "base64.zig"
 CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"
-FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_vectors.zig"
+FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_parity_vectors.zig"
 GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"
 BYTE_CONST_RE = re.compile(r"(?:pub\s+)?const\s+(\w+)\s*=\s*\[_\]u8\{([^}]*)\};")
