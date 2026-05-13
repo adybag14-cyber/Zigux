@@ -632,6 +632,12 @@ test "find last bit clamps tail words to nbits" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findLastBit(&bitmap, nbits));
     bitmap[1] &= ~(@as(Word, 1) << 3);
     try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
+
+    const single_word_nbits = 11;
+    var single_word = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 13)};
+    try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));
+    single_word[0] &= ~(@as(Word, 1) << 4);
+    try std.testing.expectEqual(@as(usize, single_word_nbits), findLastBit(&single_word, single_word_nbits));
 }
 
 test "find last bit returns nbits when no set bits remain" {
