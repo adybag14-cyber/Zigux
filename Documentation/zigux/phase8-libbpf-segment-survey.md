@@ -17,7 +17,7 @@ That plan only stays reviewable if the repo's public survey surfaces truthfully 
 
 ## Current public-tree readback
 Public default-branch exact readback on 2026-05-12 still showed:
-- `Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.
+- `Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.
 - `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet through `phase8_cpu_mask.zig`, `phase8_logging.zig`, `phase8_pin_path.zig`, `phase8_bpf_type_names.zig`, `phase8_file_path_handle_bridge.zig`, `phase8_perf_buffer_poll.zig`, `phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/verify.zig`.
 - the shared helper catalog still comes from `tools/lib/bpf/zigux_segments/manifest.json`.
 - the shared landed helper packet still names `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
@@ -42,9 +42,9 @@ Those segments still keep the bounded fdinfo helper packet explicit while the re
 ## Current bounded gap
 The real current gap is still reviewability truthfulness, not a helper-behavior claim.
 
-Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey now needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet instead of repeating the older queued-helper wording.
+Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.
 
-That means the bounded fdinfo helper packet, the landed reused-map compatibility packet, and the perf-buffer poll reminder surface should stay explicit inside this survey, while the heavier resource-boundary packet still stays deferred and the interrupt-routing follow-on remains outside the current bounded packet.
+That means the bounded fdinfo helper packet, the landed reused-map compatibility packet, the file-path bridge slice reminder, and the perf-buffer poll reminder surface should stay explicit inside this survey, while the heavier resource-boundary packet still stays deferred and the interrupt-routing follow-on remains outside the current bounded packet.
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -61,7 +61,7 @@ Start with the smallest directly coupled libbpf survey follow-through that match
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
-2. after this survey sync, only then trim or widen any shared reminder surface that still disagrees with the live helper-plus-build packet
+2. after this survey sync, start with the docs-root Phase 8 summary before trimming or widening any other shared reminder surface that still disagrees with the live helper-plus-build packet
 3. keep follow-up smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
 Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.
