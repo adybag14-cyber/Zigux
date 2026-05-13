@@ -62,7 +62,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.",
         "`scripts/zigux/README.md` now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet, so the earlier scripts-root filename repair is no longer the active reopen cue",
-        "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
+        "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
@@ -310,9 +310,9 @@ def run_self_test() -> None:
         (
             "lane_note_next_step_reopen_anchor",
             "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
-            "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
+            "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
+            "Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note while omitting the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.",
         ),
         (
             "segment_survey_docs_root_readback_anchor",
