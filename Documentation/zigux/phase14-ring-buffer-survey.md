@@ -96,6 +96,19 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `tracing_buffers_splice_read()` follows a different lifetime contract even though it enters through the same serialization gate. It also takes `trace_access_lock(iter->cpu_file)` and calls `ring_buffer_read_page()`, but it wraps each exported page in `buffer_ref` state and frees that page only through `buffer_spd_release()` and `buffer_ref_release()` after the pipe consumers drop it, so splice-read ownership remains a shared C-managed release boundary rather than a wrapper-safe variation of `tracing_buffers_read()`.
 - That read-versus-splice split is the reason this lane stays study-only here. The tracefs helpers share the same serialization gate, but one path keeps a file-owned spare page while the other defers release through pipe-buffer references, so reader serialization, consumed-page lifetime, and page return-to-kernel ownership still belong to the existing C implementation rather than a `ring_buffer.zig` seam.
 
+## Maintenance-Mode Handoff
+
+- current lane posture: `maintenance_mode`
+- replay before trusting this parked packet:
+  - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
+  - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+  - `make -C zigux phase14`
+- reopen only when one of the packet-local conditions below becomes true:
+  - the dedicated survey note, manifest, or Zig survey gate drift on surveyed commit, blocked gap, last closed follow-up, or ready-next posture
+  - the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch
+  - genuinely narrower stay-in-C evidence appears around reserve or commit publication, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`, then keep the repair inside the ring-buffer packet instead of reopening workqueue, skbuff, RCU, or a bridge claim
+
 ## Recorded gaps
 
 The current lane state is:
@@ -113,9 +126,10 @@ The current lane state is:
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-extraction-followup`
 - landed `phase14-ring-buffer-tracefs-reader-serialization-followup`
+- landed `phase14-ring-buffer-maintenance-handoff`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
-This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
+This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, that the repo still does not ship `kernel/trace/ring_buffer.zig`, and that the parked packet carries an explicit maintenance-mode handoff instead of leaving future reopen conditions implicit.
 
 ## Non-goals
 
