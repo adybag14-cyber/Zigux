@@ -57,6 +57,7 @@ If the packet paths return, keep these exact review cues explicit together inste
 - `formattedMessage()`, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, and sample-owned `runOwnershipReplay()` remain the public sample surfaces reviewers should point to first
 - the exact `checked_focus` order stays `descriptor_anchor`, `selected_string_cycle`, `formatted_message_surface`, `conditional_family_markers`, `callback_balance`, and `ownership_and_lifetime`
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection and the post-exit replay plus callback-registration rejection remain the explicit callback-boundary and teardown guard rails for this non-runtime packet
+- if `Documentation/zigux/README.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` summarises this anchor, keep the same survey-backed posture there too: do not call `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_build.zig`, or `phase5_trace_events_sample*` current direct-readback evidence until a fresh reread proves those exact paths returned
 
 ## Boundary reminders
 
