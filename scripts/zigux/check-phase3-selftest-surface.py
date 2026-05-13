@@ -122,6 +122,7 @@ SCRIPTS_README_MARKERS = (
 )
 SCRIPTS_README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-validator-support-surface.md": 1,
+    "zigux/kernel/export_shim.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 SCRIPTS_README_PHASE3_PREFIX = "Phase 3 flow - "
@@ -651,6 +652,25 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected scripts README Phase 3 flow drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "zigux/kernel/export_shim.zig",
+                SCRIPTS_README_PHASE3_NEXT_PREFIX + " zigux/kernel/export_shim.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: "
+            "zigux/kernel/export_shim.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README export-shim drift was not reported")
             return 1
 
         _populate_repo(root)
