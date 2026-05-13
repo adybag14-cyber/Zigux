@@ -43,6 +43,7 @@ WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
     "scripts/zigux/install-zig\\.py",
     "scripts/zigux/check-phase2-cross\\.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
+    "scripts/zigux/zig-toolchain-policy\\.json",
     "scripts/zigux/fixdep\\.zig",
     "zigux/tests/fixtures/phase2_cross_targets\\.json",
 ]
@@ -203,6 +204,8 @@ def run_self_test() -> int:
     scope_issues = validate_workflow_scope_fragments("scripts/zigux/install-zig\\.py")
     if "workflow_scope:missing_marker:scripts/zigux/check-phase2-cross\\.py" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
+    if "workflow_scope:missing_marker:scripts/zigux/zig-toolchain-policy\\.json" not in scope_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_policy_failure")
 
     makefile_text = "\n".join(
         [
@@ -308,7 +311,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
