@@ -46,7 +46,7 @@ GAP_SURVEY_DRIFT_MARKER = (
     "direct readback now also shows `scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
 )
 GAP_SURVEY_NEXT_STEP_MARKER = (
-    "refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/review-checklist.md`, then `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` one file at a time."
+    "If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again."
 )
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
