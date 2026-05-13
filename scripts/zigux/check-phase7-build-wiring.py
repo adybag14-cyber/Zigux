@@ -536,7 +536,7 @@ def run_self_test() -> None:
 
     case_count = len(missing_file_cases) + len(marker_cases)
     print("PHASE7_BUILD_WIRING=pass")
-    print(f"PHASE7_BUILD_WIRING_CASE_COUNT={case_count})")
+    print(f"PHASE7_BUILD_WIRING_CASE_COUNT={case_count}")
 
 
 def main() -> int:
