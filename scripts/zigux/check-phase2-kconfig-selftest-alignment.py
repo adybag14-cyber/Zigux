@@ -48,6 +48,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
 )
 
 MAKEFILE_LINES = (
@@ -106,7 +108,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "same 11-case packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 def read_text(path: Path) -> str:
     try:
@@ -333,6 +335,20 @@ def run_self_test() -> int:
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[3]}:count=2") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                WORKFLOW_LINES[6],
+                "run: python3 other-kconfig.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[6]) in issues
         checks_run += 1
 
         build_self_test_root(root)
