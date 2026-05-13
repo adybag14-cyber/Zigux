@@ -54,3 +54,22 @@ Base raw URL prefix:
 - this note must not imply a shipped `phase12-validate` route, a validator-first route around `scripts/zigux/validate-phase12.py`, any shared `check-phase12-*.py` packet beyond the build-only checker named above, a focused `virtio_scsi`-only replay route, or a cross-build replay that current `master` does not ship
 - this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
+
+## Current-Master Exact Coverage Evidence
+- public `master` head rechecked on `2026-05-13`: `7fe0dafde3775e20069e672504a1c7192ed22c23`
+- the same twelve covered current-master packet paths remain present beside this commit-pinned raw replay note:
+  - `drivers/scsi/virtio_scsi.zig` -> blob `c8463af3f3fcfb630c2c115b350580268d20e20c`
+  - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `8420b21b3fc81c90523379ec97259f6b585a3d75`
+  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `9a359914f4abecc2c01306ca27ae6051fda2fee6`
+  - `Documentation/zigux/README.md` -> blob `405385bc30476c48ca7a229c45ea7e625f6d46b7`
+  - `zigux/tests/README.md` -> blob `ef7277fc5e3b8b2fc60e423afd5261d7ca228192`
+  - `scripts/zigux/README.md` -> blob `6719bf287c0763549f76b3d440cc9bd42e614b09`
+  - `zigux/tests/phase12_build.zig` -> blob `9d85b42c5ec84f933954492561cfbbbaed9351be`
+  - `zigux/tests/phase12_virtio_scsi.zig` -> blob `183957c499df08554135a2e99f73eac6bfdaf759`
+  - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `dc51df52c108ef06a46e3ff1964e6a8cb0f58f17`
+  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `04b45af2d9ad9e2aa43147d589f6a029cbab71f4`
+  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `e58f8fec306a757fc1ea40203494f2812f789e8e`
+  - `zigux/Makefile` -> blob `d026e535028e358b97fcdf333281d1230138b9bb`
+- current-master support-material boundary rechecked beside the same packet:
+  - `scripts/zigux/validate-phase12.py` -> blob `a1b3895271e811629e92fbb08666ab9812f04a97`
+- this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like when fallback coverage was reverified.
