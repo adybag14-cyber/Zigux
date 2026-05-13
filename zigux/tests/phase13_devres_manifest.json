@@ -31,7 +31,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The direct devres replay is present on current master and keeps the still-shipped helper-first packet machine-checkable while the wider shared build bundle stays absent, without pretending the older shared build packet is back."
+      "why_now": "The direct devres replay is present on current master and keeps the still-shipped helper-first packet machine-checkable while the wider shared build bundle stays absent, including the existing `devm_iounmap()` exact-match planner and UC/WC MMIO evidence without pretending the older shared build packet is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
