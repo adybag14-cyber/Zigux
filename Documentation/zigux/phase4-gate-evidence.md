@@ -9,22 +9,22 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=e83166df5ff8ca637a036d32253eb0bb43d8a972`
 - `PHASE4_VALIDATOR_BLOB_SHA=3ed4507e0684efea20358bed2854e1d26a55c3a1`
 - `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=716b1b941299258af178efdbf0184c99aed15922`
-- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=917daa2527d2bb377be1c643035f0f377169a4d2`
-- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=a894348a406d89ed8b514f1f600e96eee26aee05`
-- `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=bf7ffcc78f0098a4a33e96a85f0e9115278efb2d`
+- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=3884e1decbf7e9fb1eec61fe0e052a5abb8194ec`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=38497ca656451a282214edbdd524f59252d35f09`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=3fdbe37266aebdca4669292c1ddca9c1c4b7808b`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-- `PHASE4_MAKEFILE_BLOB_SHA=05b2f2209934df67cc5db84ecda6f94fb109ce43`
-- `PHASE4_WORKFLOW_BLOB_SHA=de5e044761e694e251f8fed8360c723b535eef8f`
-- `PHASE4_DOC_README_BLOB_SHA=62846c617227606beb64c1852a4d594bfcf64128`
+- `PHASE4_MAKEFILE_BLOB_SHA=5c955d73ed22487f60f4b4d8129e8258acdda818`
+- `PHASE4_WORKFLOW_BLOB_SHA=4db737476d21d2afac8d36120cc1c43f98648177`
+- `PHASE4_DOC_README_BLOB_SHA=3549f0750c65982b9f6bab386e0336b27d30f44f`
 - `PHASE4_SCRIPT_README_BLOB_SHA=6719bf287c0763549f76b3d440cc9bd42e614b09`
 - `PHASE4_TESTS_README_BLOB_SHA=f94bbb675bdaa47f2470a0a02c2b9fb3103877c7`
-- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=9f4465f1da123719492a60f59003fa2a308763c8`
+- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=d7c5a5f13efadf5fe760be572d11ef1c1a1b2d27`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=9c6347f6a8fb811b4433d1feb69d6ec1cb0e59cb`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=994b112223e83033aeb02c6620c9d96624634dd3`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=00e935cb148226cb88966d8f33f7924958543727`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=e2e854d85d27a19f91e48b6dd161bba71adf0f9e`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=818f124c76a983d24c3f56fa0b3d9a94554903e3`
-- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=d3dac5f0267da74821d40a5a124a0006b5798c52`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=6d9d5779c8497f4bf6c215e49b0910af6d48b21c`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift,kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,test_fsmount_validation_entrypoint_drift,test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_note_file`
@@ -62,5 +62,5 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope, with `median_elapsed_ns <= 8192` for atomic64 and `median_elapsed_ns <= 12288` for bitmap across seven monotonic samples.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.
-- the docs-root, scripts-root, tests-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, and the dedicated local-only perf-baseline survey wrappers are explicit across that shared Phase 4 review packet again even though the broader gate-evidence status schema still needs a later dedicated refresh.
+- the docs-root, scripts-root, tests-root, Makefile, validator, gate-evidence checker, and workflow-route checker surfaces now agree on the freshly re-read blob pins recorded in this checkpoint, and the dedicated local-only perf-baseline survey wrappers are explicit across that shared Phase 4 review packet again.
 - the only roadmap-named Zig sample starters still absent on current `master` are `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig`, and the dedicated parked survey packets remain the truthful measurable boundary until a later bounded lane intentionally opens either starter.
