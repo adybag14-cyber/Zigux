@@ -126,7 +126,7 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     try std.testing.expectEqual(@as(usize, 0), parsed.value.metrics.architecture_council_status_change_approval_count);
 
     try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(policy_note, "current-master-readback-2026-05-12");
+    try expectContains(policy_note, "current-master-readback-2026-05-13");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "existing blocker remains recorded");
