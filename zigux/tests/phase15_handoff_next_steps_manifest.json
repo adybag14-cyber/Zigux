@@ -1,5 +1,7 @@
 {
-  "lane_key": "P15-L08",
+  "lane_family": "handoff-next-steps",
+  "continuity_mode": "lane_family_owner_map",
+  "owner_map_anchor": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-13",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
@@ -76,7 +78,7 @@
   ],
   "pending_next_steps": [
     "Keep the dedicated handoff packet parked after this queue refresh unless one of the named reopen triggers fires or the deep-core blocker posture changes.",
-    "Current `master` still shows shared-summary truthfulness drift in `scripts/zigux/README.md` and `zigux/tests/README.md`: both summaries still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md` even though the docs root and checklist are already aligned. Queue that follow-up through `shared-summaries` by first running `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, then rereading `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; reopen this handoff lane only if the dedicated packet itself starts drifting after the shared-summary repair lands.",
+    "Current shared-summary follow-through should start with `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, then reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`; treat `zigux/tests/README.md` follow-through separately as the sequencing-marker plus replay-route packet instead of as a parity-scorecard-survey reminder repair, and reopen this handoff lane only if the dedicated packet itself starts drifting after that shared-summary repair lands.",
     "Do not widen this lane into shared build wiring, parity-scorecard blocker edits, readiness-validator ownership, or freeze-map approval posture unless the dedicated handoff packet can no longer describe those neighboring surfaces truthfully."
   ]
 }
