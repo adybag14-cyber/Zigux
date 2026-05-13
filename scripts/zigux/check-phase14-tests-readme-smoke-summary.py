@@ -185,6 +185,36 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_ring_buffer_survey.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_ring_buffer_survey.zig",
+            "self-test expected missing ring-buffer survey tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_rcu_tree_survey.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_rcu_tree_survey.zig",
+            "self-test expected missing rcu-tree survey tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_ring_buffer_manifest.json`\n",
                 "",
                 1,
@@ -362,7 +392,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=16")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
