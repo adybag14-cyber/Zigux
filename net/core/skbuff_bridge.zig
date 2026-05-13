@@ -40,7 +40,7 @@ pub const AuditGuard = enum {
     segmentation_checksum_metadata_handoff,
     segmentation_partial_tail_owner_transfer,
     segmentation_checksum_data_offset_crossover,
-    segmentation_tail_publication_contract,
+    segmentation_tail_publication_consumer_contract,
 };
 
 pub const AuditCheckpoint = struct {
@@ -194,10 +194,10 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .ownership = .stay_in_c,
     },
     .{
-        .id = "segmentation-tail-publication-contract",
-        .anchor_symbol = "skb_segment/segs->prev/validate_xmit_skb_list",
-        .summary = "Record the exported tail-pointer contract between skb_segment() and validate_xmit_skb_list() before any wrapper claims list ownership.",
-        .guard = .segmentation_tail_publication_contract,
+        .id = "segmentation-tail-publication-consumer-contract",
+        .anchor_symbol = "skb_segment/segs->prev/validate_xmit_skb_list/skb_mark_not_on_list",
+        .summary = "Record the exported tail-pointer contract and single-skb list reset before any wrapper claims queue-facing list ownership.",
+        .guard = .segmentation_tail_publication_consumer_contract,
         .observed_fields = &[_][]const u8{
             "segs->prev",
             "tail->next",
@@ -206,7 +206,7 @@ const audit_checkpoints = [_]AuditCheckpoint{
             "skb->prev",
             "skb->next",
         },
-        .blocked_by = "skb_segment() publishes the last generated skb through segs->prev, clamps the last segment's gso_size or gso_segs after the partial-seg loop, and then validate_xmit_skb_list() consumes that contract by resetting skb->prev for unsegmented skbs, splicing tail->next, and trusting tail = skb->prev, so Zigux should keep this exported tail-publication path in C while only naming the contract.",
+        .blocked_by = "skb_segment() publishes the last generated skb through segs->prev, clamps the last segment's gso_size or gso_segs after the partial-seg loop, and then validate_xmit_skb_list() consumes that contract by calling skb_mark_not_on_list(), resetting skb->prev = skb for the single-skb fallback, splicing tail->next, and trusting tail = skb->prev, so Zigux should keep this exported tail-publication and consumer-side list-reset path in C while only naming the contract.",
         .ownership = .stay_in_c,
     },
 };
@@ -271,7 +271,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit the validate_xmit_skb_list() single-skb fallback around skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the bridge records the consumer-side list reset that still keeps exported tail publication in C.";
+        return "No smaller review-only skbuff follow-up remains before the live ownership blocker; keep qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination in C.";
     }
 };
 
@@ -296,8 +296,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_mark_not_on_list()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "tail = skb->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "No smaller review-only skbuff follow-up remains") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "live ownership blocker") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -321,8 +321,8 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 9), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_mark_not_on_list()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "tail = skb->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "No smaller review-only skbuff follow-up remains") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "live ownership blocker") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -365,10 +365,12 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "SKB_GSO_CB(nskb)->csum") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "tail chain") != null);
 
-    try std.testing.expectEqualStrings("segmentation-tail-publication-contract", audit.checkpoints[8].id);
-    try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_contract);
+    try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_consumer_contract);
     try std.testing.expectEqualStrings("skb_shinfo(tail)->gso_size", audit.checkpoints[8].observed_fields[2]);
     try std.testing.expectEqualStrings("skb->prev", audit.checkpoints[8].observed_fields[4]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "validate_xmit_skb_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "skb_mark_not_on_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "tail = skb->prev") != null);
 }
