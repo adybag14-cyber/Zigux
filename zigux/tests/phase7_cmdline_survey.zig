@@ -34,12 +34,14 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer parsed.deinit();
     const manifest = parsed.value;
 
+    try std.testing.expectEqualStrings("P7-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_manifest.json");
@@ -60,6 +62,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-cmdline-slice.md");
     defer allocator.free(slice_note);
+    try expectContains(slice_note, "PHASE7_LANE_KEY=P7-L05");
     try expectContains(slice_note, "lib/cmdline.c");
     try expectContains(slice_note, "lib/cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline.zig");
@@ -76,6 +79,16 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(
         slice_note,
         "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination",
+    );
+
+    const helper_lane_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    defer allocator.free(helper_lane_note);
+    try expectContains(helper_lane_note, "cmdline packet, lane `P7-L05`:");
+    try expectContains(helper_lane_note, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(helper_lane_note, "PHASE7_CMDLINE_LANE=P7-L05");
+    try expectContains(
+        helper_lane_note,
+        "P7-L05 owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift.",
     );
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
