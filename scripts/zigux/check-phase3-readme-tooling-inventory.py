@@ -37,13 +37,15 @@ PHASE4_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
 )
 PHASE4_VALIDATE_ROUTE_SNIPPET = (
     "- `make -C zigux phase4-validate` reruns the validator-first Phase 4 route, including "
     "`scripts/zigux/check-artifact-diff-contract.py`, "
     "`scripts/zigux/check-phase4-artifact-diff-determinism.py`, "
-    "`scripts/zigux/check-phase4-gate-evidence.py`, and "
+    "`scripts/zigux/check-phase4-gate-evidence.py`, "
+    "`scripts/zigux/check-phase4-remaining-gap-matrix.py`, and "
     "`scripts/zigux/check-phase4-workflow-route-counts.py`, before the shared "
     "`zigux/tests/phase4_build.zig` replay."
 )
@@ -89,6 +91,7 @@ REQUIRED_MARKERS = (
     "check-artifact-diff-contract.py",
     "check-phase4-gate-evidence.py",
     "check-phase4-artifact-diff-determinism.py",
+    "check-phase4-remaining-gap-matrix.py",
     "check-phase4-workflow-route-counts.py",
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
@@ -125,7 +128,9 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/validate-phase4.py"),
     Path("scripts/zigux/check-artifact-diff-contract.py"),
+    Path("scripts/zigux/check-phase4-artifact-diff-determinism.py"),
     Path("scripts/zigux/check-phase4-gate-evidence.py"),
+    Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"),
     Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
 )
 
@@ -352,6 +357,12 @@ def run_self_test() -> int:
         print("expected compatibility-entrypoint marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("check-phase4-remaining-gap-matrix.py", "check-phase4-gap-matrix.py"))
+    if "check-phase4-remaining-gap-matrix.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 4 remaining-gap-matrix marker was not reported")
+        return 1
+
     broken = validate_readme_snippets(sample.replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1))
     if PHASE4_VALIDATE_ROUTE_SNIPPET not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
@@ -444,6 +455,26 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase4_path, "# stub\n")
 
+        missing_phase4_artifact_diff_path = Path("scripts/zigux/check-phase4-artifact-diff-determinism.py")
+        (root / missing_phase4_artifact_diff_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_artifact_diff_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 artifact-diff-determinism repo file was not reported")
+            return 1
+        _write(root / missing_phase4_artifact_diff_path, "# stub\n")
+
+        missing_phase4_remaining_gap_path = Path("scripts/zigux/check-phase4-remaining-gap-matrix.py")
+        (root / missing_phase4_remaining_gap_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_remaining_gap_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 remaining-gap-matrix repo file was not reported")
+            return 1
+        _write(root / missing_phase4_remaining_gap_path, "# stub\n")
+
         missing_phase4_workflow_path = Path("scripts/zigux/check-phase4-workflow-route-counts.py")
         (root / missing_phase4_workflow_path).unlink()
         broken = validate_repo_files(root)
@@ -468,6 +499,26 @@ def run_self_test() -> int:
         if expected not in broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected missing Phase 4 gate-evidence makefile command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 4 makefile command order drift was not reported")
+            return 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase4-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 remaining-gap-matrix makefile command was not reported")
             return 1
         if f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}" not in broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
