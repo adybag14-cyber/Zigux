@@ -21,6 +21,7 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     _ = virtio_scsi.RecoveryEventBufferOwnershipSummary;
     _ = virtio_scsi.RecoveryHostScanSummary;
     _ = virtio_scsi.RequestQueueSummary;
+    _ = virtio_scsi.CompletionHandbackSummary;
 
     try std.testing.expectEqualStrings("virtio_scsi_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", descriptor.anchor);
@@ -28,6 +29,7 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     try std.testing.expect(descriptor.provides_probe_config_snapshot);
     try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(descriptor.provides_queue_depth_summary);
+    try std.testing.expect(descriptor.provides_completion_handback_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -92,6 +94,31 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     try std.testing.expectEqual(@as(u16, 3), request_queue.local_index);
     try std.testing.expectEqual(@as(u16, 5), request_queue.global_index);
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, request_queue.kind);
+
+    const handback = try lab.captureCompletionHandbackSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 64,
+                        .max_target = 255,
+                        .max_lun = 32,
+                        .max_sectors = 1024,
+                    },
+                    .synthetic_can_queue = 16,
+                },
+                .requested_depth = 10,
+            },
+        },
+        .queue_local_index = 3,
+    });
+    try std.testing.expectEqual(@as(u16, 5), handback.queue_global_index);
+    try std.testing.expect(handback.completion_requires_used_ring_before_handback);
+    try std.testing.expect(handback.completion_reads_sense_before_recycle);
+    try std.testing.expect(handback.completion_returns_command_buffer_after_handback);
+    try std.testing.expect(handback.completion_returns_sense_buffer_after_handback);
 
     const mapping = try lab.captureIoQueueMapSummary(4, 2);
     try std.testing.expectEqual(@as(u16, 3), mapping.nr_maps);
