@@ -63,6 +63,11 @@ fn expectMetricLine(scorecard_doc: []const u8, label: []const u8, value: usize) 
     try expectContains(scorecard_doc, rendered);
 }
 
+fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
+    try expectContains(scorecard_doc, "## Next bounded step");
+    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the shared Phase 15 validator-first packet drifts enough that the aggregate metrics or anchor records need another truthfulness refresh.");
+}
+
 fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
     try std.testing.expectEqualStrings("Phase 15", anchor.phase);
     try std.testing.expectEqualStrings("freeze_in_c", anchor.current_status_bucket);
@@ -232,6 +237,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "anchors still blocked on prior-phase bridge evidence", parsed.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
+    try expectCurrentBoundedStepHandoff(scorecard_doc);
 
     for (parsed.value.anchors) |anchor| {
         try expectAnchorPacketAlignment(scorecard_doc, governance_note, anchor);
