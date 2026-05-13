@@ -109,6 +109,12 @@ REQUIRED_MARKERS = {
     EXEC_CMD_SOURCE_PATH: (
         "pub fn buildDeferredExecvCall(",
         "pub fn buildDeferredExeclCall(",
+        "pub fn samePathIdentity(",
+        "pub fn choosePwdCwdFromIdentities(",
+        "pub fn planDeferredExecvCall(",
+        "pub fn planDeferredExecvCallWithPwd(",
+        "pub fn planDeferredExeclCall(",
+        "pub fn planDeferredExeclCallWithPwd(",
     ),
     EXEC_CMD_C_PATH: (
         "int execv_cmd",
@@ -207,6 +213,9 @@ def run_self_test() -> int:
             (PHASE8_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
             (PHASE8_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
             (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn samePathIdentity("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExeclCallWithPwd("),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
