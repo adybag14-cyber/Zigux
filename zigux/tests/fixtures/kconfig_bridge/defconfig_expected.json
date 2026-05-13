@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"defconfig","argv":["scripts/kconfig/conf","--defconfig","Kconfig","arch/arm64/configs/defconfig"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"out/.config"}}
+{"tool":"scripts/kconfig/conf","mode":"defconfig","argv":["scripts/kconfig/conf","--defconfig","arch/arm64/configs/defconfig","Kconfig"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"out/.config"}}
