@@ -97,6 +97,8 @@ REQUIRED_ARTIFACT_DOC_MARKERS = [
 
 REQUIRED_GATE_EVIDENCE_MARKERS = [
     "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+    "PHASE4_EVIDENCE_MODE=github_connector_readback",
+    "PHASE4_EXACT_READBACK_REF=master",
     "PHASE4_VALIDATOR_BLOB_SHA=",
     "PHASE4_BUILD_BLOB_SHA=",
     "PHASE4_MAKEFILE_BLOB_SHA=",
@@ -654,6 +656,8 @@ def _write_fixture_tree(root: Path) -> None:
         "",
         "## Status",
         "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
+        "- `PHASE4_EVIDENCE_MODE=github_connector_readback`",
+        "- `PHASE4_EXACT_READBACK_REF=master`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,...`",
         "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
@@ -691,6 +695,42 @@ def run_self_test() -> int:
 
         gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
         original_gate_evidence = gate_evidence_path.read_text(encoding="utf-8")
+        gate_evidence_path.write_text(
+            original_gate_evidence.replace(
+                "- `PHASE4_EVIDENCE_MODE=github_connector_readback`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "gate_evidence:PHASE4_EVIDENCE_MODE=github_connector_readback" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            original_gate_evidence.replace(
+                "- `PHASE4_EXACT_READBACK_REF=master`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate_root(root)
+        if "gate_evidence:PHASE4_EXACT_READBACK_REF=master" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8")
+
         gate_evidence_path.write_text(
             original_gate_evidence.replace(
                 "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`\n",
