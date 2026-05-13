@@ -30,9 +30,10 @@ fn writeDevT(writer: anytype) !void {
     const max_major: u32 = 4_095;
     const sample_major: u32 = 42;
     const sample_minor: u32 = 7;
+    const range_first_minor: u32 = 7;
     const range_count: u32 = 4;
     const sample_encoded: u32 = (sample_major << minor_bits) | sample_minor;
-    const range_last_encoded: u32 = (sample_major << minor_bits) | (sample_minor + range_count - 1);
+    const range_last_encoded: u32 = (sample_major << minor_bits) | (range_first_minor + range_count - 1);
 
     try writeQuoted(writer, "dev_t");
     try writer.writeAll(":{\"minor_bits\":");
@@ -47,8 +48,12 @@ fn writeDevT(writer: anytype) !void {
     try writer.print("{d}", .{sample_minor});
     try writer.writeAll(",\"sample_encoded\":");
     try writer.print("{d}", .{sample_encoded});
+    try writer.writeAll(",\"range_first_minor\":");
+    try writer.print("{d}", .{range_first_minor});
     try writer.writeAll(",\"range_count\":");
     try writer.print("{d}", .{range_count});
+    try writer.writeAll(",\"range_fits\":");
+    try writer.print("{d}", .{@intFromBool(range_first_minor + range_count - 1 <= minor_mask)});
     try writer.writeAll(",\"range_last_encoded\":");
     try writer.print("{d}", .{range_last_encoded});
     try writer.writeByte('}');
