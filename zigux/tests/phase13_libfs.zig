@@ -188,7 +188,7 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 }
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L05\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L01\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
