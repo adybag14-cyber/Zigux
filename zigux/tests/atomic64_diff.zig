@@ -193,6 +193,42 @@ test "atomic64 diff wrapper keeps the runtime handoff blob pins exact" {
     );
 }
 
+test "atomic64 diff wrapper keeps the runtime handoff line counts exact" {
+    const runtime_line_count = countOccurrences(runtime_atomic64_diff_source, "\n");
+
+    const live_gate_line_count_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "\"live_gate_line_count\": {}",
+        .{runtime_line_count},
+    );
+    defer std.testing.allocator.free(live_gate_line_count_marker);
+    try expectMarker(phase4_runtime_atomic64_manifest_source, live_gate_line_count_marker);
+
+    const runtime_replay_line_count_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "\"runtime_replay_line_count\": {}",
+        .{runtime_line_count},
+    );
+    defer std.testing.allocator.free(runtime_replay_line_count_marker);
+    try expectMarker(phase4_runtime_atomic64_manifest_source, runtime_replay_line_count_marker);
+
+    const live_gate_survey_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "try std.testing.expectEqual(@as(usize, {}), manifest.live_gate_line_count);",
+        .{runtime_line_count},
+    );
+    defer std.testing.allocator.free(live_gate_survey_marker);
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, live_gate_survey_marker);
+
+    const runtime_replay_survey_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "try std.testing.expectEqual(@as(usize, {}), manifest.runtime_replay_line_count);",
+        .{runtime_line_count},
+    );
+    defer std.testing.allocator.free(runtime_replay_survey_marker);
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, runtime_replay_survey_marker);
+}
+
 test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob pins exact" {
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
