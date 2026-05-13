@@ -26,7 +26,7 @@ Treat those anchors as the approved Phase 5 destination set unless the roadmap c
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-13 confirmed that current `master` still carries the bounded four-anchor Phase 5 packet together with its shared contributor surfaces, while the kobject anchor remains a narrower docs-and-tests packet in direct readback.
+Fresh repo-first inspection on 2026-05-13 confirmed that current `master` still carries the bounded four-anchor Phase 5 packet together with its shared contributor surfaces, while the kobject anchor remains a narrower docs-and-tests packet in direct readback and the kretprobe packet is no longer directly recoverable end to end through the current public-tree readback path.
 
 Verified shared review surfaces on `master` are:
 * `Documentation/zigux/phase5-sample-review-guide.md`
@@ -42,25 +42,29 @@ Verified shared review surfaces on `master` are:
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
 
-Verified landed Phase 5 sample packet surfaces on `master` are:
+Verified landed Phase 5 sample packet surfaces or shared review routes on `master` are:
 * `samples/zigux/bytestream_fifo.zig`
-* `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_sample.zig`
-* `zigux/tests/phase5_build.zig`
 * `zigux/tests/phase5_bytestream_fifo.zig`
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
 * `zigux/tests/phase5_kobject_example.zig`
 * `zigux/tests/phase5_kobject_example_manifest.json`
-* `zigux/tests/phase5_kretprobe_example.zig`
-* `zigux/tests/phase5_kretprobe_example_manifest.json`
-* `zigux/tests/phase5_kretprobe_example_survey.zig`
 * `zigux/tests/phase5_trace_events_sample.zig`
 * `zigux/tests/phase5_trace_events_sample_manifest.json`
 * `zigux/tests/phase5_trace_events_sample_survey.zig`
 * `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 * `make -C zigux phase5-test`
 * `make -C zigux phase5`
+
+Current direct readback still does not recover the full kretprobe packet:
+* `samples/zigux/kretprobe_example.zig`
+* `zigux/tests/phase5_build.zig`
+* `zigux/tests/phase5_kretprobe_example.zig`
+* `zigux/tests/phase5_kretprobe_example_manifest.json`
+* `zigux/tests/phase5_kretprobe_example_survey.zig`
+
+Keep shared contributor wording aligned with `Documentation/zigux/phase5-kretprobe-sample-survey.md` instead of treating those missing kretprobe paths as directly readable shipped evidence on current `master`.
 
 That same inspection kept the kobject anchor explicit through the narrower direct-readback packet `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`; keep shared contributor wording aligned with that note-plus-tests packet and the shared `zigux/tests/phase5_build.zig` replay route instead of restating `samples/zigux/kobject_example.zig` or `zigux/tests/phase5_kobject_example_survey.zig` as directly readable public-tree evidence.
 
@@ -87,8 +91,8 @@ Because the four approved Phase 5 anchors are already represented in the landed 
 * one sample-local survey-note, manifest, or replay-contract update at a time when the coupled landed sample changes
 
 Treat the current Phase 5 packet as landed but still intentionally non-runtime:
-* the approved Phase 5 packet on current `master` is still the same four-anchor packet, but only `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig` are directly readable from `samples/zigux/`; keep the kobject anchor explicit through `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` together with the shared `zigux/tests/phase5_build.zig` route
-* shared docs that describe those anchors, their paired test packets, and the shared `phase5_build.zig` route should stay aligned with that same split packet instead of reviving broader restored-public-tree wording or relying on stale kobject sample-root claims
+* the approved Phase 5 packet on current `master` is still the same four-anchor packet, but only `samples/zigux/bytestream_fifo.zig` and `samples/zigux/trace_events_sample.zig` are directly readable from `samples/zigux/`; keep the kobject anchor explicit through `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` together with the shared `zigux/tests/phase5_build.zig` route, and keep the kretprobe anchor routed through `Documentation/zigux/phase5-kretprobe-sample-survey.md` until its sample-root and focused replay paths return to direct readback
+* shared docs that describe those anchors, their paired test packets, and the shared `phase5_build.zig` route should stay aligned with that same split packet instead of reviving broader restored-public-tree wording or relying on stale kobject or kretprobe sample-root claims
 * local `make -C zigux phase5-test` and `make -C zigux phase5` routes should stay described as wrappers over the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay, not as a separate validation lane
 
 Do not reopen sample behavior broadly, and do not count runtime-loader or runtime-pilot work as part of the non-runtime Phase 5 packet.
@@ -129,7 +133,7 @@ Before landing a Phase 5 change, confirm:
 * if a shared doc claims a sample-local replay route, the corresponding directly readable survey note, paired tests, paired manifest, and shared build entrypoint can all be read directly from the repo instead of being inferred from stale wording alone; for the current kobject anchor, keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_build.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` explicit together, and do not restate `samples/zigux/kobject_example.zig` or `zigux/tests/phase5_kobject_example_survey.zig` as current public-tree evidence unless a fresh reread proves they returned
 * if the shared packet mentions the non-runtime trace-events anchor, keep `samples/zigux/trace_events_sample.zig`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` explicit together, and keep `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit across that same shared reviewer packet instead of letting ownership-lifetime cues drift behind the payload, formatting, and callback helpers
 * if a landed sample contract changes, the directly coupled survey note or manifest-backed contributor prompts move with it instead of lagging behind the sample code
-* if shared guidance touches the landed `kretprobe` packet, keep sample-owned `runRetargetReplay()`, `runRecoveryReplay()`, `runOwnershipReplay()`, and `runLifecycleGuardReplay()` explicit across the guide, survey note, checklist, sample root, and any directly readable shared replay route, together with the fixed `maxactiveBudget()` cue at `20`, the outstanding-instance exit boundary, timestamp-order rejection and recovery, the one-missed-instance summary, and post-exit handler rejection
+* if shared guidance touches the current `kretprobe` packet, keep sample-owned `runRetargetReplay()`, `runRecoveryReplay()`, `runOwnershipReplay()`, and `runLifecycleGuardReplay()` explicit across the guide and `Documentation/zigux/phase5-kretprobe-sample-survey.md`, together with the fixed `maxactiveBudget()` cue at `20`, the outstanding-instance exit boundary, timestamp-order rejection and recovery, the one-missed-instance summary, and post-exit handler rejection, and do not claim `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_build.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, or `zigux/tests/phase5_kretprobe_example_survey.zig` as directly readable current-`master` evidence unless a fresh readback confirms them
 * the lane keeps runtime-substrate claims out of scope unless a later roadmap-backed runtime lane explicitly owns them
 * later `runtime_*` sample and loader families remain clearly separated from the non-runtime Phase 5 packet
 
@@ -145,9 +149,18 @@ Keep the no-extra-formatting reminder explicit too: no standalone `samples/zigux
 
 ### `kretprobe_example`
 
-Review the landed kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+Review the current kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md` first.
 
-Keep `zigux/tests/phase5_kretprobe_example.zig` explicit as a focused replay wired through `zigux/tests/phase5_build.zig` rather than a standalone direct `zig test` entrypoint, while `zig test samples/zigux/kretprobe_example.zig` remains the sample-local direct self-check.
+Current public-tree readback still does not directly recover:
+* `samples/zigux/kretprobe_example.zig`
+* `zigux/tests/phase5_build.zig`
+* `zigux/tests/phase5_kretprobe_example.zig`
+* `zigux/tests/phase5_kretprobe_example_manifest.json`
+* `zigux/tests/phase5_kretprobe_example_survey.zig`
+
+Keep shared guidance aligned with that narrower survey-note packet instead of restating those missing paths as directly readable shipped evidence.
+
+When those directly coupled paths return to readback, keep `zigux/tests/phase5_kretprobe_example.zig` explicit as a focused replay wired through `zigux/tests/phase5_build.zig` rather than a standalone direct `zig test` entrypoint, while `zig test samples/zigux/kretprobe_example.zig` remains the sample-local direct self-check.
 
 Keep `runRetargetReplay()`, `runRecoveryReplay()`, `runOwnershipReplay()`, and `runLifecycleGuardReplay()` explicit together with pre-init retargeting, the fixed `maxactiveBudget()` cue at `20`, the outstanding-instance exit boundary, timestamp-order rejection and recovery, the one-missed-instance summary, and post-exit handler rejection. Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.
 
