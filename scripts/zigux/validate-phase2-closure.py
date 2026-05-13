@@ -119,7 +119,7 @@ PHASE2_VALIDATOR_MARKERS = [
     '    "scripts/zigux/check-phase2-tool-manifest-packets.py",',
     '    "zigux/tests/fixtures/phase2_tool_manifest.json",',
     '    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22",
     "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 32",
 ]
 
@@ -382,6 +382,7 @@ EXPECTED_CONFDATA_MANIFEST = {
         "confdata bridge leaves malformed quoted values as raw scalar values",
         "confdata bridge emits no entries for empty CONFIG symbol names",
         "confdata bridge keeps only the last assignment for duplicate symbols",
+        "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
         "confdata bridge keeps only the last state across unset and set transitions",
     ],
 }
@@ -774,11 +775,11 @@ def run_self_test_checks() -> list[str]:
         (
             "phase2_validator_missing_command_count_marker",
             validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21"),
+                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22"),
                 PHASE2_VALIDATOR_MARKERS,
                 "phase2_validator",
             ),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21"],
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 22"],
         ),
         (
             "phase2_validator_missing_required_file_count_marker",
