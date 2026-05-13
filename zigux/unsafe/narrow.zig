@@ -21,22 +21,22 @@ pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatil
     return @ptrFromInt(byteOffset(base, offset));
 }
 
-pub fn sliceAt(comptime T: type, base: usize, len: usize) []T {
-    const ptr: [*]T = @ptrFromInt(base);
+pub fn sliceAt(comptime T: type, base: usize, len: usize) []align(1) T {
+    const ptr: [*]align(1) T = @ptrFromInt(base);
     return ptr[0..len];
 }
 
-pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {
-    const ptr: [*]const T = @ptrFromInt(base);
+pub fn constSliceAt(comptime T: type, base: usize, len: usize) []align(1) const T {
+    const ptr: [*]align(1) const T = @ptrFromInt(base);
     return ptr[0..len];
 }
 
-pub fn constPointerAt(comptime T: type, addr: usize) *const T {
+pub fn constPointerAt(comptime T: type, addr: usize) *align(1) const T {
     return @ptrFromInt(addr);
 }
 
 pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {
-    const ptr: *T = @ptrFromInt(addr);
+    const ptr: *align(1) T = @ptrFromInt(addr);
     ptr.* = value;
 }
 
@@ -191,7 +191,7 @@ pub fn sliceAtInteropPolicyBytes(
     len: usize,
     unsafe_scope: u8,
     reserved: u8,
-) UnsafeScopeError![]T {
+) UnsafeScopeError![]align(1) T {
     try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
     return sliceAt(T, base, len);
 }
@@ -201,7 +201,7 @@ pub fn sliceAtInteropPolicy(
     base: usize,
     len: usize,
     policy: abi.InteropPolicy,
-) UnsafeScopeError![]T {
+) UnsafeScopeError![]align(1) T {
     try requireRawPointerBridgeInteropPolicy(policy);
     return sliceAt(T, base, len);
 }
@@ -211,7 +211,7 @@ pub fn sliceAtByte(
     base: usize,
     len: usize,
     unsafe_scope: u8,
-) UnsafeScopeError![]T {
+) UnsafeScopeError![]align(1) T {
     try requireRawPointerBridgeByte(unsafe_scope);
     return sliceAt(T, base, len);
 }
@@ -222,7 +222,7 @@ pub fn constSliceAtInteropPolicyBytes(
     len: usize,
     unsafe_scope: u8,
     reserved: u8,
-) UnsafeScopeError![]const T {
+) UnsafeScopeError![]align(1) const T {
     try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
     return constSliceAt(T, base, len);
 }
@@ -232,7 +232,7 @@ pub fn constSliceAtInteropPolicy(
     base: usize,
     len: usize,
     policy: abi.InteropPolicy,
-) UnsafeScopeError![]const T {
+) UnsafeScopeError![]align(1) const T {
     try requireRawPointerBridgeInteropPolicy(policy);
     return constSliceAt(T, base, len);
 }
@@ -242,7 +242,7 @@ pub fn constSliceAtByte(
     base: usize,
     len: usize,
     unsafe_scope: u8,
-) UnsafeScopeError![]const T {
+) UnsafeScopeError![]align(1) const T {
     try requireRawPointerBridgeByte(unsafe_scope);
     return constSliceAt(T, base, len);
 }
@@ -252,7 +252,7 @@ pub fn constPointerAtInteropPolicyBytes(
     addr: usize,
     unsafe_scope: u8,
     reserved: u8,
-) UnsafeScopeError!*const T {
+) UnsafeScopeError!*align(1) const T {
     try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
     return constPointerAt(T, addr);
 }
@@ -261,7 +261,7 @@ pub fn constPointerAtInteropPolicy(
     comptime T: type,
     addr: usize,
     policy: abi.InteropPolicy,
-) UnsafeScopeError!*const T {
+) UnsafeScopeError!*align(1) const T {
     try requireRawPointerBridgeInteropPolicy(policy);
     return constPointerAt(T, addr);
 }
@@ -270,7 +270,7 @@ pub fn constPointerAtByte(
     comptime T: type,
     addr: usize,
     unsafe_scope: u8,
-) UnsafeScopeError!*const T {
+) UnsafeScopeError!*align(1) const T {
     try requireRawPointerBridgeByte(unsafe_scope);
     return constPointerAt(T, addr);
 }
@@ -317,10 +317,24 @@ test "phase3 narrow unsafe wrappers stay bounded" {
     try std.testing.expectEqual(@as(u32, 11), value);
 
     var odd_bytes = [_]u8{ 0, 0, 0, 0 };
+    const odd_addr = addressOf(&odd_bytes[0]) + 1;
     const odd_ptr = pointerAt(u16, addressOf(&odd_bytes[0]), 1);
     odd_ptr.* = 0x1234;
     const odd_confirm: *align(1) const u16 = @ptrCast(&odd_bytes[1]);
     try std.testing.expectEqual(@as(u16, 0x1234), odd_confirm.*);
+
+    const odd_const_ptr = constPointerAt(u16, odd_addr);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_const_ptr.*);
+
+    const odd_const_slice = constSliceAt(u16, odd_addr, 1);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_const_slice[0]);
+
+    const odd_mut_slice = sliceAt(u16, odd_addr, 1);
+    odd_mut_slice[0] = 0x5678;
+    try std.testing.expectEqual(@as(u16, 0x5678), odd_const_ptr.*);
+
+    writeValueAt(u16, odd_addr, 0x9abc);
+    try std.testing.expectEqual(@as(u16, 0x9abc), odd_const_ptr.*);
 
     var slice_values = [_]u32{ 1, 2, 3 };
     const mutable_slice = sliceAt(u32, addressOf(&slice_values[0]), slice_values.len);
@@ -549,6 +563,47 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
 
     try writeValueAtByte(u32, second_addr, 73, 2);
     try std.testing.expectEqual(@as(u32, 73), bridge_values[1]);
+
+    var odd_bridge_bytes = [_]u8{ 0, 0, 0, 0, 0 };
+    const odd_bridge_addr = addressOf(&odd_bridge_bytes[0]) + 1;
+
+    try writeValueAtInteropPolicy(u16, odd_bridge_addr, 0xabcd, raw_policy);
+
+    const scoped_odd_ptr = try constPointerAtInteropPolicy(u16, odd_bridge_addr, raw_policy);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_ptr.*);
+
+    const scoped_odd_byte_ptr = try constPointerAtInteropPolicyBytes(u16, odd_bridge_addr, 2, 0);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_byte_ptr.*);
+
+    const scoped_odd_direct_ptr = try constPointerAtByte(u16, odd_bridge_addr, 2);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_direct_ptr.*);
+
+    const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_slice[0]);
+
+    const scoped_odd_slice_bytes = try constSliceAtInteropPolicyBytes(u16, odd_bridge_addr, 1, 2, 0);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_slice_bytes[0]);
+
+    const scoped_odd_slice_byte = try constSliceAtByte(u16, odd_bridge_addr, 1, 2);
+    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_slice_byte[0]);
+
+    const scoped_odd_mut_slice = try sliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);
+    scoped_odd_mut_slice[0] = 0xbcde;
+    try std.testing.expectEqual(@as(u16, 0xbcde), scoped_odd_ptr.*);
+
+    const scoped_odd_mut_slice_bytes = try sliceAtInteropPolicyBytes(u16, odd_bridge_addr, 1, 2, 0);
+    scoped_odd_mut_slice_bytes[0] = 0xcdef;
+    try std.testing.expectEqual(@as(u16, 0xcdef), scoped_odd_ptr.*);
+
+    const scoped_odd_mut_slice_byte = try sliceAtByte(u16, odd_bridge_addr, 1, 2);
+    scoped_odd_mut_slice_byte[0] = 0xdef0;
+    try std.testing.expectEqual(@as(u16, 0xdef0), scoped_odd_ptr.*);
+
+    try writeValueAtInteropPolicyBytes(u16, odd_bridge_addr, 0x2468, 2, 0);
+    try std.testing.expectEqual(@as(u16, 0x2468), scoped_odd_ptr.*);
+
+    try writeValueAtByte(u16, odd_bridge_addr, 0x1357, 2);
+    try std.testing.expectEqual(@as(u16, 0x1357), scoped_odd_ptr.*);
 
     try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));
