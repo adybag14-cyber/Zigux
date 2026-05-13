@@ -106,6 +106,21 @@ test "phase14 workqueue anchor packet keeps the delayed-work governance follow-t
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning ownership");
 }
 
+test "phase14 workqueue survey keeps hotplug and scheduler-visible checkpoints explicit" {
+    const workqueue_manifest_source = try readWorkqueueManifestSource();
+    defer std.testing.allocator.free(workqueue_manifest_source);
+
+    const workqueue_survey_source = try readWorkqueueSurveySource();
+    defer std.testing.allocator.free(workqueue_survey_source);
+
+    try expectContains(workqueue_manifest_source, "\"id\": \"phase14-workqueue-scheduler-visible-worker-state-refinement\"");
+    try expectContains(workqueue_survey_source, "hotplug-topology-rebinding");
+    try expectContains(workqueue_survey_source, "scheduler-visible-worker-state-refinement");
+    try expectContains(workqueue_survey_source, "CPU-hotplug pool rebinding");
+    try expectContains(workqueue_survey_source, "scheduler-facing runnable-state transitions");
+    try expectContains(workqueue_survey_source, "hotplug-driven worker migration");
+}
+
 test "phase14 workqueue slice note keeps the bridge packet reviewable" {
     const workqueue_slice_source = try readWorkqueueSliceSource();
     defer std.testing.allocator.free(workqueue_slice_source);
