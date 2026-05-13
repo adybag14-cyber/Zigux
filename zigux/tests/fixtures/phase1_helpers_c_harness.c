@@ -86,10 +86,18 @@ static void run_find_bit_section(void)
 	unsigned long boundary_and_rhs[2] = {1UL << boundary, 0};
 	unsigned long boundary_zero_map[2] = {~(1UL << boundary), ~0UL};
 	unsigned long tail_nbits = BITS_PER_LONG + 5;
+	unsigned long tail_boundary = tail_nbits - 1;
 	unsigned long tail_bitmap[2] = {0, 1UL << 9};
 	unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};
 	unsigned long tail_last_bitmap[2] = {0, (1UL << 3) | (1UL << 10)};
 	unsigned long tail_empty_last_bitmap[2] = {0, 1UL << 10};
+	unsigned long tail_boundary_set_map[2] = {0, (1UL << 4) | (1UL << 7)};
+	unsigned long tail_boundary_and_lhs[2] = {0, (1UL << 4) | (1UL << 7)};
+	unsigned long tail_boundary_and_rhs[2] = {0, (1UL << 4) | (1UL << 7)};
+	unsigned long tail_boundary_zero_map[2] = {
+		~0UL,
+		BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5) & ~(1UL << 4),
+	};
 	unsigned long clump_bitmap[2] = {0, 0};
 	unsigned long tail_clump_bitmap[2] = {0, 1UL << 3};
 	unsigned long empty_clump_bitmap[1] = {0};
@@ -119,6 +127,9 @@ static void run_find_bit_section(void)
 	printf("\"inclusive_boundary_next\":%lu,", find_next_bit(boundary_set_map, boundary_nbits, boundary));
 	printf("\"inclusive_boundary_zero\":%lu,", find_next_zero_bit(boundary_zero_map, boundary_nbits, boundary));
 	printf("\"inclusive_boundary_and\":%lu,", find_next_and_bit(boundary_and_lhs, boundary_and_rhs, boundary_nbits, boundary));
+	printf("\"tail_inclusive_boundary_next\":%lu,", find_next_bit(tail_boundary_set_map, tail_nbits, tail_boundary));
+	printf("\"tail_inclusive_boundary_zero\":%lu,", find_next_zero_bit(tail_boundary_zero_map, tail_nbits, tail_boundary));
+	printf("\"tail_inclusive_boundary_and\":%lu,", find_next_and_bit(tail_boundary_and_lhs, tail_boundary_and_rhs, tail_nbits, tail_boundary));
 	printf("\"past_nbits_next\":%lu,", find_next_bit((unsigned long[]){0}, 7, 11));
 	printf("\"past_nbits_zero\":%lu,", find_next_zero_bit((unsigned long[]){0}, 7, 11));
 	printf("\"past_nbits_and\":%lu,", find_next_and_bit((unsigned long[]){0}, (unsigned long[]){0}, 7, 11));
