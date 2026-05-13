@@ -16,6 +16,12 @@ C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_c_harness.c
 HELPER_SOURCE = ROOT / "lib" / "checksum.zig"
 FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
+REQUIRED_PACKET_PATHS = (
+    ("harness", C_HARNESS),
+    ("helper source", HELPER_SOURCE),
+    ("fixture source", FIXTURE_SOURCE),
+    ("runner", ZIG_RUNNER),
+)
 EXPECTED_SORTED_LINES = sorted(
     [
         "add16\tsaturated plus one wraps with carry\t0x0001",
@@ -67,6 +73,14 @@ def require_tool(name: str, env_name: str) -> str:
     if tool is None:
         raise SystemExit(f"missing required tool: {name}")
     return tool
+
+
+def collect_missing_required_paths(required_paths: tuple[tuple[str, Path], ...] = REQUIRED_PACKET_PATHS) -> list[str]:
+    missing: list[str] = []
+    for label, path in required_paths:
+        if not path.exists():
+            missing.append(f"missing {label}: {path}")
+    return missing
 
 
 def validate_required_path(path: Path, label: str) -> None:
@@ -187,6 +201,15 @@ def build_zig_build_text() -> str:
     )
 
 
+def emit_missing_packet_report(missing_paths: list[str]) -> int:
+    print("PHASE6_CHECKSUM_C_PARITY=blocked")
+    print("PHASE6_CHECKSUM_C_PARITY_BLOCKERS_START")
+    for item in missing_paths:
+        print(item)
+    print("PHASE6_CHECKSUM_C_PARITY_BLOCKERS_END")
+    return 1
+
+
 def sorted_lines(stdout: str) -> list[str]:
     return sorted(stdout.strip().splitlines())
 
@@ -251,6 +274,21 @@ def run_self_test() -> int:
         "missing_fixture_source",
         lambda: validate_required_path(Path("/tmp/phase6-missing-fixture.zig"), "fixture source"),
         "missing fixture source: /tmp/phase6-missing-fixture.zig",
+    )
+    assert_equal(
+        "collect_missing_required_paths",
+        collect_missing_required_paths(
+            (
+                ("helper source", Path("/tmp/phase6-missing-helper.zig")),
+                ("fixture source", Path("/tmp/phase6-missing-fixture.zig")),
+                ("runner", Path("/tmp/phase6-missing-runner.zig")),
+            )
+        ),
+        [
+            "missing helper source: /tmp/phase6-missing-helper.zig",
+            "missing fixture source: /tmp/phase6-missing-fixture.zig",
+            "missing runner: /tmp/phase6-missing-runner.zig",
+        ],
     )
     build_text = build_zig_build_text()
     assert_equal(
@@ -333,12 +371,12 @@ def run_self_test() -> int:
             "self-test-mismatch",
         ),
         "phase6-checksum-c-parity:self-test-mismatch:c_output_mismatch:"
-        "expected=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000001']:"
-        "actual=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000002']",
+        "expected=['compute\\tempty\\t0xffff', 'partial\\tempty\\t0x00000001']:"
+        "actual=['compute\\tempty\\t0xffff', 'partial\\tempty\\t0x00000002']",
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -350,6 +388,10 @@ def main() -> int:
     if args.self_test:
         os.environ["PHASE6_SELFTEST_TOOL"] = "/tmp/zig-self-test"
         return run_self_test()
+
+    missing_paths = collect_missing_required_paths()
+    if missing_paths:
+        return emit_missing_packet_report(missing_paths)
 
     zig = require_tool("zig", "ZIG")
     cc = require_tool("cc", "CC")
