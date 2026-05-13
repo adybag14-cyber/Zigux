@@ -85,14 +85,16 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("study_only", manifest.study_only_governance.status_bucket);
     try std.testing.expectEqualStrings("", manifest.study_only_governance.ready_next_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
-    try std.testing.expectEqualStrings("phase14-ring-buffer-tracefs-reader-serialization-followup", manifest.study_only_governance.last_closed_followup);
+    try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
     try std.testing.expectEqualStrings("same_packet_truthfulness_repairs_only", manifest.study_only_governance.lane_reopen_scope);
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "parked study-only governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "maintenance-mode handoff") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reserve-commit-publication"));
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reader-page-consume-boundary"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-read-page-extraction-followup", "starter_landed"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-tracefs-reader-serialization-followup", "starter_landed"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence"));
 }
 
@@ -114,5 +116,7 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-zig-port-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-read-page-extraction-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-tracefs-reader-serialization-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "kernel/trace/ring_buffer.zig") != null);
 }
