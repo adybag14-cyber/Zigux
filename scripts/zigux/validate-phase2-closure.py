@@ -20,6 +20,12 @@ PHASE2_ARTIFACT_TOOLS_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
 )
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
+PHASE2_FIXDEP_NEXT_STEP_NOTE = (
+    ROOT / "Documentation" / "zigux" / "phase2-fixdep-next-step-note.md"
+)
+PHASE2_CONFDATA_BRIDGE_SURVEY = (
+    ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
+)
 PHASE2_MAKEFILE = ROOT / "zigux" / "Makefile"
 PHASE2_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 FIXDEP_CASES = ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json"
@@ -36,6 +42,15 @@ FIXDEP_CLOSURE_MARKER = (
     "cases that preserve the original parse-error or missing-dependency stderr contract"
 )
 
+PHASE2_COMPANION_NOTES_MARKER = (
+    "`Documentation/zigux/phase2-fixdep-next-step-note.md` and "
+    "`Documentation/zigux/phase2-confdata-bridge-survey.md` are active Phase 2 companion notes "
+    "on current `master`: the fixdep note keeps the bounded checker follow-through explicit after "
+    "the live eleven-case packet moved ahead of the older gate wording, and the confdata survey "
+    "keeps the roadmap-backed scaffold marked closed so future reopening stays bridge-local "
+    "instead of recreating missing-scaffold claims."
+)
+
 PHASE2_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
@@ -45,6 +60,7 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
     FIXDEP_CLOSURE_MARKER,
+    PHASE2_COMPANION_NOTES_MARKER,
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
@@ -567,6 +583,17 @@ def run_self_test_checks() -> list[str]:
             [f"phase2_closure:missing:{FIXDEP_CLOSURE_MARKER}"],
         ),
         (
+            "companion_notes_marker_missing",
+            validate_required_markers(
+                "\n".join(
+                    marker for marker in PHASE2_REQUIRED_SOURCE_MARKERS if marker != PHASE2_COMPANION_NOTES_MARKER
+                ),
+                PHASE2_REQUIRED_SOURCE_MARKERS,
+                "phase2_closure",
+            ),
+            [f"phase2_closure:missing:{PHASE2_COMPANION_NOTES_MARKER}"],
+        ),
+        (
             "conf_cases_ok",
             validate_case_list(
                 {"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]},
@@ -745,6 +772,8 @@ def main() -> int:
         PHASE2_TOOL_MANIFEST,
         PHASE2_ARTIFACT_TOOLS_MANIFEST,
         PHASE2_CLOSURE_DOC,
+        PHASE2_FIXDEP_NEXT_STEP_NOTE,
+        PHASE2_CONFDATA_BRIDGE_SURVEY,
         PHASE2_MAKEFILE,
         PHASE2_WORKFLOW,
         FIXDEP_CASES,
@@ -834,7 +863,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=17")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=18")
         return 0
 
     if issues:
