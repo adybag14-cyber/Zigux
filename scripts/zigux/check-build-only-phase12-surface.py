@@ -180,7 +180,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
-    "the next honest same-lane follow-through is a one-file scripts-root reread",
+    "the next honest same-lane follow-through is a one-file `Documentation/zigux/review-checklist.md` reread",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
