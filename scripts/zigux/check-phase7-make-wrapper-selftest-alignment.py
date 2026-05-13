@@ -66,10 +66,12 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7-rbtree-survey",
         "make -C zigux phase7-test",
         "make -C zigux phase7",
-        "`zigux/tests/phase7_rbtree.zig` still fails direct current-path reads",
-        "`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
-        "are back on `master`",
-        "The older string-helpers missing-pair reminder is no longer the live blocker",
+        "`Documentation/zigux/phase7-helper-lane-sequencing.md`,",
+        "`Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/README.md`, and",
+        "`zigux/tests/phase7_build.zig` now all read back `zigux/tests/phase7_rbtree.zig`",
+        "shared bundle reminders rather than evidence that the full four-helper packet is green on current `master`",
+        "The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
+        "`zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
         "`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated",
         "`zigux/tests/README.md` is also a shared-control reminder surface owned by",
     ],
@@ -78,7 +80,7 @@ REQUIRED_MARKERS = {
         "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
         "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
         "`string_helpers` is parked as a landed helper-local packet",
-        "`rbtree` is parked in a helper-local reminder posture",
+        "`rbtree` is parked as a landed helper-local packet",
         "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
@@ -235,26 +237,26 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "The older string-helpers missing-pair reminder is no longer the live blocker",
+            "The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
             "missing_live_blocker_note",
         )
         expect_missing_marker(
             "missing_live_blocker_note",
             tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: The older string-helpers missing-pair reminder is no longer the live blocker",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
         )
         write_fixture_root(tmp_root)
 
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "`zigux/tests/phase7_rbtree.zig` still fails direct current-path reads",
-            "missing_rbtree_blocker_marker",
+            "`zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
+            "missing_rbtree_route_present_marker",
         )
         expect_missing_marker(
-            "missing_rbtree_blocker_marker",
+            "missing_rbtree_route_present_marker",
             tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `zigux/tests/phase7_rbtree.zig` still fails direct current-path reads",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
         )
         write_fixture_root(tmp_root)
 
