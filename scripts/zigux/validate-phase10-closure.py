@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
@@ -46,6 +47,7 @@ CLOSURE_DOC_MARKERS = [
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "shared reminder-surface drift",
 ]
 
@@ -422,6 +424,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS)
         + "\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-ring-slice.md": "# Phase 10 virtio_ring Slice\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": (
             "#!/usr/bin/env python3\n"
@@ -457,6 +460,13 @@ def write_fixture(root: Path) -> None:
 def expect_marker_missing(root: Path, expected: str, error_label: str) -> None:
     if expected not in collect_missing_markers(root):
         raise SystemExit(error_label)
+
+
+def expect_missing_file(root: Path, expected: str, error_label: str) -> None:
+    missing_files = collect_missing_files(root)
+    if expected not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(f"{error_label}:actual={actual}")
 
 
 def expect_manifest_provenance_mismatch(root: Path, expected: str, error_label: str) -> None:
@@ -507,6 +517,15 @@ def run_self_test() -> int:
             )
         expect_failed_commands(root, [], "phase10-closure-self-test:baseline_command_failed")
 
+        ring_slice = root / "Documentation/zigux/phase10-virtio-ring-slice.md"
+        ring_slice.unlink()
+        expect_missing_file(
+            root,
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "phase10-closure-self-test:missing_ring_slice_file_not_detected",
+        )
+        write_fixture(root)
+
         makefile = root / "zigux/Makefile"
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace("phase10-validate:\n", "", 1),
@@ -516,6 +535,17 @@ def run_self_test() -> int:
         write_fixture(root)
 
         closure = root / "Documentation/zigux/phase10-closure-evidence.md"
+        closure.write_text(
+            closure.read_text(encoding="utf-8").replace("Documentation/zigux/phase10-virtio-ring-slice.md\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "closure:Documentation/zigux/phase10-virtio-ring-slice.md",
+            "phase10-closure-self-test:missing_ring_slice_marker_not_detected",
+        )
+        write_fixture(root)
+
         closure.write_text(
             closure.read_text(encoding="utf-8").replace("shared reminder-surface drift\n", "", 1),
             encoding="utf-8",
@@ -976,7 +1006,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=35")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
