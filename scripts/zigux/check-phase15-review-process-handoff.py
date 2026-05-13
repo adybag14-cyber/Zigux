@@ -20,6 +20,7 @@ SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 FREEZE_MAP_MANIFEST_PATH = "zigux/tests/phase15_freeze_map_manifest.json"
 PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
+READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 
 NOTE_MARKERS = (
     "## Trigger Conditions",
@@ -223,10 +224,15 @@ def _validate_governance_alignment(
     review_manifest: dict,
     freeze_manifest: dict,
     parity_scorecard: dict,
+    readiness_manifest: dict,
     issues: list[str],
 ) -> None:
     if review_manifest.get("current_approval_state") != "no_freeze_map_status_change_approved":
         issues.append("manifest:approval_state_mismatch")
+
+    readiness = _require_json_object(readiness_manifest, "readiness_manifest", issues)
+    if readiness.get("surveyed_commit_mode") != "dated_master_readback":
+        issues.append("readiness_manifest:surveyed_commit_mode")
 
     posture = _require_json_object(parity_scorecard.get("posture"), "parity_scorecard:posture", issues)
     if posture.get("architecture_council_status_change_approval_recorded") is not False:
@@ -236,8 +242,14 @@ def _validate_governance_alignment(
     if metrics.get("architecture_council_status_change_approval_count") != 0:
         issues.append("parity_scorecard:approval_count_mismatch")
 
+    review_surveyed_commit = review_manifest.get("surveyed_commit")
     freeze_surveyed_commit = freeze_manifest.get("surveyed_commit")
     parity_surveyed_commit = parity_scorecard.get("surveyed_commit")
+    readiness_surveyed_commit = readiness.get("surveyed_commit")
+    if review_surveyed_commit != readiness_surveyed_commit:
+        issues.append("governance_alignment:review_vs_readiness_surveyed_commit")
+    if freeze_surveyed_commit != readiness_surveyed_commit:
+        issues.append("governance_alignment:freeze_vs_readiness_surveyed_commit")
     if freeze_surveyed_commit != parity_surveyed_commit:
         issues.append("governance_alignment:freeze_vs_parity_surveyed_commit")
 
@@ -300,6 +312,7 @@ def validate(root: Path) -> list[str]:
         TESTS_README_PATH,
         FREEZE_MAP_MANIFEST_PATH,
         PARITY_SCORECARD_PATH,
+        READINESS_MANIFEST_PATH,
     )
     for rel in required_files:
         if not (root / rel).exists():
@@ -319,6 +332,7 @@ def validate(root: Path) -> list[str]:
     review_manifest = json.loads(_read(root / MANIFEST_PATH))
     freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
     parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+    readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
 
     _require_items(
         review_manifest.get("ownership_evidence_fields", []),
@@ -369,7 +383,13 @@ def validate(root: Path) -> list[str]:
     else:
         _require_text_markers(next_step, HANDOFF_NEXT_STEP_MARKERS, "manifest_handoff_next_step", issues)
 
-    _validate_governance_alignment(review_manifest, freeze_manifest, parity_scorecard, issues)
+    _validate_governance_alignment(
+        review_manifest,
+        freeze_manifest,
+        parity_scorecard,
+        readiness_manifest,
+        issues,
+    )
 
     return issues
 
@@ -387,6 +407,7 @@ def _seed_fixture_tree(root: Path) -> None:
         root / MANIFEST_PATH,
         json.dumps(
             {
+                "surveyed_commit": "current-master-readback-2026-05-12",
                 "current_approval_state": "no_freeze_map_status_change_approved",
                 "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
                 "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
@@ -497,6 +518,17 @@ def _seed_fixture_tree(root: Path) -> None:
                         },
                     },
                 ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    _write(
+        root / READINESS_MANIFEST_PATH,
+        json.dumps(
+            {
+                "surveyed_commit_mode": "dated_master_readback",
+                "surveyed_commit": "current-master-readback-2026-05-12",
             },
             indent=2,
         )
@@ -613,10 +645,33 @@ def run_self_test() -> int:
         _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
         _assert_only(
             validate(root),
-            [
-                "governance_alignment:freeze_vs_parity_surveyed_commit",
-            ],
+            ["governance_alignment:freeze_vs_parity_surveyed_commit"],
             "surveyed_commit_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
+        readiness_manifest["surveyed_commit"] = "current-master-readback-2026-05-11"
+        _write(root / READINESS_MANIFEST_PATH, json.dumps(readiness_manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [
+                "governance_alignment:review_vs_readiness_surveyed_commit",
+                "governance_alignment:freeze_vs_readiness_surveyed_commit",
+            ],
+            "readiness_surveyed_commit_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
+        readiness_manifest["surveyed_commit_mode"] = "exact_head"
+        _write(root / READINESS_MANIFEST_PATH, json.dumps(readiness_manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["readiness_manifest:surveyed_commit_mode"],
+            "readiness_surveyed_commit_mode",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -712,7 +767,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 8}"
+        f"{len(NOTE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + 11}"
     )
     return 0
 
