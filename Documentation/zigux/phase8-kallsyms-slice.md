@@ -1,6 +1,58 @@
-# Phase 8 Kallsyms Slice This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around `tools/lib/symbol/kallsyms.c`.
-## Status - `PHASE8_STATUS=parked` - `PHASE8_SLICE=kallsyms-parse-wrapper-parked` - scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, an already-open-file adapter, and direct parse wrappers only - product boundary: - `tools/lib/symbol/kallsyms.zig` - `zigux/tests/phase8_kallsyms.zig` - `zigux/tests/phase8_kallsyms_only_build.zig` - `zigux/tests/phase8_help_kallsyms_only_build.zig` - `zigux/tests/phase8_build.zig` ## Why this slice exists The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
-This parked packet stays helper-first expansion inside that `tools/lib/symbol/*.zig` family. Its review surface remains on output-stable tooling behavior rather than downstream symbol plumbing. The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-ups added thin reader-backed, path-backed, and already-open-file adapters.
-The parked review surface still includes one direct `kallsymsParseFile()` wrapper for caller-owned open files alongside one direct `kallsymsParse()` wrapper that opens a path, without widening into ELF emission or downstream symbol plumbing. ## Gates 1. run the shared validator-first route - `make -C zigux phase8-validate` 2. run the focused make wrapper - `make -C zigux phase8-kallsyms-test` 3. run the focused Zig module tests - `zig test tools/lib/symbol/kallsyms.zig` 4.
-run the focused shard replay - `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all` 5. run the focused shared help and symbol gate - `make -C zigux phase8-help-kallsyms-test` - `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all` 6. run the dedicated Phase 8 tooling gate - `zig build test --build-file zigux/tests/phase8_build.zig --summary all` 7.
-run the convenience target - `make -C zigux phase8` ## Current parity surface The current parked parser-and-wrapper slice covers: - `kallsyms2elf_binding()`-adjacent binding classification - `kallsyms2elf_type()`-adjacent symbol-type classification - `kallsyms__is_function()`-adjacent function detection - injected per-line parsing for `" "` records with malformed-line skipping - injected chunked reader iteration that reconstructs split lines before reusing the same parser - thin reader-backed parsing that reuses the same malformed-line and callback semantics - thin path-backed parsing that opens a file and feeds the same reader-backed path - one direct `kallsymsParseFile()` wrapper that accepts an already-open file plus a C-shaped callback contract and stops on the same integer callback result the C helper returns - one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns - direct parser now truncates oversized symbol names to `KSYM_NAME_LEN` on both direct and chunk-reconstructed parse paths without keeping a parser-local long-name error contract that the C helper never exposes - weak-object `V` and `v` classes still follow the current C header contract: only uppercase `W` maps to weak binding, while `V` and `v` stay object-typed and keep the normal uppercase-global and lowercase-local binding split The current tests check: - uppercase and lowercase symbol types map to the same binding and function classifications as the C helper - valid symbol lines expose the expected address, type, and name slices - malformed lines are skipped without stopping iteration - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries - CRLF-terminated records currently preserve the trailing carriage return in callback-visible symbol-name slices, matching the live module test and the focused `phase8_kallsyms` wrapper replay on current `master` - the thin reader, path, and already-open-file adapters preserve the same callback and malformed-line behavior as the lower-level parser - the direct `kallsymsParseFile()` wrapper keeps an already-open file handle on the same callback-stop contract without reopening path ownership inside the helper - the direct `kallsymsParse()` wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle - the focused `phase8_help_kallsyms_only_build.zig` shard and `make -C zigux phase8-help-kallsyms-test` route keep the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices - direct parser truncates oversized symbol names to `KSYM_NAME_LEN` on both the direct parse path and the chunk-boundary reconstruction path instead of retaining a parser-local long-name error contract that the C helper never exposes - injected callback failures bubble out unchanged so the parked parser does not hide downstream review or tooling errors - weak-object `V` and `v` classes keep the same header-backed object typing and binding split that the current C helper family exposes, so the parked packet stays explicit about that narrow parity choice ## Non-goals This slice does not yet claim: - direct `api/io.h` parity for `kallsyms__parse()` - the exact Linux `open()` or `close()` path instead of Zig std I/O wrappers - ELF symbol emission or downstream integration with larger symbol tooling ## Next bounded step Park the `kallsyms` lane unless a fresh parity gap appears, and prefer the next Phase 8 helper-first follow-up from `tools/lib/subcmd/help.zig` or the next `tools/lib/bpf/zigux_segments/` slice.
+# Phase 8 Kallsyms Slice
+
+This document tracks the bounded Phase 8 userspace-adjacent tooling survey lane for Zigux around `tools/lib/symbol/kallsyms.c`.
+
+## Status
+
+- `PHASE8_STATUS=parked`
+- `PHASE8_SLICE=kallsyms-roadmap-reminder-packet`
+- scope: roadmap-backed symbol-lane reminder work, exact repo-read truthfulness, and one future helper-first reopen cue only
+- roadmap anchor:
+  - `tools/lib/symbol/kallsyms.c`
+- current directly readable same-packet surface from this environment:
+  - `Documentation/zigux/phase8-kallsyms-slice.md`
+- current repo-read gaps from this environment:
+  - `tools/lib/symbol/kallsyms.zig`
+  - `zigux/tests/phase8_kallsyms.zig`
+  - `zigux/tests/phase8_kallsyms_only_build.zig`
+
+## Why this slice exists
+
+The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
+
+That keeps `kallsyms` in scope as a valid helper-first tooling lane, but the current exact GitHub file reads available in this run do not expose the helper or focused test packet paths that older reminder text described as already landed. The honest Phase 8 follow-through in this lane is therefore note truthfulness first, not speculative parser claims.
+
+## Current repo-read surface
+
+The current lane should be treated as a roadmap-backed reminder packet rather than as direct evidence of a landed parser-and-wrapper helper family.
+
+What this run could verify directly:
+
+- the roadmap still keeps `tools/lib/symbol/kallsyms.c` inside Phase 8 userspace-adjacent tooling expansion
+- this slice note is still present on current `master`
+- exact GitHub contents reads from this environment still return `404` for `tools/lib/symbol/kallsyms.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`
+
+Because of that read surface, this note must not describe the following as current landed evidence:
+
+- a live `kallsyms` Zig parser implementation
+- a focused `phase8_kallsyms` replay packet
+- direct CRLF behavior as a current repo-visible parser fact
+- callable `make -C zigux phase8-kallsyms-test` parity evidence tied to files this run could not read
+
+## Non-goals
+
+This slice does not currently claim:
+
+- direct `kallsyms__parse()` parity
+- a shipped `tools/lib/symbol/kallsyms.zig` helper on current repo-read evidence
+- focused `zigux/tests/phase8_kallsyms*.zig` shard coverage on current repo-read evidence
+- ELF emission or downstream symbol-tooling integration
+
+## Next bounded step
+
+Leave the `kallsyms` lane parked unless one of the following happens:
+
+- `tools/lib/symbol/kallsyms.zig` and its focused `zigux/tests/phase8_kallsyms*.zig` companions become directly readable again from one consistent source
+- a same-packet reminder surface drifts and starts overstating current `kallsyms` helper visibility again
+
+If the helper and focused test files become directly readable again, reopen this lane with one bounded helper-local or note-local truthfulness pass instead of widening into unrelated Phase 8 tooling work.
