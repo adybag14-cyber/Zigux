@@ -83,7 +83,11 @@ REQUIRED_MARKERS = {
     EXEC_CMD_SLICE_PATH: (
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         "helper-first, output-stable deferred-exec planning",
+        "injected environment setup",
+        "`setupPathWithPwd()` keeping the logical-`PWD` acceptance rule reviewable without widening into broader process or environment side effects",
         "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers",
+        "a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists",
+        "a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`",
         "make -C zigux phase8-validate",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
@@ -95,8 +99,14 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
     ),
     EXEC_CMD_SOURCE_PATH: (
+        "pub fn execCmdInit(",
+        "pub fn setupPathWithPwd(",
         "pub fn buildDeferredExecvCall(",
         "pub fn buildDeferredExeclCall(",
+        'test "execCmdInit and setArgvExecPath propagate the expected environment keys" {',
+        'test "setupPathWithPwd reuses the logical PWD only when the injected identities match" {',
+        'test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {',
+        'test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {',
     ),
     EXEC_CMD_C_PATH: (
         "int execv_cmd",
@@ -183,11 +193,27 @@ def run_self_test() -> int:
             (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
-            (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
+            (EXEC_CMD_SLICE_PATH, "injected environment setup"),
+            (
+                EXEC_CMD_SLICE_PATH,
+                "`setupPathWithPwd()` keeping the logical-`PWD` acceptance rule reviewable without widening into broader process or environment side effects",
+            ),
+            (
+                EXEC_CMD_SLICE_PATH,
+                "a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists",
+            ),
+            (
+                EXEC_CMD_SLICE_PATH,
+                "a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`",
+            ),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
-            (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn execCmdInit("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn setupPathWithPwd("),
+            (EXEC_CMD_SOURCE_PATH, 'test "execCmdInit and setArgvExecPath propagate the expected environment keys" {'),
+            (EXEC_CMD_SOURCE_PATH, 'test "setupPathWithPwd reuses the logical PWD only when the injected identities match" {'),
+            (EXEC_CMD_SOURCE_PATH, 'test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {'),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
