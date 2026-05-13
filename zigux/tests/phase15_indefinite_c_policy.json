@@ -1,10 +1,14 @@
 {
   "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit": "current-master-readback-2026-05-13",
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit_mode_reason": "This indefinite-C packet now uses a dated master-readback marker because the previously recorded exact head drifted behind current master while the stay-in-C posture itself remained unchanged.",
+  "surveyed_commit_mode_reason": "This indefinite-C packet now carries a 2026-05-13 dated master-readback marker because the prior 2026-05-12 marker was no longer current while the stay-in-C posture itself remained unchanged.",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
+  "related_roadmap_requirements": [
+    "explicit stay-in-C decisions where warranted",
+    "policy for code that remains in C indefinitely"
+  ],
   "anchors": [
     "kernel/sched/core.c",
     "mm/page_alloc.c",
@@ -145,11 +149,18 @@
       "why_now": "The packet must keep its lane key, supporting artifact list, and landed-versus-blocked records aligned with the live policy note so exception and blocker posture do not drift silently."
     },
     {
+      "id": "phase15-indefinite-c-roadmap-continuity-survey",
+      "status": "landed",
+      "kind": "roadmap_alignment",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The dedicated stay-in-C packet now says explicitly that it closes both the earlier roadmap requirement for explicit stay-in-C decisions where warranted and the Phase 15 requirement for code that remains in C indefinitely, so that cross-phase governance continuity is reviewable instead of implied."
+    },
+    {
       "id": "phase15-indefinite-c-dated-readback-provenance-refresh",
       "status": "landed",
       "kind": "provenance_refresh",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The previously recorded exact head drifted behind current master, so this packet now records a dated readback marker instead of implying fresh exact-head parity."
+      "why_now": "The previously recorded 2026-05-12 dated readback marker was no longer current, so this packet now records the fresh 2026-05-13 survey marker instead of implying newer readback through the older marker."
     },
     {
       "id": "phase15-indefinite-c-maintenance-handoff",
