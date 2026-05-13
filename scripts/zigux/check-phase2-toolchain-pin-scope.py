@@ -164,6 +164,8 @@ EXACT_SURFACE_COUNTS = {
         "if the change touches the shared Phase 2 toolchain packet": 1,
         "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
         "make -C zigux phase2-validate": 1,
+        "make -C zigux phase2-tools": 1,
+        "make -C zigux phase2-kconfig": 1,
     },
     "phase2_closure_doc": {
         "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1": 1,
