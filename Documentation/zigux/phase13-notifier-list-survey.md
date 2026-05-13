@@ -20,13 +20,13 @@ truthfulness work without promoting it into a separate shared replay count.
 ## Survey Snapshot
 
 - lane key: `P13-L13`
-- surveyed state: `current master` readback refreshed on `2026-05-12`
+- surveyed state: `current master` readback refreshed on `2026-05-13`
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
 
 ## Current Repo Reality
 
-As of `2026-05-12`, current `master` can still materialize these adjacent
+As of `2026-05-13`, current `master` can still materialize these adjacent
 notifier-facing surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
@@ -58,6 +58,10 @@ gaps instead of independently shipped evidence:
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 
+Those still-missing helper paths are the nearest `list_head` and `hlist` interop
+gaps in this adjacent packet, so the survey should keep them explicit instead of
+implying that current `master` already ships a broader list bridge.
+
 The direct `zigux/tests/phase13_build.zig` route is also not materialized on current
 `master`, so keep the shipped validator-first handles above explicit instead of
 presenting that missing build file as adjacent shipped evidence.
@@ -72,6 +76,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 - it keeps the shipped `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations explicit as adjacent evidence without claiming HVC runtime parity
 - it keeps the broader validator-first and Linux-style replay handles explicit
+- it keeps the still-missing `list_head` and `hlist` helper surfaces explicit as repo-reality gaps
 - it treats still-missing direct notifier, helper, header, and tests-root companions as repo-reality gaps
 - it does not add extra shared replay steps beyond the current validator-first shared-helper release handle
 - it should not claim broader callback, registration, or HVC runtime parity while those direct companions remain absent on current `master`
@@ -101,8 +106,8 @@ Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations, the shared
 release-notes and roadmap-traceability packet, the paired Landlock ownership and
 syscall-governance notes, and the stable `phase13-validate` or `phase13` make routes
 visible while framing the still-missing direct notifier packet, dedicated header,
-tests-root, and list-helper companions as repo-reality gaps rather than shipped
-current-`master` evidence.
+tests-root, `list_head`, and `hlist` helper companions as repo-reality gaps rather
+than shipped current-`master` evidence.
 
 ## Non-goals
 
