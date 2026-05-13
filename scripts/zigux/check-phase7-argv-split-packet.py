@@ -85,6 +85,8 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split_manifest.json",
         "PHASE7_ARGV_SPLIT_LANE=P7-L09",
         "P7-L09 owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        "The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
+        "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
@@ -434,6 +436,34 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
+            "",
+            "helper_lane_note_tests_root_owner_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_note_tests_root_owner_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: The tests root also needs explicit shared-control ownership because `zigux/tests/README.md` still presents the missing `string_helpers` helper-plus-replay pair as current-master entrypoints",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
+            "",
+            "helper_lane_note_shared_tests_owner_rule",
+        )
+        expect_missing_marker(
+            "helper_lane_note_shared_tests_owner_rule",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
             "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
             "",
@@ -614,7 +644,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 26
+    case_count = 28
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
