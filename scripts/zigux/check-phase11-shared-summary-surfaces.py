@@ -58,8 +58,14 @@ REQUIRED_MARKERS = {
     "docs_root": [
         "Phase 11 notes -",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
-        "`hvc_cleanup()`",
+        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "`zigux/tests/phase11_hvc_console_manifest.json`",
+        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
+        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
     ],
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet",
