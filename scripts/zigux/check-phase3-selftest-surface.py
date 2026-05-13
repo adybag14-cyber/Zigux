@@ -21,11 +21,20 @@ README_MARKERS = ("validate_phase3_selftest.py",)
 README_PHASE3_PREFIX = "Phase 3 notes - "
 README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
 README_PHASE3_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/phase3-validator-support-surface.md": 1,
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
-    "zigux/uapi/dev_t.zig": 1,
+    "Documentation/zigux/phase3-abi-slice.md": 1,
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md": 1,
+    "scripts/zigux/validate-phase3.py": 1,
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py": 1,
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py": 1,
+    "scripts/zigux/check-phase3-selftest-surface.py": 1,
+    "scripts/zigux/phase3_catalog.py": 1,
+    "scripts/zigux/validate_phase3_selftest.py": 1,
+    "python3 scripts/zigux/run-phase3-checks.py --slug abi": 1,
+    "zig build phase3-test --build-file zigux/tests/build.zig": 1,
+    "make -C zigux phase3-validate": 1,
+    "make -C zigux phase3-selftest": 1,
 }
 
 NOTE_POLICY_MARKERS = (
@@ -407,11 +416,48 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        docs_path.write_text(_read(docs_path).replace("validate_phase3_selftest.py", "", 1), encoding="utf-8")
+        docs_path.write_text(
+            _read(docs_path).replace("validate_phase3_selftest.py", "", 2),
+            encoding="utf-8",
+        )
         issues = validate_repo(root)
         if "missing docs README marker: validate_phase3_selftest.py" not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected missing docs README marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace("Documentation/zigux/phase3-abi-slice.md", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-abi-slice.md (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README Phase 3 slice drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "scripts/zigux/validate-phase3.py",
+                README_PHASE3_NEXT_PREFIX + "\nscripts/zigux/validate-phase3.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "scripts/zigux/validate-phase3.py (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README Phase 3 section-scoped validator drift was not reported")
             return 1
 
         _populate_repo(root)
