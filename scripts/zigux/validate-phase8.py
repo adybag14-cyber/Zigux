@@ -23,6 +23,8 @@ HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-pa
 PERF_BUFFER_POLL_GATE_PATH = "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
 LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
+LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
+LIBBPF_MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
@@ -45,6 +47,8 @@ REQUIRED_FILES = (
     PERF_BUFFER_POLL_GATE_PATH,
     LIBBPF_SEGMENT_GATE_PATH,
     LIBBPF_SHARD_ROUTES_PATH,
+    LIBBPF_SEGMENT_SURVEY_PATH,
+    LIBBPF_MANIFEST_PATH,
     BRIDGE_SLICE_PATH,
     BRIDGE_HELPER_PATH,
     BRIDGE_TEST_PATH,
@@ -61,6 +65,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
         "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
         "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
         "`zigux/tests/phase8_pin_path.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -73,8 +78,11 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
         "if the change touches the shared Phase 8 libbpf packet",
+        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
         "`scripts/zigux/validate-phase8.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
         "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
@@ -92,6 +100,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
@@ -142,10 +151,25 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-tests-readme-alignment.py",
         "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
+        "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "phase8-help-kallsyms-test",
         "phase8-kallsyms-test",
         "phase8-file-path-handle-bridge-test",
         "scripts/zigux/validate-phase8.py",
+    ),
+    LIBBPF_SEGMENT_SURVEY_PATH: (
+        "`tools/lib/bpf/zigux_segments/manifest.json`",
+        "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
+        "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+        "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
+    ),
+    LIBBPF_MANIFEST_PATH: (
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
+        '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
     ),
     BRIDGE_SLICE_PATH: (
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
@@ -258,6 +282,8 @@ def run_self_test() -> None:
         ("missing_perf_buffer_poll_gate", PERF_BUFFER_POLL_GATE_PATH),
         ("missing_libbpf_segment_gate", LIBBPF_SEGMENT_GATE_PATH),
         ("missing_libbpf_shard_routes", LIBBPF_SHARD_ROUTES_PATH),
+        ("missing_libbpf_segment_survey", LIBBPF_SEGMENT_SURVEY_PATH),
+        ("missing_libbpf_manifest", LIBBPF_MANIFEST_PATH),
         ("missing_bridge_slice", BRIDGE_SLICE_PATH),
         ("missing_bridge_helper", BRIDGE_HELPER_PATH),
         ("missing_bridge_test", BRIDGE_TEST_PATH),
@@ -287,11 +313,25 @@ def run_self_test() -> None:
             f"{REVIEW_CHECKLIST_PATH}: `scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         ),
         (
+            "review_checklist_libbpf_segment_gate_marker",
+            REVIEW_CHECKLIST_PATH,
+            "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+            "`scripts/zigux/check-phase8-libbpf-gate.py`",
+            f"{REVIEW_CHECKLIST_PATH}: `scripts/zigux/check-phase8-libbpf-segment-gate.py`",
+        ),
+        (
             "scripts_readme_help_kallsyms_checker_marker",
             SCRIPTS_README_PATH,
             "scripts/zigux/check-phase8-help-kallsyms-packet.py",
             "scripts/zigux/check-phase8-help-packet.py",
             f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        ),
+        (
+            "scripts_readme_libbpf_segment_survey_marker",
+            SCRIPTS_README_PATH,
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "Documentation/zigux/phase8-libbpf-segment-outline.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-libbpf-segment-survey.md",
         ),
         (
             "tests_readme_help_kallsyms_build_marker",
@@ -327,6 +367,13 @@ def run_self_test() -> None:
             "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
             "`Documentation/zigux/phase8-file-path-handle-bridge-outline.md`",
             f"{DOCS_ROOT_PATH}: `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        ),
+        (
+            "docs_root_libbpf_segment_survey_marker",
+            DOCS_ROOT_PATH,
+            "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
+            "`Documentation/zigux/phase8-libbpf-segment-outline.md`",
+            f"{DOCS_ROOT_PATH}: `Documentation/zigux/phase8-libbpf-segment-survey.md`",
         ),
         (
             "scripts_readme_tests_readme_alignment_marker",
@@ -427,6 +474,20 @@ def run_self_test() -> None:
             f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-help-kallsyms-packet.py",
         ),
         (
+            "makefile_libbpf_segment_gate_marker",
+            MAKEFILE_PATH,
+            "scripts/zigux/check-phase8-libbpf-segment-gate.py",
+            "scripts/zigux/check-phase8-libbpf-gate.py",
+            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-libbpf-segment-gate.py",
+        ),
+        (
+            "makefile_libbpf_shard_routes_marker",
+            MAKEFILE_PATH,
+            "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+            "scripts/zigux/check-phase8-libbpf-route-checks.py",
+            f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        ),
+        (
             "workflow_phase8_validate_marker",
             WORKFLOW_PATH,
             "make -C zigux phase8-validate",
@@ -434,11 +495,25 @@ def run_self_test() -> None:
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "scripts_readme_bridge_helper_marker",
-            SCRIPTS_README_PATH,
-            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
-            "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
-            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "libbpf_segment_survey_manifest_marker",
+            LIBBPF_SEGMENT_SURVEY_PATH,
+            "`tools/lib/bpf/zigux_segments/manifest.json`",
+            "`tools/lib/bpf/zigux_segments/manifest.lock`",
+            f"{LIBBPF_SEGMENT_SURVEY_PATH}: `tools/lib/bpf/zigux_segments/manifest.json`",
+        ),
+        (
+            "libbpf_segment_survey_landed_slices_marker",
+            LIBBPF_SEGMENT_SURVEY_PATH,
+            "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+            "The six landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, and `perf-buffer-poll-bookkeeping`.",
+            f"{LIBBPF_SEGMENT_SURVEY_PATH}: The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
+        ),
+        (
+            "libbpf_manifest_map_reuse_status_marker",
+            LIBBPF_MANIFEST_PATH,
+            '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+            '"slug": "map-reuse-compatibility", "status": "ready_next"',
+            f"{LIBBPF_MANIFEST_PATH}: \"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
         ),
         (
             "bridge_slice_shared_build_marker",
