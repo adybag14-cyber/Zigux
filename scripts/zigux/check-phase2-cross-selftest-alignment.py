@@ -19,6 +19,11 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
+PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
+PHASE2_VALIDATE_TARGET_HEADER = "phase2-validate: phase2-tools phase2-kconfig"
+PHASE2_CROSS_TARGET_NAME = "phase2-cross"
+PHASE2_CROSS_TARGET_HEADER = "phase2-cross: phase2-toolchain"
+
 EXPECTED_TARGETS = [
     "x86_64-linux-musl",
     "aarch64-linux-musl",
@@ -38,6 +43,17 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
     "scripts/zigux/check-phase2-cross.py": 1,
 }
+
+PHASE2_VALIDATE_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+]
+
+PHASE2_CROSS_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+]
 
 WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
     "scripts/zigux/install-zig\\.py",
@@ -182,6 +198,61 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
     return issues
 
 
+def extract_makefile_target_block(text: str, target_name: str) -> tuple[str, list[str]] | None:
+    target_header = f"{target_name}:"
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.startswith(target_header):
+            commands: list[str] = []
+            for following in lines[index + 1 :]:
+                if following.startswith("\t"):
+                    commands.append(following.strip())
+                    continue
+                if not following.strip():
+                    continue
+                break
+            return line.strip(), commands
+    return None
+
+
+def validate_makefile_target_scope(text: str) -> list[str]:
+    issues: list[str] = []
+
+    validate_block = extract_makefile_target_block(text, PHASE2_VALIDATE_TARGET_NAME)
+    if validate_block is None:
+        issues.append(f"makefile_target_missing:{PHASE2_VALIDATE_TARGET_NAME}")
+    else:
+        header, commands = validate_block
+        if header != PHASE2_VALIDATE_TARGET_HEADER:
+            issues.append(
+                "makefile_target_scope:"
+                f"{PHASE2_VALIDATE_TARGET_NAME}:header={header!r}:expected={PHASE2_VALIDATE_TARGET_HEADER!r}"
+            )
+        if commands != PHASE2_VALIDATE_TARGET_REQUIRED_LINES:
+            issues.append(
+                "makefile_target_scope:"
+                f"{PHASE2_VALIDATE_TARGET_NAME}:actual={commands!r}:expected={PHASE2_VALIDATE_TARGET_REQUIRED_LINES!r}"
+            )
+
+    cross_block = extract_makefile_target_block(text, PHASE2_CROSS_TARGET_NAME)
+    if cross_block is None:
+        issues.append(f"makefile_target_missing:{PHASE2_CROSS_TARGET_NAME}")
+    else:
+        header, commands = cross_block
+        if header != PHASE2_CROSS_TARGET_HEADER:
+            issues.append(
+                "makefile_target_scope:"
+                f"{PHASE2_CROSS_TARGET_NAME}:header={header!r}:expected={PHASE2_CROSS_TARGET_HEADER!r}"
+            )
+        if commands != PHASE2_CROSS_TARGET_REQUIRED_LINES:
+            issues.append(
+                "makefile_target_scope:"
+                f"{PHASE2_CROSS_TARGET_NAME}:actual={commands!r}:expected={PHASE2_CROSS_TARGET_REQUIRED_LINES!r}"
+            )
+
+    return issues
+
+
 def run_self_test() -> int:
     valid_targets = {
         "phase": "Phase 2",
@@ -232,14 +303,54 @@ def run_self_test() -> int:
 
     makefile_text = "\n".join(
         [
+            "phase2-validate: phase2-tools phase2-kconfig",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+            "phase2-cross: phase2-toolchain",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
         ]
     )
     if validate_exact_makefile_runs(makefile_text):
         raise SystemExit("phase2-cross-alignment:self-test:makefile_counts")
+    if validate_makefile_target_scope(makefile_text):
+        raise SystemExit("phase2-cross-alignment:self-test:makefile_target_scope")
+
+    moved_cross_gate = "\n".join(
+        [
+            "phase2-validate: phase2-tools phase2-kconfig",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+            "phase2-cross: phase2-toolchain",
+        ]
+    )
+    moved_cross_issues = validate_makefile_target_scope(moved_cross_gate)
+    if not any(
+        issue.startswith("makefile_target_scope:phase2-validate:actual=")
+        for issue in moved_cross_issues
+    ):
+        raise SystemExit("phase2-cross-alignment:self-test:moved_cross_gate_validate_failure")
+    if not any(
+        issue.startswith("makefile_target_scope:phase2-cross:actual=")
+        for issue in moved_cross_issues
+    ):
+        raise SystemExit("phase2-cross-alignment:self-test:moved_cross_gate_cross_failure")
+
+    bad_cross_header = makefile_text.replace(
+        "phase2-cross: phase2-toolchain",
+        "phase2-cross: phase2-tools",
+    )
+    bad_cross_header_issues = validate_makefile_target_scope(bad_cross_header)
+    expected_bad_cross_header_issue = (
+        "makefile_target_scope:phase2-cross:"
+        "header='phase2-cross: phase2-tools':expected='phase2-cross: phase2-toolchain'"
+    )
+    if bad_cross_header_issues != [expected_bad_cross_header_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:cross_header_failure")
 
     marker_issues = validate_required_markers(
         "alpha\nbeta\ngamma",
@@ -353,7 +464,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
@@ -452,7 +563,10 @@ def main() -> int:
     )
     issues.extend(validate_exact_workflow_runs(workflow_text))
     issues.extend(validate_workflow_scope_fragments(workflow_text))
-    issues.extend(validate_exact_makefile_runs(MAKEFILE.read_text(encoding="utf-8")))
+
+    makefile_text = MAKEFILE.read_text(encoding="utf-8")
+    issues.extend(validate_exact_makefile_runs(makefile_text))
+    issues.extend(validate_makefile_target_scope(makefile_text))
 
     if issues:
         print("PHASE2_CROSS_ALIGNMENT=fail")
