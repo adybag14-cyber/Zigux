@@ -13,6 +13,9 @@ from pathlib import Path
 REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "driver_starter": "drivers/tty/hvc/hvc_console.zig",
+    "driver_verify": "drivers/tty/hvc/hvc_console_verify.zig",
+    "direct_replay": "zigux/tests/phase11_hvc_console.zig",
+    "cleanup_companion": "zigux/tests/phase11_hvc_cleanup.zig",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
@@ -45,8 +48,7 @@ SURVEY_NOTE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "does not yet ship direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`",
-    "keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence",
+    "The current archival packet also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than downgrading them into repo-reality gaps or broader runtime-parity proof.",
     "`hvc_cleanup()` tty-port release handoff summary",
     "`tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent",
     "sysrq handoff stays unavailable after teardown",
@@ -61,7 +63,10 @@ SLICE_NOTE_MARKERS = [
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, and validation surfaces, without widening into tty registration, notifier callback execution, khvcd execution, host-backed transport claims, or direct verify and cleanup companions that are not materialized on current `master`.",
+    "drivers/tty/hvc/hvc_console_verify.zig",
+    "zigux/tests/phase11_hvc_console.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
+    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, validation, direct replay, verify, and cleanup surfaces, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
@@ -92,23 +97,23 @@ VALIDATION_MATRIX_MARKERS = [
     "notifier callback boundary",
     "`hvc_hangup()` disconnect boundary",
     "notifier_hangup boundary",
-    "Current `master` does not yet materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep the archived HVC packet explicit through the shipped survey, teardown, split, and helper surfaces without widening it into direct replay closure.",
-    "the shared Phase 11 reminder packet should keep the dedicated HVC survey route explicit without inventing direct verify or cleanup companions that are not materialized on current `master`",
-    "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, direct HVC verify companions, direct HVC cleanup companions, or host-backed I/O coverage as landed; the HVC lane still stays bounded to reviewable host-free survey evidence rather than broader runtime-parity closure",
+    "Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.",
+    "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
+    "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure",
 ]
 
 FORBIDDEN_MARKERS = {
     "survey_note": [
-        "The current archival packet also materializes the direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof.",
-        "The materialized `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions keep the direct verify-only, cleanup-teardown, and replay-only follow-through readable beside the archival survey-backed packet.",
+        "does not yet ship direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`",
+        "keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence",
     ],
     "slice_note": [
-        "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable together with the materialized direct verify and cleanup companions, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.",
+        "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, and validation surfaces, without widening into tty registration, notifier callback execution, khvcd execution, host-backed transport claims, or direct verify and cleanup companions that are not materialized on current `master`.",
     ],
     "validation_matrix": [
-        "Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.",
-        "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
-        "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure",
+        "Current `master` does not yet materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep the archived HVC packet explicit through the shipped survey, teardown, split, and helper surfaces without widening it into direct replay closure.",
+        "the shared Phase 11 reminder packet should keep the dedicated HVC survey route explicit without inventing direct verify or cleanup companions that are not materialized on current `master`",
+        "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, direct HVC verify companions, direct HVC cleanup companions, or host-backed I/O coverage as landed; the HVC lane still stays bounded to reviewable host-free survey evidence rather than broader runtime-parity closure",
     ],
 }
 
@@ -133,6 +138,12 @@ DRIVER_STARTER_MARKERS = [
     'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable"',
     'test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable"',
     'test "phase11 hvc console keeps notifier irq helper surface reviewable"',
+]
+
+CLEANUP_COMPANION_MARKERS = [
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+    'const hvc_console = @import("hvc_console");',
+    "const final_cleanup = try console.summarizeCleanupHandoff(.{});",
 ]
 
 MODEM_CONTROL_SPLIT_MARKERS = [
@@ -246,20 +257,69 @@ def run_check(root: Path) -> None:
             f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {manifest['surveyed_commit']}"
         )
 
-    expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
-    expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
+    expect_markers(
+        REQUIRED_FILES["driver_starter"],
+        read_text(root, REQUIRED_FILES["driver_starter"]),
+        DRIVER_STARTER_MARKERS,
+    )
+    read_text(root, REQUIRED_FILES["driver_verify"])
+    read_text(root, REQUIRED_FILES["direct_replay"])
+    expect_markers(
+        REQUIRED_FILES["cleanup_companion"],
+        read_text(root, REQUIRED_FILES["cleanup_companion"]),
+        CLEANUP_COMPANION_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["survey_gate"],
+        read_text(root, REQUIRED_FILES["survey_gate"]),
+        SURVEY_GATE_MARKERS,
+    )
     expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
-    expect_forbidden_markers_absent(REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"])
+    expect_forbidden_markers_absent(
+        REQUIRED_FILES["survey_note"], survey_note, FORBIDDEN_MARKERS["survey_note"]
+    )
     expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
-    expect_forbidden_markers_absent(REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"])
-    expect_markers(REQUIRED_FILES["teardown_note"], read_text(root, REQUIRED_FILES["teardown_note"]), TEARDOWN_NOTE_MARKERS)
-    expect_markers(REQUIRED_FILES["validation_matrix"], validation_matrix, VALIDATION_MATRIX_MARKERS)
-    expect_forbidden_markers_absent(REQUIRED_FILES["validation_matrix"], validation_matrix, FORBIDDEN_MARKERS["validation_matrix"])
-    expect_markers(REQUIRED_FILES["modem_control_split"], read_text(root, REQUIRED_FILES["modem_control_split"]), MODEM_CONTROL_SPLIT_MARKERS)
-    expect_markers(REQUIRED_FILES["poll_retry_split"], read_text(root, REQUIRED_FILES["poll_retry_split"]), POLL_RETRY_SPLIT_MARKERS)
-    expect_markers(REQUIRED_FILES["sysrq_helper"], read_text(root, REQUIRED_FILES["sysrq_helper"]), SYSRQ_HELPER_MARKERS)
-    expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
-    expect_markers(REQUIRED_FILES["workflow"], read_text(root, REQUIRED_FILES["workflow"]), WORKFLOW_MARKERS)
+    expect_forbidden_markers_absent(
+        REQUIRED_FILES["slice_note"], slice_note, FORBIDDEN_MARKERS["slice_note"]
+    )
+    expect_markers(
+        REQUIRED_FILES["teardown_note"],
+        read_text(root, REQUIRED_FILES["teardown_note"]),
+        TEARDOWN_NOTE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["validation_matrix"], validation_matrix, VALIDATION_MATRIX_MARKERS
+    )
+    expect_forbidden_markers_absent(
+        REQUIRED_FILES["validation_matrix"],
+        validation_matrix,
+        FORBIDDEN_MARKERS["validation_matrix"],
+    )
+    expect_markers(
+        REQUIRED_FILES["modem_control_split"],
+        read_text(root, REQUIRED_FILES["modem_control_split"]),
+        MODEM_CONTROL_SPLIT_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["poll_retry_split"],
+        read_text(root, REQUIRED_FILES["poll_retry_split"]),
+        POLL_RETRY_SPLIT_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["sysrq_helper"],
+        read_text(root, REQUIRED_FILES["sysrq_helper"]),
+        SYSRQ_HELPER_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["makefile"],
+        read_text(root, REQUIRED_FILES["makefile"]),
+        MAKEFILE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["workflow"],
+        read_text(root, REQUIRED_FILES["workflow"]),
+        WORKFLOW_MARKERS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -280,13 +340,31 @@ def build_manifest_text(surveyed_commit: str) -> str:
 def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
     write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["driver_verify"], "verify companion present\n")
+    write(root / REQUIRED_FILES["direct_replay"], "direct replay present\n")
+    write(
+        root / REQUIRED_FILES["cleanup_companion"],
+        "\n".join(CLEANUP_COMPANION_MARKERS) + "\n",
+    )
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n")
+    write(
+        root / REQUIRED_FILES["survey_note"],
+        "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n",
+    )
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n")
-    write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
+    write(
+        root / REQUIRED_FILES["validation_matrix"],
+        "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["modem_control_split"],
+        "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n",
+    )
+    write(
+        root / REQUIRED_FILES["poll_retry_split"],
+        "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n",
+    )
     write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["workflow"], "\n".join(WORKFLOW_MARKERS) + "\n")
@@ -294,11 +372,31 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
 
 def init_fixture_repo(root: Path) -> str:
     subprocess.run(["git", "-C", str(root), "init"], check=True, capture_output=True, text=True)
-    subprocess.run(["git", "-C", str(root), "config", "user.name", "Zigux Builder"], check=True, capture_output=True, text=True)
-    subprocess.run(["git", "-C", str(root), "config", "user.email", "zigux-builder@example.com"], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(root), "config", "user.name", "Zigux Builder"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(root), "config", "user.email", "zigux-builder@example.com"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     subprocess.run(["git", "-C", str(root), "add", "."], check=True, capture_output=True, text=True)
-    subprocess.run(["git", "-C", str(root), "commit", "-m", "fixture"], check=True, capture_output=True, text=True)
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(root), "commit", "-m", "fixture"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    result = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     return result.stdout.strip()
 
 
@@ -329,14 +427,39 @@ def run_self_test() -> None:
 
         cases = [
             (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
-            (REQUIRED_FILES["driver_starter"], 'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"'),
-            (REQUIRED_FILES["survey_gate"], 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"'),
-            (REQUIRED_FILES["survey_note"], "keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence"),
-            (REQUIRED_FILES["validation_matrix"], "direct replay closure"),
-            (REQUIRED_FILES["slice_note"], "direct verify and cleanup companions that are not materialized on current `master`"),
+            (
+                REQUIRED_FILES["driver_starter"],
+                'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"',
+            ),
+            (
+                REQUIRED_FILES["cleanup_companion"],
+                'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+            ),
+            (
+                REQUIRED_FILES["survey_gate"],
+                'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
+            ),
+            (
+                REQUIRED_FILES["survey_note"],
+                "The current archival packet also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than downgrading them into repo-reality gaps or broader runtime-parity proof.",
+            ),
+            (
+                REQUIRED_FILES["validation_matrix"],
+                "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
+            ),
+            (
+                REQUIRED_FILES["slice_note"],
+                "direct replay, verify, and cleanup surfaces",
+            ),
             (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
-            (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
-            (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
+            (
+                REQUIRED_FILES["poll_retry_split"],
+                'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
+            ),
+            (
+                REQUIRED_FILES["modem_control_split"],
+                'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
+            ),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
@@ -358,7 +481,9 @@ def run_self_test() -> None:
         expect_failure(tmpdir, marker)
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
+        (tmpdir / REQUIRED_FILES["manifest"]).write_text(
+            build_manifest_text("z" * 40), encoding="utf-8"
+        )
         expect_failure(tmpdir, "invalid surveyed_commit")
 
         reset_fixture(tmpdir)
