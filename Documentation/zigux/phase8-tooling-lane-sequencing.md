@@ -82,4 +82,4 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.
+Exact 2026-05-13 readback keeps the docs-root summary as the next shared wording reopen cue, but for a narrower reason than the earlier note recorded: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, while `Documentation/zigux/README.md` still omits the live file-path bridge note from the broad Phase 8 docs summary. Start with that docs-root addition before widening any other shared reminder surface.
