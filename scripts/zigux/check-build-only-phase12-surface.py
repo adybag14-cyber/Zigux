@@ -423,6 +423,7 @@ def validate(root: Path) -> list[str]:
         ("makefile", MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("phase12_build", PHASE12_BUILD_PATH, PHASE12_BUILD_MARKERS),
     ]
+
     for label, rel_path, markers in checks:
         ensure_contains(failures, label, read_text(root, rel_path), markers)
 
@@ -432,7 +433,6 @@ def validate(root: Path) -> list[str]:
         read_text(root, DOCS_README_PATH),
         DOCS_ROOT_FORBIDDEN_MARKERS,
     )
-
     ensure_exact_counts(
         failures,
         "phase12_build",
@@ -961,6 +961,20 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        libbpf_lane_path = base / LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
+        libbpf_lane_path.write_text(
+            libbpf_lane_path.read_text(encoding="utf-8").replace(
+                LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[5], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "libbpf_heavy_consumer_lane_sequencing:"
+            f"{LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[5]}",
+        )
+
+        write_fixture_tree(base)
         verify_note_path = base / LIBBPF_VERIFY_SHARD_NOTE_PATH
         verify_note_path.write_text(
             verify_note_path.read_text(encoding="utf-8").replace(
@@ -1017,7 +1031,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=34")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
