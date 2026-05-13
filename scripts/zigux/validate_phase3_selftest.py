@@ -245,7 +245,7 @@ def _synthetic_makefile_text() -> str:
 
 def _synthetic_selftest_script(rel_path: Path) -> str:
     lines = ["#!/usr/bin/env python3"]
-    for marker in SELFTEST_OUTPUT_MARKERS.get(rel_path, ()): 
+    for marker in SELFTEST_OUTPUT_MARKERS.get(rel_path, ()):
         lines.append(f"print({marker!r})")
     lines.append("raise SystemExit(0)")
     lines.append("")
