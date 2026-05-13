@@ -219,3 +219,36 @@ test "phase 9 runtime loader gap survey keeps kretprobe prepared-snapshot owners
         "try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));",
     );
 }
+
+test "phase 9 runtime loader gap survey keeps atomic64 approved-family drift proof and bitmap initialized shared-request stability explicit" {
+    const allocator = std.testing.allocator;
+
+    const atomic64_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_atomic64_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(atomic64_loader);
+
+    const bitmap_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(bitmap_loader);
+
+    try expectContains(atomic64_loader, "runtime atomic64 loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff");
+    try expectContains(atomic64_loader, "anchor_request.plan.anchor = \"lib/atomic64_test_drift.c\";");
+    try expectContains(atomic64_loader, "entry_request.plan.entry_symbol = \"zigux_runtime_atomic64_init_drift\";");
+    try expectContains(atomic64_loader, "exit_request.plan.exit_symbol = \"zigux_runtime_atomic64_exit_drift\";");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, anchor_loader.requestSharedRuntimeLoad(&anchor_request));");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, entry_loader.requestSharedRuntimeLoad(&entry_request));");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, exit_loader.requestSharedRuntimeLoad(&exit_request));");
+
+    try expectContains(bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);");
+    try expectContains(bitmap_loader, "try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(");
+    try expectContains(bitmap_loader, ".handoff_stage = .initialized,");
+    try expectContains(bitmap_loader, ".selftest_runs = 0,");
+}
