@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L17",
+  "lane_key": "P13-L13",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-12",
   "anchor": "security/landlock/syscalls.c",
@@ -63,7 +63,7 @@
     },
     {
       "id": "phase13-landlock-live-ruleset-state",
-      "status": "blocked_on_live_ruleset_state",
+      "status": "blocked_on_live-ruleset-state",
       "kind": "runtime_boundary",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The current helper packet does not claim live ruleset ownership, live private-data lifecycle, or real syscall enforcement, so runtime ruleset state remains outside this bounded lane."
