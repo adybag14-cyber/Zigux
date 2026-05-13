@@ -332,7 +332,7 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
     try std.testing.expect(plan.requires_rss_config_sync);
     try std.testing.expect(plan.requires_receive_queue_restore);
     try std.testing.expect(plan.requires_transmit_queue_restore);
-    try std.testing.expect(plan.must_restore_before_data_queues);
+    try std.testing.expect(plan.must_restoreBeforeDataQueues);
     try std.testing.expectEqual(@as(u16, 6), plan.command_count);
 }
 
