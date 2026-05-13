@@ -12,6 +12,8 @@ import tempfile
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
+    Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
+    Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
@@ -316,6 +318,36 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / low_level_wrapper_survey_rel)
+
+        abi_bindings_survey_rel = Path(
+            "Documentation/zigux/phase3-abi-bindings-survey.md"
+        )
+        (root / abi_bindings_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_abi_bindings_survey_missing = (
+            f"missing repo file: {abi_bindings_survey_rel.as_posix()}"
+        )
+        if expected_abi_bindings_survey_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing ABI-and-bindings survey note was not reported")
+            return 1
+        case_count += 1
+        _write(root / abi_bindings_survey_rel)
+
+        bindings_governance_rel = Path(
+            "Documentation/zigux/phase3-bindings-governance.md"
+        )
+        (root / bindings_governance_rel).unlink()
+        issues = validate_repo(root)
+        expected_bindings_governance_missing = (
+            f"missing repo file: {bindings_governance_rel.as_posix()}"
+        )
+        if expected_bindings_governance_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing bindings-governance note was not reported")
+            return 1
+        case_count += 1
+        _write(root / bindings_governance_rel)
 
         kernel_export_note_rel = Path(
             "Documentation/zigux/phase3-kernel-export-shim-governance.md"
