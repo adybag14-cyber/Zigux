@@ -71,7 +71,7 @@ test "phase14 skbuff bridge manifest records the live blocked ownership packet" 
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P14-Y03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("f05e02445443e7743c3675a6f8ca4f70f6e736fb", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
@@ -121,7 +121,7 @@ test "phase14 skbuff survey note keeps the blocker wording explicit" {
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_LANE_KEY=P14-Y03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_LANE_KEY=P14-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-skbuff-live-ownership-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "tail->next") != null);
