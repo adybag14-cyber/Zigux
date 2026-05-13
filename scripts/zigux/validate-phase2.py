@@ -59,6 +59,7 @@ PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
 PHASE2_VALIDATION_DIRECT_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     ("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),
     ("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig"),
+    ("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"),
 )
 PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
     {
@@ -86,9 +87,10 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "zig test scripts/zigux/fixdep.zig",
         "zig test scripts/zigux/genksyms.zig",
+        "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     }
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 24
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -126,7 +128,8 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 19
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 20
+
 
 def build_validation_commands(
     py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
@@ -136,10 +139,12 @@ def build_validation_commands(
     commands.extend([[str(part) for part in spec] for spec in direct_command_specs])
     return commands
 
+
 def build_required_paths(
     required_relative_paths: tuple[str, ...] = PHASE2_REQUIRED_RELATIVE_PATHS,
 ) -> list[Path]:
     return [ROOT / rel_path for rel_path in required_relative_paths]
+
 
 def command_tail_from_parts(parts: tuple[Path | str, ...]) -> str:
     tail_parts: list[str] = []
@@ -153,6 +158,7 @@ def command_tail_from_parts(parts: tuple[Path | str, ...]) -> str:
                 pass
         tail_parts.append(str(part))
     return " ".join(tail_parts)
+
 
 def collect_command_inventory_issues(
     py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
@@ -187,6 +193,7 @@ def collect_command_inventory_issues(
         issues.append(f"phase2_validation_commands:unexpected:{tail}")
     return issues
 
+
 def collect_required_file_inventory_issues(
     required_relative_paths: tuple[str, ...] = PHASE2_REQUIRED_RELATIVE_PATHS,
     *,
@@ -209,6 +216,7 @@ def collect_required_file_inventory_issues(
         issues.append(f"phase2_validation_required_files:unexpected:{tail}")
     return issues
 
+
 def run_self_test() -> list[str]:
     checks = [
         (
@@ -226,7 +234,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-kconfig-bridge.py",
             ],
         ),
@@ -240,7 +248,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-kconfig-bridge.py --self-test",
             ],
         ),
@@ -250,28 +258,47 @@ def run_self_test() -> list[str]:
                 tuple(spec for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
             ],
         ),
         (
             "command_inventory_missing_fixdep_direct_replay",
             collect_command_inventory_issues(
-                direct_command_specs=(("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig"),),
+                direct_command_specs=(
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig"),
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"),
+                ),
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:zig test scripts/zigux/fixdep.zig",
             ],
         ),
         (
             "command_inventory_missing_genksyms_direct_replay",
             collect_command_inventory_issues(
-                direct_command_specs=(("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),),
+                direct_command_specs=(
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"),
+                ),
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:zig test scripts/zigux/genksyms.zig",
+            ],
+        ),
+        (
+            "command_inventory_missing_confdata_bridge_direct_replay",
+            collect_command_inventory_issues(
+                direct_command_specs=(
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),
+                    ("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig"),
+                ),
+            ),
+            [
+                "phase2_validation_commands:count=24:expected=25",
+                "phase2_validation_commands:missing:zig test scripts/zigux/kconfig/confdata_bridge.zig",
             ],
         ),
         (
@@ -280,7 +307,7 @@ def run_self_test() -> list[str]:
                 PHASE2_VALIDATION_PY_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
             ),
             [
-                "phase2_validation_commands:count=25:expected=24",
+                "phase2_validation_commands:count=26:expected=25",
                 "phase2_validation_commands:duplicate_command_tail",
             ],
         ),
@@ -294,7 +321,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
             ],
         ),
@@ -308,7 +335,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=23:expected=24",
+                "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py",
             ],
         ),
@@ -453,9 +480,11 @@ def run_self_test() -> list[str]:
             issues.append(f"phase2_validation_self_test:{name}:actual={actual}:expected={expected}")
     return issues
 
+
 def run(cmd: list[str]) -> int:
     completed = subprocess.run(cmd, cwd=ROOT, check=False)
     return completed.returncode
+
 
 def require_files(paths: list[Path]) -> list[str]:
     missing: list[str] = []
@@ -463,6 +492,7 @@ def require_files(paths: list[Path]) -> list[str]:
         if not path.exists():
             missing.append(str(path.relative_to(ROOT)))
     return missing
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
