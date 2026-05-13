@@ -243,6 +243,27 @@ pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
     complement(dst, src, nbits);
 }
 
+pub fn replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
+    assertBitmapLen(dst, nbits);
+    assertBitmapLen(old, nbits);
+    assertBitmapLen(new, nbits);
+    assertBitmapLen(mask, nbits);
+
+    const lim = nbits / bits_per_long;
+    for (0..lim) |idx| {
+        dst[idx] = (old[idx] & ~mask[idx]) | (new[idx] & mask[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        const idx = lim;
+        dst[idx] = ((old[idx] & ~mask[idx]) | (new[idx] & mask[idx])) & lastWordMask(nbits);
+    }
+}
+
+pub fn bitmap_replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
+    replace(dst, old, new, mask, nbits);
+}
+
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -856,6 +877,7 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
 test "bitmap zero-bit binary helpers stay explicit identity operations" {
     const lhs = [_]Word{0xffff_0000_ffff_0000};
     const rhs = [_]Word{0x0000_ffff_0000_ffff};
+    const mask = [_]Word{~@as(Word, 0)};
 
     var primary_dst = [_]Word{0x55aa_55aa_55aa_55aa};
     var alias_dst = [_]Word{0x55aa_55aa_55aa_55aa};
@@ -873,6 +895,11 @@ test "bitmap zero-bit binary helpers stay explicit identity operations" {
 
     complement(primary_dst[0..0], lhs[0..0], 0);
     bitmap_complement(alias_dst[0..0], lhs[0..0], 0);
+    try std.testing.expectEqual(before, primary_dst[0]);
+    try std.testing.expectEqual(before, alias_dst[0]);
+
+    replace(primary_dst[0..0], lhs[0..0], rhs[0..0], mask[0..0], 0);
+    bitmap_replace(alias_dst[0..0], lhs[0..0], rhs[0..0], mask[0..0], 0);
     try std.testing.expectEqual(before, primary_dst[0]);
     try std.testing.expectEqual(before, alias_dst[0]);
 
@@ -926,6 +953,9 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
     const rhs = [_]Word{ 0x0f, (@as(Word, 1) << 2) };
+    const replace_old = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 1) | (@as(Word, 1) << 9) };
+    const replace_new = [_]Word{ 0x0f, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const replace_mask = [_]Word{ 0xff, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
 
     var allocated = try bitmap_alloc(allocator, nbits);
     defer bitmap_free(allocator, &allocated);
@@ -982,6 +1012,12 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     complement(&primary_dst, &lhs, nbits);
     bitmap_complement(&alias_dst, &lhs, nbits);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    replace(&primary_dst, &replace_old, &replace_new, &replace_mask, nbits);
+    bitmap_replace(&alias_dst, &replace_old, &replace_new, &replace_mask, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+    try std.testing.expectEqual(@as(Word, 0x0f), primary_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0b1_0110), primary_dst[1]);
 
     try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));
     try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), bitmap_intersects(&lhs, &rhs, nbits));
