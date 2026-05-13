@@ -22,6 +22,19 @@ FREEZE_MAP_MANIFEST_PATH = "zigux/tests/phase15_freeze_map_manifest.json"
 PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
 READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 PARITY_SCORECARD_SURVEY_PATH = "Documentation/zigux/phase15-parity-scorecard-survey.md"
+SHARED_SUMMARY_GAP_CHECKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
+START_WITH_SCRIPTS_README_MARKER = (
+    "starting with scripts/zigux/README.md as the smallest remaining "
+    "parity-scorecard-survey reminder before widening into zigux/tests/README.md"
+)
+NOTE_START_WITH_SCRIPTS_README_MARKER = (
+    "Start that shared-summary follow-through with `scripts/zigux/README.md` as the "
+    "smallest remaining parity-scorecard-survey reminder before widening into "
+    "`zigux/tests/README.md`."
+)
+RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER = (
+    "run python3 scripts/zigux/check-phase15-shared-summary-gap.py first"
+)
 
 NOTE_MARKERS = (
     "## Trigger Conditions",
@@ -37,6 +50,7 @@ NOTE_MARKERS = (
     "## Next bounded step",
     "shared-summaries",
     "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
+    NOTE_START_WITH_SCRIPTS_README_MARKER,
 )
 
 NOTE_MAINTENANCE_CLOSURE_MARKERS = (
@@ -186,10 +200,12 @@ HANDOFF_NEXT_STEP_MARKERS = (
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER,
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "shared-summaries",
+    START_WITH_SCRIPTS_README_MARKER,
     "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
 )
 
@@ -603,6 +619,19 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        note_path = root / NOTE_PATH
+        _write(
+            note_path,
+            _read(note_path).replace(NOTE_START_WITH_SCRIPTS_README_MARKER + "\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"note:missing:{NOTE_START_WITH_SCRIPTS_README_MARKER}"],
+            "missing_note_start_with_scripts_readme_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         docs_readme_path = root / DOCS_README_PATH
         _write(
             docs_readme_path,
@@ -693,6 +722,36 @@ def run_self_test() -> int:
             validate(root),
             [f"manifest_handoff_next_step:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
             "missing_handoff_parity_scorecard_survey_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
+            RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER + " ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [f"manifest_handoff_next_step:missing:{RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER}"],
+            "missing_handoff_run_shared_summary_gap_checker_first_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
+            START_WITH_SCRIPTS_README_MARKER + " ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [f"manifest_handoff_next_step:missing:{START_WITH_SCRIPTS_README_MARKER}"],
+            "missing_handoff_start_with_scripts_readme_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
