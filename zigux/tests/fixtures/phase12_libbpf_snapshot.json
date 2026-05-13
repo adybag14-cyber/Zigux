@@ -1,38 +1,34 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
-  "tracked_file_count": 5,
+  "surveyed_commit": "717484ae7c38ea532de0c2bdc26e01299a675d0d",
+  "snapshot_scope": "parked Phase 12 libbpf note packet on current master",
+  "tracked_file_count": 3,
   "supporting_notes": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+  ],
+  "parked_absent_boundaries": [
+    "zigux/tests/phase12_libbpf_manifest.json",
+    "zigux/tests/phase12_libbpf_segments.zig",
+    "zigux/tests/phase12_libbpf_reviewability.zig",
+    "tools/lib/bpf/zigux_segments/manifest.json",
+    "tools/lib/bpf/zigux_segments/verify.zig"
   ],
   "files": [
     {
-      "path": "zigux/tests/phase12_libbpf_manifest.json",
-      "bytes": 10687,
-      "sha256": "439ac702f67299ec222bcdf2e821e15538f6d0534ad39121f079c3f78ae280db"
-    },
-    {
-      "path": "zigux/tests/phase12_libbpf_segments.zig",
-      "bytes": 12516,
-      "sha256": "3cf802c44aec49c545f0d83d69a287b01aee788757dfc88ecd9dee4b1b3b375b"
-    },
-    {
-      "path": "zigux/tests/phase12_libbpf_reviewability.zig",
-      "bytes": 21588,
-      "sha256": "a8e272a1cc809e2691efa93d3db25be4977c519d2bcc713c35cfb4e5020cc102"
-    },
-    {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "bytes": 15376,
-      "sha256": "749eb69fb9936058ace9364aaf28d29ca7236962bec8e1ec0b586fb3e27e1b7e"
+      "blob_sha": "0fcead12c8b5d6dc02898f2ea63f9b9bcf5a5034"
     },
     {
-      "path": "tools/lib/bpf/zigux_segments/manifest.json",
-      "bytes": 8385,
-      "sha256": "c4936fe75a46bb57cd24eb3277e2429c49cf46d4ed4bc353ec754a94f6e221a6"
+      "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+      "blob_sha": "3a79fe9090ac3d39aa1a2c666e748b7a712ebeb1"
+    },
+    {
+      "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+      "blob_sha": "93f030ecfe343ca3640389b65c698f1566ef60f6"
     }
   ]
 }
