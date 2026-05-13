@@ -144,9 +144,12 @@ REQUIRED_MMIO_SNIPPETS = (
 )
 
 REQUIRED_ABI_TEST_SNIPPETS = (
-    'test "phase3 abi keeps starter header and status layouts explicit" {',
-    "@sizeOf(abi.InteropPolicy)",
-    '@offsetOf(abi.InteropPolicy, "reserved")',
+    'const layout_assert = @import("layout_assert");',
+    'test "phase3 abi keeps shared layout assertions wired into the abi replay" {',
+    'try layout_assert.assertBoundaryHeaderLayout();',
+    'try layout_assert.assertExportStatusLayout();',
+    'try layout_assert.assertInteropPolicyLayout();',
+    'layout_assert.assertInteropPolicyModeValues();',
     'test "phase3 abi keeps exported constants and family markers present" {',
 )
 
