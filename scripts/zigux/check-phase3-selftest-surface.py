@@ -133,6 +133,8 @@ SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 
@@ -690,6 +692,44 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected scripts README header-family reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "include/zigux/dev_t.h",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README header-family reminder marker count drift: "
+            "include/zigux/dev_t.h (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README dev_t header reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _read(scripts_path).replace(
+                "zigux/uapi/version.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README header-family reminder marker count drift: "
+            "zigux/uapi/version.zig (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README version starter-companion drift was not reported")
             return 1
 
         _populate_repo(root)
