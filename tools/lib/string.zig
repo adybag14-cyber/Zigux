@@ -234,6 +234,19 @@ pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usi
     return sysfsMatchString(haystack, needle);
 }
 
+pub fn matchString(haystack: []const []const u8, needle: []const u8) ?usize {
+    for (haystack, 0..) |entry, idx| {
+        if (streq(entry, needle)) {
+            return idx;
+        }
+    }
+    return null;
+}
+
+pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {
+    return matchString(haystack, needle);
+}
+
 fn digitValue(ch: u8, base: u8) ?u8 {
     const value = std.fmt.charToDigit(ch, base) catch return null;
     return @intCast(value);
@@ -556,6 +569,31 @@ test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists" {
 
     try std.testing.expectEqual(@as(?usize, 1), sysfs_match_string(&haystack, "second"));
     try std.testing.expectEqual(@as(?usize, null), sysfs_match_string(&empty, "second"));
+}
+
+test "matchString finds C-string matches and preserves first-match order" {
+    const haystack = [_][]const u8{
+        "disabled",
+        "manual",
+        "manual",
+        "auto",
+    };
+    try std.testing.expectEqual(@as(?usize, 1), matchString(&haystack, "manual"));
+
+    const nul_terminated = [_]u8{ 'a', 'u', 't', 'o', 0, 'x' };
+    try std.testing.expectEqual(@as(?usize, 3), matchString(&haystack, &nul_terminated));
+    try std.testing.expectEqual(@as(?usize, null), matchString(&haystack, "missing"));
+}
+
+test "match_string mirrors matchString for empty and matched lists" {
+    const haystack = [_][]const u8{
+        "first",
+        "second",
+    };
+    const empty = [_][]const u8{};
+
+    try std.testing.expectEqual(@as(?usize, 1), match_string(&haystack, "second"));
+    try std.testing.expectEqual(@as(?usize, null), match_string(&empty, "second"));
 }
 
 test "memdup and memchrInv preserve byte content" {
