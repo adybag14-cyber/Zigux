@@ -20,11 +20,12 @@ CONTRACT_MARKERS = [
     "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
     "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
     "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
-    "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
+    "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
     "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
     "* no shared `validate-phase11.py`",
     "* no shared `make -C zigux phase11-validate` target on `master`",
     "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+    "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `drivers/watchdog/dw_wdt.zig`; direct teardown and failure-mode parity remains a future same-lane follow-through rather than shipped `drivers/watchdog/dw_wdt_verify.zig` evidence",
 ]
 
 REQUIRED_MARKERS = {
@@ -55,10 +56,11 @@ FORBIDDEN_MARKERS = {
         "* direct GitHub contents reads do not materialize `zigux/tests/phase11_build.zig`",
         "* direct GitHub contents reads also do not materialize the previously referenced direct replay files `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
         "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, but treat them as reminder-only configuration markers until the missing Phase 11 build file and direct replay files land again",
+        "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 class CheckError(RuntimeError):
@@ -128,6 +130,7 @@ def run_self_test() -> None:
             (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[8]),
+            (FILES["contract_note"], CONTRACT_MARKERS[9]),
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][1]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
@@ -149,6 +152,7 @@ def run_self_test() -> None:
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][0]),
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][1]),
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][2]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][3]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
