@@ -1,6 +1,7 @@
 const std = @import("std");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
+const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 
 const Manifest = struct {
     lane_key: []const u8,
@@ -64,6 +65,14 @@ fn gitBlobShaHex(source: []const u8) ![40]u8 {
     return out;
 }
 
+fn sourceLineCount(source: []const u8) usize {
+    if (source.len == 0) return 0;
+
+    var count: usize = std.mem.count(u8, source, "\n");
+    if (source[source.len - 1] != '\n') count += 1;
+    return count;
+}
+
 fn expectBlobShaMatchesSource(blob_sha: []const u8, source: []const u8) !void {
     const computed = try gitBlobShaHex(source);
     try std.testing.expectEqualStrings(computed[0..], blob_sha);
@@ -101,11 +110,11 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.owner);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.rollback_owner);
-    try std.testing.expectEqualStrings("8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3", manifest.live_gate_blob_sha);
-    try std.testing.expectEqual(@as(usize, 204), manifest.live_gate_line_count);
+    try expectBlobShaMatchesSource(manifest.live_gate_blob_sha, runtime_atomic64_diff_source);
+    try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.live_gate_line_count);
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
-    try std.testing.expectEqualStrings("8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3", manifest.runtime_replay_blob_sha);
-    try std.testing.expectEqual(@as(usize, 204), manifest.runtime_replay_line_count);
+    try expectBlobShaMatchesSource(manifest.runtime_replay_blob_sha, runtime_atomic64_diff_source);
+    try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.runtime_replay_line_count);
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
