@@ -130,6 +130,7 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "The only allowed exception is an Architecture Council reopen request");
     try expectContains(policy_note, "existing blocker remains recorded");
+    try expectContains(policy_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
     try expectContains(review_process, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "the remaining blocker is still `phase15-deep-core-status-change-blocker`");
     try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
