@@ -32,6 +32,13 @@ EXPECTED_SURVEY_SUMMARY = {
     "hvc_header_constants_checked": True,
     "hvc_export_surface_checked": True,
 }
+EXPECTED_BUILD_INVENTORY_BUILD_TEST_NAME = "phase11-uapi-header-parity-survey-tests"
+EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP = (
+    "run_phase11_uapi_header_parity_survey_tests"
+)
+EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS = [
+    "zigux/tests/phase11_hvc_console_survey.zig",
+]
 EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS: list[str] = []
 EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS: list[str] = []
 EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS = [
@@ -131,46 +138,46 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "try std.testing.expect(manifest.survey_summary.hvc_hv_ops_layout_assert_present);",
     "try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);",
-    "if (std.mem.eql(u8, gap.id, \"phase11-hvc-console-hv-ops-layout-assert\")) {",
-    "if (std.mem.eql(u8, gap.id, \"phase11-hvc-console-header-constant-assert\")) {",
-    "try expectContains(gap.why_now, \"size 72, alignment 8\");",
-    "try expectContains(gap.why_now, \"MAX_NR_HVC_CONSOLES\");",
+    'if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {',
+    'if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-constant-assert")) {',
+    'try expectContains(gap.why_now, "size 72, alignment 8");',
+    'try expectContains(gap.why_now, "MAX_NR_HVC_CONSOLES");',
     "try std.testing.expect(saw_hv_ops_layout);",
     "try std.testing.expect(saw_header_constant);",
-    "try expectContains(note, \"phase11-hvc-console-hv-ops-layout-assert\");",
-    "try expectContains(note, \"phase11-hvc-console-header-constant-assert\");",
-    "try expectContains(note, \"MAX_NR_HVC_CONSOLES\");",
+    'try expectContains(note, "phase11-hvc-console-hv-ops-layout-assert");',
+    'try expectContains(note, "phase11-hvc-console-header-constant-assert");',
+    'try expectContains(note, "MAX_NR_HVC_CONSOLES");',
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertAlign(WatchdogInfo, 4);",
-    "layout_assert.assertFieldType(WatchdogInfo, \"options\", u32);",
-    "layout_assert.assertFieldType(WatchdogInfo, \"firmware_version\", u32);",
-    "layout_assert.assertFieldType(WatchdogInfo, \"identity\", [32]u8);",
-    "layout_assert.assertOffset(WatchdogInfo, \"options\", 0);",
-    "layout_assert.assertOffset(WatchdogInfo, \"firmware_version\", 4);",
-    "layout_assert.assertOffset(WatchdogInfo, \"identity\", 8);",
+    'layout_assert.assertFieldType(WatchdogInfo, "options", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "firmware_version", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "identity", [32]u8);',
+    'layout_assert.assertOffset(WatchdogInfo, "options", 0);',
+    'layout_assert.assertOffset(WatchdogInfo, "firmware_version", 4);',
+    'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
     "layout_assert.assertSize(WinSize, 8);",
     "layout_assert.assertAlign(WinSize, 2);",
-    "layout_assert.assertFieldType(WinSize, \"ws_row\", u16);",
-    "layout_assert.assertFieldType(WinSize, \"ws_col\", u16);",
-    "layout_assert.assertFieldType(WinSize, \"ws_xpixel\", u16);",
-    "layout_assert.assertFieldType(WinSize, \"ws_ypixel\", u16);",
-    "layout_assert.assertOffset(WinSize, \"ws_row\", 0);",
-    "layout_assert.assertOffset(WinSize, \"ws_col\", 2);",
-    "layout_assert.assertOffset(WinSize, \"ws_xpixel\", 4);",
-    "layout_assert.assertOffset(WinSize, \"ws_ypixel\", 6);",
+    'layout_assert.assertFieldType(WinSize, "ws_row", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_col", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
+    'layout_assert.assertOffset(WinSize, "ws_row", 0);',
+    'layout_assert.assertOffset(WinSize, "ws_col", 2);',
+    'layout_assert.assertOffset(WinSize, "ws_xpixel", 4);',
+    'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     "layout_assert.assertSize(HvOps, 72);",
     "layout_assert.assertAlign(HvOps, 8);",
-    "layout_assert.assertOffset(HvOps, \"get_chars\", 0);",
-    "layout_assert.assertOffset(HvOps, \"put_chars\", 8);",
-    "layout_assert.assertOffset(HvOps, \"flush\", 16);",
-    "layout_assert.assertOffset(HvOps, \"notifier_add\", 24);",
-    "layout_assert.assertOffset(HvOps, \"notifier_del\", 32);",
-    "layout_assert.assertOffset(HvOps, \"notifier_hangup\", 40);",
-    "layout_assert.assertOffset(HvOps, \"tiocmget\", 48);",
-    "layout_assert.assertOffset(HvOps, \"tiocmset\", 56);",
-    "layout_assert.assertOffset(HvOps, \"dtr_rts\", 64);",
-    "try expectContains(hvc_header, \"MAX_NR_HVC_CONSOLES\");",
-    "try expectContains(hvc_header, \"HVC_ALLOC_TTY_ADAPTERS\");",
+    'layout_assert.assertOffset(HvOps, "get_chars", 0);',
+    'layout_assert.assertOffset(HvOps, "put_chars", 8);',
+    'layout_assert.assertOffset(HvOps, "flush", 16);',
+    'layout_assert.assertOffset(HvOps, "notifier_add", 24);',
+    'layout_assert.assertOffset(HvOps, "notifier_del", 32);',
+    'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
+    'layout_assert.assertOffset(HvOps, "tiocmget", 48);',
+    'layout_assert.assertOffset(HvOps, "tiocmset", 56);',
+    'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
+    'try expectContains(hvc_header, "MAX_NR_HVC_CONSOLES");',
+    'try expectContains(hvc_header, "HVC_ALLOC_TTY_ADAPTERS");',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -179,7 +186,7 @@ REQUIRED_BUILD_MARKERS = [
     "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
     "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
-    "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);",
+    'phase11_uapi_header_parity_survey_module.addImport("layout_assert", layout_assert_module);',
 ]
 
 REQUIRED_CONTRACT_MARKERS = [
@@ -263,6 +270,22 @@ def check_manifest(manifest: dict[str, object]) -> None:
 
 
 def check_build_inventory(build_inventory: dict[str, object]) -> None:
+    build_test_names = build_inventory.get("build_test_names")
+    if not isinstance(build_test_names, list) or EXPECTED_BUILD_INVENTORY_BUILD_TEST_NAME not in build_test_names:
+        raise SystemExit("build inventory build_test_names mismatch")
+
+    shared_test_depend_steps = build_inventory.get("shared_test_depend_steps")
+    if (
+        not isinstance(shared_test_depend_steps, list)
+        or EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP not in shared_test_depend_steps
+    ):
+        raise SystemExit("build inventory shared_test_depend_steps mismatch")
+
+    if (
+        build_inventory.get("dedicated_survey_replays")
+        != EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS
+    ):
+        raise SystemExit("build inventory dedicated_survey_replays mismatch")
     if build_inventory.get("shared_split_replays") != EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS:
         raise SystemExit("build inventory shared_split_replays mismatch")
     if build_inventory.get("shared_adjunct_replays") != EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS:
@@ -310,6 +333,9 @@ def build_fixture_repo(root: Path) -> None:
         ],
     }
     build_inventory = {
+        "build_test_names": [EXPECTED_BUILD_INVENTORY_BUILD_TEST_NAME],
+        "shared_test_depend_steps": [EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP],
+        "dedicated_survey_replays": EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS,
         "shared_split_replays": EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS,
         "shared_adjunct_replays": EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS,
         "shared_replay_markers": EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS,
@@ -495,6 +521,27 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"phase11-uapi-header-parity-survey-tests"',
+            '"phase11-uapi-header-packet-survey-tests"',
+            "build inventory build_test_names mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"run_phase11_uapi_header_parity_survey_tests"',
+            '"run_phase11_uapi_header_packet_survey_tests"',
+            "build inventory shared_test_depend_steps mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"zigux/tests/phase11_hvc_console_survey.zig"',
+            '"zigux/tests/phase11_hvc_console_packet_survey.zig"',
+            "build inventory dedicated_survey_replays mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
             '"path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"',
             '"path": "zigux/tests/phase11_hvc_console_poll_retry_missing.zig"',
             "build inventory shared_replay_markers mismatch",
@@ -507,7 +554,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=19")
+    print("phase11-header-boundary-packet: self-test cases=22")
     return 0
 
 
