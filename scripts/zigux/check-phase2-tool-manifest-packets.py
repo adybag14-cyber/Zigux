@@ -331,6 +331,9 @@ PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the committed `fixdep`, `genksyms`, `genksyms_crc`, `mk_elfconfig`, `kconfig`, and `confdata` packet visible to the shared validators instead of leaving the bounded tool tranche implicit",
 ]
 PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS = [
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note",
+]
+PHASE2_BOOTSTRAP_STALE_TOOL_MANIFEST_MARKERS = [
     "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
 ]
 DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS = [
@@ -411,6 +414,7 @@ EXACT_FILE_MARKER_COUNTS = {
     },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS[0]: 1,
+        PHASE2_BOOTSTRAP_STALE_TOOL_MANIFEST_MARKERS[0]: 0,
     },
     "Documentation/zigux/review-checklist.md": {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
@@ -673,6 +677,27 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             f"exact_count:scripts/zigux/README.md:{SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER}:count=1:expected=0"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        bootstrap_note = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        bootstrap_note.write_text(
+            bootstrap_note.read_text(encoding="utf-8").replace(
+                PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS[0],
+                PHASE2_BOOTSTRAP_STALE_TOOL_MANIFEST_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:{PHASE2_BOOTSTRAP_TOOL_MANIFEST_MARKERS[0]}"
+            in issues
+        )
+        assert (
+            f"exact_count:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:{PHASE2_BOOTSTRAP_STALE_TOOL_MANIFEST_MARKERS[0]}:count=1:expected=0"
             in issues
         )
         case_count += 1
