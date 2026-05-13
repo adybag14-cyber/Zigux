@@ -62,6 +62,7 @@ REQUIRED_MARKERS = {
         "Broad summaries should keep the active shared-helper release handle visible through:",
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`scripts/zigux/validate-phase13-release.py`",
         "`zigux/tests/phase13_build.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
@@ -228,6 +229,32 @@ def run_self_test() -> int:
             "missing_priority_signal_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                if marker
+                != "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
+                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
+            ],
+            "missing_tests_root_review_companion_handle_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]) + "\n",
+        )
         case_count += 1
 
         write_text(
