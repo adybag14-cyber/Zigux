@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around surveying the 
 - `PHASE15_SLICE=parity-tracking-gap-vs-roadmap-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-12` on 2026-05-12
+- survey rechecked against current `master` on 2026-05-13; the dedicated parity-scorecard packet still carries dated readback marker `current-master-readback-2026-05-12`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -24,13 +24,13 @@ The honest same-lane question on current `master` is no longer whether Zigux lac
 
 ## Current master readback
 
-The dated 2026-05-12 readback shows these dedicated parity-scorecard surfaces present on `master`:
+The 2026-05-13 reread shows these dedicated parity-scorecard surfaces present on current `master`:
 
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
 
-Those three surfaces now agree on the dedicated parity-scorecard packet shape:
+Those three surfaces still agree on the dedicated parity-scorecard packet shape:
 
 - lane key: `P15-Y03`
 - slice: `parity-scorecard-baseline`
@@ -42,6 +42,7 @@ The live machine-readable metrics now cover:
 
 - active freeze-in-C anchor count: `4`
 - blocked status-change anchor count: `4`
+- anchors blocked entirely within Phase 15 governance evidence: `2`
 - Phase 14 coupled blocker anchor count: `2`
 - anchors still blocked on prior-phase bridge evidence: `2`
 - study-only anchors tracked outside the scorecard: `2`
@@ -68,6 +69,7 @@ The current same-lane gap is survey truthfulness only:
 - it still reported a 2026-05-11 readback after the scorecard packet moved to the 2026-05-12 dated-readback posture
 - it still claimed `zigux/tests/phase15_parity_scorecard.zig` was not present on `master`
 - it still claimed the broader reporting packet was mispointing at a nonexistent Zig replay surface even though the dedicated Zig guard now exists beside the JSON companion
+- it underreported the current scorecard metrics by omitting the governance-only blocker aggregate that now splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
 
 That means the live roadmap-versus-repo parity gap is narrower than this survey previously said: the product gap is closed, while the survey note itself had become the stale artifact.
 
