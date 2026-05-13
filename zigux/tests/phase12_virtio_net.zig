@@ -229,7 +229,7 @@ test "phase12 virtio net recovery plan distinguishes recycled-room refill from m
     try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
     try std.testing.expect(plan.requires_receive_queue_restore);
-    try std.testing.expect(plan.requires_transmitQueueRestore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
     try std.testing.expect(!plan.requires_control_queue_restore);
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
