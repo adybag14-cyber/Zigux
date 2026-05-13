@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L04",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-12",
+  "surveyed_commit": "master-readback-2026-05-13",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -53,11 +53,18 @@
       "why_now": "The libfs helper lab now models the pure simple_transaction_set() transaction publish planning path, including the response-size limit, the required private-data handoff, the publish barrier, and published response-size bookkeeping before any live readback or release state is claimed."
     },
     {
+      "id": "phase13-libfs-addressability-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models pure generic_check_addressable() planning, keeping sector and page-index window checks, zero-block short-circuiting, and explicit overflow status reporting visible without claiming live inode, buffer-head, or page-cache ownership."
+    },
+    {
       "id": "phase13-libfs-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the bounded simple_transaction_get() acquire planner plus the already-landed rename planners in fs/libfs.zig."
+      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the landed addressability helper alongside the transaction and offset planners in fs/libfs.zig."
     },
     {
       "id": "phase13-libfs-survey-note",
@@ -85,7 +92,7 @@
       "status": "blocked_on_inode_state",
       "kind": "runtime_boundary",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The current helper packet does not drive live inode lifetime, inode lock ordering, or page-cache-backed filesystem state; it stays on helper-only directory and transaction planning."
+      "why_now": "The current helper packet does not drive live inode lifetime, inode lock ordering, or page-cache-backed filesystem state; it stays on helper-only directory, addressability, and transaction planning."
     }
   ]
 }
