@@ -41,6 +41,12 @@ pub const blocked_boundaries = [_]BridgeBoundary{
         .rationale = "The expedited path still couples CPU forcing, stall-sensitive waiting, and sequence completion through live tree_exp.h coordination instead of a small bridge seam.",
     },
     .{
+        .id = "nocb_offload_wakeup_handoff",
+        .summary = "Keep NOCB bypass locking, deferred wakeups, and callback-offload handoff in C.",
+        .anchor_symbols = &.{ "rcu_nocb_bypass_lock", "wake_nocb_gp_defer", "do_nocb_deferred_wakeup" },
+        .rationale = "The NOCB path still relies on bypass-list pressure, deferred wakeup policy, and callback-offload coordination across tree.c and tree_nocb.h instead of a small bridge seam.",
+    },
+    .{
         .id = "public_wait_and_callback_barrier",
         .summary = "Keep public wait, polling-cookie, and callback-barrier ownership in C.",
         .anchor_symbols = &.{ "synchronize_rcu", "get_state_synchronize_rcu", "poll_state_synchronize_rcu", "rcu_barrier" },
@@ -69,8 +75,10 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
-    try std.testing.expectEqual(@as(usize, 5), blockedBoundaryCount());
+    try std.testing.expectEqual(@as(usize, 6), blockedBoundaryCount());
     try std.testing.expectEqualStrings("expedited_funnel_and_stall_path", blocked_boundaries[2].id);
     try std.testing.expect(contains(blocked_boundaries[2].summary, "expedited"));
-    try std.testing.expect(contains(blocked_boundaries[4].summary, "callback migration"));
+    try std.testing.expectEqualStrings("nocb_offload_wakeup_handoff", blocked_boundaries[3].id);
+    try std.testing.expect(contains(blocked_boundaries[3].summary, "NOCB"));
+    try std.testing.expect(contains(blocked_boundaries[5].summary, "callback migration"));
 }
