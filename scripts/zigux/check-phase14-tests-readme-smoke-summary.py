@@ -170,6 +170,21 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_rcu_tree_manifest.json",
+            "self-test expected missing rcu-tree manifest tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
                 "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n"
                 "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
@@ -211,6 +226,21 @@ def run_self_test() -> int:
             check(root, source_text=MARKER),
             "zigux/tests/phase14_skbuff_bridge.zig",
             "self-test expected missing compile-shard tests-readme line failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "  * `zigux/tests/phase14_end_to_end_smoke_survey.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+            "self-test expected missing end-to-end smoke survey tests-readme line failure",
         )
         write_text(root / TESTS_README_PATH, good_tests_readme_text())
 
@@ -302,7 +332,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=12")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
