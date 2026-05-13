@@ -124,7 +124,7 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig
 
-phase3: phase3-validate phase3-abi phase3-interop
+phase3: phase3-validate phase3-abi phase3-low-level-wrappers-test phase3-interop
 
 phase7-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test
