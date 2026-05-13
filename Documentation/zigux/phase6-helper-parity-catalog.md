@@ -17,11 +17,13 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - roadmap anchor: `lib/base64.c`
 - helper: `lib/base64.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
+- focused helper replay: `zigux/tests/phase6_base64.zig`
+- focused slowdown-fixture companion: `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
-- currently missing helper-local replay surfaces on `master`: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- currently missing helper-local perf replay on `master`: `zigux/tests/phase6_base64_perf.zig`
 - direct parity packet note: the committed direct C parity scaffolding is self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` now consume the compact `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module
 - exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `24` direct C parity cases and preserves the last blocked slowdown packet as four case labels, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`
-- current review posture: partially landed; current `master` keeps the helper plus a self-contained direct C parity packet, but it still cannot honestly claim the broader focused helper replay or slowdown gate until the missing base64 replay and fixture files return
+- current review posture: partially landed; current `master` keeps the helper, the focused helper replay, the slowdown-fixture companion, and a self-contained direct C parity packet, but it still cannot honestly claim the dedicated slowdown gate until `zigux/tests/phase6_base64_perf.zig` returns
 
 ### bsearch
 - roadmap anchor: `lib/bsearch.c`
@@ -84,6 +86,6 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - `make -C zigux phase6-perf`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
-- current blocked-route posture: the slice notes above keep the base64 and checksum direct C parity routes as reviewable scaffolding only, not truthful complete replay routes, because the focused helper-owned replay and slowdown packet remains incomplete on current `master`
+- current blocked-route posture: the slice notes above keep the focused base64 helper replay, the direct base64 C parity packet, and the direct checksum C parity scaffolding readable as review surfaces, but the dedicated base64 slowdown gate stays documentary because `zigux/tests/phase6_base64_perf.zig` is still absent and the checksum helper packet remains blocked because its helper-owned replay and slowdown packet are still incomplete on current `master`
 - current perf-route posture: the shared perf survey above keeps the base64 and checksum slowdown routes documentary until their missing helper-owned replay files return, so the aggregate `phase6-perf` route should be read as inventory evidence rather than a truthful current-`master` replay summary
 - current shared-lane posture: the broader `phase6-validate` and `phase6` wrappers remain part of the shared route inventory, but the blocked base64 and checksum helper-local packet gaps mean reviewers should cross-check the slice notes and perf survey before treating those aggregate wrappers as runnable packet summaries
