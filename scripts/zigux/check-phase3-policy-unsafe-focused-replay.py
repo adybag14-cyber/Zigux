@@ -10,6 +10,7 @@ from pathlib import Path
 SURVEY_REL = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
 ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+LOW_LEVEL_TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
 
 SURVEY_REQUIRED = (
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
@@ -55,6 +56,15 @@ MANIFEST_REQUIRED = (
 
 MANIFEST_FORBIDDEN = ABI_SLICE_FORBIDDEN
 
+LOW_LEVEL_TEST_REQUIRED = (
+    "const scoped_mut_slice = try narrow.sliceAtInteropPolicy(u32, base, values.len, raw_policy);",
+    "const scoped_mut_slice_bytes = try narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 0);",
+    "const scoped_mut_slice_byte = try narrow.sliceAtByte(u32, base, values.len, 2);",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtByte(u32, base, values.len, 1));",
+)
+
 
 class CheckFailure(RuntimeError):
     pass
@@ -87,15 +97,18 @@ def check_repo_root(repo_root: Path) -> None:
     forbid_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_FORBIDDEN)
     require_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_REQUIRED)
     forbid_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_FORBIDDEN)
+    require_markers(repo_root / LOW_LEVEL_TEST_REL, LOW_LEVEL_TEST_REQUIRED)
 
 
 def write_fixture(root: Path) -> None:
     (root / SURVEY_REL.parent).mkdir(parents=True, exist_ok=True)
     (root / ABI_MANIFEST_REL.parent).mkdir(parents=True, exist_ok=True)
     (root / ABI_SLICE_REL.parent).mkdir(parents=True, exist_ok=True)
+    (root / LOW_LEVEL_TEST_REL.parent).mkdir(parents=True, exist_ok=True)
     (root / SURVEY_REL).write_text("\n".join(SURVEY_REQUIRED) + "\n", encoding="utf-8")
     (root / ABI_SLICE_REL).write_text("\n".join(ABI_SLICE_REQUIRED) + "\n", encoding="utf-8")
     (root / ABI_MANIFEST_REL).write_text("\n".join(MANIFEST_REQUIRED) + "\n", encoding="utf-8")
+    (root / LOW_LEVEL_TEST_REL).write_text("\n".join(LOW_LEVEL_TEST_REQUIRED) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -148,8 +161,22 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected missing manifest marker failure")
 
+        write_fixture(tmpdir)
+        low_level_test_path = tmpdir / LOW_LEVEL_TEST_REL
+        low_level_test_path.write_text(
+            low_level_test_path.read_text(encoding="utf-8").replace(LOW_LEVEL_TEST_REQUIRED[0] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert LOW_LEVEL_TEST_REL.as_posix() in str(exc)
+            assert LOW_LEVEL_TEST_REQUIRED[0] in str(exc)
+        else:
+            raise AssertionError("expected missing low-level raw-pointer bridge marker failure")
+
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=5")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=6")
     finally:
         shutil.rmtree(tmpdir)
 
