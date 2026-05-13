@@ -25,6 +25,7 @@ MARKERS = {
         "* no shared `validate-phase11.py`",
         "* no shared `make -C zigux phase11-validate` target on `master`",
         "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
         "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files rather than a broader validator stack",
     ],
     "closure_note": [
@@ -128,6 +129,7 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][3]),
             (FILES["note"], MARKERS["note"][4]),
             (FILES["note"], MARKERS["note"][9]),
+            (FILES["note"], MARKERS["note"][10]),
             (FILES["closure_note"], MARKERS["closure_note"][3]),
             (FILES["closure_note"], MARKERS["closure_note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
@@ -164,7 +166,7 @@ def run_self_test() -> None:
             expect_failure(case_root, marker)
 
         print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-        print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=13")
+        print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=14")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
