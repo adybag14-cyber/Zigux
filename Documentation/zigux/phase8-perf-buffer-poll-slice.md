@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 - `PHASE8_STATUS=active_helper_step`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
-- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ordered ready-buffer cursor traversal, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -42,6 +42,7 @@ The same bounded packet can also carry the tiny adjacent return-shaping surfaces
 The current bounded helper covers:
 - `perf_buffer__poll(timeout_ms)` wait-result classification
 - normalized negative errno-or-ready-count wait results
+- ordered ready-buffer cursor traversal before later bookkeeping and record-processing summaries
 - ready-buffer bookkeeping after the observed wait result
 - ordered `perf_buffer__process_records()` pass summaries
 - cumulative processed-record count across attempted ready buffers
@@ -59,6 +60,7 @@ The current bounded helper covers:
 The current tests check:
 - bounded, nonblocking, and indefinite timeout classification
 - direct and raw wait-result normalization into compact wait observations
+- ordered ready-buffer cursor traversal that preserves the next scan index and skipped nonready count across repeated scans
 - stable ready-buffer counting with the first error preserved for reviewability
 - fail-fast processing summaries that stop on the first failing ready buffer
 - helper-local execution summaries that keep processed-record totals compact
@@ -80,4 +82,4 @@ This slice does not yet claim:
 - broader perf-buffer-online-cpu-routing parity
 
 ## Next bounded step
-If this helper family moves again, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work. The next honest reopen inside `P8-L02` is another tiny helper-local guard or replay update inside the same wait-result, buffer-fd, or buffer-window packet.
+If this helper family moves again, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work. The next honest reopen here is another tiny helper-local guard or replay update inside the same wait-result, cursor, buffer-fd, or buffer-window packet.
