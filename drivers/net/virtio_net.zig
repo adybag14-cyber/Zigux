@@ -293,7 +293,7 @@ pub const VirtioNetProbeLab = struct {
     }
 
     pub fn planMergeableReceiveBuffer(self: *Self, request: MergeableReceiveBufferRequest) !MergeableReceiveBufferPlan {
-        const total_bytes = request.packet_bytes + request.headroom_bytes;
+        const total_bytes = try checkedAddU32(request.packet_bytes, request.headroom_bytes);
         const reuses_existing_room = request.existing_room_bytes >= total_bytes;
         const fits_single_page = total_bytes <= page_size;
 
@@ -681,6 +681,15 @@ test "planMergeableReceiveBuffer rejects big packets without mergeable support" 
     }));
 }
 
+test "planMergeableReceiveBuffer fails closed on total-byte overflow" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.PayloadByteOverflow, lab.planMergeableReceiveBuffer(.{
+        .packet_bytes = std.math.maxInt(u32),
+        .headroom_bytes = 1,
+        .mergeable_rx_bufs = true,
+    }));
+}
+
 test "summarizeReceiveRefill keeps reused-room posting explicit" {
     var lab = VirtioNetProbeLab.init();
     const summary = try lab.summarizeReceiveRefill(.{
@@ -713,6 +722,15 @@ test "summarizeReceiveRefill flags mergeable-chain posting for oversized packets
     try std.testing.expect(summary.publishes_receive_buffers);
     try std.testing.expect(!summary.reuses_existing_room);
     try std.testing.expect(summary.requires_mergeable_buffers);
+}
+
+test "summarizeReceiveRefill surfaces mergeable total-byte overflow" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.PayloadByteOverflow, lab.summarizeReceiveRefill(.{
+        .packet_bytes = std.math.maxInt(u32),
+        .headroom_bytes = 1,
+        .mergeable_rx_bufs = true,
+    }));
 }
 
 test "freezeForReset captures the last queue summary and refill expectations" {
