@@ -136,7 +136,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`make -C zigux phase12`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
     "and the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
-    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`",
+    "avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship",
 ]
 
 SCRIPTS_README_MARKERS = [
