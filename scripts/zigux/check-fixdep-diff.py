@@ -106,10 +106,11 @@ EXPECTED_CASES = {
         "stdout_mode": "dev_full",
     },
 }
+EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        r"escaped\ space-config.h",
+        r"escaped\\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -242,7 +243,8 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         raise ValueError(f"{CASES_PATH}:expected_non_empty_json_list")
 
     validated: list[dict[str, object]] = []
-    seen_names: set[str] = set()
+    seen_names: list[str] = []
+    seen_name_set: set[str] = set()
     for index, raw_case in enumerate(cases):
         if not isinstance(raw_case, dict):
             raise ValueError(f"{CASES_PATH}:entry[{index}]:expected_json_object")
@@ -250,9 +252,10 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         name = raw_case.get("name")
         if not isinstance(name, str) or not name:
             raise ValueError(f"{CASES_PATH}:entry[{index}]:missing_non_empty_name")
-        if name in seen_names:
+        if name in seen_name_set:
             raise ValueError(f"{CASES_PATH}:duplicate_name:{name}")
-        seen_names.add(name)
+        seen_name_set.add(name)
+        seen_names.append(name)
 
         expected_case = EXPECTED_CASES.get(name)
         if expected_case is None:
@@ -292,10 +295,13 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
 
         validated.append(validated_case)
 
+    if seen_names != EXPECTED_CASE_ORDER:
+        raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
+
     if len(validated) != len(EXPECTED_CASES):
         raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")
 
-    missing_names = sorted(set(EXPECTED_CASES) - seen_names)
+    missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)
     if missing_names:
         raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")
 
@@ -359,6 +365,15 @@ def run_self_test() -> int:
         f"{CASES_PATH}:unexpected_name:unexpected_fixdep_case",
     )
 
+    reordered_cases = copy_valid_cases(valid_cases)
+    reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
+    expect_failure(
+        "reordered_case_packet",
+        lambda: validate_cases(reordered_cases),
+        f"{CASES_PATH}:case_order="
+        f"{[case['name'] for case in reordered_cases]!r},expected={EXPECTED_CASE_ORDER!r}",
+    )
+
     missing_stderr_cases = copy_valid_cases(valid_cases)
     find_case(missing_stderr_cases, "sample_comment_only").pop("expected_stderr", None)
     expect_failure(
@@ -394,10 +409,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+            frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
@@ -407,21 +422,21 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
             ),
-            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
+            f"{fixture_dir}:missing_fixtures:escaped\\\\ space-config.h",
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
@@ -433,7 +448,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 10}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 11}")
     return 0
 
 
