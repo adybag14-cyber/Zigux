@@ -40,6 +40,22 @@ const AddUnlessCase = struct {
     changed: bool,
 };
 
+const IncNotZeroCase = struct {
+    name: []const u8,
+    seed: i64,
+    previous: i64,
+    final: i64,
+    changed: bool,
+};
+
+const DecIfPositiveCase = struct {
+    name: []const u8,
+    seed: i64,
+    result: i64,
+    final: i64,
+    changed: bool,
+};
+
 const BitwiseOp = enum {
     and_mask,
     or_mask,
@@ -199,6 +215,26 @@ fn expectAddUnlessCase(case: AddUnlessCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
+fn expectIncNotZeroCase(case: IncNotZeroCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.incNotZeroCounter();
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.changed, result.changed);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectDecIfPositiveCase(case: DecIfPositiveCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.decIfPositiveCounter();
+    try std.testing.expectEqual(case.result, result.result);
+    try std.testing.expectEqual(case.changed, result.changed);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
 fn expectBitwiseCase(case: BitwiseCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -351,6 +387,59 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c arithmetic, exc
     for (bitwise_cases) |case| {
         _ = case.name;
         try expectBitwiseCase(case);
+    }
+}
+
+test "runtime atomic64 diff gate keeps inc_not_zero and dec_if_positive guard paths explicit" {
+    const inc_not_zero_cases = [_]IncNotZeroCase{
+        .{
+            .name = "inc_not_zero leaves a zero counter untouched",
+            .seed = 0,
+            .previous = 0,
+            .final = 0,
+            .changed = false,
+        },
+        .{
+            .name = "inc_not_zero increments a live counter without hiding the previous value",
+            .seed = 0x2aaa_3137_4001_500d,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x2aaa_3137_4001_500e,
+            .changed = true,
+        },
+    };
+
+    for (inc_not_zero_cases) |case| {
+        _ = case.name;
+        try expectIncNotZeroCase(case);
+    }
+
+    const dec_if_positive_cases = [_]DecIfPositiveCase{
+        .{
+            .name = "dec_if_positive decrements a positive counter and stores the result",
+            .seed = 3,
+            .result = 2,
+            .final = 2,
+            .changed = true,
+        },
+        .{
+            .name = "dec_if_positive reports the negative-one result while leaving zero unchanged",
+            .seed = 0,
+            .result = -1,
+            .final = 0,
+            .changed = false,
+        },
+        .{
+            .name = "dec_if_positive keeps a negative counter unchanged while still reporting the decremented result",
+            .seed = -5,
+            .result = -6,
+            .final = -5,
+            .changed = false,
+        },
+    };
+
+    for (dec_if_positive_cases) |case| {
+        _ = case.name;
+        try expectDecIfPositiveCase(case);
     }
 }
 
