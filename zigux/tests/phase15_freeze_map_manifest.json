@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit": "current-master-readback-2026-05-13",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit_mode_reason": "This freeze-map packet now uses a dated master-readback marker because the previously recorded exact head drifted behind current master while the freeze anchor set and blocker posture stayed the same.",
   "anchor": "Documentation/zigux/freeze-map.md",
@@ -155,7 +155,7 @@
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-core-boundary-traceability.md, where the shared Phase 14 owner map still records skbuff on lane P14-L11 with blocked phase14-skbuff-live-ownership-blocker and no smaller ready-next gap.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where packet-local lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker, while Documentation/zigux/phase14-core-boundary-traceability.md records the same shared owner-map blocker on lane P14-L12 with no smaller ready-next gap.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
