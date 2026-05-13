@@ -121,7 +121,7 @@ REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1,
 }
 
 REQUIRED_REPLAY_STRUCT_MARKERS = (
@@ -218,7 +218,7 @@ def _validate_replay_struct_markers(path: Path, label: str) -> list[str]:
     try:
         text = _read(path)
     except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}]
+        return [f"missing repo file: {path.as_posix()}"]
     return [
         f"missing {label} struct marker: {marker}"
         for marker in REQUIRED_REPLAY_STRUCT_MARKERS
@@ -230,7 +230,7 @@ def _validate_replay_constant_markers(path: Path, label: str) -> list[str]:
     try:
         text = _read(path)
     except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}]
+        return [f"missing repo file: {path.as_posix()}"]
     return [
         f"missing {label} constant marker: {marker}"
         for marker in REQUIRED_REPLAY_CONSTANT_KEYS
@@ -242,7 +242,7 @@ def _validate_expected_fixture(path: Path) -> list[str]:
     try:
         payload = json.loads(_read(path))
     except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}]
+        return [f"missing repo file: {path.as_posix()}"]
     except json.JSONDecodeError as exc:
         return [f"invalid expected fixture JSON: {exc.msg}"]
 
