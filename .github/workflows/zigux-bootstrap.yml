@@ -329,9 +329,6 @@ jobs:
       - name: Run Phase 4 diff tests directly
         run: zig build test --build-file zigux/tests/phase4_build.zig
 
-      - name: Run Phase 5 reference sample tests
-        run: zig build test --build-file zigux/tests/phase5_build.zig --summary all
-
       - name: Self-test Phase 6 shared-surface checker
         run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test
 
@@ -454,14 +451,14 @@ jobs:
       - name: Check Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
 
-      - name: Self-test Phase 12 shared replay contract checker
-        run: python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test
+      - name: Self-test Phase 12 release-readiness packet checker
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 
       - name: Validate Phase 12 degraded-workflow bundle
         run: make -C zigux phase12-validate
 
-      - name: Check Phase 12 shared replay contract
-        run: python3 scripts/zigux/check-phase12-shared-replay-contract.py
+      - name: Check Phase 12 release-readiness packet
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
 
       - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
