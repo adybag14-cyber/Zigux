@@ -225,6 +225,7 @@ fn parseLongOption(
     index: *usize,
     request: *Request,
     references: *std.ArrayList([]const u8),
+    version_only: *bool,
 ) !ParseAction {
     const arg = args[index.*];
     const name_end = std.mem.indexOfScalar(u8, arg, '=') orelse arg.len;
@@ -245,26 +246,32 @@ fn parseLongOption(
             return .none;
         },
         .debug => {
+            version_only.* = false;
             request.debug_level += 1;
             return .none;
         },
         .warnings => {
+            version_only.* = false;
             request.warnings = true;
             return .none;
         },
         .quiet => {
+            version_only.* = false;
             request.warnings = false;
             return .none;
         },
         .dump => {
+            version_only.* = false;
             request.dump_defs = true;
             return .none;
         },
         .preserve => {
+            version_only.* = false;
             request.preserve = true;
             return .none;
         },
         .reference, .dump_types => {
+            version_only.* = false;
             const value = inline_value orelse blk: {
                 if (index.* + 1 >= args.len) {
                     return .{ .failure = .{ .missing_option_argument = option.failure_name } };
@@ -291,19 +298,37 @@ fn parseShortOptions(
     index: *usize,
     request: *Request,
     references: *std.ArrayList([]const u8),
+    version_only: *bool,
 ) !ParseAction {
     const arg = args[index.*];
     var short_index: usize = 1;
+    var cluster_is_version_only = true;
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
             'h' => return .{ .command = .{ .help = request.version_count } },
             'V' => request.version_count += 1,
-            'd' => request.debug_level += 1,
-            'w' => request.warnings = true,
-            'q' => request.warnings = false,
-            'D' => request.dump_defs = true,
-            'p' => request.preserve = true,
+            'd' => {
+                cluster_is_version_only = false;
+                request.debug_level += 1;
+            },
+            'w' => {
+                cluster_is_version_only = false;
+                request.warnings = true;
+            },
+            'q' => {
+                cluster_is_version_only = false;
+                request.warnings = false;
+            },
+            'D' => {
+                cluster_is_version_only = false;
+                request.dump_defs = true;
+            },
+            'p' => {
+                cluster_is_version_only = false;
+                request.preserve = true;
+            },
             'r', 'T' => {
+                cluster_is_version_only = false;
                 const option = arg[short_index];
                 const inline_value = arg[short_index + 1 ..];
                 const value = if (inline_value.len != 0) inline_value else blk: {
@@ -321,10 +346,14 @@ fn parseShortOptions(
                 } else {
                     request.dump_types_file = value;
                 }
+                version_only.* = false;
                 return .none;
             },
             else => return .{ .failure = .{ .invalid_option = arg[short_index .. short_index + 1] } },
         }
+    }
+    if (!cluster_is_version_only) {
+        version_only.* = false;
     }
     return .none;
 }
@@ -337,6 +366,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     var references = std.ArrayList([]const u8).empty;
     var rendered_args = std.ArrayList([]const u8).empty;
     var positional_args = std.ArrayList([]const u8).empty;
+    var version_only = true;
     defer references.deinit(allocator);
     defer rendered_args.deinit(allocator);
     defer positional_args.deinit(allocator);
@@ -345,6 +375,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     while (index < args.len) : (index += 1) {
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
+            version_only = false;
             try rendered_args.append(allocator, arg);
             try rendered_args.appendSlice(allocator, positional_args.items);
             if (index + 1 < args.len) {
@@ -353,12 +384,13 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             break;
         }
         if (arg.len == 0 or arg[0] != '-' or std.mem.eql(u8, arg, "-")) {
+            version_only = false;
             try positional_args.append(allocator, arg);
             continue;
         }
         if (std.mem.startsWith(u8, arg, "--")) {
             const long_option_index = index;
-            switch (try parseLongOption(allocator, args, &index, &request, &references)) {
+            switch (try parseLongOption(allocator, args, &index, &request, &references, &version_only)) {
                 .none => {
                     try rendered_args.append(allocator, arg);
                     if (index != long_option_index and index < args.len) {
@@ -373,7 +405,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             }
         } else {
             const short_option_index = index;
-            switch (try parseShortOptions(allocator, args, &index, &request, &references)) {
+            switch (try parseShortOptions(allocator, args, &index, &request, &references, &version_only)) {
                 .none => {
                     try rendered_args.append(allocator, arg);
                     if (index != short_option_index and index < args.len) {
@@ -391,6 +423,9 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
 
     if (index >= args.len) {
         try rendered_args.appendSlice(allocator, positional_args.items);
+    }
+    if (request.version_count != 0 and version_only) {
+        return .{ .command = .version };
     }
     request.rendered_args = try rendered_args.toOwnedSlice(allocator);
     request.reference_files = try references.toOwnedSlice(allocator);
@@ -554,6 +589,30 @@ test "genksyms bridge keeps version as a side effect while parsing later options
             else => return error.ExpectedRequestCommand,
         },
         else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge returns version command for pure short version invocation" {
+    const args = [_][]const u8{"-V"};
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .version => {},
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
+    }
+}
+
+test "genksyms bridge returns version command for pure abbreviated long version invocation" {
+    const args = [_][]const u8{"--ver"};
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .version => {},
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
     }
 }
 
