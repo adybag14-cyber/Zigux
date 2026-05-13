@@ -212,9 +212,9 @@ test "phase 15 architecture council review-process manifest records the bounded 
         if (std.mem.eql(u8, gap.id, "phase15-shared-summary-parity-scorecard-survey-undercount")) {
             saw_shared_summary_parity_scorecard_survey_undercount = true;
             try std.testing.expectEqualStrings("blocked_on_shared_summaries", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md; scripts/zigux/README.md; zigux/tests/README.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("scripts/zigux/README.md; zigux/tests/README.md; scripts/zigux/check-phase15-shared-summary-gap.py", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-summaries lane") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "python3 scripts/zigux/check-phase15-shared-summary-gap.py") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
