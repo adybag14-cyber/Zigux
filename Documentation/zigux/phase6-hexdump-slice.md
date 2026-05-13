@@ -1,7 +1,7 @@
 # Phase 6 Hexdump Slice
 
 ## Status
-- `PHASE6_STATUS=review-drifted`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - helper anchor: `lib/hexdump.zig`
 
@@ -22,8 +22,7 @@
 - `make -C zigux phase6-hexdump-perf`
 - `make -C zigux phase6-hexdump-review`
 - current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle; `16B-plain-g1` stays capped at `max_slowdown_pct = 175`, `32B-ascii-g2` and `16B-ascii-g4` stay capped at `max_slowdown_pct = 550`, and `16B-ascii-g8` stays capped at `max_slowdown_pct = 600`, with `zigux/tests/phase6_hexdump_perf_matrix.zig` exact-checking the documented case labels, lengths, row sizes, group sizes, ascii flags, replay counts, slowdown caps, and buffer-fit guard before `zigux/tests/phase6_hexdump_perf.zig` times expected output and required length for every fixture-backed perf case
-- current live reread note: `zigux/tests/phase6_hexdump.zig` still calls `hexDumpLineLength`, `hexBytePack`, `hexBytePackUpper`, and `hexAsc*` helpers that are not exposed by the current `lib/hexdump.zig` body, so the slice needs one helper-local closure pass before it can honestly return to a parked posture
 - the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract
 
 ## Next Step
-Reopen this slice on the next writable helper-local pass because a fresh live reread now shows focused replay versus landed helper API drift: `zigux/tests/phase6_hexdump.zig` still calls `hexDumpLineLength`, `hexBytePack`, `hexBytePackUpper`, and `hexAsc*` helpers that the current `lib/hexdump.zig` body does not expose. Keep the repair helper-local by choosing exactly one side of that mismatch first: either restore the missing API surface in `lib/hexdump.zig` or trim the focused replay back to the landed helper API, then rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test` before touching any shared Phase 6 docs.
+Leave this slice parked unless a fresh hexdump packet reread shows drift across the helper-local serialized `length_cases` packet, the focused helper replay, the exact four-case perf packet, or the newly landed same-file hex conversion helpers. If it reopens, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test` first, then keep the repair to one same-packet surface only.
