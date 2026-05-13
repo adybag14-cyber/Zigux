@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const abi = @import("abi_bindings");
+const uapi_dev_t = @import("uapi_dev_t");
 const uapi_version = @import("uapi_version");
 
 pub const Header = uapi_version.Header;
@@ -13,6 +14,11 @@ pub const HeaderEvaluation = uapi_version.HeaderEvaluation;
 
 pub const CompatibilityDecision = struct {
     evaluation: HeaderEvaluation,
+    status: abi.ExportStatus,
+};
+
+pub const DeviceEncodingResult = struct {
+    value: u32,
     status: abi.ExportStatus,
 };
 
@@ -96,6 +102,37 @@ pub fn requestedExtraBytes(header_value: Header) ?u32 {
     return uapi_version.evaluateHeader(header_value).requestedExtraBytes();
 }
 
+pub fn encodeDeviceNumber(
+    major_id: u32,
+    minor_id: u32,
+    facility: abi.Facility,
+) DeviceEncodingResult {
+    const value = uapi_dev_t.encode(major_id, minor_id) catch |err| return .{
+        .value = 0,
+        .status = deviceEncodeStatus(err, facility),
+    };
+    return .{
+        .value = value,
+        .status = ok(facility),
+    };
+}
+
+pub fn lastDeviceNumberInRange(
+    major_id: u32,
+    first_minor: u32,
+    count: u32,
+    facility: abi.Facility,
+) DeviceEncodingResult {
+    const value = uapi_dev_t.lastInRange(major_id, first_minor, count) catch |err| return .{
+        .value = 0,
+        .status = deviceEncodeStatus(err, facility),
+    };
+    return .{
+        .value = value,
+        .status = ok(facility),
+    };
+}
+
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
     return normalize(.{
         .code = 0,
@@ -122,6 +159,14 @@ pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {
 
 pub fn isOk(status: abi.ExportStatus) bool {
     return status.code >= 0 and (status.flags & abi.STATUS_FLAG_ERROR) == 0;
+}
+
+fn deviceEncodeStatus(err: uapi_dev_t.EncodeError, facility: abi.Facility) abi.ExportStatus {
+    const code: i32 = switch (err) {
+        error.MajorOutOfRange, error.MinorOutOfRange => -22,
+        error.RangeExhausted => -34,
+    };
+    return errno(code, facility);
 }
 
 test "phase3 export shim keeps failure encoding explicit" {
@@ -222,4 +267,24 @@ test "phase3 export shim evaluation keeps compatibility evidence and status toge
     try std.testing.expect(requestedExtraBytes(version_mismatch) == null);
     try std.testing.expectEqual(@as(i32, -71), rejected.status.code);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), rejected.status.flags);
+}
+
+test "phase3 export shim keeps dev_t starter relay status explicit" {
+    const encoded = encodeDeviceNumber(42, 7, .drivers);
+    try std.testing.expect(isOk(encoded.status));
+    try std.testing.expectEqual((@as(u32, 42) << uapi_dev_t.minor_bits) | 7, encoded.value);
+
+    const range_last = lastDeviceNumberInRange(42, 7, 4, .helpers);
+    try std.testing.expect(isOk(range_last.status));
+    try std.testing.expectEqual((@as(u32, 42) << uapi_dev_t.minor_bits) | 10, range_last.value);
+
+    const bad_major = encodeDeviceNumber(uapi_dev_t.major_max + 1, 0, .kernel);
+    try std.testing.expect(!isOk(bad_major.status));
+    try std.testing.expectEqual(@as(i32, -22), bad_major.status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), bad_major.status.flags);
+
+    const exhausted = lastDeviceNumberInRange(42, uapi_dev_t.minor_mask - 1, 3, .helpers);
+    try std.testing.expect(!isOk(exhausted.status));
+    try std.testing.expectEqual(@as(i32, -34), exhausted.status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), exhausted.status.flags);
 }
