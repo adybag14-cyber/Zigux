@@ -53,12 +53,10 @@ REVIEW_CHECKLIST_PHASE1_BLOCK_END = (
     "  * if the change touches the shared Phase 2 toolchain packet,"
 )
 REVIEW_CHECKLIST_MARKERS = [
-    "`scripts/zigux/check-phase1-installer-companion-checks.py`",
-    "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
-    "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
 ]
 REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS = [
-    "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+    "  * does `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the reviewer-facing companion split explicit too: the self-test replays the bounded checker logic, while the live checker route guards the shipped Phase 1 reminder surfaces without widening the counted shared-reminder packet line that `scripts/zigux/validate-phase1.py` enforces?",
 ]
 
 MAKEFILE_MARKERS = [
@@ -199,7 +197,8 @@ def make_fixture_root(root: Path) -> None:
     (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
         "\n".join(
             [
-                REVIEW_CHECKLIST_PHASE1_BLOCK_START + " " + REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
                 REVIEW_CHECKLIST_PHASE1_BLOCK_END,
             ]
         )
@@ -229,14 +228,12 @@ def run_self_test() -> None:
                 REVIEW_CHECKLIST_MARKERS[0],
                 "",
                 1,
-            )
-            + REVIEW_CHECKLIST_MARKERS[0]
-            + "\n",
+            ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            f"review_checklist_phase1_block:missing_start:{REVIEW_CHECKLIST_PHASE1_BLOCK_START}"
             in missing
         )
         case_count += 1
@@ -245,14 +242,14 @@ def run_self_test() -> None:
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
                 REVIEW_CHECKLIST_MARKERS[0],
-                REVIEW_CHECKLIST_MARKERS[0] + ", " + REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[0] + "\n" + REVIEW_CHECKLIST_MARKERS[0],
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=2"
+            f"review_checklist_phase1_block:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2"
             in missing
         )
         case_count += 1
@@ -293,14 +290,14 @@ def run_self_test() -> None:
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
                 REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
-                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0] + " " + REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                "  * does `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` keep the reviewer-facing companion split explicit too: the live checker route replays the bounded checker logic, while the self-test route guards the shipped Phase 1 reminder surfaces without widening the counted shared-reminder packet line that `scripts/zigux/validate-phase1.py` enforces?",
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            f"review_checklist_phase1_route_split:{REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0]}:expected=1:actual=2"
+            f"review_checklist_phase1_route_split:{REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0]}:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -460,7 +457,7 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
                 "        run: python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test\n",
@@ -489,22 +486,6 @@ def run_self_test() -> None:
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
                 REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
-                "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "review_checklist_phase1_route_split:`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
-            in missing
-        )
-        case_count += 1
-        make_fixture_root(root)
-
-        review_path.write_text(
-            review_path.read_text(encoding="utf-8").replace(
-                REVIEW_CHECKLIST_MARKERS[1],
                 "",
                 1,
             ),
@@ -512,7 +493,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist_phase1_block:`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`:expected=1:actual=0"
+            f"review_checklist_phase1_route_split:{REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0]}:expected=1:actual=0"
             in missing
         )
         case_count += 1
@@ -520,31 +501,15 @@ def run_self_test() -> None:
 
         review_path.write_text(
             review_path.read_text(encoding="utf-8").replace(
-                REVIEW_CHECKLIST_MARKERS[0],
-                "",
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
+                REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0] + "\n" + REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0],
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist_phase1_block:`scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
-            in missing
-        )
-        case_count += 1
-        make_fixture_root(root)
-
-        review_path.write_text(
-            review_path.read_text(encoding="utf-8").replace(
-                REVIEW_CHECKLIST_MARKERS[2],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "review_checklist_phase1_block:`python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            f"review_checklist_phase1_route_split:{REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS[0]}:expected=1:actual=2"
             in missing
         )
         case_count += 1
