@@ -549,6 +549,73 @@ test "runtime kretprobe loader surfaces prepared shared selftest-hook drift befo
     ));
 }
 
+test "runtime kretprobe loader rejects prepared shared approved-family anchor and symbol drift before any live registration claim" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var anchor_loader = RuntimeKretprobeLoader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+    anchor_request.plan.anchor = "samples/kprobes/kretprobe_example_drift.c";
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = RuntimeKretprobeLoader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+    entry_request.plan.entry_symbol = "zigux_runtime_kretprobe_init_drift";
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+
+    var exit_loader = RuntimeKretprobeLoader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+    exit_request.plan.exit_symbol = "zigux_runtime_kretprobe_exit_drift";
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+}
+
 test "runtime kretprobe loader rejects prepared shared runtime-substrate drift before any live registration claim" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
