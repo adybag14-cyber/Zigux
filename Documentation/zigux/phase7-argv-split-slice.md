@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_LANE_KEY=P7-L09`
 * scope: first low-risk argument-vector parsing and teardown helpers only
 * lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, shared helper-lane sequencing note, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
-* current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, but the broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling rbtree replay `zigux/tests/phase7_rbtree.zig`
+* current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, but the broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers helper-plus-test pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`
 * product boundary:
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
@@ -47,7 +47,7 @@ This current slice keeps the work bounded to runtime-safe argument-vector helper
 * keep strict non-goal behavior where quote characters stay inside the returned tokens
 
 Current repo reality is narrower only at the shared bundle level: on `2026-05-13`, direct current `master` reads returned this slice note together with `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, and `zigux/tests/fixtures/phase7_argv_split_vectors.zig`.
-That means the argv_split-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains parked because the sibling rbtree dedicated replay is still missing from live `master`.
+That means the argv_split-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains parked because the sibling string-helpers helper-plus-test pair is still missing from live `master`.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 Current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/argv_split.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting it as a fifth Phase 5 sample.
@@ -98,9 +98,10 @@ Current `master` still exposes the bounded argv_split helper packet:
 
 Current `master` still does not expose the full shared Phase 7 helper bundle:
 
-* `zigux/tests/phase7_rbtree.zig` currently fails direct current-path reads
+* `lib/string_helpers.zig` currently fails direct current-path reads
+* `zigux/tests/phase7_string_helpers.zig` currently fails direct current-path reads
 
-That means the dedicated argv_split helper replay and dedicated argv_split survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is still a parked cross-packet target because it still imports the missing sibling rbtree replay.
+That means the dedicated argv_split helper replay and dedicated argv_split survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is still a parked cross-packet target because it still imports the missing sibling string-helpers helper-plus-test pair.
 Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep argv_split-local follow-through under `P7-L09` instead of reusing the shared sequencing lane.
 
 ## Current parity surface
@@ -120,10 +121,11 @@ The current tests keep these packet edges explicit:
 * blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller
 * explicit `ArgvSplitResult.deinit()` clearing of exported storage, argv, and null-terminated sentinel views
 * exported storage and argv views resetting back to the canonical empty sentinels after teardown
+* `argvFree()` on a non-blank live result resets storage, argv, and exported `cArgv()` views back to the canonical blank sentinels, keeping that post-free reread contract explicit for callers that retain the same result struct
 * allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns
 * safe and repeatable sentinel teardown through `argvFree()`
 * explicit `argvFree()` ownership mirroring that keeps the `argv_free` teardown contract reviewable for C-style callers
-* the dedicated packet checker, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together, while the broader shared build replay stays parked until its missing sibling replay is restored
+* the dedicated packet checker, the shared validator-first packet, the make-wrapper alignment note, and the no-sample boundary note remain reviewable together, while the broader shared build replay stays parked until its missing sibling helper-plus-test pair is restored
 
 The helper entrypoints remain explicit:
 
@@ -142,6 +144,6 @@ This slice still does not yet claim:
 ## Next bounded step
 
 Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
-If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, exported-view clearing, blank-input sentinel, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
+If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, exported-view clearing, canonical blank-sentinel reset, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
 
 ## Footer
