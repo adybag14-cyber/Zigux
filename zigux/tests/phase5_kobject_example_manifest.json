@@ -4,10 +4,10 @@
   "surveyed_commit": "28a3bde2b3d68612f18d9bdd786be50c71c3173e",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
-  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "validation_entrypoint": "zig test zigux/tests/phase5_kobject_example.zig",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, sample-owned runInputValidationReplay() for shared baz/bar dispatch plus parse-failure visibility, and pre-registration access boundary run through phase5_build.zig",
+    "the manifest, the focused test in zigux/tests/phase5_kobject_example.zig, and the sample-backed survey note still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, sample-owned runInputValidationReplay() for shared baz/bar dispatch plus parse-failure visibility, and the pre-registration access boundary without restating the older missing phase5_build.zig route as current evidence",
     "the manifest prompts keep sample-owned runPreRegistrationBoundaryReplay() explicit so the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary stays executable before registerAttributes() opens the sample",
     "the manifest prompts keep the one-time init ownership rule explicit so calling init() twice before registration still returns InvalidLifecycleTransition while the sample stays initialized with zero active attributes and 1/0/0 counters",
     "the manifest prompts keep sample-owned runRegisteredBoundaryReplay(), runInputValidationReplay(), and runTeardownReplay() explicit so the already-registered duplicate-registration plus replay-restart rejection, the shared baz/bar dispatch and parse-failure packet, the still-usable registered-state foo roundtrip, and the registered teardown reset-and-rejection packet stay executable instead of implied",
