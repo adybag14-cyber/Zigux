@@ -75,6 +75,11 @@ test "phase 8 help slice covers command-list ownership, filtering, exclusion, te
     try std.testing.expectEqual(@as(usize, 3), narrow_layout.rows);
     try std.testing.expectEqual(@as(usize, 9), narrow_layout.spacing);
 
+    const edge_layout = help.planPrettyPrint(4, 8, 18);
+    try std.testing.expectEqual(@as(usize, 1), edge_layout.cols);
+    try std.testing.expectEqual(@as(usize, 4), edge_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), edge_layout.spacing);
+
     const terminal = help.resolveTerminalDimensions("31", "37", .{
         .rows = 20,
         .cols = 60,
@@ -307,7 +312,7 @@ test "phase 8 help output emission keeps column-major pretty-printing pure and t
     try std.testing.expectEqualStrings(
         " annotate report
 " ++
-            " bench stat
+            " bench    stat
 " ++
             " diff
 ",
