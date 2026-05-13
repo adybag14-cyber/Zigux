@@ -42,6 +42,30 @@ IOUNMAP_REPLAY_MARKERS = [
     "try std.testing.expect(miss.warns_on_release_miss);",
 ]
 
+UC_WC_SLICE_MARKERS = [
+    "devm_ioremap_uc()",
+    "devm_ioremap_wc()",
+]
+
+UC_WC_SURVEY_MARKERS = [
+    "devm_ioremap_uc()",
+    "devm_ioremap_wc()",
+]
+
+UC_WC_HELPER_MARKERS = [
+    ".provides_ioremap_uc_wrapper_planning = true",
+    ".provides_ioremap_wc_wrapper_planning = true",
+    "pub fn planManagedIoremapAcquireUc(",
+    "pub fn planManagedIoremapAcquireWc(",
+]
+
+UC_WC_REPLAY_MARKERS = [
+    'test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
+    'test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
+    'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
+    'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
+]
+
 ARCH_TOKEN_SLICE_MARKERS = [
     "devm_arch_phys_wc_add()",
 ]
@@ -203,6 +227,11 @@ def validate(root: Path) -> list[str]:
     require_markers(helper_text, "helper", IOUNMAP_HELPER_MARKERS, errors)
     require_markers(replay_text, "replay", IOUNMAP_REPLAY_MARKERS, errors)
 
+    require_markers(slice_text, "slice", UC_WC_SLICE_MARKERS, errors)
+    require_markers(survey_text, "survey", UC_WC_SURVEY_MARKERS, errors)
+    require_markers(helper_text, "helper", UC_WC_HELPER_MARKERS, errors)
+    require_markers(replay_text, "replay", UC_WC_REPLAY_MARKERS, errors)
+
     require_markers(slice_text, "slice", ARCH_TOKEN_SLICE_MARKERS, errors)
     require_markers(survey_text, "survey", ARCH_TOKEN_SURVEY_MARKERS, errors)
     require_markers(helper_text, "helper", ARCH_TOKEN_HELPER_MARKERS, errors)
@@ -258,7 +287,18 @@ def seed_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / SLICE_PATH, "devm_iounmap()\ndevm_arch_phys_wc_add()\n")
+    write_text(
+        root / SLICE_PATH,
+        "\n".join(
+            [
+                "devm_iounmap()",
+                "devm_ioremap_uc()",
+                "devm_ioremap_wc()",
+                "devm_arch_phys_wc_add()",
+            ]
+        )
+        + "\n",
+    )
     write_text(
         root / SURVEY_PATH,
         "\n".join(
@@ -267,6 +307,8 @@ def seed_fixture_tree(root: Path) -> None:
                 "`P13-L01` helper packet",
                 "master-readback-2026-05-13",
                 "devm_iounmap()",
+                "devm_ioremap_uc()",
+                "devm_ioremap_wc()",
                 "devm_arch_phys_wc_add()",
                 "live arch memtype state transitions",
                 "phase13-devres-live-mmio-mappings",
@@ -288,6 +330,10 @@ def seed_fixture_tree(root: Path) -> None:
                 "pub const ManagedIounmapPlan = struct {}",
                 "pub fn planManagedIounmap(",
                 ".warns_on_release_miss = !release_matches",
+                ".provides_ioremap_uc_wrapper_planning = true",
+                ".provides_ioremap_wc_wrapper_planning = true",
+                "pub fn planManagedIoremapAcquireUc(",
+                "pub fn planManagedIoremapAcquireWc(",
                 ".provides_arch_phys_wc_token_planning = true",
                 "pub const ManagedPhysWcAddInput = struct {}",
                 "pub const ManagedPhysWcAddPlan = struct {}",
@@ -303,6 +349,10 @@ def seed_fixture_tree(root: Path) -> None:
                 'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
                 "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
                 "try std.testing.expect(miss.warns_on_release_miss);",
+                'test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
+                'test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
+                'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
+                'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
                 'test "phase13 devres retains phys WC release tokens on successful token add" {',
                 'test "phase13 devres frees phys WC release records when token add fails" {',
                 '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
@@ -363,6 +413,8 @@ def run_self_test() -> int:
                 "survey:missing_stale_checker_warning",
                 "survey:missing_current_checker_marker",
                 "survey:missing_marker:devm_iounmap()",
+                "survey:missing_marker:devm_ioremap_uc()",
+                "survey:missing_marker:devm_ioremap_wc()",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
                 "survey:missing_marker:phase13-devres-live-mmio-mappings",
                 "survey:missing_marker:phase13-devres-live-device-tree-walk",
@@ -372,6 +424,18 @@ def run_self_test() -> int:
                 "survey:missing_marker:live arch memtype state transitions",
             ],
             "survey_missing_markers_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / SLICE_PATH, "devm_iounmap()\ndevm_arch_phys_wc_add()\n")
+        assert_only(
+            validate(root),
+            [
+                "slice:missing_marker:devm_ioremap_uc()",
+                "slice:missing_marker:devm_ioremap_wc()",
+            ],
+            "slice_missing_uc_wc_markers_failed",
         )
         case_count += 1
 
@@ -401,6 +465,10 @@ def run_self_test() -> int:
                 "helper:missing_marker:pub const ManagedIounmapPlan",
                 "helper:missing_marker:pub fn planManagedIounmap(",
                 "helper:missing_marker:.warns_on_release_miss = !release_matches",
+                "helper:missing_marker:.provides_ioremap_uc_wrapper_planning = true",
+                "helper:missing_marker:.provides_ioremap_wc_wrapper_planning = true",
+                "helper:missing_marker:pub fn planManagedIoremapAcquireUc(",
+                "helper:missing_marker:pub fn planManagedIoremapAcquireWc(",
                 "helper:missing_marker:.provides_arch_phys_wc_token_planning = true",
                 "helper:missing_marker:pub const ManagedPhysWcAddInput",
                 "helper:missing_marker:pub const ManagedPhysWcAddPlan",
@@ -411,11 +479,40 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            "\n".join(
+                [
+                    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
+                    "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
+                    "try std.testing.expect(miss.warns_on_release_miss);",
+                    'test "phase13 devres retains phys WC release tokens on successful token add" {',
+                    'test "phase13 devres frees phys WC release records when token add fails" {',
+                    '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
+                    '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"master-readback-2026-05-13\\"");',
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                'replay:missing_marker:test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
+                'replay:missing_marker:test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
+                'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
+                'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
+            ],
+            "replay_missing_uc_wc_markers_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(root / DMA_REPLAY_PATH, "nothing useful\n")
         assert_only(
             validate(root),
             [
                 "dma_replay:preexisting_phase13_devres_dma_coherent_present_mismatch:True",
+                "dma_replay:missing_marker:\"preexisting_phase13_devres_dma_coherent_present\": true",
                 "dma_replay:missing_marker:\"phase13-devres-live-mmio-mappings\"",
                 "dma_replay:missing_marker:\"phase13-devres-live-arch-memtype-state\"",
             ],
@@ -423,6 +520,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+    print("PHASE13_DEVRES_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE13_DEVRES_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
