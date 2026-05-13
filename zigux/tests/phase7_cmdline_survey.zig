@@ -15,14 +15,50 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
+const PairCompileStatus = struct {
+    status: []const u8,
+    paths: []const []const u8,
+};
+
+const SharedBuildStatus = struct {
+    status: []const u8,
+    build_file: []const u8,
+    missing_sibling_paths: []const []const u8,
+};
+
+const CurrentVerification = struct {
+    verified_on_utc: []const u8,
+    cmdline_pair_compile: PairCompileStatus,
+    shared_phase7_build: SharedBuildStatus,
+};
+
+const SurveySummary = struct {
+    preexisting_phase7_test_files: usize,
+    preexisting_phase7_fixture_modules: usize,
+    preexisting_phase7_build_present: bool,
+    preexisting_phase7_doc_present: bool,
+    preexisting_phase7_helper_present: bool,
+};
+
+const Gap = struct {
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    current_verification: CurrentVerification,
     review_surfaces: []const []const u8,
     covered_helpers: []const []const u8,
     ownership_focus: []const []const u8,
+    survey_summary: SurveySummary,
+    gaps: []const Gap,
 };
 
 test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" {
@@ -39,6 +75,17 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
+
+    try std.testing.expectEqualStrings("2026-05-13T00:00:00Z", manifest.current_verification.verified_on_utc);
+    try std.testing.expectEqualStrings("confirmed", manifest.current_verification.cmdline_pair_compile.status);
+    try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.cmdline_pair_compile.paths.len);
+    try expectStringSliceContains(manifest.current_verification.cmdline_pair_compile.paths, "lib/cmdline.zig");
+    try expectStringSliceContains(manifest.current_verification.cmdline_pair_compile.paths, "zigux/tests/phase7_cmdline.zig");
+    try std.testing.expectEqualStrings("blocked", manifest.current_verification.shared_phase7_build.status);
+    try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", manifest.current_verification.shared_phase7_build.build_file);
+    try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.shared_phase7_build.missing_sibling_paths.len);
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.missing_sibling_paths, "lib/string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.missing_sibling_paths, "zigux/tests/phase7_string_helpers.zig");
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
@@ -59,6 +106,12 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectStringSliceContains(manifest.ownership_focus, "nextArg empty-input borrowed-slice reuse");
     try expectStringSliceContains(manifest.ownership_focus, "nextArg leading-whitespace sentinel token");
     try expectStringSliceContains(manifest.ownership_focus, "validator-first shared Phase 7 replay route");
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-cmdline-slice.md");
     defer allocator.free(slice_note);
@@ -75,6 +128,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "- do not allocate");
     try expectContains(slice_note, "empty-input handling keeps `param` and `rest` borrowed from the caller slice");
     try expectContains(slice_note, "leading-whitespace handling keeps the Linux-style empty sentinel token");
+    try expectContains(slice_note, "shared-route note: the broader shared `zigux/tests/phase7_build.zig` route is still parked on current `master` because the sibling string-helpers pair `lib/string_helpers.zig` plus `zigux/tests/phase7_string_helpers.zig` remains absent");
     try expectContains(slice_note, "getOption() clears caller-provided output on malformed signed and unsigned input");
     try expectContains(
         slice_note,
@@ -93,6 +147,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
+    try expectContains(build_file, "../../lib/string_helpers.zig");
+    try expectContains(build_file, "\"phase7_string_helpers.zig\"");
     try expectContains(build_file, "\"phase7_cmdline.zig\"");
     try expectContains(build_file, "\"phase7_cmdline_survey.zig\"");
     try expectContains(build_file, "\"phase7-cmdline-tests\"");
