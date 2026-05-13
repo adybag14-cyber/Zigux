@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
@@ -59,9 +60,20 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
         "this slice does not carry an open parity-fixture follow-up",
+        "linked-node teardown keeps detached ownership state, neighbour relinking, and leftmost continuity reviewable inside the shared Phase 7 packet",
+        "cached-leftmost handoff and final singleton `eraseCached()` state stay explicit in the shared tests instead of being hidden behind the helper implementation alone",
+    ],
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "rbtree packet, lane `P7-L13`:",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "zigux/tests/phase7_rbtree_manifest.json",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "PHASE7_RBTREE_LANE=P7-L13",
+        "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;",
@@ -113,7 +125,16 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey-tests",
         'run_rbtree_survey_tests.setCwd(b.path("../.."));',
     ],
+    "zigux/tests/phase7_rbtree.zig": [
+        "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable",
+        "phase 7 rbtree cached helpers return leftmost handoff state",
+        "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+        "phase 7 rbtree detached nodes stay non-empty until callers clear them",
+        "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        "phase 7 rbtree postorder traversal matches committed parity fixture",
+    ],
     "zigux/tests/phase7_rbtree_survey.zig": [
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_rbtree.zig",
@@ -121,6 +142,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_rbtree_manifest.json",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "phase 7 rbtree cached helpers return leftmost handoff state",
+        "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        "phase 7 rbtree postorder traversal matches committed parity fixture",
     ],
 }
 
@@ -150,7 +174,6 @@ def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(
         {
-            "zigux/tests/phase7_rbtree.zig": "// fixture\n",
             "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
@@ -187,6 +210,7 @@ def run_self_test() -> None:
     missing_file_cases = [
         ("missing_review_checklist", "Documentation/zigux/review-checklist.md"),
         ("missing_alignment_note", "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"),
+        ("missing_helper_lane_note", "Documentation/zigux/phase7-helper-lane-sequencing.md"),
         ("missing_make_wrapper_checker", "scripts/zigux/check-phase7-make-wrapper.py"),
         ("missing_make_wrapper_alignment_checker", "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
@@ -226,6 +250,13 @@ def run_self_test() -> None:
             "Documentation/zigux/review-checklist.md: scripts/zigux/check-phase7-build-wiring.py",
         ),
         (
+            "slice_helper_lane_note_marker",
+            "Documentation/zigux/phase7-rbtree-slice.md",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "",
+            "Documentation/zigux/phase7-rbtree-slice.md: Documentation/zigux/phase7-helper-lane-sequencing.md",
+        ),
+        (
             "slice_checker_marker",
             "Documentation/zigux/phase7-rbtree-slice.md",
             "python3 scripts/zigux/check-phase7-rbtree-parity.py",
@@ -238,6 +269,41 @@ def run_self_test() -> None:
             "this slice does not carry an open parity-fixture follow-up",
             "",
             "Documentation/zigux/phase7-rbtree-slice.md: this slice does not carry an open parity-fixture follow-up",
+        ),
+        (
+            "slice_linked_teardown_marker",
+            "Documentation/zigux/phase7-rbtree-slice.md",
+            "linked-node teardown keeps detached ownership state, neighbour relinking, and leftmost continuity reviewable inside the shared Phase 7 packet",
+            "",
+            "Documentation/zigux/phase7-rbtree-slice.md: linked-node teardown keeps detached ownership state, neighbour relinking, and leftmost continuity reviewable inside the shared Phase 7 packet",
+        ),
+        (
+            "slice_cached_leftmost_marker",
+            "Documentation/zigux/phase7-rbtree-slice.md",
+            "cached-leftmost handoff and final singleton `eraseCached()` state stay explicit in the shared tests instead of being hidden behind the helper implementation alone",
+            "",
+            "Documentation/zigux/phase7-rbtree-slice.md: cached-leftmost handoff and final singleton `eraseCached()` state stay explicit in the shared tests instead of being hidden behind the helper implementation alone",
+        ),
+        (
+            "helper_lane_note_packet_marker",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "rbtree packet, lane `P7-L13`:",
+            "",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: rbtree packet, lane `P7-L13`:",
+        ),
+        (
+            "helper_lane_note_lane_constant_marker",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_RBTREE_LANE=P7-L13",
+            "",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_RBTREE_LANE=P7-L13",
+        ),
+        (
+            "helper_lane_note_owner_rule_marker",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.",
+            "",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.",
         ),
         (
             "samples_make_wrapper_alignment_marker",
@@ -261,6 +327,48 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         ),
         (
+            "build_survey_cwd_marker",
+            "zigux/tests/phase7_build.zig",
+            'run_rbtree_survey_tests.setCwd(b.path("../.."));',
+            'run_rbtree_survey_tests.setCwd(b.path("."));',
+            'zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path("../.."));',
+        ),
+        (
+            "helper_cached_leftmost_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree cached helpers return leftmost handoff state",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree cached helpers return leftmost handoff state",
+        ),
+        (
+            "helper_erase_init_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+        ),
+        (
+            "helper_linked_teardown_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        ),
+        (
+            "helper_postorder_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree postorder traversal matches committed parity fixture",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree postorder traversal matches committed parity fixture",
+        ),
+        (
+            "survey_helper_lane_note_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: Documentation/zigux/phase7-helper-lane-sequencing.md",
+        ),
+        (
             "survey_selftest_marker",
             "zigux/tests/phase7_rbtree_survey.zig",
             "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -268,11 +376,25 @@ def run_self_test() -> None:
             "zigux/tests/phase7_rbtree_survey.zig: python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         ),
         (
-            "build_survey_cwd_marker",
-            "zigux/tests/phase7_build.zig",
-            'run_rbtree_survey_tests.setCwd(b.path("../.."));',
-            'run_rbtree_survey_tests.setCwd(b.path("."));',
-            'zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path("../.."));',
+            "survey_cached_leftmost_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree cached helpers return leftmost handoff state",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree cached helpers return leftmost handoff state",
+        ),
+        (
+            "survey_linked_teardown_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        ),
+        (
+            "survey_postorder_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree postorder traversal matches committed parity fixture",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree postorder traversal matches committed parity fixture",
         ),
     ]
 
