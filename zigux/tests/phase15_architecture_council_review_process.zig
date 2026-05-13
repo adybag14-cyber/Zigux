@@ -34,7 +34,8 @@ const Manifest = struct {
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "landed") or
         std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "open");
+        std.mem.eql(u8, status, "open") or
+        std.mem.eql(u8, status, "blocked_on_shared_summaries");
 }
 
 test "phase 15 architecture council review-process manifest records the bounded governance slice" {
@@ -55,7 +56,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-12", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-13", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -64,7 +65,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqual(@as(usize, 20), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("required approver set", manifest.ownership_evidence_fields[1]);
@@ -115,6 +116,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var open_count: usize = 0;
+    var blocked_on_shared_summaries_count: usize = 0;
     var saw_doc = false;
     var saw_manifest = false;
     var saw_test = false;
@@ -127,6 +129,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     var saw_review_packet_field_sync = false;
     var saw_tests_readme_route_sync = false;
     var saw_docs_root_undercount = false;
+    var saw_shared_summary_parity_scorecard_survey_undercount = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -140,6 +143,8 @@ test "phase 15 architecture council review-process manifest records the bounded 
             ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "open")) {
             open_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_shared_summaries")) {
+            blocked_on_shared_summaries_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase15-architecture-council-review-process-doc")) {
@@ -204,6 +209,13 @@ test "phase 15 architecture council review-process manifest records the bounded 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "compact Phase 15 docs-root reminder") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-summary drift appears") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-shared-summary-parity-scorecard-survey-undercount")) {
+            saw_shared_summary_parity_scorecard_survey_undercount = true;
+            try std.testing.expectEqualStrings("blocked_on_shared_summaries", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md; scripts/zigux/README.md; zigux/tests/README.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-summaries lane") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -213,6 +225,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqual(@as(usize, 12), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), open_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_on_shared_summaries_count);
     try std.testing.expect(saw_doc);
     try std.testing.expect(saw_manifest);
     try std.testing.expect(saw_test);
@@ -225,6 +238,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(saw_review_packet_field_sync);
     try std.testing.expect(saw_tests_readme_route_sync);
     try std.testing.expect(saw_docs_root_undercount);
+    try std.testing.expect(saw_shared_summary_parity_scorecard_survey_undercount);
 }
 
 test "phase 15 architecture council review-process doc records the required process language" {
@@ -246,7 +260,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "PHASE15_LANE_KEY=P15-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "exact branch-head parity is not recorded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, and indefinite-C-policy records") != null);
@@ -278,6 +292,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`bounded_dual_implementation`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`defer_or_reject`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-readme-maintenance-note-undercount") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "remaining open shared-summary drift is now explicit on current `master`") != null);
 }
 
 test "phase 15 review checklist stays aligned with the council review-process hook" {
