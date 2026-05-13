@@ -51,6 +51,7 @@ The current lane state is:
 - landed `phase14-workqueue-delayed-requeue-governance`
 - landed `phase14-workqueue-flush-drain-governance`
 - landed `phase14-workqueue-rescuer-mayday-governance`
+- landed `phase14-workqueue-scheduler-visible-worker-state-refinement`
 - blocked `phase14-workqueue-live-execution-blocker`
 
 This keeps the lane explicit without overstating progress. Zigux still does not claim live worker-pool execution, delayed-work requeue control, scheduler callback parity, rescuer execution ownership, hotplug migration, runtime `max_active` retuning ownership, or a direct `kernel/workqueue.c` rewrite.
