@@ -52,6 +52,12 @@
       "why_now": "The dedicated survey gate is the packet-local fail-closed surface for the runtime bitmap survey note and manifest."
     },
     {
+      "id": "runtime-bitmap-sample-root-summary",
+      "kind": "review_note",
+      "path": "samples/zigux/README.md",
+      "why_now": "The samples-root README keeps the separate Phase 9 runtime bitmap family, the bitmap-local top-bit companion replay, and the shared `phase9-runtime-loader-shared-tests` boundary explicit so reviewers do not miscount this packet as an extra Phase 5 sample."
+    },
+    {
       "id": "runtime-loader-facade",
       "kind": "validation",
       "path": "zigux/kernel/runtime_loader.zig",
