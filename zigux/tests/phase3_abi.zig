@@ -2,7 +2,6 @@ const std = @import("std");
 
 const abi = @import("abi_bindings");
 const export_shim = @import("export_shim");
-
 test "phase3 abi keeps starter header and status layouts explicit" {
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));
     try std.testing.expectEqual(@as(usize, 4), @alignOf(abi.BoundaryHeader));
@@ -157,4 +156,24 @@ test "phase3 abi keeps exported constants and family markers present" {
         @as(usize, 8),
         @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"),
     );
+}
+
+test "phase3 abi keeps dev_t sample encoding and ranges explicit" {
+    const minor_bits: u5 = 20;
+    const minor_mask: u32 = 1_048_575;
+    const max_major: u32 = 4_095;
+    const sample_major: u32 = 42;
+    const sample_minor: u32 = 7;
+    const range_count: u32 = 4;
+    const sample_encoded: u32 = (sample_major << minor_bits) | sample_minor;
+    const range_last_encoded: u32 = (sample_major << minor_bits) | (sample_minor + range_count - 1);
+
+    try std.testing.expectEqual(@as(u5, 20), minor_bits);
+    try std.testing.expectEqual(@as(u32, 1_048_575), minor_mask);
+    try std.testing.expectEqual(@as(u32, 4_095), max_major);
+    try std.testing.expectEqual(@as(u32, 44_040_199), sample_encoded);
+    try std.testing.expectEqual(@as(u32, 42), sample_encoded >> minor_bits);
+    try std.testing.expectEqual(@as(u32, 7), sample_encoded & minor_mask);
+    try std.testing.expect(sample_minor + range_count - 1 <= minor_mask);
+    try std.testing.expectEqual(@as(u32, 44_040_202), range_last_encoded);
 }
