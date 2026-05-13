@@ -86,8 +86,46 @@ test "runtime atomic64 sample keeps post-selftest mutation replay explicit at th
     try module.exit();
     const exited_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
     try std.testing.expectEqual(@as(i64, 11), exited_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+}
+
+test "runtime atomic64 sample keeps post-selftest bitwise replay explicit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(0b1010_1100);
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    const or_result = try module.orCounter(0b0101_0000);
+    try std.testing.expectEqual(@as(i64, 0b1010_1100), or_result.previous);
+    try std.testing.expectEqual(@as(i64, 0b1111_1100), or_result.final);
+    try std.testing.expectEqual(@as(i64, 0b1111_1100), module.snapshotCounter());
+
+    const and_result = try module.andCounter(0b1111_0110);
+    try std.testing.expectEqual(@as(i64, 0b1111_1100), and_result.previous);
+    try std.testing.expectEqual(@as(i64, 0b1111_0100), and_result.final);
+    try std.testing.expectEqual(@as(i64, 0b1111_0100), module.snapshotCounter());
+
+    const xor_result = try module.xorCounter(0b0011_0011);
+    try std.testing.expectEqual(@as(i64, 0b1111_0100), xor_result.previous);
+    try std.testing.expectEqual(@as(i64, 0b1100_0111), xor_result.final);
+    try std.testing.expectEqual(@as(i64, 0b1100_0111), module.snapshotCounter());
+
+    const and_not_result = try module.andNotCounter(0b0100_0101);
+    try std.testing.expectEqual(@as(i64, 0b1100_0111), and_not_result.previous);
+    try std.testing.expectEqual(@as(i64, 0b1000_0010), and_not_result.final);
+    try std.testing.expectEqual(@as(i64, 0b1000_0010), module.snapshotCounter());
+
+    const selftest_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_summary.exit_runs);
+
+    try module.exit();
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(i64, 0b1000_0010), exited_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
 
 test "runtime atomic64 sample keeps zero and negative guard-return replay explicit after selftest at the module boundary" {
