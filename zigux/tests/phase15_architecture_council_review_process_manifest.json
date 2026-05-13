@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-12",
+  "surveyed_commit": "current-master-readback-2026-05-13",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane shared-summary truthfulness drift appears first, reread Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard-survey.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, scripts/zigux/validate-phase15.py, zigux/tests/phase15_handoff_next_steps_manifest.json, and zigux/tests/phase15_readiness_gate_manifest.json, then keep any repair scoped to shared-summaries plus its direct validator surface instead of reopening packet-local backlog unless broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane changes the truthfulness of the required review fields, decision buckets, reopen-trigger catalog, or no-approval posture recorded here"
+    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane shared-summary truthfulness drift appears first, reread Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard-survey.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, scripts/zigux/validate-phase15.py, zigux/tests/phase15_handoff_next_steps_manifest.json, and zigux/tests/phase15_readiness_gate_manifest.json, then keep any repair scoped to shared-summaries plus its direct validator surface instead of reopening packet-local backlog unless broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane changes the truthfulness of the required review fields, decision buckets, reopen-trigger catalog, or no-approval posture recorded here"
   },
   "gaps": [
     {
