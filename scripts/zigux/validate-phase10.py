@@ -37,8 +37,10 @@ SURVEY_MARKERS = [
     "`PHASE10_LANE_KEY=P10-L13`",
     "keep the current `virtio_input` packet fail-closed against live current-`master` rereads now that the broader direct helper-facing packet is visible again through public-tree fallback while risky transport remains blocked",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "scripts/zigux/check-phase10-input-packet.py",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
@@ -53,6 +55,7 @@ LANE_NOTE_MARKERS = [
     "`Documentation/zigux/phase10-virtio-input-survey.md`",
     "`zigux/tests/phase10_virtio_input_manifest.json`",
     "`drivers/virtio/virtio_input.zig`",
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
 ]
 
@@ -69,6 +72,7 @@ EXPECTED_DIRECT_PACKET_FILES = [
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "scripts/zigux/check-phase10-input-packet.py",
     "zigux/tests/phase10_virtio_input.zig",
@@ -298,16 +302,16 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
-                "drivers/virtio/virtio_input.zig",
-                "drivers/virtio/virtio_input_missing.zig",
+                "drivers/virtio/virtio_input_probe_preflight.zig",
+                "drivers/virtio/virtio_input_probe_preflight_missing.zig",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "survey:drivers/virtio/virtio_input.zig",
-            "phase10-self-test:survey_missing_direct_helper",
+            "survey:drivers/virtio/virtio_input_probe_preflight.zig",
+            "phase10-self-test:survey_missing_probe_preflight_helper",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -343,22 +347,24 @@ def run_self_test() -> int:
         original_lane_note = lane_note_path.read_text(encoding="utf-8")
         lane_note_path.write_text(
             original_lane_note.replace(
-                "`drivers/virtio/virtio_input_verify.zig`",
-                "`drivers/virtio/virtio_input_verify_missing.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "lane_note:`drivers/virtio/virtio_input_verify.zig`",
-            "phase10-self-test:lane_note_missing_verify_surface",
+            "lane_note:`drivers/virtio/virtio_input_probe_preflight.zig`",
+            "phase10-self-test:lane_note_missing_probe_preflight_surface",
         )
         lane_note_path.write_text(original_lane_note, encoding="utf-8")
 
         manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["directly_readable_input_packet_files"] = EXPECTED_DIRECT_PACKET_FILES[:-1]
+        manifest["survey_summary"]["directly_readable_input_packet_files"].remove(
+            "drivers/virtio/virtio_input_probe_preflight.zig"
+        )
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             root,
