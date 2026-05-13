@@ -29,7 +29,7 @@ The still-absent direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/p
 
 ## Why This Exists
 
-The bounded archival packet now keeps the direct `drivers/tty/hvc/hvc_console.zig` starter, the still-absent direct companion trio, the final-close teardown summary, explicit close-wait ownership, the `hvc_cleanup()` tty-port release handoff, cleanup-time tty-port ownership, the notifier-add open handoff, the `hvc_remove()` handoff summary, the `hvc_kick()` wakeup cue, the targetless notifier no-unregister edge, and the sysrq handoff-versus-literal fallback split reviewable through the survey gate, manifest-backed survey note, slice note, teardown note, validation matrix, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
+The bounded archival packet now keeps the direct `drivers/tty/hvc/hvc_console.zig` starter, the still-absent direct companion trio, the final-close teardown summary, explicit close-wait ownership, the `hvc_cleanup()` tty-port release handoff, cleanup-time tty-port ownership, the notifier-add open handoff, the khvcd polling-contract summary, the khvcd worker-entry summary, the `hvc_hangup()` disconnect summary, the `hvc_remove()` handoff summary, the `hvc_kick()` wakeup cue, the targetless notifier no-unregister edge, and the sysrq handoff-versus-literal fallback split reviewable through the survey gate, manifest-backed survey note, slice note, teardown note, validation matrix, and `drivers/tty/hvc/hvc_console_sysrq.zig`.
 
 This matrix keeps one reviewable note that explains:
 
@@ -72,4 +72,4 @@ Without this matrix, the archival packet names the right follow-through but does
 - keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, hangup-disconnect, or direct-companion gap wording changes
 - keep `scripts/zigux/check-phase11-hvc-survey-packet.py`, `make -C zigux phase11-hvc-survey`, and the survey-backed packet aligned whenever the archival HVC split changes so the lane stays reviewable and the dedicated route keeps failing closed
 - do not claim notifier callbacks, khvcd execution, live sysrq dispatch, host-backed I/O coverage, or shipped dedicated `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions as landed
-- keep the next same-lane repair inside a host-free khvcd, notifier, remove, cleanup, or direct-companion-gap truthfulness handoff before widening any execution-facing behavior
+- keep the next same-lane repair inside a host-free khvcd polling-contract, worker-entry, hangup-disconnect, notifier, remove, or cleanup handoff before widening any execution-facing behavior
