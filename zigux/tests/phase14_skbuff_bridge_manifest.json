@@ -1,0 +1,91 @@
+{
+  "lane_key": "P14-L11",
+  "phase": "Phase 14",
+  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+  "anchor": "net/core/skbuff.c",
+  "roadmap_destinations": [
+    "zigux/tests/",
+    "Documentation/zigux/",
+    "net/core/skbuff_bridge.zig"
+  ],
+  "decision_checklist": [
+    {
+      "id": "shared-info-refcount-ownership",
+      "summary": "Keep shared-info refcount ownership in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "struct skb_shared_info",
+        "dataref",
+        "skb_header_cloned"
+      ],
+      "rationale": "Shared-info refcount splits still govern whether header mutations are legal."
+    },
+    {
+      "id": "destructor-and-free-path",
+      "summary": "Keep destructor and free ordering in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_release_head_state",
+        "skb_release_data",
+        "consume_skb"
+      ],
+      "rationale": "Destructor callbacks, frag-list teardown, and final release ordering still belong to the C-owned lifetime path."
+    },
+    {
+      "id": "segmentation-partial-tail-owner-transfer",
+      "summary": "Keep partial-GSO tail-owner transfer in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_PARTIAL",
+        "sock_wfree"
+      ],
+      "rationale": "Partial segmentation still rewrites per-segment metadata before transferring the tail owner."
+    },
+    {
+      "id": "segmentation-checksum-data-offset-crossover",
+      "summary": "Keep checksum and data-offset crossover in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_CB",
+        "remcsum_offload"
+      ],
+      "rationale": "Checksum state, data offsets, and remcsum handoff remain coupled inside skb_segment()."
+    },
+    {
+      "id": "segmentation-tail-publication-consumer-contract",
+      "summary": "Keep exported tail publication and consumer-side list reset in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "segs->prev",
+        "validate_xmit_skb_list"
+      ],
+      "rationale": "The exported tail contract still spans segs->prev publication, tail->next splicing, and validate_xmit_skb_list() consumption."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "phase14-skbuff-boundary-map-helper",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The roadmap-alignment helper keeps the skbuff allocation, checksum, segmentation, and teardown boundaries reviewable without claiming live ownership."
+    },
+    {
+      "id": "phase14-skbuff-exported-tail-checkpoint",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The exported-tail checkpoint keeps segs->prev, tail->next, and validate_xmit_skb_list() explicit as a stay-in-C publication and consumer contract."
+    },
+    {
+      "id": "phase14-skbuff-live-ownership-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "zigux/tests/phase14_skbuff_bridge.zig",
+      "why_now": "The packet still stops at explicit stay-in-C wording: qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C."
+    }
+  ]
+}
