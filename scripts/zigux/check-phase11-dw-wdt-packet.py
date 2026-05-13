@@ -13,6 +13,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "lane_sequencing": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "driver_file": "drivers/watchdog/dw_wdt.zig",
     "verify_file": "drivers/watchdog/dw_wdt_verify.zig",
     "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
 }
@@ -33,6 +34,17 @@ MARKERS = {
     "lane_sequencing": [
         "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files and compile-local teardown or restart proofs explicit in shared summaries without widening them into broader platform-registration closure claims",
         "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces or widening the compile-local teardown or restart proofs into hardware-backed closure.",
+    ],
+    "driver_file": [
+        "pub const RegistrationScaffoldState",
+        "pub const TimerClockPath",
+        "pub const ProbeTimeoutOrigin",
+        "pub const default_restart_priority",
+        "pub fn platformHandoffSummary",
+        "pub fn registrationOrderSummary",
+        "pub fn platformRegistrationScaffoldSummary",
+        "blocked_on_live_platform_registration",
+        "blocked_on_live_mmio",
     ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
@@ -63,7 +75,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 
 
 class CheckError(RuntimeError):
@@ -126,6 +138,8 @@ def run_self_test() -> None:
             ("plan_note", 8),
             ("lane_sequencing", 0),
             ("lane_sequencing", 1),
+            ("driver_file", 0),
+            ("driver_file", 6),
             ("verify_file", 0),
             ("verify_file", 4),
             ("verify_file", 10),
@@ -146,6 +160,11 @@ def run_self_test() -> None:
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
+
+        missing_driver_root = tmpdir / "missing_driver_file"
+        shutil.copytree(fixture_root, missing_driver_root, dirs_exist_ok=True)
+        (missing_driver_root / FILES["driver_file"]).unlink()
+        expect_failure(missing_driver_root, FILES["driver_file"])
 
         missing_verify_root = tmpdir / "missing_verify_file"
         shutil.copytree(fixture_root, missing_verify_root, dirs_exist_ok=True)
