@@ -7,7 +7,7 @@ pub const BridgeBoundary = struct {
     rationale: []const u8,
 };
 
-pub const lane_key = "P14-L14";
+pub const lane_key = "P14-L16";
 pub const status_bucket = "freeze_in_c";
 pub const anchor = "kernel/rcu/tree.c";
 pub const roadmap_destination = "kernel/rcu/tree_bridge.zig";
@@ -87,7 +87,7 @@ fn contains(haystack: []const u8, needle: []const u8) bool {
 }
 
 test "tree bridge boundary map stays review-only" {
-    try std.testing.expectEqualStrings("P14-L14", lane_key);
+    try std.testing.expectEqualStrings("P14-L16", lane_key);
     try std.testing.expectEqualStrings("freeze_in_c", status_bucket);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", anchor);
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
