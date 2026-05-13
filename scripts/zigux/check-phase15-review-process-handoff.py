@@ -41,7 +41,7 @@ NOTE_MARKERS = (
 
 NOTE_MAINTENANCE_CLOSURE_MARKERS = (
     "shared docs-root maintenance undercount is",
-    "shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount",
+    "broader scripts-root and tests-root parity-scorecard-survey undercount",
     "that remaining drift stays owned by the shared-summary companion lane rather than this packet-local review-process note",
 )
 
@@ -590,15 +590,15 @@ def run_self_test() -> int:
         _write(
             note_path,
             _read(note_path).replace(
-                "shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount\n",
+                "broader scripts-root and tests-root parity-scorecard-survey undercount\n",
                 "",
                 1,
             ),
         )
         _assert_only(
             validate(root),
-            ["note:missing:shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount"],
-            "missing_note_review_checklist_alignment_marker",
+            ["note:missing:broader scripts-root and tests-root parity-scorecard-survey undercount"],
+            "missing_note_shared_summary_alignment_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
