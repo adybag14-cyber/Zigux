@@ -3,8 +3,9 @@
 This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the poll-result bookkeeping helpers adjacent to `perf_buffer__poll()` in `tools/lib/bpf/libbpf.c`.
 
 ## Status
-- `PHASE8_STATUS=active_helper_step`
+- `PHASE8_STATUS=parked_helper_slice`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
+- current packet posture: this landed helper-local slice stays explicit for reminder-surface truthfulness and focused replay reference only while the broader Phase 8 libbpf lane remains parked below routing expansion
 - scope: observed wait-result normalization, ordered ready-buffer cursor traversal, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
@@ -82,4 +83,4 @@ This slice does not yet claim:
 - broader perf-buffer-online-cpu-routing parity
 
 ## Next bounded step
-If this helper family moves again, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work. The next honest reopen here is another tiny helper-local guard or replay update inside the same wait-result, cursor, buffer-fd, or buffer-window packet.
+Keep this slice parked unless a fresh helper-local truthfulness, gate, or replay-surface drift appears against the landed wait-result, cursor, buffer-fd, or buffer-window packet. If it reopens, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work.
