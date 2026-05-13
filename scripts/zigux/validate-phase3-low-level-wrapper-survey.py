@@ -84,7 +84,7 @@ REQUIRED_TEST_SNIPPETS = (
     'mmio.write16(base, 1, 0x1234);',
     'mmio.write32(base, 3, 0x89abcdef);',
     'mmio.write64(base, 5, 0xfedc_ba98_7654_3210);',
-    'mmio.allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio))',
+    'mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0)',
     'const byte_scoped_desc = try mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
     'const bytes_scoped_desc = try mmio.rangeInteropPolicyBytes(',
     'mmio.write8InteropPolicyByte(base, 3, 0x7e, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
