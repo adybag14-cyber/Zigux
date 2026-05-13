@@ -48,6 +48,7 @@ pub const ModuleDescriptor = struct {
     provides_receive_refill_summary: bool,
     provides_queue_recovery_planner: bool,
     provides_control_queue_recovery_planner: bool,
+    provides_control_queue_payload_shape_planner: bool,
     touches_live_dma: bool,
     touches_net_device: bool,
     touches_control_virtqueue_runtime: bool,
@@ -175,6 +176,38 @@ pub const ControlQueueRecoveryPlan = struct {
     command_count: u16,
 };
 
+pub const ControlQueuePayloadShapeRequest = struct {
+    receive_mode_payload_bytes: u16 = 0,
+    hash_report_payload_bytes: u16 = 0,
+    mac_entries: u16 = 0,
+    mac_entry_bytes: u16 = 6,
+    vlan_entries: u16 = 0,
+    vlan_entry_bytes: u16 = 2,
+    rss_table_entries: u16 = 0,
+    rss_indirection_entry_bytes: u16 = 2,
+    rss_hash_key_bytes: u16 = 0,
+};
+
+pub const ControlQueuePayloadShapeSummary = struct {
+    anchor: []const u8,
+    control_vq_present: bool,
+    control_queue_index: ?u16,
+    requires_receive_mode_payload: bool,
+    requires_hash_report_payload: bool,
+    requires_mac_table_payload: bool,
+    requires_vlan_filter_payload: bool,
+    requires_rss_config_payload: bool,
+    receive_mode_payload_bytes: u16,
+    hash_report_payload_bytes: u16,
+    mac_table_payload_bytes: u32,
+    vlan_filter_payload_bytes: u32,
+    rss_config_payload_bytes: u32,
+    fixed_payload_command_count: u16,
+    variable_payload_command_count: u16,
+    total_payload_bytes: u32,
+    largest_payload_bytes: u32,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -198,6 +231,7 @@ pub const VirtioNetProbeLab = struct {
             .provides_receive_refill_summary = true,
             .provides_queue_recovery_planner = true,
             .provides_control_queue_recovery_planner = true,
+            .provides_control_queue_payload_shape_planner = true,
             .touches_live_dma = false,
             .touches_net_device = false,
             .touches_control_virtqueue_runtime = false,
@@ -407,6 +441,82 @@ pub const VirtioNetProbeLab = struct {
         };
     }
 
+    pub fn planControlQueuePayloadShape(self: *const Self, request: ControlQueuePayloadShapeRequest) !ControlQueuePayloadShapeSummary {
+        if (!self.resetting) {
+            return error.TransportNotResetting;
+        }
+
+        const topology = self.frozen_queue_topology_summary orelse return error.QueueTopologyUnavailable;
+        const snapshot = self.frozen_probe_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const control_vq_present = topology.control_queue_count > 0;
+        const requires_receive_mode_payload = control_vq_present;
+        const requires_hash_report_payload = control_vq_present and snapshot.header_shape != .legacy;
+        const requires_mac_table_payload = control_vq_present and request.mac_entries > 0;
+        const requires_vlan_filter_payload = control_vq_present and request.vlan_entries > 0;
+        const requires_rss_config_payload = control_vq_present and topology.rss_enabled and
+            (request.rss_table_entries > 0 or request.rss_hash_key_bytes > 0);
+
+        const receive_mode_payload_bytes: u16 = if (requires_receive_mode_payload) request.receive_mode_payload_bytes else 0;
+        const hash_report_payload_bytes: u16 = if (requires_hash_report_payload) request.hash_report_payload_bytes else 0;
+        const mac_table_payload_bytes = if (requires_mac_table_payload)
+            checkedMulU16ToU32(request.mac_entries, request.mac_entry_bytes)
+        else
+            @as(u32, 0);
+        const vlan_filter_payload_bytes = if (requires_vlan_filter_payload)
+            checkedMulU16ToU32(request.vlan_entries, request.vlan_entry_bytes)
+        else
+            @as(u32, 0);
+        const rss_table_payload_bytes = if (requires_rss_config_payload)
+            checkedMulU16ToU32(request.rss_table_entries, request.rss_indirection_entry_bytes)
+        else
+            @as(u32, 0);
+        const rss_config_payload_bytes = try checkedAddU32(
+            rss_table_payload_bytes,
+            if (requires_rss_config_payload) request.rss_hash_key_bytes else 0,
+        );
+
+        var total_payload_bytes = @as(u32, receive_mode_payload_bytes);
+        total_payload_bytes = try checkedAddU32(total_payload_bytes, hash_report_payload_bytes);
+        total_payload_bytes = try checkedAddU32(total_payload_bytes, mac_table_payload_bytes);
+        total_payload_bytes = try checkedAddU32(total_payload_bytes, vlan_filter_payload_bytes);
+        total_payload_bytes = try checkedAddU32(total_payload_bytes, rss_config_payload_bytes);
+
+        const largest_payload_bytes = @max(
+            @max(
+                @max(@as(u32, receive_mode_payload_bytes), @as(u32, hash_report_payload_bytes)),
+                @max(mac_table_payload_bytes, vlan_filter_payload_bytes),
+            ),
+            rss_config_payload_bytes,
+        );
+        const fixed_payload_command_count: u16 =
+            @as(u16, @intCast(@intFromBool(requires_receive_mode_payload))) +
+            @as(u16, @intCast(@intFromBool(requires_hash_report_payload)));
+        const variable_payload_command_count: u16 =
+            @as(u16, @intCast(@intFromBool(requires_mac_table_payload))) +
+            @as(u16, @intCast(@intFromBool(requires_vlan_filter_payload))) +
+            @as(u16, @intCast(@intFromBool(requires_rss_config_payload)));
+
+        return .{
+            .anchor = descriptor().anchor,
+            .control_vq_present = control_vq_present,
+            .control_queue_index = topology.first_control_queue_index,
+            .requires_receive_mode_payload = requires_receive_mode_payload,
+            .requires_hash_report_payload = requires_hash_report_payload,
+            .requires_mac_table_payload = requires_mac_table_payload,
+            .requires_vlan_filter_payload = requires_vlan_filter_payload,
+            .requires_rss_config_payload = requires_rss_config_payload,
+            .receive_mode_payload_bytes = receive_mode_payload_bytes,
+            .hash_report_payload_bytes = hash_report_payload_bytes,
+            .mac_table_payload_bytes = mac_table_payload_bytes,
+            .vlan_filter_payload_bytes = vlan_filter_payload_bytes,
+            .rss_config_payload_bytes = rss_config_payload_bytes,
+            .fixed_payload_command_count = fixed_payload_command_count,
+            .variable_payload_command_count = variable_payload_command_count,
+            .total_payload_bytes = total_payload_bytes,
+            .largest_payload_bytes = largest_payload_bytes,
+        };
+    }
+
     pub fn restoreAfterReset(self: *Self) !RecoverySummary {
         if (!self.resetting) {
             return error.TransportNotResetting;
@@ -464,6 +574,15 @@ pub const VirtioNetProbeLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.PayloadByteOverflow;
+    }
+
+    fn checkedMulU16ToU32(lhs: u16, rhs: u16) u32 {
+        return @as(u32, lhs) * @as(u32, rhs);
     }
 };
 
@@ -756,6 +875,94 @@ test "controlQueueRecoveryPlan stays inert when the topology has no control queu
     try std.testing.expectEqual(@as(u16, 0), plan.command_count);
 }
 
+test "planControlQueuePayloadShape keeps fixed receive-mode and hash-report payloads explicit" {
+    var lab = VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.planControlQueuePayloadShape(.{}));
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = false,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.freezeForReset();
+
+    const summary = try lab.planControlQueuePayloadShape(.{
+        .receive_mode_payload_bytes = 4,
+        .hash_report_payload_bytes = 8,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expect(summary.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), summary.control_queue_index);
+    try std.testing.expect(summary.requires_receive_mode_payload);
+    try std.testing.expect(summary.requires_hash_report_payload);
+    try std.testing.expect(!summary.requires_mac_table_payload);
+    try std.testing.expect(!summary.requires_vlan_filter_payload);
+    try std.testing.expect(!summary.requires_rss_config_payload);
+    try std.testing.expectEqual(@as(u16, 4), summary.receive_mode_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 8), summary.hash_report_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 0), summary.mac_table_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 0), summary.vlan_filter_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 0), summary.rss_config_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 2), summary.fixed_payload_command_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.variable_payload_command_count);
+    try std.testing.expectEqual(@as(u32, 12), summary.total_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 8), summary.largest_payload_bytes);
+}
+
+test "planControlQueuePayloadShape sizes variable mac vlan and rss payloads" {
+    var lab = VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.freezeForReset();
+
+    const summary = try lab.planControlQueuePayloadShape(.{
+        .receive_mode_payload_bytes = 4,
+        .mac_entries = 2,
+        .vlan_entries = 3,
+        .rss_table_entries = 4,
+        .rss_hash_key_bytes = 16,
+    });
+    try std.testing.expect(summary.control_vq_present);
+    try std.testing.expect(summary.requires_receive_mode_payload);
+    try std.testing.expect(!summary.requires_hash_report_payload);
+    try std.testing.expect(summary.requires_mac_table_payload);
+    try std.testing.expect(summary.requires_vlan_filter_payload);
+    try std.testing.expect(summary.requires_rss_config_payload);
+    try std.testing.expectEqual(@as(u32, 12), summary.mac_table_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 6), summary.vlan_filter_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), summary.rss_config_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 1), summary.fixed_payload_command_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.variable_payload_command_count);
+    try std.testing.expectEqual(@as(u32, 46), summary.total_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), summary.largest_payload_bytes);
+}
+
 test "restoreAfterReset clears remembered queue state and increments generation" {
     var lab = VirtioNetProbeLab.init();
     try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
@@ -795,5 +1002,6 @@ test "restoreAfterReset clears remembered queue state and increments generation"
     try std.testing.expect(!restored.mergeable_buffer_refill_required);
     try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
     try std.testing.expectError(error.TransportNotResetting, lab.controlQueueRecoveryPlan(.{}));
+    try std.testing.expectError(error.TransportNotResetting, lab.planControlQueuePayloadShape(.{}));
     try std.testing.expectError(error.TransportNotResetting, lab.restoreAfterReset());
 }
