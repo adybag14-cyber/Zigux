@@ -335,6 +335,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours");
     try expectContains(helper_tests, "phase 7 rbtree find helpers walk duplicate-key ranges");
     try expectContains(helper_tests, "phase 7 rbtree postorder traversal matches committed parity fixture");
+    try expectContains(helper_tests, "phase 7 rbtree cleared detached nodes stop postorder traversal");
     try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&entries[3].node, &root));");
     try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;");
     try expectContains(samples_readme, "Documentation/zigux/phase7-rbtree-slice.md");
