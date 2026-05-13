@@ -221,7 +221,7 @@ test "phase3 atomic wrappers keep bit wrappers reviewable" {
 
     try std.testing.expectEqual(@as(u1, 1), bitToggle(u8, &flags, 2, .acq_rel));
     try std.testing.expectEqual(@as(u8, 0b0000_0010), flags);
-    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 1, .release));
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 1, .acquire));
     try std.testing.expectEqual(@as(u1, 0), bitToggle(u8, &flags, 0, .seq_cst));
     try std.testing.expectEqual(@as(u8, 0b0000_0011), flags);
     try std.testing.expectEqual(@as(u1, 1), bitTest(u8, &flags, 0, .acquire));
