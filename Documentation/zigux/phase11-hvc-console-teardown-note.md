@@ -14,22 +14,19 @@ It stays inside the simple-driver lane and records only the host-free teardown a
 The current teardown-facing HVC packet on `master` is:
 
 * `drivers/tty/hvc/hvc_console.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `zigux/tests/phase11_hvc_console.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
-* `Documentation/zigux/phase11-hvc-console-survey.md`
-* `Documentation/zigux/phase11-hvc-console-slice.md`
-* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+* `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
-* `drivers/tty/hvc/hvc_console_sysrq.zig`
+* `Documentation/zigux/phase11-hvc-console-survey.md`
+* `Documentation/zigux/phase11-hvc-console-slice.md`
+* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 
-Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so this teardown packet stays grounded in the starter, the direct replay boundary, the direct cleanup companion, the survey gate, the split tests, the sysrq helper, and the coupled governance notes rather than presenting those teardown-facing follow-through files as missing evidence.
+Current `master` still ships no separate direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so this teardown packet stays grounded in the starter, the survey gate, the split tests, the sysrq helper, and the coupled governance notes while keeping that direct-companion repo-reality gap explicit.
 
 ## What The Landed Teardown Packet Covers
 
@@ -43,14 +40,12 @@ The current host-free teardown packet keeps these handoffs explicit:
 * bounded sysrq-handling support through `drivers/tty/hvc/hvc_console_sysrq.zig` without claiming live sysrq execution
 * poll-retry and drain-order split
 * modem-control fallback split
-* direct replay boundary through `drivers/tty/hvc/hvc_console_verify.zig`
-* direct replay coverage through `zigux/tests/phase11_hvc_console.zig`
-* direct cleanup companion through `zigux/tests/phase11_hvc_cleanup.zig`
+* the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files
 
 The landed survey-backed packet also keeps the close-path and cleanup-path failure-mode cues explicit around tty detachment, HUPCL-gated modem-line shutdown, close-wait ownership, notifier ownership, resize-work cancellation, wait-until-sent intent, buffered-write clearing, stale hangup short-circuit behavior, cleanup-time tty-port ownership, and keep-IRQ-until-hangup teardown boundaries.
 
 ## Bounded Meaning
 
-This note records the shipped teardown summaries and their direct replay companions only.
-It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, or hardware-validated teardown parity.
+This note records the shipped teardown summaries and the supporting survey-backed packet only.
+It does not claim live notifier callback execution, khvcd polling behavior, tty-driver registration, host-backed cleanup, direct replay companions, or hardware-validated teardown parity.
 Those remain later same-lane follow-through steps rather than part of the already-landed archival packet.
