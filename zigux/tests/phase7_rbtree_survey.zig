@@ -42,6 +42,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    ownership_focus: []const []const u8,
     current_verification: CurrentVerification,
     survey_summary: SurveySummary,
     gaps: []const Gap,
@@ -69,6 +70,15 @@ fn isLowerHexCommitId(value: []const u8) bool {
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    for (haystack) |item| {
+        if (std.mem.eql(u8, item, needle)) {
+            return;
+        }
+    }
+    try std.testing.expect(false);
 }
 
 test "phase 7 rbtree survey manifest records the landed runtime leaf surface and committed parity fixture" {
@@ -197,7 +207,28 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("2026-05-13T09:36:53Z", manifest.current_verification.verified_on_utc);
+    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_focus.len);
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "linked-node teardown reconnects prev and next ownership together with leftmost continuity during eraseLinked()",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "replaceNode() copies victim links onto replacement nodes before reconnecting parent and child ownership",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
+    );
+    try std.testing.expectEqualStrings("2026-05-13T11:41:16Z", manifest.current_verification.verified_on_utc);
     try std.testing.expectEqualStrings("confirmed", manifest.current_verification.rbtree_packet_visibility.status);
     try std.testing.expectEqual(@as(usize, 8), manifest.current_verification.rbtree_packet_visibility.paths.len);
     try std.testing.expectEqualStrings("Documentation/zigux/phase7-rbtree-slice.md", manifest.current_verification.rbtree_packet_visibility.paths[0]);
