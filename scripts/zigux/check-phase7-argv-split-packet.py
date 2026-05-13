@@ -67,6 +67,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "PHASE7_LANE_KEY=P7-L09",
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        "current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+        "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
         "null-terminated pointer-vector access through `cArgv()`",
         "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results",
         "`argvFree()` and `deinit()` on one live non-blank result do not disturb another caller-owned split result",
@@ -349,6 +351,34 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md",
+            "current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+            "",
+            "slice_pair_compile_truthfulness_marker",
+        )
+        expect_missing_marker(
+            "slice_pair_compile_truthfulness_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: current verification: a bounded 2026-05-12 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+            "",
+            "slice_shared_build_blocker_truthfulness_marker",
+        )
+        expect_missing_marker(
+            "slice_shared_build_blocker_truthfulness_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: broader shared `zigux/tests/phase7_build.zig` route is not currently replayable on live `master` because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
             "scripts/zigux/check-phase7-build-wiring.py",
             "",
             "slice_build_wiring_checker_marker",
@@ -584,7 +614,7 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-    case_count = 24
+    case_count = 26
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
