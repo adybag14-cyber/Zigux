@@ -53,9 +53,11 @@ BUILD_INVENTORY_MARKERS = [
     "phase11-hvc-console-tests",
     "phase11-hvc-console-verify-tests",
     "phase11-hvc-cleanup-tests",
+    "phase11-hvc-console-survey-tests",
     "../../drivers/tty/hvc/hvc_console_verify.zig",
     "phase11_hvc_console.zig",
     "phase11_hvc_cleanup.zig",
+    "phase11_hvc_console_survey.zig",
 ]
 
 SURVEY_NOTE_MARKERS = [
@@ -406,6 +408,7 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         missing_marker_cases = [
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[3]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[-1]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
