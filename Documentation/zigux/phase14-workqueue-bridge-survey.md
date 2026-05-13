@@ -71,6 +71,7 @@ This survey slice does not claim:
 
 1. run the dedicated Phase 14 build
 - `zig build test --build-file zigux/tests/phase14_build.zig`
+- `make -C zigux phase14-test`
 
 2. run the convenience target
 - `make -C zigux phase14`
