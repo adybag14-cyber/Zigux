@@ -49,7 +49,7 @@ const Manifest = struct {
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, needle) != null);
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
