@@ -236,6 +236,8 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`zig test zigux/tests/runtime_bitmap_survey.zig`");
+    try expectContains(survey_note, "`zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(survey_note, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`make -C zigux phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`make -C zigux phase9`");
@@ -249,7 +251,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(sample_root_readme, "`samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay");
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
-    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-tests`");
+    try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
     for (phase5_kobject_packet_markers) |marker| try expectContains(sample_root_readme, marker);
 
@@ -293,6 +295,8 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(module_slice, "The `zigux/tests/runtime_bitmap_diff.zig` gate owns the bounded `lib/test_bitmap.c` replay plus the selftest-complete and exit lifecycle guards");
+    try expectContains(module_slice, "`zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`");
+    try expectContains(module_slice, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(module_slice, "bitmap-local review proof");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
     try expectContains(module_slice, "The live runtime substrate is still missing");
