@@ -62,6 +62,14 @@ The roadmap still calls for a reviewable Phase 5 kobject reference-pattern ancho
 
 The honest same-lane gap was contributor-guidance drift: shared reminder surfaces had split between older missing-path wording and the current restored sample packet. This refresh closes the survey-note side of that reviewability gap without widening the sample surface.
 
+## Contributor Checklist
+
+When a contributor updates `samples/zigux/kobject_example.zig` or one of its directly coupled review surfaces, keep these packet-local questions explicit here instead of relying on the broader shared guides alone:
+
+- does the packet still keep the one-time `init()` rule explicit so a second `init()` returns `InvalidLifecycleTransition` without advancing `register_runs` or `exit_runs`?
+- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, survey replay, manifest, and shared `phase5_build.zig` route?
+- does the exit split still stay explicit so initialized-only exit reports `abandoned_before_registration` while registered exit reports `tore_down_registered_attributes`, without implying sysfs, `kernel_kobj`, uevents, or module-registration parity?
+
 ## Non-goals
 
 This note still does not claim:
