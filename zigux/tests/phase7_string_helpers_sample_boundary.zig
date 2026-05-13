@@ -148,6 +148,13 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "make -C zigux phase7-validate");
+    try expectContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectContains(workflow, "make -C zigux phase7-test");
+
     const make_wrapper_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     defer allocator.free(make_wrapper_note);
     try expectContains(make_wrapper_note, "make -C zigux phase7-string-helpers-sample-boundary");
