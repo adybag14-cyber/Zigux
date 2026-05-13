@@ -176,6 +176,19 @@ pub fn build(b: *std.Build) void {
     );
     rbtree_step.dependOn(&run_rbtree_tests.step);
 
+    const landed_test_step = b.step(
+        "phase7-landed-test",
+        "Run the currently landed Phase 7 helper packet",
+    );
+    landed_test_step.dependOn(&run_string_helpers_survey_tests.step);
+    landed_test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
+    landed_test_step.dependOn(&run_cmdline_tests.step);
+    landed_test_step.dependOn(&run_cmdline_survey_tests.step);
+    landed_test_step.dependOn(&run_argv_split_tests.step);
+    landed_test_step.dependOn(&run_argv_split_survey_tests.step);
+    landed_test_step.dependOn(&run_rbtree_tests.step);
+    landed_test_step.dependOn(&run_rbtree_survey_tests.step);
+
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_string_helpers_survey_tests.step);
