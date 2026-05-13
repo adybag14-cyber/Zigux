@@ -66,10 +66,12 @@ Keep the older Phase 8 command and environment cue owners out of this packet:
 
 If the shared loader packet drifts again, tighten only this packet's survey
 evidence, gating, or rollback wording. Keep the exact shared owner map in
-`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and treat
-`Documentation/zigux/review-checklist.md` as the next reviewer-facing reminder
-surface for the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`,
-`modules.order`, `modules.builtin`, module install-root state, and `depmod`
-script or manifest state boundary. Keep pilot-family lifecycle claims and
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, treat
+`Documentation/zigux/README.md` as the next reviewer-facing reminder surface,
+then `zigux/tests/README.md` if the docs-root summary stays truthful, and keep
+`Documentation/zigux/review-checklist.md` parked unless a later reread shows
+its blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`,
+`modules.builtin`, module install-root state, and `depmod` script or manifest
+state reminder drifting again. Keep pilot-family lifecycle claims and
 module-publication work in their owning lanes until real publication surfaces
 land.
