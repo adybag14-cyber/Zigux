@@ -48,8 +48,10 @@ packet currently passes on `master`.
 
 `Documentation/zigux/phase7-string-helpers-slice.md` and
 `zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of
-the missing-helper record, and restoring that implementation pair stays under
-`P7-L04` rather than this shared `P7-Y05` control-surface lane.
+the missing-helper record. Their `P7-L04` marker is now only a packet-local
+historical helper-slice tag, while this shared note stays on `P7-Y05` and
+should not be read as the active bootstrap-glue schedule owner for restoring
+that missing implementation pair.
 
 The same parked packet also depends on the shared docs-root and scripts-root
 Phase 5 no-sample reminders staying honest for `string_helpers`, `cmdline`,
