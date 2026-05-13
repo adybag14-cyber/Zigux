@@ -146,12 +146,18 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqualStrings("kernel/sched/core.c", sched.anchor);
     try std.testing.expectEqualStrings("Architecture Council + PMO / Release Management", sched.required_approver_set);
 
+    const rcu = manifest.deep_core_blocker_survey[2];
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c", rcu.anchor);
+    try expectContains(rcu.repo_reality, "Documentation/zigux/phase14-rcu-tree-survey.md");
+    try expectContains(rcu.repo_reality, "P14-L16");
+    try expectContains(rcu.repo_reality, "phase14-rcu-tree-bridge-blocker");
+    try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", rcu.current_blocker);
+
     const skbuff = manifest.deep_core_blocker_survey[3];
     try std.testing.expectEqualStrings("net/core/skbuff.c", skbuff.anchor);
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-skbuff-bridge-survey.md");
     try expectContains(skbuff.repo_reality, "P14-L11");
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
-    try expectContains(skbuff.repo_reality, "P14-L12");
     try expectContains(skbuff.repo_reality, "phase14-skbuff-live-ownership-blocker");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
@@ -191,9 +197,9 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
-    try expectContains(governance_note, "lane P14-L14 still records blocked `phase14-rcu-tree-bridge-blocker`");
+    try expectContains(governance_note, "lane P14-L16 still records blocked `phase14-rcu-tree-bridge-blocker`");
     try expectContains(governance_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md still records packet-local lane P14-L11");
-    try expectContains(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md records shared owner-map lane P14-L12");
+    try expectContains(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md now keeps the same shared owner-map lane P14-L11");
     try expectContains(governance_note, "## Maintenance-Mode Handoff");
     try expectContains(governance_note, "current lane posture: `maintenance_mode`");
     try expectContains(governance_note, "check-phase15-review-process-handoff.py");
@@ -330,7 +336,7 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
 
     const skbuff_traceability = try loadFile(io_instance.io(), "Documentation/zigux/phase14-core-boundary-traceability.md", 32 * 1024);
     defer std.testing.allocator.free(skbuff_traceability);
-    try expectContains(skbuff_traceability, "lane key: `P14-L12`");
+    try expectContains(skbuff_traceability, "lane key: `P14-L11`");
     try expectContains(skbuff_traceability, "blocked gap: `phase14-skbuff-live-ownership-blocker`");
     try expectContains(skbuff_traceability, "retained-in-C boundary:");
 }
