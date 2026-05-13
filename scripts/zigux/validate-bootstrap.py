@@ -22,6 +22,11 @@ WORKFLOW_EXACT_RUN_COUNTS = {
     'zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py --self-test': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py': 1,
+    'make -C zigux phase14-validate': 1,
+    'make -C zigux phase14-smoke': 1,
+    'make -C zigux phase14-test': 1,
+    'make -C zigux phase15-validate': 1,
+    'make -C zigux phase15-test': 1,
 }
 required_files = [
     ROOT / 'zigux-alpha' / 'README.md',
@@ -41,11 +46,20 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'validate-phase2-closure.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase6-shared-surface.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase9-build-only-surface.py',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase14.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase14-docs-root-smoke-summary.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase14-rollback-threshold-sequencing.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase14-release-boundary-exact-counts.py',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase15.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase15-scripts-readme-alignment.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase15-review-process-handoff.py',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
     ROOT / 'zigux' / 'tests' / 'phase9_build.zig',
+    ROOT / 'zigux' / 'tests' / 'phase14_build.zig',
+    ROOT / 'zigux' / 'tests' / 'phase15_build.zig',
     ROOT / 'zigux' / 'tests' / 'runtime_loader_allocator_init_flow.zig',
 ]
 
@@ -166,6 +180,11 @@ required_workflow_markers = [
     'zigux/tests/phase12_build.zig',
     'Run Phase 13 shared helper tests',
     'make -C zigux phase13-test',
+    'Validate Phase 14 shared smoke packet',
+    'Run focused Phase 14 smoke shard',
+    'Run Phase 14 internal bridge tests',
+    'Validate Phase 15 governance packet',
+    'Run Phase 15 governance tests',
 ]
 required_workflow_marker_aliases = [
     (
