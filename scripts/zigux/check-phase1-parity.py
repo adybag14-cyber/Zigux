@@ -19,7 +19,7 @@ ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
 
 EXPECTED_SELF_TEST_OUTPUT = json.loads(
     r"""
-{"find_bit":{"bits_per_long":64,"first":5,"next_after_6":67,"next_after_word":135,"first_zero":3,"next_zero":68,"first_and":9,"next_and":66,"last":135,"inclusive_boundary_next":63,"inclusive_boundary_zero":63,"inclusive_boundary_and":63,"past_nbits_next":7,"past_nbits_zero":7,"past_nbits_and":7,"tail_clamped_first":69,"tail_clamped_next":69,"tail_zero_clamped_first":69,"tail_zero_clamped_next":69,"tail_and_clamped_first":69,"tail_and_clamped_next":69,"tail_clamped_last":67,"tail_clamped_empty_last":69},"bitmap":{"weight":3,"scnprintf":"1-3,7,10-11","truncated_scnprintf_len":7,"truncated_scnprintf":"1-3,7,1","terminator_only_scnprintf_len":0,"terminator_only_nul":0,"zero_length_scnprintf_len":0,"alloc_words":2,"zalloc_words":2,"zalloc_values":[0,0],"and_result":true,"and_values":[10,0],"andnot_result":true,"andnot_values":[4,0],"or_values":[14,0],"xor_values":[4,0],"partial_xor_nbits":4,"partial_xor_masked_values":[14],"equal":true,"intersects":true,"subset":true,"range_after_set":[14,12,0],"range_after_clear":[0,0,0],"full_after_fill":true,"empty_after_zero":true},"string":{"strtobool_y":true,"strtobool_on":true,"strtobool_zero":false,"strtobool_off":false,"strtobool_invalid":-22,"strlcpy_len":5,"strlcpy_buffer":"hel","skip_spaces":"hello","trim_spaces":"hi","remove_spaces":"abc","replace_char":"a_b","replace_char_end":3,"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122],"memchr_inv_index":4,"memchr_inv_none":true},"rbtree":{"empty_root":true,"insert_order":[5,10,15,20,25],"reverse_order":[25,20,15,10,5],"replace_order":[5,10,15,25],"erase_init_order":[5,15,25],"postorder_count":3,"erase_init_node_empty":true,"cleared_node_empty":true,"find_found_key":15,"find_missing":true,"find_first_serial":0,"next_match_serials":[0,2,4],"next_match_terminal_null":true},"argv_split":{"argc":3,"argv":["alpha","beta","gamma"],"blank_argc":0},"cmdline":{"decimal_k":{"value":65536,"rest":" rest"},"hex_m":{"value":33554432,"rest":""},"octal_k":{"value":8192,"rest":""},"invalid":{"value":0,"rest":"xyz"}},"ctype":{"mask_A":65,"mask_a":66,"mask_space":160,"isalnum_A":true,"isalpha_z":true,"isdigit_7":true,"isspace_tab":true,"isxdigit_f":true,"ispunct_bang":true,"tolower_A":97,"toupper_z":90,"isodigit_7":true,"isodigit_8":false},"hweight":{"w8":4,"w16":8,"w32":16,"w64":32,"wlong":8},"list_sort":{"tri_sorted_keys":[1,1,2,3,3],"tri_sorted_ordinals":[1,3,0,2,4],"bool_sorted_keys":[1,1,2,3,3],"bool_sorted_ordinals":[1,3,0,2,4]},"zalloc":{"zeroed":true,"freed_is_null":true,"value_zeroed":true,"value_freed_is_null":true},"str_error_r":{"enoent":"No such file or directory","unknown":"INTERNAL ERROR: strerror_r(4096, [buf], 64)=22"},"slab":{"null_without_reclaim":true,"alloc_count_after_kmalloc":1,"zero_after_kmalloc":true,"alloc_count_after_kmalloc_free":0,"array_zeroed":true,"alloc_count_after_kmalloc_array":1,"alloc_count_after_kmalloc_array_free":0,"slab_is_available":true},"vsprintf":{"scnprintf_text":"zigux:7","scnprintf_len":7,"pad_text":"id=7    ","pad_len":7}}
+{"find_bit":{"bits_per_long":64,"first":5,"next_after_6":67,"next_after_word":135,"first_zero":3,"next_zero":68,"first_and":9,"next_and":66,"last":135,"inclusive_boundary_next":63,"inclusive_boundary_zero":63,"inclusive_boundary_and":63,"tail_inclusive_boundary_next":68,"tail_inclusive_boundary_zero":68,"tail_inclusive_boundary_and":68,"past_nbits_next":7,"past_nbits_zero":7,"past_nbits_and":7,"tail_clamped_first":69,"tail_clamped_next":69,"tail_zero_clamped_first":69,"tail_zero_clamped_next":69,"tail_and_clamped_first":69,"tail_and_clamped_next":69,"tail_clamped_last":67,"tail_clamped_empty_last":69},"bitmap":{"weight":3,"scnprintf":"1-3,7,10-11","truncated_scnprintf_len":7,"truncated_scnprintf":"1-3,7,1","terminator_only_scnprintf_len":0,"terminator_only_nul":0,"zero_length_scnprintf_len":0,"alloc_words":2,"zalloc_words":2,"zalloc_values":[0,0],"and_result":true,"and_values":[10,0],"andnot_result":true,"andnot_values":[4,0],"or_values":[14,0],"xor_values":[4,0],"partial_xor_nbits":4,"partial_xor_masked_values":[14],"equal":true,"intersects":true,"subset":true,"range_after_set":[14,12,0],"range_after_clear":[0,0,0],"full_after_fill":true,"empty_after_zero":true},"string":{"strtobool_y":true,"strtobool_on":true,"strtobool_zero":false,"strtobool_off":false,"strtobool_invalid":-22,"strlcpy_len":5,"strlcpy_buffer":"hel","skip_spaces":"hello","trim_spaces":"hi","remove_spaces":"abc","replace_char":"a_b","replace_char_end":3,"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122],"memchr_inv_index":4,"memchr_inv_none":true},"rbtree":{"empty_root":true,"insert_order":[5,10,15,20,25],"reverse_order":[25,20,15,10,5],"replace_order":[5,10,15,25],"erase_init_order":[5,15,25],"postorder_count":3,"erase_init_node_empty":true,"cleared_node_empty":true,"find_found_key":15,"find_missing":true,"find_first_serial":0,"next_match_serials":[0,2,4],"next_match_terminal_null":true},"argv_split":{"argc":3,"argv":["alpha","beta","gamma"],"blank_argc":0},"cmdline":{"decimal_k":{"value":65536,"rest":" rest"},"hex_m":{"value":33554432,"rest":""},"octal_k":{"value":8192,"rest":""},"invalid":{"value":0,"rest":"xyz"}},"ctype":{"mask_A":65,"mask_a":66,"mask_space":160,"isalnum_A":true,"isalpha_z":true,"isdigit_7":true,"isspace_tab":true,"isxdigit_f":true,"ispunct_bang":true,"tolower_A":97,"toupper_z":90,"isodigit_7":true,"isodigit_8":false},"hweight":{"w8":4,"w16":8,"w32":16,"w64":32,"wlong":8},"list_sort":{"tri_sorted_keys":[1,1,2,3,3],"tri_sorted_ordinals":[1,3,0,2,4],"bool_sorted_keys":[1,1,2,3,3],"bool_sorted_ordinals":[1,3,0,2,4]},"zalloc":{"zeroed":true,"freed_is_null":true,"value_zeroed":true,"value_freed_is_null":true},"str_error_r":{"enoent":"No such file or directory","unknown":"INTERNAL ERROR: strerror_r(4096, [buf], 64)=22"},"slab":{"null_without_reclaim":true,"alloc_count_after_kmalloc":1,"zero_after_kmalloc":true,"alloc_count_after_kmalloc_free":0,"array_zeroed":true,"alloc_count_after_kmalloc_array":1,"alloc_count_after_kmalloc_array_free":0,"slab_is_available":true},"vsprintf":{"scnprintf_text":"zigux:7","scnprintf_len":7,"pad_text":"id=7    ","pad_len":7}}
 """
 )
 
@@ -58,6 +58,9 @@ REQUIRED_PARITY_KEYS = {
         "inclusive_boundary_next",
         "inclusive_boundary_zero",
         "inclusive_boundary_and",
+        "tail_inclusive_boundary_next",
+        "tail_inclusive_boundary_zero",
+        "tail_inclusive_boundary_and",
         "past_nbits_next",
         "past_nbits_zero",
         "past_nbits_and",
@@ -543,6 +546,14 @@ def run_self_test() -> None:
         parity_key_output = collect_parity_key_issues(actual)
         assert "missing_parity_key:find_bit.inclusive_boundary_and" in parity_key_output
 
+        missing_find_bit_tail_boundary_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_find_bit_tail_boundary_output["find_bit"]["tail_inclusive_boundary_and"]
+        actual.write_text(json.dumps(missing_find_bit_tail_boundary_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:find_bit.tail_inclusive_boundary_and" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:find_bit.tail_inclusive_boundary_and" in parity_key_output
+
         missing_find_bit_tail_clamp_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_find_bit_tail_clamp_output["find_bit"]["tail_zero_clamped_next"]
         actual.write_text(json.dumps(missing_find_bit_tail_clamp_output), encoding="utf-8")
@@ -591,7 +602,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=22")
 
 
 def main() -> int:
