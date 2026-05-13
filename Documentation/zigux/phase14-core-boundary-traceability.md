@@ -49,7 +49,7 @@ The four anchor packets above are also carried together by the Phase 14 shared s
   * manifest: `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   * survey note: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   * full-bundle reviewability replay: `zigux/tests/phase14_workqueue_reviewability.zig`
-  * shared packet checkers: `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+  * shared packet checkers: `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   * validator entrypoint: `make -C zigux phase14-validate`
   * focused smoke shard: `make -C zigux phase14-smoke`
   * focused smoke build replay: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
