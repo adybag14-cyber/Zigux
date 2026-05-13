@@ -81,10 +81,10 @@ RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "PHASE14_RELEASE_CLOSED=no",
-    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "release-facing inventory follow-through: `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase14_workqueue_reviewability.zig`, `make -C zigux phase14-test`, and `make -C zigux phase14` remain explicit alongside that shared smoke packet so release-facing review keeps the scripts-root and tests-root inventory plus the wrapper-backed full-bundle and combined replay routes visible without widening beyond the current study-only boundary packet",
     "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
-    "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible",
+    "bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
     "combined shared replay entrypoint: `make -C zigux phase14`",
     "wrapper-backed full-bundle replay: `make -C zigux phase14-test`",
     "`kernel/rcu/tree.c`: remains blocked from active delivery",
@@ -436,6 +436,38 @@ def run_self_test() -> int:
             root,
             "Documentation/zigux/phase14-release-boundary-survey.md",
             good_release_boundary_text().replace(
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, ",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+            "self-test expected missing tests-readme checker marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                "bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
+                "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors",
+            "self-test expected sequencing-guard drift failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
                 1,
@@ -619,7 +651,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=15")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
