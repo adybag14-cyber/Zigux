@@ -517,6 +517,7 @@ test "confdata bridge ignores empty CONFIG symbol names" {
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_VALID", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("m", summary.entries[0].value);
 }
 
 test "confdata bridge ignores malformed unset comments with extra tokens" {
