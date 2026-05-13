@@ -20,6 +20,7 @@ CORE_TRACEABILITY_PATH = Path("Documentation/zigux/phase14-core-boundary-traceab
 MAKEFILE_PATH = Path("zigux/Makefile")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 CORE_TRACEABILITY_NONE_READY_NEXT_LINE = "  * ready-next gap: none currently recorded"
@@ -33,8 +34,11 @@ DOCS_ROOT_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "zigux/tests/phase14_build.zig",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
     "zigux/tests/phase14_workqueue_bridge.zig",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_skbuff_bridge.zig",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_survey.zig",
     "zigux/tests/phase14_rcu_tree_survey.zig",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
@@ -121,6 +125,7 @@ MAKEFILE_EXACT_COUNT_MARKERS = [
 
 MANIFEST_REQUIRED_SURFACES = [
     CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
@@ -411,6 +416,66 @@ def run_self_test() -> int:
 
         write_text(
             root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: zigux/tests/phase14_workqueue_reviewability.zig"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root workqueue-reviewability marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `zigux/tests/phase14_workqueue_bridge_manifest.json`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: zigux/tests/phase14_workqueue_bridge_manifest.json"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root workqueue-manifest marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `zigux/tests/phase14_skbuff_bridge_manifest.json`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: zigux/tests/phase14_skbuff_bridge_manifest.json"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root skbuff-manifest marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
             good_docs_root_text().replace("- `make -C zigux phase14-test`\n", "", 1),
         )
         if not any(
@@ -618,6 +683,34 @@ def run_self_test() -> int:
                     "shared_smoke_surfaces": [
                         CHECKER_PATH,
                         ROLLBACK_CHECKER_PATH,
+                        RELEASE_BOUNDARY_CHECKER_PATH,
+                        "scripts/zigux/validate-phase14.py",
+                    ]
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        if not any(
+            f"phase14 shared_smoke_surfaces drift for {TESTS_README_CHECKER_PATH} (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing tests-readme checker surface failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "shared_smoke_surfaces": [
+                        CHECKER_PATH,
+                        TESTS_README_CHECKER_PATH,
+                        ROLLBACK_CHECKER_PATH,
                         "scripts/zigux/validate-phase14.py",
                     ]
                 },
@@ -648,7 +741,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
