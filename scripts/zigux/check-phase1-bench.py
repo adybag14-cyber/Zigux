@@ -46,6 +46,10 @@ REQUIRED_EXACT_CHECKSUMS = {
     'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM',
     'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM',
 }
+REQUIRED_FIND_BIT_EXACT_CHECKSUMS = {
+    'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
+    'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM',
+}
 REQUIRED_BITMAP_SOURCE_MARKERS = [
     'fn bitmapBench() struct { checksum: u64 } {',
     'bitmap.setRange(&map, 5, 32);',
@@ -213,6 +217,9 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
             return ('expectations_exact_checksum_not_listed', key)
         actual_exact_checksum_keys.add(key)
 
+    missing_find_bit_exact_checksums = sorted(REQUIRED_FIND_BIT_EXACT_CHECKSUMS - actual_exact_checksum_keys)
+    if missing_find_bit_exact_checksums:
+        return ('expectations_missing_find_bit_exact_checksums', missing_find_bit_exact_checksums)
     missing_exact_checksums = sorted(REQUIRED_EXACT_CHECKSUMS - actual_exact_checksum_keys)
     if missing_exact_checksums:
         return ('expectations_missing_exact_checksums', missing_exact_checksums)
@@ -300,6 +307,9 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         if expected_exact_value is not None and actual_value != expected_exact_value:
             return ('exact_checksum_mismatch', (key, expected_exact_value, actual_value))
 
+    missing_find_bit_exact_checksums = sorted(key for key in REQUIRED_FIND_BIT_EXACT_CHECKSUMS if key in missing)
+    if missing_find_bit_exact_checksums:
+        return ('missing_find_bit_exact_checksums', missing_find_bit_exact_checksums)
     missing_exact_checksums = sorted(key for key in exact_checksums if key in missing)
     if missing_exact_checksums:
         return ('missing_exact_checksums', missing_exact_checksums)
@@ -318,13 +328,10 @@ def print_command_output(label: str, output: str | None) -> None:
     print(f'{label}_END')
 
 
-def self_test_case_count() -> int:
-    return 14
-
-
 def run_self_test() -> None:
     full_expectations = load_full_expectations_for_self_test()
     full_exact_checksums: dict[str, int] = full_expectations['exact_checksums']
+    cases = 0
     ok_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
@@ -350,6 +357,7 @@ def run_self_test() -> None:
     ])
     kind, _ = validate_output(full_expectations, ok_output)
     assert kind == 'pass'
+    cases += 1
 
     kind, _ = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
@@ -357,6 +365,7 @@ def run_self_test() -> None:
         *REQUIRED_RBTREE_SOURCE_MARKERS,
     ]))
     assert kind == 'pass'
+    cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
@@ -364,6 +373,7 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_find_bit_source_markers'
     assert payload == REQUIRED_FIND_BIT_SOURCE_MARKERS
+    cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_FIND_BIT_SOURCE_MARKERS,
@@ -371,6 +381,7 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_bitmap_source_markers'
     assert payload == REQUIRED_BITMAP_SOURCE_MARKERS
+    cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
@@ -378,10 +389,12 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_rbtree_source_markers'
     assert payload == REQUIRED_RBTREE_SOURCE_MARKERS
+    cases += 1
 
     kind, payload = validate_output(full_expectations, ok_output + '\nPHASE1_BENCH_FAKE_CHECKSUM=1')
     assert kind == 'unexpected'
     assert payload == ['PHASE1_BENCH_FAKE_CHECKSUM']
+    cases += 1
 
     mismatch_output = ok_output.replace(
         f"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM']}",
@@ -394,46 +407,70 @@ def run_self_test() -> None:
         full_exact_checksums['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM'],
         full_exact_checksums['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM'] + 1,
     )
+    cases += 1
+
+    missing_find_bit_exact_output = ok_output.replace(
+        f"\nPHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
+        '',
+    )
+    kind, payload = validate_output(full_expectations, missing_find_bit_exact_output)
+    assert kind == 'missing_find_bit_exact_checksums'
+    assert payload == ['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
+    cases += 1
 
     missing_nonexact_output = ok_output.replace('\nPHASE1_BENCH_HWEIGHT_CHECKSUM=1600000', '')
     kind, payload = validate_output(full_expectations, missing_nonexact_output)
     assert kind == 'missing'
     assert payload == ['PHASE1_BENCH_HWEIGHT_CHECKSUM']
+    cases += 1
 
     kind, _ = validate_expectations(full_expectations)
     assert kind == 'pass'
+    cases += 1
 
     missing_checksum_expectations = clone_expectations(full_expectations)
     missing_checksum_expectations['checksums'].remove('PHASE1_BENCH_RBTREE_CACHED_CHECKSUM')
     kind, payload = validate_expectations(missing_checksum_expectations)
     assert kind == 'expectations_missing_checksums'
     assert payload == ['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM']
+    cases += 1
+
+    missing_find_bit_exact_expectations = clone_expectations(full_expectations)
+    del missing_find_bit_exact_expectations['exact_checksums']['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
+    kind, payload = validate_expectations(missing_find_bit_exact_expectations)
+    assert kind == 'expectations_missing_find_bit_exact_checksums'
+    assert payload == ['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
+    cases += 1
 
     missing_exact_expectations = clone_expectations(full_expectations)
     del missing_exact_expectations['exact_checksums']['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM']
     kind, payload = validate_expectations(missing_exact_expectations)
     assert kind == 'expectations_missing_exact_checksums'
     assert payload == ['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM']
+    cases += 1
 
     unexpected_exact_expectations = clone_expectations(full_expectations)
     unexpected_exact_expectations['exact_checksums']['PHASE1_BENCH_HWEIGHT_CHECKSUM'] = 1600000
     kind, payload = validate_expectations(unexpected_exact_expectations)
     assert kind == 'expectations_unexpected_exact_checksums'
     assert payload == ['PHASE1_BENCH_HWEIGHT_CHECKSUM']
+    cases += 1
 
     duplicate_checksum_expectations = clone_expectations(full_expectations)
     duplicate_checksum_expectations['checksums'].append('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM')
     kind, payload = validate_expectations(duplicate_checksum_expectations)
     assert kind == 'expectations_duplicate_checksums'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
+    cases += 1
 
     duplicate_root_expectations = load_expectations_text('{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"],"exact_checksums":{}}')
     kind, payload = validate_expectations(duplicate_root_expectations)
     assert kind == 'expectations_duplicate_keys'
     assert payload == ['status']
+    cases += 1
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={self_test_case_count()}')
+    print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={cases}')
 
 
 def main() -> int:
@@ -569,6 +606,13 @@ def main() -> int:
         print('PHASE1_BENCH_CHECK=fail')
         print(f'EXPECTATIONS_EXACT_CHECKSUM_NOT_LISTED={payload}')
         return 1
+    if kind == 'expectations_missing_find_bit_exact_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_EXPECTATION_FIND_BIT_EXACT_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('MISSING_EXPECTATION_FIND_BIT_EXACT_CHECKSUMS_END')
+        return 1
     if kind == 'expectations_missing_exact_checksums':
         print('PHASE1_BENCH_CHECK=fail')
         print('MISSING_EXPECTATION_EXACT_CHECKSUMS_START')
@@ -674,6 +718,13 @@ def main() -> int:
         print(f'EXACT_CHECKSUM_MISMATCH={key}')
         print(f'EXPECTED={expected}')
         print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'missing_find_bit_exact_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_PHASE1_BENCH_FIND_BIT_EXACT_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('MISSING_PHASE1_BENCH_FIND_BIT_EXACT_CHECKSUMS_END')
         return 1
     if kind == 'missing_exact_checksums':
         print('PHASE1_BENCH_CHECK=fail')
