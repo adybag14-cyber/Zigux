@@ -412,3 +412,81 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_exit.last_format_template orelse return error.ExpectedMainPayload, after_exit.last_format_template orelse return error.ExpectedMainPayload);
 }
+
+test "runtime trace-events module gate keeps rejected re-selftest rollback explicit" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_rejected_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.registration_depth);
+    try std.testing.expectEqual(@as(?usize, 6), before_rejected_selftest.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_rejected_selftest.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_rejected_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(i32, 0), before_rejected_selftest.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), before_rejected_selftest.last_fn_count);
+    try std.testing.expect(before_rejected_selftest.saw_conditional_path);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", before_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("Some times print", before_rejected_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", before_rejected_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(before_rejected_selftest.stage, after_rejected_selftest.stage);
+    try std.testing.expectEqual(before_rejected_selftest.main_iterations, after_rejected_selftest.main_iterations);
+    try std.testing.expectEqual(before_rejected_selftest.fn_iterations, after_rejected_selftest.fn_iterations);
+    try std.testing.expectEqual(before_rejected_selftest.main_thread_events, after_rejected_selftest.main_thread_events);
+    try std.testing.expectEqual(before_rejected_selftest.fn_thread_events, after_rejected_selftest.fn_thread_events);
+    try std.testing.expectEqual(before_rejected_selftest.total_events, after_rejected_selftest.total_events);
+    try std.testing.expectEqual(before_rejected_selftest.last_main_emitted_events, after_rejected_selftest.last_main_emitted_events);
+    try std.testing.expectEqual(before_rejected_selftest.last_fn_emitted_events, after_rejected_selftest.last_fn_emitted_events);
+    try std.testing.expectEqual(before_rejected_selftest.last_main_conditional_event_count, after_rejected_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_rejected_selftest.init_runs, after_rejected_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_selftest.exit_runs, after_rejected_selftest.exit_runs);
+    try std.testing.expectEqual(before_rejected_selftest.registration_depth, after_rejected_selftest.registration_depth);
+    try std.testing.expectEqual(before_rejected_selftest.last_main_count, after_rejected_selftest.last_main_count);
+    try std.testing.expectEqual(before_rejected_selftest.last_fn_count, after_rejected_selftest.last_fn_count);
+    try std.testing.expectEqual(before_rejected_selftest.saw_conditional_path, after_rejected_selftest.saw_conditional_path);
+    try std.testing.expectEqualStrings(before_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload, after_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload, after_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_rejected_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload, after_rejected_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings(before_rejected_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload, after_rejected_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+
+    try module.exit();
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(before_rejected_exit_selftest.stage, after_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(before_rejected_exit_selftest.main_iterations, after_rejected_exit_selftest.main_iterations);
+    try std.testing.expectEqual(before_rejected_exit_selftest.fn_iterations, after_rejected_exit_selftest.fn_iterations);
+    try std.testing.expectEqual(before_rejected_exit_selftest.main_thread_events, after_rejected_exit_selftest.main_thread_events);
+    try std.testing.expectEqual(before_rejected_exit_selftest.fn_thread_events, after_rejected_exit_selftest.fn_thread_events);
+    try std.testing.expectEqual(before_rejected_exit_selftest.total_events, after_rejected_exit_selftest.total_events);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_main_emitted_events, after_rejected_exit_selftest.last_main_emitted_events);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_fn_emitted_events, after_rejected_exit_selftest.last_fn_emitted_events);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_main_conditional_event_count, after_rejected_exit_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_rejected_exit_selftest.init_runs, after_rejected_exit_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.registration_depth, after_rejected_exit_selftest.registration_depth);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_main_count, after_rejected_exit_selftest.last_main_count);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_fn_count, after_rejected_exit_selftest.last_fn_count);
+    try std.testing.expectEqual(before_rejected_exit_selftest.saw_conditional_path, after_rejected_exit_selftest.saw_conditional_path);
+    try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_register_label orelse return error.ExpectedFunctionPayload, after_rejected_exit_selftest.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload, after_rejected_exit_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload, after_rejected_exit_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload, after_rejected_exit_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+}
