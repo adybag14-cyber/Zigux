@@ -274,3 +274,99 @@ test "phase12 virtio net syntax lab keeps mergeable path and recycled room disti
     try std.testing.expect(!recycled_recovery.requires_control_queue_restore);
     try std.testing.expect(!recycled_recovery.must_restore_before_data_queues);
 }
+
+test "phase12 virtio net syntax lab clears stale control queue and mergeable refill state across a second recovery cycle" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 6000,
+        .existing_room_bytes = 0,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    const first_frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 0), first_frozen.recovery_generation);
+    try std.testing.expect(first_frozen.mergeable_buffer_refill_required);
+    _ = try lab.restoreAfterReset();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+
+    const second_frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 1), second_frozen.recovery_generation);
+    try std.testing.expect(second_frozen.receive_buffer_refill_required);
+    try std.testing.expect(!second_frozen.mergeable_buffer_refill_required);
+
+    const queue_plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", queue_plan.anchor);
+    try std.testing.expectEqual(@as(u16, 1), queue_plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), queue_plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), queue_plan.first_control_queue_index);
+    try std.testing.expect(queue_plan.requires_receive_queue_restore);
+    try std.testing.expect(queue_plan.requires_transmit_queue_restore);
+    try std.testing.expect(!queue_plan.requires_control_queue_restore);
+    try std.testing.expect(queue_plan.requires_receive_buffer_refill);
+    try std.testing.expect(!queue_plan.requires_mergeable_buffer_refill);
+
+    const recovery_plan = try lab.controlQueueRecoveryPlan(.{
+        .mac_table_dirty = true,
+        .vlan_filters_dirty = true,
+        .rss_table_dirty = true,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", recovery_plan.anchor);
+    try std.testing.expect(!recovery_plan.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, null), recovery_plan.control_queue_index);
+    try std.testing.expect(!recovery_plan.requires_control_queue_restore);
+    try std.testing.expect(!recovery_plan.requires_receive_mode_sync);
+    try std.testing.expect(!recovery_plan.requires_hash_report_restore);
+    try std.testing.expect(!recovery_plan.requires_mac_table_sync);
+    try std.testing.expect(!recovery_plan.requires_vlan_filter_sync);
+    try std.testing.expect(!recovery_plan.requires_rss_config_sync);
+    try std.testing.expect(recovery_plan.requires_receive_queue_restore);
+    try std.testing.expect(recovery_plan.requires_transmit_queue_restore);
+    try std.testing.expect(!recovery_plan.must_restore_before_data_queues);
+    try std.testing.expectEqual(@as(u16, 0), recovery_plan.command_count);
+
+    const restored = try lab.restoreAfterReset();
+    try std.testing.expectEqual(@as(u16, 2), restored.recovery_generation);
+    try std.testing.expect(restored.receive_buffer_refill_required);
+    try std.testing.expect(!restored.mergeable_buffer_refill_required);
+    try std.testing.expectError(error.TransportNotResetting, lab.recoveryQueuePlan());
+}
