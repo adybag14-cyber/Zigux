@@ -371,8 +371,8 @@ def run_self_test() -> int:
             "self-test-mismatch",
         ),
         "phase6-checksum-c-parity:self-test-mismatch:c_output_mismatch:"
-        "expected=['compute\\tempty\\t0xffff', 'partial\\tempty\\t0x00000001']:"
-        "actual=['compute\\tempty\\t0xffff', 'partial\\tempty\\t0x00000002']",
+        "expected=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000001']:"
+        "actual=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000002']",
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
