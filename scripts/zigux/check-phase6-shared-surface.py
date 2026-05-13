@@ -368,7 +368,7 @@ def validate_manifest(repo_root: Path) -> None:
     checksum = determinism.get("checksum")
     if not isinstance(base64, dict) or base64.get("c_parity_cases") != 24:
         raise ValidationError(f"unexpected base64 parity case count in {MANIFEST_PATH}")
-    if not isinstance(checksum, dict) or checksum.get("c_parity_cases") != 22:
+    if not isinstance(checksum, dict) or checksum.get("c_parity_cases") != 27:
         raise ValidationError(f"unexpected checksum parity case count in {MANIFEST_PATH}")
 
 
@@ -421,7 +421,7 @@ def scaffold_repo(root: Path) -> None:
         ],
         "determinism_evidence": {
             "base64": {"c_parity_cases": 24},
-            "checksum": {"c_parity_cases": 22},
+            "checksum": {"c_parity_cases": 27},
         },
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
