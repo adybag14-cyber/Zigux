@@ -56,6 +56,7 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-workflow-route-counts.py",
     "phase4-test:",
     "zig build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
@@ -494,7 +495,7 @@ def _write_fixture_tree(root: Path) -> None:
     ]) + "\n")
 
     _write(root / "scripts/zigux/README.md", "\n".join([
-        "# Zigux Scripts",
+        "# scripts/zigux",
         "Phase 4 flow",
         "validate-phase4.py",
         "check-artifact-diff-contract.py",
@@ -513,7 +514,7 @@ def _write_fixture_tree(root: Path) -> None:
     ]) + "\n")
 
     _write(root / "zigux/tests/README.md", "\n".join([
-        "# Zigux Tests",
+        "# zigux/tests",
         "zigux/tests/atomic64_diff.zig",
         "zigux/tests/runtime_atomic64_diff.zig",
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
