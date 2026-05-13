@@ -50,6 +50,31 @@ MANIFEST_MARKERS = [
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
 ]
 
+REQUIRED_REVERSIBLE_DELIVERY_MARKERS = [
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zigux/tests/README.md",
+    "Documentation/zigux/phase4-validation-matrix.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/Makefile, and zigux/tests/phase4_build.zig",
+]
+
+REQUIRED_READY_NEXT_MARKERS = [
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zigux/tests/README.md",
+    "Documentation/zigux/phase4-validation-matrix.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
+    "Documentation/zigux/review-checklist.md",
+    "decision-owner",
+    "coordination-owner",
+    "acceptable-limit",
+    "shared-CI-pending promotion",
+    "broader shared CI perf coverage",
+]
+
 SURVEY_MARKERS = [
     'test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {',
     'test "phase4 perf baseline survey keeps the dedicated local checker local-only" {',
@@ -107,6 +132,10 @@ SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_manifest_file",
     "manifest_checker_reference_drift",
+    "manifest_reversible_delivery_tests_readme_drift",
+    "manifest_reversible_delivery_makefile_drift",
+    "ready_next_tests_readme_drift",
+    "ready_next_policy_marker_drift",
     "manifest_limit_drift",
     "survey_checker_test_drift",
     "survey_local_only_test_drift",
@@ -137,6 +166,10 @@ def replace_once(text: str, old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+def missing_markers(text: str, markers: list[str], prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
 def validate_root(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -164,10 +197,30 @@ def validate_root(root: Path) -> list[str]:
             failures.append(f"manifest_marker:{marker}")
     if manifest.get("shared_ci_perf_promotion_status") != "pending":
         failures.append("manifest_field:shared_ci_perf_promotion_status")
-    if "scripts/zigux/check-phase4-perf-baseline-packet.py" not in manifest.get("reversible_delivery_evidence", ""):
-        failures.append("manifest_field:reversible_delivery_evidence_checker")
-    if "scripts/zigux/check-phase4-perf-baseline-packet.py" not in manifest.get("ready_next", ""):
-        failures.append("manifest_field:ready_next_checker")
+
+    reversible_delivery_evidence = manifest.get("reversible_delivery_evidence")
+    if not isinstance(reversible_delivery_evidence, str) or not reversible_delivery_evidence.strip():
+        failures.append("manifest_field:reversible_delivery_evidence")
+    else:
+        failures.extend(
+            missing_markers(
+                reversible_delivery_evidence,
+                REQUIRED_REVERSIBLE_DELIVERY_MARKERS,
+                "manifest_field:reversible_delivery_evidence",
+            )
+        )
+
+    ready_next = manifest.get("ready_next")
+    if not isinstance(ready_next, str) or not ready_next.strip():
+        failures.append("manifest_field:ready_next")
+    else:
+        failures.extend(
+            missing_markers(
+                ready_next,
+                REQUIRED_READY_NEXT_MARKERS,
+                "manifest_field:ready_next",
+            )
+        )
 
     for marker in SURVEY_MARKERS:
         if marker not in survey_text:
@@ -216,15 +269,24 @@ def build_fixture_tree(root: Path) -> None:
                     "keep scripts/zigux/check-phase4-perf-baseline-packet.py, "
                     "zigux/tests/phase4_perf_baseline_manifest.json, "
                     "zigux/tests/phase4_perf_baseline_survey.zig, "
+                    "zigux/tests/README.md, "
                     "Documentation/zigux/phase4-validation-matrix.md, "
                     "Documentation/zigux/phase4-gate-evidence.md, "
-                    "Documentation/zigux/review-checklist.md, and "
+                    "Documentation/zigux/review-checklist.md, "
+                    "zigux/Makefile, and "
                     "zigux/tests/phase4_build.zig aligned."
                 ),
                 "ready_next": (
-                    "keep scripts/zigux/check-phase4-perf-baseline-packet.py, "
-                    "zigux/tests/phase4_perf_baseline_survey.zig, and the "
-                    "local-only perf packet aligned until a later lane "
+                    "keep the dedicated perf-baseline packet local-only while "
+                    "scripts/zigux/check-phase4-perf-baseline-packet.py, "
+                    "zigux/tests/phase4_perf_baseline_survey.zig, "
+                    "zigux/tests/README.md, "
+                    "Documentation/zigux/phase4-validation-matrix.md, "
+                    "Documentation/zigux/phase4-gate-evidence.md, and "
+                    "Documentation/zigux/review-checklist.md continue to fail "
+                    "closed on the same decision-owner, coordination-owner, "
+                    "acceptable-limit, and shared-CI-pending promotion markers; "
+                    "only widen beyond that packet if a later bounded Phase 4 lane "
                     "intentionally approves broader shared CI perf coverage."
                 ),
                 "surfaces": [
@@ -395,11 +457,45 @@ def run_self_test() -> int:
 
         write_text(
             root / MANIFEST_REL,
-            replace_once(read_text(root / MANIFEST_REL), "scripts/zigux/check-phase4-perf-baseline-packet.py", "scripts/zigux/check-phase4-perf-baseline-note.py"),
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                "scripts/zigux/check-phase4-perf-baseline-packet.py",
+                "scripts/zigux/check-phase4-perf-baseline-note.py",
+            ),
         )
-        if not expect_failure(root, "manifest_field:reversible_delivery_evidence_checker"):
+        if not expect_failure(root, "manifest_field:reversible_delivery_evidence:scripts/zigux/check-phase4-perf-baseline-packet.py"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest checker reference drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                "zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md",
+                "zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README-drift.md, Documentation/zigux/phase4-validation-matrix.md",
+            ),
+        )
+        if not expect_failure(root, "manifest_field:reversible_delivery_evidence:zigux/tests/README.md"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest reversible-delivery tests README drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                "Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned.",
+                "Documentation/zigux/review-checklist.md, zigux/Makefile.drift, and zigux/tests/phase4_build.zig aligned.",
+            ),
+        )
+        if not expect_failure(root, "manifest_field:reversible_delivery_evidence:zigux/Makefile, and zigux/tests/phase4_build.zig"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest reversible-delivery Makefile drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
@@ -411,6 +507,36 @@ def run_self_test() -> int:
         if not expect_failure(root, 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest limit drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                "scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md",
+                "scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README-drift.md, Documentation/zigux/phase4-validation-matrix.md",
+            ),
+        )
+        if not expect_failure(root, "manifest_field:ready_next:zigux/tests/README.md"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("ready-next tests README drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                "shared-CI-pending promotion",
+                "shared-CI-promoted",
+            ),
+        )
+        if not expect_failure(root, "manifest_field:ready_next:shared-CI-pending promotion"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("ready-next policy marker drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
