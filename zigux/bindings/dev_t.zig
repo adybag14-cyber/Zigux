@@ -1,6 +1,6 @@
 pub const minor_bits: u5 = 20;
 pub const minor_mask: u32 = (@as(u32, 1) << minor_bits) - 1;
-pub const max_major: u32 = (@as(u32, 1) << (32 - minor_bits)) - 1;
+pub const max_major: u32 = ~@as(u32, 0) >> minor_bits;
 
 pub const EncodeError = error{
     MajorOutOfRange,
@@ -16,10 +16,14 @@ pub fn minorValid(minor_id: u32) bool {
     return minor_id <= minor_mask;
 }
 
+pub fn packMasked(major_id: u32, minor_id: u32) u32 {
+    return @as(u32, @truncate((@as(u64, major_id) << minor_bits) | (@as(u64, minor_id) & minor_mask)));
+}
+
 pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {
     if (!majorValid(major_id)) return error.MajorOutOfRange;
     if (!minorValid(minor_id)) return error.MinorOutOfRange;
-    return (major_id << minor_bits) | minor_id;
+    return packMasked(major_id, minor_id);
 }
 
 pub fn major(dev: u32) u32 {
