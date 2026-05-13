@@ -40,11 +40,11 @@ Base raw URL prefix:
 - use this file only as a read-only fallback index; it does not add a new replay surface
 - keep the same smoke-first release order explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 - keep the focused direct packet explicit too: the current smoke shard for this driver is `zigux/tests/phase12_virtio_scsi.zig` plus `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
-- keep the fallback split honest: this file is commit-pinned, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts
+- keep the fallback split honest: this file is commit-pinned, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts, and `scripts/zigux/validate-phase12.py` remains unwired support material rather than a shipped validator route
 - keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped smoke-first packet rather than treating them as extra commit-pinned artifacts
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening any PMO wording around this artifact
 
 ## Boundaries
-- this note must not imply a shared `validate-phase12.py`, `check-phase12-*.py`, focused `virtio_scsi`-only replay route, cross-build replay, or `phase12-validate` target that current `master` does not ship
+- this note must not imply a shipped `phase12-validate` route, a validator-first route around `scripts/zigux/validate-phase12.py`, any shared `check-phase12-*.py` packet beyond the build-only checker named above, a focused `virtio_scsi`-only replay route, or a cross-build replay that current `master` does not ship
 - this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
