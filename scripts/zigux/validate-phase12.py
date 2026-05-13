@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
     "drivers/scsi/virtio_scsi.zig",
     "drivers/nvme/host/pci_verify.zig",
+    "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "zigux/tests/phase12_virtio_net.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
@@ -34,6 +35,15 @@ EXPECTED_ABSENT_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/phase12-release-readiness-survey.md": [
+        "`PHASE12_STATUS=active`",
+        "`PHASE12_RELEASE_CLOSED=no`",
+        "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
+        "The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+        "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
+    ],
     "zigux/tests/phase12_build.zig": [
         "../../drivers/net/virtio_net.zig",
         "\"phase12_virtio_net.zig\"",
@@ -72,6 +82,8 @@ REQUIRED_MARKERS = {
         "UNEXPECTED_PHASE12_FILES_START",
         "drivers/nvme/host/pci.zig",
         "drivers/nvme/host/pci_verify.zig",
+        "phase12-release-readiness-survey.md",
+        "check-phase12-release-readiness-packet.py",
         "zigux/tests/phase12_nvme_pci.zig",
         "zigux/tests/phase12_nvme_pci_manifest.json",
         "zigux/tests/phase12_nvme_pci_survey.zig",
@@ -178,6 +190,10 @@ def run_self_test() -> None:
         ("missing_phase12_virtio_net_driver", "drivers/net/virtio_net.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         (
+            "missing_phase12_release_readiness_note",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+        ),
+        (
             "missing_phase12_virtio_net_survey_note",
             "Documentation/zigux/phase12-virtio-net-survey.md",
         ),
@@ -219,6 +235,41 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
+        (
+            "missing_release_readiness_status_marker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "`PHASE12_STATUS=active`",
+            "`PHASE12_STATUS=inactive`",
+            "Documentation/zigux/phase12-release-readiness-survey.md: `PHASE12_STATUS=active`",
+        ),
+        (
+            "missing_release_readiness_support_checker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+            "support checker: `scripts/zigux/check-phase12-release-readiness-packet-missing.py`",
+            "Documentation/zigux/phase12-release-readiness-survey.md: support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        ),
+        (
+            "missing_release_readiness_fallback_route_marker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
+            "If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<missing-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
+            "Documentation/zigux/phase12-release-readiness-survey.md: If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only replay, or another unshipped Phase 12 replay surface.",
+        ),
+        (
+            "missing_release_readiness_validator_boundary_marker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+            "The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as a wired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+            "Documentation/zigux/phase12-release-readiness-survey.md: The smaller unshipped boundary is still the validator-first side of the lane: current `master` now ships `scripts/zigux/validate-phase12.py` as an unwired helper plus the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` fallback-note guard, but it still does not expose a broader shared `check-phase12-*.py` family, a focused libbpf-only replay, a cross-build replay, or `make -C zigux phase12-validate`, so release-planning notes should keep treating `validate-phase12.py` as support material rather than as shipped release evidence while naming only the shipped checker pair, smoke shard, full complex-driver replay, Linux-style Make routes, and the parked survey or fallback companions.",
+        ),
+        (
+            "missing_release_readiness_checker_pair_marker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
+            "Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run after those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
+            "Documentation/zigux/phase12-release-readiness-survey.md: Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.",
+        ),
         (
             "missing_phase12_build_virtio_net_driver_anchor",
             "zigux/tests/phase12_build.zig",
@@ -339,6 +390,20 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: drivers/nvme/host/pci_verify.zig",
         ),
         (
+            "missing_validator_release_readiness_marker",
+            "scripts/zigux/validate-phase12.py",
+            "phase12-release-readiness-survey.md",
+            "phase12-release-readiness-note.md",
+            "scripts/zigux/validate-phase12.py: phase12-release-readiness-survey.md",
+        ),
+        (
+            "missing_validator_release_support_checker_marker",
+            "scripts/zigux/validate-phase12.py",
+            "check-phase12-release-readiness-packet.py",
+            "check-phase12-release-readiness-packet-missing.py",
+            "scripts/zigux/validate-phase12.py: check-phase12-release-readiness-packet.py",
+        ),
+        (
             "missing_validator_virtio_net_manifest_marker",
             "scripts/zigux/validate-phase12.py",
             "phase12_virtio_net_manifest.json",
@@ -391,9 +456,9 @@ def run_self_test() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the current Phase 12 shipped packet, require the parked "
-            "NVMe verifier shard, and fail closed if direct NVMe replay files "
-            "appear without validator maintenance."
+            "Validate the current Phase 12 shipped packet, the shared release-readiness "
+            "fallback note, require the parked NVMe verifier shard, and fail closed if "
+            "direct NVMe replay files appear without validator maintenance."
         )
     )
     parser.add_argument(
