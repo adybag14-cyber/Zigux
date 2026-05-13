@@ -92,6 +92,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "ro",
     },
     .{
+        .name = "whitespace-only tail after key=value trims to empty rest",
+        .input = "root=/dev/sda1 \t\n",
+        .expected_param = "root",
+        .expected_value = "/dev/sda1",
+        .expected_rest = "",
+    },
+    .{
         .name = "leading equals sign stays in the parameter token",
         .input = "=bad next",
         .expected_param = "=bad",
