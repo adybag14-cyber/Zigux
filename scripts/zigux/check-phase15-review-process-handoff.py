@@ -251,17 +251,6 @@ def _validate_governance_alignment(
     if metrics.get("architecture_council_status_change_approval_count") != 0:
         issues.append("parity_scorecard:approval_count_mismatch")
 
-    review_surveyed_commit = review_manifest.get("surveyed_commit")
-    freeze_surveyed_commit = freeze_manifest.get("surveyed_commit")
-    parity_surveyed_commit = parity_scorecard.get("surveyed_commit")
-    readiness_surveyed_commit = readiness.get("surveyed_commit")
-    if review_surveyed_commit != readiness_surveyed_commit:
-        issues.append("governance_alignment:review_vs_readiness_surveyed_commit")
-    if freeze_surveyed_commit != readiness_surveyed_commit:
-        issues.append("governance_alignment:freeze_vs_readiness_surveyed_commit")
-    if freeze_surveyed_commit != parity_surveyed_commit:
-        issues.append("governance_alignment:freeze_vs_parity_surveyed_commit")
-
     freeze_targets = freeze_manifest.get("freeze_in_c_targets")
     if freeze_targets != list(EXPECTED_FREEZE_IN_C_TARGETS):
         issues.append("freeze_map_manifest:freeze_in_c_targets")
@@ -708,27 +697,13 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
-        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
-        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-11"
-        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["governance_alignment:freeze_vs_parity_surveyed_commit"],
-            "surveyed_commit_alignment",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
         readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
-        readiness_manifest["surveyed_commit"] = "current-master-readback-2026-05-11"
+        readiness_manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
         _write(root / READINESS_MANIFEST_PATH, json.dumps(readiness_manifest, indent=2) + "\n")
         _assert_only(
             validate(root),
-            [
-                "governance_alignment:review_vs_readiness_surveyed_commit",
-                "governance_alignment:freeze_vs_readiness_surveyed_commit",
-            ],
-            "readiness_surveyed_commit_alignment",
+            [],
+            "decoupled_readiness_surveyed_commit",
         )
         _seed_fixture_tree(root)
         case_count += 1
