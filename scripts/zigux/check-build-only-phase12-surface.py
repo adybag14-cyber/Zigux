@@ -180,7 +180,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
-    "the next honest same-lane follow-through is a one-file `Documentation/zigux/review-checklist.md` reread",
+    "the next honest same-lane follow-through is to leave this note parked unless the shared Phase 12 packet itself changes",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
@@ -693,6 +693,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        readiness_path = base / RELEASE_READINESS_SURVEY_PATH
+        readiness_path.write_text(
+            readiness_path.read_text(encoding="utf-8").replace(
+                RELEASE_READINESS_SURVEY_MARKERS[7], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[7]}",
+        )
+
+        write_fixture_tree(base)
         raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
         raw_coverage_path.write_text(
             raw_coverage_path.read_text(encoding="utf-8").replace(
@@ -834,7 +847,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
