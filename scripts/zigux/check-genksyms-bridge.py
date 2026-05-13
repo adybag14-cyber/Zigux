@@ -290,12 +290,24 @@ EXPECTED_TESTS_README_MARKERS = [
     "the shipped genksyms bridge direct replay",
 ]
 
+
+def expected_closure_case_marker() -> str:
+    return (
+        "the dedicated `Phase 2 genksyms` bridge packet remains the live "
+        f"`{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case` bridge surface under "
+        "`zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces "
+        "should keep that fixture-backed bridge evidence explicit without drifting "
+        "back to older undercounts or claiming standalone checker scripts that are "
+        "not present on current `master`"
+    )
+
+
 EXPECTED_CLOSURE_MARKERS = [
     "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
-    "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
+    expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -551,11 +563,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(EXPECTED_WORKFLOW_LINES) + "\n",
     )
     fixture_root = root / "zigux" / "tests" / "fixtures" / "genksyms_bridge"
-    for filename in sorted(
-        {
-            case["expected"] for case in EXPECTED_GENKSYMS_CASES
-        }
-    ):
+    for filename in sorted({case["expected"] for case in EXPECTED_GENKSYMS_CASES}):
         write_text(fixture_root / filename, "{}\n")
 
 
@@ -671,6 +679,23 @@ def run_self_test() -> int:
         closure_path.write_text(
             closure_path.read_text(encoding="utf-8").replace(
                 EXPECTED_CLOSURE_MARKERS[1] + "\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}" in issues
+        assert (
+            f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE_REL
+        stale_case_marker = f"`{EXPECTED_GENKSYMS_MANIFEST['case_count'] - 1}-case`"
+        closure_path.write_text(
+            closure_path.read_text(encoding="utf-8").replace(
+                f"`{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case`", stale_case_marker, 1
             ),
             encoding="utf-8",
         )
