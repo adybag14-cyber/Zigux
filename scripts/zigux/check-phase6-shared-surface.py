@@ -197,6 +197,18 @@ EXPECTED_SHARED_GATES = [
     MAKEFILE_PATH.as_posix(),
 ]
 
+EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "make -C zigux phase6-base64-c-parity",
+    "make -C zigux phase6-base64-perf",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "make -C zigux phase6-checksum-c-parity",
+    "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-validate",
+    "make -C zigux phase6-perf",
+    "make -C zigux phase6",
+]
+
 
 def read_text(path: Path) -> str:
     try:
@@ -241,6 +253,13 @@ def validate_manifest(repo_root: Path) -> None:
     shared_gates = manifest.get("shared_gates")
     if shared_gates != EXPECTED_SHARED_GATES:
         raise ValidationError(f"unexpected shared_gates in {MANIFEST_PATH}: {shared_gates!r}")
+
+    inventory_only_blocked_routes = manifest.get("inventory_only_blocked_routes")
+    if inventory_only_blocked_routes != EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES:
+        raise ValidationError(
+            "unexpected inventory_only_blocked_routes in "
+            f"{MANIFEST_PATH}: {inventory_only_blocked_routes!r}"
+        )
 
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
@@ -323,6 +342,7 @@ def scaffold_repo(root: Path) -> None:
         "packet_state_summary": dict(EXPECTED_PACKET_STATE_SUMMARY),
         "shared_route_truthfulness_note": EXPECTED_SHARED_ROUTE_NOTE,
         "shared_gates": list(EXPECTED_SHARED_GATES),
+        "inventory_only_blocked_routes": list(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
         "surveyed_commit": "a0f4d7e",
         "helpers": [
             {"id": "base64", "slice_note": BASE64_SLICE_PATH.as_posix()},
@@ -420,6 +440,12 @@ def run_self_test() -> None:
             MANIFEST_PATH,
             '"shared_gates": [',
             '"shared_gate_inventory": [',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"make -C zigux phase6-perf"',
+            '"make -C zigux phase6-perf-review"',
         )
         present_should_be_absent = root / ABSENT_PATHS[0]
         write(present_should_be_absent, "unexpected\n")
