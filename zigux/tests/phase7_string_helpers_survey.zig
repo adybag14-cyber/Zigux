@@ -68,6 +68,7 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
     try expectContains(scripts_root, "check-phase7-make-wrapper-selftest-alignment.py");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
+    try expectContains(scripts_root, "current `master` also still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
     try expectNotContains(scripts_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
 
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
