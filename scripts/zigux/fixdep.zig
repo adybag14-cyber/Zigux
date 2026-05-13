@@ -1160,3 +1160,73 @@ test "dep parsing keeps partial stdout before missing dependency read errors" {
     try std.testing.expectEqual(error.FileNotFound, processor.last_file_error.?);
     try std.testing.expectEqual(DependencyFileFailure.open, processor.last_file_error_kind);
 }
+
+test "dep parsing reads source and header configs while ignoring autoconf.h" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 256),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    const src_path = "zigux_fixdep_recursive_source_test.c";
+    const cfg_path = "zigux_fixdep_recursive_cfg_test.h";
+    const autoconf_path = "include/generated/autoconf.h";
+
+    _ = try Io.Dir.cwd().createDirPathStatus(std.testing.io, "include/generated", .default_dir);
+    try Io.Dir.cwd().writeFile(std.testing.io, .{
+        .sub_path = src_path,
+        .data = "/* CONFIG_ZIGUX_SRC */\n",
+    });
+    defer Io.Dir.cwd().deleteFile(std.testing.io, src_path) catch {};
+    try Io.Dir.cwd().writeFile(std.testing.io, .{
+        .sub_path = cfg_path,
+        .data = "#define CONFIG_ZIGUX_CFG 1\n#define CONFIG_ZIGUX_SRC 1\n",
+    });
+    defer Io.Dir.cwd().deleteFile(std.testing.io, cfg_path) catch {};
+    try Io.Dir.cwd().writeFile(std.testing.io, .{
+        .sub_path = autoconf_path,
+        .data = "#define CONFIG_AUTOCONF_ONLY 1\n",
+    });
+    defer Io.Dir.cwd().deleteFile(std.testing.io, autoconf_path) catch {};
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "module.o module.alias.o: " ++ src_path ++ " " ++ cfg_path ++ " include/generated/autoconf.h tail.so\n",
+        "module.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_module.o := " ++ src_path ++ "\n\n" ++
+            "deps_module.o := \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SRC) \\\n" ++
+            "  " ++ cfg_path ++ " \\\n" ++
+            "    $(wildcard include/config/ZIGUX_CFG) \\\n" ++
+            "  tail.so \\\n" ++
+            "\n" ++
+            "module.o: $(deps_module.o)\n\n" ++
+            "$(deps_module.o):\n",
+        capture.list.items,
+    );
+}
