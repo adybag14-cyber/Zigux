@@ -6,7 +6,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
+- scope: the dedicated Phase 14 ring-buffer survey gate, its direct replay command, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `99cd3249c4bab05b74227ed7ca3869284e818588`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -31,6 +31,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
+- the dedicated direct replay command `zig test zigux/tests/phase14_ring_buffer_survey.zig` is already the narrowest honest compile-side route for this parked packet, so the note now keeps that focused survey replay explicit instead of forcing every follow-up through the heavier shared Phase 14 build bundle.
 - the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries, and the current packet now also lands a read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, the `resize_disabled` handoff, and a tracefs reader-serialization audit around `trace_access_lock()`, `tracing_buffers_read()`, `tracing_buffers_splice_read()`, and the read-versus-splice consumed-page lifetime split so later runs do not reinvent `kernel/trace/ring_buffer.zig` as a wrapper-first seam.
 
 ## Decision checklist
@@ -145,10 +146,13 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 14 build
+1. run the dedicated ring-buffer survey replay
+- `zig test zigux/tests/phase14_ring_buffer_survey.zig`
+
+2. run the shared Phase 14 build bundle
 - `zig build test --build-file zigux/tests/phase14_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase14`
 
 ## Next bounded step
