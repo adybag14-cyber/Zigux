@@ -177,6 +177,27 @@ test "atomic64 diff wrapper records the current bounded runtime checks" {
         runtime_atomic64_diff_source,
         "add_unless applies the addend when the current value differs from the blocked value",
     );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "runtime atomic64 diff gate keeps inc_not_zero and dec_if_positive guard paths explicit",
+    );
+    try expectMarker(runtime_atomic64_diff_source, "inc_not_zero leaves a zero counter untouched");
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "inc_not_zero increments a live counter without hiding the previous value",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "dec_if_positive decrements a positive counter and stores the result",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "dec_if_positive reports the negative-one result while leaving zero unchanged",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "dec_if_positive keeps a negative counter unchanged while still reporting the decremented result",
+    );
     try expectMarker(runtime_atomic64_diff_source, "runtime atomic64 diff gate keeps selftest family coverage explicit");
 }
 
@@ -549,6 +570,8 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "scripts/zigux/check-phase4-gate-evidence.py");
     try expectMarker(gate_evidence_source, "phase4-runtime-atomic64-diff-survey-tests");
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
+    try expectMarker(gate_evidence_source, "two `inc_not_zero` checks");
+    try expectMarker(gate_evidence_source, "three `dec_if_positive` checks");
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_ATOMIC64_DIFF_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_VALIDATOR_BLOB_SHA=", 1);
@@ -735,10 +758,29 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
         "const add_unless_cases = [_]AddUnlessCase{",
-        "const bitwise_cases = [_]BitwiseCase{",
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
         &.{
             ".name = \"add_unless leaves the counter untouched when it already matches the blocked value\"",
             ".name = \"add_unless applies the addend when the current value differs from the blocked value\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        &.{
+            ".name = \"inc_not_zero leaves a zero counter untouched\"",
+            ".name = \"inc_not_zero increments a live counter without hiding the previous value\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        "const bitwise_cases = [_]BitwiseCase{",
+        &.{
+            ".name = \"dec_if_positive decrements a positive counter and stores the result\"",
+            ".name = \"dec_if_positive reports the negative-one result while leaving zero unchanged\"",
+            ".name = \"dec_if_positive keeps a negative counter unchanged while still reporting the decremented result\"",
         },
     );
     try expectOrderedMarkersInSection(
@@ -783,8 +825,18 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
     );
     try expectRuntimeCaseGroupCardinality(
         "const add_unless_cases = [_]AddUnlessCase{",
-        "const bitwise_cases = [_]BitwiseCase{",
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
         2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        "const bitwise_cases = [_]BitwiseCase{",
+        3,
     );
     try expectRuntimeCaseGroupCardinality(
         "const bitwise_cases = [_]BitwiseCase{",
