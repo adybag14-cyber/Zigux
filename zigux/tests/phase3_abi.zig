@@ -2,6 +2,7 @@ const std = @import("std");
 
 const abi = @import("abi_bindings");
 const export_shim = @import("export_shim");
+
 test "phase3 abi keeps starter header and status layouts explicit" {
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));
     try std.testing.expectEqual(@as(usize, 4), @alignOf(abi.BoundaryHeader));
@@ -158,22 +159,32 @@ test "phase3 abi keeps exported constants and family markers present" {
     );
 }
 
-test "phase3 abi keeps dev_t sample encoding and ranges explicit" {
+test "phase3 abi keeps dev_t sample encoding and kernel relay status explicit" {
     const minor_bits: u5 = 20;
     const minor_mask: u32 = 1_048_575;
     const max_major: u32 = 4_095;
     const sample_major: u32 = 42;
     const sample_minor: u32 = 7;
     const range_count: u32 = 4;
-    const sample_encoded: u32 = (sample_major << minor_bits) | sample_minor;
-    const range_last_encoded: u32 = (sample_major << minor_bits) | (sample_minor + range_count - 1);
 
-    try std.testing.expectEqual(@as(u5, 20), minor_bits);
-    try std.testing.expectEqual(@as(u32, 1_048_575), minor_mask);
-    try std.testing.expectEqual(@as(u32, 4_095), max_major);
-    try std.testing.expectEqual(@as(u32, 44_040_199), sample_encoded);
-    try std.testing.expectEqual(@as(u32, 42), sample_encoded >> minor_bits);
-    try std.testing.expectEqual(@as(u32, 7), sample_encoded & minor_mask);
+    const encoded = export_shim.encodeDeviceNumber(sample_major, sample_minor, .kernel);
+    try std.testing.expect(export_shim.isOk(encoded.status));
+    try std.testing.expectEqual(@as(u32, 44_040_199), encoded.value);
+    try std.testing.expectEqual(@as(u32, sample_major), encoded.value >> minor_bits);
+    try std.testing.expectEqual(@as(u32, sample_minor), encoded.value & minor_mask);
+
+    const range_last = export_shim.lastDeviceNumberInRange(sample_major, sample_minor, range_count, .helpers);
+    try std.testing.expect(export_shim.isOk(range_last.status));
     try std.testing.expect(sample_minor + range_count - 1 <= minor_mask);
-    try std.testing.expectEqual(@as(u32, 44_040_202), range_last_encoded);
+    try std.testing.expectEqual(@as(u32, 44_040_202), range_last.value);
+
+    const bad_major = export_shim.encodeDeviceNumber(max_major + 1, sample_minor, .drivers);
+    try std.testing.expect(!export_shim.isOk(bad_major.status));
+    try std.testing.expectEqual(@as(i32, -22), bad_major.status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), bad_major.status.flags);
+
+    const bad_range = export_shim.lastDeviceNumberInRange(sample_major, minor_mask - 1, 3, .helpers);
+    try std.testing.expect(!export_shim.isOk(bad_range.status));
+    try std.testing.expectEqual(@as(i32, -34), bad_range.status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), bad_range.status.flags);
 }
