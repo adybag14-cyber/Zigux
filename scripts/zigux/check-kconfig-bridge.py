@@ -47,6 +47,7 @@ REQUIRED_CONFDATA_CASES = [
     "non_config_lines",
     "empty_config_symbol_names",
     "last_state_transitions",
+    "duplicate_malformed_quoted_assignment",
 ]
 
 REQUIRED_CONFDATA_HELPER_ANCHORS = [
@@ -474,6 +475,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
+                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
                 ],
             },
             indent=2,
@@ -558,6 +560,7 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines.config",
                     "empty_config_symbol_names.config",
                     "last_state_transitions.config",
+                    "duplicate_malformed_quoted_assignment.config",
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -572,6 +575,7 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines_expected.json",
                     "empty_config_symbol_names_expected.json",
                     "last_state_transitions_expected.json",
+                    "duplicate_malformed_quoted_assignment_expected.json",
                 ],
                 "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
             },
@@ -608,6 +612,7 @@ def build_self_test_root(root: Path) -> None:
         "non_config_lines_expected.json",
         "empty_config_symbol_names_expected.json",
         "last_state_transitions_expected.json",
+        "duplicate_malformed_quoted_assignment_expected.json",
         "sample.config",
         "escaped_strings.config",
         "escaped_control_sequences.config",
@@ -620,6 +625,7 @@ def build_self_test_root(root: Path) -> None:
         "non_config_lines.config",
         "empty_config_symbol_names.config",
         "last_state_transitions.config",
+        "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
 
@@ -740,7 +746,7 @@ def run_self_test() -> int:
         payload["confdata_cases"][1], payload["confdata_cases"][2] = payload["confdata_cases"][2], payload["confdata_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,last_state_transitions") in issues
+        assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,last_state_transitions,duplicate_malformed_quoted_assignment") in issues
         assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
 
