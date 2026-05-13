@@ -37,6 +37,21 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
+const phase4_gate_evidence_self_test_cases_line =
+    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift," ++
+    "missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift," ++
+    "phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift," ++
+    "doc_readme_blob_pin_drift,script_readme_blob_pin_drift,tests_readme_blob_pin_drift," ++
+    "gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift," ++
+    "shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift," ++
+    "shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift," ++
+    "bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,kprobe_owner_drift," ++
+    "kprobe_validation_entrypoint_drift,kprobe_next_step_drift,perf_baseline_packet_presence_drift," ++
+    "perf_baseline_note_split_marker_drift,perf_baseline_owner_drift," ++
+    "perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift," ++
+    "test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,test_fsmount_validation_entrypoint_drift," ++
+    "test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_note_file";
+
 fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         std.testing.io,
@@ -388,6 +403,7 @@ test "phase 4 atomic64 survey keeps the gate-evidence runtime, manifest, survey,
     try expectMarker(gate_evidence_source, "validator_blob_pin_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
+    try expectMarker(gate_evidence_source, "shared_validator_expected_self_test_case_count_drift");
 }
 
 test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligned with live note" {
@@ -413,4 +429,18 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
+}
+
+test "phase 4 atomic64 survey keeps the full gate-evidence self-test catalog line aligned with live note" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    try expectMarker(gate_evidence_source, phase4_gate_evidence_self_test_cases_line);
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        countOccurrences(gate_evidence_source, phase4_gate_evidence_self_test_cases_line),
+    );
 }
