@@ -5,7 +5,7 @@ This note tracks the bounded Phase 5 verification packet for the roadmap's `samp
 ## Status
 
 - `PHASE5_STATUS=verified-current-checks`
-- `PHASE5_LANE_KEY=P5-L09`
+- `PHASE5_LANE_KEY=P5-L20`
 - scope: verify current kobject sample behavior and record the exact checks that still define the non-runtime packet on `master`
 - current directly verified kobject packet on `master`:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
