@@ -58,6 +58,14 @@ RELEASE_BOUNDARY_MARKERS = [
     "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-rcu-tree-survey.md` and manifest `zigux/tests/phase14_rcu_tree_manifest.json`; the Phase 15 readiness and handoff packet only governs any later freeze-map status review, so `zigux/tests/phase14_rcu_tree_survey.zig` remains the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
     "- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-skbuff-bridge-survey.md` and manifest `zigux/tests/phase14_skbuff_bridge_manifest.json`; the Phase 15 freeze-map governance packet only owns any later status-change discussion, so the current lane stays a Phase 14 review-only bridge packet rather than an active delivery lane",
 ]
+RELEASE_BOUNDARY_FALLBACK_MARKER = (
+    "- attached-toolchain replay fallback: `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, "
+    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and "
+    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14` remain the release-facing fallback when neither "
+    "the repo-local `.zig-toolchain` candidate nor the shell's default `zig` binary is available, so the same "
+    "bounded smoke-shard, full-bundle, and combined replay routes stay usable without inventing a separate "
+    "environment-only command packet"
+)
 SELF_TEST_ANCHOR_PACKETS = [
     {
         "lane_key": "P14-L04",
@@ -212,7 +220,7 @@ def check(root: Path) -> list[str]:
             )
 
     release_boundary = read_text(root, RELEASE_BOUNDARY_PATH)
-    for marker in RELEASE_BOUNDARY_MARKERS:
+    for marker in [*RELEASE_BOUNDARY_MARKERS, RELEASE_BOUNDARY_FALLBACK_MARKER]:
         if marker not in release_boundary:
             errors.append(
                 f"missing marker in {RELEASE_BOUNDARY_PATH.as_posix()}: {marker}"
@@ -319,6 +327,7 @@ def current_release_boundary_text() -> str:
     return "\n".join(
         [
             *RELEASE_BOUNDARY_MARKERS,
+            RELEASE_BOUNDARY_FALLBACK_MARKER,
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
             "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
         ]
@@ -502,6 +511,24 @@ def run_self_test() -> int:
 
         write(
             root,
+            RELEASE_BOUNDARY_PATH,
+            current_release_boundary_text().replace(
+                RELEASE_BOUNDARY_FALLBACK_MARKER + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            RELEASE_BOUNDARY_PATH.as_posix() in error
+            and RELEASE_BOUNDARY_FALLBACK_MARKER in error
+            for error in check(root)
+        ):
+            print("self-test expected release-boundary fallback failure", file=sys.stderr)
+            return 1
+        write(root, RELEASE_BOUNDARY_PATH, current_release_boundary_text())
+
+        write(
+            root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
@@ -569,7 +596,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=15")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
