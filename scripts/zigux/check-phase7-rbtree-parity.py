@@ -132,6 +132,7 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
+        "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -145,6 +146,7 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree cached helpers return leftmost handoff state",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
+        "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
 }
 
@@ -362,6 +364,13 @@ def run_self_test() -> None:
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree postorder traversal matches committed parity fixture",
         ),
         (
+            "helper_detached_postorder_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree cleared detached nodes stop postorder traversal",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree cleared detached nodes stop postorder traversal",
+        ),
+        (
             "survey_helper_lane_note_marker",
             "zigux/tests/phase7_rbtree_survey.zig",
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -395,6 +404,13 @@ def run_self_test() -> None:
             "phase 7 rbtree postorder traversal matches committed parity fixture",
             "",
             "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree postorder traversal matches committed parity fixture",
+        ),
+        (
+            "survey_detached_postorder_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree cleared detached nodes stop postorder traversal",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree cleared detached nodes stop postorder traversal",
         ),
     ]
 
