@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 61,
+  "file_count": 62,
   "files": [
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -23,6 +23,7 @@
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-bindings-survey.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
