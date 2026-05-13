@@ -20,6 +20,10 @@ pub const Mode = enum {
     mod2noconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
+        if (std.mem.eql(u8, input_text, "silentoldconfig")) {
+            return .syncconfig;
+        }
+
         inline for (std.meta.fields(Mode)) |field| {
             if (std.mem.eql(u8, input_text, field.name)) {
                 return @field(Mode, field.name);
@@ -438,6 +442,13 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
         try std.testing.expectEqualStrings(entry.text, entry.mode.text());
         try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());
     }
+}
+
+test "conf bridge parses silentoldconfig alias as syncconfig" {
+    const mode = Mode.parse("silentoldconfig").?;
+    try std.testing.expectEqual(Mode.syncconfig, mode);
+    try std.testing.expectEqualStrings("syncconfig", mode.text());
+    try std.testing.expectEqualStrings("--syncconfig", mode.flag());
 }
 
 test "conf bridge emits olddefconfig argv and env" {
