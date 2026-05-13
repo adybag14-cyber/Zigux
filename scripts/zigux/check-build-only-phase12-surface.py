@@ -231,6 +231,8 @@ COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "starter-present `virtio_net` syntax-lab and direct contract packet",
     "stops undercounting the newly landed `virtio_net` starter",
+    "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` packet.",
+    "the driver-local `virtio_scsi` rollback-lab companions",
 ]
 
 LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS = [
@@ -919,6 +921,32 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
+        lane_note_path.write_text(
+            lane_note_path.read_text(encoding="utf-8").replace(
+                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[6], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[6]}",
+        )
+
+        write_fixture_tree(base)
+        lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
+        lane_note_path.write_text(
+            lane_note_path.read_text(encoding="utf-8").replace(
+                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[7], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[7]}",
+        )
+
+        write_fixture_tree(base)
         libbpf_lane_path = base / LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
         libbpf_lane_path.write_text(
             libbpf_lane_path.read_text(encoding="utf-8").replace(
@@ -989,7 +1017,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
