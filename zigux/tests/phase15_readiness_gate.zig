@@ -75,6 +75,8 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectContains(readiness_note, "shared-summary lane `P15-Y06`");
     try expectContains(readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(readiness_note, "make -C zigux phase15-validate");
     try expectContains(readiness_note, "make -C zigux phase15-test");
