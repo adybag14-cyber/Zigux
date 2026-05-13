@@ -261,11 +261,13 @@ pub const HangupDisconnectSummary = struct {
 };
 
 pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {
+    const stale_count_short_circuit = request.stale_count_short_circuit;
+
     return .{
         .tty_resize_cancelled = request.tty_resize_cancelled,
-        .stale_count_short_circuit = request.stale_count_short_circuit,
-        .buffered_write_cleared = request.buffered_write_cleared,
-        .notifier_hangup_boundary = request.notifier_hangup_boundary,
+        .stale_count_short_circuit = stale_count_short_circuit,
+        .buffered_write_cleared = request.buffered_write_cleared and !stale_count_short_circuit,
+        .notifier_hangup_boundary = request.notifier_hangup_boundary and !stale_count_short_circuit,
     };
 }
 
@@ -471,10 +473,10 @@ test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {
     try std.testing.expect(summary.pending_sysrq_dispatch_separate);
 }
 
-test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable" {
+test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {
     const hangup = summarizeHangupDisconnect(.{
         .tty_resize_cancelled = true,
-        .stale_count_short_circuit = true,
+        .stale_count_short_circuit = false,
         .buffered_write_cleared = true,
         .notifier_hangup_boundary = true,
     });
@@ -485,12 +487,26 @@ test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs
     });
 
     try std.testing.expect(hangup.tty_resize_cancelled);
-    try std.testing.expect(hangup.stale_count_short_circuit);
+    try std.testing.expect(!hangup.stale_count_short_circuit);
     try std.testing.expect(hangup.buffered_write_cleared);
     try std.testing.expect(hangup.notifier_hangup_boundary);
     try std.testing.expect(cleanup.tty_port_release_handoff);
     try std.testing.expect(cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(cleanup.port_reference_drop_timing);
+}
+
+test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {
+    const hangup = summarizeHangupDisconnect(.{
+        .tty_resize_cancelled = true,
+        .stale_count_short_circuit = true,
+        .buffered_write_cleared = true,
+        .notifier_hangup_boundary = true,
+    });
+
+    try std.testing.expect(hangup.tty_resize_cancelled);
+    try std.testing.expect(hangup.stale_count_short_circuit);
+    try std.testing.expect(!hangup.buffered_write_cleared);
+    try std.testing.expect(!hangup.notifier_hangup_boundary);
 }
 
 test "phase11 hvc console keeps remove handoff summary reviewable" {
