@@ -73,6 +73,9 @@ Broad summaries should also keep the shipped devres packet-truthfulness guard ex
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 
