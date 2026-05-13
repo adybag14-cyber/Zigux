@@ -163,8 +163,9 @@ pub const RuntimeKretprobeLoader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !void {
+        if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         try shared_request.releaseWithoutSubstrate();
-        try self.releaseWithoutSubstrate();
+        self.stage_state = .released_without_substrate;
     }
 };
 
@@ -457,6 +458,34 @@ test "runtime kretprobe loader keeps shared release failures from desynchronizin
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
         shared_request,
         .released_without_substrate,
+        pending_plan,
+    ));
+}
+
+test "runtime kretprobe loader keeps direct shared runtime-load transitions from desynchronizing shared release state" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const pending_plan = try shared_request.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.releaseSharedWithoutSubstrate(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
         pending_plan,
     ));
 }
