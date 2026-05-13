@@ -12,6 +12,7 @@ from pathlib import Path
 
 REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
+    "driver_starter": "drivers/tty/hvc/hvc_console.zig",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
@@ -99,6 +100,29 @@ VALIDATION_MATRIX_MARKERS = [
     "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
 ]
 
+DRIVER_STARTER_MARKERS = [
+    "pub const CloseTeardownRequest = struct {",
+    "pub fn summarizeCloseTeardown",
+    "pub const TtyRegistrationRequest = struct {",
+    "pub fn summarizeTtyRegistrationHandoff",
+    "pub const NotifierAddRequest = struct {",
+    "pub fn summarizeNotifierAddOutcome",
+    "pub const KhvcdPollingContractRequest = struct {",
+    "pub fn summarizeKhvcdPollingContract",
+    "pub const KhvcdWorkerEntryRequest = struct {",
+    "pub fn summarizeKhvcdWorkerEntry",
+    "pub const CleanupHandoffRequest = struct {",
+    "pub fn summarizeCleanupHandoff",
+    "pub fn hvc_kick() void {}",
+    'test "phase11 hvc console keeps final-close teardown ownership summary reviewable"',
+    'test "phase11 hvc console keeps tty-registration handoff summary reviewable"',
+    'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"',
+    'test "phase11 hvc console keeps khvcd polling-contract summary reviewable"',
+    'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable"',
+    'test "phase11 hvc console keeps hangup disconnect and cleanup ownership handoffs reviewable"',
+    'test "phase11 hvc console keeps notifier irq helper surface reviewable"',
+]
+
 MODEM_CONTROL_SPLIT_MARKERS = [
     'test "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks"',
     'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"',
@@ -133,7 +157,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 14
 
 
 class CheckError(RuntimeError):
@@ -209,6 +233,7 @@ def run_check(root: Path) -> None:
             f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {manifest['surveyed_commit']}"
         )
 
+    expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
     expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
     expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
 
@@ -242,6 +267,7 @@ def build_manifest_text(surveyed_commit: str) -> str:
 
 def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
+    write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n")
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
@@ -290,6 +316,8 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         cases = [
+            (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
+            (REQUIRED_FILES["driver_starter"], 'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"'),
             (REQUIRED_FILES["survey_gate"], 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"'),
             (REQUIRED_FILES["validation_matrix"], "zigux/tests/phase11_hvc_cleanup.zig"),
             (REQUIRED_FILES["validation_matrix"], "direct verify-and-replay pair"),
