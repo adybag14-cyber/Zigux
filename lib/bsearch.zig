@@ -71,6 +71,28 @@ pub const IndexRange = struct {
     pub fn isEmpty(self: @This()) bool {
         return self.lower == self.upper;
     }
+
+    pub fn sliceConst(self: @This(), comptime T: type, items: []const T) []const T {
+        std.debug.assert(self.lower <= self.upper);
+        std.debug.assert(self.upper <= items.len);
+        return items[self.lower..self.upper];
+    }
+
+    pub fn sliceMutable(self: @This(), comptime T: type, items: []T) []T {
+        std.debug.assert(self.lower <= self.upper);
+        std.debug.assert(self.upper <= items.len);
+        return items[self.lower..self.upper];
+    }
+
+    pub fn bytes(self: @This(), base: [*]const u8, size: usize) []const u8 {
+        std.debug.assert(self.lower <= self.upper);
+        return base[(self.lower * size)..(self.upper * size)];
+    }
+
+    pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {
+        std.debug.assert(self.lower <= self.upper);
+        return base[(self.lower * size)..(self.upper * size)];
+    }
 };
 
 fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
@@ -436,6 +458,45 @@ test "equalRangeIndex reports duplicate spans and empty insertion points" {
     const descending_missing = equalRangeIndex(i32, i32, &@as(i32, 20), descending[0..], compareDescendingInt);
     try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
     try std.testing.expect(descending_missing.isEmpty());
+}
+
+test "IndexRange slice helpers keep typed duplicate spans and empty insertion points direct" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const duplicate_view = equalRangeIndex(i32, i32, &@as(i32, 4), ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    try std.testing.expectEqual(@as(usize, 3), duplicate_view.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, duplicate_view);
+
+    const missing_view = equalRangeIndex(i32, i32, &@as(i32, 5), ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(missing_view.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_view = equalRangeIndex(i32, i32, &@as(i32, 4), mutable[0..], compareInt).sliceMutable(i32, mutable[0..]);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 6;
+    try std.testing.expectEqual(@as(i32, 6), mutable[2]);
+}
+
+test "IndexRange byte helpers keep raw duplicate spans and write-through aliases" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const duplicate_bytes = bsearchEqualRangeIndex(&@as(i32, 4), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), duplicate_bytes.len);
+    const typed_bytes: [*]const i32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[0]);
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[2]);
+
+    const missing_bytes = bsearchEqualRangeIndex(&@as(i32, 5), ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(ascending_raw + (4 * @sizeOf(i32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
+    const mutable_bytes = bsearchEqualRangeIndex(&@as(i32, 4), mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt).bytesMutable(mutable_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
+    const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable[1] = 7;
+    try std.testing.expectEqual(@as(i32, 7), mutable[2]);
 }
 
 test "raw search helpers keep pointer and mutable contracts" {
