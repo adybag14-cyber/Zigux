@@ -68,7 +68,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane shared-summary truthfulness drift appears first, reread Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard-survey.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, scripts/zigux/validate-phase15.py, zigux/tests/phase15_handoff_next_steps_manifest.json, and zigux/tests/phase15_readiness_gate_manifest.json, then keep any repair scoped to shared-summaries plus its direct validator surface instead of reopening packet-local backlog unless the explicitly open Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md undercount routed through the shared-summary companion lane changes the truthfulness of the required review fields, decision buckets, reopen-trigger catalog, or no-approval posture recorded here"
+    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane shared-summary truthfulness drift appears first, reread Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard-survey.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, scripts/zigux/validate-phase15.py, zigux/tests/phase15_handoff_next_steps_manifest.json, and zigux/tests/phase15_readiness_gate_manifest.json, then keep any repair scoped to shared-summaries plus its direct validator surface instead of reopening packet-local backlog unless the explicitly open scripts/zigux/README.md and zigux/tests/README.md undercount routed through the shared-summary companion lane changes the truthfulness of the required review fields, decision buckets, reopen-trigger catalog, or no-approval posture recorded here"
   },
   "gaps": [
     {
@@ -159,8 +159,8 @@
       "id": "phase15-shared-summary-parity-scorecard-survey-undercount",
       "status": "blocked_on_shared_summaries",
       "kind": "governance",
-      "zigux_destination": "Documentation/zigux/review-checklist.md; scripts/zigux/README.md; zigux/tests/README.md",
-      "why_now": "Those three shared-summary reminders still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md` on current master, so the remaining truthful follow-through stays in the shared-summaries lane unless that drift starts changing the review-process packet's required fields or approval posture."
+      "zigux_destination": "scripts/zigux/README.md; zigux/tests/README.md",
+      "why_now": "Those two shared-summary reminders still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md` on current master, so the remaining truthful follow-through stays in the shared-summaries lane unless that drift starts changing the review-process packet's required fields or approval posture."
     }
   ]
 }
