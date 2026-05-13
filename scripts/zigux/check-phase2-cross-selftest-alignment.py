@@ -62,6 +62,16 @@ PHASE2_VALIDATOR_MARKERS = [
     '"zigux/tests/fixtures/phase2_cross_targets.json"',
 ]
 
+BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE = (
+    "the closure note, tests root, and Makefile keep the committed "
+    "`zigux/tests/fixtures/phase2_tool_manifest.json` plus "
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded "
+    "direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge "
+    "fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet "
+    "reviewable without reopening the dedicated genksyms or kconfig lanes from this "
+    "bootstrap note"
+)
+
 CLOSURE_MARKERS = [
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
@@ -75,6 +85,11 @@ BOOTSTRAP_NOTES_MARKERS = [
     "shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "shared cross selftest-alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
+    BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE,
+]
+
+BOOTSTRAP_NOTES_FORBIDDEN_MARKERS = [
+    "the direct kconfig and confdata Zig replays reviewable",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -129,6 +144,14 @@ def validate_required_markers(text: str, *, label: str, markers: list[str]) -> l
     for marker in markers:
         if marker not in text:
             issues.append(f"{label}:missing_marker:{marker}")
+    return issues
+
+
+def validate_forbidden_markers(text: str, *, label: str, markers: list[str]) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        if marker in text:
+            issues.append(f"{label}:forbidden_marker:{marker}")
     return issues
 
 
@@ -254,6 +277,25 @@ def run_self_test() -> int:
     if bootstrap_missing != [expected_bootstrap_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_failure")
 
+    bootstrap_forbidden_issues = validate_forbidden_markers(
+        "\n".join(BOOTSTRAP_NOTES_MARKERS),
+        label="phase2_bootstrap_notes",
+        markers=BOOTSTRAP_NOTES_FORBIDDEN_MARKERS,
+    )
+    if bootstrap_forbidden_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_presence")
+
+    bootstrap_forbidden_failure = validate_forbidden_markers(
+        "\n".join(BOOTSTRAP_NOTES_MARKERS + BOOTSTRAP_NOTES_FORBIDDEN_MARKERS),
+        label="phase2_bootstrap_notes",
+        markers=BOOTSTRAP_NOTES_FORBIDDEN_MARKERS,
+    )
+    expected_forbidden_issue = (
+        "phase2_bootstrap_notes:forbidden_marker:the direct kconfig and confdata Zig replays reviewable"
+    )
+    if bootstrap_forbidden_failure != [expected_forbidden_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_failure")
+
     tests_readme_issues = validate_required_markers(
         "\n".join(TESTS_README_MARKERS),
         label="phase2_tests_readme",
@@ -311,7 +353,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -372,11 +414,19 @@ def main() -> int:
             markers=CLOSURE_MARKERS,
         )
     )
+    bootstrap_text = BOOTSTRAP_NOTES.read_text(encoding="utf-8")
     issues.extend(
         validate_required_markers(
-            BOOTSTRAP_NOTES.read_text(encoding="utf-8"),
+            bootstrap_text,
             label="phase2_bootstrap_notes",
             markers=BOOTSTRAP_NOTES_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_forbidden_markers(
+            bootstrap_text,
+            label="phase2_bootstrap_notes",
+            markers=BOOTSTRAP_NOTES_FORBIDDEN_MARKERS,
         )
     )
     issues.extend(
