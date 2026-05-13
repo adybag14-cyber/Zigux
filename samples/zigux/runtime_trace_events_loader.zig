@@ -761,6 +761,72 @@ test "runtime trace-events loader rejects prepared shared request drift before a
     ));
 }
 
+test "runtime trace-events loader rejects prepared shared approved-family anchor and staged init or exit symbol drift before any local runtime handoff" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var anchor_loader = RuntimeTraceEventsLoader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+    anchor_request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+
+    try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = RuntimeTraceEventsLoader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+    entry_request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+
+    var exit_loader = RuntimeTraceEventsLoader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+    exit_request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+}
+
 test "runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
