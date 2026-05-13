@@ -55,6 +55,7 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
   - `zigux/tests/phase7_argv_split_survey.zig`
   - `zigux/tests/phase7_argv_split_manifest.json`
   - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+  - scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane
 - rbtree packet, lane `P7-L13`:
   - `Documentation/zigux/phase7-rbtree-slice.md`
   - `lib/rbtree.zig`
@@ -71,6 +72,7 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
 - `PHASE7_STRING_HELPERS_LANE=P7-L04`
 - `PHASE7_CMDLINE_LANE=P7-L05`
 - `PHASE7_ARGV_SPLIT_LANE=P7-L09`
+- `PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09`
 - `PHASE7_RBTREE_LANE=P7-L13`
 - `PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.`
 
@@ -80,7 +82,7 @@ Fresh repo-first inspection shows four different helper states on current `maste
 
 - `string_helpers` is parked in a blocker posture because `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are missing from the live tree even though the survey, manifest, and no-sample boundary packet remain visible.
 - `cmdline` is parked as a landed helper-local packet because the slice note, helper, dedicated test, dedicated survey, committed manifest packet, and committed `nextArg()` fixture remain visible on current `master` even while the broader shared `phase7_build.zig` replay stays parked behind the missing sibling string-helpers pair.
-- `argv_split` is parked as a landed helper-local packet with its helper, survey, manifest, and fixture module still visible.
+- `argv_split` is parked as a landed helper-local packet with its helper, survey, manifest, and fixture module still visible, and the still-used scheduled lane label `P7-Y07` should be treated as the same packet owner as live repo lane `P7-L09` rather than as a second helper lane.
 - `rbtree` is parked as a landed helper-local packet with its helper, survey, manifest, parity packet, and parity checker still visible.
 
 That means the honest shared owner map is not "all helper follow-up stays inside one Phase 7 reminder lane." The helper families have different reopen conditions, and the shared sequencing lane exists only to keep those conditions from overlapping.
@@ -93,6 +95,7 @@ The tests root also needs explicit shared-control ownership because `zigux/tests
 
 - Do not use `P7-Y06` for helper code, dedicated tests, fixtures, manifests, parity packets, or docs-root tranche summaries.
 - Do not let helper-local slice notes reuse `P7-Y06`; helper-local notes must keep their own helper lane keys.
+- Treat scheduled lane `P7-Y07` as the argv-split alias for `P7-L09`; if a scheduled run starts under `P7-Y07`, keep the work inside the argv-split packet and record the alias instead of creating a second Phase 7 helper owner.
 - `P7-Y08` owns only `Documentation/zigux/README.md` truthfulness for the current Phase 7 tranche summary; it does not own helper-local slices, validators, Makefile routes, or `zigux/tests/phase7_build.zig`.
 - `P7-L04` owns only the bounded string-helpers truthfulness packet until the missing helper-plus-test pair is restored.
 - `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift; the helper and committed `nextArg()` fixture are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
