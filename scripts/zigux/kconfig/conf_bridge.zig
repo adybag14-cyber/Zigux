@@ -551,6 +551,40 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
 
+test "conf bridge emits allnoconfig sentinel env" {
+    var capture = try TestCapture.init(std.testing.allocator, 176);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "none/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allnoconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allnoconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"none/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+}
+
+test "conf bridge emits allyesconfig sentinel env" {
+    var capture = try TestCapture.init(std.testing.allocator, 176);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allyesconfig,
+        .kconfig = "Kconfig",
+        .config = "yes/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"yes/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+}
+
 test "conf bridge emits randconfig tunables when present" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
