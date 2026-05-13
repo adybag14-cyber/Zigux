@@ -169,7 +169,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
         "`make -C zigux phase13-validate`",
-        "`zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` explicit without counting them as extra shared replay steps",
+        "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`",
         "eight-test shared helper replay",
     ],
     "zigux/tests/README.md": [
@@ -210,7 +210,7 @@ EXACT_COUNTS = {
         "record them as repo-reality gaps instead of presenting them here as independently shipped review evidence.": 1,
     },
     "scripts/zigux/README.md": {
-        "`zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` explicit without counting them as extra shared replay steps": 1,
+        "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`": 1,
         "eight-test shared helper replay": 1,
         "`make -C zigux phase13-validate`": 1,
     },
@@ -758,7 +758,7 @@ def run_self_test() -> int:
                     marker
                     for marker in REQUIRED_MARKERS["scripts/zigux/README.md"]
                     if marker
-                    != "`zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` explicit without counting them as extra shared replay steps"
+                    != "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`"
                 ],
                 {
                     "eight-test shared helper replay": 1,
@@ -769,10 +769,10 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:scripts/zigux/README.md:`zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` explicit without counting them as extra shared replay steps",
-                "exact_count:scripts/zigux/README.md:`zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` explicit without counting them as extra shared replay steps:expected=1:actual=0",
+                "missing_marker:scripts/zigux/README.md:the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`",
+                "exact_count:scripts/zigux/README.md:the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`:expected=1:actual=0",
             ],
-            "missing_scripts_readme_notifier_shards_phrase_failed",
+            "missing_scripts_readme_adjacent_direct_evidence_phrase_failed",
         )
         write_text(
             root,
