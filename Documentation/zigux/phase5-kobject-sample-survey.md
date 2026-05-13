@@ -60,6 +60,16 @@ That means the next same-lane step should stay inside one of these bounded repai
 - refresh any shared Phase 5 guide, README, or checklist surface that still understates the restored kobject packet
 - or leave the lane parked if current shared reminder surfaces already match this directly readable packet closely enough
 
+## Shared reminder drift still visible on `master`
+
+Fresh same-lane inspection now narrows the remaining review-surface risk to specific shared reminder files rather than the kobject packet itself:
+
+- `Documentation/zigux/phase5-sample-review-guide.md` and `samples/zigux/README.md` already treat `samples/zigux/kobject_example.zig` plus `zigux/tests/phase5_kobject_example_survey.zig` as directly readable current-`master` evidence, so they now match the restored kobject packet.
+- `scripts/zigux/README.md` still describes the shared Phase 5 packet as three directly readable sample modules plus a narrower kobject note-plus-tests packet, and it still tells contributors to wait for `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example_survey.zig` to return even though the public-tree packet already exposes both paths again.
+- `zigux/tests/README.md` still frames the kobject packet as narrower and still tells readers to treat `samples/zigux/kobject_example.zig` plus `zigux/tests/phase5_kobject_example_survey.zig` as public-tree gaps instead of shipped current-`master` evidence.
+
+That leaves the same-lane follow-through smaller and more reviewable than another sample edit: the next honest fix is a one-file shared reminder sync in one of those stale shared indexes.
+
 ## Non-goals
 
 This note still does not claim:
@@ -71,4 +81,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection shows a shared Phase 5 reminder surface still describing `samples/zigux/kobject_example.zig` or `zigux/tests/phase5_kobject_example_survey.zig` as missing. If that happens, reopen only for the next smallest shared guide, README, or checklist sync and keep the work tied to the directly readable non-runtime kobject packet rather than widening into new sample behavior.
+Keep this lane parked unless fresh repo inspection shows one of the stale shared reminder surfaces above still understating the restored kobject packet. If that happens, reopen only for the next smallest one-file shared guide, README, or checklist sync, starting with `scripts/zigux/README.md` or `zigux/tests/README.md`, and keep the work tied to the directly readable non-runtime kobject packet rather than widening into new sample behavior.
