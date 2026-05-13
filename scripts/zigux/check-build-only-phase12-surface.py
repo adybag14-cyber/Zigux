@@ -46,6 +46,12 @@ LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
+PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH = (
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+)
+PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH = (
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -76,6 +82,8 @@ REQUIRED_FILES = [
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
     LIBBPF_SEGMENT_SURVEY_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
+    PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH,
+    PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -111,6 +119,7 @@ DOCS_ROOT_MARKERS = [
     "while broader `nvme_pci` and direct libbpf replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
     "`make -C zigux phase12-smoke` plus `make -C zigux phase12` keep the shared smoke-first release order visible",
     "`scripts/zigux/validate-phase12.py` exists only as an unwired helper",
+    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keeps the parked libbpf reviewability packet visible without promoting the direct `phase12_libbpf_*` replay files or `tools/lib/bpf/zigux_segments/manifest.json` into shipped current-`master` evidence.",
 ]
 
 DOCS_ROOT_FORBIDDEN_MARKERS = [
@@ -643,6 +652,20 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_LIBBPF_SNAPSHOT_PATH}")
 
         write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH).unlink()
+        expect_failure(
+            base,
+            f"missing_file:{PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH}",
+        )
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH).unlink()
+        expect_failure(
+            base,
+            f"missing_file:{PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH}",
+        )
+
+        write_fixture_tree(base)
         (base / PHASE12_VALIDATE_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_VALIDATE_PATH}")
 
@@ -650,11 +673,21 @@ def run_self_test() -> int:
         docs_root_path = base / DOCS_README_PATH
         docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[11], "", 1
+                DOCS_ROOT_MARKERS[13], "", 1
             ),
             encoding="utf-8",
         )
-        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[11]}")
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[13]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[17], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[17]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
@@ -847,7 +880,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=23")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
