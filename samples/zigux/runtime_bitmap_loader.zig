@@ -562,6 +562,35 @@ test "runtime bitmap loader keeps direct shared runtime-load transitions from de
     ));
 }
 
+test "runtime bitmap loader rejects idle shared-loader handoff before any local runtime state exists" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var prepared_loader = RuntimeBitmapLoader{};
+    var shared_request = try prepared_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+
+    var idle_loader = RuntimeBitmapLoader{};
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+}
+
 test "runtime bitmap loader rejects prepared shared request drift before any live bitmap claim" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
