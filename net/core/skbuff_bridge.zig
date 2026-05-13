@@ -91,6 +91,13 @@ const boundary_areas = [_]BoundaryArea{
         .rationale = "Checksum and segmentation are caller-visible surfaces, but they are tightly coupled to csum metadata, frag layout, and GSO bookkeeping that should stay in the existing C implementation for now.",
     },
     .{
+        .id = "queue-facing-tail-publication",
+        .summary = "Keep qdisc-facing tail publication and consumer-side list reset explicitly in C.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "skb_segment", "validate_xmit_skb_list", "skb_mark_not_on_list" },
+        .rationale = "The exported segs->prev tail contract, tail->next splicing, and single-skb fallback reset inside validate_xmit_skb_list() decide how queue-facing consumers observe segmented output, so this publication and queue-ownership handoff remains in C.",
+    },
+    .{
         .id = "shared-info-refcount-ownership",
         .summary = "Keep skb_shared_info refcount splits and header-write eligibility explicitly in C.",
         .ownership = .stay_in_c,
@@ -294,8 +301,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
 
     try std.testing.expectEqualStrings("net/core/skbuff.c", map.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
-    try std.testing.expectEqual(@as(usize, 6), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.stayInCDecisionCount());
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "No smaller review-only skbuff follow-up remains") != null);
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "live ownership blocker") != null);
 
@@ -304,13 +311,19 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("__alloc_skb", map.areas[0].anchor_symbols[0]);
     try std.testing.expectEqualStrings("napi_alloc_skb", map.areas[0].anchor_symbols[1]);
 
-    try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
+    try std.testing.expectEqualStrings("queue-facing-tail-publication", map.areas[4].id);
     try std.testing.expect(map.areas[4].ownership == .stay_in_c);
-    try std.testing.expect(std.mem.indexOf(u8, map.areas[4].rationale, "dataref") != null);
+    try std.testing.expectEqualStrings("validate_xmit_skb_list", map.areas[4].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[4].rationale, "segs->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[4].rationale, "queue-facing consumers") != null);
 
-    try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
+    try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[5].id);
     try std.testing.expect(map.areas[5].ownership == .stay_in_c);
-    try std.testing.expectEqualStrings("consume_skb", map.areas[5].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "dataref") != null);
+
+    try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[6].id);
+    try std.testing.expect(map.areas[6].ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("consume_skb", map.areas[6].anchor_symbols[2]);
 }
 
 test "skbuff bridge lifetime audit stays review-only" {
