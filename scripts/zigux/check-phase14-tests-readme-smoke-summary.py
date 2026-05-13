@@ -17,6 +17,7 @@ MARKER = "PHASE14_CHECK_PACKET=tests_readme_smoke_summary"
 TESTS_README_PATH = Path("zigux/tests/README.md")
 SMOKE_MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
+TESTS_README_PHASE14_PREFIX = "  * `zigux/tests/phase14_"
 TESTS_README_PACKET_LINES = [
     "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "  * `zigux/tests/phase14_workqueue_reviewability.zig`",
@@ -89,6 +90,29 @@ def require_lines_after_anchor(
     actual_lines = lines[anchor_index + 1 : anchor_index + 1 + len(expected_lines)]
     if actual_lines != expected_lines:
         errors.append(f"marker order drift in {rel_path} after anchor: {label}")
+
+
+def require_no_extra_phase14_lines_after_anchor(
+    errors: list[str],
+    rel_path: str,
+    text: str,
+    anchor_line: str,
+    expected_lines: list[str],
+    label: str,
+) -> None:
+    lines = text.splitlines()
+    anchor_count = sum(1 for line in lines if line == anchor_line)
+    if anchor_count != 1:
+        return
+    anchor_index = lines.index(anchor_line)
+    next_index = anchor_index + 1 + len(expected_lines)
+    if next_index >= len(lines):
+        return
+    next_line = lines[next_index]
+    if next_line.startswith(TESTS_README_PHASE14_PREFIX):
+        errors.append(
+            f"packet boundary drift in {rel_path} after {label}: {next_line}"
+        )
 
 
 def load_manifest(errors: list[str], root: Path) -> dict[str, object] | None:
@@ -178,6 +202,14 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
             TESTS_README_AFTER_ANCHOR_LINES,
             "phase14_smoke_packet_after_anchor",
         )
+        require_no_extra_phase14_lines_after_anchor(
+            errors,
+            TESTS_README_PATH.as_posix(),
+            text,
+            TESTS_README_PACKET_ANCHOR,
+            TESTS_README_AFTER_ANCHOR_LINES,
+            "phase14_smoke_packet_after_anchor",
+        )
     if MARKER not in (source_text if source_text is not None else read_text(Path(__file__))):
         errors.append("checker marker missing from checker source")
     return errors
@@ -191,6 +223,7 @@ def good_tests_readme_text() -> str:
             "Key entrypoints",
             TESTS_README_PACKET_ANCHOR,
             *TESTS_README_AFTER_ANCHOR_LINES,
+            "  * `zigux/tests/phase15_build.zig`",
         ]
     ) + "\n"
 
@@ -463,6 +496,22 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `zigux/tests/phase15_build.zig`\n",
+                "  * `zigux/tests/phase14_boundary_drift.zig`\n"
+                "  * `zigux/tests/phase15_build.zig`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14_boundary_drift.zig",
+            "self-test expected packet-boundary drift failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 f"{TESTS_README_PACKET_ANCHOR}\n",
                 f"{TESTS_README_PACKET_ANCHOR}\n{TESTS_README_PACKET_ANCHOR}\n",
                 1,
@@ -535,7 +584,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=21")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
