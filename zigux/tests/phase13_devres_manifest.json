@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L08",
+  "lane_key": "P13-L01",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-12",
+  "surveyed_commit": "master-readback-2026-05-13",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -20,46 +20,88 @@
   },
   "gaps": [
     {
-      "id": "phase13-build-gate",
-      "status": "blocked_on_missing_shared_build_surface",
+      "id": "phase13-make-target",
+      "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master still does not ship the older shared Phase 13 build bundle, so this still-shipped helper-first packet must keep that missing wider replay route explicit instead of pretending the shared build bundle is already back."
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "Current master still ships `make -C zigux phase13-validate` as the stable shared Phase 13 replay handle even while the older shared `zigux/tests/phase13_build.zig` bundle stays absent."
+    },
+    {
+      "id": "phase13-devres-helper-starter",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Current master ships helper-first managed ioremap lifetime, exact `devm_iounmap()` matching, pure `devm_of_iomap()` handoff, and arch WC planner surfaces without claiming live MMIO side effects."
+    },
+    {
+      "id": "phase13-devres-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-devres-slice.md",
+      "why_now": "The slice note names the shipped `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_of_iomap()`, `devm_arch_io_reserve_memtype_wc()`, and `devm_arch_phys_wc_add()` planners as reviewable helper-first evidence."
+    },
+    {
+      "id": "phase13-devres-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
+      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, and the blocked live-state boundaries explicit in `P13-L01` terms."
     },
     {
       "id": "phase13-devres-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The direct devres replay is present on current master and keeps the still-shipped helper-first packet machine-checkable while the wider shared build bundle stays absent, including the existing `devm_iounmap()` exact-match planner and UC/WC MMIO evidence without pretending the older shared build packet is back."
+      "why_now": "The direct devres replay is present on current master and replays the shipped `devm_iounmap()` planner, the UC/WC wrapper planners, the pure `devm_of_iomap()` bridge, and the token-style phys-WC helper without pretending the absent shared build bundle is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate is present on current master and keeps the still-shipped helper-first packet plus manifest alignment reviewable while the wider shared build bundle stays absent."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the adjacent coherent-DMA evidence summary and the blocked live-state boundaries."
     },
     {
-      "id": "phase13-devres-dma-coherent-replay",
+      "id": "phase13-devres-iounmap-planner",
       "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_devres_dma_coherent.zig",
-      "why_now": "A standalone coherent-DMA replay keeps the live helper-only DMA/scatterlist boundary machine-checkable for the still-shipped helper-first packet while the wider shared build bundle stays absent on current master."
+      "kind": "helper_surface",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Current master still exposes `planManagedIounmap()` with exact pointer matching and release-miss warning shaping as shipped MMIO-detach bookkeeping evidence."
     },
     {
-      "id": "phase13-devres-live-dma-backed-helpers",
-      "status": "blocked_on_dma_state",
-      "kind": "runtime_boundary",
+      "id": "phase13-devres-of-iomap-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live DMA-backed helpers remain blocked because the current helper packet does not claim dmam_alloc_* coverage, does not model dma_map_sgtable() or unmap flows, and must stay helper-first instead of pretending to own real DMA mapping state."
+      "why_now": "Current master still exposes a pure `devm_of_iomap()` bridge that selects translated resources by index, optionally reports size, and hands off into the managed-resource planner instead of walking a live device tree."
     },
     {
-      "id": "phase13-devres-live-scatterlist-ownership",
-      "status": "blocked_on_scatterlist_state",
+      "id": "phase13-devres-arch-phys-wc-token-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Current master still exposes the token-style `devm_arch_phys_wc_add()` planner that retains detach-time cleanup intent on success and frees the release record on negative token results without claiming live arch memtype mutation."
+    },
+    {
+      "id": "phase13-devres-live-mmio-mappings",
+      "status": "blocked_on_live_mmio_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live scatterlist ownership remains blocked because the current helper packet does not model struct scatterlist traversal, sg_table lifecycle, or broader sg_* ownership transfer."
+      "why_now": "Live MMIO mapping side effects remain blocked because the current helper packet still models only planning, cleanup intent, and failure shaping instead of real mappings or unmaps."
+    },
+    {
+      "id": "phase13-devres-live-device-tree-walk",
+      "status": "blocked_on_live_device_tree_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live device-tree walking remains blocked because the current `devm_of_iomap()` surface only accepts already translated resources and does not own OF node traversal or lifetime."
+    },
+    {
+      "id": "phase13-devres-live-arch-memtype-state",
+      "status": "blocked_on_live_arch_memtype_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live arch memtype state remains blocked because the current `devm_arch_io_reserve_memtype_wc()` and `devm_arch_phys_wc_add()` helpers stop at detach-time bookkeeping and failure shaping instead of mutating real memtype state."
     }
   ]
 }
