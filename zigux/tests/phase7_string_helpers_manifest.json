@@ -36,6 +36,8 @@
     "match_string",
     "sysfsMatchString",
     "__sysfs_match_string",
+    "memcpyAndPad",
+    "memcpy_and_pad",
     "strreplace"
   ],
   "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet. The shared docs-root, scripts-root, tests-root, sample-root, manifest, survey, and no-sample boundary reminders should describe that bounded starter surface truthfully without reviving the older missing-helper wording or overstating the broader parked family as landed.",
@@ -43,8 +45,9 @@
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
     "null-sentinel table matching through the first NULL entry",
+    "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
   ],
-  "next_bounded_step": "Keep the restored starter packet truthful across the slice note, survey, manifest, and dedicated no-sample boundary replay before taking any deeper helper-local expansion step."
+  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, survey, manifest, and dedicated no-sample boundary replay before taking another deeper helper-local expansion step."
 }
