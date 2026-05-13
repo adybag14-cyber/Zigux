@@ -10,6 +10,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(descriptor.provides_queue_depth_summary);
     try std.testing.expect(descriptor.provides_command_buffer_ownership_summary);
+    try std.testing.expect(descriptor.provides_control_path_governance_summary);
     try std.testing.expect(descriptor.provides_request_submit_sequencing_summary);
     try std.testing.expect(descriptor.provides_completion_handback_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
@@ -279,6 +280,21 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
             .requested_depth = 4,
         },
     }));
+    try std.testing.expectError(error.TransportFrozen, lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 4,
+            },
+        },
+    }));
     try std.testing.expectError(error.TransportFrozen, lab.captureRequestSubmitSequencingSummary(.{
         .ownership = .{
             .queue_depth = .{
@@ -366,6 +382,27 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
     try std.testing.expectEqual(@as(u32, 7), command_buffers.clamped_queue_depth);
     try std.testing.expectEqual(@as(u32, virtio_scsi.default_command_buffer_bytes), command_buffers.command_bytes_per_request);
     try std.testing.expectEqual(@as(u32, virtio_scsi.default_sense_buffer_bytes), command_buffers.sense_bytes_per_request);
+
+    const control_path = try lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                        .max_target = 3,
+                        .max_lun = 2,
+                        .max_sectors = 1536,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 11,
+            },
+        },
+    });
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), control_path.control_queue_index);
+    try std.testing.expect(control_path.control_path_requires_control_queue_before_tmf);
 
     const submit = try lab.captureRequestSubmitSequencingSummary(.{
         .ownership = .{
@@ -661,6 +698,85 @@ test "phase12 virtio scsi command buffer ownership summary defaults buffer sizes
     try std.testing.expectEqual(@as(u32, virtio_scsi.default_sense_buffer_bytes), summary.sense_bytes_per_request);
     try std.testing.expectEqual(@as(u64, virtio_scsi.default_command_buffer_bytes), summary.total_command_bytes);
     try std.testing.expectEqual(@as(u64, virtio_scsi.default_sense_buffer_bytes), summary.total_sense_bytes);
+}
+
+test "phase12 virtio scsi control path governance summary keeps control and tmf boundaries explicit" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                        .max_target = 3,
+                        .max_lun = 2,
+                        .max_sectors = 1536,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 11,
+            },
+            .command_bytes = 48,
+            .sense_bytes = 96,
+        },
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u32, 11), summary.requested_depth);
+    try std.testing.expectEqual(@as(u32, 7), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, 48), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, 96), summary.sense_bytes_per_request);
+    try std.testing.expect(summary.control_queue_is_dedicated);
+    try std.testing.expect(summary.control_path_requires_control_queue_before_tmf);
+    try std.testing.expect(summary.control_path_uses_event_queue_for_async_notifications);
+    try std.testing.expect(summary.control_path_requires_dma_mapping_later);
+    try std.testing.expect(summary.control_path_blocks_while_transport_frozen);
+    try std.testing.expect(summary.stays_pre_runtime_only);
+}
+
+test "phase12 virtio scsi control path governance summary respects the frozen transport boundary" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+
+    try std.testing.expectError(error.TransportFrozen, lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 1,
+                        .cmd_per_lun = 4,
+                    },
+                    .synthetic_can_queue = 3,
+                },
+                .requested_depth = 2,
+            },
+        },
+    }));
+
+    _ = try lab.restoreAfterTransportReset();
+    const summary = try lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 1,
+                        .cmd_per_lun = 4,
+                    },
+                    .synthetic_can_queue = 3,
+                },
+                .requested_depth = 2,
+            },
+        },
+    });
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), summary.control_queue_index);
+    try std.testing.expect(summary.control_path_requires_control_queue_before_tmf);
 }
 
 test "phase12 virtio scsi request submit sequencing summary records queue selection and pre-kick ordering" {
