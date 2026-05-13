@@ -232,6 +232,7 @@ def run_self_test() -> int:
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[3]),
             ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS[5]),
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[3]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
             ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
             ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
