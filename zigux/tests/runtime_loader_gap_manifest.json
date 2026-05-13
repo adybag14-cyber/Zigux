@@ -90,13 +90,13 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
       "role": "adjacent_shared_owner_map",
-      "owner": "P9-L16",
+      "owner": "P9-L11",
       "boundary": "Keeps the broader shared owner map literal while this packet stays packet-local."
     },
     {
       "surface": "scripts/zigux/check-phase9-build-only-surface.py",
       "role": "adjacent_shared_checker",
-      "owner": "P9-L16",
+      "owner": "P9-L11",
       "boundary": "Guards the broader shared reminder packet outside this packet-local survey lane."
     }
   ],
