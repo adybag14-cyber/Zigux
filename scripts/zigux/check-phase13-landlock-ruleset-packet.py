@@ -110,6 +110,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
     "`scripts/zigux/validate-phase13-release.py`",
+    "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "`make -C zigux phase13-validate`",
 )
 
@@ -284,6 +285,7 @@ def run_self_test() -> int:
             ("syscalls-governance", SYSCALLS_GOVERNANCE_PATH, REQUIRED_SYSCALLS_GOVERNANCE_MARKERS[1]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[0]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[3]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[5]),
             ("lane-note", LANE_NOTE_PATH, REQUIRED_LANE_NOTE_MARKERS[1]),
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
             ("ownership", OWNERSHIP_PATH, REQUIRED_OWNERSHIP_MARKERS[6]),
