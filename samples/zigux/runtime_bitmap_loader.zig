@@ -556,6 +556,57 @@ test "runtime bitmap loader rejects prepared shared request drift before any liv
     ));
 }
 
+test "runtime bitmap loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var anchor_loader = RuntimeBitmapLoader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    anchor_request.plan.anchor = "lib/test_bitmap_drift.c";
+
+    try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
+    try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .prepared,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = RuntimeBitmapLoader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    entry_request.plan.entry_symbol = "zigux_runtime_bitmap_init_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));
+    try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .prepared,
+        entry_request.plan,
+    ));
+
+    var exit_loader = RuntimeBitmapLoader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    exit_request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));
+    try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .prepared,
+        exit_request.plan,
+    ));
+}
+
 test "runtime bitmap loader rejects prepared shared runtime-substrate drift before any local runtime handoff" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
