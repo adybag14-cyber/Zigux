@@ -4,71 +4,74 @@ This note tracks the bounded Phase 5 reviewability survey for the roadmap's `sam
 
 ## Status
 
-- `PHASE5_STATUS=parked`
+- `PHASE5_STATUS=parked-doc-accuracy`
 - `PHASE5_LANE_KEY=P5-L23`
-- scope: keep the kobject sample note truthful against the current public repo tree, the shared Phase 5 build route, and the directly readable sample-backed validation packet
+- scope: keep the kobject sample note truthful against the current repo readback, the shared Phase 5 reminder surfaces, and the freeze-map boundary
 - current directly readable kobject packet on `master`:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
-  - `samples/zigux/kobject_example.zig`
-  - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kobject_example.zig`
   - `zigux/tests/phase5_kobject_example_manifest.json`
-  - `zigux/tests/phase5_kobject_example_survey.zig`
 
 ## Why this note exists
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and still names `samples/kobject/kobject-example.c` as one of the approved Linux anchors.
 
-Fresh repo-first inspection for this lane hit a readback split: the GitHub contents API stayed flaky on a few kobject paths, but public raw readback for current `master` confirmed that the sample-root module and the dedicated survey replay are both directly readable again. The truthful same-lane job is to record that restored packet clearly and keep the next step bounded to review-surface accuracy rather than reopen sample behavior.
+The bounded job for this note is not to reopen sample behavior. It is to say exactly what the current repo inspection could read back today and to stop treating older restored-packet wording as live evidence when the same paths are not directly readable through the main repo read path anymore.
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection for this lane found these kobject-adjacent surfaces directly readable today:
+Fresh repo-first inspection on 2026-05-13 found these kobject-adjacent surfaces directly readable through the GitHub connector:
 
-- `samples/zigux/kobject_example.zig` exists and restores the public sample-root half of the kobject packet beside the shared Phase 5 sample family.
-- `zigux/tests/phase5_build.zig` exists and keeps the kobject replay wired through the shared four-anchor Phase 5 build route.
-- `zigux/tests/phase5_kobject_example.zig` exists and keeps a focused Phase 5 replay surface for descriptor, anchor replay, pre-registration boundary, registered boundary, shared `baz` and `bar` dispatch plus parse-failure visibility, initialized-only exit, ownership replay, teardown replay, and public parse-failure behavior.
-- `zigux/tests/phase5_kobject_example_manifest.json` exists and still records the ownership-and-lifetime prompts, exact checks, and non-goals for the kobject anchor.
-- `zigux/tests/phase5_kobject_example_survey.zig` exists and restores the dedicated survey replay path for the same bounded kobject packet.
+- `Documentation/zigux/phase5-kobject-sample-survey.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `zigux/tests/phase5_kobject_example.zig`
+- `zigux/tests/phase5_kobject_example_manifest.json`
 
-Those directly readable paths mean the current kobject packet is no longer limited to note-plus-tests truthfulness alone. Current `master` again exposes the sample module, the focused replay, the dedicated survey replay, the manifest, and the shared `phase5_build.zig` route together as one bounded non-runtime Phase 5 packet.
+The same inspection hit direct-readback gaps for these kobject packet paths on current `master`:
 
-## What the focused validation surfaces still prove
+- `samples/zigux/kobject_example.zig`
+- `zigux/tests/phase5_build.zig`
+- `zigux/tests/phase5_kobject_example_survey.zig`
 
-The current directly readable kobject packet keeps these review cues explicit:
+That means this note should not currently present the full restored sample-root-plus-shared-build packet as directly readable shipped evidence. The honest same-lane posture is narrower: the focused test and manifest are still directly readable, while the sample-root module, shared Phase 5 build file, and dedicated survey replay were not directly readable through the main connector path during this run.
 
-- the shared `zigux/tests/phase5_build.zig` route still exists, so the kobject packet remains part of the shipped four-anchor Phase 5 replay surface
-- the sample and focused replay still expect the Linux anchor `samples/kobject/kobject-example.c`
-- the focused test keeps `runPreRegistrationBoundaryReplay()` explicit for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary
-- the focused test keeps `runRegisteredBoundaryReplay()` explicit for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
-- the focused test keeps `runInputValidationReplay()` explicit for the shared `baz` and `bar` dispatch plus parse-failure visibility while the sample stays registered
-- the focused test keeps `ownershipSummary()` plus `runOwnershipReplay()` explicit for the lifecycle packet
-- the focused test keeps `runTeardownReplay()` explicit for the registered teardown reset plus post-`exit()` rejection packet
-- the manifest still records the same non-goals around sysfs creation, `kernel_kobj` integration, uevents, and module registration
-- the dedicated `zigux/tests/phase5_kobject_example_survey.zig` replay is directly readable again, so contributor guidance can point to a sample-backed survey path instead of treating it as a public-tree gap
+## What the directly readable validation surfaces still prove
+
+Even with that narrower readback, the current directly readable kobject packet still keeps the bounded sample contract reviewable:
+
+- `zigux/tests/phase5_kobject_example.zig` still keeps the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor and keeps the slice non-runtime
+- the focused test still keeps `runPreRegistrationBoundaryReplay()` explicit for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary
+- the focused test still keeps `runRegisteredBoundaryReplay()` explicit for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
+- the focused test still keeps `runInputValidationReplay()` explicit for the shared `baz` and `bar` dispatch plus parse-failure visibility while the sample stays registered
+- the focused test still keeps `ownershipSummary()` plus `runOwnershipReplay()` explicit for the lifecycle packet
+- the focused test still keeps `runTeardownReplay()` explicit for the registered teardown reset plus post-`exit()` rejection packet
+- `zigux/tests/phase5_kobject_example_manifest.json` still records the same ownership-and-lifetime prompts, exact checks, and non-goals around sysfs creation, `kernel_kobj` integration, uevents, and module registration
 
 ## Recorded gap vs roadmap
 
-The earlier missing-path framing is no longer the honest gap:
+The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, but the current same-lane issue is readback truthfulness rather than missing new behavior:
 
-- the roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor
-- current `master` now exposes the sample module path, the focused test, the manifest, the dedicated survey replay, and the shared `zigux/tests/phase5_build.zig` route for that anchor
-- the remaining same-lane risk is now shared review-surface drift, not the absence of the core kobject sample packet itself
+- shared Phase 5 reminder surfaces still talk about the kobject anchor
+- the focused kobject test and manifest are still directly readable
+- the sample-root module, shared `phase5_build.zig` route, and dedicated survey replay were not directly readable through the main connector path in this run
 
-That means the next same-lane step should stay inside one of these bounded repairs:
-
-- refresh any shared Phase 5 guide, README, or checklist surface that still understates the restored kobject packet
-- or leave the lane parked if current shared reminder surfaces already match this directly readable packet closely enough
+So the honest gap is not "restore the kobject packet." The honest gap is "keep the note and shared guidance from overstating which parts of that packet are directly readable today."
 
 ## Shared reminder drift still visible on `master`
 
-Fresh same-lane inspection now narrows the remaining review-surface risk to specific shared reminder files rather than the kobject packet itself:
+Fresh same-lane inspection narrows the remaining review-surface risk to shared reminder files that still overstate the restored kobject packet:
 
-- `Documentation/zigux/phase5-sample-review-guide.md` and `samples/zigux/README.md` already treat `samples/zigux/kobject_example.zig` plus `zigux/tests/phase5_kobject_example_survey.zig` as directly readable current-`master` evidence, so they now match the restored kobject packet.
-- `scripts/zigux/README.md` still describes the shared Phase 5 packet as three directly readable sample modules plus a narrower kobject note-plus-tests packet, and it still tells contributors to wait for `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example_survey.zig` to return even though the public-tree packet already exposes both paths again.
-- `zigux/tests/README.md` still frames the kobject packet as narrower and still tells readers to treat `samples/zigux/kobject_example.zig` plus `zigux/tests/phase5_kobject_example_survey.zig` as public-tree gaps instead of shipped current-`master` evidence.
+- `Documentation/zigux/phase5-sample-review-guide.md` still says current `master` carries the direct public-tree kobject evidence again and lists `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_build.zig`, and `zigux/tests/phase5_kobject_example_survey.zig` as verified landed surfaces
+- `samples/zigux/README.md` still says current shared Phase 5 guidance should keep all four directly readable `samples/zigux/*.zig` files explicit and still presents the full restored kobject packet as directly readable current-`master` evidence
+- `scripts/zigux/README.md` still treats the kobject packet as a narrower note-plus-tests packet until the sample root and dedicated survey return, but it also still lists `zigux/tests/phase5_build.zig` and other broader Phase 5 packet paths as directly readable current-`master` evidence
+- `zigux/tests/README.md` still presents the focused Phase 5 test packet as if the sample-root and shared-build evidence are fully readable alongside it
 
-That leaves the same-lane follow-through smaller and more reviewable than another sample edit: the next honest fix is a one-file shared reminder sync in one of those stale shared indexes.
+That leaves the next same-lane step smaller than any sample edit: the next honest fix is one shared reminder surface at a time, starting with the smallest guide, README, or checklist line that keeps current readback truthful without reopening sample behavior.
 
 ## Non-goals
 
@@ -81,4 +84,4 @@ This note still does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection shows one of the stale shared reminder surfaces above still understating the restored kobject packet. If that happens, reopen only for the next smallest one-file shared guide, README, or checklist sync, starting with `scripts/zigux/README.md` or `zigux/tests/README.md`, and keep the work tied to the directly readable non-runtime kobject packet rather than widening into new sample behavior.
+Keep this lane parked unless a follow-up run can directly read back `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_build.zig`, and `zigux/tests/phase5_kobject_example_survey.zig` through the same repo path used for the rest of this lane, or publish one bounded shared reminder repair that stops overstating those paths as directly readable shipped evidence. If the readback state stays the same, prefer the next one-file shared-guide or README sync before widening anything in sample behavior.
