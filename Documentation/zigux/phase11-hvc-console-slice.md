@@ -14,7 +14,10 @@ It stays inside the archival Phase 11 HVC lane and does not widen into tty regis
 The current bounded HVC archival packet is reviewed through:
 
 * `drivers/tty/hvc/hvc_console.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
+* `zigux/tests/phase11_hvc_console.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
@@ -24,7 +27,8 @@ The current bounded HVC archival packet is reviewed through:
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-Current `master` still ships no separate direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so the archival packet keeps that repo-reality gap explicit instead of presenting verify, replay, or cleanup companion files as landed surfaces.
+Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions.
+The archival packet keeps those direct replay, verify, and cleanup surfaces explicit instead of presenting them as a repo-reality gap or as proof of broader runtime closure.
 
 ## Teardown And Failure-Mode Cues
 
@@ -38,7 +42,7 @@ The parked starter keeps these bounded summaries explicit:
 * `hvc_hangup()` disconnect summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
-* the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files
+* the direct verify, replay, and cleanup companion surfaces that current `master` now materializes beside the archival survey gate
 
 Those cues stay limited to the host-free archival packet.
 They do not claim runtime callback delivery or live hypervisor transport execution.
