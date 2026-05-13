@@ -2,6 +2,7 @@ const std = @import("std");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
+const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 
 const Manifest = struct {
     lane_key: []const u8,
@@ -299,12 +300,41 @@ test "phase 4 atomic64 survey keeps the gate-evidence phase4 build blob pin alig
     try expectMarker(gate_evidence_source, phase4_build_marker);
 }
 
-test "phase 4 atomic64 survey keeps the gate-evidence validator and review-checklist blob pins aligned with live sources" {
+test "phase 4 atomic64 survey keeps the gate-evidence runtime, manifest, survey, validator, and review-checklist blob pins aligned with live sources" {
     const gate_evidence_source = try readRepoFile(
         std.testing.allocator,
         "Documentation/zigux/phase4-gate-evidence.md",
     );
     defer std.testing.allocator.free(gate_evidence_source);
+
+    const runtime_atomic64_diff_blob_sha = try gitBlobShaHex(runtime_atomic64_diff_source);
+    const runtime_atomic64_diff_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA={s}",
+        .{runtime_atomic64_diff_blob_sha},
+    );
+    defer std.testing.allocator.free(runtime_atomic64_diff_marker);
+
+    const runtime_atomic64_manifest_blob_sha = try gitBlobShaHex(phase4_runtime_atomic64_manifest_source);
+    const runtime_atomic64_manifest_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA={s}",
+        .{runtime_atomic64_manifest_blob_sha},
+    );
+    defer std.testing.allocator.free(runtime_atomic64_manifest_marker);
+
+    const runtime_atomic64_survey_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    );
+    defer std.testing.allocator.free(runtime_atomic64_survey_source);
+    const runtime_atomic64_survey_blob_sha = try gitBlobShaHex(runtime_atomic64_survey_source);
+    const runtime_atomic64_survey_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA={s}",
+        .{runtime_atomic64_survey_blob_sha},
+    );
+    defer std.testing.allocator.free(runtime_atomic64_survey_marker);
 
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
@@ -345,6 +375,9 @@ test "phase 4 atomic64 survey keeps the gate-evidence validator and review-check
     );
     defer std.testing.allocator.free(review_checklist_marker);
 
+    try expectMarker(gate_evidence_source, runtime_atomic64_diff_marker);
+    try expectMarker(gate_evidence_source, runtime_atomic64_manifest_marker);
+    try expectMarker(gate_evidence_source, runtime_atomic64_survey_marker);
     try expectMarker(gate_evidence_source, validate_phase4_marker);
     try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
@@ -364,11 +397,17 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     );
     defer std.testing.allocator.free(gate_evidence_source);
 
+    try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=");
+    try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=");
+    try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=30");
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
