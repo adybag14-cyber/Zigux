@@ -77,7 +77,7 @@ Current wording-lane caution:
 - the help packet no longer shares ownership with exec-cmd: keep `tools/lib/subcmd/help.zig`, `zigux/tests/phase8_help.zig`, and `Documentation/zigux/phase8-help-slice.md` under the dedicated help packet unless a shared reminder surface truly cannot be made truthful without one directly coupled help line
 - when this lane reopens, re-read the shared reminder surfaces against `Documentation/zigux/phase8-libbpf-segment-survey.md`, the live Phase 8 test tree, `tools/lib/bpf/zigux_segments/manifest.json`, and the readable blob packet before calling any shard or helper family removed
 - prefer the next one-file or tightly coupled wording repair over broader Phase 8 expansion
-- Keep follow-up inside the shared wording lane until the dedicated libbpf survey note and the broader shared reminder packet agree again.
+- the dedicated libbpf survey note and the broader shared reminder packet now agree on the parked shared-wording posture, so keep this lane parked until a fresh one-file reminder-surface drift appears
 
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
