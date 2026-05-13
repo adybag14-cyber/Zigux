@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
     "drivers/scsi/virtio_scsi.zig",
+    "drivers/nvme/host/pci.zig",
     "drivers/nvme/host/pci_verify.zig",
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -24,13 +25,12 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
     "zigux/tests/phase12_virtio_scsi_packet.zig",
     "zigux/tests/phase12_build.zig",
+    "zigux/tests/phase12_nvme_pci.zig",
+    "zigux/tests/phase12_nvme_pci_manifest.json",
     "scripts/zigux/validate-phase12.py",
 ]
 
 EXPECTED_ABSENT_FILES = [
-    "drivers/nvme/host/pci.zig",
-    "zigux/tests/phase12_nvme_pci.zig",
-    "zigux/tests/phase12_nvme_pci_manifest.json",
     "zigux/tests/phase12_nvme_pci_survey.zig",
 ]
 
@@ -75,6 +75,14 @@ REQUIRED_MARKERS = {
         "b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\")",
         "b.step(\"test\", \"Run Phase 12 virtio packet tests\")",
     ],
+    "zigux/tests/phase12_nvme_pci_manifest.json": [
+        "\"lane_key\": \"P12-L08\"",
+        "\"phase\": \"Phase 12\"",
+        "\"anchor\": \"drivers/nvme/host/pci.c\"",
+        "\"preexisting_nvme_pci_zig_present\": true",
+        "\"preexisting_phase12_direct_test_present\": true",
+        "\"preexisting_phase12_survey_gate_present\": false",
+    ],
     "scripts/zigux/validate-phase12.py": [
         "--self-test",
         "PHASE12_VALIDATION=pass",
@@ -102,6 +110,7 @@ REQUIRED_MARKERS = {
 FIXTURE_OVERRIDES = {
     "drivers/net/virtio_net.zig": "// fixture\n",
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
+    "drivers/nvme/host/pci.zig": "// fixture\n",
     "drivers/nvme/host/pci_verify.zig": "// fixture\n",
     "Documentation/zigux/phase12-virtio-net-survey.md": "# fixture\n",
     "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
@@ -112,6 +121,8 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_packet.zig": "// fixture\n",
+    "zigux/tests/phase12_nvme_pci.zig": "// fixture\n",
+    "zigux/tests/phase12_nvme_pci_manifest.json": "{\n  \"lane_key\": \"P12-L08\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/nvme/host/pci.c\",\n  \"survey_summary\": {\n    \"preexisting_nvme_pci_zig_present\": true,\n    \"preexisting_phase12_direct_test_present\": true,\n    \"preexisting_phase12_survey_gate_present\": false\n  }\n}\n",
 }
 
 
@@ -188,6 +199,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_phase12_virtio_net_driver", "drivers/net/virtio_net.zig"),
+        ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         (
             "missing_phase12_release_readiness_note",
@@ -225,12 +237,11 @@ def run_self_test() -> None:
             "zigux/tests/phase12_virtio_scsi_packet.zig",
         ),
         ("missing_phase12_build", "zigux/tests/phase12_build.zig"),
+        ("missing_phase12_nvme_direct_test", "zigux/tests/phase12_nvme_pci.zig"),
+        ("missing_phase12_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
     ]
 
     unexpected_file_cases = [
-        ("unexpected_nvme_driver", "drivers/nvme/host/pci.zig"),
-        ("unexpected_nvme_contract_test", "zigux/tests/phase12_nvme_pci.zig"),
-        ("unexpected_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
         ("unexpected_nvme_survey_gate", "zigux/tests/phase12_nvme_pci_survey.zig"),
     ]
 
@@ -418,6 +429,20 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: phase12_virtio_scsi_packet.zig",
         ),
         (
+            "missing_nvme_manifest_lane_key_marker",
+            "zigux/tests/phase12_nvme_pci_manifest.json",
+            "\"lane_key\": \"P12-L08\"",
+            "\"lane_key\": \"P12-L05\"",
+            "zigux/tests/phase12_nvme_pci_manifest.json: \"lane_key\": \"P12-L08\"",
+        ),
+        (
+            "missing_nvme_manifest_direct_test_marker",
+            "zigux/tests/phase12_nvme_pci_manifest.json",
+            "\"preexisting_phase12_direct_test_present\": true",
+            "\"preexisting_phase12_direct_test_present\": false",
+            "zigux/tests/phase12_nvme_pci_manifest.json: \"preexisting_phase12_direct_test_present\": true",
+        ),
+        (
             "missing_validator_self_test_flag",
             "scripts/zigux/validate-phase12.py",
             "--self-test",
@@ -457,8 +482,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, require the parked NVMe verifier shard, and fail closed if "
-            "direct NVMe replay files appear without validator maintenance."
+            "fallback note, require the bounded NVMe starter, verifier shard, direct replay, "
+            "and manifest, and fail closed if the still-unshipped NVMe survey gate appears."
         )
     )
     parser.add_argument(
