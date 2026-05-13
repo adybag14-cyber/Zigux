@@ -47,6 +47,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
@@ -375,6 +376,22 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / validator_support_checker_rel)
+
+        linux_zigux_header_governance_validator_rel = Path(
+            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+        )
+        (root / linux_zigux_header_governance_validator_rel).unlink()
+        issues = validate_repo(root)
+        expected_linux_zigux_header_governance_validator_missing = (
+            "missing repo file: "
+            f"{linux_zigux_header_governance_validator_rel.as_posix()}"
+        )
+        if expected_linux_zigux_header_governance_validator_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing Linux zigux header-governance validator was not reported")
+            return 1
+        case_count += 1
+        _write(root / linux_zigux_header_governance_validator_rel)
 
         layout_assert_rel = Path("zigux/helpers/layout_assert.zig")
         (root / layout_assert_rel).unlink()
