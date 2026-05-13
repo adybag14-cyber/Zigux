@@ -42,6 +42,13 @@ SURVEY_GATE_MARKERS = [
     'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
     'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
+    'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
+    "layout_assert.assertSize(WinsizeLayout, 8);",
+    "layout_assert.assertAlign(WinsizeLayout, 2);",
+    'layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);',
+    'layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);',
+    'layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);',
+    'layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);',
     "hvc_cleanup tty-port release handoff",
     "phase11_hvc_console_modem_control_split.zig",
     "phase11_hvc_console_poll_retry_split.zig",
@@ -185,7 +192,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 
 class CheckError(RuntimeError):
@@ -349,6 +356,7 @@ def run_self_test() -> None:
 
         cases = [
             (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
+            (REQUIRED_FILES["survey_gate"], 'layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);'),
             (REQUIRED_FILES["survey_gate"], "hvc_cleanup tty-port release handoff"),
             (REQUIRED_FILES["survey_note"], ABSENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["slice_note"], ABSENT_DIRECT_COMPANION_MARKER),
