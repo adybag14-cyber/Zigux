@@ -134,6 +134,13 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(sample_root_readme);
 
+    const runtime_bitmap_sample = try readRepoFileAlloc(
+        std.testing.allocator,
+        "samples/zigux/runtime_bitmap.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_sample);
+
     const top_bit_contract_source = try readRepoFileAlloc(
         std.testing.allocator,
         "samples/zigux/runtime_bitmap_top_bit_contract.zig",
@@ -233,6 +240,20 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
+
+    try expectContains(runtime_bitmap_sample, "runtime bitmap sample review contract keeps bounded starter focus explicit");
+    try expectContains(runtime_bitmap_sample, "runtime bitmap sample review contract stays aligned with the selftest packet");
+    try expectContains(runtime_bitmap_sample, "runtime bitmap sample keeps bounded view summaries stable");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqualStrings(\"runtime_bitmap\", descriptor.name);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqualStrings(\"lib/test_bitmap.c\", descriptor.anchor);");
+    try expectContains(runtime_bitmap_sample, "try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(OperationFamily.clear_set, selftest.operation_families[0]);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expect(selftest.checked_range_mutations);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expect(selftest.checked_lifecycle_paths);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(@as(u32, 0), summary.first_set);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(@as(u32, 1), summary.first_zero);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(@as(u32, 4), summary.weight);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);");
 
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps the highest valid bit explicit");
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps boundary mutation and bounds checks reviewable");
