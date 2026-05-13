@@ -10,6 +10,7 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 
 ## Boundaries
 - keep the runtime bitmap packet inside `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_manifest.json`, and the shared `zigux/tests/phase9_build.zig` bundle
+- keep the focused `zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig` plus `make -C zigux phase9-runtime-bitmap-top-bit-test` route explicit as the bitmap-local highest-valid-bit companion replay instead of flattening that proof into the broader family bundle alone
 - keep the blocked shared runtime-loader substrate explicit
 - do not claim loadable runtime bitmap module parity
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
@@ -25,11 +26,13 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 
 ## Gates
 1. `zig test zigux/tests/runtime_bitmap_survey.zig`
-2. `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
-3. `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
-4. `make -C zigux phase9-runtime-loader-shared-tests`
-5. `make -C zigux phase9`
+2. `zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`
+3. `make -C zigux phase9-runtime-bitmap-top-bit-test`
+4. `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
+5. `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+6. `make -C zigux phase9-runtime-loader-shared-tests`
+7. `make -C zigux phase9`
 
 ## Next Bounded Step
 
-Keep the bounded runtime bitmap packet aligned with the visible sample, diff gate, loader scaffold, top-bit companion, manifest-backed ownership packet, and shared build surfaces while the broader runtime substrate remains blocked.
+Keep the bounded runtime bitmap packet aligned with the visible sample, dedicated top-bit companion replay route, diff gate, loader scaffold, survey gate, manifest-backed ownership packet, and shared build surfaces while the broader runtime substrate remains blocked.
