@@ -14,20 +14,17 @@ It stays inside the archival Phase 11 HVC lane and does not widen into tty regis
 The current bounded HVC archival packet is reviewed through:
 
 * `drivers/tty/hvc/hvc_console.zig`
-* `drivers/tty/hvc/hvc_console_verify.zig`
-* `zigux/tests/phase11_hvc_console.zig`
-* `zigux/tests/phase11_hvc_cleanup.zig`
+* `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `zigux/tests/phase11_hvc_console_manifest.json`
 * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
-* `drivers/tty/hvc/hvc_console_sysrq.zig`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-slice.md`
 * `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so the archival packet stays grounded in the shipped starter, direct replay, verify-only, cleanup-teardown, survey, helper, split, and governance surfaces rather than downgrading those direct companions into repo-reality gaps.
+Current `master` still ships no separate direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so the archival packet keeps that repo-reality gap explicit instead of presenting verify, replay, or cleanup companion files as landed surfaces.
 
 ## Teardown And Failure-Mode Cues
 
@@ -35,14 +32,13 @@ The parked starter keeps these bounded summaries explicit:
 
 * `hvc_cleanup()` tty-port release handoff summary
 * port-reference drop timing
+* cleanup-time tty-port ownership
 * tiny notifier-add open handoff summary
 * khvcd polling-contract summary
 * `hvc_hangup()` disconnect summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
-* direct verify-only coverage beside `drivers/tty/hvc/hvc_console_verify.zig`
-* direct replay-only coverage beside `zigux/tests/phase11_hvc_console.zig`
-* cleanup-teardown replay coverage beside `zigux/tests/phase11_hvc_cleanup.zig`
+* the direct-companion repo-reality gap where current `master` still ships no separate verify, replay, or cleanup companion files
 
 Those cues stay limited to the host-free archival packet.
 They do not claim runtime callback delivery or live hypervisor transport execution.
