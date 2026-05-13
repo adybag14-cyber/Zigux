@@ -29,6 +29,7 @@ REQUIRED_FILES = (
     BUILD_REL,
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -125,6 +126,7 @@ MANIFEST_HANDOFF_NEXT_STEP_MARKERS = (
     "zigux/tests/README.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -335,6 +337,7 @@ def _baseline_manifest() -> str:
                     "Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and "
                     "zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, "
                     "Documentation/zigux/phase15-architecture-council-review-process.md, "
+                    "Documentation/zigux/phase15-parity-scorecard-survey.md, "
                     "Documentation/zigux/phase15-readiness-gate-survey.md, "
                     "Documentation/zigux/phase15-handoff-next-steps-survey.md, "
                     "Documentation/zigux/phase15-governance-lane-sequencing.md, "
@@ -383,6 +386,7 @@ def _seed_fixture_tree(root: Path) -> None:
     for rel in (
         "Documentation/zigux/freeze-map.md",
         "Documentation/zigux/phase15-freeze-map-governance.md",
+        "Documentation/zigux/phase15-parity-scorecard-survey.md",
         "Documentation/zigux/phase15-parity-scorecard.md",
         "Documentation/zigux/phase15-indefinite-c-policy.md",
         "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -656,6 +660,21 @@ def run_self_test() -> int:
 
         manifest_data = json.loads(baseline_manifest)
         manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
+            "Documentation/zigux/phase15-parity-scorecard-survey.md, ",
+            "",
+            1,
+        )
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-parity-scorecard-survey.md"],
+            "missing_manifest_next_step_parity_scorecard_survey_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff"]["next_step"] = manifest_data["handoff"]["next_step"].replace(
             "scripts/zigux/validate-phase15.py, ",
             "",
             1,
@@ -711,6 +730,15 @@ def run_self_test() -> int:
             "missing_build_marker_guard_failed",
         )
         _write(root / BUILD_REL, baseline_build)
+        case_count += 1
+
+        (root / "Documentation/zigux/phase15-parity-scorecard-survey.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase15-parity-scorecard-survey.md"],
+            "missing_parity_scorecard_survey_file_guard_failed",
+        )
+        _seed_fixture_tree(root)
         case_count += 1
 
         (root / "zigux/tests/phase15_handoff_next_steps.zig").unlink()
@@ -806,7 +834,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_HANDOFF_REPLAY_COMMANDS) + len(MANIFEST_HANDOFF_NEXT_STEP_MARKERS) + 3}"
+        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(WORKFLOW_MARKERS) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_HANDOFF_REPLAY_COMMANDS) + len(MANIFEST_HANDOFF_NEXT_STEP_MARKERS) + 3}"
     )
     return 0
 
