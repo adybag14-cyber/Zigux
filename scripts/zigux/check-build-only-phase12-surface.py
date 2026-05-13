@@ -807,6 +807,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        lane_note_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
+        lane_note_path.write_text(
+            lane_note_path.read_text(encoding="utf-8").replace(
+                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
         raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
         raw_coverage_path.write_text(
             raw_coverage_path.read_text(encoding="utf-8").replace(
@@ -976,7 +989,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
