@@ -206,10 +206,15 @@ test "phase 9 runtime loader gap survey keeps kretprobe prepared-snapshot owners
     try expectContains(kretprobe_loader, "requestSharedRuntimeLoad");
     try expectContains(kretprobe_loader, "releaseSharedWithoutSubstrate");
     try expectContains(kretprobe_loader, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(kretprobe_loader, "runtime kretprobe loader surfaces prepared shared selftest-hook drift before any live registration claim");
     try expectContains(kretprobe_loader, "runtime kretprobe loader rejects prepared shared runtime-substrate drift before any live registration claim");
     try expectContains(kretprobe_loader, "runtime kretprobe loader rejects prepared shared allocator and init-flow drift before any live registration claim");
     try expectContains(kretprobe_loader, "runtime kretprobe loader surfaces shared request drift before any live registration claim");
     try expectContains(kretprobe_loader, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(
+        kretprobe_loader,
+        "try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));",
+    );
     try expectContains(
         kretprobe_loader,
         "try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));",
