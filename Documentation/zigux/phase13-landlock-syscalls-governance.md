@@ -17,6 +17,8 @@ Current `master` now also materializes the direct helper-local companions for th
 
 The broader shared `zigux/tests/phase13_build.zig` surface still does not materialize on current `master`. Keep that absent build route framed as a repo-reality gap until it actually lands instead of treating the direct syscall replay packet as proof that the older shared build bundle is already back.
 
+Current `master` also does not materialize any dedicated `zigux/tests/fixtures/phase13_landlock_syscalls*` fixture or other serialized syscall-policy vector for this packet. Keep fixture governance fail-closed: the current helper-local proof stays the helper, the slice note, the survey note, this governance note, the manifest, the direct replay, and the dedicated reviewability gate. Do not imply hidden fixture-backed validation unless a landed fixture becomes visible on `master`.
+
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md` for the direct helper-local roadmap survey tied to the current `security/landlock/syscalls.zig` starter
@@ -47,6 +49,7 @@ Use this note to keep these boundaries explicit:
 - the shipped helper packet also keeps restrict-self logging policy explicit through the current named logging flags, the boolean translation they imply for same-exec, new-exec, and subdomain logging, and the special detached `ruleset_fd = -1` plus `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` path that updates logging posture without claiming a new domain install
 - the shipped add-rule packet keeps the `path_beneath` versus `net_port` split explicit through `AddRuleAction`, ruleset-write access validation, access-mask handling checks, and the distinct parent-fd versus port handoff cues
 - the shipped release-side helper packet is still bounded helper evidence: it keeps `fop_ruleset_release()`, `FMODE_CAN_READ`, `FMODE_CAN_WRITE`, and the shared invalid read or write contract explicit without wiring real file operations, live FD installation, or ownership transfer
+- the shipped helper-local packet is currently fixture-free: do not invent `zigux/tests/fixtures/phase13_landlock_syscalls*` inputs, hidden serialized policy vectors, or fixture-backed replay claims while the packet remains anchored only by the helper, notes, manifest, and dedicated tests
 - the paired survey note and dedicated reviewability gate own the current roadmap-gap readback for this same helper packet and should stay aligned with this note whenever the shipped helper surface changes
 
 Keep this packet parked unless a future lane can add another equally bounded planner or validation-tightening step.
@@ -60,4 +63,5 @@ If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - helper-owned wording still keeps the `no_new_privs` versus `CAP_SYS_ADMIN` credential-gate split, the named restrict-self logging flags, and the detached subdomains-only logging-update case explicit
 - helper-owned wording still keeps the `path_beneath` versus `net_port` add-rule split explicit
 - helper-owned wording still frames the packet as planning-only helper work rather than live syscall enforcement
+- helper-owned wording keeps fixture posture fail-closed: no note, manifest, or review prompt should imply a shipped `phase13_landlock_syscalls` fixture while current `master` still keeps this packet fixture-free
 - the direct helper-local companions stay aligned with the helper itself while the older shared `phase13_build.zig` route remains framed as a repo-reality gap instead of being implied to exist
