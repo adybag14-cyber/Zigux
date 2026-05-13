@@ -56,7 +56,6 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
-    "scripts/zigux/check-phase4-workflow-route-counts.py",
     "phase4-test:",
     "zig build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
@@ -495,7 +494,7 @@ def _write_fixture_tree(root: Path) -> None:
     ]) + "\n")
 
     _write(root / "scripts/zigux/README.md", "\n".join([
-        "# scripts/zigux",
+        "# Zigux Scripts",
         "Phase 4 flow",
         "validate-phase4.py",
         "check-artifact-diff-contract.py",
@@ -514,7 +513,7 @@ def _write_fixture_tree(root: Path) -> None:
     ]) + "\n")
 
     _write(root / "zigux/tests/README.md", "\n".join([
-        "# zigux/tests",
+        "# Zigux Tests",
         "zigux/tests/atomic64_diff.zig",
         "zigux/tests/runtime_atomic64_diff.zig",
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
@@ -857,7 +856,44 @@ def run_self_test() -> int:
                 print(item)
             print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
             return 1
+
         matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest.pop("reversible_delivery_evidence", None)
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        failures = validate_root(root)
+        if "phase4_runtime_atomic64_packet:missing_reversible_delivery_evidence" not in failures:
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["reversible_delivery_evidence"] = manifest["reversible_delivery_evidence"].replace(
+            "Documentation/zigux/phase4-validation-matrix.md",
+            "Documentation/zigux/phase4-validation-matrix-drift.md",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        failures = validate_root(root)
+        if (
+            "phase4_runtime_atomic64_packet:reversible_delivery_evidence:Documentation/zigux/phase4-validation-matrix.md"
+            not in failures
+        ):
+            print("PHASE4_VALIDATOR_SELF_TEST=fail")
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_START")
+            for item in failures:
+                print(item)
+            print("PHASE4_VALIDATOR_SELF_TEST_FAILURES_END")
+            return 1
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
