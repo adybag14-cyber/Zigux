@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 - `PHASE14_STATUS=blocked_maintenance`
 - `PHASE14_LANE_KEY=P14-L04`
 - `PHASE14_SURVEYED_COMMIT=9b98d3b9c812840bf279508030be0b8de093736c`
-- `PHASE14_SLICE=workqueue-scheduler-visible-worker-state-refinement`
+- `PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map, its expanded review-only concurrency audit, its explicit stay-in-C governance packet for delayed-work requeue, hotplug topology rebinding, runtime `max_active` retuning, worker-pool concurrency, rescuer or scheduler ownership, and the coupled Phase 14 survey or manifest surfaces
 
 ## Why this slice exists
