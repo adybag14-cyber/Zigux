@@ -258,6 +258,27 @@ test "phase 7 blank argvSplit input reuses the empty storage sentinel without al
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n\x00ignored tail", &argc);
+    var blank = try argv_split.argvSplitWithArgc(fba.allocator(), "", null);
+    defer split.deinit(fba.allocator());
+    defer blank.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argv_split.countArgc(" \t\n\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(split.storage.ptr, blank.storage.ptr);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(split.argv_null_terminated.ptr, blank.argv_null_terminated.ptr);
+    try std.testing.expectEqual(split.cArgv(), blank.cArgv());
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
 test "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable" {
     var buffer = [_]u8{};
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
