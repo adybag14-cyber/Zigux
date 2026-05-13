@@ -412,6 +412,39 @@ test "base64 standard decoding round-trips padded input" {
     try std.testing.expectEqualStrings("hi", out[0..written]);
 }
 
+test "base64 standard and variant round-trips cover unpadded and binary payloads" {
+    const one_byte = [_]u8{0xfb};
+    const three_bytes = [_]u8{ 0xfb, 0xff, 0xff };
+    const binary = [_]u8{ 0x00, 0xff, 0x10, 0x80 };
+
+    var encoded: [16]u8 = undefined;
+    var decoded: [16]u8 = undefined;
+
+    const std_padded = try encode(encoded[0..], one_byte[0..], true, .std);
+    try std.testing.expectEqualStrings("+w==", encoded[0..std_padded]);
+
+    const std_unpadded = try encode(encoded[0..], one_byte[0..], false, .std);
+    try std.testing.expectEqualStrings("+w", encoded[0..std_unpadded]);
+    try std.testing.expectEqual(@as(usize, 1), try bytes(encoded[0..std_unpadded], false, .std));
+    const std_decoded = try decode(decoded[0..], encoded[0..std_unpadded], false, .std);
+    try std.testing.expectEqualSlices(u8, one_byte[0..], decoded[0..std_decoded]);
+
+    const urlsafe_padded = try encode(encoded[0..], one_byte[0..], true, .urlsafe);
+    try std.testing.expectEqualStrings("-w==", encoded[0..urlsafe_padded]);
+    const urlsafe_decoded = try decode(decoded[0..], encoded[0..urlsafe_padded], true, .urlsafe);
+    try std.testing.expectEqualSlices(u8, one_byte[0..], decoded[0..urlsafe_decoded]);
+
+    const imap_unpadded = try encode(encoded[0..], three_bytes[0..], false, .imap);
+    try std.testing.expectEqualStrings("+,,,", encoded[0..imap_unpadded]);
+    const imap_decoded = try decode(decoded[0..], encoded[0..imap_unpadded], false, .imap);
+    try std.testing.expectEqualSlices(u8, three_bytes[0..], decoded[0..imap_decoded]);
+
+    const binary_unpadded = try encode(encoded[0..], binary[0..], false, .std);
+    try std.testing.expectEqual(@as(usize, binary.len), try bytes(encoded[0..binary_unpadded], false, .std));
+    const binary_decoded = try decode(decoded[0..], encoded[0..binary_unpadded], false, .std);
+    try std.testing.expectEqualSlices(u8, binary[0..], decoded[0..binary_decoded]);
+}
+
 test "base64 urlsafe encoding swaps the variant alphabet and omits padding when requested" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], &[_]u8{ 0xfb, 0xff, 0xff }, false, .urlsafe);
