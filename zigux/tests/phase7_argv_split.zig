@@ -179,6 +179,34 @@ test "phase 7 argvFree on one non-blank result keeps sibling caller-owned views 
     try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[second.argv.len]);
 }
 
+test "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var first = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n", null);
+    var second = try argv_split.argvSplitWithArgc(fba.allocator(), "", null);
+    defer second.deinit(fba.allocator());
+
+    try std.testing.expectEqual(first.storage.ptr, second.storage.ptr);
+    try std.testing.expectEqual(first.argv_null_terminated.ptr, second.argv_null_terminated.ptr);
+    try std.testing.expectEqual(first.cArgv(), second.cArgv());
+
+    first.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), first.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), first.storage[first.storage.len]);
+    try std.testing.expectEqual(@as(usize, 1), first.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArgv()[0]);
+
+    try std.testing.expectEqual(@as(usize, 0), second.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), second.storage[second.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), second.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), second.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[0]);
+    try std.testing.expectEqual(first.storage.ptr, second.storage.ptr);
+    try std.testing.expectEqual(first.argv_null_terminated.ptr, second.argv_null_terminated.ptr);
+    try std.testing.expectEqual(first.cArgv(), second.cArgv());
+}
+
 test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     var buffer: [4]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
