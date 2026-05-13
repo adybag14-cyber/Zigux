@@ -218,11 +218,15 @@ pub fn setArgvExecPath(
     config: Config,
     exec_path: []const u8,
 ) !void {
+    const owned_exec_path = try allocator.dupe(u8, exec_path);
+    errdefer allocator.free(owned_exec_path);
+
+    try env.set(config.exec_path_env, exec_path);
+
     if (state.argv_exec_path) |previous| {
         allocator.free(previous);
     }
-    state.argv_exec_path = try allocator.dupe(u8, exec_path);
-    try env.set(config.exec_path_env, exec_path);
+    state.argv_exec_path = owned_exec_path;
 }
 
 pub fn setArgv0Path(
@@ -888,6 +892,75 @@ test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
     );
     try std.testing.expectEqualStrings("/tmp/perf-core", state.argv_exec_path.?);
     try std.testing.expectEqualStrings("/tmp/perf-core", env.get("PERF_EXEC_PATH").?);
+}
+
+test "setArgvExecPath preserves the previous value when duplicating the replacement path fails" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "/old/path");
+
+    var failing_allocator_state = std.testing.FailingAllocator.init(std.testing.allocator, .{
+        .fail_index = 0,
+    });
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgvExecPath(
+            failing_allocator_state.allocator(),
+            &env,
+            &state,
+            config,
+            "/new/path",
+        ),
+    );
+    try std.testing.expectEqualStrings("/old/path", state.argv_exec_path.?);
+    try std.testing.expectEqualStrings("/old/path", env.get("PERF_EXEC_PATH").?);
+}
+
+test "setArgvExecPath preserves the previous value when environment propagation fails" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var failing_env_allocator_state = std.testing.FailingAllocator.init(std.testing.allocator, .{});
+    var env = EnvMap.init(failing_env_allocator_state.allocator());
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "/old/path");
+
+    failing_env_allocator_state.fail_index = failing_env_allocator_state.alloc_index;
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgvExecPath(
+            std.testing.allocator,
+            &env,
+            &state,
+            config,
+            "/new/path",
+        ),
+    );
+    try std.testing.expectEqualStrings("/old/path", state.argv_exec_path.?);
+    try std.testing.expectEqualStrings("/old/path", env.get("PERF_EXEC_PATH").?);
 }
 
 test "setupPath updates PATH using stored exec path, argv0 path, and fallback defaults" {
