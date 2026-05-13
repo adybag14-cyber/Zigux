@@ -12,6 +12,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - `include/zigux/abi.h`
 - `include/zigux/dev_t.h`
 - `zigux/bindings/abi.zig`
+- `zigux/bindings/dev_t.zig`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
@@ -42,10 +43,10 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
   `zigux/tests/fixtures/phase3_abi/expected.json`,
   `zigux/tests/fixtures/phase3_abi_manifest.json`, `include/zigux/dev_t.h`,
-  `zigux/uapi/version.zig`, and the shared ABI reminder packet together; only
-  add a new `zigux/uapi/*` companion when that companion lands with its own
-  bounded export or UAPI packet instead of letting the shared reminder surfaces
-  get ahead of the tree
+  `zigux/bindings/dev_t.zig`, `zigux/uapi/version.zig`, and the shared ABI
+  reminder packet together; only add a new `zigux/uapi/*` companion when that
+  companion lands with its own bounded export or UAPI packet instead of letting
+  the shared reminder surfaces get ahead of the tree
 - treat `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
   `scripts/zigux/validate-phase3-abi-header-family-survey.py`, and
   `scripts/zigux/validate-phase3-abi-bindings-syntax.py` as the first review
