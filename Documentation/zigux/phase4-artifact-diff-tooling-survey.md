@@ -28,14 +28,16 @@ Current `master` already closes the deterministic-check slice of that requiremen
 - `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_BASE_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASES=helper_self_test,helper_self_test_repeat,cli_help_output,cli_help_output_repeat,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_pass_repeat,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_mismatch_repeat,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift,sha256_drift_repeat`
 - `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=21`
 
 ## Current Conclusion
 
-The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts while the dedicated checker keeps the review note plus the docs-root and scripts-root reminder surfaces aligned before the broader Phase 4 validator-first route runs.
+The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts plus the exact base-case and full-case contract catalogs, so the paired `cli_help_output` replays stay visible as part of the published contract packet while the dedicated checker keeps the review note plus the docs-root and scripts-root reminder surfaces aligned before the broader Phase 4 validator-first route runs.
 
 ## Owner And Rollback Reminder
 - `Documentation/zigux/artifact-diff.md` remains the dedicated owner and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
