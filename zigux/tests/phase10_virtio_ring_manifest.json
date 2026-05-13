@@ -148,10 +148,10 @@
     },
     {
       "id": "phase10-virtio-ring-slice-note",
-      "status": "starter_landed",
+      "status": "repo_reality_gap",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "A dedicated slice note keeps the new lab helper honest about what is implemented and what still remains blocked in drivers/virtio/virtio_ring.c work."
+      "why_now": "Shared Phase 10 reminder surfaces still frame `Documentation/zigux/phase10-virtio-ring-slice.md` as a missing packet-local companion on current `master`, so the manifest must keep that slice-note path explicit as a repo-reality gap rather than claiming it already landed."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
