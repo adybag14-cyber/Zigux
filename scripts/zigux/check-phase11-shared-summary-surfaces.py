@@ -28,6 +28,7 @@ CONTRACT_MARKERS = [
     "* no shared `make -C zigux phase11-validate` target on `master`",
     "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
     "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; platform-registration scaffolding remains the next same-lane follow-through, while the direct teardown and restart proofs stay compile-local and host-free rather than broader hardware-backed closure",
+    "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
 ]
 
 REQUIRED_MARKERS = {
@@ -91,7 +92,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-REQUIRED_CONTRACT_MARKER_INDICES = [3, 4, 5, 8, 9]
+REQUIRED_CONTRACT_MARKER_INDICES = [3, 4, 5, 8, 9, 10]
 
 
 class CheckError(RuntimeError):
