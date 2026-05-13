@@ -313,13 +313,6 @@ def _validate_phase15_governance_manifests(root: Path, missing: list[str]) -> No
     metrics = parity_scorecard.get("metrics")
     if not isinstance(metrics, dict):
         missing.append("phase15_parity_scorecard:metrics")
-    else:
-        if metrics.get("active_freeze_in_c_anchor_count") != len(EXPECTED_FREEZE_IN_C_TARGETS):
-            missing.append("phase15_parity_scorecard:metrics.active_freeze_in_c_anchor_count")
-        if metrics.get("blocked_status_change_anchor_count") != EXPECTED_BLOCKED_STATUS_CHANGE_COUNT:
-            missing.append("phase15_parity_scorecard:metrics.blocked_status_change_anchor_count")
-        if metrics.get("architecture_council_status_change_approval_count") != 0:
-            missing.append("phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count")
 
     anchors = parity_scorecard.get("anchors")
     if not isinstance(anchors, list):
@@ -329,6 +322,39 @@ def _validate_phase15_governance_manifests(root: Path, missing: list[str]) -> No
     anchor_paths = [item.get("path") if isinstance(item, dict) else None for item in anchors]
     if anchor_paths != EXPECTED_FREEZE_IN_C_TARGETS:
         missing.append("phase15_parity_scorecard:anchors")
+
+    phase14_coupled_anchor_count = 0
+    for anchor in anchors:
+        if not isinstance(anchor, dict):
+            continue
+        evidence_archive = anchor.get("evidence_archive")
+        if not isinstance(evidence_archive, dict):
+            continue
+        linked_evidence = evidence_archive.get("linked_evidence")
+        if not isinstance(linked_evidence, list):
+            continue
+        if any(
+            isinstance(path, str) and path.startswith("Documentation/zigux/phase14-")
+            for path in linked_evidence
+        ):
+            phase14_coupled_anchor_count += 1
+
+    if isinstance(metrics, dict):
+        phase15_governance_only_anchor_count = len(EXPECTED_FREEZE_IN_C_TARGETS) - phase14_coupled_anchor_count
+        if metrics.get("active_freeze_in_c_anchor_count") != len(EXPECTED_FREEZE_IN_C_TARGETS):
+            missing.append("phase15_parity_scorecard:metrics.active_freeze_in_c_anchor_count")
+        if metrics.get("blocked_status_change_anchor_count") != EXPECTED_BLOCKED_STATUS_CHANGE_COUNT:
+            missing.append("phase15_parity_scorecard:metrics.blocked_status_change_anchor_count")
+        if metrics.get("phase15_governance_only_blocker_anchor_count") != phase15_governance_only_anchor_count:
+            missing.append("phase15_parity_scorecard:metrics.phase15_governance_only_blocker_anchor_count")
+        if metrics.get("phase14_coupled_blocker_anchor_count") != phase14_coupled_anchor_count:
+            missing.append("phase15_parity_scorecard:metrics.phase14_coupled_blocker_anchor_count")
+        if metrics.get("anchors_still_blocked_on_prior_phase_bridge_evidence") != phase14_coupled_anchor_count:
+            missing.append("phase15_parity_scorecard:metrics.anchors_still_blocked_on_prior_phase_bridge_evidence")
+        if metrics.get("study_only_anchors_tracked_outside_scorecard") != len(EXPECTED_STUDY_ONLY_TARGETS):
+            missing.append("phase15_parity_scorecard:metrics.study_only_anchors_tracked_outside_scorecard")
+        if metrics.get("architecture_council_status_change_approval_count") != 0:
+            missing.append("phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count")
 
     if blocker_anchors == EXPECTED_FREEZE_IN_C_TARGETS and len(anchors) == len(blocker_ownership):
         for score_anchor, freeze_anchor in zip(anchors, blocker_ownership):
@@ -413,6 +439,10 @@ def _phase15_parity_scorecard_fixture() -> dict:
         "metrics": {
             "active_freeze_in_c_anchor_count": len(EXPECTED_FREEZE_IN_C_TARGETS),
             "blocked_status_change_anchor_count": EXPECTED_BLOCKED_STATUS_CHANGE_COUNT,
+            "phase15_governance_only_blocker_anchor_count": 2,
+            "phase14_coupled_blocker_anchor_count": 2,
+            "anchors_still_blocked_on_prior_phase_bridge_evidence": 2,
+            "study_only_anchors_tracked_outside_scorecard": len(EXPECTED_STUDY_ONLY_TARGETS),
             "architecture_council_status_change_approval_count": 0,
         },
         "anchors": [
@@ -748,6 +778,54 @@ def run_self_test() -> int:
             [],
             ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
             "parity_scorecard_approval_count",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["phase15_governance_only_blocker_anchor_count"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.phase15_governance_only_blocker_anchor_count"],
+            "parity_scorecard_governance_only_count",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["phase14_coupled_blocker_anchor_count"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.phase14_coupled_blocker_anchor_count"],
+            "parity_scorecard_phase14_coupled_count",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["anchors_still_blocked_on_prior_phase_bridge_evidence"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.anchors_still_blocked_on_prior_phase_bridge_evidence"],
+            "parity_scorecard_prior_phase_bridge_count",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["study_only_anchors_tracked_outside_scorecard"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.study_only_anchors_tracked_outside_scorecard"],
+            "parity_scorecard_study_only_count",
         )
         _seed_fixture_tree(root)
         case_count += 1
