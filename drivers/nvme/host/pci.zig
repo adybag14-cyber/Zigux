@@ -23,6 +23,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_lab_queue_planner: bool,
+    provides_dropped_io_retirement_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -80,6 +81,19 @@ pub const QueueRecoveryPlanSummary = struct {
     restores_io_after_admin: bool,
 };
 
+pub const DroppedIoRetirementSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    admin_queue_replayed_after_reset: bool,
+    admin_queue_must_be_replayed: bool,
+    dropped_io_queue_count: usize,
+    rebuilt_io_queue_count: usize,
+    remaining_io_queue_count: usize,
+    queue_numbering_restarted: bool,
+    can_retire_dropped_io_backlog: bool,
+};
+
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
@@ -90,14 +104,17 @@ pub const NvmePciQueueLab = struct {
     planned_io_queues: usize = 0,
     reset_generation: u32 = 0,
     last_admin_queue_depth: u16 = min_queue_depth,
+    last_admin_queue_generation: u32 = 0,
     last_admin_host_dma_pages: u16 = 0,
     planned_io_host_dma_pages: u32 = 0,
+    last_reset_io_queue_count: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
             .name = "nvme_pci_queue_lab",
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
+            .provides_dropped_io_retirement_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -125,6 +142,7 @@ pub const NvmePciQueueLab = struct {
     ) !QueuePairPlanSummary {
         const summary = try self.planQueue(.admin, admin_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
         self.last_admin_queue_depth = summary.queue_depth;
+        self.last_admin_queue_generation = summary.reset_generation;
         self.last_admin_host_dma_pages = summary.required_host_dma_pages;
         return summary;
     }
@@ -184,6 +202,7 @@ pub const NvmePciQueueLab = struct {
     }
 
     pub fn beginReset(self: *Self) RecoverySummary {
+        self.last_reset_io_queue_count = self.planned_io_queues;
         self.recovery_state = .reset_frozen;
         self.reset_generation += 1;
         return self.recoverySummary();
@@ -225,6 +244,42 @@ pub const NvmePciQueueLab = struct {
             ),
             .restores_admin_first = true,
             .restores_io_after_admin = self.planned_io_queues != 0,
+        };
+    }
+
+    pub fn summarizeDroppedIoRetirement(self: *const Self) DroppedIoRetirementSummary {
+        const admin_queue_replayed_after_reset = self.last_admin_queue_generation == self.reset_generation;
+        const dropped_io_queue_count = if (self.recovery_state == .reset_frozen)
+            self.planned_io_queues
+        else
+            self.last_reset_io_queue_count;
+        const rebuilt_io_queue_count = if (self.recovery_state == .running)
+            self.planned_io_queues
+        else
+            0;
+        const remaining_io_queue_count = if (rebuilt_io_queue_count >= dropped_io_queue_count)
+            0
+        else
+            dropped_io_queue_count - rebuilt_io_queue_count;
+        const admin_queue_must_be_replayed = self.reset_generation != 0 and !admin_queue_replayed_after_reset;
+        const queue_numbering_restarted = self.reset_generation != 0 and
+            self.recovery_state == .running and
+            self.next_io_queue_id == @as(u16, @intCast(rebuilt_io_queue_count + 1));
+
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .admin_queue_replayed_after_reset = admin_queue_replayed_after_reset,
+            .admin_queue_must_be_replayed = admin_queue_must_be_replayed,
+            .dropped_io_queue_count = dropped_io_queue_count,
+            .rebuilt_io_queue_count = rebuilt_io_queue_count,
+            .remaining_io_queue_count = remaining_io_queue_count,
+            .queue_numbering_restarted = queue_numbering_restarted,
+            .can_retire_dropped_io_backlog = self.recovery_state == .running and
+                dropped_io_queue_count != 0 and
+                !admin_queue_must_be_replayed and
+                remaining_io_queue_count == 0,
         };
     }
 
@@ -363,4 +418,71 @@ test "nvme pci recovery restore summary requires a frozen reset and clears after
     try std.testing.expectEqual(@as(usize, 0), second.io_queue_count);
     try std.testing.expectEqual(@as(u32, 1), second.total_host_dma_pages);
     try std.testing.expect(!second.restores_io_after_admin);
+}
+
+test "nvme pci dropped backlog retirement waits for admin replay and rebuilt queues" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    const frozen = lab.summarizeDroppedIoRetirement();
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen.anchor);
+    try std.testing.expectEqual(RecoveryState.reset_frozen, frozen.state);
+    try std.testing.expectEqual(@as(u32, 1), frozen.reset_generation);
+    try std.testing.expect(!frozen.admin_queue_replayed_after_reset);
+    try std.testing.expect(frozen.admin_queue_must_be_replayed);
+    try std.testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), frozen.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), frozen.remaining_io_queue_count);
+    try std.testing.expect(!frozen.queue_numbering_restarted);
+    try std.testing.expect(!frozen.can_retire_dropped_io_backlog);
+
+    _ = lab.completeReset();
+    const pending = lab.summarizeDroppedIoRetirement();
+    try std.testing.expectEqual(RecoveryState.running, pending.state);
+    try std.testing.expect(!pending.admin_queue_replayed_after_reset);
+    try std.testing.expect(pending.admin_queue_must_be_replayed);
+    try std.testing.expectEqual(@as(usize, 2), pending.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), pending.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), pending.remaining_io_queue_count);
+    try std.testing.expect(pending.queue_numbering_restarted);
+    try std.testing.expect(!pending.can_retire_dropped_io_backlog);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    const partial = lab.summarizeDroppedIoRetirement();
+    try std.testing.expect(partial.admin_queue_replayed_after_reset);
+    try std.testing.expect(!partial.admin_queue_must_be_replayed);
+    try std.testing.expectEqual(@as(usize, 1), partial.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), partial.remaining_io_queue_count);
+    try std.testing.expect(partial.queue_numbering_restarted);
+    try std.testing.expect(!partial.can_retire_dropped_io_backlog);
+
+    _ = try lab.planIoQueue(32, 64, true);
+    const ready = lab.summarizeDroppedIoRetirement();
+    try std.testing.expect(ready.admin_queue_replayed_after_reset);
+    try std.testing.expectEqual(@as(usize, 2), ready.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), ready.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), ready.remaining_io_queue_count);
+    try std.testing.expect(ready.queue_numbering_restarted);
+    try std.testing.expect(ready.can_retire_dropped_io_backlog);
+}
+
+test "nvme pci dropped backlog retirement stays idle before any reset backlog exists" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(24, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try std.testing.expectEqual(RecoveryState.running, summary.state);
+    try std.testing.expectEqual(@as(u32, 0), summary.reset_generation);
+    try std.testing.expect(summary.admin_queue_replayed_after_reset);
+    try std.testing.expect(!summary.admin_queue_must_be_replayed);
+    try std.testing.expectEqual(@as(usize, 0), summary.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try std.testing.expect(!summary.queue_numbering_restarted);
+    try std.testing.expect(!summary.can_retire_dropped_io_backlog);
 }
