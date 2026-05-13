@@ -23,15 +23,15 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_TEST_BLOB_SHA=c21736d6ca2e9cb8e90da003a5c1185d8b4394df`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=0859efb2c4ba1a8178d10171321223b21273ae02`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=8cc86aa4fd1f212b93a1046920c2d92fc878c240`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=0f459e18392bcd3b07e87f118f27699162f747c5`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=e8dbeb18c54dd2be8a73160e9283cc801622f480`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=1434a5f1631d470cdeb76a5dad0e3bb85a3b38cb`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`
 - `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-aligned-with-the-live-helper-roles-and-shared-abi-markers-until-a-real-policy-or-unsafe-helper-expansion-lands`
+- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again`
 
 ## Roadmap Contract
 
@@ -85,6 +85,6 @@ Current same-family progress already includes helper-local explicit-byte decodin
 
 ## Next Bounded Step
 
-- leave this lane parked unless one of the shared ABI packet files or the directly coupled survey surfaces drifts again
-- keep the next same-lane change to one survey-side wording or marker refresh tied only to this packet
+- leave this lane parked unless `zigux/tests/fixtures/phase3_abi_manifest.json` or `Documentation/zigux/phase3-abi-slice.md` drifts again from this survey
+- keep the next same-lane change to one shared-ABI marker or wording refresh tied only to this packet
 - if a broader policy-and-unsafe helper family or a new direct focused replay ever lands later, resurvey this note against the exact live files before claiming that surface here
