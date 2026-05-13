@@ -73,18 +73,18 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
     try std.testing.expectEqualStrings("994b112223e83033aeb02c6620c9d96624634dd3", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("681ba393060cb73812b7fea85de8cf1eff705dac", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("61aad9dbf4399fadf26e202200f80bab382b88fc", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(gate_evidence_source), manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(phase4_build_source), manifest.phase4_build_blob_sha);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/bitmap_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "exact bitmap_fill prefixes at 35 and 115 bits") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "exact synthetic bitmap_fill prefixes at 35 and 115 bits") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "lib/test_bitmap.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "64 and 128") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Shared Subsystems Pod") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same-lane roadmap-visible gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same-lane roadmap-visible maintenance work") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_live_helper_replay.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null);
@@ -92,12 +92,11 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_diff_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "docs-side artifact still omits it") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "park this lane unless") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "35-bit and 115-bit synthetic fill prefixes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit word boundaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "bitmap survey or manifest pins") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "sample packets or perf-threshold approval") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit zero boundaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "blob pins") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared build route drift again") != null);
 }
 
 test "phase 4 bitmap survey keeps the shared build route explicit" {
@@ -144,6 +143,12 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
     try expectContains(gate_evidence_source, "`13 DiffCase`, `14 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "bitmap_fill(..., 35)");
+    try expectContains(gate_evidence_source, "bitmap_fill(..., 115)");
+    try expectContains(gate_evidence_source, "bitmap_zero(..., 35)");
+    try expectContains(gate_evidence_source, "bitmap_zero(..., 115)");
+    try expectContains(gate_evidence_source, "64 and 128 visible beside them");
+    try expectContains(gate_evidence_source, "lib/test_bitmap.c");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
@@ -184,7 +189,7 @@ test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" 
     try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "fill-semantics mismatch itself") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same-lane roadmap-visible maintenance work") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "35-bit and 115-bit synthetic fill prefixes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit word boundaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit zero boundaries") != null);
 }
