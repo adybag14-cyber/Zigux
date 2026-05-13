@@ -211,6 +211,7 @@ READINESS_CHECKERS = [
     "scripts/zigux/check-phase15-review-process-handoff.py",
 ]
 READINESS_BOOL_FIELDS = [
+    "phase15_validator_script_present",
     "phase15_validate_target_present",
     "phase15_test_target_present",
     "shared_ci_phase15_present",
@@ -507,6 +508,7 @@ def _seed_fixture_tree(root: Path) -> None:
         json.dumps(
             {
                 "repo_evidence": {
+                    "phase15_validator_script_present": True,
                     "phase15_validate_target_present": True,
                     "phase15_test_target_present": True,
                     "shared_ci_phase15_present": True,
@@ -665,6 +667,18 @@ def run_self_test() -> int:
         manifest_text["phase15_validate_checkers"] = [READINESS_CHECKERS[0]]
         _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
         _assert_result(*validate(root), [], ["readiness_manifest:phase15_validate_checkers"], "readiness_checker_pair")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
+        manifest_text["repo_evidence"]["phase15_validator_script_present"] = False
+        _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["readiness_manifest:phase15_validator_script_present"],
+            "readiness_validator_script_present",
+        )
         _seed_fixture_tree(root)
         case_count += 1
 
