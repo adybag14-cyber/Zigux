@@ -60,6 +60,9 @@ REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER = (
 REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER = (
     "while the older Phase 8 command and environment control cues stay with `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig`"
 )
+LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER = (
+    "`Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while the bitmap-local `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig` replay stays with the family packet instead of being flattened into shared loader evidence, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
+)
 PHASE9_GAP_SURVEY_NOTE_STATUS_MARKER = "PHASE9_SLICE=runtime-loader-gap-survey"
 PHASE9_GAP_SURVEY_NOTE_ROUTE_MARKER = "`make -C zigux phase9-runtime-loader-shared-tests`"
 PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER = "`depmod` script or manifest state"
@@ -119,6 +122,7 @@ REQUIRED_MARKERS = {
         GAP_SURVEY_DRIFT_MARKER,
         GAP_SURVEY_NEXT_STEP_MARKER,
         DEP_MOD_BOUNDARY_MARKER,
+        LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER,
         *OWNER_MAP_MARKERS,
         "the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should still fail closed if this note regresses around either the shared owner split or the blocked module-metadata and depmod-publication boundary markers",
     ],
@@ -325,6 +329,18 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{GAP_SURVEY_NEXT_STEP_MARKER}")
+
+        write_fixture_tree(base)
+        lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
+        lane_note = lane_note_path.read_text(encoding="utf-8")
+        lane_note_path.write_text(
+            lane_note.replace(LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER}",
+        )
 
         write_fixture_tree(base)
         gap_survey_note_path = base / PHASE9_GAP_SURVEY_NOTE_PATH
