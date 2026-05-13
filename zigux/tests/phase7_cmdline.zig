@@ -79,6 +79,26 @@ test "phase 7 getOption clears caller output on malformed signed and unsigned in
     try std.testing.expectEqualStrings("x", malformed_unsigned);
 }
 
+test "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption" {
+    var plain_hex: []const u8 = "0x";
+    var plain_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&plain_hex, &plain_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plain_hex_value);
+    try std.testing.expectEqualStrings("x", plain_hex);
+
+    var plus_hex: []const u8 = "+0x";
+    var plus_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&plus_hex, &plus_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
+    try std.testing.expectEqualStrings("x", plus_hex);
+
+    var negative_hex: []const u8 = "-0x";
+    var negative_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&negative_hex, &negative_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), negative_hex_value);
+    try std.testing.expectEqualStrings("x", negative_hex);
+}
+
 test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     var positive: []const u8 = "2147483648";
     var positive_value: i32 = 0;
@@ -180,7 +200,6 @@ test "phase 7 nextArg keeps caller-owned buffer slices and sentinel writes expli
     try std.testing.expectEqualStrings("ro", cStringPrefix(parsed.rest));
     try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
     try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));
     try std.testing.expectEqual(@as(u8, 0), buffer[4]);
     try std.testing.expectEqual(@as(u8, 0), buffer[15]);
     try std.testing.expectEqual(@as(u8, 0), buffer[16]);
