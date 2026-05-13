@@ -66,6 +66,7 @@ SURVEY_EXACT = (
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`",
     f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`",
     f"`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`",
+    f"`PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`",
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_PATH={ABI_DUMP.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`",
@@ -402,6 +403,11 @@ def run_self_test() -> int:
         write(root / ABI_MANIFEST, manifest_payload(tuple(entry for entry in MANIFEST_REQUIRED_ENTRIES if entry != EXPORT_SHIM)))
         issues = validate(root)
         assert f"missing_manifest_entry:{EXPORT_SHIM.as_posix()}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`"]
         build_valid_workspace(root)
         case_count += 1
 
