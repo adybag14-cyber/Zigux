@@ -79,6 +79,12 @@ REQUIRED_SHARED_REMINDER_MARKERS = (
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
     "make -C zigux phase3-selftest",
@@ -119,6 +125,7 @@ BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS = {
 BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS = {
     marker: 1 for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
 }
+BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS["zigux/uapi/version.zig"] = 2
 
 
 def load_text(path: Path) -> str:
@@ -478,6 +485,66 @@ def run_self_test() -> int:
         print("expected bindings shared reminder marker was not reported")
         return 1
 
+    shared_reminder_header_marker = "include/zigux/dev_t.h"
+    before, separator, after = sample.rpartition(shared_reminder_header_marker)
+    broken = validate_text(before + after if separator else sample)
+    expected = (
+        "shared reminder marker count drift: include/zigux/dev_t.h "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder header marker was not reported")
+        return 1
+
+    before, separator, after = sample.partition("\n## Shared reminder\n")
+    if not separator:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder section separator was not found")
+        return 1
+    broken = validate_text(
+        before
+        + "\n## Shared reminder\n"
+        + after.replace(
+            "zigux/uapi/version.zig",
+            "## Future follow-through\nzigux/uapi/version.zig",
+            1,
+        )
+    )
+    expected = (
+        "shared reminder marker count drift: zigux/uapi/version.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder next-heading version drift was not reported")
+        return 1
+
+    shared_reminder_policy_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
+    before, separator, after = sample.rpartition(shared_reminder_policy_marker)
+    broken = validate_text(before + after if separator else sample)
+    expected = (
+        "shared reminder marker count drift: "
+        "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder policy replay marker was not reported")
+        return 1
+
+    shared_reminder_checklist_marker = "Documentation/zigux/review-checklist.md"
+    before, separator, after = sample.rpartition(shared_reminder_checklist_marker)
+    broken = validate_text(before + after if separator else sample)
+    expected = (
+        "shared reminder marker count drift: Documentation/zigux/review-checklist.md "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared reminder checklist marker was not reported")
+        return 1
+
     focused_replay_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
     broken = validate_text(sample.replace(focused_replay_marker, ""))
     if not any(focused_replay_marker in entry for entry in broken):
@@ -779,7 +846,7 @@ def run_self_test() -> int:
         expected = (
             "boundary note next-step marker count drift: "
             "zigux/uapi/version.zig "
-            "(expected 1, found 0)"
+            "(expected 2, found 1)"
         )
         if expected not in issues:
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
