@@ -83,3 +83,30 @@ test "nvme pci reset summary freezes queue planning then clears io backlog while
     try testing.expectEqual(@as(u16, 1), next.queue_id);
     try testing.expectEqual(@as(u32, 1), next.reset_generation);
 }
+
+test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA budget explicit" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const admin = try lab.planAdminQueue(64, 64, false);
+    const first_io = try lab.planIoQueue(64, 64, true);
+    const second_io = try lab.planIoQueue(32, 64, false);
+
+    try testing.expectEqual(@as(u16, 2), admin.required_host_dma_pages);
+    try testing.expectEqual(@as(u16, 1), first_io.required_host_dma_pages);
+    try testing.expectEqual(@as(u16, 1), second_io.required_host_dma_pages);
+
+    const frozen = lab.beginReset();
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen.state);
+
+    const restore = try lab.recoveryQueueRestoreSummary();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", restore.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, restore.state);
+    try testing.expectEqual(@as(u32, 1), restore.reset_generation);
+    try testing.expectEqual(@as(u16, 64), restore.admin_queue_depth);
+    try testing.expectEqual(@as(u16, 2), restore.admin_host_dma_pages);
+    try testing.expectEqual(@as(usize, 2), restore.io_queue_count);
+    try testing.expectEqual(@as(u32, 2), restore.io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 4), restore.total_host_dma_pages);
+    try testing.expect(restore.restores_admin_first);
+    try testing.expect(restore.restores_io_after_admin);
+}
