@@ -6,7 +6,7 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=handoff-next-steps-survey`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-12`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-13`
 - no Architecture Council approval is currently recorded for a freeze-map status change.
 - current review-process evidence is still limited to named `phase`, `current status bucket`, `required approver set`, `validation gate summary`, `parity scorecard link or blocker record`, and `indefinite-C policy link or non-applicability note` fields instead of a shipped status-change approval packet.
 - the broader Phase 15 governance family now includes `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-readiness-gate-survey.md`, while the compact docs-root Phase 15 reminder in `Documentation/zigux/README.md` already keeps `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` explicit beside the shared freeze-map, review-process, parity-scorecard, indefinite-C policy, and replay-route summary. Those parked maintenance notes still belong to `shared-summaries`, so any future docs-root reminder repair should stay there before this handoff lane reopens.
