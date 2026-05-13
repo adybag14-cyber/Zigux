@@ -800,7 +800,7 @@ test "genksyms bridge ignores positional args while still parsing later options"
                 try testing.expectEqual(@as(usize, 1), request.debug_level);
                 try testing.expectEqual(@as(usize, 1), request.reference_files.len);
                 try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
-                try testing.expectEqual(@as(usize, 5), request.rendered_args+.len);
+                try testing.expectEqual(@as(usize, 5), request.rendered_args.len);
                 try testing.expectEqualStrings("-d", request.rendered_args[0]);
                 try testing.expectEqualStrings("-r", request.rendered_args[1]);
                 try testing.expectEqualStrings("foo.symref", request.rendered_args[2]);
