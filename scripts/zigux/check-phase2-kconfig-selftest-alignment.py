@@ -91,8 +91,8 @@ PHASE2_CLOSURE_DOC_MARKERS = (
 )
 
 PHASE2_BOOTSTRAP_NOTES_MARKERS = (
-    "the broader fixdep, genksyms, artifact-tools, kconfig bridge, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of presenting non-existent standalone checker scripts as live current-`master` evidence in this dedicated pin-scope note",
-    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
+    "the broader fixdep, genksyms, artifact-tools, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note",
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note",
     "the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route",
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
@@ -100,14 +100,14 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
 PHASE2_CONFDATA_SURVEY_MARKERS = (
     "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
-    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` now keep the already-landed confdata bridge packet reviewable through the shared Phase 2 reminder surface instead of reviving the older dedicated `check-kconfig-bridge.py` scaffold claim.",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` now keep the already-landed confdata bridge packet reviewable through the shared Phase 2 reminder surface instead of reviving the older dedicated bridge-scaffold claim.",
     "When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators against the now `13-case` confdata packet.",
 )
 
 PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
-    "`scripts/zigux/check-kconfig-bridge.py`",
     "11 fixture cases",
     "same 11-case packet",
+    "older dedicated `check-kconfig-bridge.py` scaffold claim",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = 27
