@@ -7,7 +7,7 @@ It stays inside the simple-drivers lane and records only the host-free teardown 
 
 * `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_archived`
 * teardown evidence remains bounded to the landed `gpio_wdt` starter packet
-* remaining follow-through is still live GPIO descriptor lookup, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, and hardware-backed validation
+* remaining follow-through is still live GPIO descriptor lookup, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, failure-mode parity beyond the landed bounded starter checks, and hardware-backed validation
 
 ## Teardown Packet
 
@@ -31,10 +31,10 @@ The current host-free teardown replay keeps these handoffs explicit:
 * `rebootGlueCheckpointSummary()` and the bounded `watchdog_stop_on_reboot()` ordering it records between `nowayout`, pre-registration start, and the later register-device request surface
 * teardown-facing failure-mode cues that stay reviewable without claiming live remove-hook or reboot-backed shutdown execution
 
-The landed survey-backed packet also keeps the stop-transition, reboot-glue checkpoint, and teardown-ownership boundaries visible beside the starter replay without claiming live GPIO execution, platform cleanup callbacks, or host-backed shutdown behavior.
+The landed survey-backed packet also keeps the stop-transition, reboot-glue checkpoint, teardown-ownership boundaries, and bounded failure-mode cues visible beside the starter replay without claiming live GPIO execution, platform cleanup callbacks, or host-backed shutdown behavior.
 
 ## Bounded Meaning
 
 This note records the shipped teardown summaries only.
-It does not claim live GPIO descriptor acquisition, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, remove-hook parity, or hardware-validated teardown parity.
+It does not claim live GPIO descriptor acquisition, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, remove-hook parity, failure-mode parity beyond the landed bounded starter checks, or hardware-validated teardown parity.
 Those remain later same-lane follow-through steps rather than part of the already-landed archival packet.
