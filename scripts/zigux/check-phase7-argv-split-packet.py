@@ -173,6 +173,15 @@ REQUIRED_MARKERS = {
         'phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup',
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
+        '"current_verification": {',
+        '"argv_split_pair_compile": {',
+        '"status": "confirmed"',
+        '"paths": [',
+        '"shared_phase7_build": {',
+        '"build_file": "zigux/tests/phase7_build.zig"',
+        '"missing_sibling_paths": [',
+        '"lib/string_helpers.zig"',
+        '"zigux/tests/phase7_string_helpers.zig"',
         "copied token-buffer ownership and later source-mutation isolation",
         "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
@@ -490,18 +499,32 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
-            "deinit on one live non-blank result does not disturb another caller-owned split result",
+            '"argv_split_pair_compile": {',
             "",
-            "manifest_deinit_isolation_marker",
+            "manifest_pair_compile_marker",
         )
         expect_missing_marker(
-            "manifest_deinit_isolation_marker",
+            "manifest_pair_compile_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: deinit on one live non-blank result does not disturb another caller-owned split result",
+            'zigux/tests/phase7_argv_split_manifest.json: "argv_split_pair_compile": {',
         )
         write_fixture_root(tmp_root)
 
-    case_count = 18
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json",
+            '"zigux/tests/phase7_string_helpers.zig"',
+            "",
+            "manifest_missing_sibling_marker",
+        )
+        expect_missing_marker(
+            "manifest_missing_sibling_marker",
+            tmp_root,
+            'zigux/tests/phase7_argv_split_manifest.json: "zigux/tests/phase7_string_helpers.zig"',
+        )
+        write_fixture_root(tmp_root)
+
+    case_count = 20
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
