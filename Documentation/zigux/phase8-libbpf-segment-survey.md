@@ -17,7 +17,7 @@ That plan only stays reviewable if the repo's public survey surfaces truthfully 
 
 ## Current public-tree readback
 Public default-branch exact readback on 2026-05-12 still showed:
-- `Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.
+- `Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.
 - `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet through `phase8_cpu_mask.zig`, `phase8_logging.zig`, `phase8_pin_path.zig`, `phase8_bpf_type_names.zig`, `phase8_file_path_handle_bridge.zig`, `phase8_perf_buffer_poll.zig`, `phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/verify.zig`.
 - the shared helper catalog still comes from `tools/lib/bpf/zigux_segments/manifest.json`.
 - the shared landed helper packet still names `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
@@ -40,11 +40,11 @@ The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buff
 Those segments still keep the bounded fdinfo helper packet explicit while the resource-boundary packet still stays deferred.
 
 ## Current bounded gap
-The real current gap is still reviewability truthfulness, not a helper-behavior claim.
+The real current gap is now the dedicated survey-and-checker truthfulness packet, not the docs-root summary.
 
-Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.
+Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.
 
-That means the bounded fdinfo helper packet, the landed reused-map compatibility packet, the file-path bridge slice reminder, and the perf-buffer poll reminder surface should stay explicit inside this survey, while the heavier resource-boundary packet still stays deferred and the interrupt-routing follow-on remains outside the current bounded packet.
+That leaves the narrower same-lane task as keeping this dedicated survey note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue while the mixed pin-path evidence, the bounded fdinfo helper packet, the landed reused-map compatibility packet, the file-path bridge slice reminder, and the perf-buffer poll reminder surface stay explicit, the heavier resource-boundary packet stays deferred, and the interrupt-routing follow-on remains outside the current bounded packet.
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -57,11 +57,11 @@ This survey slice does not yet claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Start with the smallest directly coupled libbpf survey follow-through that matches the current readable tree exactly, and keep `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with this survey note so the broader helper-plus-build packet fails closed when these live markers drift again.
+Keep `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with this survey note so the broader helper-plus-build packet fails closed when these live markers drift again.
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
-2. after this survey sync, start with the docs-root Phase 8 summary before trimming or widening any other shared reminder surface that still disagrees with the live helper-plus-build packet
+2. after this survey-and-checker sync, keep the shared wording lane parked unless a fresh one-file reminder-surface drift appears
 3. keep follow-up smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
-Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.
+Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.
