@@ -363,6 +363,16 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["risky_transport_posture"] = "starter_landed"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:risky_transport_posture=starter_landed",
+            "phase10-self-test:risky_transport_posture",
+        )
+        write_fixture(root)
+
         teardown_path = root / "zigux/tests/phase10_virtio_input_teardown_observation.zig"
         original_teardown = teardown_path.read_text(encoding="utf-8")
         teardown_path.write_text(
@@ -394,7 +404,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
