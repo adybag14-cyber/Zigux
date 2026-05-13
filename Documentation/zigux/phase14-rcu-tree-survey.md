@@ -60,6 +60,19 @@ This note stays narrow on purpose. It does not reopen the freeze decision, it do
 
 `kernel/rcu/tree_bridge.zig` remains blocked by `phase14-rcu-tree-bridge-blocker`. The current survey evidence still shows public wait and callback-barrier ownership, CPU hotplug callback migration, expedited waits, grace-period publication, NOCB offload, idle-watch re-entry, quiescent-state propagation, callback enqueue, and the memory-ordering lock network as one live deep-core ownership surface. That is still a freeze-in-C posture, not a review-ready bridge seam.
 
+## Rollback guardrail
+
+- manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
+- rollback owner: `Repo Tooling Pod`
+- required evidence before any status review:
+  - `Architecture Council` reopen record linked from the active review packet
+  - parity scorecard evidence and benchmark notes attached to the same review packet
+  - validation replay command and evidence archive path recorded beside the latest blocker disposition
+- automatic return-to-blocked triggers:
+  - any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record
+  - missing parity scorecard evidence, benchmark notes, or replay command in the active review packet
+  - freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner
+
 ## Non-goals
 
 - any live `kernel/rcu/tree_bridge.zig` ownership claim
