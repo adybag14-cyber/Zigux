@@ -38,13 +38,12 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   view-and-summary sibling pairs across `include/zigux/abi.h` and
   `zigux/bindings/abi.zig`; keep extending that family one bounded sibling pair
   at a time instead of widening into another packet
-- the next same-lane shared-reminder follow-through is
-  `Documentation/zigux/review-checklist.md`: current `master` still lacks an
-  explicit Phase 3 header-family checklist prompt, so any bounded shared-surface
-  refresh should keep `Documentation/zigux/phase3-abi-header-family-survey.md`,
+- the shared review checklist now carries an explicit Phase 3 header-family
+  prompt; keep `Documentation/zigux/review-checklist.md`,
+  `Documentation/zigux/phase3-abi-header-family-survey.md`,
   `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
-  `zigux/uapi/dev_t.zig` visible there without implying a broader exported UAPI
-  family
+  `zigux/uapi/dev_t.zig` aligned there whenever the bounded header-family
+  packet moves without implying a broader exported UAPI family
 - if `include/zigux/abi.h` grows, refresh `zigux/bindings/abi.zig`,
   `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
   `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
