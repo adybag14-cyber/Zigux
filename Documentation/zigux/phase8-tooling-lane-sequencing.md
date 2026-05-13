@@ -82,6 +82,4 @@ Current wording-lane caution:
 5. Validate through exact readback before treating the packet as parked again.
 
 ## Next bounded step
-The earlier `scripts/zigux/README.md` filename-case repair is already closed on current `master`: exact readback shows that file now keeps `zigux/tests/phase8_exec_cmd_only_build.zig` and `zigux/tests/phase8_cpu_mask_only_build.zig` correctly cased beside the shared Phase 8 packet.
-
-No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.
+Exact 2026-05-13 readback now makes the docs-root summary the next shared wording reopen cue: `Documentation/zigux/README.md` still names the missing `Documentation/zigux/phase8-bpf-type-names-slice.md` note while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note, so start with that docs-root repair before widening any other shared reminder surface.
