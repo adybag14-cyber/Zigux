@@ -12,7 +12,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
 - `PHASE3_UAPI_VERSION_BLOB_SHA=393694bf5d3ab3eaf1e8ea81f2cec073b40a50eb`
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
-- `PHASE3_UAPI_DEV_T_BLOB_SHA=bfbe71603907b2b951e4eebe29a007d9d761999c`
+- `PHASE3_UAPI_DEV_T_BLOB_SHA=536d5a3d1444714f402ef01e6c8153c04b117e97`
 - `PHASE3_SHARED_BUILD_PATH=zigux/tests/build.zig`
 - `PHASE3_SHARED_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_SHARED_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
