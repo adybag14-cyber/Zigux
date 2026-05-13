@@ -53,6 +53,13 @@ historical helper-slice tag, while this shared note stays on `P7-Y05` and
 should not be read as the active bootstrap-glue schedule owner for restoring
 that missing implementation pair.
 
+`zigux/tests/README.md` is also a shared-control reminder surface owned by
+`P7-Y05`. Its Phase 7 entry list is not a helper-local proof packet: while
+current `master` still lists the missing `zigux/tests/phase7_string_helpers.zig`
+replay beside the parked shared build bundle, any tests-root truthfulness repair
+that narrows that missing-pair wording or the blocked shared-build reminder
+belongs here instead of `P7-L04`, `P7-L05`, `P7-L09`, or `P7-L13`.
+
 `Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated
 shared owner-map note for how `P7-Y05` stays on this shared control surface,
 `P7-Y06` owns only the helper-lane map, and the helper-local slices keep their
