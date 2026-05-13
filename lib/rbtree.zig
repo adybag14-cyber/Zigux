@@ -324,6 +324,10 @@ pub fn find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *cons
     return null;
 }
 
+pub fn rb_find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    return find(key, root, cmp);
+}
+
 pub fn findFirst(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
     var node = root.node;
     var match: ?*Node = null;
@@ -343,12 +347,20 @@ pub fn findFirst(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), 
     return match;
 }
 
+pub fn rb_find_first(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    return findFirst(key, root, cmp);
+}
+
 pub fn nextMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
     const candidate = next(node) orelse return null;
     if (cmp(key, candidate) != 0) {
         return null;
     }
     return candidate;
+}
+
+pub fn rb_next_match(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    return nextMatch(key, node, cmp);
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -529,6 +541,10 @@ pub fn eraseInit(node: *Node, root: *Root) void {
     clearNode(node);
 }
 
+pub fn rb_erase_init(node: *Node, root: *Root) void {
+    eraseInit(node, root);
+}
+
 pub fn eraseInitCached(node: *Node, root: *RootCached) void {
     _ = eraseCached(node, root);
     clearNode(node);
@@ -543,9 +559,17 @@ pub fn first(root: *const Root) ?*Node {
     return minimum(node);
 }
 
+pub fn rb_first(root: *const Root) ?*Node {
+    return first(root);
+}
+
 pub fn last(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return maximum(node);
+}
+
+pub fn rb_last(root: *const Root) ?*Node {
+    return last(root);
 }
 
 pub fn next(node: *const Node) ?*Node {
@@ -567,6 +591,10 @@ pub fn next(node: *const Node) ?*Node {
     return parent;
 }
 
+pub fn rb_next(node: *const Node) ?*Node {
+    return next(node);
+}
+
 pub fn prev(node: *const Node) ?*Node {
     if (emptyNode(node)) {
         return null;
@@ -584,6 +612,10 @@ pub fn prev(node: *const Node) ?*Node {
     }
 
     return parent;
+}
+
+pub fn rb_prev(node: *const Node) ?*Node {
+    return prev(node);
 }
 
 pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
@@ -607,6 +639,10 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     } else {
         parent.?.right = new;
     }
+}
+
+pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {
+    replaceNode(victim, new, root);
 }
 
 pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
@@ -634,6 +670,10 @@ pub fn firstPostorder(root: *const Root) ?*Node {
     return leftDeepestNode(node);
 }
 
+pub fn rb_first_postorder(root: *const Root) ?*Node {
+    return firstPostorder(root);
+}
+
 pub fn nextPostorder(node: ?*const Node) ?*Node {
     const current = node orelse return null;
     if (emptyNode(current)) {
@@ -645,6 +685,10 @@ pub fn nextPostorder(node: ?*const Node) ?*Node {
         return leftDeepestNode(parent.?.right.?);
     }
     return parent;
+}
+
+pub fn rb_next_postorder(node: ?*const Node) ?*Node {
+    return nextPostorder(node);
 }
 
 test "rbtree inserts and traverses in sorted order" {
@@ -936,6 +980,122 @@ test "rbtree find helpers return duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*Node, null), nextMatch(@as(i32, 10), third_match, cmp));
     try std.testing.expectEqual(@as(?*Node, null), find(@as(i32, 99), &root, cmp));
     try std.testing.expectEqual(@as(?*Node, null), findFirst(@as(i32, 99), &root, cmp));
+}
+
+test "rbtree primary Linux-style aliases mirror traversal and duplicate-search helpers" {
+    const Entry = struct {
+        key: i32,
+        serial: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var ordered_entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 15, .serial = 3 },
+        .{ .key = 25, .serial = 4 },
+    };
+    var ordered_root = Root.init();
+    for (&ordered_entries) |*entry| {
+        add(&entry.node, &ordered_root, less);
+    }
+
+    try std.testing.expectEqual(first(&ordered_root), rb_first(&ordered_root));
+    try std.testing.expectEqual(last(&ordered_root), rb_last(&ordered_root));
+
+    const search_key = @as(i32, 15);
+    const primary_found = find(search_key, &ordered_root, cmp) orelse return error.TestUnexpectedResult;
+    const alias_found = rb_find(search_key, &ordered_root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(primary_found, alias_found);
+    try std.testing.expectEqual(next(primary_found), rb_next(alias_found));
+    try std.testing.expectEqual(prev(primary_found), rb_prev(alias_found));
+
+    var duplicate_entries = [_]Entry{
+        .{ .key = 10, .serial = 10 },
+        .{ .key = 20, .serial = 11 },
+        .{ .key = 10, .serial = 12 },
+        .{ .key = 5, .serial = 13 },
+        .{ .key = 10, .serial = 14 },
+    };
+    var duplicate_root = Root.init();
+    for (&duplicate_entries) |*entry| {
+        add(&entry.node, &duplicate_root, less);
+    }
+
+    const duplicate_key = @as(i32, 10);
+    const primary_first_match = findFirst(duplicate_key, &duplicate_root, cmp) orelse return error.TestUnexpectedResult;
+    const alias_first_match = rb_find_first(duplicate_key, &duplicate_root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(primary_first_match, alias_first_match);
+
+    var serials: [3]i32 = undefined;
+    var count: usize = 0;
+    var cursor = alias_first_match;
+    while (true) {
+        const entry: *const Entry = @fieldParentPtr("node", cursor);
+        serials[count] = entry.serial;
+        count += 1;
+        cursor = rb_next_match(duplicate_key, cursor, cmp) orelse break;
+    }
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 10, 12, 14 }, serials[0..count]);
+    try std.testing.expectEqual(nextMatch(duplicate_key, primary_first_match, cmp), rb_next_match(duplicate_key, alias_first_match, cmp));
+
+    var replace_entries = [_]Entry{
+        .{ .key = 10, .serial = 20 },
+        .{ .key = 5, .serial = 21 },
+        .{ .key = 15, .serial = 22 },
+    };
+    var replacement = Entry{ .key = 10, .serial = 23 };
+    var replace_root = Root.init();
+    for (&replace_entries) |*entry| {
+        add(&entry.node, &replace_root, less);
+    }
+
+    rb_replace_node(&replace_entries[0].node, &replacement.node, &replace_root);
+    try std.testing.expectEqual(@as(?*Node, &replace_entries[1].node), rb_first(&replace_root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), rb_next(&replace_entries[1].node).?);
+
+    rb_erase_init(&replacement.node, &replace_root);
+    try std.testing.expect(emptyNode(&replacement.node));
+    try std.testing.expectEqual(@as(?*Node, &replace_entries[1].node), rb_first(&replace_root));
+    try std.testing.expectEqual(@as(?*Node, &replace_entries[2].node), rb_last(&replace_root));
+
+    var postorder_entries = [_]Entry{
+        .{ .key = 2, .serial = 30 },
+        .{ .key = 1, .serial = 31 },
+        .{ .key = 3, .serial = 32 },
+    };
+    var postorder_root = Root.init();
+    for (&postorder_entries) |*entry| {
+        add(&entry.node, &postorder_root, less);
+    }
+
+    var postorder_count: usize = 0;
+    var postorder_cursor = rb_first_postorder(&postorder_root);
+    while (postorder_cursor) |node| : (postorder_cursor = rb_next_postorder(node)) {
+        postorder_count += 1;
+    }
+    try std.testing.expectEqual(@as(usize, 3), postorder_count);
+    try std.testing.expectEqual(@as(?*Node, null), rb_next_postorder(null));
 }
 
 test "rbtree eraseInit clears detached nodes after erase" {
