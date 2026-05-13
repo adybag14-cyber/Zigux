@@ -127,6 +127,7 @@ DMA_REPLAY_MARKERS = [
     '"phase13-devres-live-mmio-mappings"',
     '"phase13-devres-live-arch-memtype-state"',
     '"phase13-devres-live-scatterlist-ownership"',
+    '"blocked_on_live_scatterlist_state"',
 ]
 
 
@@ -417,6 +418,7 @@ def seed_fixture_tree(root: Path) -> None:
                 '"phase13-devres-live-mmio-mappings"',
                 '"phase13-devres-live-arch-memtype-state"',
                 '"phase13-devres-live-scatterlist-ownership"',
+                '"blocked_on_live_scatterlist_state"',
             ]
         )
         + "\n",
@@ -561,6 +563,7 @@ def run_self_test() -> int:
                 'dma_replay:missing_marker:"phase13-devres-live-mmio-mappings"',
                 'dma_replay:missing_marker:"phase13-devres-live-arch-memtype-state"',
                 'dma_replay:missing_marker:"phase13-devres-live-scatterlist-ownership"',
+                'dma_replay:missing_marker:"blocked_on_live_scatterlist_state"',
             ],
             "dma_replay_missing_markers_failed",
         )
