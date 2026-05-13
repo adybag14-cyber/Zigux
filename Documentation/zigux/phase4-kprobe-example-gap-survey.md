@@ -8,10 +8,11 @@
 - `PHASE4_KPROBE_CURRENT_LINUX_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - `PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey`
 - `PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey`
+- `PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow`
 - `PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - `PHASE4_KPROBE_OWNER=Validation and Perf Team`
 - `PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team`
-- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
 
 ## Purpose
 
@@ -24,6 +25,7 @@ The packet is intentionally narrow:
 - keep the current Linux replay command explicit
 - keep the explicit local lab replay marker explicit
 - keep the dedicated local survey wrapper explicit
+- keep the explicit bootstrap-CI posture explicit while the starter remains absent
 - keep the direct validation entrypoint explicit
 - keep ownership and rollback ownership explicit
 - keep the next bounded evidence step explicit until a later Phase 4 lane intentionally
@@ -41,8 +43,9 @@ The bounded evidence packet instead remains:
 - `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 
 That packet keeps the current C anchor, replay path, owner, rollback owner, explicit
-local lab replay marker, and dedicated local survey route measurable while the shared
-Phase 4 rollback-readiness lane remains below starter implementation.
+local lab replay marker, dedicated local survey route, explicit bootstrap-CI posture,
+and direct validation entrypoint measurable while the shared Phase 4 rollback-readiness
+lane remains below starter implementation.
 
 The same packet also keeps its reversible-delivery evidence string pinned in the paired
 manifest so the absent-starter boundary does not fall back to note prose alone.
@@ -50,10 +53,11 @@ manifest so the absent-starter boundary does not fall back to note prose alone.
 ## Next Bounded Evidence Step
 
 Keep this parked packet adjacent to the shared gate-evidence note, the shared Phase 4
-exact-readback packet, the validation matrix, the explicit local lab replay marker, the
-dedicated local `make -C zigux phase4-kprobe-example-survey` wrapper, and the direct
-`zig test zigux/tests/phase4_kprobe_example_survey.zig` validation entrypoint until a
-later bounded Phase 4 lane intentionally chooses one of these follow-through steps:
+exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the
+explicit local lab replay marker, the dedicated local `make -C zigux
+phase4-kprobe-example-survey` wrapper, and the direct `zig test
+zigux/tests/phase4_kprobe_example_survey.zig` validation entrypoint until a later
+bounded Phase 4 lane intentionally chooses one of these follow-through steps:
 - promote the same note, manifest, and replay commands into a stricter shared validator
   packet
 - or land the actual Zig starter with an updated rollback-readiness contract
