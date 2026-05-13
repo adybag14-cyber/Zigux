@@ -257,3 +257,25 @@ test "phase 9 runtime loader gap survey keeps atomic64 approved-family drift pro
     try expectContains(bitmap_loader, ".handoff_stage = .initialized,");
     try expectContains(bitmap_loader, ".selftest_runs = 0,");
 }
+
+test "phase 9 runtime loader gap survey keeps bitmap prepared-snapshot helper and selftest-complete shared-request stability explicit" {
+    const allocator = std.testing.allocator;
+
+    const bitmap_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(bitmap_loader);
+
+    try expectContains(bitmap_loader, "keepsSharedLoadPlanSnapshotExplicit(");
+    try expectContains(bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(@as(usize, 1), pending_plan.init_flow.selftest_runs);");
+    try expectContains(bitmap_loader, "try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(");
+    try expectContains(bitmap_loader, ".handoff_stage = .selftest_complete,");
+    try expectContains(bitmap_loader, ".selftest_runs = 1,");
+    try expectContains(bitmap_loader, "try loader.releaseSharedWithoutSubstrate(&shared_request);");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());");
+    try expectContains(bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
+}
