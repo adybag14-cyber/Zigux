@@ -95,6 +95,8 @@ REQUIRED_MARKERS = {
         "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+        "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
+        "The real current gap is now survey truthfulness about the already-landed checker packet, not a missing checker rule or docs-root summary.",
         "Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
         "`scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue",
         "this packet still keeps `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior out of scope",
