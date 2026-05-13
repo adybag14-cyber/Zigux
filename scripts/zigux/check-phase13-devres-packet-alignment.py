@@ -104,9 +104,11 @@ BOUNDARY_SURVEY_MARKERS = [
     "phase13-devres-live-mmio-mappings",
     "phase13-devres-live-device-tree-walk",
     "phase13-devres-live-arch-memtype-state",
+    "phase13-devres-live-scatterlist-ownership",
     "live MMIO mappings",
     "live device-tree walking",
     "live arch memtype state transitions",
+    "helper-only DMA/scatterlist boundary",
 ]
 
 REVIEWABILITY_MARKERS = [
@@ -115,14 +117,16 @@ REVIEWABILITY_MARKERS = [
     '"phase13-make-target"',
     '"phase13-devres-arch-phys-wc-token-planner"',
     '"phase13-devres-live-arch-memtype-state"',
+    '"phase13-devres-live-scatterlist-ownership"',
     "try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-    "try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+    "try std.testing.expectEqual(@as(usize, 4), blocked_count);",
 ]
 
 DMA_REPLAY_MARKERS = [
     '"preexisting_phase13_devres_dma_coherent_present": true',
     '"phase13-devres-live-mmio-mappings"',
     '"phase13-devres-live-arch-memtype-state"',
+    '"phase13-devres-live-scatterlist-ownership"',
 ]
 
 
@@ -228,7 +232,7 @@ def validate(root: Path) -> list[str]:
                 errors.append(f"dma_replay:{key}_mismatch:{expected}")
 
     gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) != 12:
+    if not isinstance(gaps, list) or len(gaps) != 13:
         errors.append(f"manifest:gaps_count_mismatch:{len(gaps) if isinstance(gaps, list) else 'missing'}")
 
     if STALE_CHECKER_WARNING not in survey_text:
@@ -298,6 +302,7 @@ def seed_fixture_tree(root: Path) -> None:
                     {"id": "phase13-devres-live-mmio-mappings"},
                     {"id": "phase13-devres-live-device-tree-walk"},
                     {"id": "phase13-devres-live-arch-memtype-state"},
+                    {"id": "phase13-devres-live-scatterlist-ownership"},
                 ],
             },
             indent=2,
@@ -331,8 +336,10 @@ def seed_fixture_tree(root: Path) -> None:
                 "phase13-devres-live-mmio-mappings",
                 "phase13-devres-live-device-tree-walk",
                 "phase13-devres-live-arch-memtype-state",
+                "phase13-devres-live-scatterlist-ownership",
                 "live MMIO mappings",
                 "live device-tree walking",
+                "helper-only DMA/scatterlist boundary",
                 "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
                 "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
             ]
@@ -380,8 +387,8 @@ def seed_fixture_tree(root: Path) -> None:
                 "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
                 "try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
                 "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
-                '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
-                '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"master-readback-2026-05-13\\"");',
+                '  try expectContains(manifest_text, "\\\"lane_key\\\": \\\"P13-L01\\\"");',
+                '  try expectContains(manifest_text, "\\\"surveyed_commit\\\": \\\"master-readback-2026-05-13\\\"");',
             ]
         )
         + "\n",
@@ -395,8 +402,9 @@ def seed_fixture_tree(root: Path) -> None:
                 '  try expectGap(manifest, "phase13-make-target", "starter_landed", "zigux/Makefile", "stable shared Phase 13 replay handle");',
                 '  try expectGap(manifest, "phase13-devres-arch-phys-wc-token-planner", "starter_landed", "lib/devres.zig", "negative token results");',
                 '  try expectGap(manifest, "phase13-devres-live-arch-memtype-state", "blocked_on_live_arch_memtype_state", "lib/devres.zig", "mutating real memtype state");',
+                '  try expectGap(manifest, "phase13-devres-live-scatterlist-ownership", "blocked_on_live_scatterlist_state", "lib/devres.zig", "DMA/scatterlist boundary");',
                 "  try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-                "  try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                "  try std.testing.expectEqual(@as(usize, 4), blocked_count);",
             ]
         )
         + "\n",
@@ -408,6 +416,7 @@ def seed_fixture_tree(root: Path) -> None:
                 '"preexisting_phase13_devres_dma_coherent_present": true',
                 '"phase13-devres-live-mmio-mappings"',
                 '"phase13-devres-live-arch-memtype-state"',
+                '"phase13-devres-live-scatterlist-ownership"',
             ]
         )
         + "\n",
@@ -444,9 +453,11 @@ def run_self_test() -> int:
                 "survey:missing_marker:phase13-devres-live-mmio-mappings",
                 "survey:missing_marker:phase13-devres-live-device-tree-walk",
                 "survey:missing_marker:phase13-devres-live-arch-memtype-state",
+                "survey:missing_marker:phase13-devres-live-scatterlist-ownership",
                 "survey:missing_marker:live MMIO mappings",
                 "survey:missing_marker:live device-tree walking",
                 "survey:missing_marker:live arch memtype state transitions",
+                "survey:missing_marker:helper-only DMA/scatterlist boundary",
             ],
             "survey_missing_markers_failed",
         )
@@ -470,13 +481,14 @@ def run_self_test() -> int:
             validate(root),
             [
                 "reviewability:surveyed_commit_mismatch:master-readback-2026-05-13",
-                "reviewability:missing_marker:\"P13-L01\"",
-                "reviewability:missing_marker:\"master-readback-2026-05-13\"",
-                "reviewability:missing_marker:\"phase13-make-target\"",
-                "reviewability:missing_marker:\"phase13-devres-arch-phys-wc-token-planner\"",
-                "reviewability:missing_marker:\"phase13-devres-live-arch-memtype-state\"",
+                'reviewability:missing_marker:"P13-L01"',
+                'reviewability:missing_marker:"master-readback-2026-05-13"',
+                'reviewability:missing_marker:"phase13-make-target"',
+                'reviewability:missing_marker:"phase13-devres-arch-phys-wc-token-planner"',
+                'reviewability:missing_marker:"phase13-devres-live-arch-memtype-state"',
+                'reviewability:missing_marker:"phase13-devres-live-scatterlist-ownership"',
                 "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 4), blocked_count);",
             ],
             "reviewability_missing_markers_failed",
         )
@@ -515,8 +527,8 @@ def run_self_test() -> int:
                     "try std.testing.expect(miss.warns_on_release_miss);",
                     'test "phase13 devres retains phys WC release tokens on successful token add" {',
                     'test "phase13 devres frees phys WC release records when token add fails" {',
-                    '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
-                    '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"master-readback-2026-05-13\\"");',
+                    '  try expectContains(manifest_text, "\\\"lane_key\\\": \\\"P13-L01\\\"");',
+                    '  try expectContains(manifest_text, "\\\"surveyed_commit\\\": \\\"master-readback-2026-05-13\\\"");',
                 ]
             )
             + "\n",
@@ -545,9 +557,10 @@ def run_self_test() -> int:
             validate(root),
             [
                 "dma_replay:preexisting_phase13_devres_dma_coherent_present_mismatch:True",
-                "dma_replay:missing_marker:\"preexisting_phase13_devres_dma_coherent_present\": true",
-                "dma_replay:missing_marker:\"phase13-devres-live-mmio-mappings\"",
-                "dma_replay:missing_marker:\"phase13-devres-live-arch-memtype-state\"",
+                'dma_replay:missing_marker:"preexisting_phase13_devres_dma_coherent_present": true',
+                'dma_replay:missing_marker:"phase13-devres-live-mmio-mappings"',
+                'dma_replay:missing_marker:"phase13-devres-live-arch-memtype-state"',
+                'dma_replay:missing_marker:"phase13-devres-live-scatterlist-ownership"',
             ],
             "dma_replay_missing_markers_failed",
         )
