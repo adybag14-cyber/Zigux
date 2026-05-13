@@ -8,7 +8,7 @@ It is a PMO release artifact, not a new replay route.
 
 - `PHASE12_STATUS=active`
 - `PHASE12_RELEASE_CLOSED=no`
-- shared-summary lane owner: `P12-Y07`
+- shared-summary lane owner: `P12-L07`
 - scope: keep the current shared Phase 12 release-planning packet truthful on `master` while the repo remains below DMA transport, queue ownership, throughput, recovery, object-model, and direct driver-delivery claims
 - shared PMO companions: `Documentation/zigux/phase12-release-closure-checklist.md` and `Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`
