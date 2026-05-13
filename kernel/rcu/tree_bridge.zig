@@ -35,6 +35,12 @@ pub const blocked_boundaries = [_]BridgeBoundary{
         .rationale = "The documented Tree RCU lock network remains a live ordering contract rather than a detachable wrapper seam.",
     },
     .{
+        .id = "expedited_funnel_and_stall_path",
+        .summary = "Keep expedited CPU selection, wait serialization, and sequence completion in C.",
+        .anchor_symbols = &.{ "sync_rcu_exp_select_cpus", "synchronize_rcu_expedited_wait_once", "rcu_exp_gp_seq_end" },
+        .rationale = "The expedited path still couples CPU forcing, stall-sensitive waiting, and sequence completion through live tree_exp.h coordination instead of a small bridge seam.",
+    },
+    .{
         .id = "public_wait_and_callback_barrier",
         .summary = "Keep public wait, polling-cookie, and callback-barrier ownership in C.",
         .anchor_symbols = &.{ "synchronize_rcu", "get_state_synchronize_rcu", "poll_state_synchronize_rcu", "rcu_barrier" },
@@ -63,7 +69,8 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
-    try std.testing.expectEqual(@as(usize, 4), blockedBoundaryCount());
-    try std.testing.expect(contains(blocked_boundaries[2].summary, "callback-barrier"));
-    try std.testing.expect(contains(blocked_boundaries[3].summary, "callback migration"));
+    try std.testing.expectEqual(@as(usize, 5), blockedBoundaryCount());
+    try std.testing.expectEqualStrings("expedited_funnel_and_stall_path", blocked_boundaries[2].id);
+    try std.testing.expect(contains(blocked_boundaries[2].summary, "expedited"));
+    try std.testing.expect(contains(blocked_boundaries[4].summary, "callback migration"));
 }
