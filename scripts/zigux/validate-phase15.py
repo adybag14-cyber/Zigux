@@ -131,6 +131,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -577,6 +578,13 @@ def run_self_test() -> int:
         marker = "zigux/tests/phase15_handoff_next_steps_manifest.json"
         _write(root, checklist_rel, checklist_text.replace(marker, "", 1))
         _assert_result(*validate(root), [], [f"review_checklist:{marker}"], "review_checklist_handoff_manifest")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        checklist_text = _read(root, checklist_rel)
+        marker = "Documentation/zigux/phase15-parity-scorecard-survey.md"
+        _write(root, checklist_rel, checklist_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"review_checklist:{marker}"], "review_checklist_parity_scorecard_survey")
         _seed_fixture_tree(root)
         case_count += 1
 
