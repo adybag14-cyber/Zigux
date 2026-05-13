@@ -3,6 +3,7 @@ const std = @import("std");
 var fence_word: u8 = 0;
 
 test "phase3 barrier wrappers compile" {
+    compiler();
     acquire();
     release();
     full();
@@ -15,6 +16,7 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     const before_left = left;
     const before_right = right;
 
+    compiler();
     acquire();
     release();
     full();
@@ -24,6 +26,7 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     try std.testing.expectEqual(before_right, right);
 
     left +%= 1;
+    compiler();
     right +%= 2;
     acquireRelease();
 
@@ -45,6 +48,7 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     };
 
     packet.value = 41;
+    compiler();
     release();
     packet.ready = true;
 
@@ -53,17 +57,23 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     try std.testing.expectEqual(@as(u32, 41), packet.value);
 
     full();
+    compiler();
     packet.mirror = packet.value;
     acquireRelease();
 
     try std.testing.expectEqual(@as(u32, 41), packet.mirror);
 
     packet.value = 73;
+    compiler();
     release();
     packet.ready = false;
     acquire();
     try std.testing.expect(!packet.ready);
     try std.testing.expectEqual(@as(u32, 73), packet.value);
+}
+
+pub fn compiler() void {
+    asm volatile ("" ::: .{ .memory = true });
 }
 
 pub fn acquire() void {
