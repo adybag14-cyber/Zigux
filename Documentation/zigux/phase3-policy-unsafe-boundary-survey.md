@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEY_PROVENANCE=connector-plus-tree-fallback-current-head-sha-unavailable-in-run`
+- `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays`
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=2a72bb87c3e6ecec0c336ced708cbffe2b32ac81`
