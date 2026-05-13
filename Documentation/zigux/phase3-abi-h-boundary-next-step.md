@@ -74,10 +74,11 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   focused validator, focused checker, and manifest-backed ABI packet, and in
   `Documentation/zigux/phase3-abi-header-family-survey.md` unless the broader
   export/UAPI packet actually grows
-- the next shared reminder follow-through is `scripts/zigux/README.md`: its
-  Phase 3 header-family line still trails the dedicated survey by collapsing the
-  starter companion wording to the already-named Zig-side foothold, so refresh
-  that scripts-root reminder before widening any broader Phase 3 summary work
+- `scripts/zigux/README.md` now keeps the canonical `include/zigux/dev_t.h`,
+  `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` split explicit beside
+  the dedicated survey and `Documentation/zigux/phase3-linux-zigux-header-governance.md`,
+  so keep this next-step note parked until another broad Phase 3 reminder names
+  the header-family packet without that same dedicated-survey boundary
 
 ## Non-goals
 
