@@ -89,6 +89,20 @@ pub fn __sysfs_match_string(haystack: []const ?[]const u8, needle: []const u8) ?
     return sysfsMatchString(haystack, needle);
 }
 
+pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
+    const bounded_count = @min(count, src.len);
+    const copy_len = @min(dest.len, bounded_count);
+    @memcpy(dest[0..copy_len], src[0..copy_len]);
+
+    if (dest.len > copy_len and count < dest.len) {
+        @memset(dest[copy_len..], pad);
+    }
+}
+
+pub fn memcpy_and_pad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
+    memcpyAndPad(dest, src, count, pad);
+}
+
 pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
     for (buf, 0..) |*ch, idx| {
         if (ch.* == 0) return idx;
