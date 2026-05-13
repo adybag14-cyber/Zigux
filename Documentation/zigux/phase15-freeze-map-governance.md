@@ -29,6 +29,9 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `zigux/tests/phase15_parity_scorecard.json`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
+  - `make -C zigux phase15-validate`
+  - `make -C zigux phase15-test`
+  - `make -C zigux phase15`
 
 ## Why this slice exists
 
@@ -54,7 +57,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 - `kernel/sched/core.c`: owner `Architecture Council`; phase `Phase 15`; status bucket `freeze_in_c`; required approver set `Architecture Council + PMO / Release Management`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council + PMO / Release Management`; evidence archive path `Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md`; benchmark notes `pending_until_bounded_scheduler_seam_exists`; replay command `zig build test --build-file zigux/tests/phase15_build.zig`; latest blocker disposition `blocked_no_bounded_scheduler_seam`
 - `mm/page_alloc.c`: owner `Architecture Council`; phase `Phase 15`; status bucket `freeze_in_c`; required approver set `Architecture Council + Validation and Perf Team`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council + Validation and Perf Team`; evidence archive path `Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md`; benchmark notes `pending_until_bounded_allocator_seam_exists`; replay command `zig build test --build-file zigux/tests/phase15_build.zig`; latest blocker disposition `blocked_no_bounded_allocator_seam`
 - `kernel/rcu/tree.c`: owner `ABI and Runtime Team`; phase `Phase 15`; status bucket `freeze_in_c`; required approver set `Architecture Council + ABI and Runtime Team`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council + ABI and Runtime Team`; evidence archive path `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`; benchmark notes `pending_until_rcu_followup_is_narrower_than_freeze_boundary`; replay command `zig build test --build-file zigux/tests/phase15_build.zig`; latest blocker disposition `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
-- `net/core/skbuff.c`: owner `Shared Subsystems Pod`; phase `Phase 15`; status bucket `freeze_in_c`; required approver set `Architecture Council + Shared Subsystems Pod`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council + Shared Subsystems Pod`; evidence archive path `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`; benchmark notes `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`; replay command `zig build test --build-file zigux/tests/phase15_build.zig`; latest blocker disposition `blocked_packet_lifetime_boundary_still_too_wide`
+- `net/core/skbuff.c`: owner `Shared Subsystems Pod`; phase `Phase 15`; status bucket `freeze_in_c`; required approver set `Architecture Council + Shared Subsystems Pod`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Shared Subsystems Pod`; evidence archive path `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`; benchmark notes `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`; replay command `zig build test --build-file zigux/tests/phase15_build.zig`; latest blocker disposition `blocked_packet_lifetime_boundary_still_too_wide`
 
 ## Current blocker posture
 
@@ -79,11 +82,12 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
+- the same parked packet also stays reachable through `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15`; if a later reviewer starts from the Linux-style wrapper route instead of the direct script and Zig commands above, confirm those wrapper routes still land on the exact same freeze-map-local checks before widening anything else
 - reopen only when one of the packet-local conditions below becomes true:
   - a freeze-map anchor changes status bucket, blocker disposition, or required approver set
   - the freeze-in-C or study-only anchor set changes in `Documentation/zigux/freeze-map.md`
   - the shared validator-first route or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence-archive, replay-command, stay-in-C, or no-silent-exception posture recorded here
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_manifest.json`, and `zigux/tests/phase15_freeze_map_governance.zig`, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening shared-summary, parity-scorecard, or readiness packets
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, and `zigux/Makefile`, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening shared-summary, parity-scorecard, or readiness packets
 
 ## Recorded gaps
 
@@ -107,7 +111,7 @@ The current lane state is:
 
 This keeps the lane tight: Zigux keeps the same reviewable governance rule for the freeze map, the same current stay-in-C policy family, the same parity-scorecard lane-owner and rollback-owner records, the same machine-checkable scorecard manifest, the same shared validator-first route, the same per-anchor required-approver-set inventory and evidence-archive reporting posture already expected by the broader Phase 15 packet, the same compact crosswalk that says which blocker comes straight from the roadmap freeze and which current repo evidence still keeps each deep-core anchor parked, and an explicit maintenance-mode handoff that says when the packet may reopen and which replay route should be rerun before trusting it again.
 
-The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-13 dated readback and the current shared owner-map reuse of skbuff lane P14-L11 instead of implying a stale separate shared-lane label still covered skbuff evidence.
+The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-13 dated readback, the shared Linux-style `phase15-validate`, `phase15-test`, and `phase15` wrapper routes that still land on this packet, and the current shared owner-map reuse of skbuff lane P14-L11 instead of implying a stale separate shared-lane label still covered skbuff evidence.
 
 ## Non-goals
 
