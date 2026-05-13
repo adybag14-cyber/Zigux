@@ -36,6 +36,9 @@ TESTS_README_COMPILE_SHARD_LINES = [
 TESTS_README_AFTER_ANCHOR_LINES = (
     TESTS_README_PACKET_LINES + TESTS_README_COMPILE_SHARD_LINES
 )
+TESTS_README_ROUTE_MARKERS = [
+    "make -C zigux phase14-smoke",
+]
 REQUIRED_SHARED_SMOKE_SURFACES = [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_workqueue_reviewability.zig",
@@ -59,6 +62,15 @@ def read_text(path: Path) -> str:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def require_exact_count(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            errors.append(
+                f"marker count drift in {rel_path}: {marker} (expected 1, found {count})"
+            )
 
 
 def require_exact_line_count(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
@@ -194,6 +206,12 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
             text,
             TESTS_README_AFTER_ANCHOR_LINES,
         )
+        require_exact_count(
+            errors,
+            TESTS_README_PATH.as_posix(),
+            text,
+            TESTS_README_ROUTE_MARKERS,
+        )
         require_lines_after_anchor(
             errors,
             TESTS_README_PATH.as_posix(),
@@ -223,6 +241,7 @@ def good_tests_readme_text() -> str:
             "Key entrypoints",
             TESTS_README_PACKET_ANCHOR,
             *TESTS_README_AFTER_ANCHOR_LINES,
+            "  * `make -C zigux phase14-smoke`",
             "  * `zigux/tests/phase15_build.zig`",
         ]
     ) + "\n"
@@ -444,6 +463,37 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
+                "  * `make -C zigux phase14-smoke`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "make -C zigux phase14-smoke",
+            "self-test expected missing smoke-route marker failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                "  * `make -C zigux phase14-smoke`\n",
+                "  * `make -C zigux phase14-smoke`\n"
+                "  * `make -C zigux phase14-smoke`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "make -C zigux phase14-smoke",
+            "self-test expected duplicate smoke-route marker failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
                 "\n".join(
                     [
                         TESTS_README_PACKET_ANCHOR,
@@ -496,9 +546,9 @@ def run_self_test() -> int:
         write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
-                "  * `zigux/tests/phase15_build.zig`\n",
+                "  * `make -C zigux phase14-smoke`\n",
                 "  * `zigux/tests/phase14_boundary_drift.zig`\n"
-                "  * `zigux/tests/phase15_build.zig`\n",
+                "  * `make -C zigux phase14-smoke`\n",
                 1,
             ),
         )
@@ -584,7 +634,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=23")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
@@ -596,6 +646,10 @@ def run_self_test() -> int:
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_ANCHOR_MANIFEST_COUNT="
         f"{len(REQUIRED_ANCHOR_MANIFESTS)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_ROUTE_MARKER_COUNT="
+        f"{len(TESTS_README_ROUTE_MARKERS)}"
     )
     return 0
 
