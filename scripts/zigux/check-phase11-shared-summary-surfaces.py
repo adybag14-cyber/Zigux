@@ -44,6 +44,11 @@ REQUIRED_MARKERS = {
     "scripts_root": [
         "Phase 11 flow -",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
+        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
     ],
     "tests_root": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too",
@@ -69,7 +74,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 32
 
 
 class CheckError(RuntimeError):
