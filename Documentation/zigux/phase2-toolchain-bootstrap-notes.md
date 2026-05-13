@@ -7,6 +7,8 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
 - shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
+- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
+- shared kconfig bridge gate: `python3 scripts/zigux/check-kconfig-bridge.py`
 - shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`
 - shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
@@ -21,7 +23,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - Linux-style kconfig route: `make -C zigux phase2-kconfig`
 - Linux-style cross route: `make -C zigux phase2-cross`
 - Linux-style tranche route: `make -C zigux phase2`
-- the broader fixdep, genksyms, artifact-tools, checker-backed kconfig bridge (`scripts/zigux/check-kconfig-bridge.py`), and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note
+- the broader fixdep, genksyms, artifact-tools, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note
 
 ## Pin Scope
 
