@@ -91,6 +91,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py": 1,
 }
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
@@ -101,6 +103,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+    "run: python3 scripts/zigux/check-kconfig-bridge.py": 1,
 }
 
 PHASE2_VALIDATION_COMMAND_SPECS = (
@@ -750,6 +754,42 @@ def run_self_test_checks() -> list[str]:
             ],
         ),
         (
+            "workflow_kconfig_bridge_selftest_missing",
+            validate_exact_lines(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-kconfig-bridge.py\n",
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"
+            ],
+        ),
+        (
+            "workflow_kconfig_bridge_gate_missing",
+            validate_exact_lines(
+                "run: python3 scripts/zigux/validate-phase2.py\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
+                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
+                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
+                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test\n",
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            [
+                "workflow:exact_count:run: python3 scripts/zigux/check-kconfig-bridge.py:count=0:expected=1"
+            ],
+        ),
+        (
             "makefile_phase2_validation_missing",
             validate_exact_lines(
                 "\n".join(
@@ -767,6 +807,48 @@ def run_self_test_checks() -> list[str]:
                 "makefile",
             ),
             ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py:count=0:expected=1"],
+        ),
+        (
+            "makefile_kconfig_bridge_selftest_missing",
+            validate_exact_lines(
+                "\n".join(
+                    [
+                        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+                    ]
+                ),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
+            ),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "makefile_kconfig_bridge_gate_missing",
+            validate_exact_lines(
+                "\n".join(
+                    [
+                        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+                    ]
+                ),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
+            ),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py:count=0:expected=1"],
         ),
         (
             "phase2_validator_missing_tool_manifest_command",
@@ -916,7 +998,7 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=21")
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=25")
         return 0
 
     if issues:
