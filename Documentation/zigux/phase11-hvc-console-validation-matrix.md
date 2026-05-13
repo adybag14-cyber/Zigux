@@ -16,6 +16,9 @@ This document records the bounded kernel-integration validation matrix for the Z
   - `zigux/tests/phase11_hvc_console_modem_control_split.zig`
   - `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
   - `drivers/tty/hvc/hvc_console_sysrq.zig`
+  - `drivers/tty/hvc/hvc_console_verify.zig`
+  - `zigux/tests/phase11_hvc_console.zig`
+  - `zigux/tests/phase11_hvc_cleanup.zig`
   - `Documentation/zigux/phase11-hvc-console-survey.md`
   - `Documentation/zigux/phase11-hvc-console-slice.md`
   - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
@@ -25,7 +28,7 @@ This document records the bounded kernel-integration validation matrix for the Z
   - `make -C zigux phase11-hvc-survey`
   - `.github/workflows/zigux-bootstrap.yml`
 
-Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.
+Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.
 
 ## Why This Exists
 
@@ -61,7 +64,7 @@ Without this matrix, the archival packet names the right follow-through but does
 
 - the dedicated archival replay remains separate through `make -C zigux phase11-hvc-survey`
 - the HVC packet checker continues to keep the survey gate, survey note, teardown note, validation matrix, modem-control split, poll-retry split, and sysrq helper aligned
-- the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair
+- the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap
 - the shared Phase 11 packet still references this lane through `Documentation/zigux/phase11-shared-replay-contract.md` and `.github/workflows/zigux-bootstrap.yml` without absorbing the driver-local archival wording into a broader closure claim
 
 ## Review Rules
@@ -70,5 +73,5 @@ Without this matrix, the archival packet names the right follow-through but does
 - treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the landing checkpoint for the archived packet at `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`, not as a rolling promise about runtime parity
 - keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned whenever the close, remove, notifier-add, khvcd polling-contract, or hangup-disconnect ownership story changes
 - keep `scripts/zigux/check-phase11-hvc-survey-packet.py`, `make -C zigux phase11-hvc-survey`, and the survey-backed packet aligned whenever the archival HVC split changes so the lane stays reviewable and the dedicated route keeps failing closed
-- do not claim notifier callbacks, khvcd execution, live sysrq dispatch, host-backed I/O coverage, or a direct HVC verify-and-replay pair until the Zig surface and tests for those behaviors exist
+- do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure
 - keep the next same-lane repair inside a host-free khvcd, notifier, remove, or cleanup handoff before widening any execution-facing behavior
