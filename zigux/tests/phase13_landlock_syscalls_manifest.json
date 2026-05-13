@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L13",
+  "lane_key": "P13-L14",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-12",
+  "surveyed_commit": "master-readback-2026-05-13",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -31,14 +31,14 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "Current master ships a bounded Landlock syscalls helper lab for restrict-self planning, logging-flag translation, add-rule dispatch, release-side `fop_ruleset_release()` planning, and the combined `ruleset_fops` wrapper contract without claiming live Landlock mutation."
+      "why_now": "Current master ships a bounded Landlock syscalls helper lab for create-ruleset planning, restrict-self planning, logging-flag translation, add-rule dispatch, release-side `fop_ruleset_release()` planning, and the combined `ruleset_fops` wrapper contract without claiming live Landlock mutation."
     },
     {
       "id": "phase13-landlock-syscalls-direct-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_landlock_syscalls.zig",
-      "why_now": "A direct syscall replay keeps the shipped credential-gate, logging-flag, add-rule dispatch, and release-side planning packet machine-checkable while the shared build surface stays absent."
+      "why_now": "A direct syscall replay keeps the shipped create-ruleset boundary, credential-gate, logging-flag, add-rule dispatch, and release-side planning packet machine-checkable while the shared build surface stays absent."
     },
     {
       "id": "phase13-landlock-syscalls-reviewability-gate",
@@ -52,7 +52,7 @@
       "status": "blocked_on_live_fd_installation",
       "kind": "runtime_boundary",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The current helper packet does not model live `anon_inode_getfd()` installation, file-descriptor revocation, or real file-operations registration; it stays at reviewable planning only."
+      "why_now": "The current helper packet now models the pre-`anon_inode_getfd()` create-ruleset boundary, but it still does not perform live FD installation, file-descriptor revocation, or real file-operations registration."
     },
     {
       "id": "phase13-landlock-live-credential-state",
