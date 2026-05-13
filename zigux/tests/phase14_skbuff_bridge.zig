@@ -79,6 +79,11 @@ test "phase14 skbuff bridge manifest records the live blocked ownership packet" 
     try std.testing.expect(hasGap(manifest, "phase14-skbuff-live-ownership-blocker", "blocked_on_stay_in_c_evidence"));
     try std.testing.expect(hasChecklistEntry(
         manifest.decision_checklist,
+        "queue-facing-tail-publication",
+        &[_][]const u8{ "skb_segment", "validate_xmit_skb_list", "skb_mark_not_on_list" },
+    ));
+    try std.testing.expect(hasChecklistEntry(
+        manifest.decision_checklist,
         "shared-info-refcount-ownership",
         &[_][]const u8{ "struct skb_shared_info", "dataref", "skb_header_cloned" },
     ));
@@ -141,12 +146,13 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_lifetime_audit_outline);
     try std.testing.expect(descriptor.provides_stay_in_c_decisions);
-    try std.testing.expectEqual(@as(usize, 6), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 2), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 3), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
     try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "No smaller review-only skbuff follow-up remains") != null);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "live ownership blocker") != null);
+    try std.testing.expectEqualStrings("queue-facing-tail-publication", map.areas[4].id);
     try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", audit.checkpoints[8].id);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "skb_mark_not_on_list()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "tail = skb->prev") != null);
