@@ -13,6 +13,8 @@ Keep the current bounded virtio closure packet explicit through these shared sur
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
