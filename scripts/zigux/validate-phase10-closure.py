@@ -71,6 +71,11 @@ MANIFEST_MARKERS = [
     '"phase": "Phase 10"',
     '"tranche": "virtio-lab-bundle"',
     '"scripts/zigux/check-phase10-harness-coverage.py"',
+    '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
+    '"drivers/virtio/virtio_ring_verify.zig"',
+    '"zigux/tests/phase10_virtio_ring_reset_reuse.zig"',
+    '"drivers/virtio/virtio_input_verify.zig"',
+    '"drivers/virtio/virtio_mmio_verify.zig"',
     '"source": "manifest_derived"',
     '"surveyed_commits": {',
     '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
@@ -125,7 +130,7 @@ MARKER_SETS = {
     "zigux/tests/phase10_virtio_ring_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_input_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_mmio_manifest.json": TRANSPORT_MANIFEST_MARKERS,
-}
+]
 
 MARKER_LABELS = {
     "zigux/Makefile": "make",
@@ -329,58 +334,74 @@ def run_required_commands(root: Path) -> list[str]:
 
 def build_fixture_manifest_text() -> str:
     return """{
-  \"phase\": \"Phase 10\",
-  \"status\": \"active\",
-  \"tranche\": \"virtio-lab-bundle\",
-  \"roadmap_parity_scoreboard\": {
-    \"virtqueue_wrappers\": {
-      \"status\": \"starter_landed\"
+  "phase": "Phase 10",
+  "status": "active",
+  "tranche": "virtio-lab-bundle",
+  "roadmap_parity_scoreboard": {
+    "virtqueue_wrappers": {
+      "status": "starter_landed",
+      "evidence": [
+        "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+      ]
     },
-    \"mmio_wrappers\": {
-      \"status\": \"starter_landed\"
+    "mmio_wrappers": {
+      "status": "starter_landed",
+      "evidence": [
+        "drivers/virtio/virtio_mmio_verify.zig"
+      ]
     },
-    \"lab_only_driver_validation\": {
-      \"status\": \"starter_landed\"
+    "lab_only_driver_validation": {
+      "status": "starter_landed",
+      "evidence": [
+        "scripts/zigux/check-phase10-harness-coverage.py",
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        "drivers/virtio/virtio_input_verify.zig",
+        "drivers/virtio/virtio_mmio_verify.zig"
+      ]
     },
-    \"dual_implementations_for_risky_areas\": {
-      \"status\": \"blocked_on_risky_transport\"
+    "dual_implementations_for_risky_areas": {
+      "status": "blocked_on_risky_transport"
     }
   },
-  \"survey_provenance\": {
-    \"source\": \"manifest_derived\",
-    \"lane_keys\": {
-      \"core\": \"P10-L01\",
-      \"ring\": \"P10-L07\",
-      \"input\": \"P10-L13\",
-      \"mmio\": \"P10-L10\"
+  "survey_provenance": {
+    "source": "manifest_derived",
+    "lane_keys": {
+      "core": "P10-L01",
+      "ring": "P10-L07",
+      "input": "P10-L13",
+      "mmio": "P10-L10"
     },
-    \"surveyed_commits\": {
-      \"core\": \"c11221dc7a68d7511ae1c69d64b3f08528287ed8\",
-      \"ring\": \"bdfe88e865b94387b3c3bd41ca98054c452f78b9\",
-      \"input\": \"7361ac51374149a96b7a7a2c6ea3c995d8cc1231\",
-      \"mmio\": \"84f90e23ad1c28ae345905d5293a8c5395f37d43\"
+    "surveyed_commits": {
+      "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+      "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+      "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+      "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"
     }
   },
-  \"focused_harness_replays\": {
-    \"zigux/tests/phase10_virtio_core_reset_queue.zig\": [
-      \"phase10 core reset-queue replay\"
+  "focused_harness_replays": {
+    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+      "phase10 core reset-queue replay"
     ]
   },
-  \"exact_checks\": [
-    \"scripts/zigux/check-phase10-harness-coverage.py\"
+  "exact_checks": [
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
   ],
-  \"ready_transport_followups\": {
-    \"zigux/tests/phase10_virtio_mmio_manifest.json\": \"phase10-mmio-lifecycle-and-irq-paths\"
+  "ready_transport_followups": {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
   },
-  \"landed_ring_helper_evidence\": {
-    \"zigux/tests/phase10_virtio_ring_manifest.json\": [
-      \"phase10-notification-data-summary-helper\"
+  "landed_ring_helper_evidence": {
+    "zigux/tests/phase10_virtio_ring_manifest.json": [
+      "phase10-notification-data-summary-helper"
     ]
   },
-  \"landed_mmio_helper_evidence\": {
-    \"zigux/tests/phase10_virtio_mmio_manifest.json\": [
-      \"phase10-mmio-config-write-disposition-helper\",
-      \"phase10-mmio-selected-queue-readiness-helper\"
+  "landed_mmio_helper_evidence": {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": [
+      "phase10-mmio-config-write-disposition-helper",
+      "phase10-mmio-selected-queue-readiness-helper"
     ]
   }
 }
@@ -396,7 +417,8 @@ def write_fixture(root: Path) -> None:
     files = {
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
-        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS)
+        + "\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": (
@@ -660,7 +682,6 @@ def run_self_test() -> int:
             closure_manifest.read_text(encoding="utf-8").replace(
                 '"scripts/zigux/check-phase10-harness-coverage.py"',
                 '"scripts/zigux/check-phase10-harness-coverage.py-missing"',
-                1,
             ),
             encoding="utf-8",
         )
@@ -668,6 +689,76 @@ def run_self_test() -> int:
             root,
             'manifest:"scripts/zigux/check-phase10-harness-coverage.py"',
             "phase10-closure-self-test:missing_manifest_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
+                '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py-missing"',
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
+            "phase10-closure-self-test:missing_manifest_core_surfaces_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"drivers/virtio/virtio_ring_verify.zig"',
+                '"drivers/virtio/virtio_ring_verify_missing.zig"',
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"drivers/virtio/virtio_ring_verify.zig"',
+            "phase10-closure-self-test:missing_manifest_ring_verify_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"zigux/tests/phase10_virtio_ring_reset_reuse.zig"',
+                '"zigux/tests/phase10_virtio_ring_reset_reuse_missing.zig"',
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"zigux/tests/phase10_virtio_ring_reset_reuse.zig"',
+            "phase10-closure-self-test:missing_manifest_ring_reset_reuse_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"drivers/virtio/virtio_input_verify.zig"',
+                '"drivers/virtio/virtio_input_verify_missing.zig"',
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"drivers/virtio/virtio_input_verify.zig"',
+            "phase10-closure-self-test:missing_manifest_input_verify_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"drivers/virtio/virtio_mmio_verify.zig"',
+                '"drivers/virtio/virtio_mmio_verify_missing.zig"',
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"drivers/virtio/virtio_mmio_verify.zig"',
+            "phase10-closure-self-test:missing_manifest_mmio_verify_marker_not_detected",
         )
         write_fixture(root)
 
@@ -883,7 +974,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
