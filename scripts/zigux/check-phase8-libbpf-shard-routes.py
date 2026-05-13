@@ -92,6 +92,7 @@ REQUIRED_MARKERS = {
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
         "Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue",
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
         "Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.",
@@ -479,6 +480,13 @@ def run_self_test() -> None:
             "Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
             "Exact 2026-05-13 readback reopens the earlier docs-root cue because the broad Phase 8 docs summary still omits the live file-path bridge note.",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
+        ),
+        (
+            "segment_survey_checker_alignment_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue",
+            "`scripts/zigux/check-phase8-libbpf-segment-gate.py` aligned with the closed docs-root cue",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue",
         ),
         (
             "segment_survey_landed_slice_catalog_anchor",
