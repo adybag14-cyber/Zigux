@@ -1,0 +1,35 @@
+{
+  "empty": {
+    "first_priority": null,
+    "last_priority": null,
+    "len": 0,
+    "nonincreasing": true,
+    "priorities": []
+  },
+  "ordered": {
+    "first_priority": 12,
+    "last_priority": -4,
+    "len": 3,
+    "nonincreasing": true,
+    "priorities": [
+      12,
+      3,
+      -4
+    ]
+  },
+  "results": {
+    "done": 0,
+    "ok": 1,
+    "stop": 2
+  },
+  "unordered": {
+    "first_priority": 1,
+    "last_priority": 7,
+    "len": 2,
+    "nonincreasing": false,
+    "priorities": [
+      1,
+      7
+    ]
+  }
+}
