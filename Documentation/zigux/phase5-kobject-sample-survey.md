@@ -27,6 +27,7 @@ Fresh repo-first inspection on 2026-05-13 confirmed that the current directly ve
 - `zigux/tests/phase5_kobject_example.zig` still keeps the descriptor contract explicit for the `samples/kobject/kobject-example.c` anchor, including the in-memory `kobject_example` directory name, `requires_runtime_substrate = false`, and `provides_selfcheck = true`
 - `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the attribute group unnamed, keeps the shared `baz` and `bar` handlers explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
 - `runPreRegistrationBoundaryReplay()` still keeps the sample initialized, keeps `active_attr_count` at zero, and keeps pre-registration `show` and `store` rejection explicit
+- calling `init()` twice still keeps the sample initialized, leaves `active_attr_count` at zero, and returns `InvalidLifecycleTransition` on the second init without advancing `register_runs` or `exit_runs`
 - `runRegisteredBoundaryReplay()` still keeps the sample registered with three active attributes, keeps `init_runs = 1`, `register_runs = 1`, and `exit_runs = 0`, rejects duplicate registration and registered-stage anchor replay, and still allows a bounded `foo` write/read roundtrip afterward
 - `runInputValidationReplay()` still keeps the sample registered while storing `9` into `baz` and `10` into `bar`, keeps invalid integer writes on `foo` rejected, leaves the `foo` value at `0` after the failed parse, and keeps unknown-attribute `show` and `store` rejection explicit
 - `runOwnershipReplay()` still keeps the lifecycle packet explicit across the cold, initialized, registered, and exited snapshots, including active attribute counts `0`, `0`, `3`, and `0` and the counter progression `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
@@ -41,6 +42,7 @@ The current manifest-backed exact checks for the kobject packet are now recorded
 - `directory-name`: the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
 - `registration-step`: `runAnchorReplay()` requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, and keeps duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` calls blocked by `InvalidLifecycleTransition`
 - `pre-registration-boundary`: `runPreRegistrationBoundaryReplay()` leaves the sample initialized, keeps the active attribute count at zero, and shows that `show` or `store` still return `InvalidLifecycleTransition` before `registerAttributes()` opens the sample
+- `single-init-boundary`: calling `init()` twice keeps the sample initialized, leaves the active attribute count at zero, and returns `InvalidLifecycleTransition` on the second init without advancing `register_runs` or `exit_runs`
 - `registered-boundary`: `runRegisteredBoundaryReplay()` leaves the sample registered, keeps the active attribute count at three, keeps `register_runs` pinned at one across duplicate registration plus registered-stage anchor-replay rejection, and still allows a bounded `foo` write/read roundtrip afterward
 - `ownership-summary`: `ownershipSummary()` and `runOwnershipReplay()` report the cold, initialized, registered, and exited stages with active attribute counts `0`, `0`, `3`, and `0`
 - `ownership-counters`: `runOwnershipReplay()` keeps the init/register/exit progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
@@ -54,7 +56,7 @@ The current manifest-backed exact checks for the kobject packet are now recorded
 
 The roadmap still calls for a reviewable Phase 5 kobject reference-pattern anchor, and the current kobject packet still satisfies that bounded goal through the focused test plus manifest-backed replay contract.
 
-The honest same-lane gap was not missing new behavior. It was that this survey note had fallen behind the current packet and was still describing an older readback-warning posture instead of the exact checks that current `master` already keeps visible.
+The honest same-lane gap was review-note drift: this survey note had fallen behind the current packet and was still missing the now-explicit one-time init ownership boundary even though the focused test and manifest already kept it reviewable. This refresh closes that note-only gap without widening the sample surface.
 
 ## Non-goals
 
