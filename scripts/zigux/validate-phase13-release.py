@@ -123,7 +123,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-        "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence",
+        "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence",
         "if a broad reminder still spells the missing devres reviewability companion as `zigux/tests/phase13Devres_reviewability.zig`, treat that as stale wording for `zigux/tests/phase13_devres_reviewability.zig`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
@@ -313,7 +313,7 @@ def run_self_test() -> int:
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]
                 if marker
-                != "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence"
+                != "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
             )
             + "\n",
         )
@@ -321,9 +321,9 @@ def run_self_test() -> int:
             validate(root),
             [
                 "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:"
-                "keep `zigux/tests/README.md` framed as the next broader shared-surface follow-through for Phase 13 rather than as independently shipped packet evidence"
+                "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
             ],
-            "missing_tests_root_followthrough_failed",
+            "missing_shipped_tests_root_phrase_failed",
         )
         write_text(
             root,
