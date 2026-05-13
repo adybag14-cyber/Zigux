@@ -756,6 +756,19 @@ def run_self_test() -> int:
         sequencing_path = base / RELEASE_SEQUENCING_PATH
         sequencing_path.write_text(
             sequencing_path.read_text(encoding="utf-8").replace(
+                RELEASE_SEQUENCING_MARKERS[1], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[1]}",
+        )
+
+        write_fixture_tree(base)
+        sequencing_path = base / RELEASE_SEQUENCING_PATH
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
                 RELEASE_SEQUENCING_MARKERS[2], "", 1
             ),
             encoding="utf-8",
@@ -936,7 +949,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=27")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
