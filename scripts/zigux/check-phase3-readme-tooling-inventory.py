@@ -77,6 +77,7 @@ REQUIRED_MARKERS = (
     "generate-phase3-check-wrappers.py",
     "run-phase3-checks.py",
     "generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog",
+    "zigux/kernel/export_shim.zig",
     "zigux/uapi/dev_t.zig",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
@@ -322,6 +323,12 @@ def run_self_test() -> int:
     if "Documentation/zigux/phase3-export-uapi-boundary-survey.md" not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected export-uapi boundary marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("zigux/kernel/export_shim.zig", "", 1))
+    if "zigux/kernel/export_shim.zig" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected export-shim marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("make -C zigux phase3-selftest", "", 1))
