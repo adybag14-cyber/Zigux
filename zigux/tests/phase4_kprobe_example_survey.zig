@@ -123,11 +123,19 @@ test "phase4 kprobe survey keeps shared validation matrix aligned" {
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
+        "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
         "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
         "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "* survey owner: `Validation and Perf Team`",
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
