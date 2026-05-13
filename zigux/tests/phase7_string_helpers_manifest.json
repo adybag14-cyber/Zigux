@@ -60,7 +60,7 @@
     "owned replacement and quotable-log duplication without mutating caller buffers beyond the exported C-string prefix",
     "sequential prefix-index string-array allocation with zero-count sentinel reuse and repeated-teardown safety"
   ],
-  "current_master_truthfulness": "The review packet is still present on current master, but both lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig are missing from the live tree and should not be described as landed review surfaces; the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet, while the docs-root shared Phase 7 summary still needs a separate same-packet truthfulness refresh.",
+  "current_master_truthfulness": "The review packet is still present on current master, but both lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig are missing from the live tree and should not be described as landed review surfaces; the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders still align with the parked slice note, survey gate, and no-sample boundary packet, while the docs-root shared Phase 7 summary still needs a separate same-packet truthfulness refresh because it overstates string_helpers as part of the landed shared-build bundle.",
   "survey_summary": {
     "preexisting_phase7_test_files": 0,
     "preexisting_phase7_fixture_modules": 0,
@@ -102,7 +102,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The docs-root Phase 7 summary still needs to describe the string-helper slice as a parked same-packet truthfulness repair while lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig remain missing from current master, instead of reading as if the whole helper bundle still carries dedicated proof through the shared build gate."
+      "why_now": "The docs-root Phase 7 summary still needs to describe the string-helper slice as a parked same-packet truthfulness repair while lib/string_helpers.zig and zigux/tests/phase7_string_helpers.zig remain missing from current master, instead of overstating string_helpers as part of the landed shared-build bundle."
     },
     {
       "id": "phase7-string-helpers-no-sample-boundary",
