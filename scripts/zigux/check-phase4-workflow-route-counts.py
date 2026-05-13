@@ -82,6 +82,12 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
 ]
 
+REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+]
+
 REQUIRED_WORKFLOW_MARKERS = [
     "- name: Validate Phase 4 diff gates",
     "run: make -C zigux phase4-validate",
@@ -167,6 +173,7 @@ FORBIDDEN_BUILD_MARKERS = [
 SELFTEST_CASES = [
     "baseline_round_trip",
     "workflow_order_drift",
+    "missing_make_artifact_diff_contract_selftest_command",
     "missing_make_route_counts_command",
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
@@ -392,6 +399,7 @@ def required_check_count() -> int:
         len(EXPECTED_MAKE_TARGETS)
         + len(REQUIRED_MAKE_MARKERS)
         + len(REQUIRED_PHASE4_VALIDATE_COMMANDS)
+        + len(REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS)
         + len(REQUIRED_WORKFLOW_MARKERS)
         + len(REQUIRED_WORKFLOW_ORDER_MARKERS)
         + len(REQUIRED_BUILD_MARKERS)
@@ -416,8 +424,7 @@ def ensure_target_commands(makefile_text: str, target: str, commands: list[str])
     if missing:
         joined = "\n".join(f"  - {command}" for command in missing)
         raise SystemExit(
-            f"zigux/Makefile target {target} is missing required Phase 4 commands:\n{joined}"
-        )
+            f"zigux/Makefile target {target} is missing required Phase 4 commands:\n{joined}")
 
 
 def check(
@@ -442,6 +449,11 @@ def check(
     ensure_expected_targets(makefile_text)
     ensure_markers("zigux/Makefile", makefile_text, REQUIRED_MAKE_MARKERS)
     ensure_target_commands(makefile_text, "phase4-validate", REQUIRED_PHASE4_VALIDATE_COMMANDS)
+    ensure_target_commands(
+        makefile_text,
+        "phase4-artifact-diff-contract",
+        REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS,
+    )
     ensure_markers(".github/workflows/zigux-bootstrap.yml", workflow_text, REQUIRED_WORKFLOW_MARKERS)
     ensure_marker_order(
         ".github/workflows/zigux-bootstrap.yml",
@@ -546,6 +558,34 @@ def run_selftest() -> None:
         )
         expect_failure(
             "workflow order drift",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "phase4-artifact-diff-contract:\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+                "phase4-artifact-diff-contract:\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing artifact-diff contract self-test Makefile command",
             lambda: check(
                 makefile,
                 workflow,
