@@ -9,10 +9,34 @@ const Governance = struct {
     why_now: []const u8,
 };
 
+const SurveySummary = struct {
+    ring_buffer_c_lines: usize,
+    ring_buffer_design_doc_lines: usize,
+    ring_buffer_map_doc_lines: usize,
+    trace_c_lines: usize,
+    simple_ring_buffer_c_lines: usize,
+    preexisting_phase14_build_present: bool,
+    preexisting_phase14_make_target_present: bool,
+    preexisting_phase14_workqueue_bridge_present: bool,
+    preexisting_ring_buffer_zig_present: bool,
+    preexisting_phase14_ring_buffer_manifest_present: bool,
+    preexisting_phase14_ring_buffer_survey_test_present: bool,
+    preexisting_phase14_ring_buffer_survey_note_present: bool,
+};
+
+const MaintenanceHandoff = struct {
+    current_lane_posture: []const u8,
+    replay_before_trusting: []const []const u8,
+    reopen_conditions: []const []const u8,
+    next_future_target: []const u8,
+};
+
 const ChecklistEntry = struct {
     id: []const u8,
+    summary: []const u8,
     ownership: []const u8,
     anchor_symbols: []const []const u8,
+    rationale: []const u8,
 };
 
 const Gap = struct {
@@ -29,7 +53,9 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
     study_only_governance: Governance,
+    maintenance_handoff: MaintenanceHandoff,
     decision_checklist: []const ChecklistEntry,
     gaps: []const Gap,
 };
@@ -37,15 +63,6 @@ const Manifest = struct {
 fn hasChecklistEntry(entries: []const ChecklistEntry, id: []const u8) bool {
     for (entries) |entry| {
         if (std.mem.eql(u8, entry.id, id) and std.mem.eql(u8, entry.ownership, "stay_in_c")) {
-            return true;
-        }
-    }
-    return false;
-}
-
-fn hasString(entries: []const []const u8, value: []const u8) bool {
-    for (entries) |entry| {
-        if (std.mem.eql(u8, entry, value)) {
             return true;
         }
     }
@@ -81,13 +98,17 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("99cd3249c4bab05b74227ed7ca3869284e818588", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expect(hasString(manifest.roadmap_destinations, "kernel/trace/ring_buffer.zig"));
+    try std.testing.expectEqual(@as(usize, 8103), manifest.survey_summary.ring_buffer_c_lines);
+    try std.testing.expectEqual(@as(usize, 983), manifest.survey_summary.ring_buffer_design_doc_lines);
+    try std.testing.expectEqual(false, manifest.survey_summary.preexisting_ring_buffer_zig_present);
     try std.testing.expectEqualStrings("study_only", manifest.study_only_governance.status_bucket);
     try std.testing.expectEqualStrings("", manifest.study_only_governance.ready_next_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
-    try std.testing.expectEqualStrings("same_packet_truthfulness_repairs_only", manifest.study_only_governance.lane_reopen_scope);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "parked study-only governance") != null);
+    try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "ring-buffer-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "maintenance-mode handoff") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reserve-commit-publication"));
@@ -111,12 +132,13 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     defer std.testing.allocator.free(note);
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_STATUS=study_only") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "boundary-study target first, not a rewrite target") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "only appropriate if years of evidence justify it") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-zig-port-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-read-page-extraction-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-tracefs-reader-serialization-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "current lane posture: `maintenance_mode`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zig test zigux/tests/phase14_ring_buffer_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "ring-buffer-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "kernel/trace/ring_buffer.zig") != null);
 }
