@@ -178,5 +178,7 @@ test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 bu
     const scripts_readme = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_readme);
     try expectContains(scripts_readme, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(scripts_readme, "current `master` also still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
+    try expectNotContains(scripts_readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(scripts_readme, "there is no separate shared `check-phase7-build-inventory.py`, `phase7_build_inventory.json`, or broader packet-checker stack on `master`;");
 }
