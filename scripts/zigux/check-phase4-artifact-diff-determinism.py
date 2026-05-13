@@ -142,6 +142,7 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}`",
     f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASES={','.join(EXPECTED_CONTRACT_CASES)}`",
     f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}`",
+    f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES={','.join(EXPECTED_SELF_TEST_CASES)}`",
 ]
 REQUIRED_REVIEW_NOTE_MARKERS = [
     "- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet",
