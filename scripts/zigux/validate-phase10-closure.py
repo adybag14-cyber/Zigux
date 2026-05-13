@@ -333,79 +333,81 @@ def run_required_commands(root: Path) -> list[str]:
 
 
 def build_fixture_manifest_text() -> str:
-    return """{
-  \"phase\": \"Phase 10\",
-  \"status\": \"active\",
-  \"tranche\": \"virtio-lab-bundle\",
-  \"roadmap_parity_scoreboard\": {
-    \"virtqueue_wrappers\": {
-      \"status\": \"starter_landed\",
-      \"evidence\": [
-        \"drivers/virtio/virtio_ring_verify.zig\",
-        \"zigux/tests/phase10_virtio_ring_reset_reuse.zig\"
-      ]
-    },
-    \"mmio_wrappers\": {
-      \"status\": \"starter_landed\",
-      \"evidence\": [
-        \"drivers/virtio/virtio_mmio_verify.zig\"
-      ]
-    },
-    \"lab_only_driver_validation\": {
-      \"status\": \"starter_landed\",
-      \"evidence\": [
-        \"scripts/zigux/check-phase10-harness-coverage.py\",
-        \"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\",
-        \"drivers/virtio/virtio_ring_verify.zig\",
-        \"zigux/tests/phase10_virtio_ring_reset_reuse.zig\",
-        \"drivers/virtio/virtio_input_verify.zig\",
-        \"drivers/virtio/virtio_mmio_verify.zig\"
-      ]
-    },
-    \"dual_implementations_for_risky_areas\": {
-      \"status\": \"blocked_on_risky_transport\"
-    }
-  },
-  \"survey_provenance\": {
-    \"source\": \"manifest_derived\",
-    \"lane_keys\": {
-      \"core\": \"P10-L01\",
-      \"ring\": \"P10-L07\",
-      \"input\": \"P10-L13\",
-      \"mmio\": \"P10-L10\"
-    },
-    \"surveyed_commits\": {
-      \"core\": \"c11221dc7a68d7511ae1c69d64b3f08528287ed8\",
-      \"ring\": \"bdfe88e865b94387b3c3bd41ca98054c452f78b9\",
-      \"input\": \"7361ac51374149a96b7a7a2c6ea3c995d8cc1231\",
-      \"mmio\": \"84f90e23ad1c28ae345905d5293a8c5395f37d43\"
-    }
-  },
-  \"focused_harness_replays\": {
-    \"zigux/tests/phase10_virtio_core_reset_queue.zig\": [
-      \"phase10 core reset-queue replay\"
-    ]
-  },
-  \"exact_checks\": [
-    \"scripts/zigux/check-phase10-harness-coverage.py\",
-    \"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\"
-  ],
-  \"ready_transport_followups\": {
-    \"zigux/tests/phase10_virtio_mmio_manifest.json\": \"phase10-mmio-lifecycle-and-irq-paths\"
-  },
-  \"landed_ring_helper_evidence\": {
-    \"zigux/tests/phase10_virtio_ring_manifest.json\": [
-      \"phase10-notification-data-summary-helper\"
-    ]
-  },
-  \"landed_mmio_helper_evidence\": {
-    \"zigux/tests/phase10_virtio_mmio_manifest.json\": [
-      \"phase10-mmio-config-write-disposition-helper\",
-      \"phase10-mmio-selected-queue-readiness-helper\"
-    ]
-  }
-}
-"""
+    return json.dumps(
+        {
+            "phase": "Phase 10",
+            "status": "active",
+            "tranche": "virtio-lab-bundle",
+            "roadmap_parity_scoreboard": {
+                "virtqueue_wrappers": {
+                    "status": "starter_landed",
+                    "evidence": [
+                        "drivers/virtio/virtio_ring_verify.zig",
+                        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                    ],
+                },
+                "mmio_wrappers": {
+                    "status": "starter_landed",
+                    "evidence": [
+                        "drivers/virtio/virtio_mmio_verify.zig",
+                    ],
+                },
+                "lab_only_driver_validation": {
+                    "status": "starter_landed",
+                    "evidence": [
+                        "scripts/zigux/check-phase10-harness-coverage.py",
+                        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+                        "drivers/virtio/virtio_ring_verify.zig",
+                        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                        "drivers/virtio/virtio_input_verify.zig",
+                        "drivers/virtio/virtio_mmio_verify.zig",
+                    ],
+                },
+                "dual_implementations_for_risky_areas": {
+                    "status": "blocked_on_risky_transport",
+                },
+            },
+            "survey_provenance": {
+                "source": "manifest_derived",
+                "lane_keys": {
+                    "core": "P10-L01",
+                    "ring": "P10-L07",
+                    "input": "P10-L13",
+                    "mmio": "P10-L10",
+                },
+                "surveyed_commits": {
+                    "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+                    "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+                    "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+                    "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
+                },
+            },
+            "focused_harness_replays": {
+                "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+                    "phase10 core reset-queue replay",
+                ],
+            },
+            "exact_checks": [
+                "scripts/zigux/check-phase10-harness-coverage.py",
+                "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            ],
+            "ready_transport_followups": {
+                "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+            },
+            "landed_ring_helper_evidence": {
+                "zigux/tests/phase10_virtio_ring_manifest.json": [
+                    "phase10-notification-data-summary-helper",
+                ],
+            },
+            "landed_mmio_helper_evidence": {
+                "zigux/tests/phase10_virtio_mmio_manifest.json": [
+                    "phase10-mmio-config-write-disposition-helper",
+                    "phase10-mmio-selected-queue-readiness-helper",
+                ],
+            },
+        },
+        indent=2,
+    ) + "\n"
 
 
 def build_fixture_ledger_text(root: Path) -> str:
