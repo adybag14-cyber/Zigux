@@ -76,6 +76,10 @@ PRESENT_PATHS = [
 ]
 
 REQUIRED_SNIPPETS = {
+    DOCS_README_PATH.as_posix(): [
+        "while `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` stay explicit as current public-tree gaps rather than shipped replay evidence.",
+        "- the current bounded Phase 6 decision is no longer whether the base64 and checksum helper packet is fully runnable on `master`; the live shared lane is the partially blocked packet already kept truthful by `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so future follow-up here should stay inside one shared summary or checker step at a time unless one of the missing helper-owned base64 or checksum files actually returns.",
+    ],
     CATALOG_PATH.as_posix(): [
         "# Phase 6 Helper Parity Catalog",
         "- `PHASE6_STATUS=parked`",
@@ -392,6 +396,18 @@ def run_self_test() -> None:
             CATALOG_PATH,
             "- surveyed head: `a0f4d7e`",
             "- surveyed head: `deadbeef`",
+        )
+        assert_failure(
+            root,
+            DOCS_README_PATH,
+            "current public-tree gaps rather than shipped replay evidence.",
+            "shipped replay evidence.",
+        )
+        assert_failure(
+            root,
+            DOCS_README_PATH,
+            "- the current bounded Phase 6 decision is no longer whether the base64 and checksum helper packet is fully runnable on `master`; the live shared lane is the partially blocked packet already kept truthful by `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so future follow-up here should stay inside one shared summary or checker step at a time unless one of the missing helper-owned base64 or checksum files actually returns.",
+            "- the current bounded Phase 6 decision is whether the base64 and checksum helper packet is fully runnable on `master`.",
         )
         assert_failure(
             root,
