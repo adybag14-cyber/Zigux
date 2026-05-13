@@ -35,7 +35,7 @@ These shared loader-facing files are visible review-only evidence on current `ma
 
 The direct starter keeps the selftest hook surface and guarded lifecycle parity evidence visible around `lib/atomic64_test.c` without claiming a real loadable runtime module.
 
-The bounded loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` still keeps the intended entry symbol, exit symbol, and handoff-plan shape reviewable. The adjacent shared loader-facing reminder packet is now visible on current `master`, but it remains review-only evidence while the broader runtime substrate stays blocked.
+The bounded loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` still keeps the intended entry symbol, exit symbol, and handoff-plan shape reviewable. It also keeps the prepared `RuntimeAtomic64LoadSummary` snapshot reviewable: once `prepare()` captures the anchor, checked operation families, counter snapshot, and selftest-run count, later counter mutation, later selftest activity, or later exit activity do not rewrite the shared request that this pilot hands toward the still-blocked runtime substrate. The adjacent shared loader-facing reminder packet is now visible on current `master`, but it remains review-only evidence while the broader runtime substrate stays blocked.
 
 That means the honest current atomic64 packet is a direct starter plus a visible shared-loader reminder packet, not a completed loadable runtime-module path.
 
@@ -51,7 +51,7 @@ That means the honest current atomic64 packet is a direct starter plus a visible
 - `samples/zigux/runtime_atomic64.zig` keeps the direct starter and selftest hook surface explicit.
 - `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, and `zigux/tests/runtime_atomic64_survey.zig` keep the direct packet machine-checkable.
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md` and `zigux/tests/runtime_atomic64_manifest.json` keep the packet truthfulness explicit, including the visible shared-loader reminder packet and the still-blocked broader runtime substrate.
-- `samples/zigux/runtime_atomic64_loader.zig` remains a bounded loader scaffold only; it does not currently prove completed runtime-substrate parity.
+- `samples/zigux/runtime_atomic64_loader.zig` remains a bounded loader scaffold only; it owns the prepared `RuntimeAtomic64LoadSummary` snapshot replay across later counter mutation and later lifecycle changes, but it does not currently prove completed runtime-substrate parity.
 
 ## Non-goals
 
