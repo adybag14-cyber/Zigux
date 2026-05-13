@@ -40,6 +40,8 @@ SURVEY_NOTE_MARKERS = [
     "drivers/tty/hvc/hvc_console.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
+    "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+    "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
     "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
@@ -84,6 +86,9 @@ VALIDATION_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey` archival route fail-closed",
+    "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+    "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+    "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
     "targetless notifier no-unregister edge",
     "cleanup tty-port release handoff",
     "notifier callback boundary",
@@ -154,7 +159,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 16
 
 
 class CheckError(RuntimeError):
@@ -396,7 +401,27 @@ def run_self_test() -> None:
                 REQUIRED_FILES["survey_gate"],
                 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
             ),
+            (
+                REQUIRED_FILES["survey_note"],
+                "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+            ),
+            (
+                REQUIRED_FILES["survey_note"],
+                "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+            ),
             (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
+            (
+                REQUIRED_FILES["validation_matrix"],
+                "the direct `zigux/tests/phase11_hvc_console.zig` replay",
+            ),
+            (
+                REQUIRED_FILES["validation_matrix"],
+                "the direct `drivers/tty/hvc/hvc_console_verify.zig` replay boundary",
+            ),
+            (
+                REQUIRED_FILES["validation_matrix"],
+                "the direct `zigux/tests/phase11_hvc_cleanup.zig` cleanup companion",
+            ),
             (
                 REQUIRED_FILES["poll_retry_split"],
                 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"',
@@ -409,6 +434,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
         for idx, (relative_path, marker) in enumerate(cases, start=1):
+            _ = idx
             reset_fixture(tmpdir)
             path = tmpdir / relative_path
             text = path.read_text(encoding="utf-8")
@@ -420,7 +446,7 @@ def run_self_test() -> None:
             expect_failure(tmpdir, marker)
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).write_text(
+        (tmpdir / REQUIRED_FILES["manifest"]).writeText(
             build_manifest_text("z" * 40), encoding="utf-8"
         )
         expect_failure(tmpdir, "invalid surveyed_commit")
