@@ -45,10 +45,8 @@ SURVEY_NOTE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "zigux/tests/phase11_hvc_console.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof",
+    "does not yet ship direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`",
+    "keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence",
     "`hvc_cleanup()` tty-port release handoff summary",
     "`tiocmget` and `tiocmset` fallback coverage when `hv_ops` modem-control callbacks are absent",
     "sysrq handoff stays unavailable after teardown",
@@ -63,10 +61,7 @@ SLICE_NOTE_MARKERS = [
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "zigux/tests/phase11_hvc_console.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable together with the materialized direct verify and cleanup companions, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.",
+    "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable through the shipped starter, helper, split, survey, teardown, and validation surfaces, without widening into tty registration, notifier callback execution, khvcd execution, host-backed transport claims, or direct verify and cleanup companions that are not materialized on current `master`.",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
@@ -97,25 +92,23 @@ VALIDATION_MATRIX_MARKERS = [
     "notifier callback boundary",
     "`hvc_hangup()` disconnect boundary",
     "notifier_hangup boundary",
-    "`drivers/tty/hvc/hvc_console_verify.zig`",
-    "`zigux/tests/phase11_hvc_console.zig`",
-    "`zigux/tests/phase11_hvc_cleanup.zig`",
-    "Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.",
-    "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
-    "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure",
+    "Current `master` does not yet materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep the archived HVC packet explicit through the shipped survey, teardown, split, and helper surfaces without widening it into direct replay closure.",
+    "the shared Phase 11 reminder packet should keep the dedicated HVC survey route explicit without inventing direct verify or cleanup companions that are not materialized on current `master`",
+    "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, direct HVC verify companions, direct HVC cleanup companions, or host-backed I/O coverage as landed; the HVC lane still stays bounded to reviewable host-free survey evidence rather than broader runtime-parity closure",
 ]
 
 FORBIDDEN_MARKERS = {
     "survey_note": [
-        "The current archival packet still does not materialize the direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, or `drivers/tty/hvc/hvc_console_verify.zig` companions, so keep those paths framed as repo-reality gaps rather than as part of the landed archival replay.",
+        "The current archival packet also materializes the direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof.",
+        "The materialized `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions keep the direct verify-only, cleanup-teardown, and replay-only follow-through readable beside the archival survey-backed packet.",
     ],
     "slice_note": [
-        "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable without claiming a missing compile-local verify helper or cleanup replay.",
+        "These archival packet surfaces keep the bounded starter's teardown and failure-mode story reviewable together with the materialized direct verify and cleanup companions, without widening into tty registration, notifier callback execution, khvcd execution, or host-backed transport claims.",
     ],
     "validation_matrix": [
-        "Current `master` still does not materialize direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, or `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths framed as repo-reality gaps rather than as shipped archival replay evidence.",
-        "the shared Phase 11 reminder packet should treat missing direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions as repo-reality gaps instead of reading the archival HVC packet as a direct verify-and-replay pair",
-        "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, host-backed I/O coverage, or a direct HVC verify-and-replay pair until the Zig surface and tests for those behaviors exist",
+        "Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions, so keep those paths explicit as landed bounded replay evidence beside the archived HVC packet without widening them into live notifier, khvcd, or host-backed execution claims.",
+        "the shared Phase 11 reminder packet should keep direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit as landed bounded replay evidence instead of downgrading the archival HVC packet into a missing verify-and-replay gap",
+        "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage as landed; the materialized direct HVC verify and replay companions still stay bounded to reviewable host-free evidence rather than broader runtime-parity closure",
     ],
 }
 
@@ -338,9 +331,9 @@ def run_self_test() -> None:
             (REQUIRED_FILES["driver_starter"], "pub fn summarizeCloseTeardown"),
             (REQUIRED_FILES["driver_starter"], 'test "phase11 hvc console keeps notifier-add open handoff summary reviewable"'),
             (REQUIRED_FILES["survey_gate"], 'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"'),
-            (REQUIRED_FILES["survey_note"], "landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof"),
-            (REQUIRED_FILES["validation_matrix"], "missing verify-and-replay gap"),
-            (REQUIRED_FILES["slice_note"], "zigux/tests/phase11_hvc_cleanup.zig"),
+            (REQUIRED_FILES["survey_note"], "keep those paths framed as later same-lane follow-through rather than as already-landed replay evidence"),
+            (REQUIRED_FILES["validation_matrix"], "direct replay closure"),
+            (REQUIRED_FILES["slice_note"], "direct verify and cleanup companions that are not materialized on current `master`"),
             (REQUIRED_FILES["teardown_note"], "wait-until-sent intent"),
             (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
             (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
