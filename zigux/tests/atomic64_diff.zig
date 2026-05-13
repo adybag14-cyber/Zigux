@@ -438,6 +438,14 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(atomic64_diff_blob_marker);
 
+    const runtime_atomic64_diff_blob_sha = try gitBlobShaHex(runtime_atomic64_diff_source);
+    const runtime_atomic64_diff_blob_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA={s}",
+        .{runtime_atomic64_diff_blob_sha},
+    );
+    defer std.testing.allocator.free(runtime_atomic64_diff_blob_marker);
+
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
         "scripts/zigux/validate-phase4.py",
@@ -478,6 +486,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     defer std.testing.allocator.free(gate_evidence_checker_marker);
 
     try expectMarker(gate_evidence_source, atomic64_diff_blob_marker);
+    try expectMarker(gate_evidence_source, runtime_atomic64_diff_blob_marker);
     try expectMarker(gate_evidence_source, validate_phase4_marker);
     try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
@@ -505,6 +514,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "phase4-runtime-atomic64-diff-survey-tests");
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_ATOMIC64_DIFF_BLOB_SHA=", 1);
+    try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_VALIDATOR_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=", 1);
     try expectAtomic64GateEvidenceMarkerCount("PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=", 1);
