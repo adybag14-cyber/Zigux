@@ -58,7 +58,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
@@ -281,7 +281,7 @@ jobs:
       - name: Self-test Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
-      - name: Check Phase 2 fixdep gate packet
+      - name: Check Phase 2 fixdep packet
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py
 
       - name: Self-test bounded fixdep parity checker
