@@ -198,7 +198,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
         "keep the loader scaffold, top-bit companion contract, prepared-plan drift guard, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
         manifest.roadmap_gap_summary.next_gate,
     );
-    try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.gaps.len);
 
@@ -206,6 +206,11 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try std.testing.expectEqualStrings("zigux/tests/runtime_bitmap_module.zig", module_gate.path);
     const survey_gate = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-survey-gate") orelse return error.MissingSurveyGate;
     try std.testing.expectEqualStrings("zigux/tests/runtime_bitmap_survey.zig", survey_gate.path);
+    const sample_root_summary_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-sample-root-summary") orelse return error.MissingSampleRootSummary;
+    try std.testing.expectEqualStrings("samples/zigux/README.md", sample_root_summary_entry.path);
+    try expectContains(sample_root_summary_entry.why_now, "separate Phase 9 runtime bitmap family");
+    try expectContains(sample_root_summary_entry.why_now, "top-bit companion replay");
+    try expectContains(sample_root_summary_entry.why_now, "phase9-runtime-loader-shared-tests");
     const survey_note_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-survey-note") orelse return error.MissingSurveyNote;
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-bitmap-survey.md", survey_note_entry.path);
     const module_slice_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-module-slice-note") orelse return error.MissingModuleSliceNote;
