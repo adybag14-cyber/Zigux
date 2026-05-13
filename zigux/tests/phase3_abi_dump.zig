@@ -24,6 +24,36 @@ fn writeStruct(writer: anytype, comptime name: []const u8, comptime T: type) !vo
     try writer.writeAll("}}");
 }
 
+fn writeDevT(writer: anytype) !void {
+    const minor_bits: u5 = 20;
+    const minor_mask: u32 = 1_048_575;
+    const max_major: u32 = 4_095;
+    const sample_major: u32 = 42;
+    const sample_minor: u32 = 7;
+    const range_count: u32 = 4;
+    const sample_encoded: u32 = (sample_major << minor_bits) | sample_minor;
+    const range_last_encoded: u32 = (sample_major << minor_bits) | (sample_minor + range_count - 1);
+
+    try writeQuoted(writer, "dev_t");
+    try writer.writeAll(":{\"minor_bits\":");
+    try writer.print("{d}", .{minor_bits});
+    try writer.writeAll(",\"minor_mask\":");
+    try writer.print("{d}", .{minor_mask});
+    try writer.writeAll(",\"max_major\":");
+    try writer.print("{d}", .{max_major});
+    try writer.writeAll(",\"sample_major\":");
+    try writer.print("{d}", .{sample_major});
+    try writer.writeAll(",\"sample_minor\":");
+    try writer.print("{d}", .{sample_minor});
+    try writer.writeAll(",\"sample_encoded\":");
+    try writer.print("{d}", .{sample_encoded});
+    try writer.writeAll(",\"range_count\":");
+    try writer.print("{d}", .{range_count});
+    try writer.writeAll(",\"range_last_encoded\":");
+    try writer.print("{d}", .{range_last_encoded});
+    try writer.writeByte('}');
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
@@ -35,7 +65,7 @@ pub fn main(init: std.process.Init) !void {
 
     try writer.writeAll(",\"constants\":{");
     try writer.print(
-        "\"facility_kernel\":{d},\"facility_helpers\":{d},\"facility_drivers\":{d},\"status_flag_error\":{d},\"panic_abort\":{d},\"panic_bug\":{d},\"panic_warn\":{d},\"allocator_caller_provided\":{d},\"allocator_kernel_heap\":{d},\"allocator_arena\":{d},\"unsafe_scope_none\":{d},\"unsafe_scope_volatile_mmio\":{d},\"unsafe_scope_raw_pointer_bridge\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":{d}",
+        "\"facility_kernel\":{d},\"facility_helpers\":{d},\"facility_drivers\":{d},\"status_flag_error\":{d},\"panic_abort\":{d},\"panic_bug\":{d},\"panic_warn\":{d},\"allocator_caller_provided\":{d},\"allocator_kernel_heap\":{d},\"allocator_arena\":{d},\"unsafe_scope_none\":{d},\"unsafe_scope_volatile_mmio\":{d},\"unsafe_scope_raw_pointer_bridge\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":{d}",
         .{
             abi.FACILITY_KERNEL,
             abi.FACILITY_HELPERS,
@@ -57,7 +87,9 @@ pub fn main(init: std.process.Init) !void {
         },
     );
 
-    try writer.writeAll("},\"structs\":{");
+    try writer.writeAll("},");
+    try writeDevT(writer);
+    try writer.writeAll(",\"structs\":{");
     try writeStruct(writer, "boundary_header", abi.BoundaryHeader);
     try writer.writeByte(',');
     try writeStruct(writer, "export_status", abi.ExportStatus);
