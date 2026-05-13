@@ -151,7 +151,6 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.writeText = None
         lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(
                 DIRECT_OWNER_MARKERS[1],
