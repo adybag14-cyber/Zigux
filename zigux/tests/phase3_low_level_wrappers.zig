@@ -292,22 +292,38 @@ test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"
     scoped_ptr.* = 44;
     try std.testing.expectEqual(@as(u32, 44), values[1]);
 
+    const scoped_mut_slice = try narrow.sliceAtInteropPolicy(u32, base, values.len, raw_policy);
+    scoped_mut_slice[0] = 77;
+    try std.testing.expectEqual(@as(u32, 77), values[0]);
+
+    const scoped_mut_slice_bytes = try narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 0);
+    scoped_mut_slice_bytes[1] = 88;
+    try std.testing.expectEqual(@as(u32, 88), values[1]);
+
+    const scoped_mut_slice_byte = try narrow.sliceAtByte(u32, base, values.len, 2);
+    scoped_mut_slice_byte[2] = 99;
+    try std.testing.expectEqual(@as(u32, 99), values[2]);
+
     const scoped_slice = try narrow.constSliceAtInteropPolicy(u32, base, values.len, raw_policy);
-    try std.testing.expectEqual(@as(u32, 11), scoped_slice[0]);
-    try std.testing.expectEqual(@as(u32, 44), scoped_slice[1]);
+    try std.testing.expectEqual(@as(u32, 77), scoped_slice[0]);
+    try std.testing.expectEqual(@as(u32, 88), scoped_slice[1]);
+    try std.testing.expectEqual(@as(u32, 99), scoped_slice[2]);
 
     const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);
-    try std.testing.expectEqual(@as(u32, 33), scoped_const_ptr.*);
+    try std.testing.expectEqual(@as(u32, 99), scoped_const_ptr.*);
 
-    try narrow.writeValueAtInteropPolicy(u32, base, 55, raw_policy);
-    try std.testing.expectEqual(@as(u32, 55), values[0]);
-    try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);
-    try std.testing.expectEqual(@as(u32, 66), values[2]);
+    try narrow.writeValueAtInteropPolicy(u32, base, 111, raw_policy);
+    try std.testing.expectEqual(@as(u32, 111), values[0]);
+    try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 122, 2, 0);
+    try std.testing.expectEqual(@as(u32, 122), values[2]);
 
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.writeValueAtInteropPolicy(u32, base, 77, reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtByte(u32, base, values.len, 1));
 }
 
 test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
