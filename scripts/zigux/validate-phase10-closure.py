@@ -85,8 +85,10 @@ MANIFEST_MARKERS = [
     '"input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
     '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"',
     '"phase10-notification-data-summary-helper"',
+    '"phase10-virtio-input-status-drain-helper"',
     '"phase10-mmio-config-write-disposition-helper"',
     '"phase10-mmio-selected-queue-readiness-helper"',
+    '"zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle"',
     '"zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"',
 ]
 
@@ -394,11 +396,17 @@ def build_fixture_manifest_text() -> str:
                 "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
             ],
             "ready_transport_followups": {
+                "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
                 "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
             },
             "landed_ring_helper_evidence": {
                 "zigux/tests/phase10_virtio_ring_manifest.json": [
                     "phase10-notification-data-summary-helper",
+                ],
+            },
+            "landed_input_helper_evidence": {
+                "zigux/tests/phase10_virtio_input_manifest.json": [
+                    "phase10-virtio-input-status-drain-helper",
                 ],
             },
             "landed_mmio_helper_evidence": {
@@ -796,6 +804,21 @@ def run_self_test() -> int:
 
         closure_manifest.write_text(
             closure_manifest.read_text(encoding="utf-8").replace(
+                '"phase10-virtio-input-status-drain-helper"',
+                '"phase10-virtio-input-status-drain-helper-missing"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"phase10-virtio-input-status-drain-helper"',
+            "phase10-closure-self-test:missing_manifest_input_status_drain_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
                 '"phase10-mmio-config-write-disposition-helper"',
                 '"phase10-mmio-config-write-disposition-helper-missing"',
                 1,
@@ -806,6 +829,21 @@ def run_self_test() -> int:
             root,
             'manifest:"phase10-mmio-config-write-disposition-helper"',
             "phase10-closure-self-test:missing_manifest_mmio_disposition_marker_not_detected",
+        )
+        write_fixture(root)
+
+        closure_manifest.write_text(
+            closure_manifest.read_text(encoding="utf-8").replace(
+                '"zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle"',
+                '"zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle-missing"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            'manifest:"zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle"',
+            "phase10-closure-self-test:missing_manifest_input_followup_marker_not_detected",
         )
         write_fixture(root)
 
@@ -1006,7 +1044,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=37")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
