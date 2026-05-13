@@ -765,3 +765,29 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
     try std.testing.expectEqualStrings("more", positive.rest);
 }
+
+pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
+    const scan_len = @min(count, buf.len);
+    var idx: usize = 0;
+    while (idx < scan_len) : (idx += 1) {
+        const ch = buf[idx];
+        if (ch == needle) {
+            return idx;
+        }
+        if (ch == 0) {
+            return null;
+        }
+    }
+    return null;
+}
+
+test "strnchr honors count and C-string boundaries" {
+    try std.testing.expectEqual(@as(?usize, 1), strnchr("abcd", 4, 'b'));
+    try std.testing.expectEqual(@as(?usize, null), strnchr("abcd", 1, 'b'));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'c', 'b' };
+    try std.testing.expectEqual(@as(?usize, 1), strnchr(&cstr, cstr.len, 'b'));
+    try std.testing.expectEqual(@as(?usize, null), strnchr(&cstr, cstr.len, 'c'));
+    try std.testing.expectEqual(@as(?usize, 2), strnchr(&cstr, cstr.len, 0));
+    try std.testing.expectEqual(@as(?usize, null), strnchr(&cstr, 2, 0));
+}
