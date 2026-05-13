@@ -420,6 +420,64 @@ fn expectExhaustiveReverseMapClassification(variant: Variant) !void {
     }
 }
 
+fn expectExhaustiveEncodeShortTailCanonicality(variant: Variant, padding: bool) !void {
+    const alphabet = alphabetFor(variant);
+    var one_byte_input: [1]u8 = undefined;
+    var two_byte_input: [2]u8 = undefined;
+    var encoded: [4]u8 = undefined;
+    var decoded_one_byte: [1]u8 = undefined;
+    var decoded_two_byte: [2]u8 = undefined;
+
+    for (0..256) |raw_first| {
+        const first: u8 = @intCast(raw_first);
+        one_byte_input[0] = first;
+
+        const one_byte_expected = [_]u8{
+            alphabet[first >> 2],
+            alphabet[(first & 0x03) << 4],
+            '=',
+            '=',
+        };
+        const one_byte_written = try encode(encoded[0..], one_byte_input[0..], padding, variant);
+        if (padding) {
+            try std.testing.expectEqual(@as(usize, 4), one_byte_written);
+            try std.testing.expectEqualSlices(u8, one_byte_expected[0..], encoded[0..one_byte_written]);
+        } else {
+            try std.testing.expectEqual(@as(usize, 2), one_byte_written);
+            try std.testing.expectEqualSlices(u8, one_byte_expected[0..2], encoded[0..one_byte_written]);
+        }
+        try std.testing.expectEqual(@as(usize, 1), try bytes(encoded[0..one_byte_written], padding, variant));
+        const one_byte_decoded_len = try decode(decoded_one_byte[0..], encoded[0..one_byte_written], padding, variant);
+        try std.testing.expectEqual(@as(usize, 1), one_byte_decoded_len);
+        try std.testing.expectEqualSlices(u8, one_byte_input[0..], decoded_one_byte[0..one_byte_decoded_len]);
+
+        for (0..256) |raw_second| {
+            const second: u8 = @intCast(raw_second);
+            two_byte_input[0] = first;
+            two_byte_input[1] = second;
+
+            const two_byte_expected = [_]u8{
+                alphabet[first >> 2],
+                alphabet[((first & 0x03) << 4) | (second >> 4)],
+                alphabet[(second & 0x0f) << 2],
+                '=',
+            };
+            const two_byte_written = try encode(encoded[0..], two_byte_input[0..], padding, variant);
+            if (padding) {
+                try std.testing.expectEqual(@as(usize, 4), two_byte_written);
+                try std.testing.expectEqualSlices(u8, two_byte_expected[0..], encoded[0..two_byte_written]);
+            } else {
+                try std.testing.expectEqual(@as(usize, 3), two_byte_written);
+                try std.testing.expectEqualSlices(u8, two_byte_expected[0..3], encoded[0..two_byte_written]);
+            }
+            try std.testing.expectEqual(@as(usize, 2), try bytes(encoded[0..two_byte_written], padding, variant));
+            const two_byte_decoded_len = try decode(decoded_two_byte[0..], encoded[0..two_byte_written], padding, variant);
+            try std.testing.expectEqual(@as(usize, 2), two_byte_decoded_len);
+            try std.testing.expectEqualSlices(u8, two_byte_input[0..], decoded_two_byte[0..two_byte_decoded_len]);
+        }
+    }
+}
+
 test "base64 standard encoding matches Linux-style padded output" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], "hi", true, .std);
@@ -572,4 +630,13 @@ test "base64 reverse maps exhaustively classify each shipped alphabet" {
     try expectExhaustiveReverseMapClassification(.std);
     try expectExhaustiveReverseMapClassification(.urlsafe);
     try expectExhaustiveReverseMapClassification(.imap);
+}
+
+test "base64 encode exhaustively emits canonical padded and unpadded short tails across variants" {
+    try expectExhaustiveEncodeShortTailCanonicality(.std, true);
+    try expectExhaustiveEncodeShortTailCanonicality(.std, false);
+    try expectExhaustiveEncodeShortTailCanonicality(.urlsafe, true);
+    try expectExhaustiveEncodeShortTailCanonicality(.urlsafe, false);
+    try expectExhaustiveEncodeShortTailCanonicality(.imap, true);
+    try expectExhaustiveEncodeShortTailCanonicality(.imap, false);
 }
