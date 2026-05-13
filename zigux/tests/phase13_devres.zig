@@ -581,31 +581,36 @@ test "phase13 devres rejects phys WC token planning when the release record cann
     }));
 }
 
-test "phase13 devres manifest records the current helper packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L08\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
+test "phase13 devres manifest records the current helper-local mmio survey packet" {
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L01\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
     try expectContains(manifest_text, "\"preexisting_phase13_build_present\": false");
     try expectContains(manifest_text, "\"preexisting_phase13_make_target_present\": true");
     try expectContains(manifest_text, "\"preexisting_devres_zig_present\": true");
     try expectContains(manifest_text, "\"preexisting_phase13_devres_test_present\": true");
     try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": true");
     try expectContains(manifest_text, "\"preexisting_phase13_devres_dma_coherent_present\": true");
-    try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-make-target\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-helper-starter\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-slice-note\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-survey-note\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-test-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-reviewability-gate\"");
-    try expectContains(manifest_text, "\"id\": \"phase13-devres-dma-coherent-replay\"");
-    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
-    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_missing_shared_build_surface\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-iounmap-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-of-iomap-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-mmio-mappings\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-device-tree-walk\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-arch-memtype-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
-    try expectContains(manifest_text, "still-shipped helper-first packet");
-    try expectContains(manifest_text, "wider shared build bundle stays absent");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_mmio_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_device_tree_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_arch_memtype_state\"");
+    try expectContains(manifest_text, "stable shared Phase 13 replay handle");
     try expectContains(manifest_text, "devm_iounmap()");
-    try expectContains(manifest_text, "UC/WC MMIO evidence");
-    try expectContains(manifest_text, "manifest alignment reviewable");
-    try expectContains(manifest_text, "dmam_alloc_*");
-    try expectContains(manifest_text, "dma_map_sgtable()");
-    try expectContains(manifest_text, "struct scatterlist");
-    try expectContains(manifest_text, "sg_table lifecycle");
+    try expectContains(manifest_text, "devm_of_iomap()");
+    try expectContains(manifest_text, "devm_arch_phys_wc_add()");
+    try expectContains(manifest_text, "real mappings or unmaps");
+    try expectContains(manifest_text, "OF node traversal");
+    try expectContains(manifest_text, "mutating real memtype state");
 }
