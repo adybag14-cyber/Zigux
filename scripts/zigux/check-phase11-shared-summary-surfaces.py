@@ -19,9 +19,9 @@ CONTRACT_MARKERS = [
     "# Phase 11 Shared Replay Contract",
     "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
     "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-    "* direct GitHub contents reads do not materialize `zigux/tests/phase11_build.zig`",
-    "* direct GitHub contents reads also do not materialize the previously referenced direct replay files `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
-    "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, but treat them as reminder-only configuration markers until the missing Phase 11 build file and direct replay files land again",
+    "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
+    "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
+    "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
     "* no shared `validate-phase11.py`",
     "* no shared `make -C zigux phase11-validate` target on `master`",
     "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -50,19 +50,15 @@ REQUIRED_MARKERS = {
     ],
 }
 
-ABSENT_DIRECT_REPLAY_PATHS = [
-    "`zigux/tests/phase11_build.zig`",
-    "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-    "`zigux/tests/phase11_gpio_wdt.zig`",
-    "`zigux/tests/phase11_bcm2835_wdt.zig`",
-    "`zigux/tests/phase11_dw_wdt.zig`",
-    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-    "`zigux/tests/phase11_hvc_console.zig`",
-    "`zigux/tests/phase11_hvc_cleanup.zig`",
-    "`drivers/tty/hvc/hvc_console_verify.zig`",
-]
+FORBIDDEN_MARKERS = {
+    "contract_note": [
+        "* direct GitHub contents reads do not materialize `zigux/tests/phase11_build.zig`",
+        "* direct GitHub contents reads also do not materialize the previously referenced direct replay files `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
+        "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, but treat them as reminder-only configuration markers until the missing Phase 11 build file and direct replay files land again",
+    ],
+}
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 11
 
 
 class CheckError(RuntimeError):
@@ -82,22 +78,21 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
-def expect_absent_direct_replay_paths(label: str, text: str) -> None:
-    for path_marker in ABSENT_DIRECT_REPLAY_PATHS:
-        if path_marker in text:
-            raise CheckError(
-                f"stale direct replay path in {label}: {path_marker}"
-            )
+def expect_forbidden_markers_absent(label: str, text: str) -> None:
+    for marker in FORBIDDEN_MARKERS.get(label, []):
+        if marker in text:
+            raise CheckError(f"forbidden marker in {label}: {marker}")
 
 
 def run_check(root: Path) -> None:
     contract_text = read_text(root, FILES["contract_note"])
     expect_markers("contract_note", contract_text, CONTRACT_MARKERS)
+    expect_forbidden_markers_absent("contract_note", contract_text)
 
     for label, markers in REQUIRED_MARKERS.items():
         text = read_text(root, FILES[label])
         expect_markers(label, text, markers)
-        expect_absent_direct_replay_paths(label, text)
+        expect_forbidden_markers_absent(label, text)
 
 
 def write(path: Path, text: str) -> None:
@@ -130,13 +125,13 @@ def run_self_test() -> None:
 
         required_cases = [
             (FILES["contract_note"], CONTRACT_MARKERS[3]),
+            (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[8]),
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][1]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][0]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][1]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
@@ -150,15 +145,9 @@ def run_self_test() -> None:
             expect_failure(case_root, marker)
 
         forbidden_cases = [
-            ("docs_root", ABSENT_DIRECT_REPLAY_PATHS[0]),
-            ("review_checklist", ABSENT_DIRECT_REPLAY_PATHS[1]),
-            ("scripts_root", ABSENT_DIRECT_REPLAY_PATHS[5]),
-            ("tests_root", ABSENT_DIRECT_REPLAY_PATHS[7]),
-            ("tests_companion", ABSENT_DIRECT_REPLAY_PATHS[8]),
-            ("tests_root", ABSENT_DIRECT_REPLAY_PATHS[2]),
-            ("tests_companion", ABSENT_DIRECT_REPLAY_PATHS[4]),
-            ("scripts_root", ABSENT_DIRECT_REPLAY_PATHS[6]),
-            ("review_checklist", ABSENT_DIRECT_REPLAY_PATHS[3]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][0]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][1]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][2]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
