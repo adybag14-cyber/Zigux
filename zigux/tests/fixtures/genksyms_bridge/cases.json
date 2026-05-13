@@ -177,6 +177,15 @@
     "normalize_stderr": true
   },
   {
+    "name": "missing_dump_types_argument",
+    "argv": [
+      "-T"
+    ],
+    "mode": "process_json",
+    "expected": "missing_dump_types_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
     "name": "unsupported_long_option",
     "argv": [
       "--unknown"
