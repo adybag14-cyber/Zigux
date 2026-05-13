@@ -65,13 +65,14 @@ REQUIRED_MARKERS = {
         "No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
-        "`Documentation/zigux/README.md` and `scripts/zigux/README.md` still expose the broader Phase 8 libbpf helper packet",
+        "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
         "`phase8_pin_path.zig`",
         "`phase8_bpf_type_names.zig`",
         "`phase8_perf_buffer_poll.zig`",
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+        "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
         "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
@@ -314,6 +315,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-tooling-lane-sequencing.md: No new shared wording reopen cue is recorded today. If this lane reopens again, start with exact readback across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` before naming a new one-file cue.",
         ),
         (
+            "segment_survey_docs_root_readback_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
+            "`Documentation/zigux/README.md` now exposes the broader Phase 8 libbpf helper packet through the refreshed `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note path, and `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
+        ),
+        (
             "segment_survey_build_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
@@ -347,6 +355,13 @@ def run_self_test() -> None:
             "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
             "Current `master` now matches that wording: the manifest and the shared file-path bridge packet still treat those two bridge-adjacent helpers as queued helper-first slices while the heavier `file-path-and-handle-bridge` destination stays deferred.",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
+        ),
+        (
+            "segment_survey_docs_root_gap_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
+            "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey no longer needs to keep the docs-root README drift explicit because current `master` now carries the live `phase8-file-path-handle-bridge-slice.md` note and no longer names the missing `phase8-bpf-type-names-slice.md` path.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
         ),
         (
             "segment_survey_landed_slice_catalog_anchor",
