@@ -239,6 +239,21 @@ def run_self_test() -> int:
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
                 f"{TESTS_README_PACKET_ANCHOR}\n",
+                f"{TESTS_README_PACKET_ANCHOR}\n{TESTS_README_PACKET_ANCHOR}\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            TESTS_README_PACKET_ANCHOR,
+            "self-test expected duplicate tests-readme anchor failure",
+        )
+        write_text(root / TESTS_README_PATH, good_tests_readme_text())
+
+        write_text(
+            root / TESTS_README_PATH,
+            good_tests_readme_text().replace(
+                f"{TESTS_README_PACKET_ANCHOR}\n",
                 "",
                 1,
             ),
@@ -256,7 +271,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
