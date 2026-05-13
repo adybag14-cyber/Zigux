@@ -28,6 +28,7 @@ CONTRACT_MARKERS = [
     "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
     "* no shared `validate-phase11.py`",
     "* no shared `make -C zigux phase11-validate` target on `master`",
+    "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; platform-registration scaffolding remains the next same-lane follow-through, while the direct teardown and restart proofs stay compile-local and host-free rather than broader hardware-backed closure",
     "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
 ]
 
@@ -55,6 +56,8 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`make -C zigux phase11-hvc-survey`",
+        "DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet",
+        "the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`",
     ],
     "docs_root": [
         "Phase 11 notes -",
@@ -103,6 +106,12 @@ FORBIDDEN_MARKERS = {
     "contract_note": [
         "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files rather than a broader validator stack",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+    ],
+    "lane_note": [
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
     ],
 }
 
@@ -174,6 +183,7 @@ def run_self_test() -> None:
             (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[6]),
+            (FILES["contract_note"], CONTRACT_MARKERS[10]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][3]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][5]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][6]),
@@ -181,6 +191,8 @@ def run_self_test() -> None:
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][4]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
+            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][11]),
+            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][12]),
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][4]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][2]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][3]),
@@ -203,6 +215,10 @@ def run_self_test() -> None:
         forbidden_cases = [
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][0]),
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][1]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][2]),
+            ("contract_note", FORBIDDEN_MARKERS["contract_note"][3]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][1]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
@@ -213,7 +229,10 @@ def run_self_test() -> None:
             expect_failure(case_root, marker)
 
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
-        print(f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT={len(required_cases) + len(forbidden_cases)}")
+        print(
+            f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT="
+            f"{len(required_cases) + len(forbidden_cases)}"
+        )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
