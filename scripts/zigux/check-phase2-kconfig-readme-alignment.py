@@ -94,7 +94,6 @@ FORBIDDEN_MARKERS = (
     LEGACY_PHASE2_LIVE_SENTENCE,
     LEGACY_PHASE2_KCONFIG_SENTENCE,
     "`check-phase2-genksyms-bridge-selftest-alignment.py`",
-    "`check-kconfig-bridge.py`",
     "`check-mk-elfconfig-diff.py`",
     "`check-genksyms-crc-diff.py`",
 )
@@ -150,6 +149,10 @@ def run_self_test() -> int:
     assert collect_issues(current_text) == []
     checks_run += 1
 
+    issues = collect_issues(current_text + "\n`check-kconfig-bridge.py`\n")
+    assert issues == []
+    checks_run += 1
+
     for snippet in REQUIRED_SNIPPETS:
         issues = collect_issues(current_text.replace(snippet, "", 1))
         assert ("REQUIRED_SNIPPET_COUNT_MISMATCH", f"{snippet}:actual=0:expected=1") in issues
@@ -171,7 +174,7 @@ def run_self_test() -> int:
         assert issues == []
         checks_run += 1
 
-    expected_self_test_case_count = 2 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
+    expected_self_test_case_count = 3 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
     if checks_run != expected_self_test_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
