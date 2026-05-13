@@ -78,7 +78,6 @@ Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/validate_phase3_selftest.py`,
 `scripts/zigux/validate-phase3-validator-support-surface.py`,
-`Documentation/zigux/phase3-kernel-export-shim-governance.md`,
 `Documentation/zigux/phase3-abi-header-family-survey.md`,
 `Documentation/zigux/phase3-abi-h-boundary-next-step.md`,
 `Documentation/zigux/review-checklist.md`,
@@ -86,9 +85,9 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
 `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`, and
-`make -C zigux phase3-selftest`; adjacent header-family and checklist reminders
-should keep `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and
-`zigux/uapi/dev_t.zig` explicit as the bounded starter-companion policy without
-dropping the dedicated policy-and-unsafe replay checks or restating this
-validator-support note as if those shipped support helpers were historical-only
-entrypoints.
+`make -C zigux phase3-selftest`; keep
+`Documentation/zigux/phase3-kernel-export-shim-governance.md` paired with this
+note, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and the
+shared ABI slice when `zigux/kernel/export_shim.zig` itself changes instead of
+claiming that narrower kernel-facing governance note is already a broad
+scripts-root or tests-root reminder surface on current `master`.
