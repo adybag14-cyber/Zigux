@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -17,9 +18,74 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BSEARCH_PATH = Path("zigux/tests/phase6_bsearch.zig")
 LOWER_UPPER_PATH = Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig")
 EQUALITY_PATH = Path("zigux/tests/phase6_bsearch_c_abi_budget.zig")
+FIXTURE_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
+
+
+FIXTURE_BASELINE = """const std = @import(\"std\");
+
+pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+
+pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
+pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
+
+pub const sorted_symbols = [_][]const u8{
+    \"do_exit\",
+    \"kfree\",
+    \"kmalloc\",
+    \"schedule\",
+};
+
+pub const RawRecord = extern struct {
+    key: u32,
+    value: u32,
+};
+
+pub const packed_record_values = [_]RawRecord{
+    .{ .key = 3, .value = 0x3000 },
+    .{ .key = 8, .value = 0x8000 },
+    .{ .key = 13, .value = 0xd000 },
+    .{ .key = 21, .value = 0x15000 },
+    .{ .key = 34, .value = 0x22000 },
+    .{ .key = 55, .value = 0x37000 },
+    .{ .key = 89, .value = 0x59000 },
+};
+
+pub const dynamic_case_lengths = [_]usize{
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31, 32,
+};
+
+pub fn typedQuerySeed(index: usize) u32 {
+    return representative_hit_queries[index % representative_hit_queries.len];
+}
+
+pub fn rawQuerySeed(index: usize) u32 {
+    return representative_miss_queries[index % representative_miss_queries.len];
+}
+
+test \"phase 6 bsearch vectors stay deterministic and sorted\" {
+    try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
+    try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
+    try std.testing.expectEqual(@as(usize, 33), dynamic_case_lengths.len);
+
+    for (representative_ascending_values, 0..) |value, index| {
+        if (index > 0) {
+            try std.testing.expect(representative_ascending_values[index - 1] < value);
+        }
+        try std.testing.expectEqual(value, representative_descending_values[representative_descending_values.len - 1 - index]);
+    }
+
+    for (dynamic_case_lengths, 0..) |length, index| {
+        try std.testing.expectEqual(index, length);
+    }
+}
+"""
 
 
 REQUIRED_SNIPPETS = {
@@ -146,11 +212,18 @@ EXPECTED_BSEARCH_EVIDENCE = {
     "lower_upper_dynamic_lengths": 33,
     "lower_upper_max_probe_formula": "len == 0 ? 1 : 2 * len + 2",
     "lower_upper_probe_count_formula": "len == 0 ? 2 : 2 * len + 3",
-    "lower_upper_record_member_size_replay": true,
+    "lower_upper_record_member_size_replay": True,
     "c_abi_equality_dynamic_lengths": 33,
     "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
-    "c_abi_equality_record_member_size_replay": true,
+    "c_abi_equality_record_member_size_replay": True,
     "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    "fixture_ascending_values": 15,
+    "fixture_descending_values": 15,
+    "fixture_hit_queries": 5,
+    "fixture_miss_queries": 5,
+    "fixture_sorted_symbols": 4,
+    "fixture_packed_records": 7,
+    "fixture_dynamic_case_lengths": 33,
 }
 
 
@@ -172,6 +245,76 @@ def read_json(path: Path) -> object:
         return json.loads(read_text(path))
     except json.JSONDecodeError as exc:
         raise ValidationError(f"invalid JSON in {path}: {exc}") from exc
+
+
+def extract_array_body(content: str, prefix: str, rel_path: str) -> str:
+    start = content.find(prefix)
+    if start == -1:
+        raise ValidationError(f"missing expected Phase 6 bsearch fixture array in {rel_path}: {prefix}")
+    start += len(prefix)
+    end = content.find("};", start)
+    if end == -1:
+        raise ValidationError(f"unterminated Phase 6 bsearch fixture array in {rel_path}: {prefix}")
+    return content[start:end]
+
+
+def parse_int_array(body: str) -> list[int]:
+    return [int(item.strip()) for item in body.replace("\n", " ").split(",") if item.strip()]
+
+
+def parse_string_array(body: str) -> list[str]:
+    values: list[str] = []
+    for item in body.replace("\n", " ").split(","):
+        stripped = item.strip()
+        if not stripped:
+            continue
+        if not (stripped.startswith('"') and stripped.endswith('"')):
+            raise ValidationError(f"unexpected non-string item in fixture string array: {stripped}")
+        values.append(stripped[1:-1])
+    return values
+
+
+def validate_fixture_content(repo_root: Path) -> None:
+    rel_path = FIXTURE_PATH.as_posix()
+    content = read_text(repo_root / rel_path)
+
+    for marker in [
+        'pub fn typedQuerySeed(index: usize) u32 {',
+        'return representative_hit_queries[index % representative_hit_queries.len];',
+        'pub fn rawQuerySeed(index: usize) u32 {',
+        'return representative_miss_queries[index % representative_miss_queries.len];',
+        'test "phase 6 bsearch vectors stay deterministic and sorted"',
+    ]:
+        if marker not in content:
+            raise ValidationError(f"missing expected Phase 6 bsearch fixture marker in {rel_path}: {marker}")
+
+    ascending = parse_int_array(
+        extract_array_body(content, "pub const representative_ascending_values = [_]u32{", rel_path)
+    )
+    descending = parse_int_array(
+        extract_array_body(content, "pub const representative_descending_values = [_]u32{", rel_path)
+    )
+    hits = parse_int_array(extract_array_body(content, "pub const representative_hit_queries = [_]u32{", rel_path))
+    misses = parse_int_array(extract_array_body(content, "pub const representative_miss_queries = [_]u32{", rel_path))
+    symbols = parse_string_array(extract_array_body(content, "pub const sorted_symbols = [_][]const u8{", rel_path))
+    lengths = parse_int_array(extract_array_body(content, "pub const dynamic_case_lengths = [_]usize{", rel_path))
+    record_body = extract_array_body(content, "pub const packed_record_values = [_]RawRecord{", rel_path)
+    record_keys = [int(match.group(1)) for match in re.finditer(r"\.key = (\d+)", record_body)]
+
+    if ascending != [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45]:
+        raise ValidationError(f"unexpected ascending fixture corpus in {rel_path}: {ascending!r}")
+    if descending != [45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3]:
+        raise ValidationError(f"unexpected descending fixture corpus in {rel_path}: {descending!r}")
+    if hits != [3, 21, 24, 39, 45]:
+        raise ValidationError(f"unexpected representative hit queries in {rel_path}: {hits!r}")
+    if misses != [1, 10, 26, 44, 50]:
+        raise ValidationError(f"unexpected representative miss queries in {rel_path}: {misses!r}")
+    if symbols != ["do_exit", "kfree", "kmalloc", "schedule"]:
+        raise ValidationError(f"unexpected sorted symbol fixture corpus in {rel_path}: {symbols!r}")
+    if record_keys != [3, 8, 13, 21, 34, 55, 89]:
+        raise ValidationError(f"unexpected packed-record keys in {rel_path}: {record_keys!r}")
+    if lengths != list(range(33)):
+        raise ValidationError(f"unexpected dynamic case lengths in {rel_path}: {lengths!r}")
 
 
 def validate_manifest(repo_root: Path) -> None:
@@ -235,6 +378,7 @@ def validate_manifest(repo_root: Path) -> None:
 
 def run_checks(repo_root: Path) -> None:
     validate_manifest(repo_root)
+    validate_fixture_content(repo_root)
 
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -277,6 +421,8 @@ def scaffold_repo(root: Path) -> None:
             lines.extend([marker] * expected)
         write(root / rel_path, "\n".join(lines) + "\n")
 
+    write(root / FIXTURE_PATH, FIXTURE_BASELINE)
+
 
 def assert_failure(root: Path, rel_path: str, old: str, new: str) -> None:
     path = root / rel_path
@@ -314,8 +460,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH.as_posix(),
-            '"representative_lookup_len": 15',
-            '"representative_lookup_len": 14',
+            '"fixture_sorted_symbols": 4',
+            '"fixture_sorted_symbols": 5',
         )
         assert_failure(
             root,
@@ -358,6 +504,12 @@ def run_self_test() -> None:
             EQUALITY_PATH.as_posix(),
             'const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 1));',
             'const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 2));',
+        )
+        assert_failure(
+            root,
+            FIXTURE_PATH.as_posix(),
+            'pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };',
+            'pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44 };',
         )
         assert_failure(
             root,
