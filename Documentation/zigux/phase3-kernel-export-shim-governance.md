@@ -18,7 +18,8 @@ This note closes the dedicated ownership and boundary-note gap for `zigux/kernel
 - accepted-header evaluation and boundary-header canonicalization ownership stays in `zigux/uapi/version.zig`
 - starter `dev_t` companion ownership stays in `zigux/uapi/dev_t.zig` and `include/zigux/dev_t.h`
 - Linux-facing aggregation ownership stays in `include/linux/zigux.h` plus `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `ok()`, `errno()`, `normalize()`, `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` helpers for kernel-side callers
+- `zigux/kernel/export_shim.zig` owns the kernel-facing relay layer that packages those canonical surfaces into explicit `Header`, `HeaderCompatibility`, `HeaderAcceptance`, `HeaderEvaluation`, `CompatibilityDecision`, and `DeviceEncodingResult` result shapes for kernel-side callers
+- `zigux/kernel/export_shim.zig` also owns the thin kernel-side relay families that keep constructor, predicate, compatibility, and status-tagged starter helpers reviewable through `versionedHeader()`, `canonicalHeader()`, `boundaryHeader()`, `compatibleHeader()`, `header()`, `isCurrentAbiVersion()`, `isCompatibleSize()`, `isCanonicalSize()`, `headerCompatibility()`, `acceptHeader()`, `evaluateHeader()`, `compatibilityStatus()`, `isCompatibleHeader()`, `isCanonicalHeader()`, `canonicalizeHeader()`, `extendsBoundary()`, `requestedExtraBytes()`, `encodeDeviceNumber()`, and `lastDeviceNumberInRange()`
 - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` still owns the starter export/UAPI route wording and shared replay reminders that sit beside this narrower kernel-facing relay
 
 ## Growth Rule
@@ -30,16 +31,19 @@ This note closes the dedicated ownership and boundary-note gap for `zigux/kernel
 
 ## Current State
 
-- live `zigux/kernel/export_shim.zig` already reuses the shipped `Header`, `Compatibility`, `AcceptedHeader`, and `HeaderEvaluation` types from `zigux/uapi/version.zig`
-- live `zigux/kernel/export_shim.zig` already keeps failure encoding reviewable through `ok()`, `errno()`, and `normalize()` instead of hiding export-status shaping in broader helper or header growth
-- live `zigux/kernel/export_shim.zig` already exposes `compatibilityStatus()`, `evaluateHeader()`, `extendsBoundary()`, and `requestedExtraBytes()` so kernel-facing callers can stay on the shared boundary-header contract without inventing a second ABI home
-- live `zigux/kernel/export_shim.zig` now also exposes status-tagged `encodeDeviceNumber()` and `lastDeviceNumberInRange()` relays over the shipped `zigux/uapi/dev_t.zig` starter companion without re-homing `dev_t` ownership into `zigux/kernel/`
-- current `master` still ships no wider `zigux/kernel/` family beyond this starter relay, so the honest next step is governance and ownership clarity, not more kernel-surface proliferation
+- live `zigux/kernel/export_shim.zig` re-exports the shipped `Header`, `HeaderCompatibility`, `HeaderAcceptance`, and `HeaderEvaluation` types from `zigux/uapi/version.zig`, and now also keeps the kernel-facing `CompatibilityDecision` and `DeviceEncodingResult` relay shapes explicit for callers that need both the requested value and the tagged status packet together
+- live `zigux/kernel/export_shim.zig` keeps the shared boundary-header constructor family readable through `versionedHeader()`, `canonicalHeader()`, `boundaryHeader()`, `compatibleHeader()`, and `header()` instead of forcing kernel-side callers to reach around the starter relay for those constructor details
+- live `zigux/kernel/export_shim.zig` keeps ABI-version, size, and acceptance predicates reviewable through `isCurrentAbiVersion()`, `isCompatibleSize()`, `isCanonicalSize()`, `headerCompatibility()`, `acceptHeader()`, `isCompatibleHeader()`, `isCanonicalHeader()`, and `canonicalizeHeader()` so the kernel-facing packet still mirrors the shipped starter compatibility rules rather than inventing a second ownership home
+- live `zigux/kernel/export_shim.zig` keeps failure encoding reviewable through `ok()`, `errno()`, and `normalize()` instead of hiding export-status shaping in broader helper or header growth
+- live `zigux/kernel/export_shim.zig` keeps accepted-header relay state explicit through `evaluateHeader()`, `compatibilityStatus()`, `extendsBoundary()`, and `requestedExtraBytes()` so kernel-facing callers can stay on the shared boundary-header contract without inventing a second ABI home
+- live `zigux/kernel/export_shim.zig` also exposes status-tagged `encodeDeviceNumber()` and `lastDeviceNumberInRange()` relays over the shipped `zigux/uapi/dev_t.zig` starter companion without re-homing `dev_t` ownership into `zigux/kernel/`
+- current `master` still ships no wider `zigux/kernel/` family beyond this starter relay, so the honest next step remains keeping this ownership note aligned with the relay surface that already exists rather than growing more kernel-surface names
 
 ## Boundary
 
 - this note does not move starter UAPI ownership out of `zigux/uapi/`
 - this note does not move Linux-facing aggregation ownership out of `include/linux/zigux.h`
+- this note does not move canonical ABI layout or compatibility semantics out of `include/zigux/abi.h` or `zigux/uapi/version.zig`
 - this note does not authorize deeper kernel-port claims, driver shims, or low-level helper growth under `zigux/kernel/`
 - if a future bounded change adds another kernel-facing substrate relay, refresh this note together with `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-abi-slice.md`, and `zigux/tests/fixtures/phase3_abi_manifest.json` in the same packet so the kernel-facing side of the boundary stays explicit
 
