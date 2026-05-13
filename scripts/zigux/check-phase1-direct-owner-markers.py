@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 REQUIRED_FILES = [
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 DIRECT_OWNER_MARKERS = [
@@ -39,6 +40,13 @@ NEXT_STEP_MARKERS = [
 MAKEFILE_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-direct-owner-markers.py",
+]
+
+WORKFLOW_MARKERS = [
+    "- name: Self-test Phase 1 direct-owner markers",
+    "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+    "- name: Check Phase 1 direct-owner markers",
+    "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
 ]
 
 
@@ -71,6 +79,7 @@ def collect_missing_markers(root: Path) -> list[str]:
         encoding="utf-8"
     )
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_companion", COMPANION_MARKERS))
@@ -80,6 +89,14 @@ def collect_missing_markers(root: Path) -> list[str]:
             makefile,
             "phase1_direct_owner_makefile",
             MAKEFILE_MARKERS,
+            lstrip=True,
+        )
+    )
+    missing.extend(
+        collect_exact_count_markers(
+            workflow,
+            "phase1_direct_owner_workflow",
+            WORKFLOW_MARKERS,
             lstrip=True,
         )
     )
@@ -113,6 +130,24 @@ def make_fixture_root(root: Path) -> None:
     makefile.parent.mkdir(parents=True, exist_ok=True)
     makefile.write_text("\n".join(MAKEFILE_MARKERS) + "\n", encoding="utf-8")
 
+    workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Self-test Phase 1 direct-owner markers",
+                "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+                "      - name: Check Phase 1 direct-owner markers",
+                "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
 
 def run_self_test() -> None:
     case_count = 0
@@ -135,7 +170,23 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.unlink()
+        assert collect_missing_files(root) == [".github/workflows/zigux-bootstrap.yml"]
+        case_count += 1
+
+        make_fixture_root(root)
+        makefile.writeText = None
         makefile.write_text("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
+        assert collect_missing_markers(root) == []
+        case_count += 1
+
+        make_fixture_root(root)
+        workflow.write_text(
+            "\n".join(f"      {marker}" if marker.startswith("- name:") else f"        {marker}" for marker in WORKFLOW_MARKERS)
+            + "\n",
+            encoding="utf-8",
+        )
         assert collect_missing_markers(root) == []
         case_count += 1
 
@@ -242,13 +293,39 @@ def run_self_test() -> None:
         )
         case_count += 1
 
+        make_fixture_root(root)
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[1]}:expected=1:actual=0" in missing
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                WORKFLOW_MARKERS[3],
+                WORKFLOW_MARKERS[3] + "\n        " + WORKFLOW_MARKERS[3],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(root)
+        assert (
+            f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[3]}:expected=1:actual=2" in missing
+        )
+        case_count += 1
+
     print("PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=pass")
     print(f"PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the dedicated Phase 1 direct-owner markers in the lane sequencing note."
+        description="Validate the dedicated Phase 1 direct-owner markers in the lane sequencing note and workflow."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
     parser.add_argument("--root", help="Validate an alternate Zigux tree root.")
@@ -281,7 +358,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DIRECT_OWNER_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS)}"
+        f"{len(DIRECT_OWNER_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
     )
     return 0
 
