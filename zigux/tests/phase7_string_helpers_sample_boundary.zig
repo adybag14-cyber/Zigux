@@ -161,6 +161,8 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
     try expectContains(tests_root, "zigux/tests/phase7_string_helpers.zig");
+    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_survey.zig");
+    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_manifest.json");
     try expectContains(tests_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
