@@ -133,6 +133,7 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `scripts/zigux/validate-phase13-release.py`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `zigux/tests/README.md`
 - `zigux/helpers/notifier_chain_view.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
