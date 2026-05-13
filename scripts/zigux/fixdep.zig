@@ -934,6 +934,64 @@ test "dep parsing unescapes escaped hash and colon tokens once" {
     );
 }
 
+test "dep parsing stays deterministic across concatenated target and comment packets" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 256),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    const dep_text =
+        "deterministic.o: source.rmeta dep_one.so \\\n" ++
+        " dep_two.so\n" ++
+        "# rustc comment continues \\\n" ++
+        "across a physical line \\\n" ++
+        "before the next real target\n" ++
+        "deterministic.o: replacement.rmeta dep_three.so dep\\#hash.so dep\\:colon.so\n";
+    const expected =
+        "source_deterministic.o := source.rmeta\n\n" ++
+        "deps_deterministic.o := \\\n" ++
+        "  dep_one.so \\\n" ++
+        "  dep_two.so \\\n" ++
+        "  dep_three.so \\\n" ++
+        "  dep#hash.so \\\n" ++
+        "  dep:colon.so \\\n" ++
+        "\n" ++
+        "deterministic.o: $(deps_deterministic.o)\n\n" ++
+        "$(deps_deterministic.o):\n";
+
+    var first_processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer first_processor.deinit();
+    var first_capture = try Capture.init(std.testing.allocator);
+    defer first_capture.deinit();
+    try first_processor.parseDepFile(&first_capture, dep_text, "deterministic.o");
+
+    var second_processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer second_processor.deinit();
+    var second_capture = try Capture.init(std.testing.allocator);
+    defer second_capture.deinit();
+    try second_processor.parseDepFile(&second_capture, dep_text, "deterministic.o");
+
+    try std.testing.expectEqualStrings(expected, first_capture.list.items);
+    try std.testing.expectEqualStrings(first_capture.list.items, second_capture.list.items);
+}
+
 test "ignored and no-parse file classification matches fixdep rules" {
     try std.testing.expect(isIgnoredFile("include/generated/autoconf.h"));
     try std.testing.expect(isNoParseFile("foo.rmeta"));
