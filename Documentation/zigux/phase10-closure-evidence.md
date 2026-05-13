@@ -24,6 +24,7 @@ This run directly verified these current Phase 10 review surfaces through live f
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `Documentation/zigux/freeze-map.md`
@@ -43,9 +44,9 @@ This run directly verified these current Phase 10 review surfaces through live f
 - `drivers/virtio/virtio_mmio.zig`
 - `drivers/virtio/virtio_mmio_verify.zig`
 
-These reads are enough to confirm that current `master` still carries an active shared Phase 10 reminder packet, dedicated shared checkers, a manifest-backed closure packet, the directly readable core, ring, input, and MMIO survey companions, and public-tree-visible direct ring, input, and MMIO driver-local helper surfaces under `drivers/virtio/`.
+These reads are enough to confirm that current `master` still carries an active shared Phase 10 reminder packet, dedicated shared checkers, a manifest-backed closure packet, the directly readable core, ring, input, and MMIO survey companions, the directly re-readable ring slice companion, and public-tree-visible direct ring, input, and MMIO driver-local helper surfaces under `drivers/virtio/`.
 
-They also confirm that the packet-local Phase 10 slice companions remain repo-reality gaps on current `master`, so this note must not treat them as shipped direct evidence.
+They also confirm that the remaining packet-local Phase 10 slice companions stay repo-reality gaps on current `master`, so this note must not treat those missing core, input, input-module, or MMIO companions as shipped direct evidence.
 
 ## Verified Queue And Input Coverage
 
@@ -54,9 +55,9 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 - `scripts/zigux/check-phase10-harness-coverage.py` still fails closed unless the shared docs-root, scripts-root, tests-root, workflow, make-route, closure-manifest, and focused harness reminders stay aligned around the current Phase 10 ring, input, and MMIO lab-validation packet.
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` still fails closed unless the broad Phase 10 tests-root packet keeps `drivers/virtio/virtio.zig` plus `drivers/virtio/virtio_driver_id.zig` explicit beside the same closure-manifest-backed packet.
 - `zigux/tests/phase10_closure_manifest.json` still records the blocked risky-transport posture, the roadmap-required `dual_implementations_for_risky_areas` scoreboard as `blocked_on_risky_transport`, the separated Phase 5 and Phase 9 boundary evidence, the dedicated Phase 14 study-only anchors, and the intended core, ring, input, and MMIO tranche structure for the same virtio lane, so the current shipped Phase 10 proof remains wrapper-first and lab-validation-first rather than claiming direct risky-transport dual implementations.
-- the public `drivers/virtio` tree now shows `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` on current `master`, so the live ring packet is no longer only a manifest-and-survey reminder.
+- the public `drivers/virtio` tree now shows `drivers/virtio/virtio_ring.zig` and `drivers/virtio/virtio_ring_verify.zig` on current `master`, and direct contents reads now also materialize `Documentation/zigux/phase10-virtio-ring-slice.md`, so the live ring packet is no longer only a manifest-and-survey reminder.
 
-Shared Phase 10 reminder surfaces therefore need to keep those direct ring helper and verify paths explicit beside `zigux/tests/phase10_virtio_ring_manifest.json` and `Documentation/zigux/phase10-virtio-ring-survey.md`, while still failing closed on the missing packet-local slice companion `Documentation/zigux/phase10-virtio-ring-slice.md` and any focused tests-root ring replay paths that this run could not re-read directly through the authenticated contents bridge.
+Shared Phase 10 reminder surfaces therefore need to keep those direct ring helper and verify paths explicit beside `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and the directly re-readable `Documentation/zigux/phase10-virtio-ring-slice.md`, while any focused tests-root ring replay paths that this run could not re-read directly through the authenticated contents bridge stay fail-closed and explicit.
 
 - `Documentation/zigux/phase10-virtio-input-survey.md` remains directly readable on current `master`, and the public `drivers/virtio` tree now also keeps `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, and `drivers/virtio/virtio_input_verify.zig` visible again.
 
@@ -74,13 +75,13 @@ The live closure manifest, `Documentation/zigux/review-checklist.md`, `scripts/z
 
 `Documentation/zigux/README.md` now keeps the direct `drivers/virtio/virtio_input_probe_preflight.zig` helper explicit beside `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, and the tests-root input preflight, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, so the shared docs-root packet now matches the compact companion, lane note, and input survey on current `master`.
 
-`scripts/zigux/README.md` still presents the five missing slice-note companions as repo-reality gaps rather than shipped shared review surfaces, so the closure packet and the scripts-root reminder stay aligned on current `master`.
+`scripts/zigux/README.md` still needs a narrower same-lane reread because current `master` now re-materializes `Documentation/zigux/phase10-virtio-ring-slice.md` even though the broader scripts-root summary still speaks as if all five Phase 10 slice-note companions are missing.
 
-No narrower shared-surface undercount was directly verified in this run beyond the stale guidance inside this closure note itself. The older checker-local follow-through recorded here is already landed on current `master`, so the honest same-lane repair in this pass is to stop pointing future runs back at that closed step.
+No narrower shared-surface undercount was directly verified in this run beyond that reopened ring-slice repo-reality drift. The older checker-local follow-through recorded here is already landed on current `master`, so the honest same-lane repair in this pass is to stop treating the ring slice as missing and to point the next reopen at the remaining scripts-root wording drift only.
 
-The remaining honest repo-reality gaps in this lane are still the packet-local slice companions `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`.
+The remaining honest repo-reality gaps in this lane are still the packet-local slice companions `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`.
 
-That means the current same-lane truthfulness work is no longer a broad tests-root repair, a docs-root undercount, or a checker-local sync. The only directly verified stale item in this pass was the closure note's own next-step guidance.
+That means the current same-lane truthfulness work is no longer a broad tests-root repair, a docs-root undercount, or a checker-local sync. The directly verified stale item in this pass is the shared reminder wording around which Phase 10 slice companions are still missing.
 
 The broader roadmap gap is still the blocked risky-transport and registration-lifecycle side of `virtio_input`: real event delivery, `input_register_device()` lifecycle coverage, transport-backed queue callbacks, and freeze, restore, remove, or reset parity remain out of scope.
 
@@ -100,5 +101,5 @@ The roadmap posture remains unchanged:
 The next truthful virtio-driver follow-through should stay inside one shared reminder, checker, manifest, survey, or helper-test surface at a time:
 
 1. keep the Phase 10 lane parked below risky transport and avoid widening into queue setup parity, IRQ parity, DMA paths, or input registration-lifecycle closure
-2. after this closure-note refresh, reread `Documentation/zigux/review-checklist.md` plus `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` against `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_closure_manifest.json`, and the direct `drivers/virtio/` packet to see whether any smaller shared reminder undercount still remains
-3. if that narrower reread finds a real same-lane shared reminder gap, keep the missing slice-note companions explicit, keep the publicly visible direct ring, input, and MMIO driver-local surfaces explicit, and keep the current MMIO helper ladder through `phase10-mmio-selected-queue-readiness-helper` fail-closed and explicit until the next direct current-`master` reread says otherwise
+2. after this closure-note refresh, reread `scripts/zigux/README.md` against `Documentation/zigux/phase10-virtio-ring-slice.md`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_closure_manifest.json`, and the direct `drivers/virtio/` packet to remove the stale all-five-slices-missing posture without widening into packet-local driver delivery
+3. if that narrower reread finds a real same-lane shared reminder gap, keep the remaining missing core, input, input-module, and MMIO slice-note companions explicit, keep the re-readable ring slice explicit, keep the publicly visible direct ring, input, and MMIO driver-local surfaces explicit, and keep the current MMIO helper ladder through `phase10-mmio-selected-queue-readiness-helper` fail-closed and explicit until the next direct current-`master` reread says otherwise
