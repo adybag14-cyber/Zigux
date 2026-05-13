@@ -116,9 +116,9 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         mixThresholdChecksumBool(&checksum, compare.stored);
         mixThresholdChecksumI64(&checksum, add_unless.previous);
         mixThresholdChecksumBool(&checksum, add_unless.changed);
-        mixThresholdChecksumI64(&checksum, and_previous);
-        mixThresholdChecksumI64(&checksum, or_previous);
-        mixThresholdChecksumI64(&checksum, xor_previous);
+        mixThresholdChecksumI64(&checksum, and_previous.previous);
+        mixThresholdChecksumI64(&checksum, or_previous.previous);
+        mixThresholdChecksumI64(&checksum, xor_previous.previous);
         mixThresholdChecksumUsize(&checksum, summary.operation_families.len);
         mixThresholdChecksumBool(&checksum, summary.checked_returning_paths);
         mixThresholdChecksumBool(&checksum, summary.checked_bitwise_paths);
@@ -147,10 +147,10 @@ fn expectArithmeticCase(case: ArithmeticCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
 
-    try module.addCounter(case.addend);
+    _ = try module.addCounter(case.addend);
     try std.testing.expectEqual(case.after_add, module.snapshotCounter());
 
-    try module.subCounter(case.subtrahend);
+    _ = try module.subCounter(case.subtrahend);
     try std.testing.expectEqual(case.after_sub, module.snapshotCounter());
 
     try std.testing.expectEqual(case.add_return, try module.addReturnCounter(case.subtrahend));
@@ -209,7 +209,7 @@ fn expectBitwiseCase(case: BitwiseCase) !void {
         .xor_mask => try module.xorCounter(case.mask),
     };
 
-    try std.testing.expectEqual(case.previous, previous);
+    try std.testing.expectEqual(case.previous, previous.previous);
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
