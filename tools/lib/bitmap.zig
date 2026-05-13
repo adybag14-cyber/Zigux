@@ -155,6 +155,15 @@ pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usi
     orBits(dst, src1, src2, nbits);
 }
 
+pub fn weightedOr(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    orBits(dst, src1, src2, nbits);
+    return weight(dst, nbits);
+}
+
+pub fn bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedOr(dst, src1, src2, nbits);
+}
+
 pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -171,6 +180,15 @@ pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
 
 pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     xorBits(dst, src1, src2, nbits);
+}
+
+pub fn weightedXor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    xorBits(dst, src1, src2, nbits);
+    return weight(dst, nbits);
+}
+
+pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedXor(dst, src1, src2, nbits);
 }
 
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
@@ -939,6 +957,16 @@ test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops" {
     bitmap_xor(zero_dst[0..0], lhs[0..0], rhs[0..0], 0);
     try std.testing.expectEqual(before, zero_dst[0]);
 
+    try std.testing.expectEqual(@as(usize, 0), weightedOr(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, zero_dst[0]);
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weighted_or(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, zero_dst[0]);
+
+    try std.testing.expectEqual(@as(usize, 0), weightedXor(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, zero_dst[0]);
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weighted_xor(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(before, zero_dst[0]);
+
     bitmap_copy(zero_dst[0..0], copy_src[0..0], 0);
     try std.testing.expectEqual(before, zero_dst[0]);
 
@@ -999,8 +1027,20 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     bitmap_or(&alias_dst, &lhs, &rhs, nbits);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
+    const primary_or_weight = weightedOr(&primary_dst, &lhs, &rhs, nbits);
+    const alias_or_weight = bitmap_weighted_or(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqual(primary_or_weight, alias_or_weight);
+    try std.testing.expectEqual(weight(&primary_dst, nbits), primary_or_weight);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
     xorBits(&primary_dst, &lhs, &rhs, nbits);
     bitmap_xor(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    const primary_xor_weight = weightedXor(&primary_dst, &lhs, &rhs, nbits);
+    const alias_xor_weight = bitmap_weighted_xor(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqual(primary_xor_weight, alias_xor_weight);
+    try std.testing.expectEqual(weight(&primary_dst, nbits), primary_xor_weight);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(andBits(&primary_dst, &lhs, &rhs, nbits), bitmap_and(&alias_dst, &lhs, &rhs, nbits));
