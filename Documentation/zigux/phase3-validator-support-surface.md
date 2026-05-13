@@ -37,6 +37,8 @@ Phase 3 ABI and runtime tranche.
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
+- `include/zigux/dev_t.h`
+- `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/abi.zig`
 - `zigux/Makefile`
@@ -93,8 +95,11 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
-`zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`, and
-`make -C zigux phase3-selftest`; keep
+`include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
+`zigux/bindings/abi.zig`, and `make -C zigux phase3-selftest`; keep the
+canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`
+starter-companion split explicit here whenever this validator-support packet
+names the dedicated header-family survey and next-step note, and keep
 `Documentation/zigux/phase3-kernel-export-shim-governance.md` paired with this
 note, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and the
 shared ABI slice when `zigux/kernel/export_shim.zig` itself changes instead of
