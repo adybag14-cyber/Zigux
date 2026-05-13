@@ -7,7 +7,7 @@ This note tracks the bounded Phase 9 runtime atomic64 starter packet on `master`
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L04`
-- `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
+- `PHASE9_SURVEYED_COMMIT=9f8c05368242414084e4bc94ea979604c2b6b712`
 - scope: selftest hook surface, guarded lifecycle parity evidence, direct atomic64 starter packet truthfulness, bounded loader-scaffold review only, and dedicated survey-note plus manifest closure only
 
 ## Direct Packet
