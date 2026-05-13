@@ -20,6 +20,7 @@
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_make_targets_present": true,
     "preexisting_phase12_survey_note_present": true,
+    "preexisting_phase12_fallback_catalog_present": true,
     "preexisting_phase12_survey_gate_present": true
   },
   "roadmap_gap_check": {
@@ -75,7 +76,7 @@
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The survey note records the same bounded queue, request-submit sequencing, command-buffer ownership, recovery, rollback-owner, fallback-path, reversible-delivery evidence, and shared smoke-first rollback drill boundary that current master now exposes."
+      "why_now": "The survey note records the same bounded queue, request-submit sequencing, recovery, fallback-path, rollback-facing recovery summaries, and shared smoke-first rollback drill boundary that current master now exposes."
     },
     {
       "id": "phase12-virtio-scsi-syntax-lab-gate",
@@ -110,14 +111,14 @@
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded probe and host-limit summaries through captureProbeSnapshot() and captureHostLimitSummary() without claiming scsi_host registration."
+      "why_now": "Current master now carries bounded probe and host-limit summaries through captureHostLimitSummary() without claiming scsi_host registration."
     },
     {
       "id": "phase12-virtio-scsi-queue-depth-summary",
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries a bounded queue-depth clamp through captureQueueDepthSummary() and recoveryQueueDepthSummary() without claiming blk-mq runtime depth changes."
+      "why_now": "Current master now carries a bounded queue-depth clamp through recoveryQueueDepthSummary() without claiming blk-mq runtime depth changes."
     },
     {
       "id": "phase12-virtio-scsi-command-buffer-ownership-summary",
@@ -138,7 +139,7 @@
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded io-map and recovery summaries through captureIoQueueMapSummary(), recoveryQueuePlan(), recoveryIoQueueMapSummary(), recoveryEventBufferOwnershipSummary(), and recoveryHostScanSummary() without claiming runtime queue execution."
+      "why_now": "Current master now carries bounded io-map and recovery summaries through recoveryEventBufferOwnershipSummary() and recoveryHostScanSummary() without claiming runtime queue execution."
     },
     {
       "id": "phase12-virtio-scsi-runtime-request-flow",
