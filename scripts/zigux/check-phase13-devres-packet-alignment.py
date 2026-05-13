@@ -381,6 +381,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 "reviewability:surveyed_commit_mismatch:master-readback-2026-05-13",
+                "reviewability:missing_marker:\"P13-L01\"",
                 "reviewability:missing_marker:\"master-readback-2026-05-13\"",
                 "reviewability:missing_marker:\"phase13-make-target\"",
                 "reviewability:missing_marker:\"phase13-devres-arch-phys-wc-token-planner\"",
