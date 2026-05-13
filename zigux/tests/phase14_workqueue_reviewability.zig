@@ -114,3 +114,11 @@ test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning boundary");
     try expectContains(workqueue_survey_source, "live execution in C");
 }
+
+test "phase14 workqueue survey keeps the wrapper-backed full-bundle replay explicit" {
+    const workqueue_survey_source = try readWorkqueueSurveySource();
+    defer std.testing.allocator.free(workqueue_survey_source);
+
+    try expectContains(workqueue_survey_source, "`make -C zigux phase14-test`");
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_survey_source, "`make -C zigux phase14-smoke`") == null);
+}
