@@ -53,6 +53,8 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
     try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
     try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"dedicated_local_checker\": \"scripts/zigux/check-phase4-perf-baseline-packet.py\"");
+    try requireMarker("\"dedicated_local_checker_scope\": \"local_only_self_test_and_packet_check\"");
     try requireMarker("\"surface\": \"zigux/tests/atomic64_diff.zig\"");
     try requireMarker("\"gate_owner\": \"ABI and Runtime Team\"");
     try requireMarker("\"gate_rollback_owner\": \"ABI and Runtime Team\"");
@@ -229,6 +231,8 @@ test "phase4 perf baseline survey keeps the tests README perf-governance packet 
 }
 
 test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {
+    try requireMarker("\"dedicated_local_checker\": \"scripts/zigux/check-phase4-perf-baseline-packet.py\"");
+    try requireMarker("\"dedicated_local_checker_scope\": \"local_only_self_test_and_packet_check\"");
     try requireRepoMarker(
         "scripts/zigux/check-phase4-perf-baseline-packet.py",
         "PHASE4_PERF_BASELINE_PACKET_CHECK=pass",
@@ -244,6 +248,7 @@ test "phase4 perf baseline survey keeps the dedicated local checker packet expli
 }
 
 test "phase4 perf baseline survey keeps the dedicated local checker local-only" {
+    try requireMarker("\"dedicated_local_checker_scope\": \"local_only_self_test_and_packet_check\"");
     try requireRepoMarker(
         "scripts/zigux/check-phase4-perf-baseline-packet.py",
         "phase4 perf baseline packet stays local-only and self-tested",
