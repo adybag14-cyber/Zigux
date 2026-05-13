@@ -17,10 +17,11 @@ The current shared closure packet is the reminder-and-checker surface that still
 * `Documentation/zigux/phase11-driver-lane-sequencing.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
+* `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
 
-These reminder surfaces plus the landed bounded build-and-replay packet are the shared Phase 11 closure packet this note treats as current today.
+These reminder surfaces plus the landed inventory-backed build-and-replay packet are the shared Phase 11 closure packet this note treats as current today.
 
 ## Driver-Local Phase 11 Surfaces Still Parked Beside It
 
@@ -33,19 +34,19 @@ The adjacent driver-local or packet-local Phase 11 surfaces remain parked beside
 ## Exact Shared Packet Boundaries
 
 * direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`
+* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`
 * raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
-* the `phase11` and `phase11-hvc-survey` routes still exist in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`, and the raw-fallback-confirmed build-backed replay packet keeps those routes reviewable even when the contents bridge still 404s
+* the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`
+* the `phase11` and `phase11-hvc-survey` routes still exist in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`, and the raw-fallback-confirmed inventory-backed build packet keeps those routes reviewable even when the contents bridge still 404s
 * there is no shared `make -C zigux phase11-validate` target on `master`
 * no landed shared `validate-phase11.py`
-* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`
 
 ## What This Closure Note Does Not Claim
 
 * no overall Phase 11 closure
 * no landed shared `validate-phase11.py` or `phase11-validate` route
-* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`
 * no broader landed platform registration, PM plumbing, tty registration, notifier execution, khvcd execution, sysrq dispatch, or hardware-backed validation than the current bounded replay packet and parked reminder notes
 
 ## Next Bounded Step
 
-The next honest shared-lane follow-through is to keep the shared reminder packet aligned whenever `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the contributor-facing Phase 11 summaries move again, or when another raw-fallback-confirmed shared surface needs the same truthfulness refresh.
+The next honest shared-lane follow-through is to keep the shared reminder packet aligned whenever `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase11_build_inventory.json`, or another shared Phase 11 summary surface moves again.
