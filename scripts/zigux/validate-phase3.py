@@ -17,6 +17,7 @@ ATOMIC_HELPER_PATH = Path("zigux/helpers/atomic.zig")
 BARRIER_HELPER_PATH = Path("zigux/helpers/barrier.zig")
 MMIO_HELPER_PATH = Path("zigux/helpers/mmio.zig")
 LOW_LEVEL_TEST_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
+LOW_LEVEL_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 TEST_BUILD_PATH = Path("zigux/tests/build.zig")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
@@ -55,6 +56,7 @@ REPO_FILES = (
     ATOMIC_HELPER_PATH,
     BARRIER_HELPER_PATH,
     MMIO_HELPER_PATH,
+    LOW_LEVEL_BUILD_PATH,
     LOW_LEVEL_TEST_PATH,
     TEST_BUILD_PATH,
     Path("zigux/tests/README.md"),
@@ -336,8 +338,8 @@ def _manifest_payload(files: list[str], file_count: int | None = None) -> str:
 
 
 def _low_level_wrapper_stub() -> str:
-    return """const abi = @import("abi_bindings");
-test "phase3 low-level wrappers stub markers" {
+    return """const abi = @import(\"abi_bindings\");
+test \"phase3 low-level wrappers stub markers\" {
     _ = atomic.load(u32, &value, .seq_cst);
     atomic.store(u32, &value, 8, .seq_cst);
     _ = atomic.exchange(u32, &value, 13, .seq_cst);
@@ -513,10 +515,23 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        low_level_build_rel = LOW_LEVEL_BUILD_PATH
+        _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
+        (root / low_level_build_rel).unlink()
+        issues = validate_repo(root)
+        expected_low_level_build_missing = (
+            f"missing repo file: {low_level_build_rel.as_posix()}"
+        )
+        if expected_low_level_build_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing low-level wrapper build anchor was not reported")
+            return 1
+        case_count += 1
+
         low_level_note_rel = Path(
             "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
         )
-        _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
+        _write(root / low_level_build_rel, "# restored\n")
         (root / low_level_note_rel).unlink()
         issues = validate_repo(root)
         expected_low_level_note_missing = (
