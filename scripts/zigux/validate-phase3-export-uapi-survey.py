@@ -250,7 +250,8 @@ def validate(root: Path) -> list[str]:
         ),
         ABI_DUMP: (
             'try writer.writeAll("{\\\"abi_version\\\":");',
-            "try writeStruct(writer, decl.name, value);",
+            "try writeDevT(writer);",
+            'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);',
         ),
     }
     for rel, markers in contains_lists.items():
@@ -288,7 +289,12 @@ def build_valid_workspace(root: Path) -> None:
     write(root / LINUX_HEADER, '#include "../zigux/dev_t.h"\nstatic inline int zigux_export_status_ok(void) { return 1; }\n')
     write(root / ABI_HEADER, "#define ZIGUX_ABI_VERSION 1\nstruct zigux_export_status { int code; };\n")
     write(root / BUILD_FILE, "// build\n")
-    write(root / ABI_DUMP, 'try writer.writeAll("{\\\"abi_version\\\":");\ntry writeStruct(writer, decl.name, value);\n')
+    write(
+        root / ABI_DUMP,
+        'try writer.writeAll("{\\\"abi_version\\\":");\n'
+        'try writeDevT(writer);\n'
+        'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);\n',
+    )
     write(root / SCRIPTS_README, f"- `validate-phase3-export-uapi-survey.py`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `include/linux/zigux.h`\n- `include/zigux/abi.h`\n- `{DUMP_GATE}`\n")
     write(root / ABI_SLICE, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n")
     write(root / ABI_NEXT_STEP, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n")
@@ -340,6 +346,17 @@ def run_self_test() -> int:
         write(root / DEV_T_HEADER, (root / DEV_T_HEADER).read_text(encoding="utf-8") + "/* drift */\n")
         issues = validate(root)
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_DEV_T_HEADER_BLOB_SHA:"), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / ABI_DUMP,
+            (root / ABI_DUMP).read_text(encoding="utf-8").replace("try writeDevT(writer);\n", "", 1),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{ABI_DUMP.as_posix()}:try writeDevT(writer);" in issues
+        ), issues
         build_valid_workspace(root)
         case_count += 1
 
