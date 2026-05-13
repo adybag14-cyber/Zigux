@@ -66,17 +66,17 @@ REQUIRED_MARKERS = {
         "Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
-        "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
+        "`Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
         "`phase8_pin_path.zig`",
         "`phase8_bpf_type_names.zig`",
         "`phase8_perf_buffer_poll.zig`",
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.",
-        "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
+        "Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.",
-        "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
+        "Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.",
     ],
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
         "PHASE8_SLICE=libbpf-perf-buffer-poll",
@@ -328,9 +328,9 @@ def run_self_test() -> None:
         (
             "segment_survey_docs_root_readback_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
-            "`Documentation/zigux/README.md` now exposes the broader Phase 8 libbpf helper packet through the refreshed `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note path, and `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: `Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path that current readable contents no longer expose, while omitting the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`; `scripts/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet instead of only the shared sequencing, bridge-boundary, and bridge-slice notes.",
+            "`Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.",
+            "`Documentation/zigux/README.md` still exposes the broader Phase 8 libbpf helper packet through a stale `Documentation/zigux/phase8-bpf-type-names-slice.md` note path while omitting the live file-path bridge note.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.",
         ),
         (
             "segment_survey_build_anchor",
@@ -370,9 +370,9 @@ def run_self_test() -> None:
         (
             "segment_survey_docs_root_gap_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
-            "Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey no longer needs to keep the docs-root README drift explicit because current `master` now carries the live `phase8-file-path-handle-bridge-slice.md` note and no longer names the missing `phase8-bpf-type-names-slice.md` path.",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: Same-day 2026-05-12 readback kept the pin-path evidence narrower and mixed, and the broader libbpf survey still needs to keep that split explicit while also matching the live bridge-adjacent landed-helper packet and the docs-root README drift: current `master` omits the live `phase8-file-path-handle-bridge-slice.md` note from the broad Phase 8 docs summary while still naming the missing `phase8-bpf-type-names-slice.md` path.",
+            "Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
+            "Exact 2026-05-13 readback reopens the earlier docs-root cue because the broad Phase 8 docs summary still omits the live file-path bridge note.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.",
         ),
         (
             "segment_survey_landed_slice_catalog_anchor",
@@ -391,9 +391,9 @@ def run_self_test() -> None:
         (
             "segment_survey_follow_through_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
-            "Keep follow-up inside the shared wording lane until the public survey packet and the current readable helper-plus-build evidence agree again.",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: Keep follow-up inside the libbpf segment survey family until the public survey packet and the current readable helper-plus-build evidence agree again.",
+            "Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.",
+            "Keep the shared wording lane active after this survey-and-checker sync even without a fresh shared reminder-surface drift.",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.",
         ),
         (
             "perf_buffer_poll_slice_route_anchor",
@@ -470,7 +470,7 @@ def run_self_test() -> None:
             "zigux/tests/README.md",
             "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
             "`zigux/tests/phase8_perf_buffer_poll_review_build.zig`",
-            "zigux/tests/README.md: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_perf_BUFFER_poll_only_build.zig`",
         ),
     ]
 
