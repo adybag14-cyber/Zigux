@@ -18,14 +18,20 @@ CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
 
 REQUIRED_CONF_HELPER_ANCHORS = [
+    "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge emits olddefconfig argv and env",
     "conf bridge emits syncconfig auto files",
+    "conf bridge emits syncconfig nosilentupdate when present",
     "conf bridge emits alldefconfig argv and env",
     "conf bridge emits explicit empty allconfig override for allmodconfig",
     "conf bridge emits randconfig tunables when present",
+    "conf bridge emits explicit randconfig allconfig override when present",
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
     "conf bridge escapes low control bytes in JSON strings",
+    "bridge options parser accepts explicit allconfig override for allmodconfig",
+    "bridge options parser accepts syncconfig nosilentupdate",
 ]
 
 REQUIRED_CONFDATA_CASES = [
