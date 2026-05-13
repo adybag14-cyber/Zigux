@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
@@ -52,9 +53,15 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-build-wiring.py",
         "`Documentation/zigux/phase7-string-helpers-slice.md` and\n`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of",
         "`P7-L04`",
+        "`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated",
         "zigux/tests/phase7_build.zig",
         "`lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` are still\nmissing from the live tree.",
         "`make -C zigux phase7-test`, `zig build test --build-file\nzigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as the\nauthoritative blocker-bearing bundle routes",
+    ],
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
+        "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
+        "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_LANE_KEY=P7-L04",
@@ -216,6 +223,15 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        helper_lane_path = tmp_root / "Documentation/zigux/phase7-helper-lane-sequencing.md"
+        helper_lane_path.unlink()
+        expect_missing_file(
+            "missing_helper_lane_sequencing_file",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        )
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux/tests/phase7_string_helpers_manifest.json"
         manifest_path.unlink()
         expect_missing_file(
@@ -269,6 +285,31 @@ def run_self_test() -> None:
             "missing_string_helpers_owner_note_marker",
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `Documentation/zigux/phase7-string-helpers-slice.md` and\n`zigux/tests/phase7_string_helpers_manifest.json` remain the dedicated owners of",
+        )
+        write_fixture_root(tmp_root)
+
+        note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        missing_helper_lane_note_marker = "`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated"
+        note_path.write_text(note_text.replace(missing_helper_lane_note_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_lane_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_lane_path = tmp_root / "Documentation/zigux/phase7-helper-lane-sequencing.md"
+        helper_lane_text = helper_lane_path.read_text(encoding="utf-8")
+        missing_helper_lane_control_marker = "PHASE7_SHARED_CONTROL_LANE=P7-Y05"
+        helper_lane_path.write_text(
+            helper_lane_text.replace(missing_helper_lane_control_marker, "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_lane_control_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_SHARED_CONTROL_LANE=P7-Y05",
         )
         write_fixture_root(tmp_root)
 
@@ -428,7 +469,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=21")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=24")
 
 
 def main() -> int:
