@@ -135,6 +135,24 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
         "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination",
     );
 
+    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
+    defer allocator.free(docs_root);
+    try expectContains(docs_root, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(docs_root, "zigux/tests/phase7_cmdline.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+
+    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
+    defer allocator.free(review_checklist);
+    try expectContains(review_checklist, "there is no standalone `samples/zigux/*cmdline*` reference sample");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(review_checklist, "lib/cmdline.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_cmdline.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectContains(review_checklist, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+
     const helper_lane_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     defer allocator.free(helper_lane_note);
     try expectContains(helper_lane_note, "cmdline packet, lane `P7-L05`:");
@@ -144,6 +162,39 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
         helper_lane_note,
         "P7-L05 owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift.",
     );
+
+    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_readme);
+    try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;");
+    try expectContains(samples_readme, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(samples_readme, "lib/cmdline.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_cmdline.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectContains(samples_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+
+    const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
+    defer allocator.free(scripts_root);
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(scripts_root, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(scripts_root, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectContains(scripts_root, "make -C zigux phase7-validate");
+    try expectContains(scripts_root, "make -C zigux phase7");
+
+    const validate_phase7 = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
+    defer allocator.free(validate_phase7);
+    try expectContains(validate_phase7, "\"Documentation/zigux/phase7-cmdline-slice.md\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_survey.zig\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_manifest.json\"");
+    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"");
+
+    const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
+    defer allocator.free(tests_root);
+    try expectContains(tests_root, "`zigux/tests/phase7_build.zig`");
+    try expectContains(tests_root, "`zigux/tests/phase7_cmdline.zig`");
+    try expectContains(tests_root, "`zigux/tests/phase7_cmdline_survey.zig`");
+    try expectContains(tests_root, "`zigux/tests/phase7_cmdline_manifest.json`");
+    try expectContains(tests_root, "`zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
@@ -156,6 +207,21 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(build_file, "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));");
     try expectContains(build_file, "\"phase7-cmdline-survey\"");
     try expectContains(build_file, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);");
+
+    const makefile = try readRepoFile(allocator, "zigux/Makefile");
+    defer allocator.free(makefile);
+    try expectContains(makefile, "phase7-validate:");
+    try expectContains(makefile, "phase7-cmdline-survey:");
+    try expectContains(makefile, "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(makefile, "phase7-test:");
+    try expectContains(makefile, "phase7: phase7-validate phase7-test");
+
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "make -C zigux phase7-validate");
+    try expectContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectContains(workflow, "make -C zigux phase7-test");
 
     const cmdline_tests = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
     defer allocator.free(cmdline_tests);
