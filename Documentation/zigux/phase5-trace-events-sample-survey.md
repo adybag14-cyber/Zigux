@@ -1,85 +1,69 @@
 # Phase 5 Trace-Events Sample Survey
 
-This document tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/trace_events/trace-events-sample.c` anchor.
+This note tracks the bounded Phase 5 survey for the roadmap's `samples/trace_events/trace-events-sample.c` anchor.
 
 ## Status
 
-- `PHASE5_STATUS=parked`
-- `PHASE5_SLICE=trace-events-reference-sample-starter`
+- `PHASE5_STATUS=parked-doc-accuracy`
+- `PHASE5_SLICE=trace-events-reference-sample-readback`
 - `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
-- scope: roadmap-vs-repo sample delivery, exact public helper, callback, and ownership-lifetime idiom guidance, plus the bounded formatting cue already shipped in the current non-runtime trace-events packet
-- product boundary:
-  - `Documentation/zigux/phase5-trace-events-sample-survey.md`
-  - `Documentation/zigux/phase5-sample-review-guide.md`
-  - `Documentation/zigux/README.md`
-  - `Documentation/zigux/review-checklist.md`
-  - `scripts/zigux/README.md`
-  - `zigux/tests/README.md`
-  - `zigux/Makefile`
-  - `.github/workflows/zigux-bootstrap.yml`
-  - `samples/zigux/README.md`
-  - `samples/zigux/trace_events_sample.zig`
-  - `zigux/tests/phase5_build.zig`
-  - `zigux/tests/phase5_trace_events_sample.zig`
-  - `zigux/tests/phase5_trace_events_sample_manifest.json`
-  - `zigux/tests/phase5_trace_events_sample_survey.zig`
+- `PHASE5_SURVEYED_COMMIT=readback-gap-2026-05-13`
+- scope: keep the trace-events survey note truthful against current directly readable repo evidence, the roadmap's approved Phase 5 anchor set, the freeze-map boundary, and the remaining shared-guide truthfulness gap
 
-## Why this slice exists
+## Why this note exists
 
-The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
+Phase 5 is still the roadmap's "Samples and Reference Patterns" tranche, and `samples/trace_events/trace-events-sample.c` is still one of the four approved Linux anchors that should make Zigux idioms reviewable and repeatable.
 
-Current `master` already carries that anchor as `samples/zigux/trace_events_sample.zig` inside the shipped four-sample Phase 5 packet, while the separate Phase 9 `runtime_trace_events` family stays distinct. The remaining job in this note is to keep the sample-backed review contract honest without implying runtime substrate closure or inventing a standalone formatting sample that the roadmap never approved.
+The bounded job for this note is no longer to imply that the full trace-events sample packet is directly readable on current `master`. It is to say exactly what this run could read back today and avoid restating older sample-root or shared-build claims that the same repo path did not surface during this inspection.
 
-## Current packet
+## Current repo reality on `master`
 
-- the landed sample keeps the Linux anchor explicit through `TraceEventsReferenceSample.descriptor()` and stays in the non-runtime reference-sample lane
-- the in-memory replay keeps the bounded array payload, selected string, formatted message, public payload and conditional helpers, callback-balance cues, ownership-and-lifetime summary, event-family counts, and post-exit rejection cues reviewable together in one small packet
-- the formatting cue for this lane is still the selected-string plus `iter=%d` replay inside `samples/zigux/trace_events_sample.zig`
-- the ownership half of the packet stays explicit through `ownershipSummary()` plus sample-owned `runOwnershipReplay()`, which keep the `cold` -> `initialized` -> `replay_complete` -> `exited` lifecycle and the final `Gandalf` plus `iter=7` snapshot readable beside the tracing cues
-- current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
-- the shared contributor surface for this sample remains broader than the sample file alone: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and the shared `zigux/tests/phase5_build.zig` route all need to keep the same four-sample non-runtime packet and the same Phase 5 versus Phase 9 boundary visible
+Fresh repo-first inspection on 2026-05-13 found these trace-events-adjacent surfaces directly readable today:
 
-## Exact checks
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `.github/workflows/zigux-bootstrap.yml`
 
-The manifest-backed contract for the current trace-events sample packet is:
+The same readback also found these current public-tree gaps for the trace-events packet:
 
-- the in-memory sample names `samples/trace_events/trace-events-sample.c` and stays in the non-runtime reference-sample lane
-- `runAnchorReplay()` formats `iter=7` and selects `Gandalf` from the Linux `random_strings` table for `len = 2`
-- the replay keeps a `1,2` payload prefix with a zero sentinel in the next slot so the Linux array idiom remains reviewable in memory
-- the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
-- the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
-- `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the `cold`, `initialized`, `replay_complete`, and `exited` lifecycle plus the final `Gandalf` plus `iter=7` snapshot explicit in the same bounded packet
-- the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
-- the function-callback replay requires registration first, marks that callback path as checked, restores the registration balance to zero before the sample completes, and keeps `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection explicit
-- after `exit()` the sample rejects later payload replay or callback-registration calls
+- `samples/zigux/trace_events_sample.zig` was not directly readable
+- `zigux/tests/phase5_build.zig` was not directly readable
+- `zigux/tests/phase5_trace_events_sample.zig` was not directly readable
+- `zigux/tests/phase5_trace_events_sample_manifest.json` was not directly readable
+- `zigux/tests/phase5_trace_events_sample_survey.zig` was not directly readable
 
-## Latest verification snapshot
+That means this note should not claim a fresh direct `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_trace_events_sample_survey.zig`, or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay on current `master`.
 
-Fresh current-`master` reread on 2026-05-12 compared the live Phase 5 trace-events note packet against the roadmap, the bootstrap ledger, the current shared review surfaces, and the still-readable survey note packet.
+This run also confirmed one remaining same-lane shared-surface drift: `Documentation/zigux/phase5-sample-review-guide.md` is directly readable, but it still describes the missing trace-events sample-root and focused-test paths above as verified landed Phase 5 packet surfaces instead of framing them as current public-tree gaps.
 
-- connector-backed readback confirmed the current survey note had drifted behind the shared `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase5-sample-review-guide.md`, and `samples/zigux/README.md` wording, so this note now names the exact public helper surfaces, ownership replay, and callback-boundary cues those reminder surfaces already keep explicit
-- connector-backed readback also confirmed that the shared `zigux/tests/phase5_build.zig` route, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase5-test`, and `make -C zigux phase5` still describe the same bounded non-runtime Phase 5 packet and still keep the later `runtime_trace_events` family separate
-- the note keeps the no-standalone-format-sample boundary explicit so the selected-string plus `iter=%d` replay remains the approved Phase 5 formatting cue and does not drift into a fifth sample claim
-- no local `zig` replay was run in this lane because this scheduled environment did not provide a normal writable Zigux checkout or direct raw-file fetch path for truthful end-to-end reruns; validation for this note update stayed on connector-backed repo inspection and roadmap-to-note alignment
+## What still remains true
 
-## Contributor refresh prompts
+Even with that narrower readback, the roadmap, ledger, and shared reminder surfaces still keep the intended Phase 5 ownership clear:
 
-When `samples/zigux/trace_events_sample.zig` or its directly coupled Phase 5 test packet moves, keep these prompts explicit:
+- the approved Linux anchor is still `samples/trace_events/trace-events-sample.c`
+- the Phase 5 goal is still reviewable, repeatable sample-backed idioms rather than runtime-substrate closure
+- `.github/workflows/zigux-bootstrap.yml` still names the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route in the workflow packet, so any later same-lane follow-up should keep the workflow reminder, docs, and directly readable sample packet aligned rather than inventing a fifth sample or widening into the separate Phase 9 `runtime_trace_events` family
+- the shared Phase 5 reminder packet still keeps the no-standalone-format-sample boundary explicit, so the formatting cue for this lane remains bounded reviewer guidance rather than a claim that current `master` now exposes a dedicated formatting sample
 
-- does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `formattedMessage()`, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, `ownershipSummary()`, and sample-owned `runOwnershipReplay()` still expose the exact public packet reviewers should point to first?
-- does the exact `checked_focus` order stay `descriptor_anchor`, `selected_string_cycle`, `formatted_message_surface`, `conditional_family_markers`, `callback_balance`, and `ownership_and_lifetime`?
-- do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the same vararg-payload, message, relative-location, callback-path, ownership-lifetime, and teardown contract run through `zigux/tests/phase5_build.zig`?
-- does the sample still keep the selected string and `iter=%d` message reviewable in memory instead of hiding them behind runtime thread state?
-- does function-callback replay still require registration first, restore balance to zero, keep `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection explicit, and avoid implying `kthread_run()`, scheduling, or tracepoint enablement parity?
-- if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
-- do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
-- if the broader shared review packet moves, does it still keep the exact same four-sample Phase 5 packet, the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay, the local `make -C zigux phase5-test` and `make -C zigux phase5` wrappers, the no-standalone-format-sample boundary, and the separate Phase 9 `runtime_trace_events` family explicit?
+## Recorded gap vs roadmap
+
+The precise current gap is narrower than the previous version of this note claimed:
+
+- the roadmap still calls for a reviewable Phase 5 trace-events reference-pattern anchor
+- current `master` still carries shared Phase 5 reminder surfaces that talk about that anchor and its reviewer packet
+- current direct readback for this run did not confirm the trace-events sample-root file, the focused Phase 5 trace-events test packet, or the shared Phase 5 build file themselves
+- the remaining same-lane contributor-guidance miss is now specific: `Documentation/zigux/phase5-sample-review-guide.md` still overstates those missing trace-events paths as directly readable shipped evidence
+
+So the honest same-lane posture is readback truthfulness plus one remaining shared-guide repair, not a fresh claim that the full landed trace-events packet is directly readable today.
 
 ## Non-goals
 
-This survey still does not claim:
+This note still does not claim:
 
 - `CREATE_TRACE_POINTS` parity
 - tracepoint macro parity from `trace-events-sample.h`
@@ -88,4 +72,4 @@ This survey still does not claim:
 
 ## Next bounded step
 
-Keep this trace-events survey packet parked unless fresh repo inspection shows this note drifting again from the shared trace-events reminder surfaces or the directly coupled manifest-backed prompts on current `master`. If that happens, reopen only for the next smallest same-family note or survey sync and keep the formatting boundary tied to the landed selected-string plus `iter=%d` replay rather than widening into a standalone formatting sample claim.
+Keep this lane parked unless a follow-up run can directly read or restore the missing trace-events sample-root and focused Phase 5 test surfaces on current `master`, or publish one bounded shared-guidance repair in `Documentation/zigux/phase5-sample-review-guide.md` so it stops listing those missing trace-events paths as directly readable shipped evidence. If the repo stays in this state, prefer that one-file guide repair before widening sample behavior or runtime work.
