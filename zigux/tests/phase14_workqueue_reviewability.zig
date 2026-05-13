@@ -33,6 +33,10 @@ fn readWorkqueueSurveySource() ![]u8 {
     return readRootFile("Documentation/zigux/phase14-workqueue-bridge-survey.md", 64 * 1024);
 }
 
+fn readWorkqueueSliceSource() ![]u8 {
+    return readRootFile("Documentation/zigux/phase14-workqueue-bridge-slice.md", 64 * 1024);
+}
+
 test "phase14 shared smoke manifest keeps workqueue reviewability explicit" {
     try expectContains(manifest_source, "\"zigux/tests/phase14_workqueue_reviewability.zig\"");
     try expectContains(manifest_source, "\"label\": \"phase14-workqueue-reviewability-tests\"");
@@ -100,6 +104,23 @@ test "phase14 workqueue anchor packet keeps the delayed-work governance follow-t
     try expectContains(workqueue_survey_source, "phase14-workqueue-rescuer-mayday-governance");
     try expectContains(workqueue_survey_source, "delayed-work requeue control");
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning ownership");
+}
+
+test "phase14 workqueue slice note keeps the bridge packet reviewable" {
+    const workqueue_slice_source = try readWorkqueueSliceSource();
+    defer std.testing.allocator.free(workqueue_slice_source);
+
+    try expectContains(workqueue_slice_source, "# Phase 14 Workqueue Bridge Slice");
+    try expectContains(workqueue_slice_source, "`PHASE14_LANE_KEY=P14-L04`");
+    try expectContains(workqueue_slice_source, "`kernel/workqueue_bridge.zig`");
+    try expectContains(workqueue_slice_source, "`zigux/tests/phase14_workqueue_bridge.zig`");
+    try expectContains(workqueue_slice_source, "`zigux/tests/phase14_workqueue_reviewability.zig`");
+    try expectContains(workqueue_slice_source, "eight boundary areas");
+    try expectContains(workqueue_slice_source, "fifteen review-only audit checkpoints");
+    try expectContains(workqueue_slice_source, "seven blocked live behaviors");
+    try expectContains(workqueue_slice_source, "delayed-work timer expiry");
+    try expectContains(workqueue_slice_source, "flush, drain, and cancellation completion ownership");
+    try expectContains(workqueue_slice_source, "hotplug-driven worker migration and topology rebinding");
 }
 
 test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
