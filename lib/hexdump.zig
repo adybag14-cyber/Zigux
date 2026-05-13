@@ -89,6 +89,12 @@ fn appendHexByte(writer: *LineWriter, byte: u8) void {
     writer.appendByte(hexAscLo(byte));
 }
 
+fn appendHexByteUnchecked(dst: []u8, offset: *usize, byte: u8) void {
+    dst[offset.*] = hexAscHi(byte);
+    dst[offset.* + 1] = hexAscLo(byte);
+    offset.* += 2;
+}
+
 fn appendGroupedHex(writer: *LineWriter, chunk: []const u8) void {
     if (native_endian == .little) {
         var idx = chunk.len;
@@ -104,8 +110,59 @@ fn appendGroupedHex(writer: *LineWriter, chunk: []const u8) void {
     }
 }
 
+fn appendGroupedHexUnchecked(dst: []u8, offset: *usize, chunk: []const u8) void {
+    if (native_endian == .little) {
+        var idx = chunk.len;
+        while (idx != 0) {
+            idx -= 1;
+            appendHexByteUnchecked(dst, offset, chunk[idx]);
+        }
+        return;
+    }
+
+    for (chunk) |byte| {
+        appendHexByteUnchecked(dst, offset, byte);
+    }
+}
+
 fn printableAscii(byte: u8) u8 {
     return if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
+}
+
+fn formatFullLine(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {
+    var written: usize = 0;
+
+    if (groupsize == 1) {
+        for (buf, 0..) |byte, idx| {
+            if (idx != 0) {
+                linebuf[written] = ' ';
+                written += 1;
+            }
+            appendHexByteUnchecked(linebuf, &written, byte);
+        }
+    } else {
+        var offset: usize = 0;
+        while (offset < buf.len) : (offset += groupsize) {
+            if (offset != 0) {
+                linebuf[written] = ' ';
+                written += 1;
+            }
+            appendGroupedHexUnchecked(linebuf, &written, buf[offset .. offset + groupsize]);
+        }
+    }
+
+    if (ascii) {
+        const ascii_column = asciiColumn(rowsize, groupsize);
+        @memset(linebuf[written..ascii_column], ' ');
+        written = ascii_column;
+        for (buf) |byte| {
+            linebuf[written] = printableAscii(byte);
+            written += 1;
+        }
+    }
+
+    linebuf[written] = 0;
+    return written;
 }
 
 pub fn hexToBin(ch: u8) ?u8 {
@@ -189,17 +246,23 @@ pub fn hex_dump_line_length(len: usize, rowsize: usize, groupsize: usize, ascii:
 pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {
     const actual_rowsize = normalizedRowSize(rowsize);
     const actual_len = @min(buf.len, actual_rowsize);
-    if (linebuf.len == 0) {
-        return requiredLineLength(actual_len, actual_rowsize, groupsize, ascii);
-    }
-
     const actual_groupsize = normalizedGroupSize(actual_len, groupsize);
-    var writer = LineWriter{ .buffer = linebuf };
+    const required = requiredLineLength(actual_len, actual_rowsize, actual_groupsize, ascii);
+
+    if (linebuf.len == 0) {
+        return required;
+    }
 
     if (actual_len == 0) {
-        writer.finish();
+        linebuf[0] = 0;
         return 0;
     }
+
+    if (linebuf.len > required) {
+        return formatFullLine(buf[0..actual_len], actual_rowsize, actual_groupsize, linebuf, ascii);
+    }
+
+    var writer = LineWriter{ .buffer = linebuf };
 
     if (actual_groupsize == 1) {
         for (buf[0..actual_len], 0..) |byte, idx| {
@@ -333,6 +396,17 @@ test "hex dump truncation still reports the full logical length" {
     try std.testing.expectEqual(@as(usize, 11), written);
     try std.testing.expectEqualStrings("00 01 0", linebuf[0 .. linebuf.len - 1]);
     try std.testing.expectEqual(@as(u8, 0), linebuf[linebuf.len - 1]);
+}
+
+test "hex dump full-buffer path leaves trailing bytes untouched" {
+    var linebuf: [16]u8 = [_]u8{0xaa} ** 16;
+    const input = [_]u8{ 0x00, 0x01, 0x02, 0x03 };
+    const written = hexDumpToBuffer(&input, 16, 1, linebuf[0..13], false);
+
+    try std.testing.expectEqual(@as(usize, 11), written);
+    try std.testing.expectEqualStrings("00 01 02 03", linebuf[0..written]);
+    try std.testing.expectEqual(@as(u8, 0), linebuf[written]);
+    try std.testing.expectEqual(@as(u8, 0xaa), linebuf[written + 1]);
 }
 
 test "hex dump grouped output follows native-endian group order" {
