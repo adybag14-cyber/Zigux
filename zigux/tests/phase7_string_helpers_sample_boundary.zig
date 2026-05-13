@@ -49,6 +49,22 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         try expectExactCount(sample_root_readme, anchor, 1);
     }
 
+    const runtime_family = [_][]const u8{
+        "`samples/zigux/runtime_atomic64.zig`",
+        "`samples/zigux/runtime_atomic64_loader.zig`",
+        "`samples/zigux/runtime_bitmap.zig`",
+        "`samples/zigux/runtime_bitmap_loader.zig`",
+        "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
+        "`samples/zigux/runtime_kretprobe.zig`",
+        "`samples/zigux/runtime_kretprobe_loader.zig`",
+        "`samples/zigux/runtime_trace_events.zig`",
+        "`samples/zigux/runtime_trace_events_loader.zig`",
+    };
+    for (runtime_family) |sample| {
+        try expectContains(sample_root_readme, sample);
+        try expectExactCount(sample_root_readme, sample, 1);
+    }
+
     const sample_root_markers = [_][]const u8{
         "Current Phase 5 reference anchors",
         "Separate helper-backed sample packet",
@@ -59,6 +75,8 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample",
         "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample",
         "later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors",
+        "Separate runtime pilot family",
+        "the current readable `runtime_*` packet above stays in the separate Phase 9 runtime pilot family and is not extra Phase 5 anchor evidence",
     };
     for (sample_root_markers) |marker| {
         try expectContains(sample_root_readme, marker);
@@ -67,6 +85,7 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
     try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor", 1);
     try expectExactCount(sample_root_readme, "keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family", 1);
     try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig`", 1);
+    try expectExactCount(sample_root_readme, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`", 1);
 
     const slice_markers = [_][]const u8{
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
