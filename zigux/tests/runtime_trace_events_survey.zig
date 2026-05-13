@@ -88,6 +88,13 @@ fn isAllowedOwnerRole(role: []const u8) bool {
         std.mem.eql(u8, role, "shared_build_bundle");
 }
 
+fn deliveryEvidenceWhyNowForId(manifest: Manifest, id: []const u8) ?[]const u8 {
+    for (manifest.delivery_evidence_catalog) |entry| {
+        if (std.mem.eql(u8, entry.id, id)) return entry.why_now;
+    }
+    return null;
+}
+
 test "phase 9 runtime trace-events survey packet matches the current manifest and notes" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -322,6 +329,11 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state boundary.",
         manifest.gaps[0].why_now,
     );
+
+    const survey_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-survey-note") orelse return error.ExpectedSurveyNoteDeliveryEvidence;
+    const module_slice_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-module-slice-note") orelse return error.ExpectedModuleSliceDeliveryEvidence;
+    try expectContains(survey_note_why_now, "selftest-ready failed-exit rollback cue");
+    try expectContains(module_slice_note_why_now, "selftest-ready failed-exit rollback note");
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
     try expectContains(
