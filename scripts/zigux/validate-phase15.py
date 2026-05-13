@@ -450,25 +450,53 @@ def _phase15_parity_scorecard_fixture() -> dict:
                 "path": "kernel/sched/core.c",
                 "required_approver_set": "Architecture Council + PMO / Release Management",
                 "rollback_owner": "Architecture Council + PMO / Release Management",
-                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"},
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
+                    "linked_evidence": [
+                        "Documentation/zigux/freeze-map.md",
+                        "Documentation/zigux/phase15-freeze-map-governance.md",
+                        "Documentation/zigux/phase15-architecture-council-review-process.md",
+                    ],
+                },
             },
             {
                 "path": "mm/page_alloc.c",
                 "required_approver_set": "Architecture Council + Validation and Perf Team",
                 "rollback_owner": "Architecture Council + Validation and Perf Team",
-                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_allocator_seam"},
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
+                    "linked_evidence": [
+                        "Documentation/zigux/freeze-map.md",
+                        "Documentation/zigux/phase15-freeze-map-governance.md",
+                        "Documentation/zigux/phase15-architecture-council-review-process.md",
+                    ],
+                },
             },
             {
                 "path": "kernel/rcu/tree.c",
                 "required_approver_set": "Architecture Council + ABI and Runtime Team",
                 "rollback_owner": "Architecture Council + ABI and Runtime Team",
-                "evidence_archive": {"latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"},
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                    "linked_evidence": [
+                        "Documentation/zigux/freeze-map.md",
+                        "Documentation/zigux/phase15-freeze-map-governance.md",
+                        "Documentation/zigux/phase14-rcu-tree-survey.md",
+                    ],
+                },
             },
             {
                 "path": "net/core/skbuff.c",
                 "required_approver_set": "Architecture Council + Shared Subsystems Pod",
                 "rollback_owner": "Architecture Council + Shared Subsystems Pod",
-                "evidence_archive": {"latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"},
+                "evidence_archive": {
+                    "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+                    "linked_evidence": [
+                        "Documentation/zigux/freeze-map.md",
+                        "Documentation/zigux/phase15-freeze-map-governance.md",
+                        "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+                    ],
+                },
             },
         ],
     }
@@ -771,18 +799,6 @@ def run_self_test() -> int:
         case_count += 1
 
         parity_scorecard = _phase15_parity_scorecard_fixture()
-        parity_scorecard["metrics"]["architecture_council_status_change_approval_count"] = 1
-        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_result(
-            *validate(root),
-            [],
-            ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
-            "parity_scorecard_approval_count",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        parity_scorecard = _phase15_parity_scorecard_fixture()
         parity_scorecard["metrics"]["phase15_governance_only_blocker_anchor_count"] = 1
         _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
         _assert_result(
@@ -826,6 +842,18 @@ def run_self_test() -> int:
             [],
             ["phase15_parity_scorecard:metrics.study_only_anchors_tracked_outside_scorecard"],
             "parity_scorecard_study_only_count",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        parity_scorecard = _phase15_parity_scorecard_fixture()
+        parity_scorecard["metrics"]["architecture_council_status_change_approval_count"] = 1
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_scorecard, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
+            "parity_scorecard_approval_count",
         )
         _seed_fixture_tree(root)
         case_count += 1
