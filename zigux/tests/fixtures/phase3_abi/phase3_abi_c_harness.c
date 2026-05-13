@@ -23,7 +23,11 @@ int main(void)
         "\"allocator_arena\":%u,"
         "\"unsafe_scope_none\":%u,"
         "\"unsafe_scope_volatile_mmio\":%u,"
-        "\"unsafe_scope_raw_pointer_bridge\":%u"
+        "\"unsafe_scope_raw_pointer_bridge\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u"
         "},"
         "\"structs\":{"
         "\"boundary_header\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"size\":%zu,\"abi_version\":%zu,\"flags\":%zu}},"
@@ -49,6 +53,10 @@ int main(void)
         ZIGUX_UNSAFE_NONE,
         ZIGUX_UNSAFE_VOLATILE_MMIO,
         ZIGUX_UNSAFE_RAW_POINTER_BRIDGE,
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
         sizeof(struct zigux_boundary_header),
         _Alignof(struct zigux_boundary_header),
         offsetof(struct zigux_boundary_header, size),
