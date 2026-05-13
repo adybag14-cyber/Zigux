@@ -11,6 +11,7 @@ import tempfile
 
 NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 BOUNDARY_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+
 REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -27,12 +28,15 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-bindings-survey.md",
+    "Documentation/zigux/phase3-bindings-governance.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
@@ -40,6 +44,9 @@ REQUIRED_MARKERS = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/abi.zig",
     "zigux/Makefile",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
@@ -53,80 +60,73 @@ REQUIRED_MARKERS = (
     "make -C zigux phase3",
     "shipped helper entrypoints on current `master`",
 )
-REQUIRED_CURRENT_PACKET_MARKERS = (
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-    "Documentation/zigux/phase3-abi-header-family-survey.md",
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "zigux/uapi/dev_t.zig",
-    "zigux/bindings/abi.zig",
-    "zigux/Makefile",
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
-    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
-)
-REQUIRED_REVIEW_BOUNDARY_MARKERS = (
-    "Documentation/zigux/phase3-validator-support-surface.md",
-    "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "closed together when either note drifts",
-)
-REQUIRED_SHARED_REMINDER_MARKERS = (
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-    "scripts/zigux/validate_phase3_selftest.py",
-    "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "Documentation/zigux/review-checklist.md",
-    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
-    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "include/zigux/dev_t.h",
-    "zigux/uapi/version.zig",
-    "zigux/uapi/dev_t.zig",
-    "zigux/bindings/abi.zig",
-    "make -C zigux phase3-selftest",
-)
-REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS = (
-    "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
-    "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
-    "export/UAPI packet actually grows",
-)
-REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = (
-    "include/zigux/dev_t.h",
-    "zigux/uapi/version.zig",
-    "zigux/uapi/dev_t.zig",
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-    "make -C zigux phase3-validate",
-)
-REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS = (
-    *REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS,
-    "include/zigux/dev_t.h",
-    "zigux/uapi/version.zig",
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-)
-CURRENT_PACKET_MARKER_COUNTS = {
-    marker: 1 for marker in REQUIRED_CURRENT_PACKET_MARKERS
+
+CURRENT_PACKET_MARKERS = {
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/abi.zig": 1,
+    "zigux/Makefile": 1,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
+    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test": 1,
 }
-REVIEW_BOUNDARY_MARKER_COUNTS = {
-    marker: 1 for marker in REQUIRED_REVIEW_BOUNDARY_MARKERS
+
+REVIEW_BOUNDARY_MARKERS = {
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
+    "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "closed together when either note drifts": 1,
 }
-SHARED_REMINDER_MARKER_COUNTS = {
-    marker: 1 for marker in REQUIRED_SHARED_REMINDER_MARKERS
+
+SHARED_REMINDER_MARKERS = {
+    "scripts/zigux/README.md": 1,
+    "zigux/tests/README.md": 1,
+    "scripts/zigux/validate_phase3_selftest.py": 1,
+    "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/review-checklist.md": 1,
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/abi.zig": 1,
+    "make -C zigux phase3-selftest": 1,
 }
-SHARED_REMINDER_MARKER_COUNTS["zigux/uapi/dev_t.zig"] = 2
-BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS = {
-    marker: 1 for marker in REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS
+
+BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = {
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
+    "make -C zigux phase3-validate": 1,
 }
-BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS = {
-    marker: 1 for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
+
+BOUNDARY_NOTE_NEXT_STEP_MARKERS = {
+    "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey": 1,
+    "and next-step notes while leaving the narrower `zigux/uapi/version.zig`": 1,
+    "export/UAPI packet actually grows": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
 }
 
 
@@ -134,7 +134,7 @@ def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
+def extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
     if heading not in text:
         return None
     section = text.split(heading, 1)[1]
@@ -145,15 +145,31 @@ def _extract_section(text: str, heading: str, next_heading: str | None) -> str |
     return section
 
 
-def _check_section_marker_counts(
+def replace_in_section(
+    text: str,
+    heading: str,
+    next_heading: str | None,
+    old: str,
+    new: str = "",
+) -> str:
+    prefix, marker, suffix = text.partition(heading)
+    if not marker:
+        return text
+    if next_heading is None:
+        section, next_marker, tail = suffix, "", ""
+    else:
+        section, next_marker, tail = suffix.partition(next_heading)
+    return prefix + marker + section.replace(old, new, 1) + next_marker + tail
+
+
+def check_marker_counts(
     section: str | None,
     marker_counts: dict[str, int],
     label: str,
-    missing_section_message: str,
+    missing_message: str,
 ) -> list[str]:
     if section is None:
-        return [missing_section_message]
-
+        return [missing_message]
     issues: list[str] = []
     for marker, expected_count in marker_counts.items():
         actual_count = section.count(marker)
@@ -166,777 +182,182 @@ def _check_section_marker_counts(
 
 
 def validate_text(text: str) -> list[str]:
-    missing = [marker for marker in REQUIRED_MARKERS if marker not in text]
-    if "## Current packet" not in text:
-        missing.append("missing current packet section")
-        return missing
-    if "## Review boundary" not in text:
-        missing.append("missing review boundary section")
-        return missing
-    if "## Shared reminder" not in text:
-        missing.append("missing shared reminder section")
-        return missing
-
-    current_packet = _extract_section(
-        text,
-        "## Current packet",
-        "## Review boundary",
-    )
-    review_boundary = _extract_section(
-        text,
-        "## Review boundary",
-        "## Non-goals",
-    )
-    shared_reminder = _extract_section(
-        text,
-        "## Shared reminder",
-        None,
-    )
-
-    missing.extend(
-        _check_section_marker_counts(
-            current_packet,
-            CURRENT_PACKET_MARKER_COUNTS,
+    issues = [f"missing marker: {marker}" for marker in REQUIRED_MARKERS if marker not in text]
+    issues.extend(
+        check_marker_counts(
+            extract_section(text, "## Current packet", "## Review boundary"),
+            CURRENT_PACKET_MARKERS,
             "current packet",
             "missing current packet section",
         )
     )
-    missing.extend(
-        _check_section_marker_counts(
-            review_boundary,
-            REVIEW_BOUNDARY_MARKER_COUNTS,
+    issues.extend(
+        check_marker_counts(
+            extract_section(text, "## Review boundary", "## Non-goals"),
+            REVIEW_BOUNDARY_MARKERS,
             "review boundary",
             "missing review boundary section",
         )
     )
-    missing.extend(
-        _check_section_marker_counts(
-            shared_reminder,
-            SHARED_REMINDER_MARKER_COUNTS,
+    issues.extend(
+        check_marker_counts(
+            extract_section(text, "## Shared reminder", None),
+            SHARED_REMINDER_MARKERS,
             "shared reminder",
             "missing shared reminder section",
         )
     )
-    return missing
+    return issues
 
 
 def validate_boundary_note_text(text: str) -> list[str]:
     issues: list[str] = []
-
-    current_landed_surface = _extract_section(
-        text,
-        "## Current landed surface",
-        "## Next bounded step",
-    )
     issues.extend(
-        _check_section_marker_counts(
-            current_landed_surface,
-            BOUNDARY_NOTE_CURRENT_SURFACE_MARKER_COUNTS,
+        check_marker_counts(
+            extract_section(text, "## Current landed surface", "## Next bounded step"),
+            BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS,
             "boundary note current surface",
             "boundary note missing section: ## Current landed surface",
         )
     )
-
-    next_bounded_step = _extract_section(
-        text,
-        "## Next bounded step",
-        "## Non-goals",
-    )
     issues.extend(
-        _check_section_marker_counts(
-            next_bounded_step,
-            BOUNDARY_NOTE_NEXT_STEP_MARKER_COUNTS,
+        check_marker_counts(
+            extract_section(text, "## Next bounded step", "## Non-goals"),
+            BOUNDARY_NOTE_NEXT_STEP_MARKERS,
             "boundary note next-step",
             "boundary note missing section: ## Next bounded step",
         )
     )
-
     return issues
 
 
 def validate_repo(repo_root: Path) -> list[str]:
-    issues: list[str] = []
-
     note_path = repo_root / NOTE_PATH
-    try:
-        note_text = load_text(note_path)
-    except FileNotFoundError:
+    if not note_path.is_file():
         return [f"missing note: {note_path.as_posix()}"]
-    issues.extend(validate_text(note_text))
+
+    issues = validate_text(load_text(note_path))
 
     boundary_note_path = repo_root / BOUNDARY_NOTE_PATH
-    try:
-        boundary_note_text = load_text(boundary_note_path)
-    except FileNotFoundError:
+    if not boundary_note_path.is_file():
         issues.append(f"missing boundary note: {boundary_note_path.as_posix()}")
     else:
-        issues.extend(validate_boundary_note_text(boundary_note_text))
+        issues.extend(validate_boundary_note_text(load_text(boundary_note_path)))
 
     return issues
 
 
-def _write(path: Path, text: str) -> None:
+def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
 
-def _sample_text() -> str:
+def sample_note_text() -> str:
     sample = "\n".join(REQUIRED_MARKERS)
-    sample += "\n## Current packet\n" + "\n".join(REQUIRED_CURRENT_PACKET_MARKERS)
-    sample += "\n## Review boundary\n" + "\n".join(REQUIRED_REVIEW_BOUNDARY_MARKERS)
+    sample += "\n## Current packet\n" + "\n".join(CURRENT_PACKET_MARKERS)
+    sample += "\n## Review boundary\n" + "\n".join(REVIEW_BOUNDARY_MARKERS)
     sample += "\n## Non-goals\n- stub\n"
-    sample += "\n## Shared reminder\n" + "\n".join(REQUIRED_SHARED_REMINDER_MARKERS)
-    sample += "\nkeep `zigux/uapi/dev_t.zig` explicit in the bounded starter-companion policy"
+    sample += "\n## Shared reminder\n" + "\n".join(SHARED_REMINDER_MARKERS)
     return sample
 
 
-def _boundary_note_sample_text() -> str:
+def sample_boundary_note_text() -> str:
     next_step_markers = [
         marker
-        for marker in REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS
+        for marker in BOUNDARY_NOTE_NEXT_STEP_MARKERS
         if marker != "zigux/uapi/version.zig"
     ]
-    sample = "## Current landed surface\n"
-    sample += "\n".join(REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
-    sample += "\n## Next bounded step\n"
-    sample += "\n".join(next_step_markers)
+    sample = "## Current landed surface\n" + "\n".join(
+        BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS
+    )
+    sample += "\n## Next bounded step\n" + "\n".join(next_step_markers)
     sample += "\n## Non-goals\n- stub\n"
     return sample
 
 
 def run_self_test() -> int:
-    sample = _sample_text()
-    missing = validate_text(sample)
-    if missing:
+    note_sample = sample_note_text()
+    boundary_sample = sample_boundary_note_text()
+
+    if validate_text(note_sample):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("\n".join(missing))
+        print("expected note sample to validate")
         return 1
 
-    unique_marker = "scripts/zigux/validate-phase3-validator-support-surface.py"
-    broken = validate_text(sample.replace(unique_marker, ""))
-    if not any(unique_marker in entry for entry in broken):
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected missing marker was not reported")
-        return 1
-
-    current_packet_marker = "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
-    broken = validate_text(sample.replace(current_packet_marker, "", 1))
-    expected = (
-        "current packet marker count drift: "
-        "Documentation/zigux/phase3-abi-h-boundary-next-step.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected current packet marker was not reported")
-        return 1
-
-    current_packet_dev_t_marker = "zigux/uapi/dev_t.zig"
-    before, separator, after = sample.partition("## Current packet\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected current packet section separator was not found")
-        return 1
-    current_packet, separator, tail = after.partition("\n## Review boundary\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary section separator was not found")
-        return 1
-    current_packet_broken = current_packet.replace(current_packet_dev_t_marker, "", 1)
-    broken = validate_text(
-        before + "## Current packet\n" + current_packet_broken + "\n## Review boundary\n" + tail
-    )
-    expected = (
-        "current packet marker count drift: zigux/uapi/dev_t.zig "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected current packet dev_t marker was not reported")
-        return 1
-
-    shared_reminder_next_step_marker = (
-        "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
-    )
-    before, separator, after = sample.rpartition(shared_reminder_next_step_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: "
-        "Documentation/zigux/phase3-abi-h-boundary-next-step.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder next-step marker was not reported")
-        return 1
-
-    review_boundary_next_step_marker = (
-        "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
-    )
-    before, separator, after = sample.partition("## Review boundary\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary section separator was not found")
-        return 1
-    review_boundary, separator, tail = after.partition("\n## Non-goals\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected non-goals section separator was not found")
-        return 1
-    review_boundary_broken = review_boundary.replace(
-        review_boundary_next_step_marker,
-        "",
-        1,
-    )
-    broken = validate_text(
-        before + "## Review boundary\n" + review_boundary_broken + "\n## Non-goals\n" + tail
-    )
-    expected = (
-        "review boundary marker count drift: "
-        "Documentation/zigux/phase3-abi-h-boundary-next-step.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary next-step marker was not reported")
-        return 1
-
-    review_boundary_closed_marker = "closed together when either note drifts"
-    review_boundary_broken = review_boundary.replace(
-        review_boundary_closed_marker,
-        "",
-        1,
-    )
-    broken = validate_text(
-        before + "## Review boundary\n" + review_boundary_broken + "\n## Non-goals\n" + tail
-    )
-    expected = (
-        "review boundary marker count drift: "
-        "closed together when either note drifts "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary fail-closed marker was not reported")
-        return 1
-
-    header_family_note_marker = "Documentation/zigux/phase3-abi-header-family-survey.md"
-    before, separator, after = sample.rpartition(header_family_note_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "current packet marker count drift: "
-        "Documentation/zigux/phase3-abi-header-family-survey.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected header-family current packet marker was not reported")
-        return 1
-
-    current_packet_bindings_marker = "zigux/bindings/abi.zig"
-    before, separator, after = sample.partition("## Current packet\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected current packet section separator was not found")
-        return 1
-    current_packet, separator, tail = after.partition("\n## Review boundary\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary section separator was not found")
-        return 1
-    current_packet_broken = current_packet.replace(current_packet_bindings_marker, "", 1)
-    broken = validate_text(
-        before + "## Current packet\n" + current_packet_broken + "\n## Review boundary\n" + tail
-    )
-    expected = (
-        "current packet marker count drift: zigux/bindings/abi.zig "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected bindings current packet marker was not reported")
-        return 1
-
-    current_packet_makefile_marker = "zigux/Makefile"
-    before, separator, after = sample.partition("## Current packet\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected current packet section separator was not found")
-        return 1
-    current_packet, separator, tail = after.partition("\n## Review boundary\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected review boundary section separator was not found")
-        return 1
-    current_packet_broken = current_packet.replace(current_packet_makefile_marker, "", 1)
-    broken = validate_text(
-        before + "## Current packet\n" + current_packet_broken + "\n## Review boundary\n" + tail
-    )
-    expected = (
-        "current packet marker count drift: zigux/Makefile "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected makefile current packet marker was not reported")
-        return 1
-
-    shared_reminder_bindings_marker = "zigux/bindings/abi.zig"
-    before, separator, after = sample.rpartition(shared_reminder_bindings_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: zigux/bindings/abi.zig "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected bindings shared reminder marker was not reported")
-        return 1
-
-    shared_reminder_header_marker = "include/zigux/dev_t.h"
-    before, separator, after = sample.rpartition(shared_reminder_header_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: include/zigux/dev_t.h "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder header marker was not reported")
-        return 1
-
-    before, separator, after = sample.partition("\n## Shared reminder\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder section separator was not found")
-        return 1
-    broken = validate_text(
-        before
-        + "\n## Shared reminder\n"
-        + after.replace(
-            "zigux/uapi/version.zig",
-            "## Future follow-through\nzigux/uapi/version.zig",
-            1,
-        )
-    )
-    expected = (
-        "shared reminder marker count drift: zigux/uapi/version.zig "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder next-heading version drift was not reported")
-        return 1
-
-    shared_reminder_policy_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
-    before, separator, after = sample.rpartition(shared_reminder_policy_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: "
-        "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder policy replay marker was not reported")
-        return 1
-
-    shared_reminder_checklist_marker = "Documentation/zigux/review-checklist.md"
-    before, separator, after = sample.rpartition(shared_reminder_checklist_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: Documentation/zigux/review-checklist.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder checklist marker was not reported")
-        return 1
-
-    focused_replay_marker = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
-    broken = validate_text(sample.replace(focused_replay_marker, ""))
-    if not any(focused_replay_marker in entry for entry in broken):
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected focused replay marker was not reported")
-        return 1
-    expected = (
-        "current packet marker count drift: "
-        "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected focused replay current packet marker was not reported")
-        return 1
-
-    mmio_consumer_marker = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
-    broken = validate_text(sample.replace(mmio_consumer_marker, ""))
-    if not any(mmio_consumer_marker in entry for entry in broken):
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected mmio consumer marker was not reported")
-        return 1
-    expected = (
-        "current packet marker count drift: "
-        "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected mmio consumer current packet marker was not reported")
-        return 1
-
-    header_family_validator_marker = "scripts/zigux/validate-phase3-abi-header-family-survey.py"
-    before, separator, after = sample.rpartition(header_family_validator_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "current packet marker count drift: "
-        "scripts/zigux/validate-phase3-abi-header-family-survey.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected header-family validator current packet marker was not reported")
-        return 1
-
-    wrapper_selftest_marker = "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"
-    before, separator, after = sample.rpartition(wrapper_selftest_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "current packet marker count drift: "
-        "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected wrapper self-test current packet marker was not reported")
-        return 1
-
-    shared_reminder_marker = "zigux/uapi/dev_t.zig"
-    broken = validate_text(sample.rsplit(shared_reminder_marker, 1)[0])
-    expected = (
-        "shared reminder marker count drift: zigux/uapi/dev_t.zig "
-        "(expected 2, found 1)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder marker was not reported")
-        return 1
-
-    shared_reminder_validator_marker = (
-        "scripts/zigux/validate-phase3-validator-support-surface.py"
-    )
-    before, separator, after = sample.rpartition(shared_reminder_validator_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: "
-        "scripts/zigux/validate-phase3-validator-support-surface.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder validator marker was not reported")
-        return 1
-
-    shared_reminder_selftest_driver_marker = (
-        "scripts/zigux/validate_phase3_selftest.py"
-    )
-    before, separator, after = sample.rpartition(shared_reminder_selftest_driver_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: "
-        "scripts/zigux/validate_phase3_selftest.py "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder selftest driver marker was not reported")
-        return 1
-
-    shared_reminder_selftest_route_marker = "make -C zigux phase3-selftest"
-    before, separator, after = sample.rpartition(shared_reminder_selftest_route_marker)
-    broken = validate_text(before + after if separator else sample)
-    expected = (
-        "shared reminder marker count drift: "
-        "make -C zigux phase3-selftest "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder selftest route marker was not reported")
-        return 1
-
-    scripts_readme_marker = "scripts/zigux/README.md"
-    broken = validate_text(sample.replace(scripts_readme_marker, "", 1))
-    expected = (
-        "shared reminder marker count drift: scripts/zigux/README.md "
-        "(expected 1, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected scripts README reminder marker was not reported")
-        return 1
-
-    shared_duplicate = sample.replace(
-        "scripts/zigux/README.md",
-        "scripts/zigux/README.md\nscripts/zigux/README.md",
-        1,
-    )
-    broken = validate_text(shared_duplicate)
-    expected = (
-        "shared reminder marker count drift: scripts/zigux/README.md "
-        "(expected 1, found 2)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder duplicate drift was not reported")
-        return 1
-
-    before, separator, after = sample.partition("\n## Shared reminder\n")
-    if not separator:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder section separator was not found")
-        return 1
-    broken = validate_text(
-        before
-        + "\n## Shared reminder\n"
-        + after.replace(
-            "zigux/uapi/dev_t.zig",
-            "## Future follow-through\nzigux/uapi/dev_t.zig",
-            1,
-        )
-    )
-    expected = (
-        "shared reminder marker count drift: zigux/uapi/dev_t.zig "
-        "(expected 2, found 0)"
-    )
-    if expected not in broken:
-        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared reminder next-heading drift was not reported")
-        return 1
-
-    boundary_sample = _boundary_note_sample_text()
     if validate_boundary_note_text(boundary_sample):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected boundary-note policy sample to validate")
+        print("expected boundary-note sample to validate")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Current packet",
+            "## Review boundary",
+            "Documentation/zigux/phase3-bindings-governance.md",
+        )
+    )
+    if not any(
+        "Documentation/zigux/phase3-bindings-governance.md" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet bindings-governance drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Review boundary",
+            "## Non-goals",
+            "Documentation/zigux/phase3-abi-bindings-survey.md",
+        )
+    )
+    if not any(
+        "Documentation/zigux/phase3-abi-bindings-survey.md" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected review-boundary bindings-survey drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+        )
+    )
+    if not any(
+        "scripts/zigux/validate-phase3-linux-zigux-header-governance.py" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder governance-validator drift was not reported")
+        return 1
+
+    issues = validate_boundary_note_text(
+        boundary_sample.replace("include/zigux/dev_t.h", "", 1)
+    )
+    if not any("include/zigux/dev_t.h" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note current-surface drift was not reported")
         return 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_support_") as temp_dir:
         root = Path(temp_dir)
-        _write(root / NOTE_PATH, sample)
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-
+        write_text(root / NOTE_PATH, note_sample)
+        write_text(root / BOUNDARY_NOTE_PATH, boundary_sample)
         issues = validate_repo(root)
         if issues:
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
             print("\n".join(issues))
             return 1
 
-        boundary_path = root / BOUNDARY_NOTE_PATH
-        boundary_path.write_text(
-            boundary_sample.replace(
-                "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note next-step marker count drift: "
-            "and next-step notes while leaving the narrower `zigux/uapi/version.zig` "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note policy drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        boundary_path.write_text(
-            boundary_sample.replace(
-                "include/zigux/dev_t.h",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note current surface marker count drift: include/zigux/dev_t.h "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note current-surface header drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        boundary_path.write_text(
-            boundary_sample.replace(
-                "zigux/uapi/version.zig",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note current surface marker count drift: zigux/uapi/version.zig "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note current-surface drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        before, separator, after = boundary_sample.partition("## Next bounded step\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step section separator was not found")
-            return 1
-        next_step, separator, tail = after.partition("\n## Non-goals\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note non-goals separator was not found")
-            return 1
-        next_step = next_step.replace(
-            "include/zigux/dev_t.h",
-            "",
-            1,
-        )
-        boundary_path.write_text(
-            before
-            + "## Next bounded step\n"
-            + next_step
-            + "\n## Non-goals\n"
-            + tail
-            + "\ninclude/zigux/dev_t.h",
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note next-step marker count drift: "
-            "include/zigux/dev_t.h "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step header drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        before, separator, after = boundary_sample.partition("## Next bounded step\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step section separator was not found")
-            return 1
-        next_step, separator, tail = after.partition("\n## Non-goals\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note non-goals separator was not found")
-            return 1
-        next_step = next_step.replace(
-            "zigux/uapi/version.zig",
-            "",
-            1,
-        )
-        boundary_path.write_text(
-            before
-            + "## Next bounded step\n"
-            + next_step
-            + "\n## Non-goals\n"
-            + tail
-            + "\nzigux/uapi/version.zig",
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note next-step marker count drift: "
-            "zigux/uapi/version.zig "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step version drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        before, separator, after = boundary_sample.partition("## Next bounded step\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step section separator was not found")
-            return 1
-        next_step, separator, tail = after.partition("\n## Non-goals\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note non-goals separator was not found")
-            return 1
-        next_step = next_step.replace(
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-            "",
-            1,
-        )
-        boundary_path.write_text(
-            before
-            + "## Next bounded step\n"
-            + next_step
-            + "\n## Non-goals\n"
-            + tail
-            + "\nscripts/zigux/validate-phase3-abi-bindings-syntax.py",
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note next-step marker count drift: "
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py "
-            "(expected 1, found 0)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note section-scoped drift was not reported")
-            return 1
-
-        _write(root / BOUNDARY_NOTE_PATH, boundary_sample)
-        before, separator, after = boundary_sample.partition("## Next bounded step\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note next-step section separator was not found")
-            return 1
-        next_step, separator, tail = after.partition("\n## Non-goals\n")
-        if not separator:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note non-goals separator was not found")
-            return 1
-        next_step = next_step.replace(
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py\n"
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-            1,
-        )
-        boundary_path.write_text(
-            before
-            + "## Next bounded step\n"
-            + next_step
-            + "\n## Non-goals\n"
-            + tail,
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "boundary note next-step marker count drift: "
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py "
-            "(expected 1, found 2)"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-            print("expected boundary-note duplicate drift was not reported")
-            return 1
-
-        boundary_path.unlink()
-        issues = validate_repo(root)
+        (root / BOUNDARY_NOTE_PATH).unlink()
         expected = f"missing boundary note: {(root / BOUNDARY_NOTE_PATH).as_posix()}"
-        if expected not in issues:
+        if expected not in validate_repo(root):
             print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
             print("expected missing boundary note was not reported")
             return 1
@@ -965,8 +386,8 @@ def main() -> int:
 
     issues = validate_repo(args.repo_root)
     if issues:
-        for marker in issues:
-            print(f"missing marker: {marker}", file=sys.stderr)
+        for issue in issues:
+            print(issue, file=sys.stderr)
         return 1
 
     print(f"validated {args.repo_root / NOTE_PATH}")
