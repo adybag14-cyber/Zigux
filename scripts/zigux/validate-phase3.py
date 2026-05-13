@@ -67,6 +67,7 @@ REPO_FILES = (
     Path("zigux/tests/fixtures/phase3_abi/expected.json"),
     Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
+    Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
@@ -83,7 +84,6 @@ REPO_FILES = (
     Path("scripts/zigux/phase3_check_lib.py"),
     Path("scripts/zigux/generate-phase3-check-wrappers.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
-    Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/README.md"),
     Path("zigux/Makefile"),
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -462,8 +462,21 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        workflow_rel = Path(".github/workflows/zigux-bootstrap.yml")
+        selftest_driver_rel = Path("scripts/zigux/validate_phase3_selftest.py")
         _write(root / tests_readme_rel, "# restored\n")
+        (root / selftest_driver_rel).unlink()
+        issues = validate_repo(root)
+        expected_selftest_driver_missing = (
+            f"missing repo file: {selftest_driver_rel.as_posix()}"
+        )
+        if expected_selftest_driver_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 selftest driver was not reported")
+            return 1
+        case_count += 1
+
+        workflow_rel = Path(".github/workflows/zigux-bootstrap.yml")
+        _write(root / selftest_driver_rel, "# restored\n")
         (root / workflow_rel).unlink()
         issues = validate_repo(root)
         expected_workflow_missing = f"missing repo file: {workflow_rel.as_posix()}"
@@ -557,20 +570,9 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        allocator_policy_rel = Path("zigux/helpers/allocator_policy.zig")
         _write(root / MMIO_HELPER_PATH, "# restored\n")
-        (root / allocator_policy_rel).unlink()
-        issues = validate_repo(root)
-        expected_allocator_policy_missing = (
-            f"missing repo file: {allocator_policy_rel.as_posix()}"
-        )
-        if expected_allocator_policy_missing not in issues:
-            print("PHASE3_VALIDATE_SELF_TEST=fail")
-            print("expected missing allocator-policy helper was not reported")
-            return 1
-        case_count += 1
-
         panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
+        allocator_policy_rel = Path("zigux/helpers/allocator_policy.zig")
         _write(root / allocator_policy_rel, "pub fn allocatorPolicy() void {}\n")
         (root / panic_policy_rel).unlink()
         issues = validate_repo(root)
