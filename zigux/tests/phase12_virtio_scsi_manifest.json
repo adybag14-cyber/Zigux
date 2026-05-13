@@ -2,7 +2,7 @@
   "lane_key": "P12-L13",
   "phase": "Phase 12",
   "surveyed_commit": "unresolved_on_master",
-  "verified_on": "2026-05-12",
+  "verified_on": "2026-05-13",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
@@ -26,26 +26,26 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "starter_present_runtime_dma_blocked",
-      "current_surface": "Current master carries a bounded virtio_scsi Zig starter around queue layout, probe snapshot, host limits, queue depth clamps, command and sense-buffer ownership planning, io-map summaries, and transport-reset recovery summaries, but it still stops before live DMA-safe request submission or completion flow.",
+      "current_surface": "Current master carries a bounded virtio_scsi Zig starter around queue layout, probe snapshot, host limits, queue depth clamps, command and sense-buffer ownership planning, request-submit sequencing, io-map summaries, and transport-reset recovery summaries, but it still stops before live DMA-safe request submission or completion flow.",
       "blocked_by": "DMA-safe request and sense-buffer ownership, sg chaining, and virtqueue submit-completion execution still need later driver-local packets."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_queue_host_limit_depth_io_map_recovery_present_direct_tests_present_shared_smoke_present",
-      "current_surface": "The driver-local starter, direct test, syntax lab, repeated-replan gate, support packet, and shared phase12 build route are all present on current master, and the starter now also keeps command-buffer ownership planning reviewable before any live queue execution.",
-      "blocked_by": "Request-submit sequencing, live blk-mq wiring, and transport-backed completion flow remain outside the current starter."
+      "status": "starter_queue_submit_host_limit_depth_io_map_recovery_present_direct_tests_present_shared_smoke_present",
+      "current_surface": "The driver-local starter, direct test, syntax lab, repeated-replan gate, support packet, and shared phase12 build route are all present on current master, and the starter now also keeps request-submit sequencing, command-buffer ownership planning, and recovery ordering reviewable before any live queue execution.",
+      "blocked_by": "Live blk-mq wiring, runtime virtqueue kicks, and transport-backed completion flow remain outside the current starter."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "starter_recovery_summary_present_runtime_execution_missing",
-      "current_surface": "The current starter proves bounded transport-reset recovery planning, event-buffer ownership, host-scan restore-order reviewability, and pre-runtime command-buffer ownership without claiming live reset execution, host-scan runtime work, or measured throughput behavior.",
+      "current_surface": "The current starter proves bounded transport-reset recovery planning, request-submit ordering, event-buffer ownership, host-scan restore-order reviewability, and pre-runtime command-buffer ownership without claiming live reset execution, host-scan runtime work, or measured throughput behavior.",
       "blocked_by": "No throughput benchmark, no runtime reset replay, and no transport-backed host-scan execution are landed yet."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "support_packet_and_survey_packet_present",
-      "current_surface": "Current master now carries the earlier virtio_scsi support packet plus this survey note, manifest, and survey gate as bounded review surfaces beside the driver-local starter. The next lane-local follow-up still needs one request-submit sequencing summary before the complex-driver bundle can widen honestly.",
-      "blocked_by": "The next lane-local follow-up still needs one request-submit sequencing summary before the complex-driver bundle can widen honestly."
+      "status": "support_packet_survey_packet_and_submit_summary_present",
+      "current_surface": "Current master now carries the earlier virtio_scsi support packet plus this survey note, manifest, survey gate, and one bounded request-submit sequencing summary as review surfaces beside the driver-local starter.",
+      "blocked_by": "A bounded completion-handback sequencing summary still needs to land before the complex-driver bundle can widen honestly."
     }
   },
   "gaps": [
@@ -75,7 +75,7 @@
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The survey note records the same bounded queue, command-buffer ownership, recovery, rollback-owner, fallback-path, reversible-delivery evidence, and shared smoke-first rollback drill boundary that current master now exposes."
+      "why_now": "The survey note records the same bounded queue, request-submit sequencing, command-buffer ownership, recovery, rollback-owner, fallback-path, reversible-delivery evidence, and shared smoke-first rollback drill boundary that current master now exposes."
     },
     {
       "id": "phase12-virtio-scsi-syntax-lab-gate",
@@ -125,6 +125,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
       "why_now": "Current master now carries bounded command and sense-buffer ownership planning through captureCommandBufferOwnershipSummary() without claiming live DMA submission or completion flow."
+    },
+    {
+      "id": "phase12-virtio-scsi-request-submit-sequencing-summary",
+      "status": "landed_on_master",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "Current master now carries bounded request-submit sequencing through captureRequestSubmitSequencingSummary() so queue selection, preallocated command and sense-buffer use, and pre-kick ordering stay reviewable without claiming live request execution."
     },
     {
       "id": "phase12-virtio-scsi-io-map-and-recovery-summary",
