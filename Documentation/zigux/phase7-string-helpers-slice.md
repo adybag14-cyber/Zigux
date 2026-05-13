@@ -78,4 +78,5 @@ This restored starter slice does not yet claim:
 
 ## Next Bounded Step
 
+The next bounded follow-through should stay inside the restored starter packet.
 The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, validator, and slice note, then take one deeper helper-local expansion step only after that packet stays aligned again.
