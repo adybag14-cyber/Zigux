@@ -14,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 16
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -24,6 +24,9 @@ SELF_TEST_CASES = [
     "phase4_build_survey_blob_pin_drift",
     "phase9_build_manifest_blob_pin_drift",
     "phase9_build_survey_blob_pin_drift",
+    "doc_readme_blob_pin_drift",
+    "script_readme_blob_pin_drift",
+    "tests_readme_blob_pin_drift",
     "gate_evidence_self_test_case_count_drift",
     "gate_evidence_self_test_cases_drift",
     "shared_validator_reruns_gate_evidence_self_test_drift",
@@ -107,6 +110,9 @@ REQUIRED_SELF_TEST_CASE_MARKERS = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "doc_readme_blob_pin_drift",
+    "script_readme_blob_pin_drift",
+    "tests_readme_blob_pin_drift",
     "runtime_atomic64_survey_packet_presence_drift",
     "kprobe_owner_drift",
     "kprobe_validation_entrypoint_drift",
@@ -174,9 +180,9 @@ KPROBE_SURVEY_MARKERS = [
     'test "phase4 kprobe survey keeps the parked gap packet explicit" {',
     'test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {',
     'test "phase4 kprobe survey keeps the bounded next step explicit" {',
-    '\\"dedicated_local_survey_wrapper\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"',
-    '\\"validation_entrypoint\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"',
-    '\\"owner\\": \\\"Validation and Perf Team\\\"',
+    '\\\"dedicated_local_survey_wrapper\\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"',
+    '\\\"validation_entrypoint\\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"',
+    '\\\"owner\\\": \\\"Validation and Perf Team\\\"',
 ]
 
 TEST_FSMOUNT_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
@@ -218,9 +224,9 @@ TEST_FSMOUNT_SURVEY_MARKERS = [
     'test "phase4 test_fsmount survey keeps threshold posture explicit" {',
     'test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {',
     'test "phase4 test_fsmount survey keeps the bounded next step explicit" {',
-    '\\"dedicated_linux_style_survey_wrapper\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"',
-    '\\"threshold_posture\\": \\\"reviewability_only_no_perf_threshold\\\"',
-    '\\"owner\\": \\\"Validation and Perf Team\\\"',
+    '\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"',
+    '\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"',
+    '\\\"owner\\\": \\\"Validation and Perf Team\\\"',
 ]
 
 
@@ -425,20 +431,20 @@ Current `master` still does not ship `samples/zigux/kprobe_example.zig`.
 
     write_text(
         root / KPROBE_SURVEY_REL,
-        """const std = @import("std");
+        """const std = @import(\"std\");
 
-test "phase4 kprobe survey keeps the parked gap packet explicit" {
+test \"phase4 kprobe survey keeps the parked gap packet explicit\" {
     _ = std.testing.allocator;
-    _ = "\\\"dedicated_local_survey_wrapper\\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"";
-    _ = "\\\"validation_entrypoint\\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"";
-    _ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
+    _ = \"\\\"dedicated_local_survey_wrapper\\\": \\\"make -C zigux phase4-kprobe-example-survey\\\"\";
+    _ = \"\\\"validation_entrypoint\\\": \\\"zig test zigux/tests/phase4_kprobe_example_survey.zig\\\"\";
+    _ = \"\\\"owner\\\": \\\"Validation and Perf Team\\\"\";
 }
 
-test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {
+test \"phase4 kprobe survey keeps reversible-delivery evidence explicit\" {
     _ = std.testing.allocator;
 }
 
-test "phase4 kprobe survey keeps the bounded next step explicit" {
+test \"phase4 kprobe survey keeps the bounded next step explicit\" {
     _ = std.testing.allocator;
 }
 """,
@@ -456,7 +462,6 @@ test "phase4 kprobe survey keeps the bounded next step explicit" {
 - `PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs`
 - `PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`
-- `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow`
 - `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
@@ -464,7 +469,7 @@ test "phase4 kprobe survey keeps the bounded next step explicit" {
 - `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface`
 
 Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
-reviewability-only no-perf-threshold posture
+This dedicated packet keeps the reviewability-only no-perf-threshold posture explicit.
 """,
     )
 
@@ -475,27 +480,26 @@ reviewability-only no-perf-threshold posture
 
     write_text(
         root / TEST_FSMOUNT_SURVEY_REL,
-        """const std = @import("std");
+        """const std = @import(\"std\");
 
-test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
+test \"phase4 test_fsmount survey keeps the parked gap packet explicit\" {
+    _ = std.testing.allocator;
+    _ = \"\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"\";
+    _ = \"\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"\";
+    _ = \"\\\"owner\\\": \\\"Validation and Perf Team\\\"\";
+}
+
+test \"phase4 test_fsmount survey keeps threshold posture explicit\" {
     _ = std.testing.allocator;
 }
 
-test "phase4 test_fsmount survey keeps threshold posture explicit" {
+test \"phase4 test_fsmount survey keeps reversible-delivery evidence explicit\" {
     _ = std.testing.allocator;
 }
 
-test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
+test \"phase4 test_fsmount survey keeps the bounded next step explicit\" {
     _ = std.testing.allocator;
 }
-
-test "phase4 test_fsmount survey keeps the bounded next step explicit" {
-    _ = std.testing.allocator;
-}
-
-_ = "\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-test-fsmount-survey\\\"";
-_ = "\\\"threshold_posture\\\": \\\"reviewability_only_no_perf_threshold\\\"";
-_ = "\\\"owner\\\": \\\"Validation and Perf Team\\\"";
 """,
     )
 
@@ -638,6 +642,45 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        doc_readme_path = root / "Documentation/zigux/README.md"
+        original_doc_readme = read_text(doc_readme_path)
+        doc_readme_path.write_text("docs root drift\n", encoding="utf-8")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "docs-root README blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_DOC_README_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        script_readme_path = root / "scripts/zigux/README.md"
+        original_script_readme = read_text(script_readme_path)
+        script_readme_path.write_text("scripts root drift\n", encoding="utf-8")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "scripts-root README blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_SCRIPT_README_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        script_readme_path.write_text(original_script_readme, encoding="utf-8")
+
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = read_text(tests_readme_path)
+        tests_readme_path.write_text("tests root drift\n", encoding="utf-8")
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "tests-root README blob drift",
+            prefix_failure="blob_pin_mismatch:PHASE4_TESTS_README_BLOB_SHA:",
+        ):
+            return 1
+        case_count += 1
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
         gate_evidence_path.write_text(
             replace_once(
