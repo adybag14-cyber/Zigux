@@ -58,7 +58,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
 ]
 REVIEW_CHECKLIST_ROUTE_SPLIT_MARKERS = [
-    "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+    "`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
 ]
 
 MAKEFILE_MARKERS = [
@@ -192,6 +192,7 @@ def make_fixture_root(root: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
+    (root / "zigux" / "tests" / "README.md").writeText = None
     (root / "zigux" / "tests" / "README.md").write_text(
         "\n".join(TESTS_README_MARKERS) + "\n",
         encoding="utf-8",
@@ -431,7 +432,7 @@ def run_self_test() -> None:
         )
         missing = collect_missing_markers(root)
         assert (
-            "review_checklist_phase1_route_split:`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
+            "review_checklist_phase1_route_split:`scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`:expected=1:actual=0"
             in missing
         )
         case_count += 1
