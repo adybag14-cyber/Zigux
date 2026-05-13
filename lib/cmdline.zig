@@ -705,3 +705,25 @@ test "nextArg does not treat a leading equals sign as a value separator" {
     try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
+
+test "getOptions expands negative ranges and negative upper bounds like Linux get_range" {
+    var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
+    const negative_rest = getOptions("-2-1", negative_values.len, &negative_values);
+    try std.testing.expectEqualStrings("", negative_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, -2, -1, 0, 1 }, &negative_values);
+
+    var negative_validate = [_]i32{0};
+    const negative_validate_rest = getOptions("-2-1", 0, &negative_validate);
+    try std.testing.expectEqualStrings("", negative_validate_rest);
+    try std.testing.expectEqual(@as(i32, 4), negative_validate[0]);
+
+    var negative_upper_values = [_]i32{ 0, 0, 0, 0 };
+    const negative_upper_rest = getOptions("-3--1", negative_upper_values.len, &negative_upper_values);
+    try std.testing.expectEqualStrings("", negative_upper_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -3, -2, -1 }, &negative_upper_values);
+
+    var negative_upper_validate = [_]i32{0};
+    const negative_upper_validate_rest = getOptions("-3--1", 0, &negative_upper_validate);
+    try std.testing.expectEqualStrings("", negative_upper_validate_rest);
+    try std.testing.expectEqual(@as(i32, 3), negative_upper_validate[0]);
+}
