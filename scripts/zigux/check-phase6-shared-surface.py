@@ -29,6 +29,12 @@ PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
+BASE64_PARITY_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
+BASE64_CASEGEN_PATH = Path("zigux/tests/phase6_base64_c_casegen.zig")
+BASE64_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
+BASE64_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
+BASE64_GENERATED_INCLUDE_PATH = Path("zigux/tests/fixtures/phase6_base64_c_generated_cases.inc")
+
 BASE64_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 BSEARCH_CORPUS_SCRIPT_PATH = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 CHECKSUM_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-checksum-c-parity.py")
@@ -41,6 +47,7 @@ ABSENT_PATHS = [
     Path("zigux/tests/phase6_base64.zig"),
     Path("zigux/tests/phase6_base64_perf.zig"),
     Path("zigux/tests/fixtures/phase6_base64_vectors.zig"),
+    BASE64_GENERATED_INCLUDE_PATH,
     Path("lib/checksum.zig"),
     Path("zigux/tests/phase6_checksum.zig"),
     Path("zigux/tests/phase6_checksum_perf.zig"),
@@ -60,6 +67,10 @@ PRESENT_PATHS = [
     HEXDUMP_SLICE_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
+    BASE64_PARITY_PATH,
+    BASE64_CASEGEN_PATH,
+    BASE64_PARITY_VECTORS_PATH,
+    BASE64_C_HARNESS_PATH,
     BASE64_PARITY_SCRIPT_PATH,
     BSEARCH_CORPUS_SCRIPT_PATH,
     CHECKSUM_PARITY_SCRIPT_PATH,
@@ -109,10 +120,10 @@ REQUIRED_SNIPPETS = {
     BASE64_SLICE_PATH.as_posix(): [
         "# Phase 6 Base64 Slice",
         "- `PHASE6_STATUS=blocked`",
-        "- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+        "- current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
         "- current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
-        "- the shipped direct C parity surface is also not currently runnable as a complete packet because `zigux/tests/phase6_base64_c_parity.zig` still imports the absent `zigux/tests/fixtures/phase6_base64_vectors.zig` fixture module",
-        "- this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module",
+        "- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
+        "- this slice remains partially landed until the missing focused replay and fixture-backed perf packet return, but the direct local C parity runner is again a truthful review surface on current `master`",
     ],
     BSEARCH_SLICE_PATH.as_posix(): [
         "# Phase 6 Bsearch Slice",
@@ -203,8 +214,8 @@ EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS = [
     MANIFEST_PATH.as_posix(),
     CATALOG_PATH.as_posix(),
     PERF_SURVEY_PATH.as_posix(),
-    Path("zigux/tests/phase6_base64_c_parity.zig").as_posix(),
-    Path("zigux/tests/fixtures/phase6_base64_c_harness.c").as_posix(),
+    BASE64_PARITY_PATH.as_posix(),
+    BASE64_C_HARNESS_PATH.as_posix(),
     BASE64_PARITY_SCRIPT_PATH.as_posix(),
     Path("zigux/tests/phase6_bsearch.zig").as_posix(),
     Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig").as_posix(),
@@ -422,6 +433,10 @@ def scaffold_repo(root: Path) -> None:
     catalog_text = read_text(root / CATALOG_PATH)
     if "- surveyed head: `a0f4d7e`" not in catalog_text:
         write(root / CATALOG_PATH, catalog_text + "- surveyed head: `a0f4d7e`\n")
+    write(root / BASE64_PARITY_PATH, 'pub fn main() void {}\n')
+    write(root / BASE64_CASEGEN_PATH, 'pub fn main() void {}\n')
+    write(root / BASE64_PARITY_VECTORS_PATH, 'pub const standard_cases = .{};\n')
+    write(root / BASE64_C_HARNESS_PATH, 'int main(void) { return 0; }\n')
     write(root / HEXDUMP_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n\nhelper-local perf refresh note\n")
     write(root / Path("zigux/tests/phase6_hexdump.zig"), 'test "phase6 hexdump packet placeholder" {}\n')
     write(root / Path("zigux/tests/phase6_hexdump_perf.zig"), 'pub fn main() void {}\n')
@@ -494,6 +509,12 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            BASE64_SLICE_PATH,
+            "- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
+            "- the shipped direct C parity surface still depends on the absent focused replay fixture module",
+        )
+        assert_failure(
+            root,
             CHECKSUM_SLICE_PATH,
             "- this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
             "- this slice is blocked until a later review",
@@ -526,26 +547,26 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected absent-path failure")
         present_should_be_absent.unlink()
-        present_should_be_absent = root / ABSENT_PATHS[-1]
+        present_should_be_absent = root / BASE64_GENERATED_INCLUDE_PATH
         write(present_should_be_absent, "unexpected\n")
         try:
             run_checks(root)
         except ValidationError as exc:
-            if ABSENT_PATHS[-1].as_posix() not in str(exc):
+            if BASE64_GENERATED_INCLUDE_PATH.as_posix() not in str(exc):
                 raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
         else:
             raise AssertionError("expected absent-path failure")
         present_should_be_absent.unlink()
-        required_should_be_present = root / Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+        required_should_be_present = root / BASE64_PARITY_VECTORS_PATH
         required_should_be_present.unlink()
         try:
             run_checks(root)
         except ValidationError as exc:
-            if "zigux/tests/fixtures/phase6_hexdump_vectors.zig" not in str(exc):
+            if BASE64_PARITY_VECTORS_PATH.as_posix() not in str(exc):
                 raise AssertionError(f"unexpected present-path failure: {exc}") from exc
         else:
             raise AssertionError("expected present-path failure")
-        write(required_should_be_present, "pub const cases = .{};\n")
+        write(required_should_be_present, "pub const standard_cases = .{};\n")
         shared_gate_should_be_present = root / MAKEFILE_PATH
         shared_gate_should_be_present.unlink()
         try:
