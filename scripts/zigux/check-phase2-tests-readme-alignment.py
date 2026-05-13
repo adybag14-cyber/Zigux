@@ -164,7 +164,7 @@ FILE_MARKERS = {
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "phase2-cross:",
-        "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+        "phase2: phase2-validate phase2-cross",
     ],
 }
 
@@ -220,7 +220,7 @@ EXACT_COUNT_CHECKS = {
     "zigux/Makefile": {
         "phase2-tools:": 1,
         "phase2-kconfig:": 1,
-        "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross": 1,
+        "phase2: phase2-validate phase2-cross": 1,
     },
 }
 
@@ -357,7 +357,7 @@ def render_file_text(rel_path: str) -> str:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
                 "phase2-cross: phase2-toolchain",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
-                "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+                "phase2: phase2-validate phase2-cross",
                 "",
             ]
         )
