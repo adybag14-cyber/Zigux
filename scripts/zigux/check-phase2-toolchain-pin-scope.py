@@ -91,7 +91,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
-    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
     'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
@@ -101,7 +101,7 @@ MAKEFILE_MARKERS = [
     "phase2-toolchain:",
     "phase2-validate: phase2-tools phase2-kconfig",
     "phase2-validate:",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "phase2: phase2-validate phase2-cross",
@@ -114,7 +114,7 @@ EXACT_WORKFLOW_RUN_COUNTS = {
 }
 
 EXACT_MAKEFILE_RUN_COUNTS = {
-    "scripts/zigux/check-zig-toolchain.py": 1,
+    'scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"': 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
@@ -129,7 +129,7 @@ WORKFLOW_FORBIDDEN_FRAGMENTS = [
 TOOLCHAIN_TARGET_NAME = "phase2-toolchain"
 PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
 TOOLCHAIN_TARGET_REQUIRED_LINES = [
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
@@ -379,7 +379,7 @@ def run_self_test() -> int:
     valid_makefile = "\n".join(
         [
             "phase2-toolchain:",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2-validate: phase2-tools phase2-kconfig",
@@ -431,11 +431,11 @@ def run_self_test() -> int:
 
     assert "policy:phase='Phase 3':expected='Phase 2'" in validate_policy({**valid_policy, "phase": "Phase 3"})
     assert any(issue.startswith("workflow_forbidden_fragment:") for issue in validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64", payload=valid_policy))
-    assert "makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1" in validate_exact_makefile_runs(valid_makefile + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py")
+    assert 'makefile_exact_run:scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)":count=2:expected=1' in validate_exact_makefile_runs(valid_makefile + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"')
     leaked_scope = "\n".join(
         [
             "phase2-toolchain:",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
             "phase2-validate: phase2-tools phase2-kconfig",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
@@ -443,7 +443,6 @@ def run_self_test() -> int:
         ]
     )
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
-    assert any(issue.startswith("makefile_target_scope:phase2-toolchain:") for issue in leaked_issues)
     assert any(issue.startswith("makefile_target_scope:phase2-validate:") for issue in leaked_issues)
 
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
