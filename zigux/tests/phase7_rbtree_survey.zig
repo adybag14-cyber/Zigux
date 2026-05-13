@@ -2,6 +2,23 @@ const std = @import("std");
 
 const active_lane_key = "P7-L13";
 
+const VerificationPaths = struct {
+    status: []const u8,
+    paths: []const []const u8,
+};
+
+const SharedBuildVerification = struct {
+    status: []const u8,
+    build_file: []const u8,
+    missing_sibling_paths: []const []const u8,
+};
+
+const CurrentVerification = struct {
+    verified_on_utc: []const u8,
+    rbtree_packet_visibility: VerificationPaths,
+    shared_phase7_build: SharedBuildVerification,
+};
+
 const SurveySummary = struct {
     rbtree_c_lines: usize,
     preexisting_phase7_test_files: usize,
@@ -13,6 +30,7 @@ const SurveySummary = struct {
 const Gap = struct {
     id: []const u8,
     status: []const u8,
+    current_replay_status: ?[]const u8 = null,
     kind: []const u8,
     zigux_destination: []const u8,
     why_now: []const u8,
@@ -24,6 +42,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    current_verification: CurrentVerification,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -71,6 +90,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(slice_note);
+
+    const helper_lane_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(helper_lane_note);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -170,6 +197,16 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings("2026-05-13T09:36:53Z", manifest.current_verification.verified_on_utc);
+    try std.testing.expectEqualStrings("confirmed", manifest.current_verification.rbtree_packet_visibility.status);
+    try std.testing.expectEqual(@as(usize, 8), manifest.current_verification.rbtree_packet_visibility.paths.len);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase7-rbtree-slice.md", manifest.current_verification.rbtree_packet_visibility.paths[0]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", manifest.current_verification.rbtree_packet_visibility.paths[7]);
+    try std.testing.expectEqualStrings("blocked", manifest.current_verification.shared_phase7_build.status);
+    try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", manifest.current_verification.shared_phase7_build.build_file);
+    try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.shared_phase7_build.missing_sibling_paths.len);
+    try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.current_verification.shared_phase7_build.missing_sibling_paths[0]);
+    try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers.zig", manifest.current_verification.shared_phase7_build.missing_sibling_paths[1]);
     try std.testing.expect(manifest.survey_summary.rbtree_c_lines >= 600);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
@@ -178,6 +215,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
+    var saw_build_gate = false;
     var saw_helper = false;
     var saw_survey_gate = false;
     var saw_parity_checker = false;
@@ -191,6 +229,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-build-gate")) {
+            saw_build_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(gap.current_replay_status != null);
+            try std.testing.expectEqualStrings("blocked_by_missing_sibling_paths", gap.current_replay_status.?);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-helper")) {
@@ -224,10 +270,16 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     }
 
     try expectContains(slice_note, "PHASE7_LANE_KEY=P7-L13");
+    try expectContains(slice_note, "the broader shared `zigux/tests/phase7_build.zig` replay is not a direct current-master green claim because that build file still imports the missing sibling string-helpers pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
+    try expectContains(slice_note, "That means the rbtree-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains parked because the sibling string-helpers helper-plus-test pair is still missing from live `master`.");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(slice_note, "this slice does not carry an open parity-fixture follow-up");
-    try expectContains(slice_note, "keep this helper slice parked unless a fresh parity gap appears");
-    try expectContains(slice_note, "detached-node ownership stays explicit through clearNode and eraseInit reset paths");
+    try expectContains(slice_note, "keep this helper slice parked unless a fresh ownership, parity, or review-surface gap appears");
+    try expectContains(slice_note, "That means the dedicated rbtree helper replay, survey, manifest, and parity packet remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is still a parked cross-packet target rather than a direct rbtree-local green claim.");
+    try expectContains(slice_note, "Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep rbtree-local follow-through under `P7-L13` instead of reusing the shared sequencing lane.");
+    try expectContains(slice_note, "detached-node ownership stays explicit through the clearNode and eraseInit reset paths");
+    try expectContains(helper_lane_note, "P7-L13");
+    try expectContains(helper_lane_note, "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift.");
     try expectContains(docs_root, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample");
     try expectContains(docs_root, "lib/rbtree.zig");
@@ -311,6 +363,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(parity_fixture, "\"postorder\"");
 
     try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
+    try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_checker);
