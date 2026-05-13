@@ -24,10 +24,13 @@ The current bounded HVC archival packet on `master` is:
 * `scripts/zigux/check-phase11-hvc-survey-packet.py`
 * `make -C zigux phase11-hvc-survey`
 * `drivers/tty/hvc/hvc_console_sysrq.zig`
+* `drivers/tty/hvc/hvc_console_verify.zig`
+* `zigux/tests/phase11_hvc_console.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
 
 The survey note exists to keep those surfaces, the direct `drivers/tty/hvc/hvc_console.zig` starter, the paired validation matrix, and the paired teardown checkpoint readable together without overstating runtime parity or widening the Phase 11 claim beyond the landed starter.
 
-The current archival packet still does not materialize the direct `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, or `drivers/tty/hvc/hvc_console_verify.zig` companions, so keep those paths framed as repo-reality gaps rather than as part of the landed archival replay.
+The current archival packet also materializes the direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions on current `master`, so keep those paths explicit as landed bounded replay evidence beside the archived survey rather than framing them as repo-reality gaps or broader runtime-parity proof.
 
 ## What Landed
 
@@ -38,6 +41,9 @@ The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporti
 It keeps the tiny sysrq handoff explicit without claiming live sysrq execution, and it leaves the direct transport, tty registration, and callback-driving work outside the archived survey.
 
 The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout, exported-helper, modem-control fallback, and poll-retry failure-mode packet reviewable beside that archived survey, the paired teardown checkpoint, and the validation matrix without widening into live notifier callbacks, khvcd execution, or host-backed cleanup.
+
+The materialized `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions keep the direct verify-only, cleanup-teardown, and replay-only follow-through readable beside the archival survey-backed packet.
+They stay bounded to the same host-free HVC evidence story rather than widening the lane into live notifier callbacks, khvcd execution, or host-backed transport.
 
 The bounded starter and its archival replay now keep these focused cues explicit:
 
