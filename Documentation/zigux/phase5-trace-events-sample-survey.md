@@ -55,7 +55,7 @@ The precise current gap is packet-local again:
 
 - the roadmap still calls for a reviewable Phase 5 trace-events reference-pattern anchor
 - current `master` does not directly expose the non-runtime sample root, focused replay, manifest-backed packet, dedicated survey replay, or shared `phase5_build.zig` route for that anchor
-- several shared reminder surfaces were still phrased as though that restored packet were directly readable
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the missing `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample*.zig`, or `zigux/tests/phase5_build.zig` packet as directly readable or shipped current-`master` evidence
 
 So the honest same-lane correction is to keep the missing-path caveat active again, trim stale restored-readback wording, and leave the lane parked until the trace-events packet either returns or the remaining shared reminder surfaces are fully aligned to the current gap.
 
@@ -73,6 +73,6 @@ This note still does not claim:
 Keep this lane parked unless a fresh trace-events-local reread finds one of two bounded changes to make:
 
 - the missing trace-events sample packet paths return and the shared reminder surfaces need to be switched back to restored-readback wording
-- another shared reminder surface still claims the missing `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_build.zig`, or `phase5_trace_events_sample*` packet as directly readable and needs one lane-local truthfulness repair
+- one of `Documentation/zigux/README.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` still claims the missing `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_build.zig`, or `phase5_trace_events_sample*` packet as directly readable and needs one lane-local truthfulness repair
 
 Do not widen that follow-up into runtime work.
