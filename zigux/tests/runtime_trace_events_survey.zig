@@ -332,6 +332,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         survey_note,
         "the trace-events family owns only the focused `phase9-runtime-trace-events-tests` step in `zigux/tests/phase9_build.zig`",
     );
+    try expectContains(
+        survey_note,
+        "the family-local module gate separately keeps the selftest-ready failed-exit rollback path explicit so lifecycle state stays stable until registration drain finishes.",
+    );
     try expectContains(survey_note, "The remaining blocker is the broader Phase 9 runtime substrate.");
     try expectContains(
         survey_note,
@@ -348,6 +352,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(survey_note, "Do not invent a dedicated `validate-phase9.py` route");
     try expectContains(module_slice_note, "the broader runtime-substrate handoff remains a separate blocked step");
     try expectContains(module_slice_note, "the live runtime substrate is still missing");
+    try expectContains(
+        module_slice_note,
+        "the family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step.",
+    );
     try expectContains(
         module_slice_note,
         "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
