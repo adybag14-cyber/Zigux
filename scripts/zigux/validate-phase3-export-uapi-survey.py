@@ -74,8 +74,8 @@ SURVEY_EXACT = (
 )
 REVIEW_OWNERSHIP_LINES = (
     "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, while this survey keeps the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions plus the paired `include/zigux/dev_t.h` contract aligned with that narrower kernel-facing relay.",
-    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, the paired `include/zigux/dev_t.h` contract, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
+    "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, whose starter boundary-header relays now expose both the canonical and forward-compatible constructor names needed to keep the C-facing side aligned with the shipped UAPI contract.",
+    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
     "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
 )
 
