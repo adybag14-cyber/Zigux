@@ -103,7 +103,8 @@ REQUIRED_SNIPPETS = {
         "# Phase 6 Leaf-Helper Lane Sequencing",
         "- shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`",
         "If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.",
-        "The current backlog-backed next safe step for `P6-Y10` is one shared-surface-only correction that makes the docs-root, scripts-root, tests-root, checklist, checker, build, Makefile, workflow, or manifest packet tell the same truth about the blocked checksum helper state without attempting checksum restoration in the same change; after that, route the actual helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16`.",
+        "The current backlog-backed next safe step for `P6-Y10` is one shared-surface-only correction in `zigux/tests/README.md` or one matching fail-closed sync in `scripts/zigux/check-phase6-shared-surface.py`: `Documentation/zigux/README.md` now tells the truth about the partially blocked base64 and checksum packet on current `master`, but `zigux/tests/README.md` still advertises `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` as live Phase 6 packet evidence even though `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, and `Documentation/zigux/phase6-perf-gate-survey.md` already mark those base64 and checksum helper-owned surfaces absent or blocked.",
+        "Prefer the smallest tests-root summary sync first or pair it with the corresponding shared-checker hardening if both changes stay inside one bounded shared-surface patch, then route any actual base64 helper restoration back to `P6-L01` or `P6-Y01`, and route any actual checksum helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16` instead of reopening the shared lane.",
     ],
     BASE64_SLICE_PATH.as_posix(): [
         "# Phase 6 Base64 Slice",
@@ -138,7 +139,7 @@ REQUIRED_SNIPPETS = {
     ],
     SCRIPTS_README_PATH.as_posix(): [
         "- `check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
-        "- `make -C zigux phase6-hexdump-review` keeps the dedicated hexdump packet checker, focused helper replay, and helper-local perf gate aligned on the same Linux-style wrapper route.",
+        "- `make -C zigux phase6-hexdump-review` keeps the dedicated hexdump packet checker, focused helper replay, and helper-local perf gate aligned on the same `PYTHON` and `ZIG` selection path.",
         "- `make -C zigux phase6-perf` keeps the three dedicated base64, checksum, and hexdump slowdown gates visible together while `bsearch` stays on its bounded comparison-budget evidence path instead of a separate timing route.",
     ],
     BASE64_PARITY_SCRIPT_PATH.as_posix(): [
@@ -428,6 +429,18 @@ def run_self_test() -> None:
             DOCS_README_PATH,
             "- the current bounded Phase 6 decision is no longer whether the base64 and checksum helper packet is fully runnable on `master`; the live shared lane is the partially blocked packet already kept truthful by `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so future follow-up here should stay inside one shared summary or checker step at a time unless one of the missing helper-owned base64 or checksum files actually returns.",
             "- the current bounded Phase 6 decision is whether the base64 and checksum helper packet is fully runnable on `master`.",
+        )
+        assert_failure(
+            root,
+            LANE_PATH,
+            "zigux/tests/README.md` still advertises `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` as live Phase 6 packet evidence",
+            "zigux/tests/README.md` already matches the partially blocked packet",
+        )
+        assert_failure(
+            root,
+            LANE_PATH,
+            "Prefer the smallest tests-root summary sync first or pair it with the corresponding shared-checker hardening if both changes stay inside one bounded shared-surface patch, then route any actual base64 helper restoration back to `P6-L01` or `P6-Y01`, and route any actual checksum helper restoration back to `P6-Y06`, `P6-L13`, or `P6-L16` instead of reopening the shared lane.",
+            "Prefer reopening the whole helper lane family instead of keeping the next shared step bounded.",
         )
         assert_failure(
             root,
