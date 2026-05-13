@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=landlock-syscalls-helper-policy-survey`
-- reviewed against live `master` `master-readback-2026-05-12`
+- reviewed against live `master` `master-readback-2026-05-13`
 - scope: the shipped `security/landlock/syscalls.zig` helper starter, the paired governance note, the direct helper-local replay packet, and the remaining shared-build and live-state gaps that still keep this packet bounded
 - product boundary:
   - `security/landlock/syscalls.zig`
@@ -21,13 +21,14 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 
 The Phase 13 roadmap explicitly names `security/landlock/syscalls.c` as one of the shared subsystem-helper anchors.
 
-That matters because the syscall side of Landlock sits right at the boundary between reviewable policy planning and live kernel enforcement. A truthful Zigux packet has to keep the credential gate, restrict-self logging flags, add-rule branch split, and release-side file-operation shaping explicit without pretending to mutate live credentials, live rulesets, live file descriptors, or real syscall state.
+That matters because the syscall side of Landlock sits right at the boundary between reviewable policy planning and live kernel enforcement. A truthful Zigux packet has to keep create-ruleset gating, the credential gate, restrict-self logging flags, add-rule branch split, and release-side file-operation shaping explicit without pretending to mutate live credentials, live rulesets, live file descriptors, or real syscall state.
 
 Current `master` now ships a small `security/landlock/syscalls.zig` helper starter together with a direct helper-local replay packet. The highest-value bounded work in this lane is therefore to keep the shipped helper surface and its direct validation companions aligned while continuing to leave the missing shared `zigux/tests/phase13_build.zig` route and live state out of scope.
 
 ## Survey findings
 
 - `security/landlock/syscalls.zig` stays planning-only through `SyscallsHelperLab.descriptor()`, with `touches_live_credentials = false` and `touches_live_rulesets = false` keeping the helper honest about what it does not claim.
+- the shipped `planCreateRuleset()` planner models the bounded `landlock_create_ruleset()` front half by splitting version-versus-errata queries from create mode, checking minimum `landlock_ruleset_attr` sizing, validating handled filesystem or network access masks and scope bits, and stopping before the still-blocked `anon_inode_getfd()` installation boundary.
 - the shipped `planRestrictSelf()` planner models the bounded `landlock_restrict_self()` credential gate by splitting between `CredentialGate.no_new_privs` and `CredentialGate.cap_sys_admin_override` without pretending to mutate the caller's live credentials.
 - the shipped `planRestrictSelf()` planner keeps the current ABI 7 logging surface explicit by translating `LANDLOCK_RESTRICT_SELF_LOG_SAME_EXEC_OFF`, `LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON`, and `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` into helper-visible logging booleans, while keeping the special detached `ruleset_fd = -1` plus `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` path reviewable as a logging-only update instead of a new domain install.
 - the shipped `planAddRule()` and `planLandlockAddRule()` planners keep the `landlock_add_rule()` branches explicit by separating `AddRuleAction.path_beneath` from `AddRuleAction.net_port`, requiring ruleset write access for both, keeping parent-fd lookup local to `path_beneath`, and keeping port handoff local to `net_port`.
@@ -37,10 +38,11 @@ Current `master` now ships a small `security/landlock/syscalls.zig` helper start
 
 ## Exact Live Readback
 
-- live helper readback on current `master` still shows `.provides_restrict_self_planning = true`, `.provides_add_rule_planning = true`, `.provides_ruleset_release_planning = true`, `.provides_ruleset_fops_planning = true`, and `.validates_credential_gate = true` in `SyscallsHelperLab.descriptor()`.
+- live helper readback on current `master` still shows `.provides_create_ruleset_planning = true`, `.provides_restrict_self_planning = true`, `.provides_add_rule_planning = true`, `.provides_ruleset_release_planning = true`, `.provides_ruleset_fops_planning = true`, and `.validates_credential_gate = true` in `SyscallsHelperLab.descriptor()`.
+- current `master` still shows `.validates_create_ruleset_flags = true`, `.validates_create_ruleset_access_masks = true`, `.validates_create_ruleset_scope = true`, plus the exported `landlock_create_ruleset_version`, `landlock_create_ruleset_errata`, `create_ruleset_attr_min_size`, and `create_ruleset_attr_full_size` constants, which keeps the create-ruleset boundary visible in the helper surface itself instead of burying it in survey-only prose.
 - current `master` still shows `.validates_restrict_self_logging = true`, plus the exported `landlock_restrict_self_log_same_exec_off`, `landlock_restrict_self_log_new_exec_on`, `landlock_restrict_self_log_subdomains_off`, and `landlock_mask_restrict_self` constants, which keeps the named logging-flag contract visible in the helper surface itself instead of burying it in survey-only prose.
-- current `master` still exports both `pub const CredentialGate` and `pub const AddRuleAction`, which keeps the syscall packet's two policy splits explicit in the helper surface itself instead of burying them in survey-only prose.
-- current `master` still exports `pub fn planRestrictSelf(`, `pub fn planAddRule(`, `pub fn planLandlockAddRule(`, `pub fn planFopRulesetRelease(`, and `pub fn planRulesetFops(`, so the helper starter already covers the narrow policy-planning and release-side ownership surface that the roadmap permits for this bounded security pilot.
+- current `master` still exports `pub const CreateRulesetMode`, `pub const CredentialGate`, and `pub const AddRuleAction`, which keeps the syscall packet's policy splits explicit in the helper surface itself instead of burying them in survey-only prose.
+- current `master` still exports `pub fn planCreateRuleset(`, `pub fn planRestrictSelf(`, `pub fn planAddRule(`, `pub fn planLandlockAddRule(`, `pub fn planFopRulesetRelease(`, and `pub fn planRulesetFops(`, so the helper starter already covers the narrow policy-planning and release-side ownership surface that the roadmap permits for this bounded security pilot.
 - current `master` now also materializes the direct helper-local replay packet through `phase13_landlock_syscalls.zig`, `phase13_landlock_syscalls_reviewability.zig`, and `phase13_landlock_syscalls_manifest.json`, while the older shared `phase13_build.zig` route still remains absent.
 
 ## Recorded Gaps
