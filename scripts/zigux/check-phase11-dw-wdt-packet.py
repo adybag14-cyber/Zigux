@@ -13,6 +13,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "lane_sequencing": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "verify_file": "drivers/watchdog/dw_wdt_verify.zig",
 }
 
 MARKERS = {
@@ -21,25 +22,39 @@ MARKERS = {
         "This note records the next bounded follow-up for the surviving Phase 11 DesignWare watchdog packet on current `master`.",
         "The live repository still keeps the DesignWare lane reviewable through:",
         "`drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries",
+        "`drivers/watchdog/dw_wdt_verify.zig` for direct teardown ownership and restart failure-mode parity that stays compile-local and host-free beside the bounded driver packet",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the surviving owner-lane continuity packet, pinned to `P11-L10`",
-        "direct teardown and failure-mode parity stays as a future same-lane follow-through target rather than shipped current-`master` evidence through `drivers/watchdog/dw_wdt_verify.zig`",
         "That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.",
         "The next bounded follow-up is still to attach the registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
         "- shared Phase 11 reminder-surface churn outside the DesignWare packet",
         "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` together when the DesignWare packet meaning changes",
-        "- Phase 11 shared build replay only as a truthfulness check, not as a claim that hardware-backed behavior is complete",
+        "- keep `drivers/watchdog/dw_wdt_verify.zig` compile-local and host-free so teardown ownership and restart failure-mode parity stay explicit while platform-backed acquisition remains the next bounded follow-through",
         "- create a new DesignWare manifest, survey, validation-matrix, or teardown surface only if a future scaffold lands enough new lane evidence to justify reviving it",
         "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        "- `drivers/watchdog/dw_wdt_verify.zig`",
         "If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.",
     ],
     "lane_sequencing": [
-        "- DesignWare lane `P11-L10` currently owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `drivers/watchdog/dw_wdt.zig` as the surviving bounded DesignWare packet; direct teardown and failure-mode parity stays as the next same-lane follow-through beside platform-backed registration scaffolding rather than as shipped `drivers/watchdog/dw_wdt_verify.zig` evidence or revived manifest, survey, validation-matrix, or teardown reminder surfaces without new evidence",
-        "- DesignWare packet review stays with `P11-L10` through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `drivers/watchdog/dw_wdt.zig` as the current surviving packet, while direct teardown and failure-mode parity stays a future same-lane proof target instead of shipped `drivers/watchdog/dw_wdt_verify.zig` evidence and the next bounded DesignWare follow-through remains platform-backed registration scaffolding",
-        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `drivers/watchdog/dw_wdt.zig`, pinned to `P11-L10`, while direct teardown and failure-mode parity stays a future same-lane proof target instead of a shipped `drivers/watchdog/dw_wdt_verify.zig` helper, and the next bounded step is platform-backed registration scaffolding rather than pretending removed manifest-backed reminder surfaces are still shipped.",
+        "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files and compile-local teardown or restart proofs explicit in shared summaries without widening them into broader platform-registration closure claims",
+        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces or widening the compile-local teardown or restart proofs into hardware-backed closure.",
+    ],
+    "verify_file": [
+        "pub fn summarizeStopTeardown",
+        "pub fn summarizeRestartFailureMode",
+        'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
+        'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
+        'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
+        '"drivers/watchdog/dw_wdt.c"',
+        '"watchdog_unregister_device"',
+        '"watchdog_stop_on_reboot"',
+        '"watchdog_set_restart_priority"',
+        '"dw_wdt_restart"',
+        '"WDOG_TIMEOUT_RANGE_REG_OFFSET"',
+        '"WDOG_CONTROL_REG_OFFSET"',
     ],
 }
 
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 12
 
 
 class CheckError(RuntimeError):
@@ -96,14 +111,17 @@ def run_self_test() -> None:
 
         cases = [
             (FILES["plan_note"], MARKERS["plan_note"][1]),
-            (FILES["plan_note"], MARKERS["plan_note"][5]),
-            (FILES["plan_note"], MARKERS["plan_note"][6]),
-            (FILES["plan_note"], MARKERS["plan_note"][8]),
+            (FILES["plan_note"], MARKERS["plan_note"][4]),
+            (FILES["plan_note"], MARKERS["plan_note"][7]),
             (FILES["plan_note"], MARKERS["plan_note"][10]),
             (FILES["lane_sequencing"], MARKERS["lane_sequencing"][0]),
-            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][2]),
-            (FILES["plan_note"], MARKERS["plan_note"][11]),
-            (FILES["plan_note"], MARKERS["plan_note"][13]),
+            (FILES["lane_sequencing"], MARKERS["lane_sequencing"][1]),
+            (FILES["verify_file"], MARKERS["verify_file"][0]),
+            (FILES["verify_file"], MARKERS["verify_file"][1]),
+            (FILES["verify_file"], MARKERS["verify_file"][2]),
+            (FILES["verify_file"], MARKERS["verify_file"][4]),
+            (FILES["verify_file"], MARKERS["verify_file"][10]),
+            (FILES["verify_file"], MARKERS["verify_file"][11]),
         ]
 
         for idx, (relative_path, marker) in enumerate(cases, start=1):
