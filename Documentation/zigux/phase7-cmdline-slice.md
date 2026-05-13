@@ -29,7 +29,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   * `zigux/tests/phase7_build.zig`
   * `zigux/Makefile`
   * `.github/workflows/zigux-bootstrap.yml`
-* shared-route note: the broader shared `zigux/tests/phase7_build.zig` route is still parked on current `master` because the sibling string-helpers pair `lib/string_helpers.zig` plus `zigux/tests/phase7_string_helpers.zig` remains absent, but that is a cross-packet Phase 7 issue rather than a cmdline-local blocker
+* shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`; keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun
 
 ## Why this slice exists
 
@@ -44,8 +44,8 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 - keep leading-whitespace handling keeps the Linux-style empty sentinel token
 - keep mixed-whitespace trimming and caller-owned buffer slicing explicit instead of widening into ownership-heavy follow-on helpers
 
-Current repo reality is narrower only at the shared bundle level: on `2026-05-12`, direct current `master` reads returned this slice note together with `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`.
-That means the cmdline-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains parked because the sibling string-helpers helper-plus-test pair is still missing from live `master`.
+Current repo reality is narrower only at the helper-local verification level: on `2026-05-13`, direct current `master` reads returned this slice note together with `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, and the shared `zigux/tests/phase7_build.zig` route.
+That means the cmdline-local helper packet is still landed, while the broader shared `phase7_build.zig` replay remains a shared cross-packet review surface rather than a fresh cmdline-local green claim from this note alone.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `Documentation/zigux/README.md`, `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `lib/cmdline.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/README.md`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of counting cmdline as a fifth Phase 5 sample.
@@ -76,9 +76,9 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 * `python3 scripts/zigux/check-phase7-build-wiring.py`
 * `make -C zigux phase7-validate`
 
-5. keep the shared Phase 7 helper gate explicit as a parked cross-packet target
+5. keep the shared Phase 7 helper gate explicit as a shared cross-packet route
 
-The commands below still describe the intended shared replay surface, but they are not a current cmdline-local green claim while the missing string-helpers pair above remains absent from live `master`.
+The commands below still describe the shared replay surface that current `master` exposes through direct readback, but they are not a fresh cmdline-local green claim from this slice note alone until that full bundle replay is rerun.
 
 * `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 * `make -C zigux phase7-test`
@@ -95,12 +95,17 @@ Current `master` still exposes the bounded cmdline helper packet:
 * `zigux/tests/phase7_cmdline_manifest.json`
 * `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 
-Current `master` still does not expose the full shared Phase 7 helper bundle:
+Current `master` also keeps the shared Phase 7 helper route directly readable:
 
-* `lib/string_helpers.zig` currently fails direct current-path reads
-* `zigux/tests/phase7_string_helpers.zig` currently fails direct current-path reads
+* `zigux/tests/phase7_build.zig`
+* `lib/string_helpers.zig`
+* `zigux/tests/phase7_string_helpers.zig`
+* `lib/argv_split.zig`
+* `zigux/tests/phase7_argv_split.zig`
+* `lib/rbtree.zig`
+* `zigux/tests/phase7_rbtree.zig`
 
-That means the dedicated cmdline helper replay and dedicated cmdline survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is still a parked cross-packet target rather than a cmdline-local green claim.
+That means the dedicated cmdline helper replay and dedicated cmdline survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is again a present shared replay surface on `master` rather than a missing-sibling blocker.
 Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep cmdline-local follow-through under `P7-L05` instead of reusing the shared sequencing lane.
 
 The landed review text and tests still document these intended packet edges:
@@ -136,6 +141,6 @@ This slice still does not yet claim:
 
 Keep this cmdline slice parked unless fresh repo inspection finds one concrete cmdline parity, survey, manifest, fixture, or same-slice reminder drift inside the current helper packet.
 If the family reopens, prefer one tiny same-packet follow-through around `getOption()`, `memparse()`, `parseOptionStr()`, `nextArg()`, or the committed `nextArg()` fixture before widening parsing policy.
-Treat restoration of the broader shared `phase7_build.zig` route as a cross-packet follow-through tied to the missing string-helpers helper-plus-test pair rather than a cmdline-local blocker.
+Treat any fresh shared `phase7_build.zig` replay claim as a cross-packet follow-through that should be backed by a new direct shared replay, not just by current-master readback.
 
 ## Footer
