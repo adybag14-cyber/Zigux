@@ -168,6 +168,8 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
+        "zigux/tests/phase7_string_helpers_survey.zig",
+        "zigux/tests/phase7_string_helpers_manifest.json",
     ],
     "lib/string_helpers.zig": [
         "pub fn skipSpaces",
@@ -262,11 +264,11 @@ def run_self_test() -> None:
         remove_once(
             tmp_root,
             "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "scripts/zigux/check-phase7-build-wiring.py",
+            "zigux/tests/phase7_string_helpers_manifest.json",
         )
         expect_missing_marker(
             tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig: zigux/tests/phase7_string_helpers_manifest.json",
         )
         write_fixture_tree(tmp_root)
 
