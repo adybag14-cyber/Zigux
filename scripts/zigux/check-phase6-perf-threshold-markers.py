@@ -20,6 +20,7 @@ BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+HEXDUMP_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
@@ -43,6 +44,7 @@ PRESENT_PATHS = [
     CHECKSUM_SLICE_PATH,
     HEXDUMP_SLICE_PATH,
     HEXDUMP_VECTORS_PATH,
+    HEXDUMP_MATRIX_PATH,
     PHASE6_BUILD_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
@@ -128,6 +130,13 @@ REQUIRED_SNIPPETS = {
     ],
     HEXDUMP_SLICE_PATH.as_posix(): [
         "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle; `16B-plain-g1` stays capped at `max_slowdown_pct = 175`, `32B-ascii-g2` and `16B-ascii-g4` stay capped at `max_slowdown_pct = 550`, and `16B-ascii-g8` stays capped at `max_slowdown_pct = 600`, with `zigux/tests/phase6_hexdump_perf_matrix.zig` exact-checking the documented case labels, lengths, row sizes, group sizes, ascii flags, replay counts, slowdown caps, and buffer-fit guard before `zigux/tests/phase6_hexdump_perf.zig` times expected output and required length for every fixture-backed perf case",
+    ],
+    HEXDUMP_MATRIX_PATH.as_posix(): [
+        '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
+        '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
+        "if (fixtures.expectedLength(actual.len, actual.rowsize, actual.groupsize, actual.ascii) > fixtures.test_hexdump_buf_size) {",
     ],
     PHASE6_BUILD_PATH.as_posix(): [
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
@@ -405,6 +414,18 @@ def run_self_test() -> None:
             CHECKSUM_SLICE_PATH,
             "this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
             "this slice is now fully restored",
+        )
+        assert_failure(
+            root,
+            HEXDUMP_MATRIX_PATH,
+            '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+            '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 2, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+        )
+        assert_failure(
+            root,
+            HEXDUMP_MATRIX_PATH,
+            "if (fixtures.expectedLength(actual.len, actual.rowsize, actual.groupsize, actual.ascii) > fixtures.test_hexdump_buf_size) {",
+            "if (fixtures.expectedLength(actual.len, actual.rowsize, actual.groupsize, actual.ascii) >= fixtures.test_hexdump_buf_size) {",
         )
         assert_failure(
             root,
