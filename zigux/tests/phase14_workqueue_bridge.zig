@@ -70,7 +70,7 @@ test "phase14 workqueue bridge manifest records the blocked-maintenance packet" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -92,6 +92,7 @@ test "phase14 workqueue bridge manifest records the blocked-maintenance packet" 
         "phase14-workqueue-delayed-requeue-governance",
         "phase14-workqueue-flush-drain-governance",
         "phase14-workqueue-rescuer-mayday-governance",
+        "phase14-workqueue-scheduler-visible-worker-state-refinement",
         "phase14-workqueue-live-execution-blocker",
     };
 
@@ -124,13 +125,18 @@ test "phase14 workqueue bridge manifest records the blocked-maintenance packet" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush_color") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-scheduler-visible-worker-state-refinement")) {
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wq_worker_running()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WORKER_NOT_RUNNING") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "worker_pool") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hotplug") != null);
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
 }
 
@@ -153,6 +159,8 @@ test "phase14 workqueue bridge descriptor matches the blocked-maintenance bridge
     try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 15), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", workqueue_bridge.WorkqueueBridgeLab.currentSliceId());
+    try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", audit.current_slice_id);
     try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
     try std.testing.expectEqualStrings("delayed-work-timer-and-requeue", map.areas[2].id);
     try std.testing.expectEqualStrings("runtime-max-active-retuning", map.areas[5].id);
