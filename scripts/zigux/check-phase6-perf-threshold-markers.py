@@ -104,10 +104,8 @@ EXPECTED_SHARED_NOTE = (
 
 REQUIRED_SNIPPETS = {
     SURVEY_PATH.as_posix(): [
-        "* aggregated route note: `make -C zigux phase6-perf` still exists as a narrow convenience wrapper for `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, but current `master` only keeps the hexdump leg runnable from the committed tree because the base64 and checksum replay files listed below are absent",
-        "* base64 shared posture: `lib/base64.zig` still ships the helper, but current `master` no longer carries `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, or `zigux/tests/fixtures/phase6_base64_vectors.zig`, even though `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise `phase6-base64-perf`; that slowdown gate is currently documentary rather than runnable from the committed tree",
+        "* aggregated route note: `make -C zigux phase6-perf` still appears in the committed Phase 6 route inventory beside `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, but the current survey can only treat that aggregate route as inventory evidence because the same `zigux/Makefile` readback did not expose a committed Phase 6 target body and the base64 and checksum replay files listed below remain absent",
         "* base64 exact thresholds: the last base64 packet documented four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, but current `master` no longer carries the base64 perf replay or fixture that would let this survey re-read those values from committed base64-owned evidence",
-        "* checksum shared posture: `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise a dedicated checksum slowdown gate, but current `master` lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`, so that replay is currently not runnable from the committed tree",
         "* checksum exact thresholds: the last checksum packet documented `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, but current `master` no longer carries the checksum perf replay or fixture that would let this survey re-read those values from committed checksum-owned evidence",
         "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
         "* the convenience `make -C zigux phase6-perf` route is not a fully truthful summary of shared perf posture on `master` until the base64 and checksum helper packets are restored or the shared route is rewritten to exclude those absent slowdown gates",
@@ -120,7 +118,8 @@ REQUIRED_SNIPPETS = {
     BASE64_SLICE_PATH.as_posix(): [
         "- `PHASE6_STATUS=blocked`",
         "- current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
-        "- this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module",
+        "- the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
+        "- this slice remains partially landed until the missing focused replay and fixture-backed perf packet return, but the direct local C parity runner is again a truthful review surface on current `master`",
     ],
     CHECKSUM_SLICE_PATH.as_posix(): [
         "- `PHASE6_STATUS=blocked`",
@@ -151,10 +150,14 @@ REQUIRED_SNIPPETS = {
 REQUIRED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
-    "make -C zigux phase6-perf",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-hexdump-review",
+]
+
+REQUIRED_INVENTORY_ONLY_BLOCKED_ROUTES = [
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-checksum-perf",
-    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
 ]
 
 
@@ -246,6 +249,15 @@ def validate_manifest(repo_root: Path) -> None:
         if command not in exact_checks:
             raise ValidationError(f"missing exact Phase 6 perf-threshold check in {MANIFEST_PATH}: {command}")
 
+    inventory_only_blocked_routes = manifest.get("inventory_only_blocked_routes")
+    if not isinstance(inventory_only_blocked_routes, list):
+        raise ValidationError(f"missing inventory_only_blocked_routes in {MANIFEST_PATH}")
+    for route in REQUIRED_INVENTORY_ONLY_BLOCKED_ROUTES:
+        if route not in inventory_only_blocked_routes:
+            raise ValidationError(
+                f"missing blocked perf route inventory marker in {MANIFEST_PATH}: {route}"
+            )
+
 
 def validate_paths(repo_root: Path) -> None:
     for rel_path in PRESENT_PATHS:
@@ -315,6 +327,7 @@ def scaffold_repo(root: Path) -> None:
             },
         },
         "exact_checks": list(REQUIRED_EXACT_CHECKS),
+        "inventory_only_blocked_routes": list(REQUIRED_INVENTORY_ONLY_BLOCKED_ROUTES),
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
@@ -360,14 +373,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH,
+            '"make -C zigux phase6-hexdump-review"',
+            '"make -C zigux phase6-hexdump-doc"',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
             '"make -C zigux phase6-perf"',
             '"make -C zigux phase6-perf-doc"',
         )
         assert_failure(
             root,
             SURVEY_PATH,
-            "only keeps the hexdump leg runnable",
-            "keeps all three legs runnable",
+            "still appears in the committed Phase 6 route inventory beside",
+            "is a fully runnable wrapper for all three helper-local perf gates",
         )
         assert_failure(
             root,
@@ -378,8 +397,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             BASE64_SLICE_PATH,
-            "this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module",
-            "this slice is fully runnable on current `master`",
+            "the shipped direct C parity surface is now self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` both read the compact committed `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
+            "the shipped direct C parity surface still depends on the absent focused replay fixture module",
         )
         assert_failure(
             root,
