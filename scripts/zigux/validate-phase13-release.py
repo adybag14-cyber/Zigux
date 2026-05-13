@@ -57,6 +57,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-slice.md`",
         "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`",
         "`security/landlock/ruleset.zig`",
         "`zigux/tests/phase13_landlock_ruleset.zig`",
         "`zigux/tests/phase13_landlock_ruleset_manifest.json`",
