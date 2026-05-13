@@ -13,6 +13,15 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+HELP_SLICE_PATH = "Documentation/zigux/phase8-help-slice.md"
+KALLSYMS_SLICE_PATH = "Documentation/zigux/phase8-kallsyms-slice.md"
+HELP_HELPER_PATH = "tools/lib/subcmd/help.zig"
+KALLSYMS_HELPER_PATH = "tools/lib/symbol/kallsyms.zig"
+HELP_TEST_PATH = "zigux/tests/phase8_help.zig"
+HELP_BUILD_PATH = "zigux/tests/phase8_help_only_build.zig"
+HELP_KALLSYMS_BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"
+KALLSYMS_TEST_PATH = "zigux/tests/phase8_kallsyms.zig"
+KALLSYMS_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
@@ -21,6 +30,15 @@ REQUIRED_FILES = (
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SEQUENCING_PATH,
+    HELP_SLICE_PATH,
+    KALLSYMS_SLICE_PATH,
+    HELP_HELPER_PATH,
+    KALLSYMS_HELPER_PATH,
+    HELP_TEST_PATH,
+    HELP_BUILD_PATH,
+    HELP_KALLSYMS_BUILD_PATH,
+    KALLSYMS_TEST_PATH,
+    KALLSYMS_BUILD_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -113,7 +131,11 @@ def make_fixture_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         if rel_path == SCRIPT_PATH:
             continue
-        write_text(root, rel_path, "\n".join(REQUIRED_MARKERS[rel_path]) + "\n")
+        markers = REQUIRED_MARKERS.get(rel_path)
+        if markers is None:
+            write_text(root, rel_path, "# fixture\n")
+            continue
+        write_text(root, rel_path, "\n".join(markers) + "\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -168,15 +190,27 @@ def run_self_test() -> int:
             assert_missing_case(case_root, rel_path, marker)
             cases += 1
 
-        missing_file_root = Path(tmp) / f"case_{cases}"
-        shutil.copytree(baseline_root, missing_file_root)
-        (missing_file_root / SEQUENCING_PATH).unlink()
-        missing_result = run_validator(missing_file_root)
-        missing_output = missing_result.stdout.strip() or missing_result.stderr.strip() or "no_output"
-        expected = f"missing-file:{SEQUENCING_PATH}"
-        if missing_result.returncode == 0 or expected not in missing_output:
-            raise SystemExit(f"self-test-missing-file-mismatch:{missing_output}")
-        cases += 1
+        missing_file_cases = (
+            HELP_SLICE_PATH,
+            KALLSYMS_SLICE_PATH,
+            HELP_HELPER_PATH,
+            KALLSYMS_HELPER_PATH,
+            HELP_TEST_PATH,
+            HELP_BUILD_PATH,
+            HELP_KALLSYMS_BUILD_PATH,
+            KALLSYMS_TEST_PATH,
+            KALLSYMS_BUILD_PATH,
+        )
+        for rel_path in missing_file_cases:
+            missing_file_root = Path(tmp) / f"case_{cases}"
+            shutil.copytree(baseline_root, missing_file_root)
+            (missing_file_root / rel_path).unlink()
+            missing_result = run_validator(missing_file_root)
+            missing_output = missing_result.stdout.strip() or missing_result.stderr.strip() or "no_output"
+            expected = f"missing-file:{rel_path}"
+            if missing_result.returncode == 0 or expected not in missing_output:
+                raise SystemExit(f"self-test-missing-file-mismatch:{missing_output}")
+            cases += 1
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
     print(f"PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT={cases}")
