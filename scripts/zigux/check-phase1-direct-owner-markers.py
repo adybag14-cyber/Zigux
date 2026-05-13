@@ -165,6 +165,13 @@ def make_fixture_root(root: Path) -> None:
     )
 
 
+def expect_missing_exact_count(root: Path, path: Path, original_text: str, label: str, marker: str, replacement: str, expected_count: int) -> None:
+    path.write_text(original_text.replace(marker, replacement, 1), encoding="utf-8")
+    missing = collect_missing_markers(root)
+    assert f"{label}:{marker}:expected=1:actual={expected_count}" in missing
+    path.write_text(original_text, encoding="utf-8")
+
+
 def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_direct_owner_") as tmp_dir:
@@ -210,87 +217,133 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(DIRECT_OWNER_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[0]}:expected=1:actual=0" in missing
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(CURRENT_REPO_REALITY_MARKERS[1] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "phase1_direct_owner_current_repo_reality:"
-            f"{CURRENT_REPO_REALITY_MARKERS[1]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                CURRENT_REPO_REALITY_MARKERS[2] + "\n",
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        for marker in DIRECT_OWNER_MARKERS:
+            expect_missing_exact_count(
+                root,
+                lane_note,
+                lane_note_text,
+                "phase1_direct_owner_marker",
+                marker,
                 "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "phase1_direct_owner_current_repo_reality:"
-            f"{CURRENT_REPO_REALITY_MARKERS[2]}:expected=1:actual=0" in missing
+                0,
+            )
+            case_count += 1
+            expect_missing_exact_count(
+                root,
+                lane_note,
+                lane_note_text,
+                "phase1_direct_owner_marker",
+                marker,
+                marker + "\n" + marker,
+                2,
+            )
+            case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS[1],
+            "",
+            0,
         )
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                CURRENT_REPO_REALITY_MARKERS[3],
-                CURRENT_REPO_REALITY_MARKERS[3] + "\n" + CURRENT_REPO_REALITY_MARKERS[3],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "phase1_direct_owner_current_repo_reality:"
-            f"{CURRENT_REPO_REALITY_MARKERS[3]}:expected=1:actual=2" in missing
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS[2],
+            "",
+            0,
         )
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[7] + "\n", "", 1),
-            encoding="utf-8",
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS[3],
+            CURRENT_REPO_REALITY_MARKERS[3] + "\n" + CURRENT_REPO_REALITY_MARKERS[3],
+            2,
         )
-        missing = collect_missing_markers(root)
-        assert f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[7]}:expected=1:actual=0" in missing
         case_count += 1
 
         make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                NEXT_STEP_MARKERS[7],
-                NEXT_STEP_MARKERS[7] + "\n" + NEXT_STEP_MARKERS[7],
-                1,
-            ),
-            encoding="utf-8",
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[7],
+            "",
+            0,
         )
-        missing = collect_missing_markers(root)
-        assert f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[7]}:expected=1:actual=2" in missing
         case_count += 1
 
         make_fixture_root(root)
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[1] + "\n", "", 1),
-            encoding="utf-8",
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[7],
+            NEXT_STEP_MARKERS[7] + "\n" + NEXT_STEP_MARKERS[7],
+            2,
         )
-        missing = collect_missing_markers(root)
-        assert f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[1]}:expected=1:actual=0" in missing
+        case_count += 1
+
+        make_fixture_root(root)
+        makefile_text = makefile.read_text(encoding="utf-8")
+        for marker in MAKEFILE_MARKERS:
+            expect_missing_exact_count(
+                root,
+                makefile,
+                makefile_text,
+                "phase1_direct_owner_makefile",
+                marker,
+                marker + "\n" + marker,
+                2,
+            )
+            case_count += 1
+
+        make_fixture_root(root)
+        workflow_text = workflow.read_text(encoding="utf-8")
+        for marker in WORKFLOW_MARKERS:
+            expect_missing_exact_count(
+                root,
+                workflow,
+                workflow_text,
+                "phase1_direct_owner_workflow",
+                marker,
+                marker + "\n" + marker,
+                2,
+            )
+            case_count += 1
+
+        make_fixture_root(root)
+        workflow_text = workflow.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            workflow,
+            workflow_text,
+            "phase1_direct_owner_workflow",
+            WORKFLOW_MARKERS[1],
+            "",
+            0,
+        )
         case_count += 1
 
     print("PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=pass")
