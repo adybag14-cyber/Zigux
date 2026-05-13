@@ -351,7 +351,7 @@ test "phase 8 help section rendering keeps the stable main and PATH headings rev
 " ++
             "----------------------------------
 " ++
-            " stat top
+            " stat     top
 " ++
             "
 " ++
