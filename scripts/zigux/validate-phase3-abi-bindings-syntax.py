@@ -37,6 +37,7 @@ REQUIRED_FILES = (
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
     Path("zigux/uapi/dev_t.zig"),
+    Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
     Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
@@ -71,6 +72,7 @@ SLICE_NOTE_MARKERS = (
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
+    "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -298,8 +300,18 @@ def run_self_test() -> int:
             print("expected missing repo file was not reported")
             return 1
         case_count += 1
-        boundary_lane_note_rel = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
+        phase3_abi_rel = Path("zigux/tests/phase3_abi.zig")
         _write(root / missing_rel, "# restored\n")
+        (root / phase3_abi_rel).unlink()
+        issues = validate_repo(root)
+        expected_phase3_abi_missing = f"missing repo file: {phase3_abi_rel.as_posix()}"
+        if expected_phase3_abi_missing not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing phase3_abi replay file was not reported")
+            return 1
+        case_count += 1
+        boundary_lane_note_rel = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
+        _write(root / phase3_abi_rel, "# restored\n")
         (root / boundary_lane_note_rel).unlink()
         issues = validate_repo(root)
         expected_boundary_lane_note_missing = (
@@ -317,6 +329,22 @@ def run_self_test() -> int:
         if expected_slice_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing slice marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(
+            root / SLICE_NOTE_PATH,
+            _read(root / SLICE_NOTE_PATH).replace(
+                "zigux/tests/phase3_abi.zig\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_phase3_abi_slice_marker = "missing slice marker: zigux/tests/phase3_abi.zig"
+        if expected_phase3_abi_slice_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing phase3_abi slice marker was not reported")
             return 1
         case_count += 1
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
