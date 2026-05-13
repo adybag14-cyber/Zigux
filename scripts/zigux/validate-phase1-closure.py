@@ -195,10 +195,17 @@ EXPECTED_BITMAP_MANIFEST = {
         "partial_xor_nbits",
         "partial_xor_masked_values",
     ],
+    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
     "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
+    "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
     "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
     "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+    "copy_zero_and_aligned_anchors": [
+        'test "bitmap copy and extend handles zero and aligned counts"',
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    ],
     "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
+    "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
     "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
 }
 
@@ -299,13 +306,15 @@ EXPECTED_STRING_HELPER_TESTS = [
     'test "skip trim remove and replace spaces work in place"',
     'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
     'test "strreplace mirrors replaceChar C-string semantics"',
-    'test "strHasPrefix honors C-string boundaries"',
+    'test "strHasPrefix returns the matched prefix length with C-string semantics"',
     'test "strstarts mirrors the header-level prefix helper"',
     'test "strEndsWith honors C-string boundaries"',
     'test "sysfsStreq treats trailing newline and NUL as equivalent"',
     'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
     'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
     'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+    'test "matchString finds C-string matches and preserves first-match order"',
+    'test "match_string mirrors matchString for empty and matched lists"',
     'test "memdup and memchrInv preserve byte content"',
     'test "memchr_inv mirrors memchrInv byte-search semantics"',
     'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
@@ -322,12 +331,18 @@ EXPECTED_STRING_HELPER_TESTS = [
     'test "memparse keeps signed values and their trailing rest aligned"',
     'test "memparse consumes suffix after saturation"',
     'test "memparse applies suffixes before signed clamping"',
+    'test "strnchr honors count and C-string boundaries"',
 ]
 
 STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
     'test "strHasPrefix ',
     'test "strstarts ',
     'test "strEndsWith ',
+)
+
+STRING_LOOKUP_ANCHOR_PREFIXES = (
+    'test "matchString ',
+    'test "match_string ',
 )
 
 def repo_root(root: str | None) -> Path:
@@ -466,6 +481,17 @@ def expected_string_prefix_suffix_review_anchors(test_names: list[str]) -> list[
     return [name for name in test_names if name.startswith(STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES)]
 
 
+def expected_string_lookup_review_anchors(test_names: list[str]) -> list[str]:
+    return [name for name in test_names if name.startswith(STRING_LOOKUP_ANCHOR_PREFIXES)]
+
+
+def expected_string_strnchr_review_anchor(test_names: list[str]) -> str | None:
+    for name in test_names:
+        if name.startswith('test "strnchr '):
+            return name
+    return None
+
+
 def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
     if not isinstance(manifest, dict):
         return ["string_manifest:json_object"]
@@ -487,6 +513,10 @@ def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
         missing.append("string_manifest:memparse_review_anchors")
     if string_anchors.get("prefix_suffix_review_anchors") != expected_string_prefix_suffix_review_anchors(helper_tests):
         missing.append("string_manifest:prefix_suffix_review_anchors")
+    if string_anchors.get("lookup_review_anchors") != expected_string_lookup_review_anchors(helper_tests):
+        missing.append("string_manifest:lookup_review_anchors")
+    if string_anchors.get("strnchr_review_anchor") != expected_string_strnchr_review_anchor(helper_tests):
+        missing.append("string_manifest:strnchr_review_anchor")
     return missing
 
 
@@ -560,6 +590,8 @@ def make_fixture_root(root: Path) -> None:
                         "helper_test_anchors": EXPECTED_STRING_HELPER_TESTS,
                         "memparse_review_anchors": expected_string_memparse_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "prefix_suffix_review_anchors": expected_string_prefix_suffix_review_anchors(EXPECTED_STRING_HELPER_TESTS),
+                        "lookup_review_anchors": expected_string_lookup_review_anchors(EXPECTED_STRING_HELPER_TESTS),
+                        "strnchr_review_anchor": expected_string_strnchr_review_anchor(EXPECTED_STRING_HELPER_TESTS),
                     },
                 }
             },
@@ -683,6 +715,20 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["lookup_review_anchors"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:lookup_review_anchors" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["strnchr_review_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:strnchr_review_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
         bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
         bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"] = 1
@@ -751,7 +797,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 3}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 5}"
     )
     return 0
 
