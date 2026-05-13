@@ -71,9 +71,9 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
-    try std.testing.expectEqualStrings("7010c4816a604be03ef46876765925edb9852e47", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("994b112223e83033aeb02c6620c9d96624634dd3", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("88797a6fbd1adf307dfaa8ac0713c9fd85ea33f1", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("ff273b0b2f36d8681be53c0a8e1b51a17120dcc5", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
@@ -138,11 +138,12 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "final_nth_seven=123");
     try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
     try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
-    try expectContains(gate_evidence_source, "thirteen copy-tail cases");
+    try expectContains(gate_evidence_source, "fourteen copy-tail cases");
     try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
+    try expectContains(gate_evidence_source, "explicit partial-word 109-bit replay that keeps copied source tail bits through bit 126");
     try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
-    try expectContains(gate_evidence_source, "`13 DiffCase`, `13 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "`13 DiffCase`, `14 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
@@ -161,7 +162,7 @@ test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks
         bitmap_diff_source,
         "test_copy exact word-aligned replay clears the first-word tail and leaves later filled words untouched",
     );
-    try expectContains(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
+    try expectContains(bitmap_diff_source, "test_copy partial-word 109-bit replay keeps copied source tail bits through bit 126");
     try expectContains(
         bitmap_diff_source,
         "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
