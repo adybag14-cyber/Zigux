@@ -288,9 +288,14 @@ pub fn resolveTerminalDimensions(
 }
 
 pub fn planPrettyPrint(count: usize, longest_name_len: usize, terminal_cols: usize) PrettyPrintLayout {
-    const spacing = longest_name_len + 1;
-    const safe_spacing = @max(@as(usize, 1), spacing);
-    const cols = @max(@as(usize, 1), terminal_cols / safe_spacing);
+    const safe_spacing = @max(@as(usize, 1), longest_name_len + 1);
+    const max_cols = terminal_cols -| 1;
+
+    var cols: usize = 1;
+    if (safe_spacing < max_cols) {
+        cols = @max(@as(usize, 1), max_cols / safe_spacing);
+    }
+
     const rows = if (count == 0) 0 else std.math.divCeil(usize, count, cols) catch count;
     return .{
         .cols = cols,
@@ -333,15 +338,19 @@ pub fn writePrettyPrintStringListForTerminal(
     while (row < layout.rows) : (row += 1) {
         try writer.writeByte(' ');
 
-        var wrote_any = false;
         var col: usize = 0;
         while (col < layout.cols) : (col += 1) {
             const index = row + (col * layout.rows);
-            if (index >= cmds.count()) continue;
+            if (index >= cmds.count()) break;
 
-            if (wrote_any) try writer.writeByte(' ');
-            try writer.writeAll(cmds.names.items[index].name);
-            wrote_any = true;
+            const cell_width = if (col == layout.cols - 1 or index + layout.rows >= cmds.count()) 1 else layout.spacing;
+            const name = cmds.names.items[index].name;
+            try writer.writeAll(name);
+
+            var padding = cell_width;
+            while (padding > name.len) : (padding -= 1) {
+                try writer.writeByte(' ');
+            }
         }
 
         try writer.writeByte('\n');
@@ -444,6 +453,13 @@ test "resolveTerminalDimensions requires a full non-zero pair before overriding 
     );
 }
 
+test "planPrettyPrint keeps one-column fallback when a second column would hit the edge" {
+    const layout = planPrettyPrint(4, 8, 18);
+    try std.testing.expectEqual(@as(usize, 1), layout.cols);
+    try std.testing.expectEqual(@as(usize, 4), layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), layout.spacing);
+}
+
 test "writePrettyPrintStringListForTerminal renders column-major output" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
@@ -468,7 +484,7 @@ test "writePrettyPrintStringListForTerminal renders column-major output" {
 
     try std.testing.expectEqualStrings(
         " annotate report\n" ++
-            " bench stat\n" ++
+            " bench    stat\n" ++
             " diff\n",
         rendered.writer.buffered(),
     );
