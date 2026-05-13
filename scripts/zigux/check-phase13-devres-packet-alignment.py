@@ -16,18 +16,10 @@ REPLAY_PATH = "zigux/tests/phase13_devres.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_devres_reviewability.zig"
 DMA_REPLAY_PATH = "zigux/tests/phase13_devres_dma_coherent.zig"
 
-STALE_SLICE_MARKER = "PHASE13_SLICE=devres-dma-scatterlist-boundary-survey"
-SURVEYED_COMMIT_PREFIX = "reviewed against live `master` `"
 STALE_CHECKER_WARNING = (
     "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift"
 )
 CURRENT_CHECKER_MARKER = "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
-REVIEWABILITY_LANE_KEY_MARKER = "manifest.lane_key"
-SURVEY_LANE_KEY_SUFFIX = " helper packet"
-
-MANIFEST_TO_SURVEY_MARKERS = {
-    '"id": "phase13-devres-live-scatterlist-ownership"': "helper-only DMA/scatterlist boundary",
-}
 
 IOUNMAP_SLICE_MARKERS = [
     "devm_iounmap()",
@@ -39,37 +31,61 @@ IOUNMAP_SURVEY_MARKERS = [
 
 IOUNMAP_HELPER_MARKERS = [
     ".provides_iounmap_call_planning = true",
-    "pub const ManagedIounmapPlan = struct {",
-    "pub fn ioremapReleaseMatches(",
+    "pub const ManagedIounmapPlan",
     "pub fn planManagedIounmap(",
     ".warns_on_release_miss = !release_matches",
 ]
 
 IOUNMAP_REPLAY_MARKERS = [
     'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-    "const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
     "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
     "try std.testing.expect(miss.warns_on_release_miss);",
 ]
 
+ARCH_TOKEN_SLICE_MARKERS = [
+    "devm_arch_phys_wc_add()",
+]
+
+ARCH_TOKEN_SURVEY_MARKERS = [
+    "devm_arch_phys_wc_add()",
+    "live arch memtype state transitions",
+]
+
+ARCH_TOKEN_HELPER_MARKERS = [
+    ".provides_arch_phys_wc_token_planning = true",
+    "pub const ManagedPhysWcAddInput",
+    "pub const ManagedPhysWcAddPlan",
+    "pub fn planArchPhysWcAdd(",
+]
+
+ARCH_TOKEN_REPLAY_MARKERS = [
+    'test "phase13 devres retains phys WC release tokens on successful token add" {',
+    'test "phase13 devres frees phys WC release records when token add fails" {',
+]
+
+BOUNDARY_SURVEY_MARKERS = [
+    "phase13-devres-live-mmio-mappings",
+    "phase13-devres-live-device-tree-walk",
+    "phase13-devres-live-arch-memtype-state",
+    "live MMIO mappings",
+    "live device-tree walking",
+    "live arch memtype state transitions",
+]
+
 REVIEWABILITY_MARKERS = [
-    "manifest.survey_summary.preexisting_phase13_devres_test_present",
-    "manifest.survey_summary.preexisting_phase13_devres_reviewability_present",
-    "manifest.survey_summary.preexisting_phase13_devres_survey_present",
-    "manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present",
-    '"phase13-devres-test-gate",',
-    '"phase13-devres-reviewability-gate",',
-    '"phase13-devres-dma-coherent-replay",',
-    "try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
+    '"P13-L01"',
+    '"master-readback-2026-05-13"',
+    '"phase13-make-target"',
+    '"phase13-devres-arch-phys-wc-token-planner"',
+    '"phase13-devres-live-arch-memtype-state"',
+    "try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
     "try std.testing.expectEqual(@as(usize, 3), blocked_count);",
 ]
 
 DMA_REPLAY_MARKERS = [
-    '\\"id\\": \\"phase13-devres-test-gate\\"',
-    '\\"id\\": \\"phase13-devres-reviewability-gate\\"',
-    '\\"id\\": \\"phase13-devres-dma-coherent-replay\\"',
-    '\\"status\\": \\"starter_landed\\"',
-    "helper-first packet",
+    '"preexisting_phase13_devres_dma_coherent_present": true',
+    '"phase13-devres-live-mmio-mappings"',
+    '"phase13-devres-live-arch-memtype-state"',
 ]
 
 
@@ -77,17 +93,9 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def contains_manifest_expectation(source: str, key: str, value: str) -> bool:
-    plain = f'"{key}": "{value}"'
-    escaped = plain.replace('"', '\\"')
-    return plain in source or escaped in source
-
-
-def contains_bool_expectation(source: str, key: str, value: bool) -> bool:
-    literal = "true" if value else "false"
-    plain = f'"{key}": {literal}'
-    escaped = plain.replace('"', '\\"')
-    return plain in source or escaped in source
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def require_file(root: Path, rel: str, errors: list[str]) -> Path | None:
@@ -102,6 +110,19 @@ def require_markers(source: str, prefix: str, markers: list[str], errors: list[s
     for marker in markers:
         if marker not in source:
             errors.append(f"{prefix}:missing_marker:{marker}")
+
+
+def contains_manifest_expectation(source: str, key: str, value: str) -> bool:
+    literal = f'"{key}": "{value}"'
+    escaped = literal.replace('"', '\\"')
+    return literal in source or escaped in source
+
+
+def contains_bool_expectation(source: str, key: str, value: bool) -> bool:
+    literal_value = "true" if value else "false"
+    literal = f'"{key}": {literal_value}'
+    escaped = literal.replace('"', '\\"')
+    return literal in source or escaped in source
 
 
 def validate(root: Path) -> list[str]:
@@ -130,50 +151,48 @@ def validate(root: Path) -> list[str]:
         return [f"manifest:json_decode:{exc.msg}"]
 
     lane_key = manifest.get("lane_key")
-    if not isinstance(lane_key, str) or not lane_key:
-        errors.append("manifest:lane_key_missing")
+    if lane_key != "P13-L01":
+        errors.append(f"manifest:lane_key_mismatch:{lane_key}")
     else:
         if not contains_manifest_expectation(replay_text, "lane_key", lane_key):
             errors.append(f"replay:lane_key_mismatch:{lane_key}")
-        if lane_key not in reviewability_text or REVIEWABILITY_LANE_KEY_MARKER not in reviewability_text:
+        if lane_key not in reviewability_text:
             errors.append(f"reviewability:lane_key_mismatch:{lane_key}")
-        if f"`{lane_key}`{SURVEY_LANE_KEY_SUFFIX}" not in survey_text:
+        if f"`{lane_key}`" not in survey_text:
             errors.append(f"survey:lane_key_mismatch:{lane_key}")
 
     surveyed_commit = manifest.get("surveyed_commit")
-    if not isinstance(surveyed_commit, str) or not surveyed_commit:
-        errors.append("manifest:surveyed_commit_missing")
+    if surveyed_commit != "master-readback-2026-05-13":
+        errors.append(f"manifest:surveyed_commit_mismatch:{surveyed_commit}")
     else:
         if not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
             errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
-        if surveyed_commit not in reviewability_text or "manifest.surveyed_commit" not in reviewability_text:
+        if surveyed_commit not in reviewability_text:
             errors.append(f"reviewability:surveyed_commit_mismatch:{surveyed_commit}")
-        if f"{SURVEYED_COMMIT_PREFIX}{surveyed_commit}`" not in survey_text:
+        if surveyed_commit not in survey_text:
             errors.append(f"survey:surveyed_commit_mismatch:{surveyed_commit}")
 
     summary = manifest.get("survey_summary")
     if not isinstance(summary, dict):
         errors.append("manifest:survey_summary_missing")
     else:
-        for key in (
-            "preexisting_phase13_build_present",
-            "preexisting_phase13_devres_test_present",
-            "preexisting_phase13_devres_reviewability_present",
-            "preexisting_phase13_devres_survey_present",
-        ):
-            value = summary.get(key)
-            if not isinstance(value, bool):
-                errors.append(f"manifest:survey_summary_bool_missing:{key}")
-                continue
-            if not contains_bool_expectation(dma_replay_text, key, value):
-                errors.append(f"dma_replay:{key}_mismatch:{value}")
+        expected_bools = {
+            "preexisting_phase13_build_present": False,
+            "preexisting_phase13_make_target_present": True,
+            "preexisting_phase13_devres_test_present": True,
+            "preexisting_phase13_devres_reviewability_present": True,
+            "preexisting_phase13_devres_survey_present": True,
+            "preexisting_phase13_devres_dma_coherent_present": True,
+        }
+        for key, expected in expected_bools.items():
+            if summary.get(key) is not expected:
+                errors.append(f"manifest:summary_mismatch:{key}:{summary.get(key)}")
+            if key.endswith("devres_dma_coherent_present") and not contains_bool_expectation(dma_replay_text, key, expected):
+                errors.append(f"dma_replay:{key}_mismatch:{expected}")
 
-    if STALE_SLICE_MARKER in survey_text:
-        errors.append("survey:stale_slice_label")
-
-    for manifest_marker, survey_marker in MANIFEST_TO_SURVEY_MARKERS.items():
-        if manifest_marker in manifest_text and survey_marker not in survey_text:
-            errors.append(f"survey:missing_marker:{survey_marker}")
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list) or len(gaps) != 12:
+        errors.append(f"manifest:gaps_count_mismatch:{len(gaps) if isinstance(gaps, list) else 'missing'}")
 
     if STALE_CHECKER_WARNING not in survey_text:
         errors.append("survey:missing_stale_checker_warning")
@@ -184,15 +203,17 @@ def validate(root: Path) -> list[str]:
     require_markers(survey_text, "survey", IOUNMAP_SURVEY_MARKERS, errors)
     require_markers(helper_text, "helper", IOUNMAP_HELPER_MARKERS, errors)
     require_markers(replay_text, "replay", IOUNMAP_REPLAY_MARKERS, errors)
+
+    require_markers(slice_text, "slice", ARCH_TOKEN_SLICE_MARKERS, errors)
+    require_markers(survey_text, "survey", ARCH_TOKEN_SURVEY_MARKERS, errors)
+    require_markers(helper_text, "helper", ARCH_TOKEN_HELPER_MARKERS, errors)
+    require_markers(replay_text, "replay", ARCH_TOKEN_REPLAY_MARKERS, errors)
+
+    require_markers(survey_text, "survey", BOUNDARY_SURVEY_MARKERS, errors)
     require_markers(reviewability_text, "reviewability", REVIEWABILITY_MARKERS, errors)
     require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_MARKERS, errors)
 
     return errors
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
 
 
 def seed_fixture_tree(root: Path) -> None:
@@ -201,43 +222,61 @@ def seed_fixture_tree(root: Path) -> None:
         json.dumps(
             {
                 "lane_key": "P13-L01",
-                "surveyed_commit": "46a78c958bba5c1eb819b3213a6409f81ee7ab22",
+                "phase": "Phase 13",
+                "surveyed_commit": "master-readback-2026-05-13",
+                "anchor": "lib/devres.c",
+                "roadmap_destinations": [
+                    "lib/devres.zig",
+                    "zigux/tests/",
+                    "Documentation/zigux/",
+                ],
                 "survey_summary": {
                     "preexisting_phase13_build_present": False,
+                    "preexisting_phase13_make_target_present": True,
+                    "preexisting_devres_zig_present": True,
                     "preexisting_phase13_devres_test_present": True,
+                    "preexisting_phase13_devres_slice_present": True,
                     "preexisting_phase13_devres_reviewability_present": True,
                     "preexisting_phase13_devres_survey_present": True,
+                    "preexisting_phase13_devres_dma_coherent_present": True,
                 },
                 "gaps": [
-                    {"id": "phase13-devres-live-scatterlist-ownership"},
+                    {"id": "phase13-make-target"},
+                    {"id": "phase13-devres-helper-starter"},
+                    {"id": "phase13-devres-slice-note"},
+                    {"id": "phase13-devres-survey-note"},
+                    {"id": "phase13-devres-test-gate"},
+                    {"id": "phase13-devres-reviewability-gate"},
+                    {"id": "phase13-devres-iounmap-planner"},
+                    {"id": "phase13-devres-of-iomap-planner"},
+                    {"id": "phase13-devres-arch-phys-wc-token-planner"},
+                    {"id": "phase13-devres-live-mmio-mappings"},
+                    {"id": "phase13-devres-live-device-tree-walk"},
+                    {"id": "phase13-devres-live-arch-memtype-state"},
                 ],
             },
             indent=2,
         )
         + "\n",
     )
-    write_text(
-        root / SLICE_PATH,
-        "\n".join(
-            [
-                "# Phase 13 devres Slice",
-                "- keep the `devm_iounmap()` pointer match exact",
-            ]
-        )
-        + "\n",
-    )
+    write_text(root / SLICE_PATH, "devm_iounmap()\ndevm_arch_phys_wc_add()\n")
     write_text(
         root / SURVEY_PATH,
         "\n".join(
             [
                 "# Phase 13 devres Survey",
-                "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
-                "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
-                "- `devm_iounmap()` stays helper-first",
-                "- the direct replay and reviewability files now point at the same `P13-L01` helper packet",
-                "- keep the helper-only DMA/scatterlist boundary explicit",
-                "- `scripts/zigux/check-phase13-devres-packet-alignment.py` keeps the packet truthfulness guard explicit",
-                "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
+                "`P13-L01` helper packet",
+                "master-readback-2026-05-13",
+                "devm_iounmap()",
+                "devm_arch_phys_wc_add()",
+                "live arch memtype state transitions",
+                "phase13-devres-live-mmio-mappings",
+                "phase13-devres-live-device-tree-walk",
+                "phase13-devres-live-arch-memtype-state",
+                "live MMIO mappings",
+                "live device-tree walking",
+                "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+                "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
             ]
         )
         + "\n",
@@ -246,16 +285,14 @@ def seed_fixture_tree(root: Path) -> None:
         root / HELPER_PATH,
         "\n".join(
             [
-                "pub const ModuleDescriptor = struct {",
-                "    provides_iounmap_call_planning: bool,",
-                "};",
                 ".provides_iounmap_call_planning = true",
-                "pub const ManagedIounmapPlan = struct {",
-                "    warns_on_release_miss: bool,",
-                "};",
-                "pub fn ioremapReleaseMatches(",
+                "pub const ManagedIounmapPlan = struct {}",
                 "pub fn planManagedIounmap(",
-                "    .warns_on_release_miss = !release_matches",
+                ".warns_on_release_miss = !release_matches",
+                ".provides_arch_phys_wc_token_planning = true",
+                "pub const ManagedPhysWcAddInput = struct {}",
+                "pub const ManagedPhysWcAddPlan = struct {}",
+                "pub fn planArchPhysWcAdd(",
             ]
         )
         + "\n",
@@ -264,15 +301,13 @@ def seed_fixture_tree(root: Path) -> None:
         root / REPLAY_PATH,
         "\n".join(
             [
-                'test "phase13 devres manifest records the current helper packet" {',
-                '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
-                '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"46a78c958bba5c1eb819b3213a6409f81ee7ab22\\"");',
-                "}",
                 'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-                "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
-                "  const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
-                "  try std.testing.expect(miss.warns_on_release_miss);",
-                "}",
+                "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
+                "try std.testing.expect(miss.warns_on_release_miss);",
+                'test "phase13 devres retains phys WC release tokens on successful token add" {',
+                'test "phase13 devres frees phys WC release records when token add fails" {',
+                '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
+                '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"master-readback-2026-05-13\\"");',
             ]
         )
         + "\n",
@@ -282,16 +317,12 @@ def seed_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
-                '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
-                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
-                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
-                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
-                "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
-                '        "phase13-devres-test-gate",',
-                '        "phase13-devres-reviewability-gate",',
-                '        "phase13-devres-dma-coherent-replay",',
-                "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
-                "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
+                '  try std.testing.expectEqualStrings("master-readback-2026-05-13", manifest.surveyed_commit);',
+                '  try expectGap(manifest, "phase13-make-target", "starter_landed", "zigux/Makefile", "stable shared Phase 13 replay handle");',
+                '  try expectGap(manifest, "phase13-devres-arch-phys-wc-token-planner", "starter_landed", "lib/devres.zig", "negative token results");',
+                '  try expectGap(manifest, "phase13-devres-live-arch-memtype-state", "blocked_on_live_arch_memtype_state", "lib/devres.zig", "mutating real memtype state");',
+                "  try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
+                "  try std.testing.expectEqual(@as(usize, 3), blocked_count);",
             ]
         )
         + "\n",
@@ -300,26 +331,18 @@ def seed_fixture_tree(root: Path) -> None:
         root / DMA_REPLAY_PATH,
         "\n".join(
             [
-                'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
-                'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": true");',
-                'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
-                'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": true");',
-                'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
-                'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
-                'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
-                'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
-                'try requireContains(survey, "helper-first packet");',
+                '"preexisting_phase13_devres_dma_coherent_present": true',
+                '"phase13-devres-live-mmio-mappings"',
+                '"phase13-devres-live-arch-memtype-state"',
             ]
         )
         + "\n",
     )
 
 
-def assert_only(got: list[str], want: list[str], label: str) -> None:
-    if got != want:
-        got_text = ",".join(got) or "none"
-        want_text = ",".join(want) or "none"
-        raise SystemExit(f"phase13-devres-alignment-self-test:{label}:got={got_text}:want={want_text}")
+def assert_only(actual: list[str], expected: list[str], label: str) -> None:
+    if actual != expected:
+        raise SystemExit(f"{label}:expected={expected}:actual={actual}")
 
 
 def run_self_test() -> int:
@@ -331,246 +354,72 @@ def run_self_test() -> int:
         assert_only(validate(root), [], "baseline_failed")
         case_count += 1
 
-        write_text(root / SURVEY_PATH, STALE_SLICE_MARKER + "\n")
+        seed_fixture_tree(root)
+        write_text(root / SURVEY_PATH, "missing lane key\n")
         assert_only(
             validate(root),
             [
                 "survey:lane_key_mismatch:P13-L01",
-                "survey:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22",
-                "survey:stale_slice_label",
-                "survey:missing_marker:helper-only DMA/scatterlist boundary",
+                "survey:surveyed_commit_mismatch:master-readback-2026-05-13",
                 "survey:missing_stale_checker_warning",
                 "survey:missing_current_checker_marker",
                 "survey:missing_marker:devm_iounmap()",
+                "survey:missing_marker:devm_arch_phys_wc_add()",
+                "survey:missing_marker:live arch memtype state transitions",
+                "survey:missing_marker:phase13-devres-live-mmio-mappings",
+                "survey:missing_marker:phase13-devres-live-device-tree-walk",
+                "survey:missing_marker:phase13-devres-live-arch-memtype-state",
+                "survey:missing_marker:live MMIO mappings",
+                "survey:missing_marker:live device-tree walking",
             ],
-            "stale_slice_label_failed",
+            "survey_missing_markers_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(
-            root / REVIEWABILITY_PATH,
-            "\n".join(
-                [
-                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
-                    '        "phase13-devres-test-gate",',
-                    '        "phase13-devres-reviewability-gate",',
-                    '        "phase13-devres-dma-coherent-replay",',
-                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
-                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["reviewability:lane_key_mismatch:P13-L01"],
-            "reviewability_lane_key_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / REVIEWABILITY_PATH,
-            "\n".join(
-                [
-                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
-                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
-                    '        "phase13-devres-test-gate",',
-                    '        "phase13-devres-reviewability-gate",',
-                    '        "phase13-devres-dma-coherent-replay",',
-                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
-                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["reviewability:missing_marker:manifest.survey_summary.preexisting_phase13_devres_test_present"],
-            "reviewability_marker_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / REVIEWABILITY_PATH,
-            "\n".join(
-                [
-                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
-                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
-                    '        "phase13-devres-test-gate",',
-                    '        "phase13-devres-reviewability-gate",',
-                    '        "phase13-devres-dma-coherent-replay",',
-                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
-                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["reviewability:missing_marker:manifest.survey_summary.preexisting_phase13_devres_survey_present"],
-            "reviewability_survey_marker_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / REVIEWABILITY_PATH,
-            "\n".join(
-                [
-                    '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
-                    '  try std.testing.expectEqualStrings("46a78c958bba5c1eb819b3213a6409f81ee7ab22", manifest.surveyed_commit);',
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);",
-                    "  try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);",
-                    '        "phase13-devres-test-gate",',
-                    '        "phase13-devres-reviewability-gate",',
-                    '        "phase13-devres-dma-coherent-replay",',
-                    "    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);",
-                    "    try std.testing.expectEqual(@as(usize, 3), blocked_count);",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["reviewability:missing_marker:manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present"],
-            "reviewability_dma_coherent_marker_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / SURVEY_PATH,
-            "\n".join(
-                [
-                    "# Phase 13 devres Survey",
-                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
-                    "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
-                    "- `devm_iounmap()` stays helper-first",
-                    "- keep the helper-only DMA/scatterlist boundary explicit",
-                    "- `scripts/zigux/check-phase13-devres-packet-alignment.py` keeps the packet truthfulness guard explicit",
-                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["survey:lane_key_mismatch:P13-L01"],
-            "survey_lane_key_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / SURVEY_PATH,
-            "\n".join(
-                [
-                    "# Phase 13 devres Survey",
-                    "- `PHASE13_SLICE=devres-helper-mmio-safety-survey`",
-                    "- reviewed against live `master` `46a78c958bba5c1eb819b3213a6409f81ee7ab22`",
-                    "- `devm_iounmap()` stays helper-first",
-                    "- keep the helper-only DMA/scatterlist boundary explicit",
-                    "- older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
-                ]
-            )
-            + "\n",
-        )
+        write_text(root / REVIEWABILITY_PATH, "P13-L01 only\n")
         assert_only(
             validate(root),
             [
-                "survey:lane_key_mismatch:P13-L01",
-                "survey:missing_current_checker_marker",
+                "reviewability:surveyed_commit_mismatch:master-readback-2026-05-13",
+                "reviewability:missing_marker:\"master-readback-2026-05-13\"",
+                "reviewability:missing_marker:\"phase13-make-target\"",
+                "reviewability:missing_marker:\"phase13-devres-arch-phys-wc-token-planner\"",
+                "reviewability:missing_marker:\"phase13-devres-live-arch-memtype-state\"",
+                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
+                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 3), blocked_count);",
             ],
-            "current_checker_marker_failed",
+            "reviewability_missing_markers_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(
-            root / DMA_REPLAY_PATH,
-            "\n".join(
-                [
-                    'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": false");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": true");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
-                    'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
-                    'try requireContains(survey, "helper-first packet");',
-                ]
-            )
-            + "\n",
-        )
+        write_text(root / HELPER_PATH, ".provides_iounmap_call_planning = true\n")
         assert_only(
             validate(root),
-            ["dma_replay:preexisting_phase13_devres_test_present_mismatch:True"],
-            "dma_replay_bool_failed",
+            [
+                "helper:missing_marker:pub const ManagedIounmapPlan",
+                "helper:missing_marker:pub fn planManagedIounmap(",
+                "helper:missing_marker:.warns_on_release_miss = !release_matches",
+                "helper:missing_marker:.provides_arch_phys_wc_token_planning = true",
+                "helper:missing_marker:pub const ManagedPhysWcAddInput",
+                "helper:missing_marker:pub const ManagedPhysWcAddPlan",
+                "helper:missing_marker:pub fn planArchPhysWcAdd(",
+            ],
+            "helper_missing_markers_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(
-            root / DMA_REPLAY_PATH,
-            "\n".join(
-                [
-                    'try requireContains(manifest, "\\"preexisting_phase13_build_present\\": false");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_test_present\\": true");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_reviewability_present\\": true");',
-                    'try requireContains(manifest, "\\"preexisting_phase13_devres_survey_present\\": false");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-test-gate\\"");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-reviewability-gate\\"");',
-                    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-dma-coherent-replay\\"");',
-                    'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
-                    'try requireContains(survey, "helper-first packet");',
-                ]
-            )
-            + "\n",
-        )
+        write_text(root / DMA_REPLAY_PATH, "nothing useful\n")
         assert_only(
             validate(root),
-            ["dma_replay:preexisting_phase13_devres_survey_present_mismatch:True"],
-            "dma_replay_survey_bool_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / REPLAY_PATH,
-            "\n".join(
-                [
-                    'test "phase13 devres manifest records the current helper packet" {',
-                    '  try expectContains(manifest_text, "\\"lane_key\\": \\"P13-L01\\"");',
-                    '  try expectContains(manifest_text, "\\"surveyed_commit\\": \\"10369315cba5d146a7c6c4c6480ef9d279dc490f\\"");',
-                    "}",
-                    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-                    "  const exact = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4000);",
-                    "  const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
-                    "  try std.testing.expect(miss.warns_on_release_miss);",
-                    "}",
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            ["replay:surveyed_commit_mismatch:46a78c958bba5c1eb819b3213a6409f81ee7ab22"],
-            "surveyed_commit_mismatch_failed",
+            [
+                "dma_replay:preexisting_phase13_devres_dma_coherent_present_mismatch:True",
+                "dma_replay:missing_marker:\"phase13-devres-live-mmio-mappings\"",
+                "dma_replay:missing_marker:\"phase13-devres-live-arch-memtype-state\"",
+            ],
+            "dma_replay_missing_markers_failed",
         )
         case_count += 1
 
