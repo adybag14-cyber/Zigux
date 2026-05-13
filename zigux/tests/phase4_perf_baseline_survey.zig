@@ -144,7 +144,7 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
 
 test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"keep scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
+        "\"reversible_delivery_evidence\": \"keep scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
     );
     try requireMarker(
         "the dedicated local-only perf packet, the dedicated local-only checker, the shared rollback-ownership matrix, the exact-readback note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
@@ -156,7 +156,7 @@ test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
 
 test "phase4 perf baseline survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
+        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
     );
     try requireMarker(
         "decision-owner, coordination-owner, acceptable-limit, and shared-CI-pending promotion markers; only widen beyond that packet if a later bounded Phase 4 lane intentionally approves broader shared CI perf coverage.",
