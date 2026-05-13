@@ -98,6 +98,7 @@ REQUIRED_BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = (
     "include/zigux/dev_t.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
@@ -107,6 +108,7 @@ REQUIRED_BOUNDARY_NOTE_NEXT_STEP_MARKERS = (
     *REQUIRED_BOUNDARY_NOTE_POLICY_MARKERS,
     "include/zigux/dev_t.h",
     "zigux/uapi/version.zig",
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
 )
