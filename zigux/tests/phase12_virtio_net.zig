@@ -337,3 +337,76 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
     try std.testing.expect(plan.must_restore_before_data_queues);
     try std.testing.expectEqual(@as(u16, 6), plan.command_count);
 }
+
+test "phase12 virtio net recovery replay requires a fresh probe and only reuses replanned refill state" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 6000,
+        .existing_room_bytes = 0,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+
+    _ = try lab.freezeForReset();
+    const first_plan = try lab.recoveryQueuePlan();
+    try std.testing.expect(first_plan.requires_mergeable_buffer_refill);
+
+    const restored = try lab.restoreAfterReset();
+    try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+    try std.testing.expectError(error.ProbeSnapshotUnavailable, lab.freezeForReset());
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = true,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 2,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = true,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+
+    const second_freeze = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.remembered_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), second_freeze.remembered_total_queue_count);
+    try std.testing.expect(second_freeze.receive_buffer_refill_required);
+    try std.testing.expect(!second_freeze.mergeable_buffer_refill_required);
+
+    const second_plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 1), second_plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), second_plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), second_plan.first_control_queue_index);
+    try std.testing.expect(!second_plan.rss_enabled);
+    try std.testing.expect(second_plan.requires_receive_buffer_refill);
+    try std.testing.expect(!second_plan.requires_mergeable_buffer_refill);
+}
