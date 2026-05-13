@@ -8,6 +8,9 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
+MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
+PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
+
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -21,6 +24,8 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
+    MANIFEST_PATH,
+    PHASE8_BUILD_PATH,
 ]
 
 REQUIRED_MARKERS = {
@@ -124,6 +129,20 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-libbpf-segments-test`",
     ],
+    MANIFEST_PATH: [
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "perf-buffer-online-cpu-routing", "status": "deferred_high_risk"',
+        '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
+    ],
+    PHASE8_BUILD_PATH: [
+        '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),',
+        '.root_source_file = b.path("phase8_libbpf_segments.zig"),',
+        '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),',
+        '.root_source_file = b.path("phase8_file_path_handle_bridge.zig"),',
+        '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),',
+        '.root_source_file = b.path("phase8_perf_buffer_poll.zig"),',
+    ],
 }
 
 
@@ -198,6 +217,8 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_makefile", "zigux/Makefile"),
+        ("missing_manifest", MANIFEST_PATH),
+        ("missing_phase8_build", PHASE8_BUILD_PATH),
     ]
     marker_cases = [
         (
@@ -556,6 +577,76 @@ def run_self_test() -> None:
             "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
             "`zigux/tests/phase8_perf_buffer_poll_review_build.zig`",
             "zigux/tests/README.md: `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        ),
+        (
+            "manifest_fdinfo_helper_anchor",
+            MANIFEST_PATH,
+            '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+            '"slug": "fdinfo-map-info-helpers", "status": "queued_helper"',
+            f"{MANIFEST_PATH}: " + '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        ),
+        (
+            "manifest_map_reuse_anchor",
+            MANIFEST_PATH,
+            '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+            '"slug": "map-reuse-compatibility", "status": "queued_helper"',
+            f"{MANIFEST_PATH}: " + '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        ),
+        (
+            "manifest_perf_buffer_online_cpu_anchor",
+            MANIFEST_PATH,
+            '"slug": "perf-buffer-online-cpu-routing", "status": "deferred_high_risk"',
+            '"slug": "perf-buffer-online-cpu-routing", "status": "starter_landed"',
+            f"{MANIFEST_PATH}: " + '"slug": "perf-buffer-online-cpu-routing", "status": "deferred_high_risk"',
+        ),
+        (
+            "manifest_perf_buffer_poll_bookkeeping_anchor",
+            MANIFEST_PATH,
+            '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
+            '"slug": "perf-buffer-poll-bookkeeping", "status": "deferred_high_risk"',
+            f"{MANIFEST_PATH}: " + '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
+        ),
+        (
+            "phase8_build_verify_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),',
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/review_verify.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),',
+        ),
+        (
+            "phase8_build_segments_root_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("phase8_libbpf_segments.zig"),',
+            '.root_source_file = b.path("phase8_libbpf_segments_review.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("phase8_libbpf_segments.zig"),',
+        ),
+        (
+            "phase8_build_bridge_helper_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),',
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_bridge_review.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),',
+        ),
+        (
+            "phase8_build_bridge_root_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("phase8_file_path_handle_bridge.zig"),',
+            '.root_source_file = b.path("phase8_file_path_handle_bridge_review.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("phase8_file_path_handle_bridge.zig"),',
+        ),
+        (
+            "phase8_build_perf_buffer_helper_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),',
+            '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll_review.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),',
+        ),
+        (
+            "phase8_build_perf_buffer_root_anchor",
+            PHASE8_BUILD_PATH,
+            '.root_source_file = b.path("phase8_perf_buffer_poll.zig"),',
+            '.root_source_file = b.path("phase8_perf_buffer_poll_review.zig"),',
+            f"{PHASE8_BUILD_PATH}: " + '.root_source_file = b.path("phase8_perf_buffer_poll.zig"),',
         ),
     ]
 
