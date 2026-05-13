@@ -197,7 +197,7 @@ REQUIRED_MARKERS = {
     LOADER_GAP_SURVEY_PATH: [
         "phase 9 runtime loader gap survey keeps note and manifest aligned with the live shared packet",
         "phase 9 runtime loader gap survey keeps the shared replay routes and no-dedicated-validator boundary explicit",
-        "phase 9 runtime loader gap survey keeps rollback and metadata-only trace-events evidence explicit",
+        "phase 9 runtime loader gap survey keeps rollback, metadata-only trace-events evidence, and prepared-state drift proof explicit",
         "shared_runtime_loader_files_present",
         "shared_runtime_loader_contract_present",
         "shared_loader_shared_tests_route_present",
