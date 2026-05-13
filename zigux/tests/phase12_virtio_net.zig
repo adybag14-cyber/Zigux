@@ -10,6 +10,8 @@ test "phase12 virtio net probe starter stays anchored to virtio_net.c" {
     try std.testing.expect(descriptor.provides_mergeable_receive_buffer_planner);
     try std.testing.expect(descriptor.provides_receive_refill_summary);
     try std.testing.expect(descriptor.provides_queue_recovery_planner);
+    try std.testing.expect(descriptor.provides_control_queue_recovery_planner);
+    try std.testing.expect(descriptor.provides_control_queue_payload_shape_planner);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_net_device);
     try std.testing.expect(!descriptor.touches_control_virtqueue_runtime);
