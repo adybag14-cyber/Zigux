@@ -48,7 +48,6 @@ ARCH_TOKEN_SLICE_MARKERS = [
 
 ARCH_TOKEN_SURVEY_MARKERS = [
     "devm_arch_phys_wc_add()",
-    "live arch memtype state transitions",
 ]
 
 ARCH_TOKEN_HELPER_MARKERS = [
@@ -365,12 +364,12 @@ def run_self_test() -> int:
                 "survey:missing_current_checker_marker",
                 "survey:missing_marker:devm_iounmap()",
                 "survey:missing_marker:devm_arch_phys_wc_add()",
-                "survey:missing_marker:live arch memtype state transitions",
                 "survey:missing_marker:phase13-devres-live-mmio-mappings",
                 "survey:missing_marker:phase13-devres-live-device-tree-walk",
                 "survey:missing_marker:phase13-devres-live-arch-memtype-state",
                 "survey:missing_marker:live MMIO mappings",
                 "survey:missing_marker:live device-tree walking",
+                "survey:missing_marker:live arch memtype state transitions",
             ],
             "survey_missing_markers_failed",
         )
