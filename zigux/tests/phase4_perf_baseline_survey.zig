@@ -272,6 +272,14 @@ test "phase4 perf baseline survey keeps the dedicated local checker local-only" 
         "scripts/zigux/check-phase4-perf-baseline-packet.py",
         "build_unexpected_marker:test_step.dependOn(&run_perf_baseline_survey_tests.step);",
     );
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "workflow_unexpected_marker:phase4-perf-baseline-survey",
+    );
+    try requireRepoMarker(
+        "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py",
+    );
 }
 
 test "phase4 perf baseline survey stays outside the shared test and workflow packet" {
@@ -290,5 +298,9 @@ test "phase4 perf baseline survey stays outside the shared test and workflow pac
     try requireRepoMarkerAbsent(
         ".github/workflows/zigux-bootstrap.yml",
         "phase4-perf-baseline-survey",
+    );
+    try requireRepoMarkerAbsent(
+        ".github/workflows/zigux-bootstrap.yml",
+        "check-phase4-perf-baseline-packet.py",
     );
 }
