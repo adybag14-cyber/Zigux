@@ -65,7 +65,7 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 * keep ownership and lifetime boundaries visible through explicit initialization, replay, reset, and teardown states
 * keep non-destructive preview and snapshot behavior explicit so reviewers can inspect queued state without inferring hidden mutation
 * keep rollover and queue-shape cues explicit through `visibleSpanSummary()` and `usesWrappedStorageWindow()`
-* keep helper-boundary behavior explicit at empty, short-drain, full, overflow, and reset edges
+* keep helper-boundary behavior explicit at empty, short-drain, full, overflow, skip-at-capacity, and reset edges
 * keep procfs, user-copy, locking, and module-registration claims out of scope unless a later runtime lane lands the required substrate first
 
 In practice, the approved idiom is a bounded side-by-side sample, not a claim that Zigux already ships `proc_create()`, `kfifo_from_user()`, `kfifo_to_user()`, or runtime module parity.
@@ -86,6 +86,7 @@ The directly readable sample file already makes these checks and cues visible:
 * empty enqueue copies `0` bytes
 * a short drain of `"hello"` yields `"hel"` and leaves `"lo"` queued in order
 * overflow at full capacity is rejected
+* `skipByte()` at full capacity returns `0`, reopens one slot, and keeps the later wrap cue reviewable instead of leaving that helper boundary implicit
 * a full-capacity preview is non-truncating
 * `runPreviewBoundaryReplay()` and `runWrappedPreviewReplay()` keep bounded queue-shape and rollover evidence explicit
 * `reset()` clears queue contents without rewinding lifecycle bookkeeping
@@ -102,7 +103,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig`, keep these promp
 * does `reviewContract().focus` still keep the cue order explicit for `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`?
 * do `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()` still keep preview, rollover, and queue-shape evidence visible from the sample file itself?
 * does the lifecycle stay explicit through `init()`, `runAnchorReplay()`, `reset()`, and `exit()` instead of leaving ownership review to outside surfaces?
-* do helper-boundary checks still keep empty, short-drain, overflow, full-preview, and reset behavior visible from the sample packet?
+* do helper-boundary checks still keep empty, short-drain, skip-at-capacity, overflow, full-preview, and reset behavior visible from the sample packet?
 * if shared Phase 5 docs or tests later mention the bytestream replay packet again, are those references limited to paths that are directly readable on current `master` instead of older or inferred route claims?
 * do the docs still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
