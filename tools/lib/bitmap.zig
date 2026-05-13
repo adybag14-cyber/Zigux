@@ -137,6 +137,10 @@ pub fn bitmap_weight(src: []const Word, nbits: usize) usize {
     return weight(src, nbits);
 }
 
+pub fn __bitmap_weight(src: []const Word, nbits: usize) usize {
+    return weight(src, nbits);
+}
+
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -152,6 +156,10 @@ pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize)
 }
 
 pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    orBits(dst, src1, src2, nbits);
+}
+
+pub fn __bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     orBits(dst, src1, src2, nbits);
 }
 
@@ -179,6 +187,10 @@ pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
 }
 
 pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    xorBits(dst, src1, src2, nbits);
+}
+
+pub fn __bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     xorBits(dst, src1, src2, nbits);
 }
 
@@ -217,6 +229,10 @@ pub fn bitmap_and(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
     return andBits(dst, src1, src2, nbits);
 }
 
+pub fn __bitmap_and(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return andBits(dst, src1, src2, nbits);
+}
+
 pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
@@ -240,6 +256,10 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
 }
 
 pub fn bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return andNotBits(dst, src1, src2, nbits);
+}
+
+pub fn __bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     return andNotBits(dst, src1, src2, nbits);
 }
 
@@ -307,6 +327,10 @@ pub fn bitmap_equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     return equal(src1, src2, nbits);
 }
 
+pub fn __bitmap_equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return equal(src1, src2, nbits);
+}
+
 pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -332,6 +356,10 @@ pub fn bitmap_intersects(src1: []const Word, src2: []const Word, nbits: usize) b
     return intersects(src1, src2, nbits);
 }
 
+pub fn __bitmap_intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return intersects(src1, src2, nbits);
+}
+
 pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -354,6 +382,10 @@ pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
 }
 
 pub fn bitmap_subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return subset(src1, src2, nbits);
+}
+
+pub fn __bitmap_subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     return subset(src1, src2, nbits);
 }
 
@@ -387,6 +419,10 @@ pub fn bitmap_set(map: []Word, start: usize, len: usize) void {
     setRange(map, start, len);
 }
 
+pub fn __bitmap_set(map: []Word, start: usize, len: usize) void {
+    setRange(map, start, len);
+}
+
 pub fn clearRange(map: []Word, start: usize, len: usize) void {
     if (len == 0) {
         return;
@@ -414,6 +450,10 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
 }
 
 pub fn bitmap_clear(map: []Word, start: usize, len: usize) void {
+    clearRange(map, start, len);
+}
+
+pub fn __bitmap_clear(map: []Word, start: usize, len: usize) void {
     clearRange(map, start, len);
 }
 
@@ -974,6 +1014,48 @@ test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops" {
     const rendered = bitmap_scnprintf(&[_]Word{}, 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), rendered);
     try std.testing.expectEqual(@as(u8, 0xaa), buffer[0]);
+}
+
+test "bitmap low-level __bitmap aliases mirror the primary helper surface" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0x0f, (@as(Word, 1) << 2) };
+
+    try std.testing.expectEqual(weight(&lhs, nbits), __bitmap_weight(&lhs, nbits));
+
+    var primary_range = [_]Word{ 0, 0 };
+    var alias_range = [_]Word{ 0, 0 };
+    setRange(&primary_range, 1, 3);
+    __bitmap_set(&alias_range, 1, 3);
+    setRange(&primary_range, bits_per_long + 2, 2);
+    __bitmap_set(&alias_range, bits_per_long + 2, 2);
+    try std.testing.expectEqualSlices(Word, &primary_range, &alias_range);
+
+    clearRange(&primary_range, 1, 3);
+    __bitmap_clear(&alias_range, 1, 3);
+    clearRange(&primary_range, bits_per_long + 2, 2);
+    __bitmap_clear(&alias_range, bits_per_long + 2, 2);
+    try std.testing.expectEqualSlices(Word, &primary_range, &alias_range);
+
+    var primary_dst = [_]Word{ 0, 0 };
+    var alias_dst = [_]Word{ 0, 0 };
+    orBits(&primary_dst, &lhs, &rhs, nbits);
+    __bitmap_or(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    xorBits(&primary_dst, &lhs, &rhs, nbits);
+    __bitmap_xor(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(andBits(&primary_dst, &lhs, &rhs, nbits), __bitmap_and(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), __bitmap_andnot(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(equal(&lhs, &rhs, nbits), __bitmap_equal(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), __bitmap_intersects(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(subset(&rhs, &lhs, nbits), __bitmap_subset(&rhs, &lhs, nbits));
 }
 
 test "bitmap Linux-style aliases mirror the primary helper surface" {
