@@ -27,6 +27,7 @@ REQUIRED_CONTEXT = (
     "`drivers/virtio/virtio_verify.zig`",
     "`zigux/tests/phase10_virtio_ring.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`zigux/tests/phase10_virtio_ring_survey.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_input.zig`",
     "`zigux/tests/phase10_virtio_input_probe_preflight.zig`",
@@ -278,6 +279,19 @@ def run_self_test() -> int:
     else:
         raise AssertionError("expected ring reset reuse marker failure")
 
+    missing_ring_survey_entry = good.replace(
+        "`zigux/tests/phase10_virtio_ring_manifest.json`, "
+        "`zigux/tests/phase10_virtio_ring_survey.zig`, ",
+        "`zigux/tests/phase10_virtio_ring_manifest.json`, ",
+        1,
+    )
+    try:
+        check_text(missing_ring_survey_entry)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_ring_survey.zig`" in str(exc)
+    else:
+        raise AssertionError("expected ring survey marker failure")
+
     missing_ring_reset_reuse_summary = good.replace(
         "the lane-sequenced virtio ring plus the focused `drivers/virtio/virtio_ring_verify.zig` and "
         "`zigux/tests/phase10_virtio_ring_reset_reuse.zig` drained-reset reuse replays, ",
@@ -292,7 +306,7 @@ def run_self_test() -> int:
         raise AssertionError("expected ring reset reuse summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
