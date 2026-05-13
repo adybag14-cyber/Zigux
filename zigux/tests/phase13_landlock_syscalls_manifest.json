@@ -63,7 +63,7 @@
     },
     {
       "id": "phase13-landlock-live-ruleset-state",
-      "status": "blocked_on_live-ruleset-state",
+      "status": "blocked_on_live_ruleset_state",
       "kind": "runtime_boundary",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The current helper packet does not claim live ruleset ownership, live private-data lifecycle, or real syscall enforcement, so runtime ruleset state remains outside this bounded lane."
