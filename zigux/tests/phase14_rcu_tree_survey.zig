@@ -332,6 +332,10 @@ test "phase 14 rcu tree bridge boundary map exists as review-only evidence" {
     try std.testing.expect(contains(bridge, "pub const lane_key = \"P14-L14\""));
     try std.testing.expect(contains(bridge, "pub const status_bucket = \"freeze_in_c\""));
     try std.testing.expect(contains(bridge, "pub const blocked_gap = \"phase14-rcu-tree-bridge-blocker\""));
+    try std.testing.expect(contains(bridge, "nocb_offload_wakeup_handoff"));
+    try std.testing.expect(contains(bridge, "idle_watch_reentry_and_core_invocation"));
+    try std.testing.expect(contains(bridge, "quiescent_state_propagation_and_callback_acceleration"));
+    try std.testing.expect(contains(bridge, "callback_enqueue_and_batch_invocation"));
     try std.testing.expect(contains(bridge, "public_wait_and_callback_barrier"));
     try std.testing.expect(contains(bridge, "cpu_hotplug_callback_migration"));
     try std.testing.expect(contains(bridge, "live_bridge_claim = false"));
@@ -394,6 +398,6 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and 
     try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[7].id);
     try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[7].anchor_symbols[0]);
     try std.testing.expectEqualStrings("rcutree_offline_cpu", checklist[7].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcu_migrate_callbacks", checklist[7].anchor_symbols[2]);
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[7].anchor_symbols[2]);
     try std.testing.expect(contains(checklist[7].rationale, "callback migration"));
 }
