@@ -28,6 +28,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "perf_buffer__poll(timeout_ms)");
     try expectContains(note, "wait-result classification");
     try expectContains(note, "normalized negative errno-or-ready-count wait results");
+    try expectContains(note, "ordered ready-buffer cursor traversal");
     try expectContains(note, "ready-buffer bookkeeping");
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
@@ -42,6 +43,38 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
     try expectContains(note, "no standalone clockevent helper");
+}
+
+test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .error_code = -32 },
+        .{ .ready = true },
+        .{},
+        .{ .ready = true, .error_code = -11 },
+    };
+
+    const first = perf_buffer_poll.advanceReadyBufferCursor(&buffers, 0);
+    try std.testing.expectEqual(@as(usize, 0), first.start_index);
+    try std.testing.expectEqual(@as(?usize, 2), first.ready_index);
+    try std.testing.expectEqual(@as(usize, 3), first.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 2), first.skipped_nonready_count);
+
+    const second = perf_buffer_poll.advanceReadyBufferCursor(&buffers, first.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 3), second.start_index);
+    try std.testing.expectEqual(@as(?usize, 4), second.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), second.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 1), second.skipped_nonready_count);
+
+    const exhausted = perf_buffer_poll.advanceReadyBufferCursor(&buffers, second.next_scan_index);
+    try std.testing.expectEqual(@as(?usize, null), exhausted.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), exhausted.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 0), exhausted.skipped_nonready_count);
+
+    const past_end = perf_buffer_poll.advanceReadyBufferCursor(&buffers, 9);
+    try std.testing.expectEqual(@as(?usize, null), past_end.ready_index);
+    try std.testing.expectEqual(@as(usize, 5), past_end.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 0), past_end.skipped_nonready_count);
 }
 
 test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
