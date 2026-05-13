@@ -14,4 +14,11 @@ static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t f
     return zigux_default_header(flags);
 }
 
+static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags)
+{
+    struct zigux_boundary_header header = zigux_default_header(flags);
+    header.size = size;
+    return header;
+}
+
 #endif
