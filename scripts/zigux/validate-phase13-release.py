@@ -43,6 +43,7 @@ REQUIRED_FILES = [
     "zigux/helpers/notifier_chain_view.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/abi.h",
+    "drivers/tty/hvc/hvc_console.h",
 ]
 
 REQUIRED_MARKERS = {
@@ -170,6 +171,7 @@ REQUIRED_MARKERS = {
         "`zigux/helpers/notifier_chain_view.zig`",
         "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
+        "`drivers/tty/hvc/hvc_console.h`",
         "repo-reality gaps",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
@@ -299,6 +301,15 @@ def run_self_test() -> int:
             "missing_priority_signal_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        (root / "drivers/tty/hvc/hvc_console.h").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:drivers/tty/hvc/hvc_console.h"],
+            "missing_hvc_notifier_header_failed",
+        )
+        write_text(root, "drivers/tty/hvc/hvc_console.h", "/* stub */\n")
         case_count += 1
 
         (root / "Documentation/zigux/phase13-landlock-ruleset-survey.md").unlink()
