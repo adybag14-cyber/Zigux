@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checks for the current Phase 6 exact perf-threshold packet."""
+"""Fail-closed checks for the current partially blocked Phase 6 perf packet."""
 
 from __future__ import annotations
 
@@ -17,17 +17,30 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
-SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
-TESTS_README_PATH = Path("zigux/tests/README.md")
-REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
-WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
-MAKEFILE_PATH = Path("zigux/Makefile")
-BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
+HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
+HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
-HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+
+ABSENT_PATHS = [
+    BASE64_PERF_PATH,
+    BASE64_VECTORS_PATH,
+    CHECKSUM_PERF_PATH,
+    CHECKSUM_VECTORS_PATH,
+]
+
+PRESENT_PATHS = [
+    MANIFEST_PATH,
+    SURVEY_PATH,
+    CATALOG_PATH,
+    BASE64_SLICE_PATH,
+    CHECKSUM_SLICE_PATH,
+    HEXDUMP_SLICE_PATH,
+    HEXDUMP_VECTORS_PATH,
+]
 
 BASE64_CASES = [
     {
@@ -37,8 +50,6 @@ BASE64_CASES = [
         "iterations": 12000,
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
-        "file_marker": '.{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
-        "fixture_marker": '.{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "STD_NO_PAD",
@@ -47,8 +58,6 @@ BASE64_CASES = [
         "iterations": 12000,
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
-        "file_marker": '.{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
-        "fixture_marker": '.{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "URLSAFE_PAD",
@@ -57,8 +66,6 @@ BASE64_CASES = [
         "iterations": 12000,
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
-        "file_marker": '.{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
-        "fixture_marker": '.{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
     {
         "label": "URLSAFE_NO_PAD",
@@ -67,109 +74,57 @@ BASE64_CASES = [
         "iterations": 12000,
         "max_encode_slowdown_pct": 150,
         "max_decode_slowdown_pct": 325,
-        "file_marker": '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
-        "fixture_marker": '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
     },
 ]
 
 CHECKSUM_CASES = [
-    {
-        "label": "64B",
-        "iterations": 200000,
-        "max_slowdown_pct": 150,
-        "file_marker": '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 150, },',
-    },
-    {
-        "label": "1501B",
-        "iterations": 12000,
-        "max_slowdown_pct": 150,
-        "file_marker": '.{ .label = "1501B", .bytes = &payload_1501, .iterations = 12_000, .max_slowdown_pct = 150, },',
-    },
+    {"label": "64B", "iterations": 200000, "max_slowdown_pct": 150},
+    {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150},
 ]
 
 HEXDUMP_CASES = [
-    {
-        "label": "16B-plain-g1",
-        "reps": 40000,
-        "max_slowdown_pct": 175,
-        "required_fragments": ['.label = "16B-plain-g1"', ".reps = 40_000", ".max_slowdown_pct = 175"],
-    },
-    {
-        "label": "32B-ascii-g2",
-        "reps": 10000,
-        "max_slowdown_pct": 550,
-        "required_fragments": ['.label = "32B-ascii-g2"', ".reps = 10_000", ".max_slowdown_pct = 550"],
-    },
-    {
-        "label": "16B-ascii-g4",
-        "reps": 20000,
-        "max_slowdown_pct": 550,
-        "required_fragments": ['.label = "16B-ascii-g4"', ".reps = 20_000", ".max_slowdown_pct = 550"],
-    },
-    {
-        "label": "16B-ascii-g8",
-        "reps": 20000,
-        "max_slowdown_pct": 600,
-        "required_fragments": ['.label = "16B-ascii-g8"', ".reps = 20_000", ".max_slowdown_pct = 600"],
-    },
+    {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
+    {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
 ]
 
-SURVEY_SNIPPETS = [
-    "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
-    "* checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` still pins two perf cases, `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases",
-    "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
-]
+EXPECTED_SHARED_NOTE = (
+    "base64 still keeps lib/base64.zig plus the direct C parity packet while its focused replay "
+    "and perf files remain absent, and checksum still lacks lib/checksum.zig plus its helper-owned "
+    "replay, perf, and fixture files even though shared routes and reminder surfaces still need "
+    "follow-up to stop advertising that broader packet as fully runnable."
+)
 
-BASE64_SLICE_SNIPPETS = [
-    "- the dedicated base64 slowdown gate stays helper-local through `zigux/tests/phase6_base64_perf.zig` and `make -C zigux phase6-base64-perf`",
-    "- `zigux/tests/fixtures/phase6_base64_vectors.zig` owns the current slowdown corpus boundary through `perfReferenceSupportedVariant()`, so the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands",
-    "- the same fixture packet now carries a helper drift guard that exact-checks `lib/base64.zig`'s public sizing, encode, decode, and invalid-input surface against the committed standard, variant, and perf-backed vectors before the dedicated perf replay runs",
-]
-
-BASE64_VECTOR_SNIPPETS = [
-    'pub const perf_cases = [_]PerfCase{',
-    'pub const perf_payload_buf_size = perf_payload.len;',
-    'std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe")',
-]
-
-CATALOG_BASE64_SNIPPETS = [
-    "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
-    "- exact threshold marker rerun route: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
-    "- current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines",
-]
-
-SCRIPTS_ROUTE_SNIPPETS = [
-    "- `check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
-    "- `make -C zigux phase6-perf` keeps the three dedicated base64, checksum, and hexdump slowdown gates visible together while `bsearch` stays on its bounded comparison-budget evidence path instead of a separate timing route.",
-]
-
-TESTS_ROUTE_SNIPPETS = [
-    "  * keep `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` explicit in the tests root so the shipped dedicated base64, checksum, and hexdump perf routes stay visible alongside the shared packet without implying that `make -C zigux phase6-perf` or `make -C zigux phase6` replays every helper-local slowdown gate",
-]
-
-REVIEW_ROUTE_SNIPPETS = [
-    "* if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-perf`, `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet plus the current split perf posture, where `make -C zigux phase6-perf` aggregates only the base64, checksum, and hexdump slowdown gates while `bsearch` stays on its bounded comparison-budget evidence path, without implying a removed shared `validate-phase6.py` or a broader external parity checker beyond `check-phase6-shared-surface.py`?",
-]
-
-BUILD_ROUTE_SNIPPETS = [
-    'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
-    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
-    'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
-    "hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
-]
-
-MAKEFILE_ROUTE_SNIPPETS = [
-    "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-    "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-    "phase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-    "phase6-perf: phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf",
-]
-
-WORKFLOW_ROUTE_SNIPPETS = [
-    "- name: Run Phase 6 base64 perf gate\n        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
-    "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
-    "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
-]
+REQUIRED_SNIPPETS = {
+    SURVEY_PATH.as_posix(): [
+        "* aggregated route note: `make -C zigux phase6-perf` still exists as a narrow convenience wrapper for `phase6-base64-perf`, `phase6-checksum-perf`, and `phase6-hexdump-perf`, but current `master` only keeps the hexdump leg runnable from the committed tree because the base64 and checksum replay files listed below are absent",
+        "* base64 shared posture: `lib/base64.zig` still ships the helper, but current `master` no longer carries `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, or `zigux/tests/fixtures/phase6_base64_vectors.zig`, even though `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise `phase6-base64-perf`; that slowdown gate is currently documentary rather than runnable from the committed tree",
+        "* base64 exact thresholds: the last base64 packet documented four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, but current `master` no longer carries the base64 perf replay or fixture that would let this survey re-read those values from committed base64-owned evidence",
+        "* checksum shared posture: `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still advertise a dedicated checksum slowdown gate, but current `master` lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`, so that replay is currently not runnable from the committed tree",
+        "* checksum exact thresholds: the last checksum packet documented `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, but current `master` no longer carries the checksum perf replay or fixture that would let this survey re-read those values from committed checksum-owned evidence",
+        "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
+        "* the convenience `make -C zigux phase6-perf` route is not a fully truthful summary of shared perf posture on `master` until the base64 and checksum helper packets are restored or the shared route is rewritten to exclude those absent slowdown gates",
+    ],
+    CATALOG_PATH.as_posix(): [
+        "- currently missing helper-local replay surfaces on `master`: `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- current missing helper-local helper and perf packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- current perf-route posture: the shared perf survey above keeps the base64 and checksum slowdown routes documentary until their missing helper-owned replay files return, so the aggregate `phase6-perf` route should be read as inventory evidence rather than a truthful current-`master` replay summary",
+    ],
+    BASE64_SLICE_PATH.as_posix(): [
+        "- `PHASE6_STATUS=blocked`",
+        "- current `master` lacks `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module",
+    ],
+    CHECKSUM_SLICE_PATH.as_posix(): [
+        "- `PHASE6_STATUS=blocked`",
+        "- current `master` still lacks the broader checksum helper packet under `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
+    ],
+    HEXDUMP_SLICE_PATH.as_posix(): [
+        "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle; `16B-plain-g1` stays capped at `max_slowdown_pct = 175`, `32B-ascii-g2` and `16B-ascii-g4` stay capped at `max_slowdown_pct = 550`, and `16B-ascii-g8` stays capped at `max_slowdown_pct = 600`, with `zigux/tests/phase6_hexdump_perf_matrix.zig` exact-checking the documented case labels, lengths, row sizes, group sizes, ascii flags, replay counts, slowdown caps, and buffer-fit guard before `zigux/tests/phase6_hexdump_perf.zig` times expected output and required length for every fixture-backed perf case",
+    ],
+}
 
 
 def read_text(path: Path) -> str:
@@ -186,27 +141,32 @@ def read_json(path: Path) -> object:
         raise ValidationError(f"invalid JSON in {path}: {exc}") from exc
 
 
-def ensure_text_markers(path: Path, markers: list[str], repo_root: Path) -> None:
-    content = read_text(repo_root / path)
-    for marker in markers:
-        if marker not in content:
-            raise ValidationError(f"missing expected Phase 6 marker in {path}: {marker}")
-
-
-def ensure_case_fragments(path: Path, cases: list[dict[str, object]], repo_root: Path) -> None:
-    content = read_text(repo_root / path)
-    for case in cases:
-        for fragment in case["required_fragments"]:
-            if fragment not in content:
-                raise ValidationError(
-                    f"missing expected Phase 6 marker in {path} for {case['label']}: {fragment}"
-                )
+def require_snippets(repo_root: Path) -> None:
+    for rel_path, snippets in REQUIRED_SNIPPETS.items():
+        content = read_text(repo_root / rel_path)
+        for snippet in snippets:
+            if snippet not in content:
+                raise ValidationError(f"missing expected Phase 6 marker in {rel_path}: {snippet}")
 
 
 def validate_manifest(repo_root: Path) -> None:
     manifest = read_json(repo_root / MANIFEST_PATH)
     if not isinstance(manifest, dict):
         raise ValidationError(f"expected object in {MANIFEST_PATH}")
+
+    if manifest.get("status") != "partially_blocked":
+        raise ValidationError(f"unexpected status in {MANIFEST_PATH}: {manifest.get('status')!r}")
+
+    if manifest.get("shared_route_truthfulness_note") != EXPECTED_SHARED_NOTE:
+        raise ValidationError(f"unexpected shared_route_truthfulness_note in {MANIFEST_PATH}")
+
+    perf_posture = manifest.get("perf_posture")
+    if perf_posture != {
+        "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
+        "comparison_budget_helpers": ["bsearch"],
+        "timing_sanity_only_helpers": [],
+    }:
+        raise ValidationError(f"unexpected perf_posture in {MANIFEST_PATH}")
 
     perf_thresholds = manifest.get("perf_thresholds")
     if not isinstance(perf_thresholds, dict):
@@ -221,18 +181,7 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected base64 fixture in {MANIFEST_PATH}")
     if base64.get("measurement_mode") != "relative_slowdown":
         raise ValidationError(f"unexpected base64 measurement_mode in {MANIFEST_PATH}")
-    base64_cases = base64.get("cases")
-    if base64_cases != [
-        {
-            "label": case["label"],
-            "variant_name": case["variant_name"],
-            "padding": case["padding"],
-            "iterations": case["iterations"],
-            "max_encode_slowdown_pct": case["max_encode_slowdown_pct"],
-            "max_decode_slowdown_pct": case["max_decode_slowdown_pct"],
-        }
-        for case in BASE64_CASES
-    ]:
+    if base64.get("cases") != BASE64_CASES:
         raise ValidationError(f"unexpected base64 cases in {MANIFEST_PATH}")
 
     checksum = perf_thresholds.get("checksum")
@@ -244,15 +193,7 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected checksum fixture in {MANIFEST_PATH}")
     if checksum.get("measurement_mode") != "relative_slowdown":
         raise ValidationError(f"unexpected checksum measurement_mode in {MANIFEST_PATH}")
-    checksum_cases = checksum.get("cases")
-    if checksum_cases != [
-        {
-            "label": case["label"],
-            "iterations": case["iterations"],
-            "max_slowdown_pct": case["max_slowdown_pct"],
-        }
-        for case in CHECKSUM_CASES
-    ]:
+    if checksum.get("cases") != CHECKSUM_CASES:
         raise ValidationError(f"unexpected checksum cases in {MANIFEST_PATH}")
 
     hexdump = perf_thresholds.get("hexdump")
@@ -264,15 +205,7 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected hexdump fixture in {MANIFEST_PATH}")
     if hexdump.get("measurement_mode") != "relative_slowdown":
         raise ValidationError(f"unexpected hexdump measurement_mode in {MANIFEST_PATH}")
-    hexdump_cases = hexdump.get("cases")
-    if hexdump_cases != [
-        {
-            "label": case["label"],
-            "reps": case["reps"],
-            "max_slowdown_pct": case["max_slowdown_pct"],
-        }
-        for case in HEXDUMP_CASES
-    ]:
+    if hexdump.get("cases") != HEXDUMP_CASES:
         raise ValidationError(f"unexpected hexdump cases in {MANIFEST_PATH}")
 
     exact_checks = manifest.get("exact_checks")
@@ -286,23 +219,34 @@ def validate_manifest(repo_root: Path) -> None:
             raise ValidationError(f"missing exact Phase 6 perf-threshold check in {MANIFEST_PATH}: {command}")
 
 
+def validate_paths(repo_root: Path) -> None:
+    for rel_path in PRESENT_PATHS:
+        if not (repo_root / rel_path).exists():
+            raise ValidationError(f"missing required Phase 6 path: {rel_path}")
+    for rel_path in ABSENT_PATHS:
+        if (repo_root / rel_path).exists():
+            raise ValidationError(f"Phase 6 perf path should stay absent in the current packet: {rel_path}")
+
+
+def ensure_hexdump_case_markers(repo_root: Path) -> None:
+    content = read_text(repo_root / HEXDUMP_VECTORS_PATH)
+    for case in HEXDUMP_CASES:
+        for fragment in (
+            f'.label = "{case["label"]}"',
+            f'.reps = {case["reps"]:_}',
+            f'.max_slowdown_pct = {case["max_slowdown_pct"]}',
+        ):
+            if fragment not in content:
+                raise ValidationError(
+                    f"missing expected Phase 6 marker in {HEXDUMP_VECTORS_PATH} for {case['label']}: {fragment}"
+                )
+
+
 def run_checks(repo_root: Path) -> None:
+    validate_paths(repo_root)
     validate_manifest(repo_root)
-    ensure_text_markers(SURVEY_PATH, SURVEY_SNIPPETS, repo_root)
-    ensure_text_markers(CATALOG_PATH, CATALOG_BASE64_SNIPPETS, repo_root)
-    ensure_text_markers(BASE64_SLICE_PATH, BASE64_SLICE_SNIPPETS, repo_root)
-    ensure_text_markers(SCRIPTS_README_PATH, SCRIPTS_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(TESTS_README_PATH, TESTS_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(REVIEW_CHECKLIST_PATH, REVIEW_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(BUILD_PATH, BUILD_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(MAKEFILE_PATH, MAKEFILE_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(WORKFLOW_PATH, WORKFLOW_ROUTE_SNIPPETS, repo_root)
-    ensure_text_markers(BASE64_PERF_PATH, [case["file_marker"] for case in BASE64_CASES], repo_root)
-    ensure_text_markers(BASE64_VECTORS_PATH, BASE64_VECTOR_SNIPPETS, repo_root)
-    ensure_text_markers(BASE64_VECTORS_PATH, [case["fixture_marker"] for case in BASE64_CASES], repo_root)
-    ensure_text_markers(CHECKSUM_PERF_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
-    ensure_text_markers(CHECKSUM_VECTORS_PATH, [case["file_marker"] for case in CHECKSUM_CASES], repo_root)
-    ensure_case_fragments(HEXDUMP_VECTORS_PATH, HEXDUMP_CASES, repo_root)
+    require_snippets(repo_root)
+    ensure_hexdump_case_markers(repo_root)
 
 
 def write(path: Path, content: str) -> None:
@@ -314,9 +258,8 @@ def scaffold_repo(root: Path) -> None:
     manifest = {
         "phase": "Phase 6",
         "tranche": "leaf-helper-parity",
-        "surveyed_commit": "277b3ab",
-        "helpers": [],
-        "shared_gates": [],
+        "status": "partially_blocked",
+        "shared_route_truthfulness_note": EXPECTED_SHARED_NOTE,
         "perf_posture": {
             "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
             "comparison_budget_helpers": ["bsearch"],
@@ -327,57 +270,20 @@ def scaffold_repo(root: Path) -> None:
                 "replay": BASE64_PERF_PATH.as_posix(),
                 "fixture": BASE64_VECTORS_PATH.as_posix(),
                 "measurement_mode": "relative_slowdown",
-                "cases": [
-                    {
-                        "label": case["label"],
-                        "variant_name": case["variant_name"],
-                        "padding": case["padding"],
-                        "iterations": case["iterations"],
-                        "max_encode_slowdown_pct": case["max_encode_slowdown_pct"],
-                        "max_decode_slowdown_pct": case["max_decode_slowdown_pct"],
-                    }
-                    for case in BASE64_CASES
-                ],
+                "cases": BASE64_CASES,
             },
-            "bsearch": {
-                "replay": "zigux/tests/phase6_bsearch.zig",
-                "measurement_mode": "comparison_budget",
-                "typed_lookup_budget": 4,
-                "raw_lookup_budget": 4,
-                "representative_typed_cases": 10,
-                "representative_raw_cases": 10,
-                "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-                "upper_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-                "equality_c_abi_replay": "zigux/tests/phase6_bsearch_c_abi_budget.zig",
-                "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
-                "upper_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
-                "equality_budget_formula": "std.math.log2_int_ceil(len) + 1",
-            },
+            "bsearch": {"measurement_mode": "comparison_budget"},
             "checksum": {
                 "replay": CHECKSUM_PERF_PATH.as_posix(),
                 "fixture": CHECKSUM_VECTORS_PATH.as_posix(),
                 "measurement_mode": "relative_slowdown",
-                "cases": [
-                    {
-                        "label": case["label"],
-                        "iterations": case["iterations"],
-                        "max_slowdown_pct": case["max_slowdown_pct"],
-                    }
-                    for case in CHECKSUM_CASES
-                ],
+                "cases": CHECKSUM_CASES,
             },
             "hexdump": {
                 "replay": "zigux/tests/phase6_hexdump_perf.zig",
                 "fixture": HEXDUMP_VECTORS_PATH.as_posix(),
                 "measurement_mode": "relative_slowdown",
-                "cases": [
-                    {
-                        "label": case["label"],
-                        "reps": case["reps"],
-                        "max_slowdown_pct": case["max_slowdown_pct"],
-                    }
-                    for case in HEXDUMP_CASES
-                ],
+                "cases": HEXDUMP_CASES,
             },
         },
         "exact_checks": [
@@ -386,32 +292,9 @@ def scaffold_repo(root: Path) -> None:
         ],
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-    write(root / SURVEY_PATH, "# Phase 6 Perf Gate Survey\n\n" + "\n".join(SURVEY_SNIPPETS) + "\n")
-    write(
-        root / CATALOG_PATH,
-        "# Phase 6 Helper Parity Catalog\n\n## Packet Rows\n\n### base64\n"
-        + "\n".join(CATALOG_BASE64_SNIPPETS)
-        + "\n",
-    )
-    write(
-        root / BASE64_SLICE_PATH,
-        "# Phase 6 Base64 Slice\n\n## Review Surface\n"
-        + "\n".join(BASE64_SLICE_SNIPPETS)
-        + "\n",
-    )
-    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n" + "\n".join(SCRIPTS_ROUTE_SNIPPETS) + "\n")
-    write(root / TESTS_README_PATH, "# zigux/tests\n\n" + "\n".join(TESTS_ROUTE_SNIPPETS) + "\n")
-    write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n\n" + "\n".join(REVIEW_ROUTE_SNIPPETS) + "\n")
-    write(root / BUILD_PATH, "\n".join(BUILD_ROUTE_SNIPPETS) + "\n")
-    write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_ROUTE_SNIPPETS) + "\n")
-    write(root / WORKFLOW_PATH, "\n".join(WORKFLOW_ROUTE_SNIPPETS) + "\n")
-    write(root / BASE64_PERF_PATH, "\n".join(case["file_marker"] for case in BASE64_CASES) + "\n")
-    write(
-        root / BASE64_VECTORS_PATH,
-        "\n".join(BASE64_VECTOR_SNIPPETS + [case["fixture_marker"] for case in BASE64_CASES]) + "\n",
-    )
-    write(root / CHECKSUM_PERF_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
-    write(root / CHECKSUM_VECTORS_PATH, "\n".join(case["file_marker"] for case in CHECKSUM_CASES) + "\n")
+    for rel_path, snippets in REQUIRED_SNIPPETS.items():
+        title = Path(rel_path).name
+        write(root / rel_path, f"# {title}\n\n" + "\n".join(snippets) + "\n")
     write(
         root / HEXDUMP_VECTORS_PATH,
         "\n".join(
@@ -425,6 +308,8 @@ def scaffold_repo(root: Path) -> None:
 def assert_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
+    if old not in original:
+        raise AssertionError(f"self-test marker not found in {rel_path}: {old}")
     path.write_text(original.replace(old, new, 1), encoding="utf-8")
     try:
         run_checks(root)
@@ -444,74 +329,48 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH,
-            '"measurement_mode": "relative_slowdown"',
-            '"measurement_mode": "wall_clock"',
-        )
-        assert_failure(
-            root,
-            MANIFEST_PATH,
-            '"label": "1501B"',
-            '"label": "1500B"',
+            '"status": "partially_blocked"',
+            '"status": "parked"',
         )
         assert_failure(
             root,
             SURVEY_PATH,
-            "max_decode_slowdown_pct = 325",
-            "max_decode_slowdown_pct = 300",
+            "only keeps the hexdump leg runnable",
+            "keeps all three legs runnable",
         )
         assert_failure(
             root,
             CATALOG_PATH,
-            "current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std` and `urlsafe` baselines",
-            "current review posture: focused helper parity plus the dedicated 24-case direct C-vs-Zig spot check keep the shipped base64 packet reviewable without widening helper semantics, while the helper-local fixture packet now also exact-checks the public sizing, encode, decode, and invalid-input surface before the dedicated slowdown gate reruns the committed `std`, `urlsafe`, and `imap` baselines",
+            "phase6-perf` route should be read as inventory evidence rather than a truthful current-`master` replay summary",
+            "phase6-perf` route is a truthful current-`master` replay summary",
         )
         assert_failure(
             root,
             BASE64_SLICE_PATH,
-            "the shipped perf packet is intentionally limited to the direct `std` and `urlsafe` baselines until an explicit IMAP slowdown baseline lands",
-            "the shipped perf packet is intentionally limited to the direct `std`, `urlsafe`, and `imap` baselines",
+            "this slice is documentary only until the missing focused replay and fixture-backed perf packet return, or the direct C parity runner is rewritten to stop depending on the absent fixture module",
+            "this slice is fully runnable on current `master`",
         )
         assert_failure(
             root,
-            BASE64_PERF_PATH,
-            '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
-            '.{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 16000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325,',
+            CHECKSUM_SLICE_PATH,
+            "this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
+            "this slice is now fully restored",
         )
-        assert_failure(
-            root,
-            BASE64_VECTORS_PATH,
-            '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
-            '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, },',
-        )
-        assert_failure(
-            root,
-            CHECKSUM_PERF_PATH,
-            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 150, },',
-            '.{ .label = "64B", .bytes = &payload_64, .iterations = 200_000, .max_slowdown_pct = 175, },',
-        )
-        assert_failure(
-            root,
-            SURVEY_PATH,
-            "16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
-            "16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 650`",
-        )
+        absent_path = root / BASE64_PERF_PATH
+        write(absent_path, "unexpected\n")
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if BASE64_PERF_PATH.as_posix() not in str(exc):
+                raise AssertionError(f"unexpected absent-path failure: {exc}") from exc
+        else:
+            raise AssertionError("expected absent-path failure")
+        absent_path.unlink()
         assert_failure(
             root,
             HEXDUMP_VECTORS_PATH,
             '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 600, },',
             '.{ .label = "16B-ascii-g8", .reps = 20_000, .max_slowdown_pct = 650, },',
-        )
-        assert_failure(
-            root,
-            MAKEFILE_PATH,
-            "phase6-perf: phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf",
-            "phase6-perf: phase6-base64-perf phase6-hexdump-perf",
-        )
-        assert_failure(
-            root,
-            WORKFLOW_PATH,
-            "Run Phase 6 checksum perf gate",
-            "Run Phase 6 checksum perf replay",
         )
     print("self-test passed")
 
@@ -525,10 +384,7 @@ def main() -> int:
         run_self_test()
         return 0
     run_checks(Path(args.repo_root).resolve())
-    print(
-        "Phase 6 perf-threshold markers look aligned:"
-        f" base64={len(BASE64_CASES)} checksum={len(CHECKSUM_CASES)} hexdump={len(HEXDUMP_CASES)}"
-    )
+    print("Phase 6 perf-threshold markers match the current partially blocked packet.")
     return 0
 
 
