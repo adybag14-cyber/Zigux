@@ -29,7 +29,8 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 ## Current State
 
-- live `include/linux/zigux.h` now already carries the shipped named relay helpers `zigux_export_status_ok()` and `zigux_boundary_header_make()` beside the canonical `include/zigux/abi.h` and `include/zigux/dev_t.h` includes, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- live `include/linux/zigux.h` now already carries the shipped named relay helpers `zigux_export_status_ok()`, `zigux_boundary_header_make()`, and `zigux_boundary_header_make_compatible()` beside the canonical `include/zigux/abi.h` and `include/zigux/dev_t.h` includes, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- the new `zigux_boundary_header_make_compatible()` relay keeps the C-facing constructor split aligned with the shipped `zigux/uapi/version.zig` canonical-versus-future-compatible contract without moving boundary-header ownership out of the canonical ABI header
 - live `include/linux/zigux.h` no longer restates `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally; the C-facing packet now correctly aggregates `include/zigux/dev_t.h` as the single `dev_t` source of truth
 - live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`, so the current exported boundary ownership is no longer version-only even though it remains a deliberately small starter packet beside the shared relay roots
 - the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into additional top-level curated boundary families with their own proof surfaces
@@ -39,7 +40,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Boundary
 
 - `include/linux/zigux.h` may aggregate already-approved helper entry points, but it should not become a second source of truth for canonical struct layout, policy enums, or UAPI version ownership
-- when the Linux-facing relay needs boundary-header or export-status helpers, keep them as thin named relays over the canonical header and starter UAPI ownership rather than turning `include/linux/zigux.h` into a second semantic home
+- when the Linux-facing relay needs boundary-header helpers, keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership rather than turning `include/linux/zigux.h` into a second semantic home
 - when the Linux-facing relay needs `dev_t` minor-width aliases, it should aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally, because those aliases already belong to the canonical `dev_t` boundary
 - if a helper surface needs new ownership wording before it can be reviewed safely, add that wording here first instead of burying it in a dump-only or wrapper-only follow-up
 - if an already-landed helper surface is rehomed into `include/linux/zigux.h`, refresh this note in the same bounded change so the shared ABI slice and the dedicated header-governance note continue to name the same owner map
