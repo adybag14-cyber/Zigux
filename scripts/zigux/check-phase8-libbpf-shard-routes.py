@@ -396,6 +396,20 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: `phase8_cpu_mask.zig`",
         ),
         (
+            "segment_survey_logging_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`phase8_logging.zig`",
+            "`phase8_logging_review.zig`",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `phase8_logging.zig`",
+        ),
+        (
+            "segment_survey_type_names_anchor",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "`phase8_bpf_type_names.zig`",
+            "`phase8_type_names_review.zig`",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: `phase8_bpf_type_names.zig`",
+        ),
+        (
             "segment_survey_pin_path_anchor",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "`phase8_pin_path.zig`",
