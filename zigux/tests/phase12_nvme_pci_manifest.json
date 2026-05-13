@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L08",
   "phase": "Phase 12",
-  "surveyed_commit": "unresolved_on_master",
+  "surveyed_commit": "48f226b2c0640d5b456902931abc26ac122670e1",
   "verified_on": "2026-05-13",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
@@ -18,7 +18,7 @@
     "preexisting_phase12_fallback_note_present": true,
     "preexisting_phase12_reopen_governance_present": true,
     "preexisting_phase12_slice_note_present": false,
-    "preexisting_phase12_survey_note_present": false,
+    "preexisting_phase12_survey_note_present": true,
     "preexisting_phase12_survey_gate_present": false
   },
   "roadmap_gap_check": {
@@ -31,20 +31,20 @@
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "starter_verifier_direct_test_and_manifest_present_shared_build_unwired",
-      "current_surface": "The bounded starter, verifier shard, direct replay, and manifest anchor are all present on current master, keeping queue sizing, PRP-shape accounting, reset freeze rules, and frozen queue-restore budgeting reviewable without claiming shared build wiring or live queue execution.",
-      "blocked_by": "The dedicated survey gate, shared Phase 12 build wiring, and runtime queue execution still remain outside the current packet."
+      "current_surface": "The bounded starter, verifier shard, direct replay, survey note, and manifest anchor are all present on current master, keeping queue sizing, PRP-shape accounting, reset freeze rules, and frozen queue-restore budgeting reviewable without claiming shared build wiring or live queue execution.",
+      "blocked_by": "The dedicated survey gate and shared Phase 12 build wiring still remain outside the current packet."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "recovery_budget_summary_present_throughput_gate_missing",
-      "current_surface": "The current starter now records reset freeze state, remembered admin depth, PRP span pressure, and frozen queue-restore host-DMA budgeting through direct tests and the verifier shard.",
-      "blocked_by": "No throughput benchmark, no transport-backed reset replay, and no dedicated survey gate or slice note are landed yet."
+      "current_surface": "The current starter now records reset freeze state, remembered admin depth, PRP span pressure, and frozen queue-restore host-DMA budgeting through direct tests, the verifier shard, and the survey note.",
+      "blocked_by": "No throughput benchmark, no transport-backed reset replay, and no dedicated survey gate are landed yet."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "driver_local_manifest_present_survey_packet_incomplete",
-      "current_surface": "The fallback map, reopen-governance note, direct replay, verifier shard, and new manifest keep the current NVMe packet explicit as a bounded driver-local starter below the shared Phase 12 build route.",
-      "blocked_by": "A later bounded reland still needs the dedicated survey note, slice note, and survey replay before this family can claim a fuller direct review packet."
+      "status": "driver_local_manifest_and_survey_note_present_survey_packet_incomplete",
+      "current_surface": "The fallback map, reopen-governance note, survey note, direct replay, verifier shard, and manifest keep the current NVMe packet explicit as a bounded driver-local starter below the shared Phase 12 build route.",
+      "blocked_by": "A later bounded reland still needs the dedicated slice note and survey replay before this family can claim a fuller direct review packet."
     }
   },
   "gaps": [
@@ -53,14 +53,14 @@
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
-      "why_now": "The fallback note keeps the current starter, verifier, direct replay, and manifest anchor distinct from the still-missing survey packet during degraded read workflows."
+      "why_now": "The fallback note keeps the current starter, verifier, direct replay, survey note, and manifest anchor distinct from the still-missing slice and survey-gate surfaces during degraded read workflows."
     },
     {
       "id": "phase12-nvme-reopen-governance",
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
-      "why_now": "The driver-local owner map now keeps lane P12-L08 aligned with the shipped starter, verifier, direct replay, and manifest anchor without widening into the shared release packet."
+      "why_now": "The driver-local owner map now keeps lane P12-L08 aligned with the shipped starter, verifier, direct replay, survey note, and manifest anchor without widening into the shared release packet."
     },
     {
       "id": "phase12-nvme-direct-replay",
@@ -74,7 +74,7 @@
       "status": "landed_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
-      "why_now": "The manifest now records lane ownership and the still-blocked survey packet so shared validation can stop treating the direct replay as an unexpected scaffold."
+      "why_now": "The manifest now records lane ownership and the still-blocked survey-gate and slice surfaces so shared validation can stop treating the direct replay as an unexpected scaffold."
     },
     {
       "id": "phase12-nvme-shared-build-route",
@@ -92,10 +92,10 @@
     },
     {
       "id": "phase12-nvme-survey-note",
-      "status": "absent_on_master",
+      "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The dedicated survey note is still missing, leaving the current packet dependent on the fallback map and reopen-governance note for driver-local truthfulness."
+      "why_now": "The survey note now records the bounded starter, verifier shard, direct replay, manifest anchor, and still-blocked shared-build plus runtime boundaries without pretending the broader packet is already wired."
     },
     {
       "id": "phase12-nvme-survey-gate",
