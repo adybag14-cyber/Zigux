@@ -45,6 +45,7 @@ The bounded starter and its archival replay now keep these focused cues explicit
 
 * final-close teardown summary
 * tiny notifier-add open handoff summary
+* khvcd polling-contract summary
 * khvcd worker-entry summary
 * khvcd sleep-and-reschedule handoff summary
 * `__hvc_poll` drain-order summary
