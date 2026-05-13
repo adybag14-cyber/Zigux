@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey`
 - `PHASE12_SLICE=virtio-scsi-roadmap-gap-survey`
-- `PHASE12_LANE=P12-L13`
+- `PHASE12_LANE=P12-L09`
 - scope: verify the bounded `virtio_scsi` Zig starter around queue layout, probe snapshot, host-limit, queue-depth, request-submit sequencing, completion-handback sequencing, command-buffer ownership, io-map, and transport-reset recovery summaries without widening into live DMA-safe request flow, blk-mq execution, `scsi_host` registration, or transport-backed host-scan runtime work
 - verified on: `2026-05-13`
 - repo-truth boundary:
@@ -47,7 +47,7 @@ Those checks mean the current lane now has a truthful survey packet for the exis
 
 ## Rollback and Reversible Delivery
 
-- rollback owner: `P12-L13` keeps the driver-local `virtio_scsi` survey packet truthful while shared PMO notes, build-only checkers, and broader rollback-note upkeep stay in their nearby Phase 12 lanes
+- rollback owner: `P12-L09` keeps the driver-local `virtio_scsi` survey packet truthful while shared PMO notes, build-only checkers, and broader rollback-note upkeep stay in their nearby Phase 12 lanes
 - fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the read-only degraded-read companion for this packet and must not be treated as a second survey note or shipped replay route
 - reversible-delivery evidence: current `master` keeps the direct test, syntax lab, repeated-replan gate, support packet, survey note, survey gate, shared `zigux/tests/phase12_build.zig` route, and `zigux/Makefile` wrappers aligned around the same bounded queue-submit-completion-and-recovery packet
 - rollback drill: when this packet moves, reread the survey note, slice note, fallback catalog, manifest, survey gate, shared build route, and `zigux/Makefile`, then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` before widening the packet
