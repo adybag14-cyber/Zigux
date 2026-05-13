@@ -128,10 +128,12 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "# Phase 13 Shared Helper Lane Sequencing",
         "Treat `make -C zigux phase13-validate` as the stable shared replay handle.",
-        "`P13-L02` owns the current libfs helper packet",
-        "`P13-L08` owns the current devres helper packet",
-        "`P13-L09` owns the current landlock-ruleset replay packet",
-        "`P13-L17` owns the current landlock-syscalls governance-plus-slice-plus-survey-plus-direct-replay packet",
+        "`P13-L04` with verification alias `P13-L03` for `libfs`",
+        "`P13-L01` with scheduled follow-through split `P13-L05` plus `P13-L06` for `devres`",
+        "`P13-L09` with verification alias `P13-L11` for `landlock/ruleset`",
+        "`P13-L17` with scheduled follow-through split `P13-Y04` plus `P13-L13` for `landlock/syscalls`",
+        "`P13-Y08` for shared contributor reminders",
+        "`P13-Y06` for this shared owner-map note.",
         "adjacent notifier evidence owns",
     ],
     "Documentation/zigux/phase13-landlock-ruleset-ownership.md": [
@@ -557,11 +559,7 @@ def run_self_test() -> int:
             ],
             "missing_scripts_readme_notifier_shard_phrase_failed",
         )
-        write_text(
-            root,
-            "scripts/zigux/README.md",
-            "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
-        )
+        write_text(root, "scripts/zigux/README.md", "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n")
         case_count += 1
 
         write_text(
@@ -581,11 +579,7 @@ def run_self_test() -> int:
             ],
             "missing_tests_readme_notifier_chain_view_failed",
         )
-        write_text(
-            root,
-            "zigux/tests/README.md",
-            "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
-        )
+        write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
         case_count += 1
 
         write_text(
