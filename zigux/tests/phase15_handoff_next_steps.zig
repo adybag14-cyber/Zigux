@@ -85,7 +85,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.eql(u8, "parity-scorecard", manifest.adjacent_lane_boundaries[3].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[3].why_out_of_scope, "aggregate-metric") != null);
     try std.testing.expect(std.mem.eql(u8, "readiness-gate", manifest.adjacent_lane_boundaries[4].lane_family));
-    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_laneBoundaries[4].why_out_of_scope, "Validator-first maintenance posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[4].why_out_of_scope, "Validator-first maintenance posture") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.named_reopen_triggers.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.named_reopen_triggers[0].why_now, "dedicated handoff note, manifest, or Zig guard") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.named_reopen_triggers[0].why_now, "shared validator still undercounts") == null);
