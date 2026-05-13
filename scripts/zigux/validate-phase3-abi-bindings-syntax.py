@@ -21,6 +21,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
+    Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
@@ -297,7 +298,19 @@ def run_self_test() -> int:
             print("expected missing repo file was not reported")
             return 1
         case_count += 1
+        boundary_lane_note_rel = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
         _write(root / missing_rel, "# restored\n")
+        (root / boundary_lane_note_rel).unlink()
+        issues = validate_repo(root)
+        expected_boundary_lane_note_missing = (
+            f"missing repo file: {boundary_lane_note_rel.as_posix()}"
+        )
+        if expected_boundary_lane_note_missing not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing boundary-lane note was not reported")
+            return 1
+        case_count += 1
+        _write(root / boundary_lane_note_rel, "# restored\n")
         _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("zigux/uapi/version.zig\n", "", 1))
         issues = validate_repo(root)
         expected_slice_marker = "missing slice marker: zigux/uapi/version.zig"
