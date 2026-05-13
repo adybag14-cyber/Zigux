@@ -30,6 +30,20 @@
     "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
     "why_now": "The ring-buffer packet already lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, and it now carries an explicit maintenance-mode handoff so the next honest posture is parked study-only governance rather than another invented review-only follow-up."
   },
+  "maintenance_handoff": {
+    "current_lane_posture": "maintenance_mode",
+    "replay_before_trusting": [
+      "zig test zigux/tests/phase14_ring_buffer_survey.zig",
+      "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+      "make -C zigux phase14"
+    ],
+    "reopen_conditions": [
+      "the dedicated survey note, manifest, or Zig survey gate drift on surveyed commit, blocked gap, last closed follow-up, or ready-next posture",
+      "the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch",
+      "genuinely narrower stay-in-C evidence appears around reserve or commit publication, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying kernel/trace/ring_buffer.zig"
+    ],
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread Documentation/zigux/phase14-ring-buffer-survey.md, zigux/tests/phase14_ring_buffer_manifest.json, zigux/tests/phase14_ring_buffer_survey.zig, Documentation/zigux/phase14-end-to-end-smoke-survey.md, and Documentation/zigux/phase14-core-boundary-traceability.md, then keep the repair inside the ring-buffer packet instead of reopening workqueue, skbuff, RCU, or a bridge claim"
+  },
   "decision_checklist": [
     {
       "id": "reserve-commit-publication",
