@@ -67,6 +67,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge leaves malformed quoted values as raw scalar values",
     "confdata bridge emits no entries for empty CONFIG symbol names",
     "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
     "confdata bridge keeps only the last state across unset and set transitions",
 ]
 
@@ -852,7 +853,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
