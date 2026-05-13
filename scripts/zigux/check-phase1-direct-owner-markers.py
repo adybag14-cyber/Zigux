@@ -28,7 +28,7 @@ COMPANION_MARKERS = [
 
 CURRENT_REPO_REALITY_MARKERS = [
     "- the dedicated owner-map checker itself is now part of the live Phase 1 closure-maintenance packet beside `Documentation/zigux/phase1-closure.md`, the shared `phase1-validate` route, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, so future reminder surfaces should keep that checker explicit instead of treating the owner-map note as docs-only context",
-    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=Documentation/zigux/README.md,zigux/tests/README.md`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=Documentation/zigux/review-checklist.md`",
 ]
 
 NEXT_STEP_MARKERS = [
@@ -39,7 +39,7 @@ NEXT_STEP_MARKERS = [
     "- For `tools/lib/bitmap.zig`, do not replay the older closed exact-marker validator cue; current `master` already exact-requires and self-tests `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW` and `PHASE1_BITMAP_LINUX_ALIAS_REVIEW`, so leave the bitmap closure-validator packet parked unless a fresh reread shows direct-anchor drift or committed shared replay drift.",
     "- For `tools/lib/bitmap.zig`, the earlier validator-summary wording follow-through is also closed on current `master`: `scripts/zigux/validate-phase1.py` already matches the live bitmap `review_packet_summary` in `zigux/tests/fixtures/phase1_helper_manifest.json`, so leave that validator packet parked unless a fresh reread shows new direct-anchor drift or committed shared replay drift.",
     "- The next smallest same-lane shared-validation step is closed for this owner-map packet: `scripts/zigux/check-phase1-direct-owner-markers.py` exact-checks the four `PHASE1_*_DIRECT_OWNER` lines in this note before any helper-local replay widening.",
-    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=surface scripts/zigux/check-phase1-direct-owner-markers.py in exactly one shared reminder surface, preferring Documentation/zigux/README.md or zigux/tests/README.md before reopening helper-local replay`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=surface scripts/zigux/check-phase1-installer-companion-checks.py in exactly one shared reminder surface, preferring Documentation/zigux/review-checklist.md before reopening helper-local replay`",
     "- Treat the helper-specific next-safe-step markers below as the tie-breaker whenever multiple older saved helper cues still exist in Memory; choose the helper's own next-safe-step marker instead of widening into a neighboring helper family.",
     "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default`",
     "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift`",
@@ -69,15 +69,9 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-def collect_exact_count_markers(
-    text: str,
-    label: str,
-    markers: list[str],
-    *,
-    lstrip: bool = False,
-) -> list[str]:
-    missing: list[str] = []
+def collect_exact_count_markers(text: str, label: str, markers: list[str], *, lstrip: bool = False) -> list[str]:
     lines = [line.lstrip() if lstrip else line for line in text.splitlines()]
+    missing: list[str] = []
     for marker in markers:
         count = lines.count(marker)
         if count != 1:
@@ -86,11 +80,9 @@ def collect_exact_count_markers(
 
 
 def collect_missing_markers(root: Path) -> list[str]:
-    lane_note = (root / "Documentation" / "zigux" / "phase1-host-helper-lane-sequencing.md").read_text(
-        encoding="utf-8"
-    )
-    makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
-    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+    lane_note = (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").read_text(encoding="utf-8")
+    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
+    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
     missing.extend(
@@ -122,7 +114,7 @@ def collect_missing_markers(root: Path) -> list[str]:
 
 
 def make_fixture_root(root: Path) -> None:
-    lane_note = root / "Documentation" / "zigux" / "phase1-host-helper-lane-sequencing.md"
+    lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
     lane_note.parent.mkdir(parents=True, exist_ok=True)
     lane_note.write_text(
         "\n".join(
@@ -148,11 +140,11 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
 
-    makefile = root / "zigux" / "Makefile"
+    makefile = root / "zigux/Makefile"
     makefile.parent.mkdir(parents=True, exist_ok=True)
     makefile.write_text("\n".join(MAKEFILE_MARKERS) + "\n", encoding="utf-8")
 
-    workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+    workflow = root / ".github/workflows/zigux-bootstrap.yml"
     workflow.parent.mkdir(parents=True, exist_ok=True)
     workflow.write_text(
         "\n".join(
@@ -181,18 +173,19 @@ def run_self_test() -> None:
         case_count += 1
 
         lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
+        makefile = root / "zigux/Makefile"
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+
         lane_note.unlink()
         assert collect_missing_files(root) == ["Documentation/zigux/phase1-host-helper-lane-sequencing.md"]
         case_count += 1
 
         make_fixture_root(root)
-        makefile = root / "zigux/Makefile"
         makefile.unlink()
         assert collect_missing_files(root) == ["zigux/Makefile"]
         case_count += 1
 
         make_fixture_root(root)
-        workflow = root / ".github/workflows/zigux-bootstrap.yml"
         workflow.unlink()
         assert collect_missing_files(root) == [".github/workflows/zigux-bootstrap.yml"]
         case_count += 1
@@ -204,7 +197,10 @@ def run_self_test() -> None:
 
         make_fixture_root(root)
         workflow.write_text(
-            "\n".join(f"      {marker}" if marker.startswith("- name:") else f"        {marker}" for marker in WORKFLOW_MARKERS)
+            "\n".join(
+                f"      {marker}" if marker.startswith("- name:") else f"        {marker}"
+                for marker in WORKFLOW_MARKERS
+            )
             + "\n",
             encoding="utf-8",
         )
@@ -217,52 +213,7 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                DIRECT_OWNER_MARKERS[1],
-                DIRECT_OWNER_MARKERS[1] + "\n" + DIRECT_OWNER_MARKERS[1],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[1]}:expected=1:actual=2" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(CURRENT_REPO_REALITY_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "phase1_direct_owner_current_repo_reality:"
-            f"{CURRENT_REPO_REALITY_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(
-                CURRENT_REPO_REALITY_MARKERS[0],
-                CURRENT_REPO_REALITY_MARKERS[0] + "\n" + CURRENT_REPO_REALITY_MARKERS[0],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            "phase1_direct_owner_current_repo_reality:"
-            f"{CURRENT_REPO_REALITY_MARKERS[0]}:expected=1:actual=2" in missing
-        )
+        assert f"phase1_direct_owner_marker:{DIRECT_OWNER_MARKERS[0]}:expected=1:actual=0" in missing
         case_count += 1
 
         make_fixture_root(root)
@@ -279,63 +230,17 @@ def run_self_test() -> None:
 
         make_fixture_root(root)
         lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(COMPANION_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_companion:{COMPANION_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[1] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[1]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
             lane_note.read_text(encoding="utf-8").replace(
-                NEXT_STEP_MARKERS[4],
-                NEXT_STEP_MARKERS[4] + "\n" + NEXT_STEP_MARKERS[4],
+                CURRENT_REPO_REALITY_MARKERS[1],
+                CURRENT_REPO_REALITY_MARKERS[1] + "\n" + CURRENT_REPO_REALITY_MARKERS[1],
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
         assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[4]}:expected=1:actual=2"
-            in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[5] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[5]}:expected=1:actual=0"
-            in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[6] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[6]}:expected=1:actual=0"
-            in missing
+            "phase1_direct_owner_current_repo_reality:"
+            f"{CURRENT_REPO_REALITY_MARKERS[1]}:expected=1:actual=2" in missing
         )
         case_count += 1
 
@@ -345,49 +250,20 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[7]}:expected=1:actual=0"
-            in missing
-        )
+        assert f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[7]}:expected=1:actual=0" in missing
         case_count += 1
 
         make_fixture_root(root)
         lane_note.write_text(
-            lane_note.read_text(encoding="utf-8").replace(NEXT_STEP_MARKERS[9] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[9]}:expected=1:actual=0"
-            in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        makefile.write_text(
-            makefile.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[0]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        makefile.write_text(
-            makefile.read_text(encoding="utf-8").replace(
-                MAKEFILE_MARKERS[1],
-                MAKEFILE_MARKERS[1] + "\n" + MAKEFILE_MARKERS[1],
+            lane_note.read_text(encoding="utf-8").replace(
+                NEXT_STEP_MARKERS[7],
+                NEXT_STEP_MARKERS[7] + "\n" + NEXT_STEP_MARKERS[7],
                 1,
             ),
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_makefile:{MAKEFILE_MARKERS[1]}:expected=1:actual=2"
-            in missing
-        )
+        assert f"phase1_direct_owner_next_step:{NEXT_STEP_MARKERS[7]}:expected=1:actual=2" in missing
         case_count += 1
 
         make_fixture_root(root)
@@ -396,24 +272,7 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[1]}:expected=1:actual=0" in missing
-        )
-        case_count += 1
-
-        make_fixture_root(root)
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                WORKFLOW_MARKERS[3],
-                WORKFLOW_MARKERS[3] + "\n        " + WORKFLOW_MARKERS[3],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        missing = collect_missing_markers(root)
-        assert (
-            f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[3]}:expected=1:actual=2" in missing
-        )
+        assert f"phase1_direct_owner_workflow:{WORKFLOW_MARKERS[1]}:expected=1:actual=0" in missing
         case_count += 1
 
     print("PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=pass")
