@@ -19,6 +19,8 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 
 The live repo still benefits from keeping `exec-cmd` parked as a helper-first, output-stable deferred-exec planning packet: it makes the path-choice, environment-shaping, and argv-shape contracts reviewable without widening into process-launch side effects or unrelated `help.c` behavior.
 
+`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only. It keeps the Phase 8 serious-tooling goal explicit without widening this parked packet into direct process-launch ownership, live environment reads, or terminal-probing parity.
+
 Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.
 
 ## Gates
@@ -67,4 +69,4 @@ This slice does not claim:
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
 ## Next Bounded Step
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more bounded parity step around another helper-only path-choice or argv-shape guard inside this file family. If the lane reopens on reviewability alone, keep it to one equally small update around the focused replay surface instead of widening into sibling Phase 8 anchors.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more bounded parity step around another helper-only path-choice or argv-shape guard inside this file family. If the lane reopens on reviewability alone, keep it to one equally small update around the focused replay surface, reread this slice beside `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and avoid widening into sibling Phase 8 anchors.
