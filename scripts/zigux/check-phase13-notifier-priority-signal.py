@@ -48,6 +48,10 @@ REQUIRED_NOTIFIER_SURVEY_MARKERS = (
     "repo-reality gaps instead of independently shipped evidence",
     "`make -C zigux phase13-validate`",
     "zigux_notifier_chain_has_nonincreasing_priority()",
+    "`zigux/helpers/list_view.zig`",
+    "`zigux/helpers/hlist_view.zig`",
+    "Those still-missing helper paths are the nearest `list_head` and `hlist` interop",
+    "it keeps the still-missing `list_head` and `hlist` helper surfaces explicit as repo-reality gaps",
 )
 
 REQUIRED_RELEASE_NOTES_MARKERS = (
@@ -227,6 +231,8 @@ def run_self_test() -> int:
         mutations = (
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[6]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[7]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[9]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[3]),
             ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS[3]),
             ("contributor-guide", CONTRIBUTOR_GUIDE_PATH, REQUIRED_CONTRIBUTOR_GUIDE_MARKERS[3]),
