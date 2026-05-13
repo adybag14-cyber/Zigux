@@ -23,10 +23,12 @@ MARKERS = {
         "# Phase 11 DesignWare Watchdog Platform Registration Plan",
         "This note records the next bounded follow-up for the surviving Phase 11 DesignWare watchdog packet on current `master`.",
         "The live repository still keeps the DesignWare lane reviewable through:",
+        "`drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries",
         "`drivers/watchdog/dw_wdt_verify.zig` for direct teardown ownership and restart failure-mode parity that stays compile-local and host-free beside the bounded driver packet",
         "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig` for the bounded acquisition-facing scaffold that keeps timer-clock, APB-clock, reset-release, and imported-running handoff reviewable without widening into live platform behavior",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the surviving owner-lane continuity packet, pinned to `P11-L10`",
         "That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.",
+        "The next bounded follow-up is still to keep `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` aligned with one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
         "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` together when the DesignWare packet meaning changes",
         "- keep `drivers/watchdog/dw_wdt_verify.zig` compile-local and host-free so teardown ownership and restart failure-mode parity stay explicit while platform-backed acquisition remains the next bounded follow-through",
         "If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.",
@@ -75,7 +77,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 20
 
 
 class CheckError(RuntimeError):
@@ -133,9 +135,11 @@ def run_self_test() -> None:
 
         cases = [
             ("plan_note", 1),
-            ("plan_note", 4),
-            ("plan_note", 6),
+            ("plan_note", 3),
+            ("plan_note", 5),
+            ("plan_note", 7),
             ("plan_note", 8),
+            ("plan_note", 10),
             ("lane_sequencing", 0),
             ("lane_sequencing", 1),
             ("driver_file", 0),
