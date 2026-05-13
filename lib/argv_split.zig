@@ -26,8 +26,10 @@ pub const ArgvSplitResult = struct {
         };
     }
 
-    pub fn cArgv(self: *const ArgvSplitResult) [*]const ?[*:0]const u8 {
-        return self.argv_null_terminated.ptr;
+    pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {
+        std.debug.assert(self.argv_null_terminated.len == self.argv.len + 1);
+        std.debug.assert(self.argv_null_terminated[self.argv.len] == null);
+        return self.argv_null_terminated[0..self.argv.len :null].ptr;
     }
 };
 
@@ -324,6 +326,18 @@ test "argvSplit preserves C-string termination for the final token and argv vect
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+}
+
+test "cArgv exposes a sentinel-terminated pointer view for Zig callers" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+    defer split.deinit(std.testing.allocator);
+
+    const c_argv_with_sentinel: [:null]const ?[*:0]const u8 = split.cArgv()[0..split.argv.len :null];
+
+    try std.testing.expectEqual(split.argv.len, c_argv_with_sentinel.len);
+    try std.testing.expectEqualStrings("console=ttyS0", std.mem.span(c_argv_with_sentinel[0].?));
+    try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(c_argv_with_sentinel[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), c_argv_with_sentinel[split.argv.len]);
 }
 
 test "argvSplit reuses the exported empty argv view for blank input" {
