@@ -207,6 +207,26 @@ phase7-test:
 
 phase7: phase7-validate phase7-test
 
+phase9-runtime-atomic64-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-bitmap-top-bit-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-trace-events-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-kretprobe-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-loader-shared-tests:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9: phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test
+
 phase11-contract:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py
