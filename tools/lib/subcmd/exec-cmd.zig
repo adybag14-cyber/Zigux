@@ -143,6 +143,10 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
         return error.MissingCurrentWorkingDirectory;
     }
 
+    if (cwd[cwd.len - 1] == '/') {
+        return std.fmt.allocPrint(allocator, "{s}{s}", .{ cwd, path });
+    }
+
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
@@ -565,6 +569,16 @@ test "extractArgv0Path splits command names from directory prefixes" {
     try std.testing.expectEqual(@as(?ExtractArgv0Result, null), try extractArgv0Path(std.testing.allocator, ""));
 }
 
+test "makeNonrelativePath keeps root and trailing-slash cwd joins stable" {
+    const rooted = try makeNonrelativePath(std.testing.allocator, "/", "scripts");
+    defer std.testing.allocator.free(rooted);
+    try std.testing.expectEqualStrings("/scripts", rooted);
+
+    const trailing = try makeNonrelativePath(std.testing.allocator, "/repo/", "tools/bin");
+    defer std.testing.allocator.free(trailing);
+    try std.testing.expectEqualStrings("/repo/tools/bin", trailing);
+}
+
 test "buildSearchPath rewrites relative entries against the working directory" {
     const built = try buildSearchPath(
         std.testing.allocator,
@@ -628,8 +642,21 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
     defer std.testing.allocator.free(root_cwd);
     try std.testing.expectEqualStrings(
-        "//tools/bin://scripts:/usr/bin",
+        "/tools/bin:/scripts:/usr/bin",
         root_cwd,
+    );
+
+    const trailing_slash_cwd = try buildSearchPath(
+        std.testing.allocator,
+        "/work/tree/",
+        "tools/bin",
+        "scripts",
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(trailing_slash_cwd);
+    try std.testing.expectEqualStrings(
+        "/work/tree/tools/bin:/work/tree/scripts:/usr/bin",
+        trailing_slash_cwd,
     );
 }
 
