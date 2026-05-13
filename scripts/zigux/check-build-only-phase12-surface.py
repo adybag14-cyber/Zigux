@@ -716,6 +716,19 @@ def run_self_test() -> int:
         readiness_path = base / RELEASE_READINESS_SURVEY_PATH
         readiness_path.write_text(
             readiness_path.read_text(encoding="utf-8").replace(
+                RELEASE_READINESS_SURVEY_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        readiness_path = base / RELEASE_READINESS_SURVEY_PATH
+        readiness_path.write_text(
+            readiness_path.read_text(encoding="utf-8").replace(
                 RELEASE_READINESS_SURVEY_MARKERS[4], "", 1
             ),
             encoding="utf-8",
@@ -880,7 +893,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=23")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
