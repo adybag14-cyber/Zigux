@@ -11,6 +11,9 @@ import tempfile
 SLICE_NOTE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
 BINDINGS_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-bindings-survey.md")
 BINDINGS_GOVERNANCE_PATH = Path("Documentation/zigux/phase3-bindings-governance.md")
+LINUX_ZIGUX_HEADER_GOVERNANCE_PATH = Path(
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+)
 NEXT_STEP_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 README_PATH = Path("scripts/zigux/README.md")
 
@@ -21,6 +24,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
+    LINUX_ZIGUX_HEADER_GOVERNANCE_PATH,
     Path("include/linux/zigux.h"),
     Path("include/zigux/abi.h"),
     Path("include/zigux/dev_t.h"),
@@ -41,6 +45,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
 )
@@ -50,6 +55,7 @@ SLICE_NOTE_MARKERS = (
     "Documentation/zigux/phase3-abi-bindings-survey.md",
     "Documentation/zigux/phase3-bindings-governance.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
@@ -72,6 +78,7 @@ SLICE_NOTE_MARKERS = (
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "PHASE3_ABI_MANIFEST_FILE_COUNT=",
@@ -154,7 +161,7 @@ DEV_T_HEADER_MARKERS = (
 DEV_T_BINDING_MARKERS = (
     "pub const minor_bits: u5 = 20;",
     "pub const minor_mask: u32 = (@as(u32, 1) << minor_bits) - 1;",
-    "pub const max_major: u32 = (@as(u32, 1) << (32 - minor_bits)) - 1;",
+    "pub const max_major: u32 = ~@as(u32, 0) >> minor_bits;",
     "pub const EncodeError = error{",
     "    MajorOutOfRange,",
     "    MinorOutOfRange,",
@@ -362,14 +369,11 @@ def run_self_test() -> int:
             print("expected missing dev_t slice marker was not reported")
             return 1
         case_count += 1
-        _write(
-            root / NEXT_STEP_NOTE_PATH,
-            _read(root / NEXT_STEP_NOTE_PATH).replace(
-                "scripts/zigux/validate-phase3-abi-bindings-syntax.py\n",
-                "",
-                1,
-            ),
-        )
+        _write(root / NEXT_STEP_NOTE_PATH, _read(root / NEXT_STEP_NOTE_PATH).replace(
+            "scripts/zigux/validate-phase3-abi-bindings-syntax.py\n",
+            "",
+            1,
+        ))
         issues = validate_repo(root)
         expected_next_step_marker = (
             "missing next-step marker: scripts/zigux/validate-phase3-abi-bindings-syntax.py"
@@ -519,6 +523,50 @@ def run_self_test() -> int:
         if expected_low_level_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing low-level README marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / SLICE_NOTE_PATH,
+            _read(root / SLICE_NOTE_PATH).replace(
+                "Documentation/zigux/phase3-linux-zigux-header-governance.md\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_linux_header_governance_marker = (
+            "missing slice marker: Documentation/zigux/phase3-linux-zigux-header-governance.md"
+        )
+        if expected_linux_header_governance_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing linux-zigux-header governance slice marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        missing_header_governance_note = LINUX_ZIGUX_HEADER_GOVERNANCE_PATH
+        (root / missing_header_governance_note).unlink()
+        issues = validate_repo(root)
+        expected_missing_header_governance_note = (
+            f"missing repo file: {missing_header_governance_note.as_posix()}"
+        )
+        if expected_missing_header_governance_note not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing linux-zigux-header governance note was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        missing_header_governance_validator = Path(
+            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+        )
+        (root / missing_header_governance_validator).unlink()
+        issues = validate_repo(root)
+        expected_missing_header_governance_validator = (
+            f"missing repo file: {missing_header_governance_validator.as_posix()}"
+        )
+        if expected_missing_header_governance_validator not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing linux-zigux-header governance validator was not reported")
             return 1
         case_count += 1
         _populate_repo(root)
