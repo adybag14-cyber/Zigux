@@ -44,6 +44,8 @@
     "ambiguous_long_option_expected.json",
     "help_expected.json",
     "version_then_help_expected.json",
+    "version_then_help_expected.json",
+    "help_expected.json",
     "unexpected_help_argument_expected.json",
     "version_expected.json",
     "abbreviated_version_expected.json",
