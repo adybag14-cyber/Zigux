@@ -3,8 +3,10 @@ const skbuff_bridge = @import("skbuff_bridge");
 
 const ChecklistEntry = struct {
     id: []const u8,
+    summary: []const u8,
     ownership: []const u8,
     anchor_symbols: []const []const u8,
+    rationale: []const u8,
 };
 
 const Gap = struct {
