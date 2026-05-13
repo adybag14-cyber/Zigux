@@ -81,6 +81,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
@@ -245,6 +246,20 @@ def run_self_test() -> None:
             f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-exec-cmd-packet.py",
         ),
         (
+            "scripts_readme_bridge_boundary_survey_marker",
+            SCRIPTS_README_PATH,
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-note.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        ),
+        (
+            "scripts_readme_bridge_slice_marker",
+            SCRIPTS_README_PATH,
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        ),
+        (
             "tests_readme_exec_cmd_packet_marker",
             TESTS_README_PATH,
             "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
@@ -294,7 +309,7 @@ def run_self_test() -> None:
             f"{WORKFLOW_PATH}: make -C zigux phase8-validate",
         ),
         (
-            "scripts_readme_bridge_slice_marker",
+            "scripts_readme_bridge_helper_marker",
             SCRIPTS_README_PATH,
             "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
             "Documentation/zigux/phase8-file-path-handle-bridge-outline.md",
