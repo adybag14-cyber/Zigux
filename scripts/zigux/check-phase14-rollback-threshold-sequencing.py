@@ -57,7 +57,7 @@ SELF_TEST_ANCHOR_PACKETS = [
         "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
     },
     {
-        "lane_key": "P14-Y03",
+        "lane_key": "P14-L11",
         "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
         "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
     },
