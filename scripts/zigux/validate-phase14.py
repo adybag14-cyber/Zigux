@@ -285,9 +285,13 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
     )
 
 
-def run_python_checker(root: Path, rel_path: str) -> tuple[int, str]:
+def run_python_checker(
+    root: Path,
+    rel_path: str,
+    extra_args: list[str] | None = None,
+) -> tuple[int, str]:
     result = subprocess.run(
-        [sys.executable, str(root / rel_path)],
+        [sys.executable, str(root / rel_path), *(extra_args or [])],
         cwd=root,
         text=True,
         capture_output=True,
@@ -357,6 +361,22 @@ def run_self_test() -> int:
         if returncode != 0 or output != "phase14 tests-readme smoke summary validated":
             print("PHASE14_SELF_TEST=fail")
             print("SELF_TEST_REASON=unexpected_tests_readme_checker_success_result")
+            print(f"SELF_TEST_CHECKER_RETURN_CODE={returncode}")
+            print(f"SELF_TEST_CHECKER_OUTPUT={output}")
+            return 1
+
+        checker_path.write_text(
+            "import sys\nprint(' '.join(sys.argv[1:]) or 'no-args')\nraise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        returncode, output = run_python_checker(
+            tmp_root,
+            TESTS_README_CHECKER_PATH,
+            ["--self-test"],
+        )
+        if returncode != 0 or output != "--self-test":
+            print("PHASE14_SELF_TEST=fail")
+            print("SELF_TEST_REASON=unexpected_tests_readme_checker_arg_replay_result")
             print(f"SELF_TEST_CHECKER_RETURN_CODE={returncode}")
             print(f"SELF_TEST_CHECKER_OUTPUT={output}")
             return 1
@@ -666,6 +686,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST=pass")
     print("PHASE14_SELF_TEST_JSON_ERROR_MARKER=bad.json:2:1:Expecting property name enclosed in double quotes")
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_PASS_MARKER=phase14 tests-readme smoke summary validated")
+    print("PHASE14_SELF_TEST_TESTS_README_CHECKER_ARG_MARKER=--self-test")
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_FAIL_MARKER=phase14 tests-readme smoke summary failed")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
@@ -696,6 +717,21 @@ def run_validation() -> int:
         for path in missing_files:
             print(path)
         print("MISSING_PHASE14_FILES_END")
+        return 1
+
+    tests_readme_checker_selftest_returncode, tests_readme_checker_selftest_output = run_python_checker(
+        ROOT,
+        TESTS_README_CHECKER_PATH,
+        ["--self-test"],
+    )
+    if tests_readme_checker_selftest_returncode != 0:
+        print("PHASE14_VALIDATION=fail")
+        print("PHASE14_TESTS_README_CHECKER_SELF_TEST_OUTPUT_START")
+        print(
+            tests_readme_checker_selftest_output
+            or "tests-readme smoke checker self-test exited without output"
+        )
+        print("PHASE14_TESTS_README_CHECKER_SELF_TEST_OUTPUT_END")
         return 1
 
     tests_readme_checker_returncode, tests_readme_checker_output = run_python_checker(
