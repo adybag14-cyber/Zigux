@@ -54,6 +54,7 @@ MARKERS = {
         'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
         'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
         'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
+        'test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit"',
         '"watchdog_unregister_device"',
         '"watchdog_stop_on_reboot"',
         '"watchdog_set_restart_priority"',
@@ -77,7 +78,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -146,7 +147,8 @@ def run_self_test() -> None:
             ("driver_file", 6),
             ("verify_file", 0),
             ("verify_file", 4),
-            ("verify_file", 10),
+            ("verify_file", 5),
+            ("verify_file", 11),
             ("registration_scaffold", 0),
             ("registration_scaffold", 2),
             ("registration_scaffold", 3),
