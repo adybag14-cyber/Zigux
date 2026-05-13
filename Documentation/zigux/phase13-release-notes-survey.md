@@ -34,8 +34,9 @@ When current `master` cannot materialize direct helper-packet companions such as
 
 broad summaries should record those paths as repo-reality gaps rather than independently shipped current-`master` evidence.
 
-Broad summaries should also keep the paired Landlock ownership, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:
+Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
@@ -156,6 +157,7 @@ Refresh these notes together when a contributor-facing Phase 13 summary changes:
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
