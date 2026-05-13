@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase13-notifier-priority-signal.py"
+DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 NOTIFIER_SURVEY_PATH = "Documentation/zigux/phase13-notifier-list-survey.md"
 RELEASE_NOTES_PATH = "Documentation/zigux/phase13-release-notes-survey.md"
 TRACEABILITY_PATH = "Documentation/zigux/phase13-roadmap-traceability.md"
@@ -18,6 +19,7 @@ CONTRIBUTOR_SYNC_PATH = "Documentation/zigux/phase10-phase11-phase13-contributor
 TESTS_COMPANION_PATH = "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
 RELEASE_VALIDATOR_PATH = "scripts/zigux/validate-phase13-release.py"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 NOTIFIER_BINDINGS_PATH = "zigux/bindings/notifier_abi.zig"
 NOTIFIER_HELPER_PATH = "zigux/helpers/notifier_chain_view.zig"
 ABI_HEADER_PATH = "include/zigux/abi.h"
@@ -25,6 +27,7 @@ HVC_HEADER_PATH = "drivers/tty/hvc/hvc_console.h"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
+    DOCS_ROOT_PATH,
     NOTIFIER_SURVEY_PATH,
     RELEASE_NOTES_PATH,
     TRACEABILITY_PATH,
@@ -34,10 +37,29 @@ REQUIRED_FILES = (
     TESTS_COMPANION_PATH,
     RELEASE_VALIDATOR_PATH,
     SCRIPTS_README_PATH,
+    TESTS_README_PATH,
     NOTIFIER_BINDINGS_PATH,
     NOTIFIER_HELPER_PATH,
     ABI_HEADER_PATH,
     HVC_HEADER_PATH,
+)
+
+REQUIRED_DOCS_ROOT_MARKERS = (
+    "Phase 13 notes -",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
+    "`zigux/helpers/notifier_chain_view.zig`",
+    "`drivers/tty/hvc/hvc_console.h`",
+    "`zigux/tests/phase13_notifier_list_manifest.json`",
+    "`zigux/tests/phase13_notifier_list_reviewability.zig`",
+    "`scripts/zigux/check-phase13-notifier-packet.py`",
+    "`include/zigux/notifier_abi.h`",
+    "`zigux/helpers/list_view.zig`",
+    "`zigux/helpers/hlist_view.zig`",
+    "keep the adjacent notifier survey, the landed nonincreasing-priority signal guard",
 )
 
 REQUIRED_NOTIFIER_SURVEY_MARKERS = (
@@ -133,6 +155,24 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
 )
 
+REQUIRED_TESTS_README_MARKERS = (
+    "keep the active Phase 13 contributor packet explicit in the tests root too:",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
+    "`zigux/helpers/notifier_chain_view.zig`",
+    "`drivers/tty/hvc/hvc_console.h`",
+    "`zigux/tests/phase13_notifier_list_manifest.json`",
+    "`zigux/tests/phase13_notifier_list_reviewability.zig`",
+    "`scripts/zigux/check-phase13-notifier-packet.py`",
+    "`include/zigux/notifier_abi.h`",
+    "`zigux/helpers/list_view.zig`",
+    "`zigux/helpers/hlist_view.zig`",
+    "keep the adjacent notifier survey, the landed nonincreasing-priority signal guard",
+)
+
 REQUIRED_NOTIFIER_BINDINGS_MARKERS = (
     "pub const NotifierBlock = extern struct {",
     "next: usize,",
@@ -173,6 +213,7 @@ def validate(root: Path) -> list[str]:
         return problems
 
     checks = (
+        ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS),
         ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS),
         ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS),
         ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS),
@@ -182,6 +223,7 @@ def validate(root: Path) -> list[str]:
         ("tests-companion", TESTS_COMPANION_PATH, REQUIRED_TESTS_COMPANION_MARKERS),
         ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS),
         ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS),
+        ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS),
         ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS),
         ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS),
         ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS),
@@ -203,6 +245,7 @@ def write_text(root: Path, rel_path: str, content: str) -> None:
 
 def make_fixture_root(root: Path) -> None:
     write_text(root, SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
+    write_text(root, DOCS_ROOT_PATH, "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root, NOTIFIER_SURVEY_PATH, "\n".join(REQUIRED_NOTIFIER_SURVEY_MARKERS) + "\n")
     write_text(root, RELEASE_NOTES_PATH, "\n".join(REQUIRED_RELEASE_NOTES_MARKERS) + "\n")
     write_text(root, TRACEABILITY_PATH, "\n".join(REQUIRED_TRACEABILITY_MARKERS) + "\n")
@@ -212,6 +255,7 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, TESTS_COMPANION_PATH, "\n".join(REQUIRED_TESTS_COMPANION_MARKERS) + "\n")
     write_text(root, RELEASE_VALIDATOR_PATH, "\n".join(REQUIRED_RELEASE_VALIDATOR_MARKERS) + "\n")
     write_text(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
+    write_text(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(root, NOTIFIER_BINDINGS_PATH, "\n".join(REQUIRED_NOTIFIER_BINDINGS_MARKERS) + "\n")
     write_text(root, NOTIFIER_HELPER_PATH, "\n".join(REQUIRED_NOTIFIER_HELPER_MARKERS) + "\n")
     write_text(root, ABI_HEADER_PATH, "\n".join(REQUIRED_ABI_HEADER_MARKERS) + "\n")
@@ -239,6 +283,8 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{baseline}")
 
         mutations = (
+            ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS[6]),
+            ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS[14]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[6]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[7]),
@@ -264,6 +310,8 @@ def run_self_test() -> int:
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[3]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[6]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[14]),
             ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
             ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
             ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[1]),
