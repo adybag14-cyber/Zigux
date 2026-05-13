@@ -111,12 +111,17 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `zigux/tests/phase13_devres_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `security/landlock/ruleset.zig`
 - `security/landlock/syscalls.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
