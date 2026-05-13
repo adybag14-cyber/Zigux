@@ -23,4 +23,13 @@ Separate helper-backed sample packet
 - later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors
 
 Separate runtime pilot family
-- existing `samples/zigux/runtime_*.zig` files stay in the separate Phase 9 runtime pilot family and are not extra Phase 5 anchors
+- `samples/zigux/runtime_atomic64.zig`
+- `samples/zigux/runtime_atomic64_loader.zig`
+- `samples/zigux/runtime_bitmap.zig`
+- `samples/zigux/runtime_bitmap_loader.zig`
+- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- `samples/zigux/runtime_kretprobe.zig`
+- `samples/zigux/runtime_kretprobe_loader.zig`
+- `samples/zigux/runtime_trace_events.zig`
+- `samples/zigux/runtime_trace_events_loader.zig`
+- the current readable `runtime_*` packet above stays in the separate Phase 9 runtime pilot family and is not extra Phase 5 anchor evidence
