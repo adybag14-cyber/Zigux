@@ -128,7 +128,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 20
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 21
 
 
 def build_validation_commands(
@@ -337,6 +337,20 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=24:expected=25",
                 "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_genksyms_bridge_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (GENKSYMS_BRIDGE_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=24:expected=25",
+                "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py --self-test",
             ],
         ),
         (
