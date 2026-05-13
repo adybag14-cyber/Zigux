@@ -47,6 +47,24 @@ pub const blocked_boundaries = [_]BridgeBoundary{
         .rationale = "The NOCB path still relies on bypass-list pressure, deferred wakeup policy, and callback-offload coordination across tree.c and tree_nocb.h instead of a small bridge seam.",
     },
     .{
+        .id = "idle_watch_reentry_and_core_invocation",
+        .summary = "Keep idle-watch re-entry, dyntick snapshot ordering, and core invocation in C.",
+        .anchor_symbols = &.{ "rcu_is_watching", "rcu_watching_snap_save", "invoke_rcu_core" },
+        .rationale = "Extended-quiescent-state detection still depends on per-CPU watching state, remote dyntick ordering, and the live choice between softirq and rcuc wakeups, so this dyntick boundary remains coupled to live Tree RCU state.",
+    },
+    .{
+        .id = "quiescent_state_propagation_and_callback_acceleration",
+        .summary = "Keep quiescent-state propagation, per-node GP updates, and callback acceleration in C.",
+        .anchor_symbols = &.{ "rcu_report_qs_rnp", "note_gp_changes", "rcu_accelerate_cbs" },
+        .rationale = "Quiescent-state reporting still climbs the rcu_node hierarchy under lock, note_gp_changes() still folds gp-sequence changes into per-CPU callback state, and callback acceleration still depends on segmented callback lists and offload state.",
+    },
+    .{
+        .id = "callback_enqueue_and_batch_invocation",
+        .summary = "Keep callback enqueue, grace-period kick decisions, and batch invocation in C.",
+        .anchor_symbols = &.{ "__call_rcu_common", "call_rcu_core", "rcu_do_batch" },
+        .rationale = "Callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded batch execution rather than a narrow bridge contract.",
+    },
+    .{
         .id = "public_wait_and_callback_barrier",
         .summary = "Keep public wait, polling-cookie, and callback-barrier ownership in C.",
         .anchor_symbols = &.{ "synchronize_rcu", "get_state_synchronize_rcu", "poll_state_synchronize_rcu", "rcu_barrier" },
@@ -75,10 +93,15 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
-    try std.testing.expectEqual(@as(usize, 6), blockedBoundaryCount());
-    try std.testing.expectEqualStrings("expedited_funnel_and_stall_path", blocked_boundaries[2].id);
-    try std.testing.expect(contains(blocked_boundaries[2].summary, "expedited"));
-    try std.testing.expectEqualStrings("nocb_offload_wakeup_handoff", blocked_boundaries[3].id);
-    try std.testing.expect(contains(blocked_boundaries[3].summary, "NOCB"));
-    try std.testing.expect(contains(blocked_boundaries[5].summary, "callback migration"));
+    try std.testing.expectEqual(@as(usize, 9), blockedBoundaryCount());
+    try std.testing.expectEqualStrings("idle_watch_reentry_and_core_invocation", blocked_boundaries[4].id);
+    try std.testing.expect(contains(blocked_boundaries[4].summary, "idle-watch"));
+    try std.testing.expectEqualStrings("quiescent_state_propagation_and_callback_acceleration", blocked_boundaries[5].id);
+    try std.testing.expect(contains(blocked_boundaries[5].summary, "callback acceleration"));
+    try std.testing.expectEqualStrings("callback_enqueue_and_batch_invocation", blocked_boundaries[6].id);
+    try std.testing.expect(contains(blocked_boundaries[6].summary, "batch invocation"));
+    try std.testing.expectEqualStrings("public_wait_and_callback_barrier", blocked_boundaries[7].id);
+    try std.testing.expect(contains(blocked_boundaries[7].summary, "callback-barrier"));
+    try std.testing.expectEqualStrings("cpu_hotplug_callback_migration", blocked_boundaries[8].id);
+    try std.testing.expect(contains(blocked_boundaries[8].summary, "callback migration"));
 }
